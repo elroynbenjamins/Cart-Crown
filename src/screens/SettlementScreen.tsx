@@ -654,8 +654,7 @@ const styles = StyleSheet.create({
   plotLevel: { fontSize: 8.5, fontWeight: '900', marginTop: 2 },
   emptyPlus: { fontSize: 28, fontWeight: '600' },
   emptyText: { fontSize: 9, fontWeight: '800' },
-  terrain: { position: 'absolute', right: 7, bottom: 5, fontSize: 10 },
-  lock: { fontSize: 18 },
+  terrain: { position: 'absolute', right: 7, bottom: 5, alignItems: 'center', justifyContent: 'center' },
   lockText: {
     fontSize: 8,
     fontWeight: '900',
@@ -693,6 +692,7 @@ const styles = StyleSheet.create({
   },
   legendText: { flex: 1, fontSize: 9.5, lineHeight: 14 },
   selectionLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  selectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 4 },
   selectionTitle: { fontSize: 16, fontWeight: '900', marginTop: 3 },
   selectionBody: { fontSize: 10.5, lineHeight: 16, marginTop: 5 },
   buildingList: { gap: 9 },
