@@ -52,6 +52,12 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'ashen_envoy_result';
   const crownspireGateResult =
     lastBattleResult.id === 'gate_of_crownspire_result';
+  const sunderedFieldsResult =
+    lastBattleResult.id === 'sundered_fields_result';
+  const ashenCourtResult =
+    lastBattleResult.id === 'ashen_court_result';
+  const returnToCrownspireResult =
+    lastBattleResult.id === 'return_to_crownspire_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -95,7 +101,57 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {crownspireGateResult ? (
+      {returnToCrownspireResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>HUMAN CAMPAIGN COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Human Oath Seal recovered
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Greenkeep has completed the Human campaign. The Elf and Orc campaigns are now unlocked in this save, while the completed Human kingdom remains available to revisit.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>One seal of three</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              The Human Oath Seal is only one part of the original Concord safeguard. The Root Seal and Clan Seal must still be recovered through the Elf and Orc campaigns before the final Three Seals campaign can begin.
+            </Text>
+          </GameCard>
+        </>
+      ) : ashenCourtResult ? (
+        <>
+          <GameCard accent={theme.colors.danger}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.danger }]}>CROWNFALL CONFIRMED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              The Court forced the Beacon
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Records in the Ashen district confirm the Crownfall began when the Court bypassed the three-part Concord safeguards.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Next: The Forced Beacon</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Greenkeep now knows the truth. The final objective is to recover the Human Oath Seal before the Court can repeat the activation.
+            </Text>
+          </GameCard>
+        </>
+      ) : sunderedFieldsResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>CROWNSPIRE ACCESS</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Concord maintenance route found
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Securing the Sundered Fields exposes a sealed route into the old shared infrastructure beneath Crownspire.
+            </Text>
+          </GameCard>
+        </>
+      ) : crownspireGateResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>FINAL HUMAN TIER UNLOCKED</Text>

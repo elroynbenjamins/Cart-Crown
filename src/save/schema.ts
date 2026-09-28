@@ -115,8 +115,20 @@ export function metadataFromSnapshot(
 
   let chapterLabel = 'Chapter 1 · Hold the Road';
 
-  if (current.chapterNumber >= 6) {
-    chapterLabel = 'Chapter 6 · Grand Council';
+  if (humanComplete) {
+    chapterLabel = 'Human Campaign Complete · Oath Seal';
+  } else if (current.chapterNumber >= 6) {
+    chapterLabel = current.chapterNodes.find(node => node.id === 'ch6_node_6')?.current
+      ? 'Chapter 6 · Return to Crownspire'
+      : current.chapterNodes.find(node => node.id === 'ch6_node_5')?.current
+        ? 'Chapter 6 · The Forced Beacon'
+        : current.chapterNodes.find(node => node.id === 'ch6_node_4')?.current
+          ? 'Chapter 6 · Ashen Court'
+          : current.chapterNodes.find(node => node.id === 'ch6_node_3')?.current
+            ? 'Chapter 6 · Concord Vault'
+            : current.chapterNodes.find(node => node.id === 'ch6_node_2')?.current
+              ? 'Chapter 6 · Sundered Fields'
+              : 'Chapter 6 · Grand Council';
   } else if (current.chapterNumber === 5) {
     chapterLabel = current.chapterNodes.find(node => node.id === 'ch5_node_6')?.current
       ? 'Chapter 5 · Gate of Crownspire'

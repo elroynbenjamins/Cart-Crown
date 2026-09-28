@@ -14,7 +14,10 @@ export type EncounterId =
   | 'pretender_general'
   | 'old_royal_lands'
   | 'ashen_envoy'
-  | 'gate_of_crownspire';
+  | 'gate_of_crownspire'
+  | 'sundered_fields'
+  | 'ashen_court'
+  | 'return_to_crownspire';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -147,6 +150,33 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 1580,
     difficulty: 'Boss'
+  },
+  sundered_fields: {
+    id: 'sundered_fields',
+    name: 'Sundered Fields',
+    subtitle: 'The Grand Campaign crosses the battlefield where the first Crownfall evacuation collapsed.',
+    enemyName: 'Ashen Field Cohort',
+    enemyCount: 6,
+    enemyHp: 1380,
+    difficulty: 'Elite'
+  },
+  ashen_court: {
+    id: 'ashen_court',
+    name: 'Ashen Court',
+    subtitle: 'Greenkeep assaults the Court district inside Crownspire before the Beacon chamber can be sealed.',
+    enemyName: 'Ashen Court Inner Guard',
+    enemyCount: 6,
+    enemyHp: 1780,
+    difficulty: 'Elite'
+  },
+  return_to_crownspire: {
+    id: 'return_to_crownspire',
+    name: 'Return to Crownspire',
+    subtitle: 'The final Human assault reaches the Concord chamber and the Ashen commander holding the Oath Seal.',
+    enemyName: 'Ashen Court Regent',
+    enemyCount: 6,
+    enemyHp: 2400,
+    difficulty: 'Boss'
   }
 };
 
@@ -206,6 +236,18 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   gate_of_crownspire: {
     resources: { gold: 520, wood: 240, stone: 210, iron: 70, provisions: 20 },
     storySummary: 'The western gate opens. Greenkeep reaches Crownspire and can prepare a final Grand Campaign against the Ashen Court around the Concord Beacon.'
+  },
+  sundered_fields: {
+    resources: { gold: 230, wood: 34, stone: 28, iron: 22, provisions: 10 },
+    storySummary: 'The Sundered Fields are secured. Greenkeep reaches a sealed Concord maintenance route beneath Crownspire.'
+  },
+  ashen_court: {
+    resources: { gold: 280, wood: 38, stone: 30, iron: 26, provisions: 12 },
+    storySummary: 'The Ashen Court district falls. Records inside confirm the Court forced the Beacon activation that caused the Crownfall.'
+  },
+  return_to_crownspire: {
+    resources: { gold: 700, wood: 300, stone: 260, iron: 90, provisions: 25 },
+    storySummary: 'The Ashen Regent falls and Greenkeep recovers the Human Oath Seal. The Human campaign is complete.'
   }
 };
 

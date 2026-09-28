@@ -374,3 +374,32 @@ The final Human campaign structure is prepared:
 6. Return to Crownspire
 
 This chapter is designed to resolve the Human perspective on the Crownfall, recover the Human Oath Seal, and set up the later multi-faction Three Seals campaign.
+
+
+## Chapter 6 — Return to Crownspire complete
+
+The final Human campaign is now fully playable:
+
+1. **Grand Council**
+   - confirms the final objective
+   - grants +50 Gold and +30 Provisions
+   - keeps the current Royal Decree active
+2. **Sundered Fields**
+   - first Grand Campaign battle inside the Crownspire approaches
+3. **Concord Vault**
+   - proves the Concord Beacon was maintained jointly by Humans, Elves and Orcs
+   - unlocks **Concord Vault Cache**
+   - +6 Gold, +3 Iron and +2 Provisions per meaningful activity
+4. **Ashen Court**
+   - elite assault on the Court district inside Crownspire
+5. **The Forced Beacon**
+   - confirms the Crownfall was caused by the Ashen Court bypassing the three-part Concord safeguards
+   - locates the Human Oath Seal
+6. **Return to Crownspire**
+   - final Human boss against the Ashen Court Regent
+   - recovers the Human Oath Seal
+   - completes the Human campaign
+
+Completing Humans adds the Oath Seal to shared progress and changes both Elf and Orc campaigns from locked to available in the same save.
+
+The completed Human kingdom remains preserved for revisiting and side activities.

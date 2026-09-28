@@ -50,6 +50,12 @@ export function CampaignScreen({
   onStartAshenEnvoy,
   onOpenRoyalLedger,
   onStartGateOfCrownspire,
+  onOpenGrandCouncil,
+  onStartSunderedFields,
+  onOpenConcordVault,
+  onStartAshenCourt,
+  onOpenForcedBeacon,
+  onStartReturnToCrownspire,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -82,6 +88,12 @@ export function CampaignScreen({
   onStartAshenEnvoy: () => void;
   onOpenRoyalLedger: () => void;
   onStartGateOfCrownspire: () => void;
+  onOpenGrandCouncil: () => void;
+  onStartSunderedFields: () => void;
+  onOpenConcordVault: () => void;
+  onStartAshenCourt: () => void;
+  onOpenForcedBeacon: () => void;
+  onStartReturnToCrownspire: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -395,6 +407,31 @@ export function CampaignScreen({
             node.current &&
             node.id === 'ch5_node_6';
 
+          const grandCouncilPlayable =
+            chapterNumber === 6 &&
+            node.current &&
+            node.id === 'ch6_node_1';
+          const sunderedFieldsPlayable =
+            chapterNumber === 6 &&
+            node.current &&
+            node.id === 'ch6_node_2';
+          const concordVaultPlayable =
+            chapterNumber === 6 &&
+            node.current &&
+            node.id === 'ch6_node_3';
+          const ashenCourtPlayable =
+            chapterNumber === 6 &&
+            node.current &&
+            node.id === 'ch6_node_4';
+          const forcedBeaconPlayable =
+            chapterNumber === 6 &&
+            node.current &&
+            node.id === 'ch6_node_5';
+          const returnToCrownspirePlayable =
+            chapterNumber === 6 &&
+            node.current &&
+            node.id === 'ch6_node_6';
+
           const playable =
             chapterOneBattle ||
             chapterOneStory ||
@@ -424,7 +461,13 @@ export function CampaignScreen({
             brokenArchivesPlayable ||
             ashenEnvoyPlayable ||
             royalLedgerPlayable ||
-            crownspireGatePlayable;
+            crownspireGatePlayable ||
+            grandCouncilPlayable ||
+            sunderedFieldsPlayable ||
+            concordVaultPlayable ||
+            ashenCourtPlayable ||
+            forcedBeaconPlayable ||
+            returnToCrownspirePlayable;
 
           const status = node.completed
             ? 'DONE'
@@ -482,7 +525,19 @@ export function CampaignScreen({
                                                                 ? 'READ LEDGER'
                                                                 : crownspireGatePlayable
                                                                   ? 'BOSS'
-                                                                  : bossPlayable
+                                                                  : grandCouncilPlayable
+                                                                    ? 'COUNCIL'
+                                                                    : sunderedFieldsPlayable
+                                                                      ? 'PLAY'
+                                                                      : concordVaultPlayable
+                                                                        ? 'OPEN VAULT'
+                                                                        : ashenCourtPlayable
+                                                                          ? 'ELITE'
+                                                                          : forcedBeaconPlayable
+                                                                            ? 'TRUTH'
+                                                                            : returnToCrownspirePlayable
+                                                                              ? 'FINAL BOSS'
+                                                                              : bossPlayable
                                 ? 'BOSS'
                             : playable
                               ? 'PLAY'
@@ -548,7 +603,19 @@ export function CampaignScreen({
                                                                   ? onOpenRoyalLedger
                                                                   : crownspireGatePlayable
                                                                     ? onStartGateOfCrownspire
-                                                                    : undefined;
+                                                                    : grandCouncilPlayable
+                                                                      ? onOpenGrandCouncil
+                                                                      : sunderedFieldsPlayable
+                                                                        ? onStartSunderedFields
+                                                                        : concordVaultPlayable
+                                                                          ? onOpenConcordVault
+                                                                          : ashenCourtPlayable
+                                                                            ? onStartAshenCourt
+                                                                            : forcedBeaconPlayable
+                                                                              ? onOpenForcedBeacon
+                                                                              : returnToCrownspirePlayable
+                                                                                ? onStartReturnToCrownspire
+                                                                                : undefined;
 
           return (
             <Pressable

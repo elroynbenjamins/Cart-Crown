@@ -34,7 +34,10 @@ import {
   capitalResourceSites,
   chapterFiveNodes
 } from './chapter5';
-import { chapterSixNodes } from './chapter6';
+import {
+  chapterSixNodes,
+  crownspireResourceSites
+} from './chapter6';
 import {
   getRoyalDecree,
   royalDecrees
@@ -215,6 +218,9 @@ type GameContextValue = {
   chooseLastLoyalistsApproach: (choiceId: LastLoyalistsChoiceId) => boolean;
   completeBrokenArchives: () => boolean;
   completeRoyalLedger: () => boolean;
+  completeGrandCouncil: () => boolean;
+  completeConcordVault: () => boolean;
+  completeForcedBeacon: () => boolean;
   chooseMarcherWarning: (choiceId: MarcherWarningChoiceId) => boolean;
   completeDividedMarch: () => boolean;
   unlockTimberCamp: () => boolean;
@@ -483,7 +489,8 @@ export function GameProvider({
         ...humanResourceSites,
         ...marcherResourceSites,
         ...crownroadResourceSites,
-        ...capitalResourceSites
+        ...capitalResourceSites,
+        ...crownspireResourceSites
       ].filter(site => site.faction === activeFaction),
     [activeFaction]
   );
@@ -796,7 +803,8 @@ export function GameProvider({
           ...humanResourceSites,
           ...marcherResourceSites,
           ...crownroadResourceSites,
-          ...capitalResourceSites
+          ...capitalResourceSites,
+          ...crownspireResourceSites
         ].find(candidate => candidate.id === siteId);
         if (!site) continue;
         const productionMultiplier =
@@ -1263,6 +1271,92 @@ export function GameProvider({
         rewards: { ...reward.resources },
         casualties: 0
       });
+      return;
+    }
+
+    if (encounterId === 'sundered_fields') {
+      if (
+        chapterNumber !== 6 ||
+        !chapterNodes.find(node => node.id === 'ch6_node_2')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch6_node_2') return { ...node, completed: true, current: false };
+          if (node.id === 'ch6_node_3') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'sundered_fields_result',
+        title: 'Sundered Fields Secured',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ashen_court') {
+      if (
+        chapterNumber !== 6 ||
+        !chapterNodes.find(node => node.id === 'ch6_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch6_node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'ch6_node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ashen_court_result',
+        title: 'Ashen Court District Falls',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'return_to_crownspire') {
+      if (
+        chapterNumber !== 6 ||
+        !chapterNodes.find(node => node.id === 'ch6_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'ch6_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setSharedProgress(previous => ({
+        ...previous,
+        completedCampaigns: previous.completedCampaigns.includes('human')
+          ? previous.completedCampaigns
+          : [...previous.completedCampaigns, 'human'],
+        lore: previous.lore.includes('human_oath_seal')
+          ? previous.lore
+          : [...previous.lore, 'human_oath_seal']
+      }));
+      setLastBattleResult({
+        id: 'return_to_crownspire_result',
+        title: 'Human Oath Seal Recovered',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
     }
   };
 
@@ -1718,6 +1812,76 @@ export function GameProvider({
         if (node.id === 'ch5_node_6') {
           return { ...node, current: true };
         }
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const completeGrandCouncil = () => {
+    if (
+      chapterNumber !== 6 ||
+      !chapterNodes.find(node => node.id === 'ch6_node_1')?.current
+    ) return false;
+
+    setResources(previous => ({
+      ...previous,
+      gold: previous.gold + 50,
+      provisions: previous.provisions + 30
+    }));
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch6_node_1') return { ...node, completed: true, current: false };
+        if (node.id === 'ch6_node_2') return { ...node, current: true };
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const completeConcordVault = () => {
+    if (
+      chapterNumber !== 6 ||
+      !chapterNodes.find(node => node.id === 'ch6_node_3')?.current
+    ) return false;
+
+    setUnlockedResourceSites(previous =>
+      previous.includes('concord_cache')
+        ? previous
+        : [...previous, 'concord_cache']
+    );
+    setSharedProgress(previous => ({
+      ...previous,
+      lore: previous.lore.includes('shared_concord_beacon')
+        ? previous.lore
+        : [...previous.lore, 'shared_concord_beacon']
+    }));
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch6_node_3') return { ...node, completed: true, current: false };
+        if (node.id === 'ch6_node_4') return { ...node, current: true };
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const completeForcedBeacon = () => {
+    if (
+      chapterNumber !== 6 ||
+      !chapterNodes.find(node => node.id === 'ch6_node_5')?.current
+    ) return false;
+
+    setSharedProgress(previous => ({
+      ...previous,
+      lore: previous.lore.includes('forced_beacon_truth')
+        ? previous.lore
+        : [...previous.lore, 'forced_beacon_truth']
+    }));
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch6_node_5') return { ...node, completed: true, current: false };
+        if (node.id === 'ch6_node_6') return { ...node, current: true };
         return { ...node, current: false };
       })
     );
@@ -2502,6 +2666,9 @@ export function GameProvider({
       chooseLastLoyalistsApproach,
       completeBrokenArchives,
       completeRoyalLedger,
+      completeGrandCouncil,
+      completeConcordVault,
+      completeForcedBeacon,
       chooseMarcherWarning,
       completeDividedMarch,
       unlockTimberCamp,

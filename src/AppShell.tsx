@@ -18,12 +18,15 @@ import { BrokenSignalTowerScreen } from './screens/BrokenSignalTowerScreen';
 import { BrokenArchivesScreen } from './screens/BrokenArchivesScreen';
 import { CampaignScreen } from './screens/CampaignScreen';
 import { CommanderChoiceScreen } from './screens/CommanderChoiceScreen';
+import { ConcordVaultScreen } from './screens/ConcordVaultScreen';
 import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
 import { ForgeScreen } from './screens/ForgeScreen';
 import { FormationScreen } from './screens/FormationScreen';
 import { FortMusterScreen } from './screens/FortMusterScreen';
 import { FormationTrialScreen } from './screens/FormationTrialScreen';
+import { ForcedBeaconScreen } from './screens/ForcedBeaconScreen';
+import { GrandCouncilScreen } from './screens/GrandCouncilScreen';
 import { KingdomScreen } from './screens/KingdomScreen';
 import { MarkedRaidersScreen } from './screens/MarkedRaidersScreen';
 import { LastLoyalistsScreen } from './screens/LastLoyalistsScreen';
@@ -68,6 +71,9 @@ type FlowScreen =
   | 'royalDecrees'
   | 'brokenArchives'
   | 'royalLedger'
+  | 'grandCouncil'
+  | 'concordVault'
+  | 'forcedBeacon'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -112,6 +118,9 @@ const flowTitles: Record<FlowScreen, string> = {
   royalDecrees: 'Royal Decrees',
   brokenArchives: 'Broken Archives',
   royalLedger: 'The Royal Ledger',
+  grandCouncil: 'Grand Council',
+  concordVault: 'Concord Vault',
+  forcedBeacon: 'The Forced Beacon',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -406,6 +415,39 @@ export function AppShell({
       );
     }
 
+    if (flow === 'grandCouncil') {
+      return (
+        <GrandCouncilScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'concordVault') {
+      return (
+        <ConcordVaultScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'forcedBeacon') {
+      return (
+        <ForcedBeaconScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -518,6 +560,21 @@ export function AppShell({
               setActiveEncounterId('gate_of_crownspire');
               setFlow('battlePrep');
             }}
+            onOpenGrandCouncil={() => setFlow('grandCouncil')}
+            onStartSunderedFields={() => {
+              setActiveEncounterId('sundered_fields');
+              setFlow('battlePrep');
+            }}
+            onOpenConcordVault={() => setFlow('concordVault')}
+            onStartAshenCourt={() => {
+              setActiveEncounterId('ashen_court');
+              setFlow('battlePrep');
+            }}
+            onOpenForcedBeacon={() => setFlow('forcedBeacon')}
+            onStartReturnToCrownspire={() => {
+              setActiveEncounterId('return_to_crownspire');
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -581,6 +638,9 @@ export function AppShell({
     flow === 'royalDecrees' ||
     flow === 'brokenArchives' ||
     flow === 'royalLedger' ||
+    flow === 'grandCouncil' ||
+    flow === 'concordVault' ||
+    flow === 'forcedBeacon' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';
