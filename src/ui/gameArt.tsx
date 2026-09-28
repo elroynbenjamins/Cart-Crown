@@ -17,10 +17,12 @@ import {
   enemyProductionAsset,
   equipmentProductionAsset,
   getProductionAssetSource,
+  resourceProductionAsset,
   resourceSiteProductionAsset,
   storySceneProductionAsset,
   uiProductionAsset,
-  unitProductionAsset
+  unitProductionAsset,
+  wagonItemProductionAsset
 } from './productionAssets';
 
 type PaletteKey =
@@ -1119,7 +1121,12 @@ export function ResourceSprite({
     iron: 'resource_iron',
     provisions: 'resource_provisions'
   };
-  return <PixelSprite artKey={keyByResource[resource]} size={size} />;
+  const production = resourceProductionAsset(resource);
+  return (
+    <ProductionAssetFrame assetId={production.id} width={size}>
+      <PixelSprite artKey={keyByResource[resource]} size={size} />
+    </ProductionAssetFrame>
+  );
 }
 
 export function WagonItemSprite({
@@ -1130,13 +1137,18 @@ export function WagonItemSprite({
   size?: number;
 }) {
   const kind = getWagonItemVisualKind(itemId);
+  const production = wagonItemProductionAsset(itemId, kind);
   const keyByKind: Record<ReturnType<typeof getWagonItemVisualKind>, ArtKey> = {
     rations: 'wagon_rations',
     medicine: 'wagon_medicine',
     banner: 'wagon_banner',
     repair: 'wagon_repair'
   };
-  return <PixelSprite artKey={keyByKind[kind]} size={size} />;
+  return (
+    <ProductionAssetFrame assetId={production.id} width={size}>
+      <PixelSprite artKey={keyByKind[kind]} size={size} />
+    </ProductionAssetFrame>
+  );
 }
 
 const stageRanks: Record<WagonStage['id'], number> = {
