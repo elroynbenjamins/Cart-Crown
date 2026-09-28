@@ -8,18 +8,10 @@ import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
+import { CampaignNodeSprite, FactionCrest } from '../ui/gameArt';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 
 type CampaignView = 'story' | 'activities' | 'factions';
-
-const nodeIcons: Record<string, string> = {
-  story: '◆',
-  battle: '⚔',
-  event: '?',
-  elite: '✦',
-  supply: '▣',
-  boss: '♛'
-};
 
 export function CampaignScreen({
   onStartBattle,
@@ -663,7 +655,12 @@ export function CampaignScreen({
                     }
                   ]}
                 >
-                  <Text style={styles.nodeIconText}>{node.completed ? '✓' : nodeIcons[node.type]}</Text>
+                  <CampaignNodeSprite
+                    type={node.type}
+                    faction="human"
+                    active={node.completed || node.current}
+                    size={26}
+                  />
                 </View>
                 <View style={styles.nodeCopy}>
                   <Text style={[styles.nodeMeta, { color: theme.colors.textMuted }]}>
@@ -784,9 +781,7 @@ export function CampaignScreen({
         return (
           <GameCard key={id} accent={availability?.unlocked ? accent : undefined}>
             <View style={styles.factionHeader}>
-              <View style={[styles.factionMark, { borderColor: accent }]}>
-                <Text style={[styles.factionLetter, { color: accent }]}>{faction.name[0]}</Text>
-              </View>
+              <FactionCrest faction={id} size={46} />
               <View style={styles.factionCopy}>
                 <Text style={[styles.factionName, { color: theme.colors.text }]}>{faction.name}</Text>
                 <Text style={[styles.factionCampaign, { color: accent }]}>{faction.campaignName}</Text>

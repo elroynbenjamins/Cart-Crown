@@ -10,15 +10,7 @@ import {
   PrimaryButton,
   SectionTitle
 } from '../ui/components';
-
-const nodeIcons: Record<string, string> = {
-  story: '◆',
-  battle: '⚔',
-  event: '?',
-  elite: '✦',
-  supply: '▣',
-  boss: '♛'
-};
+import { CampaignNodeSprite, FactionCrest } from '../ui/gameArt';
 
 export function FactionOpeningCampaignScreen({
   onStartOpeningBattle,
@@ -73,15 +65,20 @@ export function FactionOpeningCampaignScreen({
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <GameCard accent={accent}>
-        <Text style={[styles.eyebrow, { color: accent }]}>
-          CHAPTER 1
-        </Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          {activeFaction === 'elf' ? 'Fading Wards' : 'Blamed Blood'}
-        </Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          {faction.campaignSubtitle}
-        </Text>
+        <View style={styles.chapterHero}>
+          <View style={styles.chapterCopy}>
+            <Text style={[styles.eyebrow, { color: accent }]}>
+              CHAPTER 1
+            </Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+              {activeFaction === 'elf' ? 'Fading Wards' : 'Blamed Blood'}
+            </Text>
+            <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+              {faction.campaignSubtitle}
+            </Text>
+          </View>
+          <FactionCrest faction={activeFaction} size={52} />
+        </View>
       </GameCard>
 
       <GameCard accent={accent}>
@@ -160,17 +157,12 @@ export function FactionOpeningCampaignScreen({
                       }
                     ]}
                   >
-                    <Text
-                      style={{
-                        color: node.completed
-                          ? theme.colors.primary
-                          : node.current
-                            ? accent
-                            : theme.colors.textMuted
-                      }}
-                    >
-                      {nodeIcons[node.type] ?? '·'}
-                    </Text>
+                    <CampaignNodeSprite
+                      type={node.type}
+                      faction={activeFaction}
+                      active={node.completed || node.current}
+                      size={26}
+                    />
                   </View>
                   <View style={styles.nodeCopy}>
                     <Text style={[styles.nodeName, { color: theme.colors.text }]}>
@@ -222,6 +214,7 @@ export function FactionOpeningCampaignScreen({
           return (
             <GameCard key={id} accent={current ? factionAccent : undefined}>
               <View style={styles.factionHeader}>
+                <FactionCrest faction={id} size={38} />
                 <View style={styles.factionCopy}>
                   <Text style={[styles.factionName, { color: theme.colors.text }]}>
                     {definition.name}
@@ -267,6 +260,8 @@ export function FactionOpeningCampaignScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 32, gap: 14 },
+  chapterHero: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  chapterCopy: { flex: 1 },
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },

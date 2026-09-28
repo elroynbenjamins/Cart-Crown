@@ -11,7 +11,7 @@ import {
   SectionTitle,
   UnitPortrait
 } from '../ui/components';
-import { ResourceSprite, WagonStageSprite } from '../ui/gameArt';
+import { FactionCampScene, FactionCrest, ResourceSprite, WagonStageSprite } from '../ui/gameArt';
 
 export function FactionCampScreen({
   onOpenCommander
@@ -53,13 +53,21 @@ export function FactionCampScreen({
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <GameCard accent={accent}>
-        <Text style={[styles.eyebrow, { color: accent }]}>
-          {faction.name.toUpperCase()} CAMPAIGN
-        </Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>{campName}</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          {faction.campaignSubtitle}
-        </Text>
+        <View style={styles.heroRow}>
+          <View style={styles.heroCopy}>
+            <Text style={[styles.eyebrow, { color: accent }]}>
+              {faction.name.toUpperCase()} CAMPAIGN
+            </Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>{campName}</Text>
+            <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+              {faction.campaignSubtitle}
+            </Text>
+          </View>
+          <FactionCrest faction={activeFaction} size={54} />
+        </View>
+        <View style={styles.sceneWrap}>
+          <FactionCampScene faction={activeFaction} size={230} />
+        </View>
       </GameCard>
 
       <View style={styles.resources}>
@@ -169,6 +177,9 @@ export function FactionCampScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 32, gap: 14 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  heroCopy: { flex: 1 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
