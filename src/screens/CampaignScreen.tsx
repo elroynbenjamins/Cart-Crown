@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import { chapterOneNodes, humanRegions } from '../game/data';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, SectionTitle } from '../ui/components';
@@ -48,8 +49,8 @@ export function CampaignScreen() {
               style={[
                 styles.region,
                 {
-                  left: String(region.x) + '%',
-                  top: String(region.y) + '%'
+                  left: (String(region.x) + '%') as ViewStyle['left'],
+                  top: (String(region.y) + '%') as ViewStyle['top']
                 }
               ]}
             >
