@@ -1079,9 +1079,11 @@ export function GameProvider({
       return false;
     }
 
+    const storedTargetState = snapshot.factionStates[faction];
     const targetState =
-      snapshot.factionStates[faction] ??
-      createFactionGameState(faction);
+      storedTargetState?.faction === faction
+        ? storedTargetState
+        : createFactionGameState(faction);
 
     switchingFactionRef.current = true;
 
