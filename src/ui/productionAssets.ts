@@ -6,8 +6,10 @@ import type {
   EnemyVisualKind,
   EquipmentVisualKind,
   ResourceSiteVisualKind,
+  ResourceVisualKind,
   StorySceneVisualKind,
-  UnitVisualKind
+  UnitVisualKind,
+  WagonItemVisualKind
 } from '../game/visualManifest';
 
 export const PRODUCTION_ASSET_PIPELINE_VERSION = 1;
@@ -21,6 +23,8 @@ export type ProductionAssetCategory =
   | 'commander'
   | 'story_scene'
   | 'resource_site'
+  | 'resource'
+  | 'wagon_item'
   | 'ui';
 
 export type ProductionAssetSpec = {
@@ -170,6 +174,32 @@ export function resourceSiteProductionAsset(
     true,
     10,
     'Regional production location icon. Visual kind: ' + kind + '.'
+  );
+}
+
+export function resourceProductionAsset(kind: ResourceVisualKind) {
+  return spec(
+    'resource.' + kind,
+    'resource',
+    PRODUCTION_ASSET_ROOT + '/resources/' + kind + '.png',
+    128,
+    128,
+    true,
+    12,
+    'Shared resource icon. Must remain legible around 20–32 px.'
+  );
+}
+
+export function wagonItemProductionAsset(itemId: string, kind: WagonItemVisualKind) {
+  return spec(
+    'wagon_item.' + itemId,
+    'wagon_item',
+    PRODUCTION_ASSET_ROOT + '/wagon_items/' + slug(itemId) + '.png',
+    256,
+    256,
+    true,
+    10,
+    'Campaign-pack item; preserve footprint readability and silhouette. Visual kind: ' + kind + '.'
   );
 }
 
