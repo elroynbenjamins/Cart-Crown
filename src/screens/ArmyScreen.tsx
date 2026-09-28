@@ -4,6 +4,7 @@ import { getEquipment } from '../game/equipment';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle, UnitPortrait } from '../ui/components';
+import { UnitSprite } from '../ui/gameArt';
 
 export function ArmyScreen({
   onOpenRecruitment,
@@ -164,9 +165,7 @@ export function ArmyScreen({
               {recruitOptions.map(choice => (
                 <View key={choice.id} style={[styles.choice, { backgroundColor: theme.colors.surface2 }]}>
                   <View style={[styles.choiceIcon, { borderColor: theme.colors.human }]}>
-                    <Text style={[styles.choiceInitial, { color: theme.colors.human }]}>
-                      {choice.unit.className[0]}
-                    </Text>
+                    <UnitSprite className={choice.unit.className} size={36} />
                   </View>
                   <View style={styles.choiceCopy}>
                     <Text style={[styles.choiceName, { color: theme.colors.text }]}>{choice.unit.className}</Text>
@@ -224,7 +223,6 @@ const styles = StyleSheet.create({
   choiceList: { gap: 8, marginTop: 14 },
   choice: { borderRadius: 16, padding: 10, flexDirection: 'row', gap: 11, alignItems: 'center' },
   choiceIcon: { width: 42, height: 48, borderRadius: 13, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  choiceInitial: { fontSize: 17, fontWeight: '900' },
   choiceCopy: { flex: 1 },
   choiceName: { fontSize: 14, fontWeight: '900' },
   choiceRole: { fontSize: 9, fontWeight: '900', textTransform: 'uppercase', marginTop: 2 },
