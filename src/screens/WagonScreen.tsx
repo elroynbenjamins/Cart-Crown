@@ -12,7 +12,7 @@ import type { WagonItemDefinition } from '../game/types';
 import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
+import { GameCard, Pill, ProgressBar, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { WagonItemSprite, WagonStageSprite } from '../ui/gameArt';
 
 type DraggableItemProps = {
@@ -101,6 +101,8 @@ export function WagonScreen() {
   const { theme } = useGameTheme();
   const {
     activeFaction,
+    armyReadiness,
+    armyResupplyCost,
     wagonItems,
     currentWagonStage,
     moveWagonItem,
@@ -250,16 +252,32 @@ export function WagonScreen() {
         </View>
       </GameCard>
 
-      <GameCard faction={activeFaction} state="ready">
+      <GameCard
+        faction={activeFaction}
+        state={armyReadiness >= 70 ? 'ready' : armyReadiness >= 50 ? 'default' : 'danger'}
+      >
         <View style={styles.readinessRow}>
           <View style={styles.readinessCopy}>
-            <Text style={[styles.readyTitle, { color: theme.colors.text }]}>Expedition readiness</Text>
+            <Text style={[styles.readyTitle, { color: theme.colors.text }]}>
+              Army Readiness · {armyReadiness}%
+            </Text>
             <Text style={[styles.readyBody, { color: theme.colors.textMuted }]}>
-              Food and medicine are packed. No ammunition is required by the current formation.
+              Rations and medicine reduce wear after battles and lower the provision cost of field recovery.
             </Text>
           </View>
-          <StatusPill label="READY" tone="ready" />
+          <StatusPill
+            label={armyReadiness >= 70 ? 'FRESH' : armyReadiness >= 50 ? 'WORN' : 'EXHAUSTED'}
+            tone={armyReadiness >= 70 ? 'ready' : armyReadiness >= 50 ? 'available' : 'elite'}
+          />
         </View>
+        <View style={styles.readinessBar}>
+          <ProgressBar value={armyReadiness / 100} color={factionAccent} />
+        </View>
+        {armyReadiness < 100 ? (
+          <Text style={[styles.readyBody, { color: theme.colors.textMuted }]}>
+            Full recovery at the next Battle Prep currently costs {armyResupplyCost} provisions.
+          </Text>
+        ) : null}
       </GameCard>
 
       <SectionTitle title="Active synergies" trailing="1 discovered" />
@@ -267,9 +285,9 @@ export function WagonScreen() {
       <GameCard accent={theme.colors.primary} faction={activeFaction} state="ready">
         <Text style={[styles.synergyName, { color: theme.colors.text }]}>Prepared March</Text>
         <Text style={[styles.synergyBody, { color: theme.colors.textMuted }]}>
-          Medicine packed beside food improves healing effectiveness.
+          Rations cut battle wear by 10% and medicine by another 20%. Both also make field recovery cheaper.
         </Text>
-        <Text style={[styles.synergyBonus, { color: theme.colors.primary }]}>+10% healing power</Text>
+        <Text style={[styles.synergyBonus, { color: theme.colors.primary }]}>Lower wear · lower resupply cost</Text>
       </GameCard>
     </ScrollView>
   );
@@ -305,6 +323,7 @@ const styles = StyleSheet.create({
   readinessCopy: { flex: 1 },
   readyTitle: { fontSize: 15, fontWeight: '900' },
   readyBody: { fontSize: 12, lineHeight: 17, marginTop: 4 },
+  readinessBar: { marginTop: 10 },
   synergyName: { fontSize: 15, fontWeight: '900' },
   synergyBody: { fontSize: 12, lineHeight: 17, marginTop: 5 },
   synergyBonus: { fontSize: 12, fontWeight: '900', marginTop: 9 }
