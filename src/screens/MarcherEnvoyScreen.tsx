@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, UnitPortrait } from '../ui/components';
+import { StoryScene } from '../ui/gameArt';
 
 export function MarcherEnvoyScreen({
   onComplete
@@ -37,6 +38,9 @@ export function MarcherEnvoyScreen({
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           Greenkeep Town draws its first formal visitor from the Border Marches. The envoy warns that the marcher lords are divided and offers one experienced auxiliary squad before you enter their territory.
         </Text>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="marcher_envoy" size={236} />
+        </View>
       </GameCard>
 
       <GameCard>
@@ -62,6 +66,7 @@ export function MarcherEnvoyScreen({
                     name={option.unit.name}
                     className={option.unit.className + ' · Lv. ' + option.unit.level}
                     accent={selectedOption ? theme.colors.gold : theme.colors.human}
+                    faction={option.unit.faction}
                   />
                   <Pill label={option.archetype.toUpperCase()} />
                 </View>
@@ -108,6 +113,7 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
   storyTitle: { fontSize: 16, fontWeight: '900' },
   storyBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
   list: { gap: 9 },
