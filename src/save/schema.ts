@@ -5,6 +5,16 @@ import {
   starterWagonItems
 } from '../game/data';
 import { initialHumanPlacements } from '../game/settlement';
+import {
+  elfChapterOneNodes,
+  elfStarterResources,
+  elfStarterUnits,
+  factionStarterWagonItems,
+  orcChapterOneNodes,
+  orcStarterResources,
+  orcStarterUnits
+} from '../game/factionStarts';
+import type { FactionId } from '../game/types';
 import type {
   FactionGameState,
   GameSnapshot,
@@ -82,6 +92,110 @@ export function createHumanFactionState(): FactionGameState {
   };
 }
 
+export function createElfFactionState(): FactionGameState {
+  const state = createHumanFactionState();
+
+  return {
+    ...state,
+    faction: 'elf',
+    resources: { ...elfStarterResources },
+    units: elfStarterUnits.map(unit => ({ ...unit })),
+    formation: [
+      'elf_warden',
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      'elf_forest_scout'
+    ],
+    wagonItems: factionStarterWagonItems(),
+    chapterNumber: 1,
+    chapterNodes: elfChapterOneNodes.map(node => ({ ...node })),
+    formationDoctrineId: 'elf_open',
+    buildingLevels: {
+      hall: 0,
+      barracks: 0,
+      forge: 0,
+      wagonwright: 0,
+      quartermaster: 0,
+      war_room: 0,
+      stable: 0,
+      signal_tower: 0,
+      officer_academy: 0
+    },
+    buildingPlacements: {
+      plot_nw: null,
+      plot_n: null,
+      plot_ne: null,
+      plot_w: null,
+      plot_center: null,
+      plot_e: null,
+      plot_sw: null,
+      plot_s: null,
+      plot_se: null
+    }
+  };
+}
+
+export function createOrcFactionState(): FactionGameState {
+  const state = createHumanFactionState();
+
+  return {
+    ...state,
+    faction: 'orc',
+    resources: { ...orcStarterResources },
+    units: orcStarterUnits.map(unit => ({ ...unit })),
+    formation: [
+      'orc_youngblood',
+      'orc_hunter',
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    wagonItems: factionStarterWagonItems(),
+    chapterNumber: 1,
+    chapterNodes: orcChapterOneNodes.map(node => ({ ...node })),
+    formationDoctrineId: 'orc_warband',
+    buildingLevels: {
+      hall: 0,
+      barracks: 0,
+      forge: 0,
+      wagonwright: 0,
+      quartermaster: 0,
+      war_room: 0,
+      stable: 0,
+      signal_tower: 0,
+      officer_academy: 0
+    },
+    buildingPlacements: {
+      plot_nw: null,
+      plot_n: null,
+      plot_ne: null,
+      plot_w: null,
+      plot_center: null,
+      plot_e: null,
+      plot_sw: null,
+      plot_s: null,
+      plot_se: null
+    }
+  };
+}
+
+export function createFactionGameState(
+  faction: FactionId
+): FactionGameState {
+  if (faction === 'elf') return createElfFactionState();
+  if (faction === 'orc') return createOrcFactionState();
+  return createHumanFactionState();
+}
+
 export function createInitialGameSnapshot(): GameSnapshot {
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
@@ -115,7 +229,15 @@ export function metadataFromSnapshot(
 
   let chapterLabel = 'Chapter 1 · Hold the Road';
 
-  if (humanComplete) {
+  if (current.faction === 'elf') {
+    chapterLabel = current.chapterNodes.find(node => node.id === 'elf_node_3')?.current
+      ? 'Elf Chapter 1 · Whispering Roots'
+      : 'Elf Chapter 1 · Wardbreakers';
+  } else if (current.faction === 'orc') {
+    chapterLabel = current.chapterNodes.find(node => node.id === 'orc_node_3')?.current
+      ? 'Orc Chapter 1 · Broken Clan Marks'
+      : 'Orc Chapter 1 · Blood on the Red Road';
+  } else if (humanComplete) {
     chapterLabel = 'Human Campaign Complete · Oath Seal';
   } else if (current.chapterNumber >= 6) {
     chapterLabel = current.chapterNodes.find(node => node.id === 'ch6_node_6')?.current
@@ -198,19 +320,23 @@ export function metadataFromSnapshot(
   }
 
   const kingdomName =
-    current.wagonStageId === 'grand'
-      ? 'Greenkeep Grand Campaign'
-      : current.wagonStageId === 'capital'
-        ? 'Greenkeep Capital'
-        : current.wagonStageId === 'stronghold'
-        ? 'Greenkeep Stronghold'
-        : current.wagonStageId === 'town'
-        ? 'Greenkeep Town'
-        : current.wagonStageId === 'fort'
-        ? 'Greenkeep Fort'
-        : current.settlementUpgraded
-          ? 'Greenkeep Settlement'
-          : 'Refugee Camp';
+    current.faction === 'elf'
+      ? 'Heartgrove Refuge'
+      : current.faction === 'orc'
+        ? 'Emberclan Camp'
+        : current.wagonStageId === 'grand'
+          ? 'Greenkeep Grand Campaign'
+          : current.wagonStageId === 'capital'
+            ? 'Greenkeep Capital'
+            : current.wagonStageId === 'stronghold'
+              ? 'Greenkeep Stronghold'
+              : current.wagonStageId === 'town'
+                ? 'Greenkeep Town'
+                : current.wagonStageId === 'fort'
+                  ? 'Greenkeep Fort'
+                  : current.settlementUpgraded
+                    ? 'Greenkeep Settlement'
+                    : 'Refugee Camp';
 
   return {
     slotId,

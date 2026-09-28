@@ -21,6 +21,7 @@ import { CommanderChoiceScreen } from './screens/CommanderChoiceScreen';
 import { ConcordVaultScreen } from './screens/ConcordVaultScreen';
 import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
+import { FactionCampScreen } from './screens/FactionCampScreen';
 import { ForgeScreen } from './screens/ForgeScreen';
 import { FormationScreen } from './screens/FormationScreen';
 import { FortMusterScreen } from './screens/FortMusterScreen';
@@ -139,6 +140,7 @@ export function AppShell({
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const { theme, cycleTheme } = useGameTheme();
   const {
+    activeFaction,
     finishEncounter,
     lastBattleResult,
     commanderPathId,
@@ -575,6 +577,14 @@ export function AppShell({
               setActiveEncounterId('return_to_crownspire');
               setFlow('battlePrep');
             }}
+            onStartFactionOpeningBattle={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_wardbreakers'
+                  : 'orc_red_road'
+              );
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -598,6 +608,10 @@ export function AppShell({
         );
       case 'kingdom':
       default:
+        if (activeFaction !== 'human') {
+          return <FactionCampScreen />;
+        }
+
         return (
           <KingdomScreen
             onOpenRecruitment={openRecruitment}

@@ -22,6 +22,7 @@ export function BattlePrepScreen({
 }) {
   const { theme } = useGameTheme();
   const {
+    activeFaction,
     units,
     formation,
     wagonItems,
@@ -41,6 +42,12 @@ export function BattlePrepScreen({
   } = useGame();
 
   const encounter = getEncounter(encounterId);
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
   const activeUnits = formation
     .filter((unitId): unitId is string => Boolean(unitId))
     .map(unitId => units.find(unit => unit.id === unitId))
@@ -140,7 +147,7 @@ export function BattlePrepScreen({
               <UnitPortrait
                 name={unit.name}
                 className={unit.className + ' · Lv. ' + unit.level}
-                accent={theme.colors.human}
+                accent={factionAccent}
                 compact
               />
               <View style={styles.unitStats}>

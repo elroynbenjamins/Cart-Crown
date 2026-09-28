@@ -43,6 +43,12 @@ export function BattleScreen({
   } = useGame();
 
   const encounter = getEncounter(encounterId);
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
   const marcherDoctrineActive =
     encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
   const loyalistApproachActive =
@@ -280,7 +286,7 @@ export function BattleScreen({
       </View>
 
       <GameCard style={styles.arena}>
-        <Text style={[styles.sideLabel, { color: theme.colors.human }]}>YOUR 3×3 FORMATION</Text>
+        <Text style={[styles.sideLabel, { color: factionAccent }]}>YOUR 3×3 FORMATION</Text>
         <View style={styles.miniBoard}>
           {formation.map((unitId, index) => {
             const unit = units.find(candidate => candidate.id === unitId);
@@ -298,14 +304,14 @@ export function BattleScreen({
                     borderColor: favored
                       ? theme.colors.gold
                       : unit
-                        ? theme.colors.human
+                        ? factionAccent
                         : theme.colors.border
                   }
                 ]}
               >
                 {unit ? (
                   <>
-                    <Text style={[styles.unitInitial, { color: favored ? theme.colors.gold : theme.colors.human }]}>
+                    <Text style={[styles.unitInitial, { color: favored ? theme.colors.gold : factionAccent }]}>
                       {unit.name[0]}
                     </Text>
                     <Text style={[styles.tokenName, { color: theme.colors.text }]} numberOfLines={1}>

@@ -18,7 +18,7 @@ export function AppGate() {
 
   return (
     <GameProvider
-      key={selectedSlotId}
+      key={String(selectedSlotId) + '-' + selectedRecord.snapshot.activeFaction}
       initialSnapshot={selectedRecord.snapshot}
       onSnapshotChange={writeSnapshot}
     >

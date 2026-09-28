@@ -58,6 +58,10 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'ashen_court_result';
   const returnToCrownspireResult =
     lastBattleResult.id === 'return_to_crownspire_result';
+  const elfOpeningResult =
+    lastBattleResult.id === 'elf_wardbreakers_result';
+  const orcOpeningResult =
+    lastBattleResult.id === 'orc_red_road_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -101,7 +105,45 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {returnToCrownspireResult ? (
+      {elfOpeningResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CAMPAIGN</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Outer ward secured
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Wardbreakers carried ash residue that does not belong to the Heartgrove. The next lead is Whispering Roots.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Wards change the formation game</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Elven squads begin strongest when they preserve open space instead of copying the tight Human line.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcOpeningResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>ORC CAMPAIGN</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Red Road held
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The attackers used stolen clan marks over foreign-made equipment. The next lead is Broken Clan Marks.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Momentum starts with aggression</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Orc squads benefit from aggressive adjacency and successful attacks rather than Elven spacing or Human discipline.
+            </Text>
+          </GameCard>
+        </>
+      ) : returnToCrownspireResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>HUMAN CAMPAIGN COMPLETE</Text>

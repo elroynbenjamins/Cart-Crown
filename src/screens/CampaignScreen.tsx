@@ -8,6 +8,7 @@ import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
+import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 
 type CampaignView = 'story' | 'activities' | 'factions';
 
@@ -56,6 +57,7 @@ export function CampaignScreen({
   onStartAshenCourt,
   onOpenForcedBeacon,
   onStartReturnToCrownspire,
+  onStartFactionOpeningBattle,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -94,11 +96,13 @@ export function CampaignScreen({
   onStartAshenCourt: () => void;
   onOpenForcedBeacon: () => void;
   onStartReturnToCrownspire: () => void;
+  onStartFactionOpeningBattle: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
+    activeFaction,
     chapterNumber,
     chapterNodes,
     settlementUpgraded,
@@ -119,6 +123,8 @@ export function CampaignScreen({
     pretenderGeneralWon,
     royalDecreeId,
     campaignAvailability,
+    hasFactionState,
+    switchFaction,
     sideModeDefinitions,
     isSideModeUnlocked,
     expeditionTickets,
@@ -130,6 +136,14 @@ export function CampaignScreen({
   } = useGame();
   const [view, setView] = useState<CampaignView>('story');
   const completed = chapterNodes.filter(node => node.completed).length;
+
+  if (activeFaction !== 'human') {
+    return (
+      <FactionOpeningCampaignScreen
+        onStartOpeningBattle={onStartFactionOpeningBattle}
+      />
+    );
+  }
 
   const campaignById = (id: CampaignId) =>
     campaignAvailability.find(campaign => campaign.id === id);
@@ -766,7 +780,15 @@ export function CampaignScreen({
                 <Text style={[styles.factionCampaign, { color: accent }]}>{faction.campaignName}</Text>
               </View>
               <Pill
-                label={availability?.completed ? 'COMPLETE' : availability?.unlocked ? 'AVAILABLE' : 'LOCKED'}
+                label={
+                  id === activeFaction
+                    ? 'CURRENT'
+                    : availability?.completed
+                      ? 'COMPLETE'
+                      : availability?.unlocked
+                        ? 'AVAILABLE'
+                        : 'LOCKED'
+                }
               />
             </View>
             <Text style={[styles.factionSubtitle, { color: theme.colors.textMuted }]}>
@@ -787,6 +809,21 @@ export function CampaignScreen({
               <Text style={[styles.unlockText, { color: theme.colors.textMuted }]}>
                 🔒 {availability?.unlockText}
               </Text>
+            ) : null}
+
+            {availability?.unlocked && id !== activeFaction ? (
+              <View style={styles.modeButton}>
+                <PrimaryButton
+                  label={
+                    hasFactionState(id)
+                      ? 'Switch to ' + faction.name
+                      : 'Start ' + faction.name + ' Campaign'
+                  }
+                  onPress={() => {
+                    void switchFaction(id);
+                  }}
+                />
+              </View>
             ) : null}
           </GameCard>
         );

@@ -403,3 +403,60 @@ The final Human campaign is now fully playable:
 Completing Humans adds the Oath Seal to shared progress and changes both Elf and Orc campaigns from locked to available in the same save.
 
 The completed Human kingdom remains preserved for revisiting and side activities.
+
+
+## Same-save faction switching
+
+Completing the Human campaign now unlocks **both Elves and Orcs** in the same save.
+
+The Factions tab provides real actions:
+- **Start Elves Campaign**
+- **Start Orcs Campaign**
+- **Switch to Humans / Elves / Orcs** once that faction state already exists
+
+Each faction has its own independent state inside the save:
+- resources
+- units
+- 3×3 formation
+- campaign grid
+- chapter nodes
+- equipment/loadouts
+- progression flags
+
+Switching explicitly saves the current faction first, changes the save's active faction, then remounts the game from the target faction state. Returning to Humans restores the completed Greenkeep kingdom exactly where it was.
+
+## Elf campaign opening
+
+Elves begin fresh at **Heartgrove Refuge** with:
+- Liora — Warden
+- Cael — Forest Scout
+- 4×4 Wayfarer Caravan
+- **Open Order** formation doctrine
+
+Their starting formation deliberately keeps the two squads separated to demonstrate **Wards / open-space positioning**.
+
+Chapter 1 begins:
+1. The Last Wardstone
+2. **Wardbreakers** — playable opening battle
+3. Whispering Roots
+4. Ashen Tracks
+5. Wayfarer Camp
+6. The Hollow Warden
+
+## Orc campaign opening
+
+Orcs begin fresh at **Emberclan Camp** with:
+- Korga — Youngblood
+- Varka — Hunter
+- 4×4 War Cart
+- **Warband** formation doctrine
+
+Their two starting squads are placed adjacent to demonstrate the opposite tactical instinct: **aggressive adjacency and Momentum**.
+
+Chapter 1 begins:
+1. The Accused Clan
+2. **Blood on the Red Road** — playable opening battle
+3. Broken Clan Marks
+4. Invader Scouts
+5. Gathering Fire
+6. The Blamecaller

@@ -113,6 +113,7 @@ import type {
   GameSnapshot,
   SharedProgress
 } from '../save/types';
+import { createFactionGameState } from '../save/schema';
 
 type RewardedAdClaimState = Partial<Record<RewardedAdPlacementId, number>>;
 
@@ -127,6 +128,8 @@ type GameContextValue = {
   activeFaction: FactionId;
   completedCampaigns: FactionId[];
   campaignAvailability: CampaignAvailability[];
+  hasFactionState: (faction: FactionId) => boolean;
+  switchFaction: (faction: FactionId) => Promise<boolean>;
   formationDoctrineId: string;
   formationDoctrines: FormationDoctrine[];
   formationBonuses: FormationBonus[];
@@ -779,6 +782,7 @@ export function GameProvider({
   );
 
   const saveCallbackRef = useRef(onSnapshotChange);
+  const switchingFactionRef = useRef(false);
 
   useEffect(() => {
     saveCallbackRef.current = onSnapshotChange;
@@ -786,14 +790,48 @@ export function GameProvider({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      void saveCallbackRef.current(snapshot);
+      if (!switchingFactionRef.current) {
+        void saveCallbackRef.current(snapshot);
+      }
     }, 250);
 
     return () => {
       clearTimeout(timer);
-      void saveCallbackRef.current(snapshot);
     };
   }, [snapshot]);
+
+  const hasFactionState = (faction: FactionId) =>
+    Boolean(snapshot.factionStates[faction]);
+
+  const switchFaction = async (faction: FactionId) => {
+    if (faction === activeFaction) return true;
+
+    const humanComplete =
+      sharedProgress.completedCampaigns.includes('human');
+
+    if (faction !== 'human' && !humanComplete) {
+      return false;
+    }
+
+    const targetState =
+      snapshot.factionStates[faction] ??
+      createFactionGameState(faction);
+
+    switchingFactionRef.current = true;
+
+    const nextSnapshot: GameSnapshot = {
+      ...snapshot,
+      activeFaction: faction,
+      factionStates: {
+        ...snapshot.factionStates,
+        [activeFaction]: currentFactionState,
+        [faction]: targetState
+      }
+    };
+
+    await saveCallbackRef.current(nextSnapshot);
+    return true;
+  };
 
   const accrueRegionalProduction = () => {
     setProductionStock(previous => {
@@ -831,6 +869,64 @@ export function GameProvider({
 
   const finishEncounter = (encounterId: EncounterId) => {
     const reward = encounterRewards[encounterId];
+
+    if (encounterId === 'elf_wardbreakers') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf_node_2')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'elf_node_2') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'elf_node_3') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'elf_wardbreakers_result',
+        title: 'Outer Ward Secured',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_red_road') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc_node_2')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'orc_node_2') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'orc_node_3') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'orc_red_road_result',
+        title: 'Red Road Held',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
 
     if (encounterId === 'hold_the_road') {
       if (holdTheRoadWon) return;
@@ -2575,6 +2671,8 @@ export function GameProvider({
       activeFaction,
       completedCampaigns,
       campaignAvailability,
+      hasFactionState,
+      switchFaction,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,

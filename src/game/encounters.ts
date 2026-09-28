@@ -17,7 +17,9 @@ export type EncounterId =
   | 'gate_of_crownspire'
   | 'sundered_fields'
   | 'ashen_court'
-  | 'return_to_crownspire';
+  | 'return_to_crownspire'
+  | 'elf_wardbreakers'
+  | 'orc_red_road';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -177,6 +179,24 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 2400,
     difficulty: 'Boss'
+  },
+  elf_wardbreakers: {
+    id: 'elf_wardbreakers',
+    name: 'Wardbreakers',
+    subtitle: 'Unknown cutters are damaging the outer Heartgrove wardstones and leaving signs meant to implicate foreign raiders.',
+    enemyName: 'Wardbreaker Band',
+    enemyCount: 3,
+    enemyHp: 132,
+    difficulty: 'Normal'
+  },
+  orc_red_road: {
+    id: 'orc_red_road',
+    name: 'Blood on the Red Road',
+    subtitle: 'Armed strangers wearing stolen clan marks attack travelers near Emberclan territory.',
+    enemyName: 'False-Marked Raiders',
+    enemyCount: 3,
+    enemyHp: 138,
+    difficulty: 'Normal'
   }
 };
 
@@ -248,6 +268,14 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   return_to_crownspire: {
     resources: { gold: 700, wood: 300, stone: 260, iron: 90, provisions: 25 },
     storySummary: 'The Ashen Regent falls and Greenkeep recovers the Human Oath Seal. The Human campaign is complete.'
+  },
+  elf_wardbreakers: {
+    resources: { gold: 42, wood: 10, provisions: 5 },
+    storySummary: 'The Wardbreakers flee. Their tools carry unfamiliar ash residue that does not belong to the Heartgrove.'
+  },
+  orc_red_road: {
+    resources: { gold: 40, wood: 8, iron: 2, provisions: 6 },
+    storySummary: 'The false-marked raiders break. Their clan paint was applied over Human-made buckles and foreign leather.'
   }
 };
 
