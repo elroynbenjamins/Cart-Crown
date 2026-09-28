@@ -7,6 +7,7 @@ import {
   PrimaryButton,
   ProgressBar,
   ResourceChip,
+  SecondaryButton,
   SectionTitle
 } from '../ui/components';
 
@@ -19,11 +20,15 @@ export function KingdomScreen({ onOpenRecruitment }: { onOpenRecruitment: () => 
     settlementUpgraded,
     recruitChosen,
     canUpgradeSettlement,
+    rewardedAdClaims,
+    rewardedAdMessage,
+    claimRewardedAd,
     upgradeSettlement
   } = useGame();
 
   const settlementName = settlementUpgraded ? 'Greenkeep Settlement' : 'Refugee Camp';
   const progress = holdTheRoadWon ? 1 : 0.34;
+  const dailySupplyClaimed = (rewardedAdClaims.daily_supply ?? 0) >= 1;
 
   const buildings = [
     {
@@ -147,6 +152,25 @@ export function KingdomScreen({ onOpenRecruitment }: { onOpenRecruitment: () => 
         </View>
       </GameCard>
 
+      <SectionTitle title="Daily Supply Cart" trailing="Optional rewarded ad" />
+      <GameCard>
+        <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>Frontier Supplies</Text>
+        <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
+          Watch an optional rewarded ad for a small common-resource package. Skipping it never removes normal rewards.
+        </Text>
+        <Text style={[styles.supplyReward, { color: theme.colors.gold }]}>+15 Wood · +15 Provisions</Text>
+        <View style={styles.supplyButton}>
+          <SecondaryButton
+            label={dailySupplyClaimed ? 'Supply claimed' : 'Watch optional ad'}
+            disabled={dailySupplyClaimed}
+            onPress={() => void claimRewardedAd('daily_supply')}
+          />
+        </View>
+        {rewardedAdMessage ? (
+          <Text style={[styles.adMessage, { color: theme.colors.textMuted }]}>{rewardedAdMessage}</Text>
+        ) : null}
+      </GameCard>
+
       <SectionTitle title="Buildings" trailing="3 active" />
 
       <View style={styles.buildingList}>
@@ -161,9 +185,7 @@ export function KingdomScreen({ onOpenRecruitment }: { onOpenRecruitment: () => 
                   <Text style={[styles.buildingName, { color: theme.colors.text }]}>
                     {building.name}
                   </Text>
-                  <Text style={[styles.level, { color: theme.colors.gold }]}>
-                    Lv. {building.level}
-                  </Text>
+                  <Text style={[styles.level, { color: theme.colors.gold }]}>Lv. {building.level}</Text>
                 </View>
                 <Text style={[styles.buildingBody, { color: theme.colors.textMuted }]}>
                   {building.subtitle}
@@ -205,6 +227,11 @@ const styles = StyleSheet.create({
   logisticsLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
   logisticsValue: { fontSize: 16, fontWeight: '900', marginTop: 3 },
   gridSize: { fontSize: 23, fontWeight: '900' },
+  supplyTitle: { fontSize: 15, fontWeight: '900' },
+  supplyBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
+  supplyReward: { fontSize: 11, fontWeight: '900', marginTop: 7 },
+  supplyButton: { marginTop: 11 },
+  adMessage: { fontSize: 10, textAlign: 'center', marginTop: 7 },
   buildingList: { gap: 10 },
   buildingRow: { flexDirection: 'row', gap: 12 },
   buildingIcon: { width: 54, height: 54, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },

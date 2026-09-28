@@ -1,14 +1,14 @@
 import React from 'react';
-import { AppShell } from './src/AppShell';
-import { GameProvider } from './src/game/GameProvider';
+import { AppGate } from './src/AppGate';
+import { SaveProvider } from './src/save/SaveProvider';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 
 export default function App() {
   return (
     <ThemeProvider>
-      <GameProvider>
-        <AppShell />
-      </GameProvider>
+      <SaveProvider>
+        <AppGate />
+      </SaveProvider>
     </ThemeProvider>
   );
 }

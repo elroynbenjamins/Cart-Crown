@@ -1,45 +1,47 @@
 # Cart & Crown
 
-Cart & Crown is a portrait-first mobile strategy RPG built around three connected systems:
+Cart & Crown is a portrait-first mobile strategy RPG built around **Kingdom progression, a 3×3 combat Formation, and a limited logistics Wagon**.
 
-- **Kingdom** — rebuild a faction settlement and unlock troops, equipment and logistics.
-- **Formation** — choose which combat squads fight and where they stand.
-- **Supply Wagon** — pack food, medicine, ammunition, banners, artifacts and support gear into a limited grid.
+## Current prototype
 
-The first playable slice starts intentionally small with **2 Human squads** and a **4x4 Supply Wagon**.
+- Human campaign is the required first playthrough.
+- Finishing Humans will unlock Elf and Orc campaigns inside that save.
+- Completing all three factions will unlock the final Three Seals campaign.
+- 3 independent local save slots with autosave.
+- Original / Dark / Light themes.
+- 3×3 formation board with a maximum army size that grows from 2 to 6 squads.
+- Human Orders, with data definitions already prepared for Elven Wards and Orc Momentum.
+- Drag/rotate Wagon logistics.
+- First connected story battle and Greenkeep settlement upgrade.
+- First reinforcement choice: Archer / Scout / Field Medic.
+- Side-mode foundation:
+  - Expeditions
+  - Formation Trials
+  - Kingdom Defense (later unlock)
+  - Relic Hunts (later unlock)
+- Optional rewarded-ad placements are scaffolded through one adapter. Development builds use a mock reward; no production ad SDK is connected yet.
 
-## Current vertical slice
+## Opening loop
 
-The current `main` branch now supports the first connected progression loop:
+1. Choose one of 3 save slots.
+2. Start the Human campaign.
+3. Prepare the 4×4 Supply Wagon and 3×3 formation.
+4. Fight **Hold the Road**.
+5. Claim rewards and uncover the first false-flag clue.
+6. Establish Greenkeep.
+7. Expand the Wagon to 4×5 and active army capacity to 3.
+8. Recruit Archer, Scout or Field Medic.
+9. Experiment with Human formation Orders, Expeditions and Formation Trials.
 
-1. Open Chapter 1 in **Campaign**.
-2. Enter **Hold the Road** battle preparation.
-3. Watch the first deterministic auto-battle.
-4. Receive resources and the first story clue.
-5. Return to **Kingdom** and establish Greenkeep.
-6. Supply Wagon expands from **4x4 to 4x5**.
-7. Formation expands from **2 to 3 active slots**.
-8. Choose the first reinforcement: **Archer / Scout / Field Medic**.
-9. Reposition squads in Formation and drag/rotate logistics in the Wagon.
+## Tech
 
-## Tech direction
+- Expo SDK 57
+- React Native 0.86
+- React 19.2
+- TypeScript
+- AsyncStorage for 3 local save slots
 
-- Expo / React Native / TypeScript
-- Portrait mobile layout
-- Data-driven gameplay definitions
-- Original, Dark and Light themes from shared semantic tokens
-- Static or lightly animated 2D art; no 3D or free-roaming world
-- Single-player first
-
-## Main navigation
-
-1. Kingdom
-2. Campaign
-3. Formation
-4. Wagon
-5. Army
-
-## Development
+## Run
 
 ```bash
 npm install
@@ -48,4 +50,4 @@ npm run android
 npm run typecheck
 ```
 
-Balance values and temporary letter/emoji art are placeholders until the database and final generated assets are imported.
+Temporary letters and emoji are placeholders for the final portrait/equipment art pipeline.

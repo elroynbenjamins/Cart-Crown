@@ -1,6 +1,8 @@
 export type FactionId = 'human' | 'elf' | 'orc';
+export type CampaignId = FactionId | 'meta';
 export type NavId = 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army';
 export type UnitRole = 'frontline' | 'melee' | 'ranged' | 'support' | 'cavalry' | 'skirmish';
+export type SideModeId = 'expeditions' | 'formation_trials' | 'kingdom_defense' | 'relic_hunts';
 
 export type ResourceWallet = {
   gold: number;
@@ -88,4 +90,37 @@ export type EncounterDefinition = {
   enemyCount: number;
   enemyHp: number;
   difficulty: 'Normal' | 'Elite' | 'Boss';
+};
+
+export type FormationBonus = {
+  id: string;
+  name: string;
+  description: string;
+  value: string;
+  active: boolean;
+};
+
+export type FormationDoctrine = {
+  id: string;
+  faction: FactionId;
+  name: string;
+  description: string;
+  unlock: 'Start' | 'Settlement' | 'Fort' | 'Town' | 'Stronghold';
+};
+
+export type SideModeDefinition = {
+  id: SideModeId;
+  name: string;
+  subtitle: string;
+  description: string;
+  unlockStage: 'settlement' | 'fort' | 'stronghold';
+  rewardFocus: string;
+  example: string;
+};
+
+export type CampaignAvailability = {
+  id: CampaignId;
+  unlocked: boolean;
+  completed: boolean;
+  unlockText: string;
 };

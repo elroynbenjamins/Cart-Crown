@@ -8,19 +8,28 @@ import {
   View
 } from 'react-native';
 import type { NavId } from './game/types';
+import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
 import { ArmyScreen } from './screens/ArmyScreen';
 import { BattlePrepScreen } from './screens/BattlePrepScreen';
 import { BattleScreen } from './screens/BattleScreen';
 import { CampaignScreen } from './screens/CampaignScreen';
+import { ExpeditionScreen } from './screens/ExpeditionScreen';
 import { FormationScreen } from './screens/FormationScreen';
+import { FormationTrialScreen } from './screens/FormationTrialScreen';
 import { KingdomScreen } from './screens/KingdomScreen';
 import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
 
-type FlowScreen = 'battlePrep' | 'battle' | 'results' | 'recruitment';
+type FlowScreen =
+  | 'battlePrep'
+  | 'battle'
+  | 'results'
+  | 'recruitment'
+  | 'expedition'
+  | 'formationTrial';
 
 const navItems: Array<{ id: NavId; label: string; icon: string }> = [
   { id: 'kingdom', label: 'Kingdom', icon: '♜' },
@@ -42,10 +51,18 @@ const flowTitles: Record<FlowScreen, string> = {
   battlePrep: 'Battle Prep',
   battle: 'Battle',
   results: 'Results',
-  recruitment: 'Recruitment'
+  recruitment: 'Recruitment',
+  expedition: 'Expedition',
+  formationTrial: 'Formation Trial'
 };
 
-export function AppShell() {
+export function AppShell({
+  saveSlotId,
+  onExitToSaves
+}: {
+  saveSlotId: SaveSlotId;
+  onExitToSaves: () => void;
+}) {
   const [active, setActive] = useState<NavId>('kingdom');
   const [flow, setFlow] = useState<FlowScreen | null>(null);
   const { theme, cycleTheme } = useGameTheme();
@@ -91,9 +108,41 @@ export function AppShell() {
       );
     }
 
+    if (flow === 'expedition') {
+      return (
+        <ExpeditionScreen
+          onExit={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'formationTrial') {
+      return (
+        <FormationTrialScreen
+          onExit={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+          onEditFormation={() => {
+            setFlow(null);
+            setActive('formation');
+          }}
+        />
+      );
+    }
+
     switch (active) {
       case 'campaign':
-        return <CampaignScreen onStartBattle={() => setFlow('battlePrep')} />;
+        return (
+          <CampaignScreen
+            onStartBattle={() => setFlow('battlePrep')}
+            onOpenExpedition={() => setFlow('expedition')}
+            onOpenFormationTrial={() => setFlow('formationTrial')}
+          />
+        );
       case 'formation':
         return <FormationScreen />;
       case 'wagon':
@@ -106,7 +155,11 @@ export function AppShell() {
     }
   };
 
-  const canGoBack = flow === 'battlePrep' || flow === 'recruitment';
+  const canGoBack =
+    flow === 'battlePrep' ||
+    flow === 'recruitment' ||
+    flow === 'expedition' ||
+    flow === 'formationTrial';
   const title = flow ? flowTitles[flow] : screenTitles[active];
 
   const goBack = () => {
@@ -141,21 +194,40 @@ export function AppShell() {
         </View>
 
         {flow !== 'battle' ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Change theme"
-            onPress={cycleTheme}
-            style={({ pressed }) => [
-              styles.themeButton,
-              {
-                backgroundColor: theme.colors.surface1,
-                borderColor: theme.colors.border,
-                opacity: pressed ? 0.78 : 1
-              }
-            ]}
-          >
-            <Text style={styles.themeIcon}>{theme.dark ? '◐' : '☼'}</Text>
-          </Pressable>
+          <View style={styles.topActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Return to save slots"
+              onPress={onExitToSaves}
+              style={[
+                styles.slotButton,
+                {
+                  backgroundColor: theme.colors.surface1,
+                  borderColor: theme.colors.border
+                }
+              ]}
+            >
+              <Text style={[styles.slotButtonText, { color: theme.colors.text }]}>
+                S{saveSlotId}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Change theme"
+              onPress={cycleTheme}
+              style={({ pressed }) => [
+                styles.themeButton,
+                {
+                  backgroundColor: theme.colors.surface1,
+                  borderColor: theme.colors.border,
+                  opacity: pressed ? 0.78 : 1
+                }
+              ]}
+            >
+              <Text style={styles.themeIcon}>{theme.dark ? '◐' : '☼'}</Text>
+            </Pressable>
+          </View>
         ) : null}
       </View>
 
@@ -226,6 +298,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   titleArea: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   backButton: {
     width: 40,
     height: 40,
@@ -236,15 +309,24 @@ const styles = StyleSheet.create({
   backText: { fontSize: 30, lineHeight: 32, marginTop: -3 },
   brand: { fontSize: 9, letterSpacing: 1.8, fontWeight: '900' },
   screenTitle: { fontSize: 21, lineHeight: 26, fontWeight: '900', marginTop: 1 },
-  themeButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+  slotButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  themeIcon: { fontSize: 20, color: '#D9A84E' },
+  slotButtonText: { fontSize: 11, fontWeight: '900' },
+  themeButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  themeIcon: { fontSize: 18, color: '#D9A84E' },
   screen: { flex: 1 },
   bottomNav: {
     height: 76,
