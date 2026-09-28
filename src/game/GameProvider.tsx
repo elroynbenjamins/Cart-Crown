@@ -1069,7 +1069,7 @@ export function GameProvider({
   }, [snapshot]);
 
   const hasFactionState = (faction: FactionId) =>
-    Boolean(snapshot.factionStates[faction]);
+    snapshot.factionStates[faction]?.faction === faction;
 
   const switchFaction = async (faction: FactionId) => {
     if (faction === activeFaction) return true;
