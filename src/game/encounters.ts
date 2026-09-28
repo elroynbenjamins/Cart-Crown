@@ -160,7 +160,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'The officer commanding the last royal companies claims emergency authority over the crownless realm.',
     enemyName: 'Pretender General’s Host',
     enemyCount: 6,
-    enemyHp: 1120,
+    enemyHp: 1280,
     difficulty: 'Boss'
   },
   old_royal_lands: {
