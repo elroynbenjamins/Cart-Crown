@@ -1458,8 +1458,8 @@ export function RegionMapBackdrop({
     <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: ground, overflow: 'hidden' }}>
       {faction === 'elf' ? (
         <>
-          {[0.04, 0.18, 0.73, 0.87].map((x, index) => (
-            <View key={String(index)} style={{ position: 'absolute', left: String(x * 100) + '%', top: index % 2 ? 12 : 28, width: 34, height: 34, backgroundColor: palette.elf, opacity: 0.55 }} />
+          {(['4%', '18%', '73%', '87%'] as const).map((left, index) => (
+            <View key={String(index)} style={{ position: 'absolute', left, top: index % 2 ? 12 : 28, width: 34, height: 34, backgroundColor: palette.elf, opacity: 0.55 }} />
           ))}
           <View style={{ position: 'absolute', left: '8%', right: '8%', top: '48%', height: 7, backgroundColor: palette.elfLight, opacity: 0.55, transform: [{ rotate: '-8deg' }] }} />
           <View style={{ position: 'absolute', left: chapter >= 2 ? '58%' : '38%', top: chapter >= 3 ? '14%' : '34%', width: 27, height: 27, borderRadius: 14, backgroundColor: palette.blue, opacity: 0.75 }} />
@@ -1467,8 +1467,8 @@ export function RegionMapBackdrop({
       ) : faction === 'orc' ? (
         <>
           <View style={{ position: 'absolute', left: '4%', right: '4%', top: '56%', height: 8, backgroundColor: palette.brownLight, opacity: 0.65, transform: [{ rotate: '5deg' }] }} />
-          {[0.12, 0.3, 0.68, 0.84].map((x, index) => (
-            <View key={String(index)} style={{ position: 'absolute', left: String(x * 100) + '%', top: index % 2 ? 18 : 32, width: 18, height: 13, backgroundColor: palette.red, opacity: 0.62 }} />
+          {(['12%', '30%', '68%', '84%'] as const).map((left, index) => (
+            <View key={String(index)} style={{ position: 'absolute', left, top: index % 2 ? 18 : 32, width: 18, height: 13, backgroundColor: palette.red, opacity: 0.62 }} />
           ))}
           {chapter >= 3 ? (
             <>
