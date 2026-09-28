@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, PrimaryButton, ProgressBar, SecondaryButton } from '../ui/components';
+import { GameCard, PrimaryButton, ProgressBar, ResourceAmountRow, SecondaryButton, StatusPill } from '../ui/components';
 
 const waves = [
   { id: 'wave_1', name: 'Road Raiders', threat: 90, pressure: 'Light melee rush' },
@@ -83,7 +83,7 @@ export function KingdomDefenseScreen({
 
   return (
     <View style={styles.content}>
-      <GameCard accent={theme.colors.human}>
+      <GameCard accent={theme.colors.human} faction="human">
         <View style={styles.header}>
           <View style={styles.headerCopy}>
             <Text style={[styles.eyebrow, { color: theme.colors.human }]}>FORT SIDE MODE</Text>
@@ -92,11 +92,18 @@ export function KingdomDefenseScreen({
               One formation and one Wagon must hold through consecutive waves. Your tactical setup carries through the entire defense.
             </Text>
           </View>
-          <Pill label={kingdomDefenseCompleted ? 'REPEATABLE' : 'FIRST DEFENSE'} />
+          <StatusPill
+            label={kingdomDefenseCompleted ? 'REPEATABLE' : 'FIRST DEFENSE'}
+            tone={kingdomDefenseCompleted ? 'available' : 'current'}
+          />
         </View>
       </GameCard>
 
-      <GameCard accent={defensePower >= currentWave.threat ? theme.colors.primary : theme.colors.gold}>
+      <GameCard
+        faction="human"
+        state={defensePower >= currentWave.threat ? 'ready' : 'danger'}
+        accent={defensePower >= currentWave.threat ? theme.colors.primary : theme.colors.gold}
+      >
         <View style={styles.powerRow}>
           <View>
             <Text style={[styles.smallLabel, { color: theme.colors.textMuted }]}>DEFENSE POWER</Text>
@@ -113,16 +120,22 @@ export function KingdomDefenseScreen({
         />
       </GameCard>
 
-      <GameCard>
-        <Text style={[styles.waveLabel, { color: theme.colors.gold }]}>
-          WAVE {waveIndex + 1} / {waves.length}
-        </Text>
+      <GameCard faction="human">
+        <View style={styles.waveHeader}>
+          <Text style={[styles.waveLabel, { color: theme.colors.gold }]}>
+            WAVE {waveIndex + 1} / {waves.length}
+          </Text>
+          <StatusPill
+            label={waveIndex === waves.length - 1 ? 'FINAL' : 'ACTIVE'}
+            tone={waveIndex === waves.length - 1 ? 'boss' : 'current'}
+          />
+        </View>
         <Text style={[styles.waveName, { color: theme.colors.text }]}>{currentWave.name}</Text>
         <Text style={[styles.waveBody, { color: theme.colors.textMuted }]}>{currentWave.pressure}</Text>
       </GameCard>
 
       {failed ? (
-        <GameCard accent={theme.colors.danger}>
+        <GameCard accent={theme.colors.danger} faction="human" state="danger">
           <Text style={[styles.failTitle, { color: theme.colors.text }]}>The line will not hold</Text>
           <Text style={[styles.failBody, { color: theme.colors.textMuted }]}>
             Improve equipment, change formation synergies, or adjust commander specialization before attempting this wave again.
@@ -131,10 +144,16 @@ export function KingdomDefenseScreen({
       ) : null}
 
       {complete ? (
-        <GameCard accent={theme.colors.primary}>
-          <Text style={[styles.failTitle, { color: theme.colors.text }]}>Greenkeep Holds</Text>
+        <GameCard accent={theme.colors.primary} faction="human" state="ready">
+          <View style={styles.completeHeader}>
+            <Text style={[styles.failTitle, { color: theme.colors.text }]}>Greenkeep Holds</Text>
+            <StatusPill label="DEFENDED" tone="done" />
+          </View>
+          <View style={styles.rewardRow}>
+            <ResourceAmountRow prefix="+" values={{ gold: 60, stone: 8, provisions: 4 }} />
+          </View>
           <Text style={[styles.failBody, { color: theme.colors.textMuted }]}>
-            +60 Gold · +8 Stone · +4 Provisions. Regional production also advances one cycle.
+            Regional production also advances one cycle.
           </Text>
           <View style={styles.button}>
             <PrimaryButton label="Return to Campaign" onPress={onExit} />
@@ -170,9 +189,12 @@ const styles = StyleSheet.create({
   threatCopy: { alignItems: 'flex-end' },
   smallLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1 },
   power: { fontSize: 24, fontWeight: '900', marginTop: 2 },
+  waveHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   waveLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   waveName: { fontSize: 18, fontWeight: '900', marginTop: 3 },
   waveBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
+  completeHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  rewardRow: { marginTop: 9 },
   failTitle: { fontSize: 16, fontWeight: '900' },
   failBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
   button: { marginTop: 11 }
