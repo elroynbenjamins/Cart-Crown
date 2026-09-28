@@ -1,4 +1,5 @@
-import React, { createContext, PropsWithChildren, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import type { PropsWithChildren } from 'react';
 import { GameTheme, ThemeId, themes } from './themes';
 
 type ThemeContextValue = {
