@@ -25,6 +25,7 @@ import { FortMusterScreen } from './screens/FortMusterScreen';
 import { FormationTrialScreen } from './screens/FormationTrialScreen';
 import { KingdomScreen } from './screens/KingdomScreen';
 import { MarkedRaidersScreen } from './screens/MarkedRaidersScreen';
+import { MarcherEnvoyScreen } from './screens/MarcherEnvoyScreen';
 import { PromotionScreen } from './screens/PromotionScreen';
 import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
@@ -50,6 +51,7 @@ type FlowScreen =
   | 'timberClaim'
   | 'kingdomDefense'
   | 'brokenSignalTower'
+  | 'marcherEnvoy'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -85,6 +87,7 @@ const flowTitles: Record<FlowScreen, string> = {
   timberClaim: 'Timber Claim',
   kingdomDefense: 'Kingdom Defense',
   brokenSignalTower: 'Broken Signal Tower',
+  marcherEnvoy: 'Marcher Envoy',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -280,6 +283,17 @@ export function AppShell({
       );
     }
 
+    if (flow === 'marcherEnvoy') {
+      return (
+        <MarcherEnvoyScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -347,6 +361,11 @@ export function AppShell({
               setActiveEncounterId('iron_provost');
               setFlow('battlePrep');
             }}
+            onOpenMarcherEnvoy={() => setFlow('marcherEnvoy')}
+            onStartBorderFort={() => {
+              setActiveEncounterId('border_fort');
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -400,6 +419,7 @@ export function AppShell({
     flow === 'timberClaim' ||
     flow === 'kingdomDefense' ||
     flow === 'brokenSignalTower' ||
+    flow === 'marcherEnvoy' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

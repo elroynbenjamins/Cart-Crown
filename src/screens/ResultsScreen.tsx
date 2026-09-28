@@ -36,6 +36,7 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   const tollCaptainResult = lastBattleResult.id === 'toll_captain_result';
   const ironRoadResult = lastBattleResult.id === 'iron_road_skirmish_result';
   const ironProvostResult = lastBattleResult.id === 'iron_provost_result';
+  const borderFortResult = lastBattleResult.id === 'border_fort_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -79,7 +80,26 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {ironProvostResult ? (
+      {borderFortResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>BORDER INTELLIGENCE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Three contradictory warnings
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The captured fort contains orders from three marcher authorities, each naming a different enemy and each claiming the others are compromised.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Next: Three Warnings</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Greenkeep must decide which reports are genuine before committing deeper into the Border Marches.
+            </Text>
+          </GameCard>
+        </>
+      ) : ironProvostResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM TIER UNLOCKED</Text>

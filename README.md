@@ -81,7 +81,20 @@ Settlement View shows:
 7. Meet infrastructure requirements and build Greenkeep Town
 
 ### Chapter 3 — Border Kingdoms
-A six-node campaign skeleton is prepared beginning with **Marcher Envoy**.
+
+The opening is now playable:
+
+1. **Marcher Envoy** — choose the fifth squad that joins Greenkeep:
+   - Halberdier — control/frontline
+   - Field Chaplain — morale/support
+   - Border Ranger — mobile skirmisher
+2. **Border Fort** — first battle inside the divided Border Marches
+3. **Three Warnings** — next story event
+4. Siege Road
+5. The Divided March
+6. Lord Marshal Veyr
+
+The Border Fort reveals three contradictory sets of orders from three marcher authorities, continuing the false-information theme established in Chapters 1–2.
 
 ## Cavalry progression
 
@@ -136,3 +149,19 @@ npm run typecheck
 ```
 
 Temporary letters and emoji are placeholders for final portrait, equipment, world-map and settlement artwork.
+
+
+## Settlement adjacency design
+
+Settlement adjacency is now fully active and reversible.
+
+Only orthogonal neighbors count. Relocating a building is free and preserves all levels.
+
+Current districts:
+- Arsenal District — Barracks + Forge
+- Supply Yard — Wagonwright + Quartermaster
+- Mounted Drill Yard — Barracks + Stable
+- Command Network — War Room + Signal Tower
+- Seat of Command — Hall + War Room
+
+Settlement View previews potential district bonuses before construction and lists all active district effects.

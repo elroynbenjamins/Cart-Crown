@@ -5,7 +5,8 @@ export type EncounterId =
   | 'mercenary_patrol'
   | 'toll_captain'
   | 'iron_road_skirmish'
-  | 'iron_provost';
+  | 'iron_provost'
+  | 'border_fort';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -57,6 +58,15 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 470,
     difficulty: 'Boss'
+  },
+  border_fort: {
+    id: 'border_fort',
+    name: 'Border Fort',
+    subtitle: 'The first marcher strongpoint refuses Greenkeep passage and raises two different house banners over the same gate.',
+    enemyName: 'Marcher Fort Guard',
+    enemyCount: 6,
+    enemyHp: 390,
+    difficulty: 'Elite'
   }
 };
 
@@ -80,6 +90,10 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   iron_provost: {
     resources: { gold: 180, wood: 100, stone: 90, iron: 25, provisions: 10 },
     storySummary: 'The Iron Provost falls and the road network opens. Greenkeep now has the wealth and authority to grow into a true Town.'
+  },
+  border_fort: {
+    resources: { gold: 85, stone: 12, iron: 7, provisions: 4 },
+    storySummary: 'The border fort yields. Its orders show three separate marcher authorities issuing contradictory warnings about the same enemy.'
   }
 };
 

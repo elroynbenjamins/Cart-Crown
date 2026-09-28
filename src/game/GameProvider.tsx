@@ -10,7 +10,10 @@ import {
   fortMusterOptions,
   humanResourceSites
 } from './chapter2';
-import { chapterThreeNodes } from './chapter3';
+import {
+  chapterThreeNodes,
+  marcherAuxiliaryOptions
+} from './chapter3';
 import {
   advancedPromotions,
   equipmentDefinitions,
@@ -125,6 +128,7 @@ type GameContextValue = {
   fourthRecruitChoiceAvailable: boolean;
   fourthRecruitChosen: boolean;
   fortMusterOptions: RecruitOption[];
+  marcherAuxiliaryOptions: RecruitOption[];
   unlockedResourceSites: string[];
   resourceSites: ResourceSiteDefinition[];
   productionStock: ResourceWallet;
@@ -155,6 +159,7 @@ type GameContextValue = {
   isBuildingUnlocked: (buildingId: string) => boolean;
   chooseRecruit: (choiceId: string) => boolean;
   chooseFortRecruit: (choiceId: string) => boolean;
+  chooseMarcherAuxiliary: (choiceId: string) => boolean;
   unlockTimberCamp: () => boolean;
   claimProduction: () => boolean;
   completeKingdomDefense: () => boolean;
@@ -757,6 +762,44 @@ export function GameProvider({
         rewards: { ...reward.resources },
         casualties: 0
       });
+      return;
+    }
+
+    if (encounterId === 'border_fort') {
+      if (
+        chapterNumber !== 3 ||
+        !chapterNodes.find(node => node.id === 'ch3_node_2')?.current
+      ) {
+        return;
+      }
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch3_node_2') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'ch3_node_3') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setSharedProgress(previous => ({
+        ...previous,
+        lore: previous.lore.includes('three_marcher_warnings')
+          ? previous.lore
+          : [...previous.lore, 'three_marcher_warnings']
+      }));
+      setLastBattleResult({
+        id: 'border_fort_result',
+        title: 'Border Fort Opened',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
     }
   };
 
@@ -989,6 +1032,53 @@ export function GameProvider({
         return { ...node, current: false };
       })
     );
+    return true;
+  };
+
+  const chooseMarcherAuxiliary = (choiceId: string) => {
+    if (
+      chapterNumber !== 3 ||
+      !chapterNodes.find(node => node.id === 'ch3_node_1')?.current ||
+      units.some(unit => unit.id.startsWith('hum_marcher_'))
+    ) {
+      return false;
+    }
+
+    const choice = marcherAuxiliaryOptions.find(
+      option => option.id === choiceId
+    );
+    if (!choice) return false;
+
+    setUnits(previous => [...previous, { ...choice.unit }]);
+    setFormation(previous => {
+      const next = [...previous];
+      const preferredSlots =
+        choice.unit.role === 'support' || choice.unit.role === 'skirmish'
+          ? [6, 8, 7, 3, 5, 4, 0, 2, 1]
+          : [3, 5, 4, 0, 2, 1, 6, 8, 7];
+      const empty = preferredSlots.find(slot => next[slot] === null);
+
+      if (
+        empty !== undefined &&
+        next.filter(Boolean).length < activeSquadCap
+      ) {
+        next[empty] = choice.unit.id;
+      }
+      return next;
+    });
+
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch3_node_1') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch3_node_2') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
+
     return true;
   };
 
@@ -1549,6 +1639,7 @@ export function GameProvider({
       fourthRecruitChoiceAvailable,
       fourthRecruitChosen,
       fortMusterOptions,
+      marcherAuxiliaryOptions,
       unlockedResourceSites,
       resourceSites,
       productionStock,
@@ -1579,6 +1670,7 @@ export function GameProvider({
       isBuildingUnlocked,
       chooseRecruit,
       chooseFortRecruit,
+      chooseMarcherAuxiliary,
       unlockTimberCamp,
       claimProduction,
       completeKingdomDefense,

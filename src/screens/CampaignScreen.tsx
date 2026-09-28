@@ -32,6 +32,8 @@ export function CampaignScreen({
   onOpenKingdomDefense,
   onOpenBrokenSignalTower,
   onStartIronProvost,
+  onOpenMarcherEnvoy,
+  onStartBorderFort,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -46,6 +48,8 @@ export function CampaignScreen({
   onOpenKingdomDefense: () => void;
   onOpenBrokenSignalTower: () => void;
   onStartIronProvost: () => void;
+  onOpenMarcherEnvoy: () => void;
+  onStartBorderFort: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -242,6 +246,15 @@ export function CampaignScreen({
             signalTowerUnlocked &&
             !ironProvostWon;
 
+          const marcherEnvoyPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_1';
+          const borderFortPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_2';
+
           const playable =
             chapterOneBattle ||
             chapterOneStory ||
@@ -253,7 +266,9 @@ export function CampaignScreen({
             timberPlayable ||
             defensePlayable ||
             signalPlayable ||
-            provostPlayable;
+            provostPlayable ||
+            marcherEnvoyPlayable ||
+            borderFortPlayable;
 
           const status = node.completed
             ? 'DONE'
@@ -275,7 +290,11 @@ export function CampaignScreen({
                             ? 'RESTORE'
                             : provostPlayable
                               ? 'BOSS'
-                              : bossPlayable
+                              : marcherEnvoyPlayable
+                                ? 'CHOOSE AUXILIARY'
+                                : borderFortPlayable
+                                  ? 'PLAY'
+                                  : bossPlayable
                                 ? 'BOSS'
                             : playable
                               ? 'PLAY'
@@ -305,7 +324,11 @@ export function CampaignScreen({
                               ? onOpenBrokenSignalTower
                               : provostPlayable
                                 ? onStartIronProvost
-                                : undefined;
+                                : marcherEnvoyPlayable
+                                  ? onOpenMarcherEnvoy
+                                  : borderFortPlayable
+                                    ? onStartBorderFort
+                                    : undefined;
 
           return (
             <Pressable

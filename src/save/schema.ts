@@ -109,7 +109,11 @@ export function metadataFromSnapshot(
   let chapterLabel = 'Chapter 1 · Hold the Road';
 
   if (current.chapterNumber >= 3) {
-    chapterLabel = 'Chapter 3 · Marcher Envoy';
+    chapterLabel = current.chapterNodes.find(node => node.id === 'ch3_node_3')?.current
+      ? 'Chapter 3 · Three Warnings'
+      : current.chapterNodes.find(node => node.id === 'ch3_node_2')?.current
+        ? 'Chapter 3 · Border Fort'
+        : 'Chapter 3 · Marcher Envoy';
   } else if (current.chapterNumber === 2) {
     chapterLabel = current.ironProvostWon
       ? 'Chapter 2 · Raise Greenkeep Town'
