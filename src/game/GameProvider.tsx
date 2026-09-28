@@ -4296,6 +4296,7 @@ export function GameProvider({
       provisions: previous.provisions + 5
     }));
     accrueRegionalProduction();
+    recordBattleWear(65, 100, 'Elite', true);
 
     if (storyDefenseActive) {
       setChapterNodes(previous =>
@@ -4857,6 +4858,7 @@ export function GameProvider({
         4 +
         settlementEffects.expeditionProvisionBonus
     }));
+    recordBattleWear(70, 100, 'Elite', true);
   };
 
   const completeFormationTrial = () => {
