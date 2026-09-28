@@ -4,6 +4,7 @@ import { useGame } from '../game/GameProvider';
 import { factions } from '../game/factions';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle } from '../ui/components';
+import { CommanderPortrait, FactionCrest } from '../ui/gameArt';
 
 const effectLabels: Record<string, string> = {
   single_damage: 'Direct Damage',
@@ -59,11 +60,16 @@ export function CommanderChoiceScreen({
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <GameCard accent={theme.colors.gold}>
-        <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>COMMAND PATH</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>What kind of commander will you become?</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          Your commander specialization boosts certain squad roles and gives one command skill that fires automatically during battle.
-        </Text>
+        <View style={styles.heroRow}>
+          <View style={styles.heroCopy}>
+            <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>COMMAND PATH</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>What kind of commander will you become?</Text>
+            <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+              Your commander specialization boosts certain squad roles and gives one command skill that fires automatically during battle.
+            </Text>
+          </View>
+          <FactionCrest faction={activeFaction} size={52} />
+        </View>
         {commanderPathId ? (
           <Text style={[styles.respec, { color: theme.colors.textMuted }]}>
             Retraining later costs {commanderRespecCost} Gold.
@@ -89,6 +95,9 @@ export function CommanderChoiceScreen({
             <View key={path.id}>
               <GameCard accent={chosen ? theme.colors.gold : current ? theme.colors.primary : undefined}>
                 <View style={styles.pathHeader}>
+                  <View style={styles.commanderPortrait}>
+                    <CommanderPortrait pathId={path.id} faction={path.faction} size={66} />
+                  </View>
                   <View style={styles.pathCopy}>
                     <Text style={[styles.pathName, { color: theme.colors.text }]}>{path.name}</Text>
                     <Text style={[styles.pathTitle, { color: factionAccent }]}>{path.title}</Text>
@@ -143,11 +152,16 @@ export function CommanderChoiceScreen({
 
       {selected ? (
         <GameCard accent={theme.colors.gold}>
-          <Text style={[styles.confirmLabel, { color: theme.colors.gold }]}>CONFIRM COMMAND</Text>
-          <Text style={[styles.confirmTitle, { color: theme.colors.text }]}>{selected.name}</Text>
-          <Text style={[styles.confirmBody, { color: theme.colors.textMuted }]}>
-            Favored roles: {selected.favoredRoles.join(', ')}. {isRespec ? 'Retraining will cost ' + commanderRespecCost + ' Gold.' : 'This first choice costs no Gold.'}
-          </Text>
+          <View style={styles.confirmRow}>
+            <CommanderPortrait pathId={selected.id} faction={selected.faction} size={72} />
+            <View style={styles.confirmCopy}>
+              <Text style={[styles.confirmLabel, { color: theme.colors.gold }]}>CONFIRM COMMAND</Text>
+              <Text style={[styles.confirmTitle, { color: theme.colors.text }]}>{selected.name}</Text>
+              <Text style={[styles.confirmBody, { color: theme.colors.textMuted }]}>
+                Favored roles: {selected.favoredRoles.join(', ')}. {isRespec ? 'Retraining will cost ' + commanderRespecCost + ' Gold.' : 'This first choice costs no Gold.'}
+              </Text>
+            </View>
+          </View>
           <View style={styles.confirmButton}>
             <PrimaryButton
               label={
@@ -177,12 +191,15 @@ export function CommanderChoiceScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 13 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  heroCopy: { flex: 1 },
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
   title: { fontSize: 26, lineHeight: 32, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12, lineHeight: 18, marginTop: 7 },
   respec: { fontSize: 10.5, fontWeight: '800', marginTop: 9 },
   pathList: { gap: 10 },
-  pathHeader: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  pathHeader: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  commanderPortrait: { width: 72, alignItems: 'center', justifyContent: 'center' },
   pathCopy: { flex: 1 },
   pathName: { fontSize: 18, fontWeight: '900' },
   pathTitle: { fontSize: 10, fontWeight: '900', marginTop: 2 },
@@ -195,6 +212,8 @@ const styles = StyleSheet.create({
   multiplierRow: { flexDirection: 'row', gap: 12, marginTop: 10 },
   multiplier: { fontSize: 9.5, fontWeight: '900' },
   chooseButton: { marginTop: 11 },
+  confirmRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  confirmCopy: { flex: 1 },
   confirmLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
   confirmTitle: { fontSize: 19, fontWeight: '900', marginTop: 4 },
   confirmBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },

@@ -4,6 +4,7 @@ import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, UnitPortrait } from '../ui/components';
+import { ClassLoadoutPreview } from '../ui/gameArt';
 
 export function FactionFifthRecruitmentScreen({
   onComplete
@@ -71,6 +72,13 @@ export function FactionFifthRecruitmentScreen({
                   />
                   <Pill label={option.archetype.toUpperCase()} />
                 </View>
+                <View style={styles.loadoutPreview}>
+                  <ClassLoadoutPreview
+                    className={option.unit.className}
+                    faction={option.unit.faction}
+                    size={30}
+                  />
+                </View>
                 <Text style={[styles.pitch, { color: theme.colors.text }]}>
                   {option.pitch}
                 </Text>
@@ -110,7 +118,8 @@ const styles = StyleSheet.create({
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
   list: { gap: 9 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  pitch: { fontSize: 11.5, lineHeight: 17, fontWeight: '800', marginTop: 10 },
+  loadoutPreview: { marginTop: 9 },
+  pitch: { fontSize: 11.5, lineHeight: 17, fontWeight: '800', marginTop: 9 },
   tradeoff: { fontSize: 10.5, lineHeight: 15, marginTop: 5 },
   message: { textAlign: 'center', fontSize: 10.5, fontWeight: '800' }
 });

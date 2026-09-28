@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle } from '../ui/components';
+import { StoryCharacterPortrait, StoryScene } from '../ui/gameArt';
 
 export function LastLoyalistsScreen({
   onComplete
@@ -31,6 +32,9 @@ export function LastLoyalistsScreen({
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           The captured officers finally accept that no living monarch is issuing their orders. A smaller loyalist force still guards the Pretender General, and Greenkeep must decide how to break that final allegiance.
         </Text>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="grand_council" size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title="Choose your approach" trailing="Pretender General" />
@@ -49,6 +53,9 @@ export function LastLoyalistsScreen({
             >
               <GameCard accent={chosen ? theme.colors.gold : undefined}>
                 <View style={styles.header}>
+                  <View style={styles.choicePortrait}>
+                    <StoryCharacterPortrait role="officer" size={42} />
+                  </View>
                   <View style={styles.copy}>
                     <Text style={[styles.name, { color: theme.colors.text }]}>
                       {choice.name}
@@ -88,8 +95,10 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
   list: { gap: 9 },
-  header: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  choicePortrait: { width: 46, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   name: { fontSize: 16, fontWeight: '900' },
   description: { fontSize: 11, lineHeight: 16, marginTop: 5 },

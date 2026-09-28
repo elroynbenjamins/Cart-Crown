@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
+import { FactionCrest, ResourceSiteSprite, StoryScene } from '../ui/gameArt';
 import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
 
 export function EmptyThroneScreen({
@@ -27,13 +28,16 @@ export function EmptyThroneScreen({
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           Greenkeep reaches an abandoned royal audience hall. The throne is gone, but official standards, transport records and broken crown wagons remain.
         </Text>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="crownspire" size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title="What the ruins reveal" />
 
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>👑</Text>
+          <View style={styles.rowArt}><FactionCrest faction="human" size={44} /></View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>No lawful succession</Text>
             <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
@@ -45,7 +49,7 @@ export function EmptyThroneScreen({
 
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>⚙️</Text>
+          <View style={styles.rowArt}><ResourceSiteSprite siteId="crownroad_salvage" faction="human" size={46} /></View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Crownroad Salvage Yard</Text>
             <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
@@ -69,8 +73,9 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  row: { flexDirection: 'row', gap: 12 },
-  icon: { fontSize: 28 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
+  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  rowArt: { width: 54, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   rowTitle: { fontSize: 15, fontWeight: '900' },
   rowBody: { fontSize: 11, lineHeight: 16, marginTop: 4 }

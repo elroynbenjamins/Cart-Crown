@@ -3,18 +3,12 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
-
-const rewardIcons: Record<string, string> = {
-  gold: '🪙',
-  wood: '🪵',
-  stone: '🪨',
-  iron: '⛓',
-  provisions: '🍞'
-};
+import { ResourceSprite, StoryScene } from '../ui/gameArt';
 
 export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   const { theme } = useGameTheme();
   const {
+    activeFaction,
     lastBattleResult,
     claimRewardedAd,
     rewardedAdClaims,
@@ -106,6 +100,13 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'orc_broken_steppe_war_result';
   const orcChapterFourBossResult =
     lastBattleResult.id === 'orc_split_chieftain_result';
+  const resultScene =
+    returnToCrownspireResult ||
+    crownspireGateResult ||
+    ashenCourtResult ||
+    ashenEnvoyResult
+      ? 'crownspire'
+      : 'victory';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -115,6 +116,9 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
         <Text style={[styles.summary, { color: theme.colors.textMuted }]}>
           {lastBattleResult.summary}
         </Text>
+        <View style={styles.resultScene}>
+          <StoryScene scene={resultScene} faction={activeFaction} size={248} />
+        </View>
       </View>
 
       <SectionTitle title="Rewards" />
@@ -122,7 +126,10 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
         <View style={styles.rewards}>
           {rewards.map(([key, value]) => (
             <View key={key} style={[styles.reward, { backgroundColor: theme.colors.surface2 }]}>
-              <Text style={styles.rewardIcon}>{rewardIcons[key] ?? '◆'}</Text>
+              <ResourceSprite
+                resource={key as 'gold' | 'wood' | 'stone' | 'iron' | 'provisions'}
+                size={30}
+              />
               <Text style={[styles.rewardValue, { color: theme.colors.text }]}>+{value}</Text>
               <Text style={[styles.rewardLabel, { color: theme.colors.textMuted }]}>{key}</Text>
             </View>
@@ -778,7 +785,7 @@ const styles = StyleSheet.create({
   summary: { fontSize: 13, lineHeight: 19, textAlign: 'center', marginTop: 8, maxWidth: 330 },
   rewards: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   reward: { minWidth: '47%', flexGrow: 1, borderRadius: 16, padding: 12, alignItems: 'center' },
-  rewardIcon: { fontSize: 22 },
+  resultScene: { alignItems: 'center', marginTop: 12 },
   rewardValue: { fontSize: 18, fontWeight: '900', marginTop: 5 },
   rewardLabel: { fontSize: 10, textTransform: 'capitalize', marginTop: 2 },
   salvageTitle: { fontSize: 15, fontWeight: '900' },

@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
+import { StoryCharacterPortrait, StoryScene, WagonStageSprite } from '../ui/gameArt';
 
 export function GrandCouncilScreen({
   onComplete
@@ -24,13 +25,18 @@ export function GrandCouncilScreen({
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           Greenkeep’s officers, quartermasters and provincial delegates agree on one final objective: enter Crownspire, reach the Concord Beacon, and expose the Ashen Court before it can force another activation.
         </Text>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="grand_council" size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title="Campaign mandate" />
 
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>📜</Text>
+          <View style={styles.rowArt}>
+            <StoryCharacterPortrait role="delegate" size={48} />
+          </View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>
               {activeRoyalDecree?.name ?? 'Capital administration'}
@@ -44,7 +50,9 @@ export function GrandCouncilScreen({
 
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>🛒</Text>
+          <View style={styles.rowArt}>
+            <WagonStageSprite stageId="grand" faction="human" size={52} />
+          </View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Final provisioning</Text>
             <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
@@ -68,8 +76,9 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  row: { flexDirection: 'row', gap: 12 },
-  icon: { fontSize: 28 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
+  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  rowArt: { width: 58, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   rowTitle: { fontSize: 15, fontWeight: '900' },
   rowBody: { fontSize: 11, lineHeight: 16, marginTop: 4 }

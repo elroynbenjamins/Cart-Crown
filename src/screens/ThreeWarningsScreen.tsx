@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle } from '../ui/components';
+import { StoryCharacterPortrait, StoryScene } from '../ui/gameArt';
 
 export function ThreeWarningsScreen({ onComplete }: { onComplete: () => void }) {
   const { theme } = useGameTheme();
@@ -34,6 +35,9 @@ export function ThreeWarningsScreen({ onComplete }: { onComplete: () => void }) 
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           Three marcher authorities sent contradictory warnings. You cannot verify every report before the Siege Road closes, so your army must choose how it will operate.
         </Text>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="grand_council" size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title="Choose an operational doctrine" trailing="Chapter 3" />
@@ -49,6 +53,9 @@ export function ThreeWarningsScreen({ onComplete }: { onComplete: () => void }) 
             }}>
               <GameCard accent={chosen ? theme.colors.gold : undefined}>
                 <View style={styles.header}>
+                  <View style={styles.choicePortrait}>
+                    <StoryCharacterPortrait role="officer" size={42} />
+                  </View>
                   <View style={styles.copy}>
                     <Text style={[styles.name, { color: theme.colors.text }]}>{choice.name}</Text>
                     <Text style={[styles.description, { color: theme.colors.textMuted }]}>
@@ -93,8 +100,10 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
   list: { gap: 9 },
-  header: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  choicePortrait: { width: 46, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   name: { fontSize: 16, fontWeight: '900' },
   description: { fontSize: 11, lineHeight: 16, marginTop: 5 },
