@@ -1078,6 +1078,7 @@ const styles = StyleSheet.create({
   modeExample: { fontSize: 11, fontWeight: '800', marginTop: 8 },
   modeReward: { fontSize: 10.5, fontWeight: '800', marginTop: 6 },
   modeMeta: { fontSize: 10, marginTop: 7, fontWeight: '700' },
+  modeStatusRow: { marginTop: 8, alignItems: 'flex-start' },
   modeButton: { marginTop: 12 },
   adTitle: { fontSize: 15, fontWeight: '900' },
   adBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
@@ -1094,5 +1095,6 @@ const styles = StyleSheet.create({
   mechanicName: { fontSize: 11, fontWeight: '900' },
   mechanicBody: { fontSize: 10.5, lineHeight: 15, marginTop: 4 },
   replayReason: { fontSize: 10.5, lineHeight: 15, fontWeight: '800', marginTop: 9 },
-  unlockText: { fontSize: 10.5, lineHeight: 15, marginTop: 8, fontWeight: '700' }
+  unlockRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 9 },
+  unlockText: { flex: 1, fontSize: 10.5, lineHeight: 15, fontWeight: '700' }
 });
