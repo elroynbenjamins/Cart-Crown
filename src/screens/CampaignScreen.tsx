@@ -238,6 +238,9 @@ export function CampaignScreen({
         onOpenChapterSixSeal={onOpenFactionChapterSixSeal}
         onStartChapterSixBoss={onStartFactionChapterSixBoss}
         onOpenMetaCampaign={onOpenMetaCampaign}
+        onOpenExpedition={onOpenExpedition}
+        onOpenFormationTrial={onOpenFormationTrial}
+        onOpenKingdomDefense={onOpenKingdomDefense}
       />
     );
   }
