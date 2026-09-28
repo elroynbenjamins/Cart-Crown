@@ -290,6 +290,27 @@ function neighborSlots(
   });
 }
 
+export function areFormationSlotsAdjacent(
+  shapeId: FormationShapeId | string | null | undefined,
+  a: number,
+  b: number
+) {
+  return neighborSlots(a, shapeId).includes(b);
+}
+
+export function areFormationSlotsVerticallyAligned(
+  shapeId: FormationShapeId | string | null | undefined,
+  a: number,
+  b: number
+) {
+  const positions = buildSlotPositions(shapeId);
+  const first = positions.get(a);
+  const second = positions.get(b);
+  if (!first || !second || first.row === second.row) return false;
+
+  return Math.abs(first.x - second.x) <= 0.28;
+}
+
 function unitAt(
   formation: Array<string | null>,
   units: UnitDefinition[],
