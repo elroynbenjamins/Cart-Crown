@@ -54,3 +54,22 @@ Starter-specific art direction:
 - **Stag:** clearly a stag rather than a horse—antlers are mandatory and must remain readable at 40–56 px.
 - **Warg:** low, heavy predatory silhouette with ears/snout; must not read as a dark horse.
 - **Crests:** bold simple faction symbols with no text and strong small-size recognition.
+
+
+## Second production batch — early_progression_v2
+
+This batch covers the first meaningful class and equipment choices after the starter campaigns:
+
+- Human units: Swordsman, Spearman, Archer
+- Elf units: Grove Acolyte, Bow Warden, Stag Scout
+- Orc units: Clan Warrior, War Drummer, Warg Scout
+- Human Tier-1 gear: Iron Sword, Infantry Spear, Hunting Bow, Padded Armor, Wooden Shield
+- Elf Tier-1 gear: Spiritwood Spear, Moonbow, Leafweave Armor
+- Orc Tier-1 gear: Clan Iron Axe, Horn Bow, Warhide Armor
+
+Production goals:
+- promoted Human classes should look trained but still clearly below Tier II professionals;
+- Grove Acolyte reads as magical/support, Bow Warden as ranged, Stag Scout as mounted;
+- Clan Warrior reads as frontline, War Drummer as support, Warg Scout as mounted;
+- the weapon/icon silhouette must stay recognizable at 38–56 px;
+- armor icons should communicate faction material language without any text or rarity frame.

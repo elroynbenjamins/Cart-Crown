@@ -251,7 +251,29 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
 
   'equipment.hum_trained_horse': require('../../assets/game/equipment/human/hum_trained_horse.png'),
   'equipment.elf_trained_stag': require('../../assets/game/equipment/elf/elf_trained_stag.png'),
-  'equipment.orc_trained_warg': require('../../assets/game/equipment/orc/orc_trained_warg.png')
+  'equipment.orc_trained_warg': require('../../assets/game/equipment/orc/orc_trained_warg.png'),
+
+  'unit.human.swordsman': require('../../assets/game/units/human/swordsman.png'),
+  'unit.human.spearman': require('../../assets/game/units/human/spearman.png'),
+  'unit.human.archer': require('../../assets/game/units/human/archer.png'),
+  'unit.elf.grove_acolyte': require('../../assets/game/units/elf/grove_acolyte.png'),
+  'unit.elf.bow_warden': require('../../assets/game/units/elf/bow_warden.png'),
+  'unit.elf.stag_scout': require('../../assets/game/units/elf/stag_scout.png'),
+  'unit.orc.clan_warrior': require('../../assets/game/units/orc/clan_warrior.png'),
+  'unit.orc.war_drummer': require('../../assets/game/units/orc/war_drummer.png'),
+  'unit.orc.warg_scout': require('../../assets/game/units/orc/warg_scout.png'),
+
+  'equipment.hum_iron_sword': require('../../assets/game/equipment/human/hum_iron_sword.png'),
+  'equipment.hum_infantry_spear': require('../../assets/game/equipment/human/hum_infantry_spear.png'),
+  'equipment.hum_hunting_bow': require('../../assets/game/equipment/human/hum_hunting_bow.png'),
+  'equipment.hum_padded_armor': require('../../assets/game/equipment/human/hum_padded_armor.png'),
+  'equipment.hum_wood_shield': require('../../assets/game/equipment/human/hum_wood_shield.png'),
+  'equipment.elf_spiritwood_spear': require('../../assets/game/equipment/elf/elf_spiritwood_spear.png'),
+  'equipment.elf_moonbow': require('../../assets/game/equipment/elf/elf_moonbow.png'),
+  'equipment.elf_leafweave': require('../../assets/game/equipment/elf/elf_leafweave.png'),
+  'equipment.orc_iron_axe': require('../../assets/game/equipment/orc/orc_iron_axe.png'),
+  'equipment.orc_hunter_bow': require('../../assets/game/equipment/orc/orc_hunter_bow.png'),
+  'equipment.orc_warhide': require('../../assets/game/equipment/orc/orc_warhide.png')
 };
 
 export function getProductionAssetSource(assetId: string) {

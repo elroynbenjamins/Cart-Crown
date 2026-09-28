@@ -98,7 +98,7 @@ export type ResourceSiteVisualKind =
   | 'beacon'
   | 'quarry';
 
-export const VISUAL_ASSET_VERSION = 9;
+export const VISUAL_ASSET_VERSION = 10;
 
 export const unitClassVisuals: Record<string, UnitVisualKind> = {
   militia: 'infantry',
