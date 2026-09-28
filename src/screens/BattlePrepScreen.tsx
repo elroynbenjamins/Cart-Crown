@@ -30,6 +30,7 @@ export function BattlePrepScreen({
     formationDoctrineId,
     formationDoctrines,
     activeCommanderPath,
+    activeMarcherWarningChoice,
     buildingLevels,
     settlementEffects,
     claimRewardedAd,
@@ -45,11 +46,18 @@ export function BattlePrepScreen({
 
   const hasFood = wagonItems.some(item => item.id === 'rations');
   const hasMedicine = wagonItems.some(item => item.id === 'medicine');
+  const marcherDoctrineActive =
+    encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
+  const marcherIntel =
+    marcherDoctrineActive &&
+    Boolean(activeMarcherWarningChoice?.detailedIntel);
   const towerIntel =
     (buildingLevels.signal_tower ?? 0) >= 2 ||
     settlementEffects.detailedIntel;
   const scoutReport =
-    towerIntel || (rewardedAdClaims.scout_report ?? 0) > 0;
+    towerIntel ||
+    marcherIntel ||
+    (rewardedAdClaims.scout_report ?? 0) > 0;
   const doctrine = formationDoctrines.find(candidate => candidate.id === formationDoctrineId);
 
   return (
@@ -75,11 +83,13 @@ export function BattlePrepScreen({
         trailing={
           settlementEffects.detailedIntel
             ? 'Command Network intel'
-            : towerIntel
-              ? 'Signal Tower intel'
-              : scoutReport
-                ? 'Scouted'
-                : 'Partial intel'
+            : marcherIntel
+              ? 'Verified Marcher intel'
+              : towerIntel
+                ? 'Signal Tower intel'
+                : scoutReport
+                  ? 'Scouted'
+                  : 'Partial intel'
         }
       />
       <GameCard>
@@ -139,6 +149,20 @@ export function BattlePrepScreen({
           Attack ×{formationAnalysis.attackMultiplier.toFixed(2)} · Armor ×{formationAnalysis.armorMultiplier.toFixed(2)} · Speed ×{formationAnalysis.speedMultiplier.toFixed(2)}
         </Text>
       </GameCard>
+
+      {marcherDoctrineActive && activeMarcherWarningChoice ? (
+        <GameCard accent={theme.colors.gold}>
+          <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+            BORDER MARCH DOCTRINE
+          </Text>
+          <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+            {activeMarcherWarningChoice.name}
+          </Text>
+          <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+            {activeMarcherWarningChoice.effectText}
+          </Text>
+        </GameCard>
+      ) : null}
 
       {activeCommanderPath ? (
         <GameCard accent={theme.colors.human}>

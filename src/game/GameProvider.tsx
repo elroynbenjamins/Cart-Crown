@@ -611,7 +611,9 @@ export function GameProvider({
     setProductionStock(previous => {
       const next = { ...previous };
       for (const siteId of unlockedResourceSites) {
-        const site = humanResourceSites.find(candidate => candidate.id === siteId);
+        const site = [...humanResourceSites, ...marcherResourceSites].find(
+          candidate => candidate.id === siteId
+        );
         if (!site) continue;
         next.gold += site.productionPerActivity.gold ?? 0;
         next.wood += site.productionPerActivity.wood ?? 0;
@@ -957,6 +959,19 @@ export function GameProvider({
     if (currentLevel <= 0) return false;
 
     const targetLevel = currentLevel + 1;
+    const maxLevelByStage: Record<string, number> = {
+      camp: 1,
+      settlement: 2,
+      fort: 3,
+      town: 4,
+      stronghold: 5,
+      capital: 5,
+      grand: 5
+    };
+
+    if (targetLevel > (maxLevelByStage[currentWagonStage.id] ?? 1)) {
+      return false;
+    }
     const definition = getBuildingLevelDefinition(buildingId, targetLevel);
 
     if (!definition || !canPayBuildingCost(resources, definition.cost)) return false;

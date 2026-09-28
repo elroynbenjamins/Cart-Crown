@@ -36,10 +36,25 @@ export function BattleScreen({
     formationAnalysis,
     activeFaction,
     activeCommanderPath,
+    activeMarcherWarningChoice,
     settlementEffects
   } = useGame();
 
   const encounter = getEncounter(encounterId);
+  const marcherDoctrineActive =
+    encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
+  const marcherAttackMultiplier =
+    marcherDoctrineActive && activeMarcherWarningChoice
+      ? activeMarcherWarningChoice.attackMultiplier
+      : 1;
+  const marcherArmorMultiplier =
+    marcherDoctrineActive && activeMarcherWarningChoice
+      ? activeMarcherWarningChoice.armorMultiplier
+      : 1;
+  const marcherSpeedMultiplier =
+    marcherDoctrineActive && activeMarcherWarningChoice
+      ? activeMarcherWarningChoice.speedMultiplier
+      : 1;
 
   const activeUnits = useMemo(
     () =>
@@ -143,6 +158,7 @@ export function BattleScreen({
         Math.round(
           (partyAttack + 5 + turn * 2) *
             formationAnalysis.attackMultiplier *
+            marcherAttackMultiplier *
             momentum *
             attackFactor
         )
@@ -157,7 +173,12 @@ export function BattleScreen({
         4,
         Math.round(
           (rawEnemyStrike * retaliationFactor) /
-            Math.max(0.7, formationAnalysis.armorMultiplier * commanderArmorMultiplier)
+            Math.max(
+              0.7,
+              formationAnalysis.armorMultiplier *
+                commanderArmorMultiplier *
+                marcherArmorMultiplier
+            )
         )
       );
 
@@ -176,7 +197,17 @@ export function BattleScreen({
         const remaining = effect.remaining - 1;
         setActiveEffect(remaining > 0 ? { ...effect, remaining } : null);
       }
-    }, Math.max(360, Math.round(650 / (formationAnalysis.speedMultiplier * commanderSpeedMultiplier))));
+    }, Math.max(
+      360,
+      Math.round(
+        650 /
+          (
+            formationAnalysis.speedMultiplier *
+            commanderSpeedMultiplier *
+            marcherSpeedMultiplier
+          )
+      )
+    ));
 
     return () => clearTimeout(timer);
   }, [
@@ -191,7 +222,10 @@ export function BattleScreen({
     partyAttack,
     skillTriggered,
     turn,
-    settlementEffects.commanderSkillPowerMultiplier
+    settlementEffects.commanderSkillPowerMultiplier,
+    marcherAttackMultiplier,
+    marcherArmorMultiplier,
+    marcherSpeedMultiplier
   ]);
 
   return (
@@ -246,6 +280,12 @@ export function BattleScreen({
           {partyHp} / {partyMaxHp} HP
         </Text>
         <ProgressBar value={partyMaxHp > 0 ? partyHp / partyMaxHp : 0} color={theme.colors.primary} />
+
+        {marcherDoctrineActive && activeMarcherWarningChoice ? (
+          <Text style={[styles.commanderLine, { color: theme.colors.primary }]}>
+            {activeMarcherWarningChoice.name}
+          </Text>
+        ) : null}
 
         {activeCommanderPath ? (
           <Text style={[styles.commanderLine, { color: theme.colors.gold }]}>

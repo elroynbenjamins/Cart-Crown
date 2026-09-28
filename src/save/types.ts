@@ -43,6 +43,9 @@ export type FactionGameState = {
   kingdomDefenseRuns: number;
   signalTowerUnlocked: boolean;
   ironProvostWon: boolean;
+  marcherWarningChoiceId: string | null;
+  dividedMarchResolved: boolean;
+  lordMarshalWon: boolean;
   lastBattleResult: BattleResult | null;
   expeditionTickets: number;
   expeditionRunsCompleted: number;
@@ -57,7 +60,7 @@ export type SharedProgress = {
 };
 
 export type GameSnapshot = {
-  schemaVersion: 7;
+  schemaVersion: 8;
   activeFaction: FactionId;
   shared: SharedProgress;
   factionStates: Record<FactionId, FactionGameState | null>;

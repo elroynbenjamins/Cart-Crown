@@ -6,7 +6,9 @@ export type EncounterId =
   | 'toll_captain'
   | 'iron_road_skirmish'
   | 'iron_provost'
-  | 'border_fort';
+  | 'border_fort'
+  | 'siege_road'
+  | 'lord_marshal_veyr';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -67,6 +69,24 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 390,
     difficulty: 'Elite'
+  },
+  siege_road: {
+    id: 'siege_road',
+    name: 'Siege Road',
+    subtitle: 'Greenkeep must break through a fortified marcher road before the false orders isolate the remaining houses.',
+    enemyName: 'Siege Road Column',
+    enemyCount: 6,
+    enemyHp: 560,
+    difficulty: 'Elite'
+  },
+  lord_marshal_veyr: {
+    id: 'lord_marshal_veyr',
+    name: 'Lord Marshal Veyr',
+    subtitle: 'Veyr gathers the loyal marcher companies beneath one standard and challenges Greenkeep at the old crown road.',
+    enemyName: 'Veyr’s Marshal Guard',
+    enemyCount: 6,
+    enemyHp: 760,
+    difficulty: 'Boss'
   }
 };
 
@@ -94,6 +114,14 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   border_fort: {
     resources: { gold: 85, stone: 12, iron: 7, provisions: 4 },
     storySummary: 'The border fort yields. Its orders show three separate marcher authorities issuing contradictory warnings about the same enemy.'
+  },
+  siege_road: {
+    resources: { gold: 105, wood: 18, stone: 16, iron: 9, provisions: 5 },
+    storySummary: 'Siege Road is opened. Captured dispatches prove the marcher houses were deliberately given conflicting commands.'
+  },
+  lord_marshal_veyr: {
+    resources: { gold: 260, wood: 150, stone: 120, iron: 35, provisions: 12 },
+    storySummary: 'Lord Marshal Veyr is defeated. The Border Marches recognize Greenkeep as the strongest western authority and the road toward the broken Crown opens.'
   }
 };
 

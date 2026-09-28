@@ -34,6 +34,10 @@ export function CampaignScreen({
   onStartIronProvost,
   onOpenMarcherEnvoy,
   onStartBorderFort,
+  onOpenThreeWarnings,
+  onStartSiegeRoad,
+  onOpenDividedMarch,
+  onStartLordMarshal,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -50,6 +54,10 @@ export function CampaignScreen({
   onStartIronProvost: () => void;
   onOpenMarcherEnvoy: () => void;
   onStartBorderFort: () => void;
+  onOpenThreeWarnings: () => void;
+  onStartSiegeRoad: () => void;
+  onOpenDividedMarch: () => void;
+  onStartLordMarshal: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -67,6 +75,9 @@ export function CampaignScreen({
     kingdomDefenseCompleted,
     signalTowerUnlocked,
     ironProvostWon,
+    marcherWarningChoiceId,
+    dividedMarchResolved,
+    lordMarshalWon,
     campaignAvailability,
     sideModeDefinitions,
     isSideModeUnlocked,
@@ -96,14 +107,18 @@ export function CampaignScreen({
                 ? 'The Last Wagon'
                 : chapterNumber === 2
                   ? 'The Iron Road'
-                  : 'Border Kingdoms'}
+                  : chapterNumber === 3
+                    ? 'Border Kingdoms'
+                    : 'The Broken Crown'}
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
               {chapterNumber === 1
                 ? 'Reach ruined Greenkeep with the surviving squads.'
                 : chapterNumber === 2
                   ? 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'
-                  : 'Carry Greenkeep’s authority into the divided Border Marches.'}
+                  : chapterNumber === 3
+                    ? 'Carry Greenkeep’s authority into the divided Border Marches.'
+                    : 'Push beyond the marcher crisis toward the broken western crown.'}
             </Text>
           </View>
           <Pill label={String(completed) + ' / 6'} color={theme.colors.surface2} />
@@ -179,7 +194,9 @@ export function CampaignScreen({
             ? 'Greenkeep Outskirts'
             : chapterNumber === 2
               ? 'Iron Hills Approach'
-              : 'Border Marches'
+              : chapterNumber === 3
+                ? 'Border Marches'
+                : 'Crown Road'
         }
         trailing="Current region"
       />
@@ -254,6 +271,27 @@ export function CampaignScreen({
             chapterNumber === 3 &&
             node.current &&
             node.id === 'ch3_node_2';
+          const warningsPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_3' &&
+            !marcherWarningChoiceId;
+          const siegeRoadPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_4' &&
+            Boolean(marcherWarningChoiceId);
+          const dividedMarchPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_5' &&
+            !dividedMarchResolved;
+          const lordMarshalPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_6' &&
+            dividedMarchResolved &&
+            !lordMarshalWon;
 
           const playable =
             chapterOneBattle ||
@@ -268,7 +306,11 @@ export function CampaignScreen({
             signalPlayable ||
             provostPlayable ||
             marcherEnvoyPlayable ||
-            borderFortPlayable;
+            borderFortPlayable ||
+            warningsPlayable ||
+            siegeRoadPlayable ||
+            dividedMarchPlayable ||
+            lordMarshalPlayable;
 
           const status = node.completed
             ? 'DONE'
@@ -294,7 +336,15 @@ export function CampaignScreen({
                                 ? 'CHOOSE AUXILIARY'
                                 : borderFortPlayable
                                   ? 'PLAY'
-                                  : bossPlayable
+                                  : warningsPlayable
+                                    ? 'CHOOSE DOCTRINE'
+                                    : siegeRoadPlayable
+                                      ? 'PLAY'
+                                      : dividedMarchPlayable
+                                        ? 'UNITE MARCHES'
+                                        : lordMarshalPlayable
+                                          ? 'BOSS'
+                                          : bossPlayable
                                 ? 'BOSS'
                             : playable
                               ? 'PLAY'
@@ -328,7 +378,15 @@ export function CampaignScreen({
                                   ? onOpenMarcherEnvoy
                                   : borderFortPlayable
                                     ? onStartBorderFort
-                                    : undefined;
+                                    : warningsPlayable
+                                      ? onOpenThreeWarnings
+                                      : siegeRoadPlayable
+                                        ? onStartSiegeRoad
+                                        : dividedMarchPlayable
+                                          ? onOpenDividedMarch
+                                          : lordMarshalPlayable
+                                            ? onStartLordMarshal
+                                            : undefined;
 
           return (
             <Pressable

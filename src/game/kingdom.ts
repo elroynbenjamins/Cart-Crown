@@ -158,6 +158,41 @@ export const humanBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 95, wood: 25, provisions: 15 },
     effect: 'Veteran mount training prepared for heavier cavalry branches.',
     requirement: 'Greenkeep Fort'
+  },
+  {
+    buildingId: 'barracks',
+    level: 4,
+    cost: { gold: 155, wood: 65, iron: 14 },
+    effect: 'Stronghold drill grounds prepared for elite Human troop branches.',
+    requirement: 'Border Marches secured'
+  },
+  {
+    buildingId: 'forge',
+    level: 4,
+    cost: { gold: 175, iron: 28, stone: 12 },
+    effect: 'Elite forging floor prepared for Stronghold equipment.',
+    requirement: 'Border Marches secured'
+  },
+  {
+    buildingId: 'wagonwright',
+    level: 4,
+    cost: { gold: 140, wood: 85, iron: 14 },
+    effect: 'Heavy campaign chassis ready for the Stronghold Wagon.',
+    requirement: 'Border Marches secured'
+  },
+  {
+    buildingId: 'war_room',
+    level: 3,
+    cost: { gold: 130, wood: 30, stone: 15 },
+    effect: 'March-wide command planning prepared for the Stronghold tier.',
+    requirement: 'Border Marches secured'
+  },
+  {
+    buildingId: 'quartermaster',
+    level: 3,
+    cost: { gold: 110, wood: 35, provisions: 20 },
+    effect: 'Large campaign stores support six active squads.',
+    requirement: 'Border Marches secured'
   }
 ];
 

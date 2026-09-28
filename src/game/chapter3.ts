@@ -1,4 +1,24 @@
-import type { ChapterNode, RecruitOption } from './types';
+import type {
+  ChapterNode,
+  RecruitOption,
+  ResourceSiteDefinition
+} from './types';
+
+export type MarcherWarningChoiceId =
+  | 'fortify_route'
+  | 'hunt_couriers'
+  | 'verify_beacons';
+
+export type MarcherWarningChoice = {
+  id: MarcherWarningChoiceId;
+  name: string;
+  description: string;
+  effectText: string;
+  attackMultiplier: number;
+  armorMultiplier: number;
+  speedMultiplier: number;
+  detailedIntel: boolean;
+};
 
 export const chapterThreeNodes: ChapterNode[] = [
   { id: 'ch3_node_1', name: 'Marcher Envoy', type: 'event', completed: false, current: true },
@@ -66,5 +86,49 @@ export const marcherAuxiliaryOptions: RecruitOption[] = [
       armor: 6,
       speed: 15
     }
+  }
+];
+
+export const marcherWarningChoices: MarcherWarningChoice[] = [
+  {
+    id: 'fortify_route',
+    name: 'Fortify the Supply Route',
+    description: 'Assume the roads are compromised and move behind reinforced wagon guards.',
+    effectText: '+10% armor in Chapter 3 campaign battles',
+    attackMultiplier: 1,
+    armorMultiplier: 1.1,
+    speedMultiplier: 1,
+    detailedIntel: false
+  },
+  {
+    id: 'hunt_couriers',
+    name: 'Hunt the False Couriers',
+    description: 'Move aggressively against messengers carrying contradictory orders between forts.',
+    effectText: '+8% attack and +3% speed in Chapter 3 campaign battles',
+    attackMultiplier: 1.08,
+    armorMultiplier: 1,
+    speedMultiplier: 1.03,
+    detailedIntel: false
+  },
+  {
+    id: 'verify_beacons',
+    name: 'Verify Every Beacon',
+    description: 'Slow the advance long enough to confirm which warning fires are genuine.',
+    effectText: 'Detailed intel and +5% speed in Chapter 3 campaign battles',
+    attackMultiplier: 1,
+    armorMultiplier: 1,
+    speedMultiplier: 1.05,
+    detailedIntel: true
+  }
+];
+
+export const marcherResourceSites: ResourceSiteDefinition[] = [
+  {
+    id: 'marcher_depot',
+    faction: 'human',
+    name: 'Marcher Supply Depot',
+    icon: '🏚️',
+    description: 'A reconciled border depot collects tolls and forwards supplies to Greenkeep.',
+    productionPerActivity: { gold: 6, provisions: 2 }
   }
 ];

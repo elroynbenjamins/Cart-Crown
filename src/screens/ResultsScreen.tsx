@@ -37,6 +37,9 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   const ironRoadResult = lastBattleResult.id === 'iron_road_skirmish_result';
   const ironProvostResult = lastBattleResult.id === 'iron_provost_result';
   const borderFortResult = lastBattleResult.id === 'border_fort_result';
+  const siegeRoadResult = lastBattleResult.id === 'siege_road_result';
+  const lordMarshalResult =
+    lastBattleResult.id === 'lord_marshal_veyr_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -80,7 +83,45 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {borderFortResult ? (
+      {lordMarshalResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM TIER UNLOCKED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Greenkeep can become a Stronghold
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Veyr’s defeat gives Greenkeep authority across the western marches. Raise Barracks, Forge and Wagonwright to Lv.4, War Room and Quartermaster to Lv.3, Stable and Signal Tower to Lv.2, then fund the Stronghold project.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>The Broken Crown</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Veyr’s records point beyond the marcher lords toward officers still issuing orders in the name of a crown that no longer has a ruler.
+            </Text>
+          </GameCard>
+        </>
+      ) : siegeRoadResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>MARCHER EVIDENCE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              The false orders match
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Captured dispatches prove the same hand altered the warnings sent to all three marcher houses.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Next: The Divided March</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Greenkeep can finally place the documents side by side and force the marcher captains to confront the manipulation.
+            </Text>
+          </GameCard>
+        </>
+      ) : borderFortResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>BORDER INTELLIGENCE</Text>

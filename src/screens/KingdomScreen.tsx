@@ -46,7 +46,10 @@ export function KingdomScreen({
     canUpgradeToFort,
     townUpgradeAvailable,
     canUpgradeToTown,
+    strongholdUpgradeAvailable,
+    canUpgradeToStronghold,
     upgradeToTown,
+    upgradeToStronghold,
     resourceSites,
     unlockedResourceSites,
     productionStock,
@@ -65,9 +68,11 @@ export function KingdomScreen({
   const [buildingMessage, setBuildingMessage] = useState<string | null>(null);
 
   const settlementName =
-    currentWagonStage.id === 'town'
-      ? 'Greenkeep Town'
-      : currentWagonStage.id === 'fort'
+    currentWagonStage.id === 'stronghold'
+      ? 'Greenkeep Stronghold'
+      : currentWagonStage.id === 'town'
+        ? 'Greenkeep Town'
+        : currentWagonStage.id === 'fort'
         ? 'Greenkeep Fort'
         : settlementUpgraded
           ? 'Greenkeep Settlement'
@@ -102,12 +107,27 @@ export function KingdomScreen({
       onOpenRecruitment();
       return true;
     };
-  } else if (currentWagonStage.id === 'town') {
-    milestoneTitle = 'Greenkeep Town established';
-    milestoneBody = 'The Iron Road is under Greenkeep control. The next campaign now moves into the divided Border Marches.';
-    buttonLabel = 'Town established';
+  } else if (currentWagonStage.id === 'stronghold') {
+    milestoneTitle = 'Greenkeep Stronghold established';
+    milestoneBody = 'The Border Marches now answer to Greenkeep. The army can field six active squads and push toward the broken Crown.';
+    buttonLabel = 'Stronghold established';
     disabled = true;
-    requirement = 'Chapter 3 progression comes next';
+    requirement = 'Chapter 4 · The Broken Crown';
+    action = () => false;
+  } else if (currentWagonStage.id === 'town' && strongholdUpgradeAvailable) {
+    milestoneTitle = 'Raise Greenkeep Stronghold';
+    milestoneBody = 'Lord Marshal Veyr is defeated. Upgrade Greenkeep’s military, logistics and command buildings before funding the Stronghold walls and heavy campaign infrastructure.';
+    buttonLabel = 'Build Greenkeep Stronghold';
+    disabled = !canUpgradeToStronghold;
+    requirement =
+      'Requires Barracks Lv.4 · Forge Lv.4 · Wagonwright Lv.4 · War Room Lv.3 · Quartermaster Lv.3 · Stable Lv.2 · Signal Tower Lv.2 · 400 Gold · 180 Wood · 140 Stone · 40 Iron';
+    action = upgradeToStronghold;
+  } else if (currentWagonStage.id === 'town') {
+    milestoneTitle = 'Secure the Border Marches';
+    milestoneBody = 'Strengthen the Town and expose the false marcher orders while pushing toward Lord Marshal Veyr.';
+    buttonLabel = 'Stronghold tier is story-gated';
+    disabled = true;
+    requirement = 'Defeat Lord Marshal Veyr';
     action = () => false;
   } else if (currentWagonStage.id === 'fort' && townUpgradeAvailable) {
     milestoneTitle = 'Raise Greenkeep Town';
@@ -166,9 +186,11 @@ export function KingdomScreen({
 
         <View style={styles.progressCopy}>
           <Text style={[styles.progressLabel, { color: theme.colors.text }]}>
-            {currentWagonStage.id === 'town'
-              ? 'Town tier · 4'
-              : currentWagonStage.id === 'fort'
+            {currentWagonStage.id === 'stronghold'
+              ? 'Stronghold tier · 5'
+              : currentWagonStage.id === 'town'
+                ? 'Town tier · 4'
+                : currentWagonStage.id === 'fort'
                 ? 'Fort tier · 3'
                 : settlementUpgraded
                   ? 'Settlement tier · 2'
@@ -213,6 +235,13 @@ export function KingdomScreen({
               <Text style={[styles.costText, { color: theme.colors.text }]}>120 🪵</Text>
               <Text style={[styles.costText, { color: theme.colors.text }]}>80 🪨</Text>
               <Text style={[styles.costText, { color: theme.colors.text }]}>25 ⛓</Text>
+            </View>
+          ) : strongholdUpgradeAvailable && currentWagonStage.id === 'town' ? (
+            <View style={styles.goalCost}>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>400 🪙</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>180 🪵</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>140 🪨</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>40 ⛓</Text>
             </View>
           ) : null}
         </View>

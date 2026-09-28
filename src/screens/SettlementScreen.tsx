@@ -115,13 +115,15 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
   };
 
   const stageLabel =
-    currentWagonStage.id === 'town'
-      ? 'GREENKEEP TOWN'
-      : currentWagonStage.id === 'fort'
-        ? 'GREENKEEP FORT'
-        : currentWagonStage.id === 'settlement'
-          ? 'GREENKEEP SETTLEMENT'
-          : 'REFUGEE CAMP';
+    currentWagonStage.id === 'stronghold'
+      ? 'GREENKEEP STRONGHOLD'
+      : currentWagonStage.id === 'town'
+        ? 'GREENKEEP TOWN'
+        : currentWagonStage.id === 'fort'
+          ? 'GREENKEEP FORT'
+          : currentWagonStage.id === 'settlement'
+            ? 'GREENKEEP SETTLEMENT'
+            : 'REFUGEE CAMP';
 
   return (
     <ScrollView
@@ -317,9 +319,11 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
             <Text
               style={[styles.gateLabel, { color: theme.colors.gold }]}
             >
-              {currentWagonStage.id === 'town'
-                ? 'TOWN GATE'
-                : 'FORT GATE'}
+              {currentWagonStage.id === 'stronghold'
+                ? 'STRONGHOLD GATE'
+                : currentWagonStage.id === 'town'
+                  ? 'TOWN GATE'
+                  : 'FORT GATE'}
             </Text>
           </>
         ) : null}

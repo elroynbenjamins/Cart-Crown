@@ -13,7 +13,7 @@ import type {
   SaveSlotMetadata
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 7;
+export const SAVE_SCHEMA_VERSION = 8;
 
 export function createHumanFactionState(): FactionGameState {
   return {
@@ -68,6 +68,9 @@ export function createHumanFactionState(): FactionGameState {
     kingdomDefenseRuns: 0,
     signalTowerUnlocked: false,
     ironProvostWon: false,
+    marcherWarningChoiceId: null,
+    dividedMarchResolved: false,
+    lordMarshalWon: false,
     lastBattleResult: null,
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
@@ -108,12 +111,22 @@ export function metadataFromSnapshot(
 
   let chapterLabel = 'Chapter 1 · Hold the Road';
 
-  if (current.chapterNumber >= 3) {
-    chapterLabel = current.chapterNodes.find(node => node.id === 'ch3_node_3')?.current
-      ? 'Chapter 3 · Three Warnings'
-      : current.chapterNodes.find(node => node.id === 'ch3_node_2')?.current
-        ? 'Chapter 3 · Border Fort'
-        : 'Chapter 3 · Marcher Envoy';
+  if (current.chapterNumber >= 4) {
+    chapterLabel = 'Chapter 4 · Stronghold Muster';
+  } else if (current.chapterNumber === 3) {
+    chapterLabel = current.lordMarshalWon
+      ? 'Chapter 3 · Raise Greenkeep Stronghold'
+      : current.chapterNodes.find(node => node.id === 'ch3_node_6')?.current
+        ? 'Chapter 3 · Lord Marshal Veyr'
+        : current.chapterNodes.find(node => node.id === 'ch3_node_5')?.current
+          ? 'Chapter 3 · The Divided March'
+          : current.chapterNodes.find(node => node.id === 'ch3_node_4')?.current
+            ? 'Chapter 3 · Siege Road'
+            : current.chapterNodes.find(node => node.id === 'ch3_node_3')?.current
+              ? 'Chapter 3 · Three Warnings'
+              : current.chapterNodes.find(node => node.id === 'ch3_node_2')?.current
+                ? 'Chapter 3 · Border Fort'
+                : 'Chapter 3 · Marcher Envoy';
   } else if (current.chapterNumber === 2) {
     chapterLabel = current.ironProvostWon
       ? 'Chapter 2 · Raise Greenkeep Town'
@@ -143,9 +156,11 @@ export function metadataFromSnapshot(
   }
 
   const kingdomName =
-    current.wagonStageId === 'town'
-      ? 'Greenkeep Town'
-      : current.wagonStageId === 'fort'
+    current.wagonStageId === 'stronghold'
+      ? 'Greenkeep Stronghold'
+      : current.wagonStageId === 'town'
+        ? 'Greenkeep Town'
+        : current.wagonStageId === 'fort'
         ? 'Greenkeep Fort'
         : current.settlementUpgraded
           ? 'Greenkeep Settlement'

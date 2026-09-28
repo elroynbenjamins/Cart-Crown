@@ -31,6 +31,8 @@ import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
 import { KingdomDefenseScreen } from './screens/KingdomDefenseScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { ThreeWarningsScreen } from './screens/ThreeWarningsScreen';
+import { DividedMarchScreen } from './screens/DividedMarchScreen';
 import { SettlementScreen } from './screens/SettlementScreen';
 import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
@@ -52,6 +54,8 @@ type FlowScreen =
   | 'kingdomDefense'
   | 'brokenSignalTower'
   | 'marcherEnvoy'
+  | 'threeWarnings'
+  | 'dividedMarch'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -88,6 +92,8 @@ const flowTitles: Record<FlowScreen, string> = {
   kingdomDefense: 'Kingdom Defense',
   brokenSignalTower: 'Broken Signal Tower',
   marcherEnvoy: 'Marcher Envoy',
+  threeWarnings: 'Three Warnings',
+  dividedMarch: 'The Divided March',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -294,6 +300,28 @@ export function AppShell({
       );
     }
 
+    if (flow === 'threeWarnings') {
+      return (
+        <ThreeWarningsScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'dividedMarch') {
+      return (
+        <DividedMarchScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -366,6 +394,16 @@ export function AppShell({
               setActiveEncounterId('border_fort');
               setFlow('battlePrep');
             }}
+            onOpenThreeWarnings={() => setFlow('threeWarnings')}
+            onStartSiegeRoad={() => {
+              setActiveEncounterId('siege_road');
+              setFlow('battlePrep');
+            }}
+            onOpenDividedMarch={() => setFlow('dividedMarch')}
+            onStartLordMarshal={() => {
+              setActiveEncounterId('lord_marshal_veyr');
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -420,6 +458,8 @@ export function AppShell({
     flow === 'kingdomDefense' ||
     flow === 'brokenSignalTower' ||
     flow === 'marcherEnvoy' ||
+    flow === 'threeWarnings' ||
+    flow === 'dividedMarch' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

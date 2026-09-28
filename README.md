@@ -82,19 +82,23 @@ Settlement View shows:
 
 ### Chapter 3 — Border Kingdoms
 
-The opening is now playable:
+Chapter 3 is now a complete playable progression arc:
 
-1. **Marcher Envoy** — choose the fifth squad that joins Greenkeep:
+1. **Marcher Envoy** — choose the fifth squad:
    - Halberdier — control/frontline
    - Field Chaplain — morale/support
    - Border Ranger — mobile skirmisher
 2. **Border Fort** — first battle inside the divided Border Marches
-3. **Three Warnings** — next story event
-4. Siege Road
-5. The Divided March
-6. Lord Marshal Veyr
+3. **Three Warnings** — choose one Chapter 3 operational doctrine:
+   - Fortify the Supply Route → +10% armor
+   - Hunt the False Couriers → +8% attack and +3% speed
+   - Verify Every Beacon → detailed intel and +5% speed
+4. **Siege Road** — elite battle using the chosen doctrine
+5. **The Divided March** — reconcile the marcher captains and unlock the Marcher Supply Depot
+6. **Lord Marshal Veyr** — Chapter 3 boss
+7. Meet infrastructure requirements and build **Greenkeep Stronghold**
 
-The Border Fort reveals three contradictory sets of orders from three marcher authorities, continuing the false-information theme established in Chapters 1–2.
+The Marcher Supply Depot adds +6 Gold and +2 Provisions per meaningful activity.
 
 ## Cavalry progression
 
@@ -165,3 +169,29 @@ Current districts:
 - Seat of Command — Hall + War Room
 
 Settlement View previews potential district bonuses before construction and lists all active district effects.
+
+
+## Stronghold tier
+
+Defeating Lord Marshal Veyr unlocks the Stronghold project.
+
+Requirements:
+- Barracks Lv.4
+- Forge Lv.4
+- Wagonwright Lv.4
+- War Room Lv.3
+- Quartermaster Lv.3
+- Stable Lv.2
+- Signal Tower Lv.2
+- 400 Gold
+- 180 Wood
+- 140 Stone
+- 40 Iron
+
+Stronghold construction:
+- raises Greenkeep Hall to Lv.5
+- expands the Wagon from 5×6 to **6×7**
+- raises active squad capacity from 5 to **6**
+- begins Chapter 4 / **The Broken Crown**
+
+Building upgrade levels are now capped by settlement tier, so Stronghold-tier infrastructure cannot be pre-built while Greenkeep is still a Settlement/Fort.
