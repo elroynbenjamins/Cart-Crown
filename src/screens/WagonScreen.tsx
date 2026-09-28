@@ -12,6 +12,7 @@ import type { WagonItemDefinition } from '../game/types';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, SecondaryButton, SectionTitle } from '../ui/components';
+import { WagonItemSprite, WagonStageSprite } from '../ui/gameArt';
 
 type DraggableItemProps = {
   item: WagonItemDefinition;
@@ -36,6 +37,7 @@ function DraggableItem({
   const drag = useRef(new Animated.ValueXY()).current;
   const displayWidth = item.rotation === 90 ? item.height : item.width;
   const displayHeight = item.rotation === 90 ? item.width : item.height;
+  const iconSize = Math.max(18, Math.min(32, cell * 0.52));
 
   const panResponder = useMemo(
     () =>
@@ -79,6 +81,7 @@ function DraggableItem({
         }
       ]}
     >
+      <WagonItemSprite itemId={item.id} size={iconSize} />
       <Text style={[styles.itemName, { color: theme.colors.text }]} numberOfLines={2}>
         {item.shortName}
       </Text>
@@ -140,19 +143,22 @@ export function WagonScreen() {
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <GameCard accent={theme.colors.human}>
         <View style={styles.headerRow}>
-          <View>
-            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>SUPPLY WAGON</Text>
+          <View style={styles.headerCopy}>
+            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>CAMPAIGN PACK</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>
               {currentWagonStage.name} · {currentWagonStage.width}×{currentWagonStage.height}
             </Text>
+            <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
+              Your logistics frame grows with Greenkeep. Early campaigns stay deliberately cramped; later tiers add real packing space.
+            </Text>
           </View>
-          <Pill
-            label={String(occupied) + ' / ' + String(currentWagonStage.width * currentWagonStage.height)}
-          />
+          <View style={styles.wagonVisual}>
+            <WagonStageSprite stageId={currentWagonStage.id} size={74} />
+            <Pill
+              label={String(occupied) + ' / ' + String(currentWagonStage.width * currentWagonStage.height)}
+            />
+          </View>
         </View>
-        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-          Pack logistics here. Assigned swords, armor and mounts stay with their squads.
-        </Text>
       </GameCard>
 
       <View style={styles.boardWrap}>
@@ -258,6 +264,8 @@ export function WagonScreen() {
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 32, gap: 14 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' },
+  headerCopy: { flex: 1 },
+  wagonVisual: { alignItems: 'center', gap: 4 },
   eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 21, fontWeight: '900', marginTop: 4 },
   subtitle: { fontSize: 13, lineHeight: 18, marginTop: 8 },
@@ -267,11 +275,11 @@ const styles = StyleSheet.create({
   item: {
     position: 'absolute',
     borderRadius: 14,
-    padding: 7,
+    padding: 6,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  itemName: { textAlign: 'center', fontSize: 11, lineHeight: 13, fontWeight: '900' },
+  itemName: { textAlign: 'center', fontSize: 10.5, lineHeight: 12, fontWeight: '900', marginTop: 1 },
   itemEffect: { textAlign: 'center', fontSize: 8, lineHeight: 10, fontWeight: '800', marginTop: 3 },
   itemSize: { position: 'absolute', right: 6, bottom: 4, fontSize: 7, fontWeight: '900' },
   selectionLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
