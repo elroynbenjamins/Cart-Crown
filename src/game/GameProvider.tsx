@@ -499,7 +499,9 @@ export function GameProvider({
     completedCampaigns: [...initialSnapshot.shared.completedCampaigns],
     achievements: [...initialSnapshot.shared.achievements],
     lore: [...initialSnapshot.shared.lore],
-    cosmetics: [...initialSnapshot.shared.cosmetics]
+    cosmetics: [...initialSnapshot.shared.cosmetics],
+    metaCampaignStep: initialSnapshot.shared.metaCampaignStep,
+    metaCampaignComplete: initialSnapshot.shared.metaCampaignComplete
   }));
   const [formationDoctrineId, setFormationDoctrineId] = useState(initialFaction.formationDoctrineId);
   const [holdTheRoadWon, setHoldTheRoadWon] = useState(initialFaction.holdTheRoadWon);
