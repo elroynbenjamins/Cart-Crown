@@ -11,6 +11,7 @@ import {
   SectionTitle,
   UnitPortrait
 } from '../ui/components';
+import { ResourceSprite, WagonStageSprite } from '../ui/gameArt';
 
 export function FactionCampScreen({
   onOpenCommander
@@ -62,15 +63,18 @@ export function FactionCampScreen({
       </GameCard>
 
       <View style={styles.resources}>
-        <ResourceChip icon="🪙" value={resources.gold} label="Gold" />
-        <ResourceChip icon="🪵" value={resources.wood} label="Wood" />
-        <ResourceChip icon="🪨" value={resources.stone} label="Stone" />
-        <ResourceChip icon="🍞" value={resources.provisions} label="Supply" />
+        <ResourceChip art={<ResourceSprite resource="gold" size={28} />} value={resources.gold} label="Gold" />
+        <ResourceChip art={<ResourceSprite resource="wood" size={28} />} value={resources.wood} label="Wood" />
+        <ResourceChip art={<ResourceSprite resource="stone" size={28} />} value={resources.stone} label="Stone" />
+        <ResourceChip art={<ResourceSprite resource="provisions" size={28} />} value={resources.provisions} label="Supply" />
       </View>
 
       <View style={styles.summaryRow}>
         <GameCard style={styles.summaryCard}>
           <Text style={[styles.summaryLabel, { color: theme.colors.textMuted }]}>CAMPAIGN GRID</Text>
+          <View style={styles.wagonPreview}>
+            <WagonStageSprite stageId={currentWagonStage.id} faction={activeFaction} size={58} />
+          </View>
           <Text style={[styles.summaryValue, { color: theme.colors.text }]}>
             {currentWagonStage.width}×{currentWagonStage.height}
           </Text>
@@ -144,6 +148,7 @@ export function FactionCampScreen({
                 name={unit.name}
                 className={unit.className + ' · Lv. ' + unit.level}
                 accent={accent}
+                faction={unit.faction}
                 compact
               />
               <Pill label={unit.role.toUpperCase()} />
@@ -171,6 +176,7 @@ const styles = StyleSheet.create({
   summaryRow: { flexDirection: 'row', gap: 8 },
   summaryCard: { flex: 1 },
   summaryLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1 },
+  wagonPreview: { alignItems: 'center', marginTop: 2 },
   summaryValue: { fontSize: 22, fontWeight: '900', marginTop: 4 },
   summaryNote: { fontSize: 9.5, fontWeight: '800', marginTop: 3 },
   mechanicName: { fontSize: 17, fontWeight: '900' },

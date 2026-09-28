@@ -13,6 +13,7 @@ import {
   SecondaryButton,
   SectionTitle
 } from '../ui/components';
+import { BuildingSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
 
 const resourceIcons: Record<keyof ResourceWallet, string> = {
   gold: '🪙',
@@ -224,7 +225,7 @@ export function KingdomScreen({
             </Text>
           </View>
           <View style={[styles.keepMark, { backgroundColor: theme.colors.surface2 }]}>
-            <Text style={styles.keepMarkIcon}>{settlementUpgraded ? '♜' : '⌂'}</Text>
+            <SettlementStageSprite stageId={currentWagonStage.id} size={68} />
           </View>
         </View>
 
@@ -252,10 +253,10 @@ export function KingdomScreen({
       </GameCard>
 
       <View style={styles.resources}>
-        <ResourceChip icon="🪙" value={resources.gold} label="Gold" />
-        <ResourceChip icon="🪵" value={resources.wood} label="Wood" />
-        <ResourceChip icon="🪨" value={resources.stone} label="Stone" />
-        <ResourceChip icon="⛓" value={resources.iron} label="Iron" />
+        <ResourceChip art={<ResourceSprite resource="gold" size={28} />} value={resources.gold} label="Gold" />
+        <ResourceChip art={<ResourceSprite resource="wood" size={28} />} value={resources.wood} label="Wood" />
+        <ResourceChip art={<ResourceSprite resource="stone" size={28} />} value={resources.stone} label="Stone" />
+        <ResourceChip art={<ResourceSprite resource="iron" size={28} />} value={resources.iron} label="Iron" />
       </View>
 
       <GameCard>
@@ -337,7 +338,7 @@ export function KingdomScreen({
               See the settlement, choose construction plots and tune adjacency bonuses. {settlementAdjacencyBonuses.length} district {settlementAdjacencyBonuses.length === 1 ? 'bonus is' : 'bonuses are'} active.
             </Text>
           </View>
-          <Text style={styles.settlementViewIcon}>🏘️</Text>
+          <SettlementStageSprite stageId={currentWagonStage.id} size={48} />
         </View>
         <View style={styles.supplyButton}>
           <PrimaryButton label="Open Settlement View" onPress={onOpenSettlement} />
@@ -405,7 +406,7 @@ export function KingdomScreen({
               accent={unlocked ? theme.colors.human : undefined}
             >
               <View style={styles.buildingTop}>
-                <Text style={styles.buildingEmoji}>{building.icon}</Text>
+                <BuildingSprite buildingId={building.id} faction={building.faction} size={42} />
                 <Pill label={unlocked ? 'LV.' + level : 'LOCKED'} />
               </View>
               <Text style={[styles.buildingName, { color: theme.colors.text }]}>{building.name}</Text>
@@ -555,7 +556,6 @@ const styles = StyleSheet.create({
   heroTitle: { fontSize: 28, lineHeight: 34, fontWeight: '900', marginTop: 5 },
   heroBody: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   keepMark: { width: 74, height: 74, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  keepMarkIcon: { fontSize: 36 },
   progressCopy: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   progressLabel: { fontSize: 13, fontWeight: '800' },
   progressValue: { fontSize: 11, fontWeight: '800' },
@@ -582,7 +582,6 @@ const styles = StyleSheet.create({
   buildingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   buildingCard: { width: '48%' },
   buildingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 6 },
-  buildingEmoji: { fontSize: 24 },
   buildingName: { fontSize: 14, fontWeight: '900', marginTop: 8 },
   buildingBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
   nextEffect: { fontSize: 9, lineHeight: 13, fontWeight: '800', marginTop: 7 },
@@ -592,7 +591,6 @@ const styles = StyleSheet.create({
   message: { fontSize: 10.5, lineHeight: 16, textAlign: 'center', fontWeight: '800' },
   settlementViewRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   settlementViewCopy: { flex: 1 },
-  settlementViewIcon: { fontSize: 34 },
   supplyTitle: { fontSize: 15, fontWeight: '900' },
   supplyBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
   supplyReward: { fontSize: 11, fontWeight: '900', marginTop: 7 },

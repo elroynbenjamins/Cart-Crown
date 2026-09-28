@@ -6,6 +6,7 @@ import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import type { CommanderSkillEffectType } from '../game/types';
 import { GameCard, PrimaryButton, ProgressBar } from '../ui/components';
+import { UnitSprite } from '../ui/gameArt';
 
 type ActiveEffect = {
   type: CommanderSkillEffectType;
@@ -311,9 +312,7 @@ export function BattleScreen({
               >
                 {unit ? (
                   <>
-                    <Text style={[styles.unitInitial, { color: favored ? theme.colors.gold : factionAccent }]}>
-                      {unit.name[0]}
-                    </Text>
+                    <UnitSprite className={unit.className} faction={unit.faction} size={32} />
                     <Text style={[styles.tokenName, { color: theme.colors.text }]} numberOfLines={1}>
                       {unit.className}
                     </Text>

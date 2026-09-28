@@ -7,6 +7,7 @@ import {
   View
 } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
+import type { FactionId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { UnitSprite } from './gameArt';
 
@@ -139,10 +140,12 @@ export function SecondaryButton({
 
 export function ResourceChip({
   icon,
+  art,
   value,
   label
 }: {
-  icon: string;
+  icon?: string;
+  art?: React.ReactNode;
   value: number;
   label?: string;
 }) {
@@ -150,7 +153,7 @@ export function ResourceChip({
 
   return (
     <View style={[styles.resourceChip, { backgroundColor: theme.colors.surface2 }]}>
-      <Text style={styles.resourceIcon}>{icon}</Text>
+      {art ?? <Text style={styles.resourceIcon}>{icon ?? ''}</Text>}
       <View>
         <Text style={[styles.resourceValue, { color: theme.colors.text }]}>{value}</Text>
         {label ? (
@@ -165,12 +168,14 @@ export function UnitPortrait({
   name,
   className,
   accent,
-  compact
+  compact,
+  faction = 'human'
 }: {
   name: string;
   className: string;
   accent: string;
   compact?: boolean;
+  faction?: FactionId;
 }) {
   const { theme } = useGameTheme();
   return (
@@ -181,7 +186,7 @@ export function UnitPortrait({
           { borderColor: accent, backgroundColor: theme.colors.surface2 }
         ]}
       >
-        <UnitSprite className={className} size={compact ? 42 : 54} />
+        <UnitSprite className={className} faction={faction} size={compact ? 42 : 54} />
       </View>
       <View style={styles.portraitCopy}>
         <Text style={[styles.unitName, { color: theme.colors.text }]} numberOfLines={1}>

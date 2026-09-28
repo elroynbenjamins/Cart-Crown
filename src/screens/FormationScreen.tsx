@@ -111,7 +111,7 @@ export function FormationScreen() {
                     {unit ? (
                       <>
                         <View style={[styles.slotPortrait, { borderColor: theme.colors.human }]}>
-                          <UnitSprite className={unit.className} size={38} />
+                          <UnitSprite className={unit.className} faction={unit.faction} size={38} />
                         </View>
                         <Text style={[styles.slotName, { color: theme.colors.text }]} numberOfLines={1}>
                           {unit.name}

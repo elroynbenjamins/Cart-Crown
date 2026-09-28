@@ -117,7 +117,7 @@ export function EquipmentManageScreen({
       <GameCard accent={theme.colors.human}>
         <View style={styles.heroRow}>
           <View style={[styles.portrait, { borderColor: theme.colors.human }]}>
-            <UnitSprite className={unit.className} size={54} />
+            <UnitSprite className={unit.className} faction={unit.faction} size={54} />
           </View>
           <View style={styles.heroCopy}>
             <Text style={[styles.eyebrow, { color: theme.colors.human }]}>UNIT EQUIPMENT</Text>
@@ -162,7 +162,7 @@ export function EquipmentManageScreen({
                   <Text style={[styles.slotLabel, { color: theme.colors.textMuted }]}>{slotLabels[slot].toUpperCase()}</Text>
                   {item ? (
                     <View style={styles.slotArt}>
-                      <EquipmentSprite equipmentId={item.id} size={34} />
+                      <EquipmentSprite equipmentId={item.id} faction={unit.faction} size={34} />
                     </View>
                   ) : null}
                   <Text style={[styles.slotName, { color: theme.colors.text }]}>
