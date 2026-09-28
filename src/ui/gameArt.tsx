@@ -851,14 +851,15 @@ export function EquipmentSprite({
   size = 38
 }: {
   equipmentId: string;
-  faction?: FactionId;
+  faction?: FactionId | 'global';
   size?: number;
 }) {
   const kind = getEquipmentVisualKind(equipmentId);
   const production = equipmentProductionAsset(faction, equipmentId, kind);
+  const renderFaction: FactionId = faction === 'global' ? 'human' : faction;
   return (
     <ProductionAssetFrame assetId={production.id} width={size}>
-      <EquipmentKindSprite kind={kind} faction={faction} size={size} />
+      <EquipmentKindSprite kind={kind} faction={renderFaction} size={size} />
     </ProductionAssetFrame>
   );
 }
