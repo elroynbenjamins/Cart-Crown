@@ -100,7 +100,7 @@ export function EquipmentManageScreen({
             (item.requiredStableLevel ?? 0) <= stableLevel
         );
       }),
-    [activeFaction, equipmentDefinitions, forgeLevel, loadout, stableLevel]
+    [activeFaction, equipmentDefinitions, forgeLevel, loadout, stableLevel, unit]
   );
 
   if (!unit) {
