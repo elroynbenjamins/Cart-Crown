@@ -1,8 +1,9 @@
 import React from 'react';
 import { View } from 'react-native';
-import type { FactionId, WagonStage } from '../game/types';
+import type { ChapterNode, FactionId, WagonStage } from '../game/types';
 import {
   getBuildingVisualKind,
+  getEnemyVisualKind,
   getEquipmentVisualKind,
   getUnitVisualKind,
   getWagonItemVisualKind
@@ -76,7 +77,12 @@ type ArtKey =
   | 'wagon_rations'
   | 'wagon_medicine'
   | 'wagon_banner'
-  | 'wagon_repair';
+  | 'wagon_repair'
+  | 'enemy_raider'
+  | 'enemy_mercenary'
+  | 'enemy_ashen'
+  | 'enemy_scout'
+  | 'enemy_hollow';
 
 const palette: Record<PaletteKey, string> = {
   outline: '#182027',
@@ -354,6 +360,65 @@ const sprites: Record<ArtKey, PixelPart[]> = {
     { x: 5, y: 7, w: 10, h: 3, color: 'steel' },
     { x: 9, y: 9, w: 3, h: 8, color: 'wood' },
     { x: 4, y: 12, w: 5, h: 2, color: 'steelDark' }
+  ],
+  enemy_raider: [
+    { x: 8, y: 3, w: 4, h: 4, color: 'skin' },
+    { x: 6, y: 2, w: 8, h: 2, color: 'brown' },
+    { x: 5, y: 7, w: 10, h: 7, color: 'leather' },
+    { x: 6, y: 8, w: 8, h: 2, color: 'red' },
+    { x: 4, y: 9, w: 2, h: 5, color: 'skin' },
+    { x: 14, y: 9, w: 2, h: 5, color: 'skin' },
+    { x: 7, y: 14, w: 2, h: 4, color: 'brown' },
+    { x: 11, y: 14, w: 2, h: 4, color: 'brown' },
+    { x: 2, y: 9, w: 1, h: 8, color: 'steel' },
+    { x: 1, y: 15, w: 3, h: 2, color: 'steelDark' }
+  ],
+  enemy_mercenary: [
+    { x: 8, y: 3, w: 4, h: 4, color: 'skin' },
+    { x: 6, y: 1, w: 8, h: 4, color: 'steelDark' },
+    { x: 4, y: 7, w: 12, h: 8, color: 'steel' },
+    { x: 6, y: 8, w: 8, h: 5, color: 'red' },
+    { x: 3, y: 8, w: 3, h: 5, color: 'steelDark' },
+    { x: 14, y: 8, w: 3, h: 5, color: 'steelDark' },
+    { x: 7, y: 15, w: 2, h: 4, color: 'steelDark' },
+    { x: 11, y: 15, w: 2, h: 4, color: 'steelDark' },
+    { x: 16, y: 7, w: 1, h: 10, color: 'wood' },
+    { x: 15, y: 6, w: 3, h: 2, color: 'steel' }
+  ],
+  enemy_ashen: [
+    { x: 8, y: 3, w: 4, h: 4, color: 'steelDark' },
+    { x: 6, y: 2, w: 8, h: 3, color: 'outline' },
+    { x: 5, y: 7, w: 10, h: 8, color: 'outline' },
+    { x: 6, y: 8, w: 8, h: 5, color: 'red' },
+    { x: 7, y: 15, w: 2, h: 4, color: 'steelDark' },
+    { x: 11, y: 15, w: 2, h: 4, color: 'steelDark' },
+    { x: 4, y: 7, w: 2, h: 7, color: 'red' },
+    { x: 14, y: 7, w: 2, h: 7, color: 'red' },
+    { x: 8, y: 4, w: 1, h: 1, color: 'gold' },
+    { x: 11, y: 4, w: 1, h: 1, color: 'gold' }
+  ],
+  enemy_scout: [
+    { x: 8, y: 4, w: 4, h: 3, color: 'skin' },
+    { x: 6, y: 2, w: 8, h: 5, color: 'green' },
+    { x: 6, y: 7, w: 8, h: 7, color: 'brown' },
+    { x: 7, y: 8, w: 6, h: 5, color: 'green' },
+    { x: 7, y: 14, w: 2, h: 4, color: 'brown' },
+    { x: 11, y: 14, w: 2, h: 4, color: 'brown' },
+    { x: 15, y: 4, w: 1, h: 12, color: 'brownLight' },
+    { x: 16, y: 6, w: 1, h: 8, color: 'brownLight' },
+    { x: 9, y: 8, w: 8, h: 1, color: 'steel' }
+  ],
+  enemy_hollow: [
+    { x: 7, y: 2, w: 6, h: 5, color: 'greenLight' },
+    { x: 5, y: 6, w: 10, h: 8, color: 'green' },
+    { x: 3, y: 7, w: 3, h: 7, color: 'wood' },
+    { x: 14, y: 7, w: 3, h: 7, color: 'wood' },
+    { x: 6, y: 14, w: 3, h: 5, color: 'wood' },
+    { x: 11, y: 14, w: 3, h: 5, color: 'wood' },
+    { x: 8, y: 4, w: 1, h: 1, color: 'red' },
+    { x: 11, y: 4, w: 1, h: 1, color: 'red' },
+    { x: 5, y: 5, w: 2, h: 2, color: 'greenLight' },
+    { x: 13, y: 5, w: 2, h: 2, color: 'greenLight' }
   ]
 };
 
@@ -422,6 +487,164 @@ export function unitArtKey(className: string): ArtKey {
   return keyByKind[kind];
 }
 
+function FactionUnitSilhouette({
+  faction,
+  className,
+  size
+}: {
+  faction: FactionId;
+  className: string;
+  size: number;
+}) {
+  if (faction === 'human') return null;
+  const kind = getUnitVisualKind(className);
+  const mounted =
+    kind === 'scout_rider' ||
+    kind === 'cavalryman' ||
+    kind === 'lancer' ||
+    kind === 'mounted_archer';
+
+  if (faction === 'elf') {
+    return (
+      <>
+        <View
+          style={{
+            position: 'absolute',
+            left: size * 0.27,
+            top: size * 0.2,
+            width: size * 0.1,
+            height: size * 0.035,
+            backgroundColor: palette.elfSkin
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            right: size * 0.27,
+            top: size * 0.2,
+            width: size * 0.1,
+            height: size * 0.035,
+            backgroundColor: palette.elfSkin
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            left: size * 0.24,
+            top: size * 0.39,
+            width: size * 0.09,
+            height: size * 0.28,
+            backgroundColor: palette.elf
+          }}
+        />
+        {kind === 'archer' || kind === 'scout' || kind === 'mounted_archer' ? (
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.17,
+              top: size * 0.34,
+              width: size * 0.06,
+              height: size * 0.36,
+              backgroundColor: palette.elfLight
+            }}
+          />
+        ) : null}
+        {mounted ? (
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.69,
+              top: size * 0.39,
+              width: size * 0.05,
+              height: size * 0.08,
+              backgroundColor: palette.elfLight
+            }}
+          />
+        ) : null}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <View
+        style={{
+          position: 'absolute',
+          left: size * 0.15,
+          top: size * 0.34,
+          width: size * 0.2,
+          height: size * 0.13,
+          backgroundColor: palette.orc
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          right: size * 0.15,
+          top: size * 0.34,
+          width: size * 0.2,
+          height: size * 0.13,
+          backgroundColor: palette.orc
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          left: size * 0.42,
+          top: size * 0.3,
+          width: size * 0.04,
+          height: size * 0.06,
+          backgroundColor: palette.cloth
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          right: size * 0.42,
+          top: size * 0.3,
+          width: size * 0.04,
+          height: size * 0.06,
+          backgroundColor: palette.cloth
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          left: size * 0.34,
+          top: size * 0.13,
+          width: size * 0.32,
+          height: size * 0.05,
+          backgroundColor: palette.brown
+        }}
+      />
+      {mounted ? (
+        <>
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.16,
+              top: size * 0.41,
+              width: size * 0.07,
+              height: size * 0.1,
+              backgroundColor: palette.outline
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.08,
+              top: size * 0.5,
+              width: size * 0.12,
+              height: size * 0.04,
+              backgroundColor: palette.outline
+            }}
+          />
+        </>
+      ) : null}
+    </>
+  );
+}
+
 export function UnitSprite({
   className,
   faction = 'human',
@@ -431,7 +654,12 @@ export function UnitSprite({
   faction?: FactionId;
   size?: number;
 }) {
-  return <PixelSprite artKey={unitArtKey(className)} size={size} faction={faction} />;
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      <PixelSprite artKey={unitArtKey(className)} size={size} faction={faction} />
+      <FactionUnitSilhouette faction={faction} className={className} size={size} />
+    </View>
+  );
 }
 
 export function EquipmentSprite({
@@ -717,6 +945,206 @@ export function WagonStageSprite({
           }}
         />
       ) : null}
+    </View>
+  );
+}
+
+
+export function EnemySprite({
+  enemyName,
+  size = 42
+}: {
+  enemyName: string;
+  size?: number;
+}) {
+  const kind = getEnemyVisualKind(enemyName);
+  const keyByKind: Record<ReturnType<typeof getEnemyVisualKind>, ArtKey> = {
+    raider: 'enemy_raider',
+    mercenary: 'enemy_mercenary',
+    ashen: 'enemy_ashen',
+    scout: 'enemy_scout',
+    hollow: 'enemy_hollow'
+  };
+  return <PixelSprite artKey={keyByKind[kind]} size={size} />;
+}
+
+export function FactionCrest({
+  faction,
+  size = 46
+}: {
+  faction: FactionId;
+  size?: number;
+}) {
+  const accent =
+    faction === 'elf'
+      ? palette.elf
+      : faction === 'orc'
+        ? palette.orc
+        : palette.human;
+  const accentLight =
+    faction === 'elf'
+      ? palette.elfLight
+      : faction === 'orc'
+        ? palette.orcLight
+        : palette.humanLight;
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative', alignItems: 'center' }}>
+      <View
+        style={{
+          position: 'absolute',
+          top: size * 0.08,
+          width: size * 0.72,
+          height: size * 0.7,
+          backgroundColor: accent,
+          borderWidth: Math.max(1, size * 0.045),
+          borderColor: palette.gold
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          bottom: size * 0.04,
+          width: size * 0.46,
+          height: size * 0.28,
+          backgroundColor: accent
+        }}
+      />
+      {faction === 'human' ? (
+        <>
+          <View style={{ position: 'absolute', top: size * 0.25, width: size * 0.12, height: size * 0.31, backgroundColor: palette.gold }} />
+          <View style={{ position: 'absolute', top: size * 0.34, width: size * 0.36, height: size * 0.1, backgroundColor: palette.gold }} />
+        </>
+      ) : faction === 'elf' ? (
+        <>
+          <View style={{ position: 'absolute', top: size * 0.19, width: size * 0.1, height: size * 0.4, backgroundColor: accentLight }} />
+          <View style={{ position: 'absolute', top: size * 0.31, left: size * 0.27, width: size * 0.19, height: size * 0.07, backgroundColor: accentLight }} />
+          <View style={{ position: 'absolute', top: size * 0.31, right: size * 0.27, width: size * 0.19, height: size * 0.07, backgroundColor: accentLight }} />
+          <View style={{ position: 'absolute', top: size * 0.46, left: size * 0.31, width: size * 0.15, height: size * 0.06, backgroundColor: accentLight }} />
+          <View style={{ position: 'absolute', top: size * 0.46, right: size * 0.31, width: size * 0.15, height: size * 0.06, backgroundColor: accentLight }} />
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', top: size * 0.23, left: size * 0.27, width: size * 0.13, height: size * 0.26, backgroundColor: palette.outline }} />
+          <View style={{ position: 'absolute', top: size * 0.23, right: size * 0.27, width: size * 0.13, height: size * 0.26, backgroundColor: palette.outline }} />
+          <View style={{ position: 'absolute', top: size * 0.42, left: size * 0.36, width: size * 0.1, height: size * 0.18, backgroundColor: palette.cloth }} />
+          <View style={{ position: 'absolute', top: size * 0.42, right: size * 0.36, width: size * 0.1, height: size * 0.18, backgroundColor: palette.cloth }} />
+        </>
+      )}
+    </View>
+  );
+}
+
+export function CampaignNodeSprite({
+  type,
+  faction,
+  active = false,
+  size = 32
+}: {
+  type: ChapterNode['type'];
+  faction: FactionId;
+  active?: boolean;
+  size?: number;
+}) {
+  const accent =
+    faction === 'elf'
+      ? palette.elf
+      : faction === 'orc'
+        ? palette.orc
+        : palette.human;
+  const dim = active ? accent : palette.steelDark;
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      {type === 'battle' || type === 'elite' || type === 'boss' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.19, top: size * 0.18, width: size * 0.12, height: size * 0.63, backgroundColor: dim, transform: [{ rotate: '-36deg' }] }} />
+          <View style={{ position: 'absolute', right: size * 0.19, top: size * 0.18, width: size * 0.12, height: size * 0.63, backgroundColor: type === 'boss' ? palette.gold : dim, transform: [{ rotate: '36deg' }] }} />
+          {type !== 'battle' ? (
+            <View style={{ position: 'absolute', left: size * 0.36, top: size * 0.05, width: size * 0.28, height: size * 0.12, backgroundColor: type === 'boss' ? palette.gold : palette.red }} />
+          ) : null}
+        </>
+      ) : type === 'supply' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.18, top: size * 0.26, width: size * 0.64, height: size * 0.48, backgroundColor: palette.wood }} />
+          <View style={{ position: 'absolute', left: size * 0.29, top: size * 0.14, width: size * 0.42, height: size * 0.18, backgroundColor: palette.food }} />
+        </>
+      ) : type === 'event' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.45, top: size * 0.16, width: size * 0.1, height: size * 0.48, backgroundColor: dim }} />
+          <View style={{ position: 'absolute', left: size * 0.45, top: size * 0.72, width: size * 0.1, height: size * 0.1, backgroundColor: dim }} />
+          <View style={{ position: 'absolute', left: size * 0.35, top: size * 0.08, width: size * 0.3, height: size * 0.12, backgroundColor: dim }} />
+        </>
+      ) : (
+        <FactionCrest faction={faction} size={size} />
+      )}
+    </View>
+  );
+}
+
+export function FactionCampScene({
+  faction,
+  size = 170
+}: {
+  faction: FactionId;
+  size?: number;
+}) {
+  const accent =
+    faction === 'elf'
+      ? palette.elf
+      : faction === 'orc'
+        ? palette.orc
+        : palette.human;
+
+  return (
+    <View style={{ width: size, height: size * 0.48, position: 'relative', overflow: 'hidden' }}>
+      <View
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: size * 0.16,
+          backgroundColor: faction === 'orc' ? palette.brown : palette.green
+        }}
+      />
+      {faction === 'elf' ? (
+        <>
+          {[0.05, 0.18, 0.76, 0.89].map((x, index) => (
+            <View key={String(index)} style={{ position: 'absolute', left: size * x, bottom: size * 0.1 }}>
+              <View style={{ width: size * 0.05, height: size * 0.21, backgroundColor: palette.wood }} />
+              <View style={{ position: 'absolute', left: -size * 0.045, top: -size * 0.09, width: size * 0.14, height: size * 0.13, backgroundColor: palette.elf }} />
+            </View>
+          ))}
+          <View style={{ position: 'absolute', left: size * 0.37, bottom: size * 0.1 }}>
+            <SettlementStageSprite stageId="camp" faction="elf" size={size * 0.43} />
+          </View>
+        </>
+      ) : faction === 'orc' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.18, bottom: size * 0.12, width: size * 0.19, height: size * 0.2, backgroundColor: palette.orc }} />
+          <View style={{ position: 'absolute', right: size * 0.17, bottom: size * 0.12, width: size * 0.22, height: size * 0.24, backgroundColor: palette.orc }} />
+          <View style={{ position: 'absolute', left: size * 0.48, bottom: size * 0.1, width: size * 0.04, height: size * 0.25, backgroundColor: palette.wood }} />
+          <View style={{ position: 'absolute', left: size * 0.44, top: size * 0.03, width: size * 0.12, height: size * 0.12, backgroundColor: palette.red }} />
+          <View style={{ position: 'absolute', left: size * 0.05, bottom: size * 0.09 }}>
+            <WagonStageSprite stageId="camp" faction="orc" size={size * 0.42} />
+          </View>
+        </>
+      ) : (
+        <View style={{ position: 'absolute', left: size * 0.28, bottom: size * 0.08 }}>
+          <SettlementStageSprite stageId="settlement" faction="human" size={size * 0.46} />
+        </View>
+      )}
+      <View
+        style={{
+          position: 'absolute',
+          left: size * 0.44,
+          top: size * 0.03,
+          width: size * 0.12,
+          height: size * 0.035,
+          backgroundColor: accent
+        }}
+      />
     </View>
   );
 }
