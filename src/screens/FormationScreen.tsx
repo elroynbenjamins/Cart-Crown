@@ -4,6 +4,7 @@ import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, SectionTitle, UnitPortrait } from '../ui/components';
+import { UnitSprite } from '../ui/gameArt';
 
 const rows = [
   { label: 'FRONT', slots: [0, 1, 2], note: '+Armor / threat' },
@@ -110,9 +111,7 @@ export function FormationScreen() {
                     {unit ? (
                       <>
                         <View style={[styles.slotPortrait, { borderColor: theme.colors.human }]}>
-                          <Text style={[styles.slotInitial, { color: theme.colors.human }]}>
-                            {unit.name[0]}
-                          </Text>
+                          <UnitSprite className={unit.className} size={38} />
                         </View>
                         <Text style={[styles.slotName, { color: theme.colors.text }]} numberOfLines={1}>
                           {unit.name}
