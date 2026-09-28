@@ -4,11 +4,23 @@ import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, ProgressBar, ResourceAmountRow, SecondaryButton, StatusPill } from '../ui/components';
 
-const waves = [
-  { id: 'wave_1', name: 'Road Raiders', threat: 90, pressure: 'Light melee rush' },
-  { id: 'wave_2', name: 'Mercenary Bowline', threat: 115, pressure: 'Ranged pressure behind shields' },
-  { id: 'wave_3', name: 'Green Banner Assault', threat: 140, pressure: 'Mixed elite attack' }
-];
+const wavesByFaction = {
+  human: [
+    { id: 'wave_1', name: 'Road Raiders', threat: 90, pressure: 'Light melee rush' },
+    { id: 'wave_2', name: 'Mercenary Bowline', threat: 115, pressure: 'Ranged pressure behind shields' },
+    { id: 'wave_3', name: 'Green Banner Assault', threat: 140, pressure: 'Mixed elite attack' }
+  ],
+  elf: [
+    { id: 'wave_1', name: 'Ashwood Raiders', threat: 90, pressure: 'Fast pressure through the outer paths' },
+    { id: 'wave_2', name: 'Wardbreaker Bowline', threat: 115, pressure: 'Ranged pressure against the grove line' },
+    { id: 'wave_3', name: 'Ashen Grove Assault', threat: 140, pressure: 'Mixed elite attack on the ward network' }
+  ],
+  orc: [
+    { id: 'wave_1', name: 'Steppe Raiders', threat: 90, pressure: 'Fast melee pressure at the outer fires' },
+    { id: 'wave_2', name: 'Clanbreaker Bowline', threat: 115, pressure: 'Ranged pressure against the warband line' },
+    { id: 'wave_3', name: 'Ashen Warhost Assault', threat: 140, pressure: 'Mixed elite attack on the Warhold' }
+  ]
+} as const;
 
 export function KingdomDefenseScreen({
   onEditFormation,
@@ -32,6 +44,7 @@ export function KingdomDefenseScreen({
   const [failed, setFailed] = useState(false);
   const [complete, setComplete] = useState(false);
   const [firstClearReward, setFirstClearReward] = useState(false);
+  const waves = wavesByFaction[activeFaction];
 
   const factionAccent =
     activeFaction === 'elf'
