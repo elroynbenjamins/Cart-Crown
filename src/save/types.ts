@@ -2,6 +2,7 @@ import type {
   BattleResult,
   ChapterNode,
   FactionId,
+  FormationShapeId,
   ResourceWallet,
   UnitDefinition,
   UnitEquipmentLoadout,
@@ -16,6 +17,7 @@ export type FactionGameState = {
   resources: ResourceWallet;
   units: UnitDefinition[];
   formation: Array<string | null>;
+  formationShapeId?: FormationShapeId;
   wagonItems: WagonItemDefinition[];
   wagonStageId: string;
   armyReadiness?: number;
