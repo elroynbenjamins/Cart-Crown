@@ -58,6 +58,7 @@ import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
 import { FlowProgress, ScreenAtmosphere } from './ui/components';
+import { AppNavIcon, ThemeModeIcon } from './ui/gameArt';
 
 type FlowScreen =
   | 'battlePrep'
@@ -105,12 +106,12 @@ type FlowScreen =
   | 'expedition'
   | 'formationTrial';
 
-const navItems: Array<{ id: NavId; label: string; icon: string }> = [
-  { id: 'kingdom', label: 'Kingdom', icon: '♜' },
-  { id: 'campaign', label: 'Campaign', icon: '◇' },
-  { id: 'formation', label: 'Formation', icon: '▦' },
-  { id: 'wagon', label: 'Wagon', icon: '▤' },
-  { id: 'army', label: 'Army', icon: '♞' }
+const navItems: Array<{ id: NavId; label: string }> = [
+  { id: 'kingdom', label: 'Kingdom' },
+  { id: 'campaign', label: 'Campaign' },
+  { id: 'formation', label: 'Formation' },
+  { id: 'wagon', label: 'Wagon' },
+  { id: 'army', label: 'Army' }
 ];
 
 const screenTitles: Record<NavId, string> = {
@@ -1166,7 +1167,7 @@ export function AppShell({
                 }
               ]}
             >
-              <Text style={styles.themeIcon}>{theme.dark ? '◐' : '☼'}</Text>
+              <ThemeModeIcon dark={theme.dark} color={theme.colors.gold} size={20} />
             </Pressable>
           </View>
         ) : null}
@@ -1205,14 +1206,11 @@ export function AppShell({
                     selected ? { backgroundColor: factionAccent + '2F' } : undefined
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.navIcon,
-                      { color: selected ? factionAccent : theme.colors.textMuted }
-                    ]}
-                  >
-                    {item.icon}
-                  </Text>
+                  <AppNavIcon
+                    kind={item.id}
+                    color={selected ? factionAccent : theme.colors.textMuted}
+                    size={21}
+                  />
                 </View>
                 <Text
                   style={[
@@ -1272,7 +1270,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  themeIcon: { fontSize: 18, color: '#D9A84E' },
   screen: { flex: 1, zIndex: 1 },
   bottomNav: {
     height: 76,
@@ -1285,6 +1282,5 @@ const styles = StyleSheet.create({
   },
   navItem: { flex: 1, minHeight: 64, alignItems: 'center', justifyContent: 'center' },
   navIconWrap: { width: 36, height: 31, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  navIcon: { fontSize: 20, fontWeight: '900' },
   navLabel: { fontSize: 9, fontWeight: '800', marginTop: 2 }
 });
