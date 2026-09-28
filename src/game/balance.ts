@@ -179,7 +179,15 @@ export function getEnemyStrikePressure(
       : encounter.difficulty === 'Elite'
         ? 3
         : 0;
-  const base = 9 + Math.max(2, squadCap) * 2 + difficultyPressure;
+  const progressionPressure = Math.min(
+    8,
+    Math.floor(encounter.enemyHp / 700) * 2
+  );
+  const base =
+    9 +
+    Math.max(2, squadCap) * 2 +
+    difficultyPressure +
+    progressionPressure;
   const escalation = 1 + Math.min(0.18, turn * 0.012);
   return Math.round(base * escalation);
 }
