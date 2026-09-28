@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getEncounter } from '../game/encounters';
+import { getUnitCombatProfile } from '../game/balance';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -30,6 +31,7 @@ export function BattlePrepScreen({
     wagonItems,
     formationBonuses,
     formationAnalysis,
+    activeSquadCap,
     formationDoctrineId,
     formationDoctrines,
     activeCommanderPath,
@@ -57,6 +59,8 @@ export function BattlePrepScreen({
     .map(unitId => units.find(unit => unit.id === unitId))
     .filter((unit): unit is NonNullable<typeof unit> => Boolean(unit));
 
+  const combatProfile = getUnitCombatProfile(activeUnits);
+  const formationFull = activeUnits.length >= activeSquadCap;
   const hasFood = wagonItems.some(item => item.id === 'rations');
   const hasMedicine = wagonItems.some(item => item.id === 'medicine');
   const marcherDoctrineActive =
@@ -166,7 +170,10 @@ export function BattlePrepScreen({
         ) : null}
       </GameCard>
 
-      <SectionTitle title="Your formation" trailing={String(activeUnits.length) + ' squads'} />
+      <SectionTitle
+        title="Your formation"
+        trailing={String(activeUnits.length) + ' / ' + String(activeSquadCap) + ' squads'}
+      />
       <View style={styles.unitList}>
         {activeUnits.map(unit => (
           <GameCard key={unit.id} faction={unit.faction}>
@@ -186,6 +193,25 @@ export function BattlePrepScreen({
           </GameCard>
         ))}
       </View>
+
+      <GameCard
+        accent={formationFull ? theme.colors.gold : theme.colors.danger}
+        faction={activeFaction}
+        state={formationFull ? 'default' : 'danger'}
+      >
+        <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>ARMY PROFILE</Text>
+        <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+          {formationFull ? 'Full field strength' : 'Underfilled formation'}
+        </Text>
+        <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+          {combatProfile.maxHp} HP · {Math.round(combatProfile.totalAttack)} ATK · Avg ARM {combatProfile.averageArmor.toFixed(1)} · Avg SPD {combatProfile.averageSpeed.toFixed(1)}
+        </Text>
+        {!formationFull ? (
+          <Text style={[styles.skillName, { color: theme.colors.danger }]}>
+            Enemy pressure is tuned for {activeSquadCap} squads at this campaign tier. Fill the open slot or improve gear before committing.
+          </Text>
+        ) : null}
+      </GameCard>
 
       <GameCard accent={theme.colors.gold} faction={activeFaction}>
         <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>ACTIVE ORDER</Text>
@@ -290,16 +316,30 @@ export function BattlePrepScreen({
       <SectionTitle title="Readiness" />
       <GameCard
         faction={activeFaction}
-        state={hasFood && hasMedicine ? 'ready' : !hasFood ? 'danger' : 'default'}
+        state={formationFull && hasFood && hasMedicine ? 'ready' : !formationFull || !hasFood ? 'danger' : 'default'}
       >
         <View style={styles.readinessHeader}>
           <Text style={[styles.readinessTitle, { color: theme.colors.text }]}>Campaign supplies</Text>
           <StatusPill
-            label={hasFood && hasMedicine ? 'READY' : !hasFood ? 'FOOD MISSING' : 'PARTIAL'}
-            tone={hasFood && hasMedicine ? 'ready' : !hasFood ? 'elite' : 'available'}
+            label={
+              !formationFull
+                ? 'SQUAD MISSING'
+                : hasFood && hasMedicine
+                  ? 'READY'
+                  : !hasFood
+                    ? 'FOOD MISSING'
+                    : 'PARTIAL'
+            }
+            tone={formationFull && hasFood && hasMedicine ? 'ready' : !formationFull || !hasFood ? 'elite' : 'available'}
           />
         </View>
         <View style={styles.readinessList}>
+          <View style={styles.readinessRow}>
+            <StatusPill label={formationFull ? 'FULL' : 'UNDER'} tone={formationFull ? 'done' : 'elite'} />
+            <Text style={[styles.readinessText, { color: theme.colors.text }]}>
+              Formation · {activeUnits.length}/{activeSquadCap} squads
+            </Text>
+          </View>
           <View style={styles.readinessRow}>
             <StatusPill label={hasFood ? 'PACKED' : 'MISSING'} tone={hasFood ? 'done' : 'elite'} />
             <Text style={[styles.readinessText, { color: theme.colors.text }]}>Food</Text>
