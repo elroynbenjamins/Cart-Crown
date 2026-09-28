@@ -44,6 +44,7 @@ export function createHumanFactionState(): FactionGameState {
     ],
     wagonItems: starterWagonItems.map(item => ({ ...item })),
     wagonStageId: 'camp',
+    armyReadiness: 100,
     chapterNodes: chapterOneNodes.map(node => ({ ...node })),
     formationDoctrineId: 'human_hold',
     holdTheRoadWon: false,
