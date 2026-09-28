@@ -547,6 +547,7 @@ const styles = StyleSheet.create({
   productionBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
   productionRate: { fontSize: 8.5, lineHeight: 13, fontWeight: '900', marginTop: 6 },
   productionStock: { fontSize: 10.5, lineHeight: 16, fontWeight: '900', marginTop: 6 },
+  productionAmounts: { marginTop: 7 },
   buildingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   buildingCard: { width: '48%' },
   buildingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 6 },
