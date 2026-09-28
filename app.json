@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Cart & Crown",
+    "slug": "cart-and-crown",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.cartandcrown.mobile"
+    },
+    "ios": {
+      "bundleIdentifier": "com.cartandcrown.mobile",
+      "supportsTablet": false
+    }
+  }
+}
