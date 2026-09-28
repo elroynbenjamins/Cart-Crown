@@ -32,7 +32,8 @@ export function ArmyScreen({
     equipmentInventory,
     commanderChoiceUnlocked,
     activeCommanderPath,
-    commanderRespecCost
+    commanderRespecCost,
+    buildingLevels
   } = useGame();
 
   const activeCount = formation.filter(Boolean).length;
@@ -83,11 +84,13 @@ export function ArmyScreen({
                 <Text style={[styles.previewBody, { color: theme.colors.textMuted }]}>
                   {firstPromotionComplete
                     ? (miraWeapon?.name ?? 'Weapon') + ' is assigned permanently to this squad.'
-                    : forgeUnlocked
+                    : forgeUnlocked && (buildingLevels.forge ?? 0) > 0
                       ? 'Craft a weapon, then choose whether Mira becomes Swordsman, Spearman or Archer.'
-                      : 'Investigate Marked Raiders to unlock the Field Forge and first equipment choice.'}
+                      : forgeUnlocked
+                        ? 'The Field Forge blueprint is unlocked. Construct it from Settlement View first.'
+                        : 'Investigate Marked Raiders to unlock the Field Forge and first equipment choice.'}
                 </Text>
-                {forgeUnlocked && !firstPromotionComplete ? (
+                {forgeUnlocked && (buildingLevels.forge ?? 0) > 0 && !firstPromotionComplete ? (
                   <View style={styles.promotionActions}>
                     <View style={styles.actionGrow}>
                       <PrimaryButton
@@ -106,7 +109,7 @@ export function ArmyScreen({
               </View>
             ) : null}
 
-            {forgeUnlocked ? (
+            {forgeUnlocked && (buildingLevels.forge ?? 0) > 0 ? (
               <View style={styles.unitEquipmentButton}>
                 <PrimaryButton
                   label="Loadout / Equipment"
@@ -182,7 +185,7 @@ export function ArmyScreen({
         </>
       ) : null}
 
-      {forgeUnlocked ? (
+      {forgeUnlocked && (buildingLevels.forge ?? 0) > 0 ? (
         <>
           <SectionTitle title="Equipment inventory" trailing={String(equipmentInventory.length)} />
           <GameCard>

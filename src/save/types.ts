@@ -34,6 +34,7 @@ export type FactionGameState = {
   commanderPathId: string | null;
   refugeeCampSecured: boolean;
   buildingLevels: Record<string, number>;
+  buildingPlacements: Record<string, string | null>;
   fourthRecruitChoiceAvailable: boolean;
   fourthRecruitChosen: boolean;
   unlockedResourceSites: string[];
@@ -54,7 +55,7 @@ export type SharedProgress = {
 };
 
 export type GameSnapshot = {
-  schemaVersion: 5;
+  schemaVersion: 6;
   activeFaction: FactionId;
   shared: SharedProgress;
   factionStates: Record<FactionId, FactionGameState | null>;

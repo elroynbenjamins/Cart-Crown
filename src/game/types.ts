@@ -105,7 +105,16 @@ export type BuildingDefinition = {
   role: BuildingRole;
   icon: string;
   maxLevel: number;
+  constructionCost: Partial<ResourceWallet>;
   description: string;
+};
+
+export type SettlementPlotDefinition = {
+  id: string;
+  row: number;
+  column: number;
+  unlockStage: 'camp' | 'settlement' | 'fort' | 'town' | 'stronghold';
+  terrain: 'grass' | 'high_ground' | 'roadside' | 'square';
 };
 
 export type BuildingLevelDefinition = {

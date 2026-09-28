@@ -1,12 +1,11 @@
 # Cart & Crown
 
-Cart & Crown is a portrait-first mobile strategy RPG built around **Kingdom progression, a 3×3 combat Formation, a limited logistics Wagon, persistent troop equipment, faction-specific command styles, and regional development**.
+Cart & Crown is a portrait-first mobile strategy RPG built around **Kingdom progression, a 3×3 combat Formation, a limited logistics Wagon, persistent troop equipment, faction-specific command styles, and a visible growing settlement**.
 
 ## Current prototype
 
 - **2 independent save slots**, autosaved locally.
-- Save schema v5 stores separate Human / Elf / Orc states plus shared unlocks.
-- Older development saves migrate automatically.
+- Current development saves use one clean schema; backwards migration code has been removed because the game has not shipped yet.
 - Human campaign is the required first playthrough.
 - Original / Dark / Light themes.
 - 3×3 formation board with army capacity growing from 2 to 6 squads.
@@ -18,91 +17,71 @@ Cart & Crown is a portrait-first mobile strategy RPG built around **Kingdom prog
 - Expeditions, Formation Trials and Kingdom Defense.
 - Optional rewarded-ad placements through one provider adapter; development uses mock rewards.
 
+## Visual settlement building
+
+Greenkeep now has a dedicated **Settlement View**.
+
+It uses a fixed 3×3 board rather than a free-roaming city-builder:
+
+- Camp: 4 usable plots
+- Settlement: 6 usable plots
+- Fort: 9 usable plots
+
+Starting structures:
+- Hall
+- Barracks
+- Wagonwright
+
+Story milestones unlock **building blueprints**, not free buildings. The player then opens Settlement View, taps an empty plot, pays the construction cost and places the building.
+
+Examples:
+- Marked Raiders → Field Forge blueprint
+- Commander milestone → War Room blueprint
+- Refugee Camp → Quartermaster blueprint
+- Greenkeep Fort → Stable blueprint
+
+Building placement is intentionally cosmetic/organizational for now. The gameplay effect comes from what is built and its level, so players cannot accidentally ruin a save with a bad layout. Adjacency/district bonuses can be added later if the settlement layer proves fun.
+
 ## Human progression implemented
 
 ### Chapter 1 — The Last Wagon
 1. Hold the Road
 2. Greenkeep Settlement
 3. Marked Raiders
-4. First weapon / Mira promotion
-5. Mercenary Patrol
-6. Commander specialization
-7. Refugee Camp / Quartermaster
-8. Toll Captain
-9. Build Greenkeep Fort
+4. Build Field Forge
+5. First weapon / Mira promotion
+6. Mercenary Patrol
+7. Commander specialization
+8. Refugee Camp / Quartermaster
+9. Toll Captain
+10. Build Greenkeep Fort
 
 ### Chapter 2 — The Iron Road
-Fort construction now begins the next progression tier:
-
-1. **Fort Muster** — choose a fourth active squad:
-   - Crossbowman
-   - Man-at-Arms
-   - Scout with cavalry potential
-2. **Iron Road Skirmish** — secures the Iron Hills Mine.
-3. **Timber Claim** — secures the Greenwood Timber Camp.
-4. **Kingdom Defense** — survive three consecutive defense waves.
-5. Broken Signal Tower — next story expansion.
-6. The Iron Provost — future Chapter 2 boss.
+1. Fort Muster — choose a fourth active squad
+2. Iron Road Skirmish — secure the Iron Hills Mine
+3. Timber Claim — secure the Greenwood Timber Camp
+4. Kingdom Defense — survive three waves
+5. Broken Signal Tower — next story expansion
+6. The Iron Provost — future Chapter 2 boss
 
 ## Stable and first cavalry path
 
-Greenkeep Fort unlocks **Stable Lv.1**.
-
-The Stable can produce a **Trained Horse**. Assigning the horse to any Human Scout opens:
+Greenkeep Fort unlocks the **Stable blueprint**. After the player constructs Stable Lv.1, a Trained Horse becomes available.
 
 > Scout + Trained Horse → **Scout Rider**
 
-Scout Rider becomes the first true cavalry class and can later branch into Cavalryman, Lancer or Mounted Archer.
+Scout Rider is the first true cavalry class and can later branch into Cavalryman, Lancer or Mounted Archer.
 
 ## Regional production
 
-Fort-tier territory can produce resources after meaningful activities instead of using background timers.
+Fort-tier territory can produce resources after meaningful activities instead of background timers.
 
 Current sites:
+- Greenkeep Farms — +6 Provisions per activity
+- Iron Hills Mine — +2 Iron per activity
+- Greenwood Timber Camp — +5 Wood per activity
 
-- **Greenkeep Farms** — +6 Provisions per completed activity.
-- **Iron Hills Mine** — +2 Iron per completed activity.
-- **Greenwood Timber Camp** — +5 Wood per completed activity.
-
-Campaign battles, Expeditions and Kingdom Defense advance production. Stock accumulates separately and is claimed from the Kingdom screen.
-
-## Kingdom Defense
-
-Kingdom Defense becomes available during Chapter 2 and remains repeatable afterward.
-
-The current first defense uses three escalating waves:
-
-1. Road Raiders
-2. Mercenary Bowline
-3. Green Banner Assault
-
-Defense Power is calculated from:
-- active squad stats
-- formation attack/armor synergies
-- commander specialization bonuses
-
-If the player's Defense Power is below the next wave's threat, they are encouraged to improve formation, equipment or Kingdom infrastructure before retrying.
-
-## Kingdom building
-
-Campaign milestones unlock opportunities; Kingdom investment turns them into permanent systems.
-
-Current Human buildings:
-- Greenkeep Hall
-- Barracks
-- Field Forge
-- Wagonwright
-- Quartermaster
-- War Room
-- Stable
-
-Examples:
-- Barracks II unlocks advanced troop branches.
-- Forge II unlocks Tier II equipment.
-- Wagonwright II improves Expedition supply recovery.
-- Quartermaster II improves provisions and grants another base Expedition Ticket.
-- War Room II reduces commander retraining cost.
-- Stable I unlocks mount production and Scout Rider progression.
+Campaign battles, Expeditions and Kingdom Defense advance production. Stock accumulates separately and can be claimed from the Kingdom screen.
 
 ## Tech
 
@@ -121,4 +100,4 @@ npm run android
 npm run typecheck
 ```
 
-Temporary letters and emoji are placeholders for the final portrait/equipment art pipeline.
+Temporary letters and emoji are placeholders for the final portrait/equipment/settlement art pipeline.

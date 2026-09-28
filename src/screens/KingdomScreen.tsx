@@ -24,10 +24,12 @@ const resourceIcons: Record<keyof ResourceWallet, string> = {
 
 export function KingdomScreen({
   onOpenRecruitment,
-  onOpenForge
+  onOpenForge,
+  onOpenSettlement
 }: {
   onOpenRecruitment: () => void;
   onOpenForge: () => void;
+  onOpenSettlement: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -66,6 +68,7 @@ export function KingdomScreen({
   const progress = holdTheRoadWon ? 1 : 0.34;
   const dailySupplyClaimed = (rewardedAdClaims.daily_supply ?? 0) >= 1;
   const unlockedCount = buildings.filter(building => isBuildingUnlocked(building.id)).length;
+  const builtCount = buildings.filter(building => (buildingLevels[building.id] ?? 0) > 0).length;
   const productionTotal =
     productionStock.gold +
     productionStock.wood +
@@ -199,10 +202,25 @@ export function KingdomScreen({
 
         <GameCard style={styles.summaryCard}>
           <Text style={[styles.summaryLabel, { color: theme.colors.textMuted }]}>DEVELOPMENT</Text>
-          <Text style={[styles.summaryValue, { color: theme.colors.text }]}>{unlockedCount}/{buildings.length}</Text>
-          <Text style={[styles.summaryNote, { color: theme.colors.gold }]}>buildings unlocked</Text>
+          <Text style={[styles.summaryValue, { color: theme.colors.text }]}>{builtCount}/{unlockedCount}</Text>
+          <Text style={[styles.summaryNote, { color: theme.colors.gold }]}>built / unlocked</Text>
         </GameCard>
       </View>
+
+      <GameCard accent={theme.colors.human}>
+        <View style={styles.settlementViewRow}>
+          <View style={styles.settlementViewCopy}>
+            <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>View Greenkeep</Text>
+            <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
+              See the settlement, choose construction plots and buy unlocked buildings. New plots appear as Greenkeep grows.
+            </Text>
+          </View>
+          <Text style={styles.settlementViewIcon}>🏘️</Text>
+        </View>
+        <View style={styles.supplyButton}>
+          <PrimaryButton label="Open Settlement View" onPress={onOpenSettlement} />
+        </View>
+      </GameCard>
 
       {unlockedResourceSites.length > 0 ? (
         <>
@@ -273,7 +291,16 @@ export function KingdomScreen({
                 {building.description}
               </Text>
 
-              {unlocked && nextDefinition ? (
+              {unlocked && level <= 0 ? (
+                <>
+                  <Text style={[styles.nextEffect, { color: theme.colors.gold }]}>
+                    Blueprint unlocked · not constructed
+                  </Text>
+                  <Text style={[styles.lockNote, { color: theme.colors.textMuted }]}>
+                    Choose an empty plot in Settlement View to buy and place this building.
+                  </Text>
+                </>
+              ) : unlocked && nextDefinition ? (
                 <>
                   <Text style={[styles.nextEffect, { color: theme.colors.primary }]}>
                     Next: {nextDefinition.effect}
@@ -323,7 +350,7 @@ export function KingdomScreen({
         <Text style={[styles.message, { color: theme.colors.textMuted }]}>{buildingMessage}</Text>
       ) : null}
 
-      {forgeUnlocked ? (
+      {forgeUnlocked && (buildingLevels.forge ?? 0) > 0 ? (
         <>
           <SectionTitle title="Field Forge" trailing={'Lv.' + (buildingLevels.forge ?? 0)} />
           <GameCard accent={theme.colors.gold}>
@@ -406,6 +433,9 @@ const styles = StyleSheet.create({
   buildingButton: { marginTop: 9 },
   lockNote: { fontSize: 9, lineHeight: 13, fontWeight: '700', marginTop: 8 },
   message: { fontSize: 10.5, lineHeight: 16, textAlign: 'center', fontWeight: '800' },
+  settlementViewRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  settlementViewCopy: { flex: 1 },
+  settlementViewIcon: { fontSize: 34 },
   supplyTitle: { fontSize: 15, fontWeight: '900' },
   supplyBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
   supplyReward: { fontSize: 11, fontWeight: '900', marginTop: 7 },

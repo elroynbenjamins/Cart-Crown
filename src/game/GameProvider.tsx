@@ -32,6 +32,10 @@ import {
   getBuildingLevelDefinition,
   getBuildings
 } from './kingdom';
+import {
+  humanSettlementPlots,
+  isSettlementPlotUnlocked
+} from './settlement';
 import { sideModes } from './sideModes';
 import type {
   AdvancedPromotionDefinition,
@@ -109,6 +113,7 @@ type GameContextValue = {
   commanderRespecCost: number;
   refugeeCampSecured: boolean;
   buildingLevels: Record<string, number>;
+  buildingPlacements: Record<string, string | null>;
   buildings: BuildingDefinition[];
   fourthRecruitChoiceAvailable: boolean;
   fourthRecruitChosen: boolean;
@@ -133,6 +138,7 @@ type GameContextValue = {
   completeRefugeeCamp: () => boolean;
   upgradeSettlement: () => boolean;
   upgradeToFort: () => boolean;
+  constructBuilding: (buildingId: string, plotId: string) => boolean;
   upgradeBuilding: (buildingId: string) => boolean;
   isBuildingUnlocked: (buildingId: string) => boolean;
   chooseRecruit: (choiceId: string) => boolean;
@@ -333,6 +339,9 @@ export function GameProvider({
   const [buildingLevels, setBuildingLevels] = useState<Record<string, number>>(
     () => ({ ...initialFaction.buildingLevels })
   );
+  const [buildingPlacements, setBuildingPlacements] = useState<Record<string, string | null>>(
+    () => ({ ...initialFaction.buildingPlacements })
+  );
   const [fourthRecruitChoiceAvailable, setFourthRecruitChoiceAvailable] = useState(
     initialFaction.fourthRecruitChoiceAvailable
   );
@@ -466,6 +475,7 @@ export function GameProvider({
       commanderPathId,
       refugeeCampSecured,
       buildingLevels,
+      buildingPlacements,
       fourthRecruitChoiceAvailable,
       fourthRecruitChosen,
       unlockedResourceSites,
@@ -501,6 +511,7 @@ export function GameProvider({
       commanderPathId,
       refugeeCampSecured,
       buildingLevels,
+      buildingPlacements,
       fourthRecruitChoiceAvailable,
       fourthRecruitChosen,
       unlockedResourceSites,
@@ -516,7 +527,7 @@ export function GameProvider({
 
   const snapshot = useMemo<GameSnapshot>(
     () => ({
-      schemaVersion: 5,
+      schemaVersion: 6,
       activeFaction,
       shared: sharedProgress,
       factionStates: {
@@ -676,7 +687,6 @@ export function GameProvider({
 
     setMarkedRaidersInvestigated(true);
     setForgeUnlocked(true);
-    setBuildingLevels(previous => ({ ...previous, forge: Math.max(1, previous.forge ?? 0) }));
     setResources(previous => ({
       ...previous,
       wood: previous.wood + 5,
@@ -702,10 +712,6 @@ export function GameProvider({
     if (!mercenaryPatrolWon || !commanderPathId || refugeeCampSecured) return false;
 
     setRefugeeCampSecured(true);
-    setBuildingLevels(previous => ({
-      ...previous,
-      quartermaster: Math.max(1, previous.quartermaster ?? 0)
-    }));
     setResources(previous => ({
       ...previous,
       wood: previous.wood + 45,
@@ -750,8 +756,7 @@ export function GameProvider({
     setWagonStageId('fort');
     setBuildingLevels(previous => ({
       ...previous,
-      hall: 3,
-      stable: Math.max(1, previous.stable ?? 0)
+      hall: 3
     }));
     setChapterNumber(2);
     setChapterNodes(cloneNodes(chapterTwoNodes));
@@ -769,14 +774,41 @@ export function GameProvider({
     if (buildingId === 'forge') return forgeUnlocked;
     if (buildingId === 'war_room') return commanderChoiceUnlocked;
     if (buildingId === 'quartermaster') return refugeeCampSecured;
-    if (buildingId === 'stable') return (buildingLevels.stable ?? 0) > 0;
+    if (buildingId === 'stable') return ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
     return false;
+  };
+
+  const constructBuilding = (buildingId: string, plotId: string) => {
+    if (!isBuildingUnlocked(buildingId)) return false;
+    if ((buildingLevels[buildingId] ?? 0) > 0) return false;
+
+    const building = buildings.find(candidate => candidate.id === buildingId);
+    const plot = humanSettlementPlots.find(candidate => candidate.id === plotId);
+
+    if (!building || !plot) return false;
+    if (!isSettlementPlotUnlocked(plot, currentWagonStage.id)) return false;
+    if (buildingPlacements[plotId]) return false;
+    if (Object.values(buildingPlacements).includes(buildingId)) return false;
+    if (!canPayBuildingCost(resources, building.constructionCost)) return false;
+
+    setResources(previous => payCost(previous, building.constructionCost));
+    setBuildingLevels(previous => ({
+      ...previous,
+      [buildingId]: 1
+    }));
+    setBuildingPlacements(previous => ({
+      ...previous,
+      [plotId]: buildingId
+    }));
+    return true;
   };
 
   const upgradeBuilding = (buildingId: string) => {
     if (!isBuildingUnlocked(buildingId)) return false;
 
     const currentLevel = buildingLevels[buildingId] ?? 0;
+    if (currentLevel <= 0) return false;
+
     const targetLevel = currentLevel + 1;
     const definition = getBuildingLevelDefinition(buildingId, targetLevel);
 
@@ -1127,10 +1159,6 @@ export function GameProvider({
     }
 
     setCommanderPathId(pathId);
-    setBuildingLevels(previous => ({
-      ...previous,
-      war_room: Math.max(1, previous.war_room ?? 0)
-    }));
     setChapterNodes(previous =>
       previous.map(node => {
         if (node.id === 'node_5') return { ...node, current: true };
@@ -1331,6 +1359,7 @@ export function GameProvider({
       commanderRespecCost,
       refugeeCampSecured,
       buildingLevels,
+      buildingPlacements,
       buildings,
       fourthRecruitChoiceAvailable,
       fourthRecruitChosen,
@@ -1355,6 +1384,7 @@ export function GameProvider({
       completeRefugeeCamp,
       upgradeSettlement,
       upgradeToFort,
+      constructBuilding,
       upgradeBuilding,
       isBuildingUnlocked,
       chooseRecruit,
@@ -1415,6 +1445,7 @@ export function GameProvider({
       commanderRespecCost,
       refugeeCampSecured,
       buildingLevels,
+      buildingPlacements,
       buildings,
       fourthRecruitChoiceAvailable,
       fourthRecruitChosen,

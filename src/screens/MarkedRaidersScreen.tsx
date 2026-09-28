@@ -79,7 +79,7 @@ export function MarkedRaidersScreen({
         <PrimaryButton label="Recover the gear & record the clue" onPress={investigate} />
       ) : forgeUnlocked ? (
         <>
-          <PrimaryButton label="Open Field Forge" onPress={onOpenForge} />
+          <PrimaryButton label="Build Field Forge in Kingdom" onPress={onOpenForge} />
           <PrimaryButton label="Return to Campaign" onPress={onExit} />
         </>
       ) : null}

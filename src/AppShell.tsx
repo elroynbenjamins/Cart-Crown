@@ -29,6 +29,7 @@ import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
 import { KingdomDefenseScreen } from './screens/KingdomDefenseScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { SettlementScreen } from './screens/SettlementScreen';
 import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
@@ -47,6 +48,7 @@ type FlowScreen =
   | 'fortMuster'
   | 'timberClaim'
   | 'kingdomDefense'
+  | 'settlement'
   | 'expedition'
   | 'formationTrial';
 
@@ -80,6 +82,7 @@ const flowTitles: Record<FlowScreen, string> = {
   fortMuster: 'Fort Muster',
   timberClaim: 'Timber Claim',
   kingdomDefense: 'Kingdom Defense',
+  settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
 };
@@ -156,7 +159,10 @@ export function AppShell({
     if (flow === 'markedRaiders') {
       return (
         <MarkedRaidersScreen
-          onOpenForge={() => setFlow('forge')}
+          onOpenForge={() => {
+            setFlow(null);
+            setActive('kingdom');
+          }}
           onExit={() => {
             setFlow(null);
             setActive('campaign');
@@ -260,6 +266,17 @@ export function AppShell({
       );
     }
 
+    if (flow === 'settlement') {
+      return (
+        <SettlementScreen
+          onExit={() => {
+            setFlow(null);
+            setActive('kingdom');
+          }}
+        />
+      );
+    }
+
     if (flow === 'expedition') {
       return (
         <ExpeditionScreen
@@ -337,6 +354,7 @@ export function AppShell({
         return (
           <KingdomScreen
             onOpenRecruitment={openRecruitment}
+            onOpenSettlement={() => setFlow('settlement')}
             onOpenForge={() => {
               if (firstPromotionComplete) {
                 setEquipmentUnitId('hum_recruit');
@@ -362,6 +380,7 @@ export function AppShell({
     flow === 'fortMuster' ||
     flow === 'timberClaim' ||
     flow === 'kingdomDefense' ||
+    flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';
   const title = flow ? flowTitles[flow] : screenTitles[active];

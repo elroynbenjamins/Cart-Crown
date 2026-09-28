@@ -13,6 +13,7 @@ export const humanBuildings: BuildingDefinition[] = [
     role: 'KINGDOM',
     icon: '🏰',
     maxLevel: 6,
+    constructionCost: {},
     description: 'Raises the settlement tier and gates major kingdom expansion.'
   },
   {
@@ -22,6 +23,7 @@ export const humanBuildings: BuildingDefinition[] = [
     role: 'ARMY',
     icon: '🛡️',
     maxLevel: 5,
+    constructionCost: {},
     description: 'Unlocks deeper infantry training and class promotion branches.'
   },
   {
@@ -31,6 +33,7 @@ export const humanBuildings: BuildingDefinition[] = [
     role: 'EQUIPMENT',
     icon: '⚒️',
     maxLevel: 5,
+    constructionCost: { gold: 30, wood: 6 },
     description: 'Crafts and upgrades assigned troop weapons, armor and shields.'
   },
   {
@@ -40,6 +43,7 @@ export const humanBuildings: BuildingDefinition[] = [
     role: 'LOGISTICS',
     icon: '🛞',
     maxLevel: 5,
+    constructionCost: {},
     description: 'Improves campaign logistics and prepares future Wagon expansions.'
   },
   {
@@ -49,6 +53,7 @@ export const humanBuildings: BuildingDefinition[] = [
     role: 'SUPPLY',
     icon: '📦',
     maxLevel: 5,
+    constructionCost: { gold: 45, wood: 18, provisions: 8 },
     description: 'Improves provisions, expedition preparation and common supply recovery.'
   },
   {
@@ -58,6 +63,7 @@ export const humanBuildings: BuildingDefinition[] = [
     role: 'COMMAND',
     icon: '🗺️',
     maxLevel: 5,
+    constructionCost: { gold: 70, wood: 20, stone: 5 },
     description: 'Supports commander specialization, doctrine planning and later retraining.'
   },
   {
@@ -67,6 +73,7 @@ export const humanBuildings: BuildingDefinition[] = [
     role: 'MOUNT',
     icon: '🐎',
     maxLevel: 5,
+    constructionCost: { gold: 80, wood: 30, provisions: 10 },
     description: 'Unlocks cavalry recruitment, mount training and mounted equipment.'
   }
 ];
