@@ -4538,7 +4538,9 @@ export function GameProvider({
       !target.upgradeFromId ||
       target.requiredForgeLevel > forgeLevel ||
       (target.requiredStableLevel ?? 0) > stableLevel ||
-      !unit
+      !unit ||
+      target.faction !== activeFaction ||
+      unit.faction !== activeFaction
     ) {
       return false;
     }
