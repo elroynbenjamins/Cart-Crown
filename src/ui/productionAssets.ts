@@ -236,9 +236,23 @@ export function uiProductionAsset(id: string) {
 }
 
 // Static React Native image sources must be registered with require(...).
-// Keep this map intentionally empty until a reviewed PNG is committed.
 // Adding a source here automatically replaces the code-rendered fallback everywhere.
-export const productionAssetSources: Partial<Record<string, ImageSourcePropType>> = {};
+export const productionAssetSources: Partial<Record<string, ImageSourcePropType>> = {
+  'unit.human.militia': require('../../assets/game/units/human/militia.png'),
+  'unit.human.recruit': require('../../assets/game/units/human/recruit.png'),
+  'unit.elf.warden': require('../../assets/game/units/elf/warden.png'),
+  'unit.elf.forest_scout': require('../../assets/game/units/elf/forest_scout.png'),
+  'unit.orc.youngblood': require('../../assets/game/units/orc/youngblood.png'),
+  'unit.orc.hunter': require('../../assets/game/units/orc/hunter.png'),
+
+  'faction_crest.human': require('../../assets/game/factions/human/crest.png'),
+  'faction_crest.elf': require('../../assets/game/factions/elf/crest.png'),
+  'faction_crest.orc': require('../../assets/game/factions/orc/crest.png'),
+
+  'equipment.hum_trained_horse': require('../../assets/game/equipment/human/hum_trained_horse.png'),
+  'equipment.elf_trained_stag': require('../../assets/game/equipment/elf/elf_trained_stag.png'),
+  'equipment.orc_trained_warg': require('../../assets/game/equipment/orc/orc_trained_warg.png')
+};
 
 export function getProductionAssetSource(assetId: string) {
   return productionAssetSources[assetId] ?? null;
