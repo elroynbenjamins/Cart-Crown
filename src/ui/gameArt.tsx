@@ -229,7 +229,7 @@ const sprites: Record<ArtKey, PixelPart[]> = {
   building_forge: [
     { x: 4, y: 10, w: 11, h: 7, color: 'stone' },
     { x: 3, y: 7, w: 13, h: 4, color: 'roof' },
-    { x: 12, y: 3, w: 3, h: 6, color: 'stoneDark' as PaletteKey },
+    { x: 12, y: 3, w: 3, h: 6, color: 'steelDark' },
     { x: 7, y: 12, w: 4, h: 4, color: 'outline' },
     { x: 8, y: 13, w: 2, h: 2, color: 'gold' }
   ],
