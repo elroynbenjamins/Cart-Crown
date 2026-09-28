@@ -12,6 +12,7 @@ import {
   SectionTitle,
   UnitPortrait
 } from '../ui/components';
+import { EnemySprite } from '../ui/gameArt';
 
 export function BattlePrepScreen({
   encounterId,
@@ -112,9 +113,7 @@ export function BattlePrepScreen({
       <GameCard>
         <View style={styles.enemyRow}>
           <View style={[styles.enemyMark, { borderColor: theme.colors.danger }]}>
-            <Text style={[styles.enemyMarkText, { color: theme.colors.danger }]}>
-              {encounter.difficulty === 'Elite' ? 'G' : 'R'}
-            </Text>
+            <EnemySprite enemyName={encounter.enemyName} size={48} />
           </View>
           <View style={styles.enemyCopy}>
             <Text style={[styles.enemyName, { color: theme.colors.text }]}>
@@ -282,7 +281,6 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 13, lineHeight: 18, marginTop: 6 },
   enemyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   enemyMark: { width: 58, height: 64, borderRadius: 17, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  enemyMarkText: { fontSize: 22, fontWeight: '900' },
   enemyCopy: { flex: 1 },
   enemyName: { fontSize: 16, fontWeight: '900' },
   enemyMeta: { fontSize: 12, lineHeight: 17, marginTop: 4 },
