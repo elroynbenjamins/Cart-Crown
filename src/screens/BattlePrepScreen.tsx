@@ -1,7 +1,10 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getEncounter } from '../game/encounters';
-import { getUnitCombatProfile } from '../game/balance';
+import {
+  getArmyReadinessProfile,
+  getUnitCombatProfile
+} from '../game/balance';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -9,6 +12,7 @@ import {
   GameCard,
   Pill,
   PrimaryButton,
+  ProgressBar,
   SecondaryButton,
   SectionTitle,
   StatusPill,
@@ -26,6 +30,10 @@ export function BattlePrepScreen({
   const { theme } = useGameTheme();
   const {
     activeFaction,
+    resources,
+    armyReadiness,
+    armyResupplyCost,
+    restAndResupplyArmy,
     units,
     formation,
     wagonItems,
@@ -60,6 +68,13 @@ export function BattlePrepScreen({
     .filter((unit): unit is NonNullable<typeof unit> => Boolean(unit));
 
   const combatProfile = getUnitCombatProfile(activeUnits);
+  const readinessProfile = getArmyReadinessProfile(armyReadiness);
+  const effectiveMaxHp = Math.round(
+    combatProfile.maxHp * readinessProfile.hpMultiplier
+  );
+  const effectiveAttack = Math.round(
+    combatProfile.totalAttack * readinessProfile.attackMultiplier
+  );
   const formationFull = activeUnits.length >= activeSquadCap;
   const hasFood = wagonItems.some(item => item.id === 'rations');
   const hasMedicine = wagonItems.some(item => item.id === 'medicine');
@@ -204,7 +219,7 @@ export function BattlePrepScreen({
           {formationFull ? 'Full field strength' : 'Underfilled formation'}
         </Text>
         <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
-          {combatProfile.maxHp} HP · {Math.round(combatProfile.totalAttack)} ATK · Avg ARM {combatProfile.averageArmor.toFixed(1)} · Avg SPD {combatProfile.averageSpeed.toFixed(1)}
+          {effectiveMaxHp} HP · {effectiveAttack} ATK · Avg ARM {combatProfile.averageArmor.toFixed(1)} · Avg SPD {(combatProfile.averageSpeed * readinessProfile.speedMultiplier).toFixed(1)}
         </Text>
         {!formationFull ? (
           <Text style={[styles.skillName, { color: theme.colors.danger }]}>
@@ -313,6 +328,58 @@ export function BattlePrepScreen({
         </>
       ) : null}
 
+      <SectionTitle title="Army readiness" trailing={String(armyReadiness) + '%'} />
+      <GameCard
+        faction={activeFaction}
+        state={
+          armyReadiness >= 70
+            ? 'ready'
+            : armyReadiness >= 50
+              ? 'default'
+              : 'danger'
+        }
+        accent={armyReadiness >= 70 ? factionAccent : theme.colors.gold}
+      >
+        <View style={styles.readinessHeader}>
+          <View>
+            <Text style={[styles.readinessTitle, { color: theme.colors.text }]}>
+              {readinessProfile.label}
+            </Text>
+            <Text style={[styles.readinessHint, { color: theme.colors.textMuted }]}>
+              {armyReadiness >= 70
+                ? 'No combat penalty. You can keep campaigning without resupplying.'
+                : 'Repeated fighting is now reducing combat effectiveness until the army rests.'}
+            </Text>
+          </View>
+          <StatusPill
+            label={armyReadiness >= 70 ? 'FULL EFFECT' : 'FATIGUED'}
+            tone={armyReadiness >= 70 ? 'ready' : armyReadiness >= 50 ? 'available' : 'elite'}
+          />
+        </View>
+        <ProgressBar
+          value={armyReadiness / 100}
+          color={armyReadiness >= 70 ? factionAccent : theme.colors.gold}
+        />
+        {armyReadiness < 70 ? (
+          <Text style={[styles.readinessPenalty, { color: theme.colors.gold }]}>
+            Current effect · HP ×{readinessProfile.hpMultiplier.toFixed(2)} · ATK ×{readinessProfile.attackMultiplier.toFixed(2)} · SPD ×{readinessProfile.speedMultiplier.toFixed(2)}
+          </Text>
+        ) : null}
+        {armyReadiness < 100 ? (
+          <View style={styles.resupplyButton}>
+            <SecondaryButton
+              label={
+                resources.provisions >= armyResupplyCost
+                  ? 'Rest & Resupply · ' + armyResupplyCost + ' provisions'
+                  : 'Need ' + armyResupplyCost + ' provisions to fully recover'
+              }
+              disabled={resources.provisions < armyResupplyCost}
+              onPress={restAndResupplyArmy}
+            />
+          </View>
+        ) : null}
+      </GameCard>
+
       <SectionTitle title="Readiness" />
       <GameCard
         faction={activeFaction}
@@ -392,5 +459,8 @@ const styles = StyleSheet.create({
   readinessList: { gap: 10 },
   readinessRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   readinessText: { fontSize: 13, fontWeight: '700' },
+  readinessHint: { fontSize: 10.5, lineHeight: 15, marginTop: 3, maxWidth: 250 },
+  readinessPenalty: { fontSize: 10, lineHeight: 15, fontWeight: '900', marginTop: 9 },
+  resupplyButton: { marginTop: 11 },
   adMessage: { fontSize: 10, textAlign: 'center' }
 });
