@@ -25,6 +25,7 @@ export function FactionCampScreen({
     units,
     currentWagonStage,
     formation,
+    activeSquadCap,
     commanderChoiceUnlocked,
     activeCommanderPath,
     commanderRespecCost,
@@ -97,9 +98,9 @@ export function FactionCampScreen({
         <GameCard style={styles.summaryCard}>
           <Text style={[styles.summaryLabel, { color: theme.colors.textMuted }]}>ACTIVE ARMY</Text>
           <Text style={[styles.summaryValue, { color: theme.colors.text }]}>
-            {activeUnits.length}/2
+            {activeUnits.length}/{activeSquadCap}
           </Text>
-          <Text style={[styles.summaryNote, { color: accent }]}>starting squads</Text>
+          <Text style={[styles.summaryNote, { color: accent }]}>active squad capacity</Text>
         </GameCard>
       </View>
 
