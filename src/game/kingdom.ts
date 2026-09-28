@@ -1,3 +1,4 @@
+import { rebalanceBuildingCost, rebalanceConstructionCost } from './balance';
 import type {
   BuildingDefinition,
   BuildingLevelDefinition,
@@ -815,19 +816,34 @@ export function getFactionBuildingIds(faction: FactionId) {
 }
 
 export function getBuildings(faction: FactionId) {
-  if (faction === 'elf') return elfBuildings;
-  if (faction === 'orc') return orcBuildings;
-  return humanBuildings;
+  const definitions =
+    faction === 'elf'
+      ? elfBuildings
+      : faction === 'orc'
+        ? orcBuildings
+        : humanBuildings;
+
+  return definitions.map(building => ({
+    ...building,
+    constructionCost: rebalanceConstructionCost(building.constructionCost)
+  }));
 }
 
 export function getBuildingLevelDefinition(buildingId: string, level: number) {
-  return [
+  const definition = [
     ...humanBuildingLevels,
     ...elfBuildingLevels,
     ...orcBuildingLevels
   ].find(
-    definition => definition.buildingId === buildingId && definition.level === level
-  ) ?? null;
+    candidate => candidate.buildingId === buildingId && candidate.level === level
+  );
+
+  return definition
+    ? {
+        ...definition,
+        cost: rebalanceBuildingCost(definition.level, definition.cost)
+      }
+    : null;
 }
 
 export function canPayBuildingCost(

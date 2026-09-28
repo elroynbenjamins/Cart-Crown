@@ -1,7 +1,8 @@
 import type {
   ChapterNode,
   RecruitOption,
-  ResourceSiteDefinition
+  ResourceSiteDefinition,
+  UnitDefinition
 } from './types';
 
 export const elfFifthRecruitOptions: RecruitOption[] = [
@@ -123,6 +124,34 @@ export const orcFifthRecruitOptions: RecruitOption[] = [
     }
   }
 ];
+
+export const elfChapterFiveReinforcement: UnitDefinition = {
+  id: 'elf_worldroot_spear_warden',
+  name: 'Thalen',
+  className: 'Spear Warden',
+  faction: 'elf',
+  role: 'frontline',
+  tier: 4,
+  level: 7,
+  hp: 130,
+  attack: 21,
+  armor: 11,
+  speed: 11
+};
+
+export const orcChapterFiveReinforcement: UnitDefinition = {
+  id: 'orc_high_warhold_spear_raider',
+  name: 'Rokhan',
+  className: 'Spear Raider',
+  faction: 'orc',
+  role: 'frontline',
+  tier: 4,
+  level: 7,
+  hp: 150,
+  attack: 23,
+  armor: 10,
+  speed: 9
+};
 
 export const factionChapterFourResourceSites: ResourceSiteDefinition[] = [
   {

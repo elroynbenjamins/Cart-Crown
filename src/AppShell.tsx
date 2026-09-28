@@ -218,6 +218,7 @@ export function AppShell({
             finishEncounter(activeEncounterId);
             setFlow('results');
           }}
+          onDefeated={() => setFlow('battlePrep')}
         />
       );
     }

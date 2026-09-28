@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { getEncounter } from '../game/encounters';
+import {
+  getEnemyStrikePressure,
+  getTacticalSpeedDamageMultiplier,
+  getUnitCombatProfile
+} from '../game/balance';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -25,16 +30,19 @@ const combatLines = [
 
 export function BattleScreen({
   encounterId,
-  onFinished
+  onFinished,
+  onDefeated
 }: {
   encounterId: EncounterId;
   onFinished: () => void;
+  onDefeated: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
     units,
     formation,
     formationAnalysis,
+    activeSquadCap,
     activeFaction,
     activeCommanderPath,
     activeMarcherWarningChoice,
@@ -108,7 +116,11 @@ export function BattleScreen({
     [formation, units]
   );
 
-  const partyMaxHp = activeUnits.reduce((total, unit) => total + unit.hp, 0);
+  const combatProfile = useMemo(
+    () => getUnitCombatProfile(activeUnits),
+    [activeUnits]
+  );
+  const partyMaxHp = combatProfile.maxHp;
   const partyAttack = activeUnits.reduce((total, unit) => {
     const commanderMultiplier =
       activeCommanderPath?.favoredRoles.includes(unit.role)
@@ -136,9 +148,21 @@ export function BattleScreen({
   const [lastAction, setLastAction] = useState(combatLines[0]!);
 
   const finished = enemyHp <= 0;
+  const defeated = partyHp <= 0 && !finished;
+  const battleEnded = finished || defeated;
+  const tacticalSpeedDamageMultiplier = getTacticalSpeedDamageMultiplier(
+    combatProfile.speedStatMultiplier,
+    formationAnalysis.speedMultiplier,
+    commanderSpeedMultiplier,
+    marcherSpeedMultiplier,
+    mandateSpeedMultiplier
+  );
+  const supportRecovery = Math.round(
+    combatProfile.supportRecovery * formationAnalysis.healingMultiplier
+  );
 
   useEffect(() => {
-    if (finished) return;
+    if (battleEnded) return;
 
     const timer = setTimeout(() => {
       let effect = activeEffect;
@@ -218,14 +242,14 @@ export function BattleScreen({
             mandateAttackMultiplier *
             allianceAttackMultiplier *
             momentum *
-            attackFactor
+            attackFactor *
+            tacticalSpeedDamageMultiplier
         )
       );
-      const difficultyPressure =
-        encounter.difficulty === 'Boss' ? 8 : encounter.difficulty === 'Elite' ? 4 : 0;
-      const rawEnemyStrike = Math.max(
-        7,
-        15 + difficultyPressure - Math.floor(turn / 3)
+      const rawEnemyStrike = getEnemyStrikePressure(
+        encounter,
+        activeSquadCap,
+        turn
       );
       const enemyStrike = Math.max(
         4,
@@ -235,7 +259,8 @@ export function BattleScreen({
             loyalistRetaliationMultiplier) /
             Math.max(
               0.7,
-              formationAnalysis.armorMultiplier *
+              combatProfile.armorStatMultiplier *
+                formationAnalysis.armorMultiplier *
                 commanderArmorMultiplier *
                 marcherArmorMultiplier *
                 loyalistArmorMultiplier *
@@ -249,7 +274,11 @@ export function BattleScreen({
       setEnemyHp(previous =>
         Math.max(0, previous - playerStrike - skillDamage - ongoingDamage)
       );
-      setPartyHp(previous => Math.max(1, previous - enemyStrike));
+      setPartyHp(previous => {
+        const damaged = Math.max(0, previous - enemyStrike);
+        if (damaged <= 0 || supportRecovery <= 0) return damaged;
+        return Math.min(partyMaxHp, damaged + supportRecovery);
+      });
       setTurn(previous => previous + 1);
       setLastAction(
         ongoingDamage > 0
@@ -281,8 +310,10 @@ export function BattleScreen({
     activeFaction,
     commanderArmorMultiplier,
     commanderSpeedMultiplier,
-    encounter.difficulty,
-    finished,
+    activeSquadCap,
+    battleEnded,
+    combatProfile.armorStatMultiplier,
+    encounter,
     formationAnalysis,
     partyAttack,
     skillTriggered,
@@ -302,7 +333,10 @@ export function BattleScreen({
     mandateSpeedMultiplier,
     mandateCommanderSkillMultiplier,
     allianceAttackMultiplier,
-    allianceArmorMultiplier
+    allianceArmorMultiplier,
+    tacticalSpeedDamageMultiplier,
+    supportRecovery,
+    partyMaxHp
   ]);
 
   return (
@@ -311,7 +345,7 @@ export function BattleScreen({
         <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>AUTO-BATTLE</Text>
         <Text style={[styles.title, { color: theme.colors.text }]}>{encounter.name}</Text>
         <Text style={[styles.turn, { color: theme.colors.textMuted }]}>
-          {finished ? 'Victory' : 'Exchange ' + String(turn + 1)}
+          {finished ? 'Victory' : defeated ? 'Defeat' : 'Exchange ' + String(turn + 1)}
         </Text>
       </View>
 
@@ -423,10 +457,24 @@ export function BattleScreen({
         <ProgressBar value={enemyHp / encounter.enemyHp} color={theme.colors.danger} />
       </GameCard>
 
-      <GameCard accent={finished ? theme.colors.primary : activeEffect ? theme.colors.gold : theme.colors.border}>
+      <GameCard
+        accent={
+          finished
+            ? theme.colors.primary
+            : defeated
+              ? theme.colors.danger
+              : activeEffect
+                ? theme.colors.gold
+                : theme.colors.border
+        }
+      >
         <Text style={[styles.logLabel, { color: theme.colors.textMuted }]}>COMBAT LOG</Text>
         <Text style={[styles.logLine, { color: theme.colors.text }]}>
-          {finished ? encounter.enemyName + ' break and retreat.' : lastAction}
+          {finished
+            ? encounter.enemyName + ' break and retreat.'
+            : defeated
+              ? 'Your formation is forced to withdraw. No campaign progress is lost.'
+              : lastAction}
         </Text>
         {activeEffect ? (
           <Text style={[styles.effectLine, { color: theme.colors.gold }]}>
@@ -436,6 +484,7 @@ export function BattleScreen({
       </GameCard>
 
       {finished ? <PrimaryButton label="View Results" onPress={onFinished} /> : null}
+      {defeated ? <PrimaryButton label="Regroup" onPress={onDefeated} /> : null}
     </View>
   );
 }

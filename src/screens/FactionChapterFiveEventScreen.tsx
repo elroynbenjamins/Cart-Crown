@@ -55,8 +55,8 @@ export function FactionChapterFiveEventScreen({
   const body =
     stage === 'muster'
       ? elf
-        ? 'The Worldroot Sanctuary can already field six squads. The final preparation is not another recruit: the army must commit enough food and repair stock to keep all six formations moving together.'
-        : 'The High Warhold has reached the six-squad cap. Every clan now contributes to one campaign column instead of sending separate warbands.'
+        ? 'The Worldroot Sanctuary calls in one veteran Spear Warden to complete the six-squad field army, then commits enough food and repair stock to keep the column moving together.'
+        : 'The High Warhold adds one veteran Spear Raider to complete the six-squad field army. Every clan now contributes to one campaign column instead of sending separate warbands.'
       : stage === 'resource'
         ? elf
           ? 'The Worldroot scars contain maintenance records from before the Crownfall. They show the Root Seal was one part of a three-part Concord safeguard.'
@@ -68,8 +68,8 @@ export function FactionChapterFiveEventScreen({
   const result =
     stage === 'muster'
       ? elf
-        ? '+25 Provisions · +25 Gold for the Worldroot march.'
-        : '+28 Provisions · +20 Gold from the united clans.'
+        ? 'Thalen · Spear Warden joins · +25 Provisions · +25 Gold.'
+        : 'Rokhan · Spear Raider joins · +28 Provisions · +20 Gold.'
       : stage === 'resource'
         ? elf
           ? 'Unlocks Worldroot Nursery: +5 Wood and +4 Provisions per meaningful activity.'

@@ -4,6 +4,14 @@ import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, ResourceAmountRow, SecondaryButton, StatusPill } from '../ui/components';
 
+function areOrthogonallyAdjacent(a: number, b: number) {
+  const aRow = Math.floor(a / 3);
+  const aColumn = a % 3;
+  const bRow = Math.floor(b / 3);
+  const bColumn = b % 3;
+  return Math.abs(aRow - bRow) + Math.abs(aColumn - bColumn) === 1;
+}
+
 export function FormationTrialScreen({
   onEditFormation,
   onExit
@@ -12,34 +20,85 @@ export function FormationTrialScreen({
   onExit: () => void;
 }) {
   const { theme } = useGameTheme();
-  const { formation, formationTrialCompleted, completeFormationTrial } = useGame();
+  const {
+    activeFaction,
+    formation,
+    formationTrialCompleted,
+    completeFormationTrial
+  } = useGame();
   const [message, setMessage] = useState<string | null>(null);
+
+  const occupiedSlots = formation
+    .map((unitId, index) => (unitId ? index : -1))
+    .filter(index => index >= 0);
 
   const harlan = formation.indexOf('hum_militia');
   const mira = formation.indexOf('hum_recruit');
-  const harlanFront = harlan >= 0 && harlan <= 2;
-  const miraBehind = mira >= 3;
-  const sameColumn = harlan >= 0 && mira >= 0 && harlan % 3 === mira % 3;
+  const humanFront = harlan >= 0 && harlan <= 2;
+  const humanBehind = mira >= 3;
+  const humanColumn = harlan >= 0 && mira >= 0 && harlan % 3 === mira % 3;
+
+  const elfSpread =
+    occupiedSlots.length >= 2 &&
+    occupiedSlots.every((slot, index) =>
+      occupiedSlots
+        .slice(index + 1)
+        .every(other => !areOrthogonallyAdjacent(slot, other))
+    );
+
+  const orcCohesion =
+    occupiedSlots.length >= 2 &&
+    occupiedSlots.some((slot, index) =>
+      occupiedSlots
+        .slice(index + 1)
+        .some(other => areOrthogonallyAdjacent(slot, other))
+    );
+
+  const accent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
+
+  const title =
+    activeFaction === 'elf'
+      ? 'Open Order'
+      : activeFaction === 'orc'
+        ? 'Warband Cohesion'
+        : 'Protected Advance';
+
+  const body =
+    activeFaction === 'elf'
+      ? 'Practice the Elven spacing rule: field at least two squads without placing any pair directly beside one another.'
+      : activeFaction === 'orc'
+        ? 'Practice Orc pressure: field at least two squads and place at least one pair directly beside one another.'
+        : 'Learn the core Human combined-arms concept without needing stronger equipment.';
 
   const check = () => {
     if (completeFormationTrial()) {
       setMessage('Trial complete! +25 Gold and +4 Iron.');
-    } else {
-      setMessage('Not quite. Put Harlan in the front row and Mira directly behind him in the same column.');
+      return;
     }
+
+    setMessage(
+      activeFaction === 'elf'
+        ? 'Not quite. Separate every active squad so no two are orthogonally adjacent.'
+        : activeFaction === 'orc'
+          ? 'Not quite. Put at least two active squads directly beside one another.'
+          : 'Not quite. Put Harlan in the front row and Mira directly behind him in the same column.'
+    );
   };
 
   return (
     <View style={styles.content}>
-      <GameCard accent={theme.colors.gold} faction="human">
-        <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>FORMATION TRIAL 01</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Protected Advance</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          Learn the core Human combined-arms concept without needing stronger equipment.
-        </Text>
+      <GameCard accent={accent} faction={activeFaction}>
+        <Text style={[styles.eyebrow, { color: accent }]}>FORMATION TRIAL 01</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>{body}</Text>
       </GameCard>
 
-      <GameCard faction="human" state={formationTrialCompleted ? 'ready' : 'default'}>
+      <GameCard faction={activeFaction} state={formationTrialCompleted ? 'ready' : 'default'}>
         <View style={styles.goalHeader}>
           <Text style={[styles.goalTitle, { color: theme.colors.text }]}>Objective</Text>
           <StatusPill
@@ -47,27 +106,57 @@ export function FormationTrialScreen({
             tone={formationTrialCompleted ? 'done' : 'current'}
           />
         </View>
-        <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>
-          Harlan must stand in the front row. Mira must stand in the same column somewhere behind him.
-        </Text>
 
-        <View style={styles.checks}>
-          <View style={styles.checkRow}>
-            <StatusPill label={harlanFront ? 'DONE' : 'TODO'} tone={harlanFront ? 'done' : 'locked'} />
-            <Text style={[styles.check, { color: theme.colors.text }]}>Harlan in front row</Text>
-          </View>
-          <View style={styles.checkRow}>
-            <StatusPill label={miraBehind ? 'DONE' : 'TODO'} tone={miraBehind ? 'done' : 'locked'} />
-            <Text style={[styles.check, { color: theme.colors.text }]}>Mira behind the front</Text>
-          </View>
-          <View style={styles.checkRow}>
-            <StatusPill label={sameColumn ? 'DONE' : 'TODO'} tone={sameColumn ? 'done' : 'locked'} />
-            <Text style={[styles.check, { color: theme.colors.text }]}>Same column protection</Text>
-          </View>
-        </View>
+        {activeFaction === 'human' ? (
+          <>
+            <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>
+              Harlan must stand in the front row. Mira must stand in the same column somewhere behind him.
+            </Text>
+            <View style={styles.checks}>
+              <View style={styles.checkRow}>
+                <StatusPill label={humanFront ? 'DONE' : 'TODO'} tone={humanFront ? 'done' : 'locked'} />
+                <Text style={[styles.check, { color: theme.colors.text }]}>Harlan in front row</Text>
+              </View>
+              <View style={styles.checkRow}>
+                <StatusPill label={humanBehind ? 'DONE' : 'TODO'} tone={humanBehind ? 'done' : 'locked'} />
+                <Text style={[styles.check, { color: theme.colors.text }]}>Mira behind the front</Text>
+              </View>
+              <View style={styles.checkRow}>
+                <StatusPill label={humanColumn ? 'DONE' : 'TODO'} tone={humanColumn ? 'done' : 'locked'} />
+                <Text style={[styles.check, { color: theme.colors.text }]}>Same column protection</Text>
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
+            <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>
+              {activeFaction === 'elf'
+                ? 'Keep two or more active squads separated so each has room to maneuver.'
+                : 'Place two or more active squads so at least one pair shares an edge.'}
+            </Text>
+            <View style={styles.checks}>
+              <View style={styles.checkRow}>
+                <StatusPill
+                  label={occupiedSlots.length >= 2 ? 'DONE' : 'TODO'}
+                  tone={occupiedSlots.length >= 2 ? 'done' : 'locked'}
+                />
+                <Text style={[styles.check, { color: theme.colors.text }]}>At least two active squads</Text>
+              </View>
+              <View style={styles.checkRow}>
+                <StatusPill
+                  label={(activeFaction === 'elf' ? elfSpread : orcCohesion) ? 'DONE' : 'TODO'}
+                  tone={(activeFaction === 'elf' ? elfSpread : orcCohesion) ? 'done' : 'locked'}
+                />
+                <Text style={[styles.check, { color: theme.colors.text }]}>
+                  {activeFaction === 'elf' ? 'Open spacing maintained' : 'Adjacent warband pair'}
+                </Text>
+              </View>
+            </View>
+          </>
+        )}
       </GameCard>
 
-      <GameCard faction="human">
+      <GameCard faction={activeFaction}>
         <Text style={[styles.rewardTitle, { color: theme.colors.text }]}>First-clear reward</Text>
         <View style={styles.rewardRow}>
           <ResourceAmountRow prefix="+" values={{ gold: 25, iron: 4 }} />

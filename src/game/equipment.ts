@@ -1025,6 +1025,22 @@ export function getEquipment(id: string) {
   return equipmentDefinitions.find(item => item.id === id) ?? null;
 }
 
+export function equipmentSatisfiesRequirement(
+  equippedId: string,
+  requiredId: string
+) {
+  let current = getEquipment(equippedId);
+  const visited = new Set<string>();
+
+  while (current && !visited.has(current.id)) {
+    if (current.id === requiredId) return true;
+    visited.add(current.id);
+    current = current.upgradeFromId ? getEquipment(current.upgradeFromId) : null;
+  }
+
+  return false;
+}
+
 export function getRecruitPromotionByEquipment(equipmentId: string) {
   return recruitPromotions.find(promotion => promotion.requiredEquipmentId === equipmentId) ?? null;
 }

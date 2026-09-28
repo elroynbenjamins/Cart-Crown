@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getBuildingLevelDefinition } from '../game/kingdom';
 import { useGame } from '../game/GameProvider';
 import type { ResourceWallet } from '../game/types';
+import { getExpansionCost } from '../game/balance';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -132,9 +133,9 @@ export function KingdomScreen({
     buttonLabel = 'Prepare Grand Campaign';
     disabled = !canUpgradeToGrand;
     requirement =
-      'Requires Barracks Lv.5 · Forge Lv.5 · Wagonwright Lv.5 · War Room Lv.5 · Quartermaster Lv.5 · Stable Lv.4 · Signal Tower Lv.4 · Officer Academy Lv.3 · Active Royal Decree · 1000 Gold · 420 Wood · 360 Stone · 120 Iron';
+      'Requires Barracks Lv.5 · Forge Lv.5 · Wagonwright Lv.5 · War Room Lv.4 · Quartermaster Lv.4 · Stable Lv.3 · Signal Tower Lv.3 · Officer Academy Lv.2 · Active Royal Decree · listed expansion resources';
     action = upgradeToGrand;
-    milestoneCost = { gold: 1000, wood: 420, stone: 360, iron: 120 };
+    milestoneCost = getExpansionCost('human', 'grand');
   } else if (currentWagonStage.id === 'capital') {
     milestoneTitle = 'Open the Gate of Crownspire';
     milestoneBody = 'Use the Capital’s decree, elite army and provincial production network to expose the Ashen Court and reach Crownspire.';
@@ -149,9 +150,9 @@ export function KingdomScreen({
     buttonLabel = 'Build Greenkeep Capital';
     disabled = !canUpgradeToCapital;
     requirement =
-      'Requires Barracks Lv.5 · Forge Lv.5 · Wagonwright Lv.5 · War Room Lv.4 · Quartermaster Lv.4 · Stable Lv.3 · Signal Tower Lv.3 · Officer Academy Lv.2 · 650 Gold · 280 Wood · 220 Stone · 70 Iron';
+      'Requires Barracks Lv.5 · Forge Lv.5 · Wagonwright Lv.5 · War Room Lv.3 · Quartermaster Lv.3 · Stable Lv.2 · Signal Tower Lv.2 · Officer Academy built · listed expansion resources';
     action = upgradeToCapital;
-    milestoneCost = { gold: 650, wood: 280, stone: 220, iron: 70 };
+    milestoneCost = getExpansionCost('human', 'capital');
   } else if (currentWagonStage.id === 'stronghold') {
     milestoneTitle = 'Break the old royal command';
     milestoneBody = 'Use the six-squad Stronghold army and elite equipment to expose the officers still issuing orders in the name of an empty throne.';
@@ -166,9 +167,9 @@ export function KingdomScreen({
     buttonLabel = 'Build Greenkeep Stronghold';
     disabled = !canUpgradeToStronghold;
     requirement =
-      'Requires Barracks Lv.4 · Forge Lv.4 · Wagonwright Lv.4 · War Room Lv.3 · Quartermaster Lv.3 · Stable Lv.2 · Signal Tower Lv.2 · 400 Gold · 180 Wood · 140 Stone · 40 Iron';
+      'Requires Barracks Lv.4 · Forge Lv.4 · Wagonwright Lv.4 · War Room Lv.2 · Quartermaster Lv.2 · Stable and Signal Tower built · listed expansion resources';
     action = upgradeToStronghold;
-    milestoneCost = { gold: 400, wood: 180, stone: 140, iron: 40 };
+    milestoneCost = getExpansionCost('human', 'stronghold');
   } else if (currentWagonStage.id === 'town') {
     milestoneTitle = 'Secure the Border Marches';
     milestoneBody = 'Strengthen the Town and expose the false marcher orders while pushing toward Lord Marshal Veyr.';
@@ -183,9 +184,9 @@ export function KingdomScreen({
     buttonLabel = 'Build Greenkeep Town';
     disabled = !canUpgradeToTown;
     requirement =
-      'Requires Barracks Lv.3 · Forge Lv.3 · Wagonwright Lv.3 · Stable Lv.1 · Signal Tower Lv.1 · 250 Gold · 120 Wood · 80 Stone · 25 Iron';
+      'Requires Barracks Lv.3 · Forge Lv.3 · Wagonwright Lv.3 · Stable and Signal Tower built · listed expansion resources';
     action = upgradeToTown;
-    milestoneCost = { gold: 250, wood: 120, stone: 80, iron: 25 };
+    milestoneCost = getExpansionCost('human', 'town');
   } else if (currentWagonStage.id === 'fort') {
     milestoneTitle = 'Secure the Iron Road';
     milestoneBody = 'Develop the Fort, expand cavalry and restore the frontier network while pushing toward the Iron Provost.';
@@ -200,9 +201,9 @@ export function KingdomScreen({
     buttonLabel = 'Build Greenkeep Fort';
     disabled = !canUpgradeToFort;
     requirement =
-      'Requires Barracks Lv.2 · Forge Lv.2 · Wagonwright Lv.2 · 150 Gold · 70 Wood · 35 Stone · 10 Iron';
+      'Requires Barracks Lv.2 · Forge Lv.2 · Wagonwright Lv.2 · listed expansion resources';
     action = upgradeToFort;
-    milestoneCost = { gold: 150, wood: 70, stone: 35, iron: 10 };
+    milestoneCost = getExpansionCost('human', 'fort');
   } else if (settlementUpgraded && recruitChosen) {
     milestoneTitle = 'Build toward the Fort';
     milestoneBody = 'Upgrade specialized buildings while the campaign opens the road toward the first Fort tier.';

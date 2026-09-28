@@ -4,6 +4,7 @@ import { factions } from '../game/factions';
 import { getBuildingLevelDefinition } from '../game/kingdom';
 import { useGame } from '../game/GameProvider';
 import type { ResourceWallet } from '../game/types';
+import { getExpansionCost } from '../game/balance';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -116,9 +117,7 @@ export function FactionKingdomScreen({
       ? 'The Ashroot Stalker is defeated. Upgrade the Warden Lodge, Moon Forge and Caravan Grove, then fortify the rootway.'
       : 'The Clanbreaker is defeated. Upgrade the Clan Yard, Bone Forge and War Cartwright, then raise a permanent Warhold.';
     goalButton = elf ? 'Build Wardhold' : 'Build Warhold';
-    goalCost = elf
-      ? { gold: 140, wood: 75, stone: 35 }
-      : { gold: 135, wood: 70, stone: 30, iron: 8 };
+    goalCost = getExpansionCost(activeFaction, 'fort');
     goalDisabled = !canUpgradeFactionFort;
     goalAction = upgradeFactionToFort;
   } else if (factionTownUpgradeAvailable) {
@@ -127,31 +126,25 @@ export function FactionKingdomScreen({
       ? 'The Pale Ranger is defeated. Upgrade the Warden Lodge, Moon Forge and Caravan Grove to Lv.3, maintain Stag and ward infrastructure, then establish a permanent Enclave.'
       : 'The Stonejaw Champion has yielded. Upgrade the Clan Yard, Bone Forge and War Cartwright to Lv.3, maintain Warg and watchfire infrastructure, then raise the Great Warhold.';
     goalButton = elf ? 'Build Heartgrove Enclave' : 'Build Great Warhold';
-    goalCost = elf
-      ? { gold: 245, wood: 115, stone: 75, iron: 10 }
-      : { gold: 240, wood: 110, stone: 70, iron: 20 };
+    goalCost = getExpansionCost(activeFaction, 'town');
     goalDisabled = !canUpgradeFactionTown;
     goalAction = upgradeFactionToTown;
   } else if (factionStrongholdUpgradeAvailable) {
     goalTitle = elf ? 'Raise Worldroot Sanctuary' : 'Raise the High Warhold';
     goalBody = elf
-      ? 'The Ashen Druid is defeated. Upgrade Warden Lodge, Moon Forge and Caravan Grove to Lv.4, Council Glade and Spirit Stores to Lv.3, and Stag/Beacon infrastructure to Lv.2 before establishing the Worldroot Sanctuary.'
-      : 'The Split-Chieftain has yielded. Upgrade Clan Yard, Bone Forge and War Cartwright to Lv.4, War Council and Smokehouse to Lv.3, and Warg/Watchfire infrastructure to Lv.2 before raising the High Warhold.';
+      ? 'The Ashen Druid is defeated. Upgrade Warden Lodge, Moon Forge and Caravan Grove to Lv.4; keep Council Glade and Spirit Stores at Lv.2, with Stag and Beacon infrastructure established.'
+      : 'The Split-Chieftain has yielded. Upgrade Clan Yard, Bone Forge and War Cartwright to Lv.4; keep War Council and Smokehouse at Lv.2, with Warg and Watchfire infrastructure established.';
     goalButton = elf ? 'Build Worldroot Sanctuary' : 'Build High Warhold';
-    goalCost = elf
-      ? { gold: 390, wood: 175, stone: 130, iron: 35 }
-      : { gold: 400, wood: 170, stone: 125, iron: 45 };
+    goalCost = getExpansionCost(activeFaction, 'stronghold');
     goalDisabled = !canUpgradeFactionStronghold;
     goalAction = upgradeFactionToStronghold;
   } else if (factionCapitalUpgradeAvailable) {
     goalTitle = elf ? 'Raise Starroot Conclave' : 'Form the Warfire Confederacy';
     goalBody = elf
-      ? 'The Worldroot Guardian is released and the Root Seal has been traced to Crownspire. Raise Warden Lodge, Moon Forge and Caravan Grove to Lv.5; Council Glade and Spirit Stores to Lv.4; Stag Enclosure and Ward Beacon to Lv.3.'
-      : 'The Last Clanbreaker is defeated and the Clan Seal has been traced to Crownspire. Raise Clan Yard, Bone Forge and War Cartwright to Lv.5; War Council and Smokehouse to Lv.4; Warg Pens and Watchfire to Lv.3.';
+      ? 'The Worldroot Guardian is released and the Root Seal has been traced to Crownspire. Raise Warden Lodge, Moon Forge and Caravan Grove to Lv.5; Council Glade and Spirit Stores to Lv.3; Stag Enclosure and Ward Beacon to Lv.2.'
+      : 'The Last Clanbreaker is defeated and the Clan Seal has been traced to Crownspire. Raise Clan Yard, Bone Forge and War Cartwright to Lv.5; War Council and Smokehouse to Lv.3; Warg Pens and Watchfire to Lv.2.';
     goalButton = elf ? 'Build Starroot Conclave' : 'Form Warfire Confederacy';
-    goalCost = elf
-      ? { gold: 650, wood: 270, stone: 210, iron: 65 }
-      : { gold: 660, wood: 260, stone: 200, iron: 80 };
+    goalCost = getExpansionCost(activeFaction, 'capital');
     goalDisabled = !canUpgradeFactionCapital;
     goalAction = upgradeFactionToCapital;
   } else if (currentWagonStage.id === 'capital') {
