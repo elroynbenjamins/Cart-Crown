@@ -32,6 +32,7 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
 
   const rewards = Object.entries(lastBattleResult.rewards).filter(([, value]) => Boolean(value));
   const salvageClaimed = (rewardedAdClaims.salvage_boost ?? 0) >= 1;
+  const mercenaryResult = lastBattleResult.id === 'mercenary_patrol_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -75,22 +76,50 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      <GameCard accent={theme.colors.gold}>
-        <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM MILESTONE</Text>
-        <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>Greenkeep can now be established</Text>
-        <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
-          Return to the Kingdom and upgrade the camp. This expands the Supply Wagon from 4×4 to 4×5 and raises active squad capacity to 3 while keeping all 9 formation positions available.
-        </Text>
-      </GameCard>
+      {mercenaryResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>COMMANDER MILESTONE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Choose your command specialization
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The army now recognizes you as its formal commander. Choose whether your leadership specializes in the line, ranged formations or mounted warfare.
+            </Text>
+          </GameCard>
 
-      <GameCard>
-        <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Marked Raiders</Text>
-        <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
-          The weapons left on the road carry crude Orc clan marks, but the buckles beneath them were forged in Human workshops. Something about the attack does not fit.
-        </Text>
-      </GameCard>
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Crownspire Coin</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              The Green Banner Company was paid in genuine Crownspire coin. The attacks are no longer just random frontier violence.
+            </Text>
+          </GameCard>
+        </>
+      ) : (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM MILESTONE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Greenkeep can now be established
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Return to the Kingdom and upgrade the camp. This expands the Supply Wagon from 4×4 to 4×5 and raises active squad capacity to 3 while keeping all 9 formation positions available.
+            </Text>
+          </GameCard>
 
-      <PrimaryButton label="Return to Kingdom" onPress={onContinue} />
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Marked Raiders</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              The weapons left on the road carry crude Orc clan marks, but the buckles beneath them were forged in Human workshops. Something about the attack does not fit.
+            </Text>
+          </GameCard>
+        </>
+      )}
+
+      <PrimaryButton
+        label={mercenaryResult ? 'Choose Commander Path' : 'Return to Kingdom'}
+        onPress={onContinue}
+      />
     </ScrollView>
   );
 }

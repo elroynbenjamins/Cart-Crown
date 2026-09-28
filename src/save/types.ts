@@ -27,6 +27,9 @@ export type FactionGameState = {
   firstPromotionComplete: boolean;
   equipmentInventory: string[];
   unitWeapons: Record<string, string | null>;
+  mercenaryPatrolWon: boolean;
+  commanderChoiceUnlocked: boolean;
+  commanderPathId: string | null;
   lastBattleResult: BattleResult | null;
   expeditionTickets: number;
   expeditionRunsCompleted: number;
@@ -41,7 +44,7 @@ export type SharedProgress = {
 };
 
 export type GameSnapshot = {
-  schemaVersion: 2;
+  schemaVersion: 3;
   activeFaction: FactionId;
   shared: SharedProgress;
   factionStates: Record<FactionId, FactionGameState | null>;

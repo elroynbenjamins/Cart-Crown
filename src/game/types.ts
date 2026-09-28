@@ -4,6 +4,11 @@ export type NavId = 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army';
 export type UnitRole = 'frontline' | 'melee' | 'ranged' | 'support' | 'cavalry' | 'skirmish';
 export type SideModeId = 'expeditions' | 'formation_trials' | 'kingdom_defense' | 'relic_hunts';
 export type EquipmentSlot = 'weapon' | 'armor' | 'shield' | 'mount' | 'artifact';
+export type CommanderSkillEffectType =
+  | 'single_damage'
+  | 'bleed'
+  | 'morale_break'
+  | 'armor_break';
 
 export type ResourceWallet = {
   gold: number;
@@ -40,6 +45,29 @@ export type EquipmentDefinition = {
   speedBonus: number;
   craftCost: Partial<ResourceWallet>;
   description: string;
+};
+
+export type CommanderSkillDefinition = {
+  id: string;
+  name: string;
+  effectType: CommanderSkillEffectType;
+  power: number;
+  durationExchanges: number;
+  description: string;
+};
+
+export type CommanderPathDefinition = {
+  id: string;
+  faction: FactionId;
+  name: string;
+  title: string;
+  favoredRoles: UnitRole[];
+  passiveName: string;
+  passiveDescription: string;
+  attackMultiplier: number;
+  armorMultiplier: number;
+  speedMultiplier: number;
+  skill: CommanderSkillDefinition;
 };
 
 export type PromotionDefinition = {

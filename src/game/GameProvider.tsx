@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import {
-  holdTheRoadRewards,
   humanRecruitOptions,
   starterWagonItems,
   wagonStages
@@ -12,12 +11,21 @@ import {
   getRecruitPromotionByEquipment,
   recruitPromotions
 } from './equipment';
+import {
+  encounterRewards
+} from './encounters';
+import type { EncounterId } from './encounters';
+import {
+  getCommanderPath,
+  getCommanderPaths
+} from './commanders';
 import { analyzeFormation, formationCells, getFactionDoctrines } from './formation';
 import { sideModes } from './sideModes';
 import type {
   BattleResult,
   CampaignAvailability,
   ChapterNode,
+  CommanderPathDefinition,
   EquipmentDefinition,
   FactionId,
   FormationBonus,
@@ -74,6 +82,12 @@ type GameContextValue = {
   unitWeapons: Record<string, string | null>;
   equipmentDefinitions: EquipmentDefinition[];
   recruitPromotions: PromotionDefinition[];
+  mercenaryPatrolWon: boolean;
+  commanderChoiceUnlocked: boolean;
+  commanderPathId: string | null;
+  commanderPaths: CommanderPathDefinition[];
+  activeCommanderPath: CommanderPathDefinition | null;
+  commanderRespecCost: number;
   lastBattleResult: BattleResult | null;
   canUpgradeSettlement: boolean;
   sideModeDefinitions: SideModeDefinition[];
@@ -82,12 +96,13 @@ type GameContextValue = {
   formationTrialCompleted: boolean;
   rewardedAdClaims: RewardedAdClaimState;
   rewardedAdMessage: string | null;
-  finishHoldTheRoad: () => void;
+  finishEncounter: (encounterId: EncounterId) => void;
   completeMarkedRaiders: () => boolean;
   upgradeSettlement: () => boolean;
   chooseRecruit: (choiceId: string) => boolean;
   craftEquipment: (equipmentId: string) => boolean;
   promoteMira: (equipmentId: string) => boolean;
+  chooseCommanderPath: (pathId: string) => boolean;
   moveFormationUnit: (unitId: string, targetSlot: number) => boolean;
   moveWagonItem: (itemId: string, x: number, y: number) => boolean;
   rotateWagonItem: (itemId: string) => boolean;
@@ -178,6 +193,19 @@ function payCost(resources: ResourceWallet, cost: Partial<ResourceWallet>): Reso
   return next;
 }
 
+function addResources(
+  resources: ResourceWallet,
+  reward: Partial<ResourceWallet>
+): ResourceWallet {
+  return {
+    gold: resources.gold + (reward.gold ?? 0),
+    wood: resources.wood + (reward.wood ?? 0),
+    stone: resources.stone + (reward.stone ?? 0),
+    iron: resources.iron + (reward.iron ?? 0),
+    provisions: resources.provisions + (reward.provisions ?? 0)
+  };
+}
+
 const stageRank: Record<string, number> = {
   camp: 0,
   settlement: 1,
@@ -230,6 +258,9 @@ export function GameProvider({
   const [firstPromotionComplete, setFirstPromotionComplete] = useState(initialFaction.firstPromotionComplete);
   const [equipmentInventory, setEquipmentInventory] = useState<string[]>(() => [...initialFaction.equipmentInventory]);
   const [unitWeapons, setUnitWeapons] = useState<Record<string, string | null>>(() => ({ ...initialFaction.unitWeapons }));
+  const [mercenaryPatrolWon, setMercenaryPatrolWon] = useState(initialFaction.mercenaryPatrolWon);
+  const [commanderChoiceUnlocked, setCommanderChoiceUnlocked] = useState(initialFaction.commanderChoiceUnlocked);
+  const [commanderPathId, setCommanderPathId] = useState<string | null>(initialFaction.commanderPathId);
   const [lastBattleResult, setLastBattleResult] = useState<BattleResult | null>(
     initialFaction.lastBattleResult ? { ...initialFaction.lastBattleResult } : null
   );
@@ -253,6 +284,16 @@ export function GameProvider({
     () => analyzeFormation(formation, units, activeFaction, formationDoctrineId),
     [activeFaction, formation, formationDoctrineId, units]
   );
+
+  const commanderPaths = useMemo(
+    () => getCommanderPaths(activeFaction),
+    [activeFaction]
+  );
+  const activeCommanderPath = useMemo(
+    () => getCommanderPath(commanderPathId),
+    [commanderPathId]
+  );
+  const commanderRespecCost = commanderPathId ? 75 : 0;
 
   const formationBonuses = formationAnalysis.bonuses;
   const activeSquadCap = currentWagonStage.formationSlots;
@@ -313,6 +354,9 @@ export function GameProvider({
       firstPromotionComplete,
       equipmentInventory,
       unitWeapons,
+      mercenaryPatrolWon,
+      commanderChoiceUnlocked,
+      commanderPathId,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -336,6 +380,9 @@ export function GameProvider({
       firstPromotionComplete,
       equipmentInventory,
       unitWeapons,
+      mercenaryPatrolWon,
+      commanderChoiceUnlocked,
+      commanderPathId,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -345,7 +392,7 @@ export function GameProvider({
 
   const snapshot = useMemo<GameSnapshot>(
     () => ({
-      schemaVersion: 2,
+      schemaVersion: 3,
       activeFaction,
       shared: sharedProgress,
       factionStates: {
@@ -373,33 +420,57 @@ export function GameProvider({
     };
   }, [snapshot]);
 
-  const finishHoldTheRoad = () => {
-    if (holdTheRoadWon) return;
+  const finishEncounter = (encounterId: EncounterId) => {
+    const reward = encounterRewards[encounterId];
 
-    setHoldTheRoadWon(true);
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold + (holdTheRoadRewards.gold ?? 0),
-      wood: previous.wood + (holdTheRoadRewards.wood ?? 0),
-      stone: previous.stone + (holdTheRoadRewards.stone ?? 0),
-      iron: previous.iron + (holdTheRoadRewards.iron ?? 0),
-      provisions: previous.provisions + (holdTheRoadRewards.provisions ?? 0)
-    }));
-    setChapterNodes(previous =>
-      previous.map(node => {
-        if (node.id === 'node_2') return { ...node, completed: true, current: false };
-        if (node.id === 'node_3') return { ...node, current: true };
-        return { ...node, current: false };
-      })
-    );
-    setLastBattleResult({
-      id: 'hold_the_road_result',
-      title: 'Road Secured',
-      victory: true,
-      summary: 'The raider patrol breaks. Refugees can finally reach the ruins of Greenkeep.',
-      rewards: { ...holdTheRoadRewards },
-      casualties: 0
-    });
+    if (encounterId === 'hold_the_road') {
+      if (holdTheRoadWon) return;
+      setHoldTheRoadWon(true);
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'node_2') return { ...node, completed: true, current: false };
+          if (node.id === 'node_3') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'hold_the_road_result',
+        title: 'Road Secured',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'mercenary_patrol') {
+      if (mercenaryPatrolWon || !firstPromotionComplete) return;
+      setMercenaryPatrolWon(true);
+      setCommanderChoiceUnlocked(true);
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'node_4') return { ...node, completed: true, current: false };
+          return { ...node, current: false };
+        })
+      );
+      setSharedProgress(previous => ({
+        ...previous,
+        lore: previous.lore.includes('crown_coin_contracts')
+          ? previous.lore
+          : [...previous.lore, 'crown_coin_contracts']
+      }));
+      setLastBattleResult({
+        id: 'mercenary_patrol_result',
+        title: 'Mercenaries Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+    }
   };
 
   const completeMarkedRaiders = () => {
@@ -513,6 +584,32 @@ export function GameProvider({
       )
     );
     setFirstPromotionComplete(true);
+    return true;
+  };
+
+  const chooseCommanderPath = (pathId: string) => {
+    if (!commanderChoiceUnlocked) return false;
+
+    const path = commanderPaths.find(candidate => candidate.id === pathId);
+    if (!path) return false;
+
+    const cost = commanderPathId ? 75 : 0;
+    if (resources.gold < cost) return false;
+
+    if (cost > 0) {
+      setResources(previous => ({
+        ...previous,
+        gold: previous.gold - cost
+      }));
+    }
+
+    setCommanderPathId(pathId);
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'node_5') return { ...node, current: true };
+        return { ...node, current: false };
+      })
+    );
     return true;
   };
 
@@ -694,6 +791,12 @@ export function GameProvider({
       unitWeapons,
       equipmentDefinitions,
       recruitPromotions,
+      mercenaryPatrolWon,
+      commanderChoiceUnlocked,
+      commanderPathId,
+      commanderPaths,
+      activeCommanderPath,
+      commanderRespecCost,
       lastBattleResult,
       canUpgradeSettlement,
       sideModeDefinitions: sideModes,
@@ -702,12 +805,13 @@ export function GameProvider({
       formationTrialCompleted,
       rewardedAdClaims,
       rewardedAdMessage,
-      finishHoldTheRoad,
+      finishEncounter,
       completeMarkedRaiders,
       upgradeSettlement,
       chooseRecruit,
       craftEquipment,
       promoteMira,
+      chooseCommanderPath,
       moveFormationUnit,
       moveWagonItem,
       rotateWagonItem,
@@ -745,6 +849,12 @@ export function GameProvider({
       firstPromotionComplete,
       equipmentInventory,
       unitWeapons,
+      mercenaryPatrolWon,
+      commanderChoiceUnlocked,
+      commanderPathId,
+      commanderPaths,
+      activeCommanderPath,
+      commanderRespecCost,
       lastBattleResult,
       canUpgradeSettlement,
       expeditionTickets,

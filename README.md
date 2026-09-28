@@ -1,20 +1,20 @@
 # Cart & Crown
 
-Cart & Crown is a portrait-first mobile strategy RPG built around **Kingdom progression, a 3×3 combat Formation, and a limited logistics Wagon**.
+Cart & Crown is a portrait-first mobile strategy RPG built around **Kingdom progression, a 3×3 combat Formation, a limited logistics Wagon, and faction-specific command styles**.
 
 ## Current prototype
 
 - **2 independent save slots**, both autosaved locally.
-- Save schema v2 stores **shared progress + separate Human / Elf / Orc faction states** inside each slot.
-- Existing schema-v1 development saves migrate into the Human state automatically.
+- Save schema v3 stores **shared progress + separate Human / Elf / Orc faction states** inside each slot.
+- Older schema-v1 and schema-v2 development saves migrate automatically.
 - Human campaign is the required first playthrough.
 - Finishing Humans will unlock Elf and Orc campaigns in the same save while preserving the completed Human kingdom.
 - Completing all three factions will unlock the final Three Seals campaign.
 - Original / Dark / Light themes.
 - 3×3 formation board with army capacity growing from 2 to 6 squads.
-- Human Orders, with engine rules already prepared for Elven Wards and Orc Momentum.
+- Human Orders, Elven Ward rules and Orc Momentum rules.
 - Drag/rotate Wagon logistics.
-- Side-mode foundation: Expeditions, Formation Trials, Kingdom Defense and Relic Hunts.
+- Expeditions and Formation Trials, with Kingdom Defense and Relic Hunts defined for later.
 - Optional rewarded-ad placements through one provider adapter; development uses mock rewards.
 
 ## Current Human opening
@@ -24,13 +24,42 @@ Cart & Crown is a portrait-first mobile strategy RPG built around **Kingdom prog
 3. Prepare the 4×4 Supply Wagon and 3×3 formation.
 4. Fight **Hold the Road**.
 5. Establish Greenkeep and expand to 3 active squads.
-6. Investigate **Marked Raiders** and discover the first false-flag evidence.
+6. Investigate **Marked Raiders** and uncover false-flag equipment.
 7. Unlock the **Field Forge**.
 8. Craft Mira's first weapon:
    - Iron Sword → **Swordsman**
    - Infantry Spear → **Spearman**
    - Hunting Bow → **Archer**
-9. The crafted weapon becomes assigned troop equipment and no longer occupies Wagon space.
+9. Fight the elite **Mercenary Patrol**.
+10. Recover genuine Crownspire payment records.
+11. Choose a player-commander specialization.
+
+## Commander paths
+
+Every faction has three player-commander paths. Each path contains:
+
+- favored unit roles
+- a persistent passive multiplier
+- one battle command skill
+- a distinct effect type
+- optional later retraining for Gold
+
+### Humans
+- **Vanguard Marshal** — frontline/melee; Command Strike causes direct damage + armor break.
+- **Ranger-Captain** — ranged/skirmish; Suppressing Volley damages enemy morale.
+- **Cavalry Marshal** — cavalry; Hammer Charge deals heavy single-target damage.
+
+### Elves
+- **Windcaller** — ranged/skirmish; Piercing Gale direct damage.
+- **Thorn Warden** — frontline/support; Thornbind causes bleed.
+- **Moon Seer** — support/ranged; Moonbrand causes morale pressure.
+
+### Orcs
+- **Bloodchief** — melee/frontline; Open the Wound causes bleed.
+- **Warglord** — cavalry/skirmish; Terror Charge damages morale.
+- **Warcaller** — support/melee; War Drum Shock breaks armor.
+
+Commander skills automatically fire during auto-battle. Passive bonuses only scale favored roles, so army composition matters.
 
 ## Tech
 

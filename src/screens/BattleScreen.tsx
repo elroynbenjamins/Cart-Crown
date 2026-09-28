@@ -1,26 +1,44 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { holdTheRoadEncounter } from '../game/data';
+import { getEncounter } from '../game/encounters';
+import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
+import type { CommanderSkillEffectType } from '../game/types';
 import { GameCard, PrimaryButton, ProgressBar } from '../ui/components';
 
+type ActiveEffect = {
+  type: CommanderSkillEffectType;
+  power: number;
+  remaining: number;
+};
+
 const combatLines = [
-  'The front line catches the first charge.',
+  'The front line catches the enemy advance.',
   'Your formation turns spacing into a clean counterattack.',
-  'The raiders regroup around their captain.',
-  'Your squads hold their lanes and break the center.',
-  'The final raiders flee from the refugee road.'
+  'The enemy regroups around its strongest fighters.',
+  'Your squads hold their lanes and press the center.',
+  'The enemy line starts to fracture.',
+  'Your army drives the remaining fighters from the field.'
 ];
 
-export function BattleScreen({ onFinished }: { onFinished: () => void }) {
+export function BattleScreen({
+  encounterId,
+  onFinished
+}: {
+  encounterId: EncounterId;
+  onFinished: () => void;
+}) {
   const { theme } = useGameTheme();
   const {
     units,
     formation,
     formationAnalysis,
-    activeFaction
+    activeFaction,
+    activeCommanderPath
   } = useGame();
+
+  const encounter = getEncounter(encounterId);
 
   const activeUnits = useMemo(
     () =>
@@ -32,55 +50,133 @@ export function BattleScreen({ onFinished }: { onFinished: () => void }) {
   );
 
   const partyMaxHp = activeUnits.reduce((total, unit) => total + unit.hp, 0);
-  const partyAttack = activeUnits.reduce((total, unit) => total + unit.attack, 0);
-  const [partyHp, setPartyHp] = useState(partyMaxHp);
-  const [enemyHp, setEnemyHp] = useState(holdTheRoadEncounter.enemyHp);
-  const [turn, setTurn] = useState(0);
+  const partyAttack = activeUnits.reduce((total, unit) => {
+    const commanderMultiplier =
+      activeCommanderPath?.favoredRoles.includes(unit.role)
+        ? activeCommanderPath.attackMultiplier
+        : 1;
+    return total + unit.attack * commanderMultiplier;
+  }, 0);
 
-  const finished = turn >= combatLines.length || enemyHp <= 0;
+  const favoredCount = activeCommanderPath
+    ? activeUnits.filter(unit => activeCommanderPath.favoredRoles.includes(unit.role)).length
+    : 0;
+  const favoredFraction = activeUnits.length > 0 ? favoredCount / activeUnits.length : 0;
+  const commanderArmorMultiplier = activeCommanderPath
+    ? 1 + (activeCommanderPath.armorMultiplier - 1) * favoredFraction
+    : 1;
+  const commanderSpeedMultiplier = activeCommanderPath
+    ? 1 + (activeCommanderPath.speedMultiplier - 1) * favoredFraction
+    : 1;
+
+  const [partyHp, setPartyHp] = useState(partyMaxHp);
+  const [enemyHp, setEnemyHp] = useState(encounter.enemyHp);
+  const [turn, setTurn] = useState(0);
+  const [skillTriggered, setSkillTriggered] = useState(false);
+  const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
+  const [lastAction, setLastAction] = useState(combatLines[0]!);
+
+  const finished = enemyHp <= 0;
 
   useEffect(() => {
-    if (finished) {
-      return;
-    }
+    if (finished) return;
 
     const timer = setTimeout(() => {
+      let effect = activeEffect;
+      let skillDamage = 0;
+      let action = combatLines[Math.min(turn, combatLines.length - 1)] ?? combatLines[combatLines.length - 1]!;
+
+      if (activeCommanderPath && !skillTriggered && turn === 1) {
+        const skill = activeCommanderPath.skill;
+        setSkillTriggered(true);
+        action = activeCommanderPath.name + ' uses ' + skill.name + '.';
+
+        if (skill.effectType === 'single_damage') {
+          skillDamage = skill.power;
+        } else {
+          skillDamage = Math.max(6, Math.round(skill.power * 0.55));
+          effect = {
+            type: skill.effectType,
+            power: skill.power,
+            remaining: skill.durationExchanges
+          };
+        }
+      }
+
+      let ongoingDamage = 0;
+      let attackFactor = 1;
+      let retaliationFactor = 1;
+
+      if (effect && effect.remaining > 0) {
+        if (effect.type === 'bleed') {
+          ongoingDamage += effect.power;
+        } else if (effect.type === 'armor_break') {
+          attackFactor += 0.15;
+        } else if (effect.type === 'morale_break') {
+          retaliationFactor -= 0.25;
+        }
+      }
+
       const momentum =
         activeFaction === 'orc'
           ? 1 + Math.min(0.28, turn * 0.04 + formationAnalysis.momentumPerExchange * turn * 0.015)
           : 1;
+
       const playerStrike = Math.max(
         18,
-        Math.round((partyAttack + 5 + turn * 2) * formationAnalysis.attackMultiplier * momentum)
+        Math.round(
+          (partyAttack + 5 + turn * 2) *
+            formationAnalysis.attackMultiplier *
+            momentum *
+            attackFactor
+        )
       );
-      const rawEnemyStrike = Math.max(7, 15 - Math.floor(turn / 2));
+      const rawEnemyStrike = Math.max(7, 15 + (encounter.difficulty === 'Elite' ? 4 : 0) - Math.floor(turn / 3));
       const enemyStrike = Math.max(
         4,
-        Math.round(rawEnemyStrike / Math.max(0.7, formationAnalysis.armorMultiplier))
+        Math.round(
+          (rawEnemyStrike * retaliationFactor) /
+            Math.max(0.7, formationAnalysis.armorMultiplier * commanderArmorMultiplier)
+        )
       );
 
-      setEnemyHp(previous => Math.max(0, previous - playerStrike));
+      setEnemyHp(previous =>
+        Math.max(0, previous - playerStrike - skillDamage - ongoingDamage)
+      );
       setPartyHp(previous => Math.max(1, previous - enemyStrike));
       setTurn(previous => previous + 1);
-    }, Math.max(380, Math.round(650 / formationAnalysis.speedMultiplier)));
+      setLastAction(
+        ongoingDamage > 0
+          ? action + ' Ongoing damage deals ' + ongoingDamage + '.'
+          : action
+      );
+
+      if (effect) {
+        const remaining = effect.remaining - 1;
+        setActiveEffect(remaining > 0 ? { ...effect, remaining } : null);
+      }
+    }, Math.max(360, Math.round(650 / (formationAnalysis.speedMultiplier * commanderSpeedMultiplier))));
 
     return () => clearTimeout(timer);
   }, [
+    activeCommanderPath,
+    activeEffect,
     activeFaction,
-    enemyHp,
+    commanderArmorMultiplier,
+    commanderSpeedMultiplier,
+    encounter.difficulty,
     finished,
     formationAnalysis,
     partyAttack,
+    skillTriggered,
     turn
   ]);
-
-  const currentLine = combatLines[Math.min(turn, combatLines.length - 1)] ?? combatLines[0];
 
   return (
     <View style={styles.screen}>
       <View style={styles.topCopy}>
         <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>AUTO-BATTLE</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>{holdTheRoadEncounter.name}</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>{encounter.name}</Text>
         <Text style={[styles.turn, { color: theme.colors.textMuted }]}>
           {finished ? 'Victory' : 'Exchange ' + String(turn + 1)}
         </Text>
@@ -91,6 +187,10 @@ export function BattleScreen({ onFinished }: { onFinished: () => void }) {
         <View style={styles.miniBoard}>
           {formation.map((unitId, index) => {
             const unit = units.find(candidate => candidate.id === unitId);
+            const favored = Boolean(
+              unit && activeCommanderPath?.favoredRoles.includes(unit.role)
+            );
+
             return (
               <View
                 key={index}
@@ -98,13 +198,19 @@ export function BattleScreen({ onFinished }: { onFinished: () => void }) {
                   styles.miniSlot,
                   {
                     backgroundColor: unit ? theme.colors.surface2 : theme.colors.appBg,
-                    borderColor: unit ? theme.colors.human : theme.colors.border
+                    borderColor: favored
+                      ? theme.colors.gold
+                      : unit
+                        ? theme.colors.human
+                        : theme.colors.border
                   }
                 ]}
               >
                 {unit ? (
                   <>
-                    <Text style={[styles.unitInitial, { color: theme.colors.human }]}>{unit.name[0]}</Text>
+                    <Text style={[styles.unitInitial, { color: favored ? theme.colors.gold : theme.colors.human }]}>
+                      {unit.name[0]}
+                    </Text>
                     <Text style={[styles.tokenName, { color: theme.colors.text }]} numberOfLines={1}>
                       {unit.className}
                     </Text>
@@ -119,11 +225,19 @@ export function BattleScreen({ onFinished }: { onFinished: () => void }) {
         </Text>
         <ProgressBar value={partyMaxHp > 0 ? partyHp / partyMaxHp : 0} color={theme.colors.primary} />
 
+        {activeCommanderPath ? (
+          <Text style={[styles.commanderLine, { color: theme.colors.gold }]}>
+            {activeCommanderPath.name} · {activeCommanderPath.skill.name}
+          </Text>
+        ) : null}
+
         <Text style={[styles.versus, { color: theme.colors.textMuted }]}>VS</Text>
 
-        <Text style={[styles.sideLabel, { color: theme.colors.danger }]}>ROAD RAIDERS</Text>
+        <Text style={[styles.sideLabel, { color: theme.colors.danger }]}>
+          {encounter.enemyName.toUpperCase()}
+        </Text>
         <View style={styles.enemyTokens}>
-          {Array.from({ length: holdTheRoadEncounter.enemyCount }).map((_, index) => (
+          {Array.from({ length: encounter.enemyCount }).map((_, index) => (
             <View
               key={index}
               style={[
@@ -131,22 +245,31 @@ export function BattleScreen({ onFinished }: { onFinished: () => void }) {
                 { borderColor: theme.colors.danger, backgroundColor: theme.colors.surface2 }
               ]}
             >
-              <Text style={[styles.unitInitial, { color: theme.colors.danger }]}>R</Text>
-              <Text style={[styles.tokenName, { color: theme.colors.text }]}>Raider</Text>
+              <Text style={[styles.unitInitial, { color: theme.colors.danger }]}>
+                {encounter.difficulty === 'Elite' ? 'G' : 'R'}
+              </Text>
+              <Text style={[styles.tokenName, { color: theme.colors.text }]}>
+                {encounter.difficulty === 'Elite' ? 'Merc' : 'Raider'}
+              </Text>
             </View>
           ))}
         </View>
         <Text style={[styles.hpLabel, { color: theme.colors.text }]}>
-          {enemyHp} / {holdTheRoadEncounter.enemyHp} HP
+          {enemyHp} / {encounter.enemyHp} HP
         </Text>
-        <ProgressBar value={enemyHp / holdTheRoadEncounter.enemyHp} color={theme.colors.danger} />
+        <ProgressBar value={enemyHp / encounter.enemyHp} color={theme.colors.danger} />
       </GameCard>
 
-      <GameCard accent={finished ? theme.colors.primary : theme.colors.gold}>
+      <GameCard accent={finished ? theme.colors.primary : activeEffect ? theme.colors.gold : theme.colors.border}>
         <Text style={[styles.logLabel, { color: theme.colors.textMuted }]}>COMBAT LOG</Text>
         <Text style={[styles.logLine, { color: theme.colors.text }]}>
-          {finished ? 'The raiders break and flee. Greenkeep is reachable.' : currentLine}
+          {finished ? encounter.enemyName + ' break and retreat.' : lastAction}
         </Text>
+        {activeEffect ? (
+          <Text style={[styles.effectLine, { color: theme.colors.gold }]}>
+            {activeEffect.type.replace('_', ' ')} · {activeEffect.remaining} exchanges remaining
+          </Text>
+        ) : null}
       </GameCard>
 
       {finished ? <PrimaryButton label="View Results" onPress={onFinished} /> : null}
@@ -167,14 +290,14 @@ const styles = StyleSheet.create({
     width: 80,
     height: 53,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center'
   },
   enemyTokens: { flexDirection: 'row', justifyContent: 'center', gap: 7 },
   enemyToken: {
-    width: 72,
-    height: 60,
+    width: 64,
+    height: 58,
     borderRadius: 15,
     borderWidth: 2,
     alignItems: 'center',
@@ -183,7 +306,9 @@ const styles = StyleSheet.create({
   unitInitial: { fontSize: 17, fontWeight: '900' },
   tokenName: { fontSize: 7.5, fontWeight: '800', marginTop: 2, maxWidth: '94%' },
   hpLabel: { fontSize: 10, fontWeight: '800', textAlign: 'right' },
+  commanderLine: { fontSize: 9.5, fontWeight: '900', textAlign: 'center' },
   versus: { fontSize: 12, fontWeight: '900', textAlign: 'center', marginVertical: 2 },
   logLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
-  logLine: { fontSize: 12, lineHeight: 18, fontWeight: '700', marginTop: 4 }
+  logLine: { fontSize: 12, lineHeight: 18, fontWeight: '700', marginTop: 4 },
+  effectLine: { fontSize: 9.5, fontWeight: '900', marginTop: 6, textTransform: 'uppercase' }
 });

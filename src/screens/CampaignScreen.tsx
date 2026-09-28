@@ -23,11 +23,13 @@ const nodeIcons: Record<string, string> = {
 export function CampaignScreen({
   onStartBattle,
   onOpenMarkedRaiders,
+  onStartMercenary,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
   onStartBattle: () => void;
   onOpenMarkedRaiders: () => void;
+  onStartMercenary: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -35,6 +37,9 @@ export function CampaignScreen({
   const {
     chapterNodes,
     settlementUpgraded,
+    firstPromotionComplete,
+    mercenaryPatrolWon,
+    commanderPathId,
     campaignAvailability,
     sideModeDefinitions,
     isSideModeUnlocked,
@@ -125,9 +130,32 @@ export function CampaignScreen({
         {chapterNodes.map((node, index) => {
           const battlePlayable = node.current && node.type === 'battle' && node.id === 'node_2';
           const storyPlayable = node.current && node.type === 'event' && node.id === 'node_3';
-          const playable = battlePlayable || storyPlayable;
-          const status = node.completed ? 'DONE' : playable ? 'PLAY' : node.current ? 'NEXT' : 'LOCKED';
-          const action = battlePlayable ? onStartBattle : storyPlayable ? onOpenMarkedRaiders : undefined;
+          const mercenaryPlayable =
+            node.current &&
+            node.id === 'node_4' &&
+            firstPromotionComplete &&
+            !mercenaryPatrolWon;
+          const playable = battlePlayable || storyPlayable || mercenaryPlayable;
+          const status = node.completed
+            ? 'DONE'
+            : mercenaryPlayable
+              ? 'PLAY'
+              : node.id === 'node_4' && node.current && !firstPromotionComplete
+                ? 'PROMOTE FIRST'
+                : node.id === 'node_5' && node.current && !commanderPathId
+                  ? 'CHOOSE COMMANDER'
+                  : playable
+                    ? 'PLAY'
+                    : node.current
+                      ? 'NEXT'
+                      : 'LOCKED';
+          const action = battlePlayable
+            ? onStartBattle
+            : storyPlayable
+              ? onOpenMarkedRaiders
+              : mercenaryPlayable
+                ? onStartMercenary
+                : undefined;
 
           return (
             <Pressable

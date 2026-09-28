@@ -20,7 +20,7 @@ import type {
   SaveSlotMetadata
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 2;
+export const SAVE_SCHEMA_VERSION = 3;
 
 type LegacyGameSnapshotV1 = {
   schemaVersion: 1;
@@ -43,9 +43,30 @@ type LegacyGameSnapshotV1 = {
   formationTrialCompleted: boolean;
 };
 
+type LegacyFactionGameStateV2 = Omit<
+  FactionGameState,
+  'mercenaryPatrolWon' | 'commanderChoiceUnlocked' | 'commanderPathId'
+>;
+
+type LegacyGameSnapshotV2 = {
+  schemaVersion: 2;
+  activeFaction: FactionId;
+  shared: GameSnapshot['shared'];
+  factionStates: Record<FactionId, LegacyFactionGameStateV2 | null>;
+};
+
 function normalizeFormation(formation: Array<string | null>) {
-  const result = Array.from({ length: 9 }, (_, index) => formation[index] ?? null);
-  return result;
+  return Array.from({ length: 9 }, (_, index) => formation[index] ?? null);
+}
+
+function commanderDefaults(state: LegacyFactionGameStateV2): FactionGameState {
+  return {
+    ...state,
+    formation: normalizeFormation(state.formation),
+    mercenaryPatrolWon: false,
+    commanderChoiceUnlocked: false,
+    commanderPathId: null
+  };
 }
 
 export function createHumanFactionState(): FactionGameState {
@@ -77,6 +98,9 @@ export function createHumanFactionState(): FactionGameState {
     firstPromotionComplete: false,
     equipmentInventory: [],
     unitWeapons: {},
+    mercenaryPatrolWon: false,
+    commanderChoiceUnlocked: false,
+    commanderPathId: null,
     lastBattleResult: null,
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
@@ -121,6 +145,9 @@ function migrateV1(snapshot: LegacyGameSnapshotV1): GameSnapshot {
     firstPromotionComplete: false,
     equipmentInventory: [],
     unitWeapons: {},
+    mercenaryPatrolWon: false,
+    commanderChoiceUnlocked: false,
+    commanderPathId: null,
     lastBattleResult: snapshot.lastBattleResult ? { ...snapshot.lastBattleResult } : null,
     expeditionTickets: snapshot.expeditionTickets,
     expeditionRunsCompleted: snapshot.expeditionRunsCompleted,
@@ -144,6 +171,30 @@ function migrateV1(snapshot: LegacyGameSnapshotV1): GameSnapshot {
   };
 }
 
+function migrateV2(snapshot: LegacyGameSnapshotV2): GameSnapshot {
+  return {
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    activeFaction: snapshot.activeFaction,
+    shared: {
+      completedCampaigns: [...snapshot.shared.completedCampaigns],
+      achievements: [...snapshot.shared.achievements],
+      lore: [...snapshot.shared.lore],
+      cosmetics: [...snapshot.shared.cosmetics]
+    },
+    factionStates: {
+      human: snapshot.factionStates.human
+        ? commanderDefaults(snapshot.factionStates.human)
+        : createHumanFactionState(),
+      elf: snapshot.factionStates.elf
+        ? commanderDefaults(snapshot.factionStates.elf)
+        : null,
+      orc: snapshot.factionStates.orc
+        ? commanderDefaults(snapshot.factionStates.orc)
+        : null
+    }
+  };
+}
+
 export function metadataFromSnapshot(
   slotId: SaveSlotId,
   snapshot: GameSnapshot,
@@ -157,10 +208,14 @@ export function metadataFromSnapshot(
   const humanComplete = snapshot.shared.completedCampaigns.includes('human');
 
   let chapterLabel = 'Chapter 1 · Hold the Road';
-  if (current.markedRaidersInvestigated) {
-    chapterLabel = current.firstPromotionComplete
-      ? 'Chapter 1 · Mercenary Patrol'
-      : 'Chapter 1 · First Promotion';
+  if (current.mercenaryPatrolWon && !current.commanderPathId) {
+    chapterLabel = 'Chapter 1 · Choose Commander';
+  } else if (current.mercenaryPatrolWon) {
+    chapterLabel = 'Chapter 1 · Refugee Camp';
+  } else if (current.firstPromotionComplete) {
+    chapterLabel = 'Chapter 1 · Mercenary Patrol';
+  } else if (current.markedRaidersInvestigated) {
+    chapterLabel = 'Chapter 1 · First Promotion';
   } else if (current.holdTheRoadWon) {
     chapterLabel = 'Chapter 1 · Marked Raiders';
   }
@@ -195,14 +250,19 @@ export function normalizeSaveRecord(
     return null;
   }
 
-  const record = value as { metadata?: SaveSlotMetadata; snapshot?: GameSnapshot | LegacyGameSnapshotV1 };
+  const record = value as {
+    metadata?: SaveSlotMetadata;
+    snapshot?: GameSnapshot | LegacyGameSnapshotV1 | LegacyGameSnapshotV2;
+  };
   if (!record.snapshot) {
     return null;
   }
 
   let snapshot: GameSnapshot;
-  if (record.snapshot.schemaVersion === 2) {
+  if (record.snapshot.schemaVersion === 3) {
     snapshot = record.snapshot as GameSnapshot;
+  } else if (record.snapshot.schemaVersion === 2) {
+    snapshot = migrateV2(record.snapshot as LegacyGameSnapshotV2);
   } else if (record.snapshot.schemaVersion === 1) {
     snapshot = migrateV1(record.snapshot as LegacyGameSnapshotV1);
   } else {

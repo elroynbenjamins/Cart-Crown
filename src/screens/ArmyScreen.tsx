@@ -8,11 +8,13 @@ import { GameCard, Pill, PrimaryButton, SectionTitle, UnitPortrait } from '../ui
 export function ArmyScreen({
   onOpenRecruitment,
   onOpenForge,
-  onOpenPromotion
+  onOpenPromotion,
+  onOpenCommander
 }: {
   onOpenRecruitment: () => void;
   onOpenForge: () => void;
   onOpenPromotion: () => void;
+  onOpenCommander: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -25,7 +27,10 @@ export function ArmyScreen({
     forgeUnlocked,
     firstPromotionComplete,
     unitWeapons,
-    equipmentInventory
+    equipmentInventory,
+    commanderChoiceUnlocked,
+    activeCommanderPath,
+    commanderRespecCost
   } = useGame();
 
   const activeCount = formation.filter(Boolean).length;
@@ -90,6 +95,35 @@ export function ArmyScreen({
           </GameCard>
         ))}
       </View>
+
+      {commanderChoiceUnlocked ? (
+        <>
+          <SectionTitle title="Your Commander" trailing={activeCommanderPath ? 'Specialized' : 'Choose path'} />
+          <GameCard accent={activeCommanderPath ? theme.colors.gold : theme.colors.primary}>
+            <Text style={[styles.commanderTitle, { color: theme.colors.text }]}>
+              {activeCommanderPath ? activeCommanderPath.name : 'Commander specialization available'}
+            </Text>
+            <Text style={[styles.commanderSubtitle, { color: theme.colors.human }]}>
+              {activeCommanderPath ? activeCommanderPath.title : 'Choose how your leadership shapes the army'}
+            </Text>
+            <Text style={[styles.commanderBody, { color: theme.colors.textMuted }]}>
+              {activeCommanderPath
+                ? activeCommanderPath.passiveDescription + ' Command skill: ' + activeCommanderPath.skill.name + '.'
+                : 'Pick one of three Human paths: Vanguard Marshal, Ranger-Captain or Cavalry Marshal.'}
+            </Text>
+            <View style={styles.recruitButton}>
+              <PrimaryButton
+                label={
+                  activeCommanderPath
+                    ? 'Retrain Commander · ' + commanderRespecCost + ' Gold'
+                    : 'Choose Commander Path'
+                }
+                onPress={onOpenCommander}
+              />
+            </View>
+          </GameCard>
+        </>
+      ) : null}
 
       {!recruitChosen ? (
         <>
@@ -171,5 +205,8 @@ const styles = StyleSheet.create({
   choiceRole: { fontSize: 9, fontWeight: '900', textTransform: 'uppercase', marginTop: 2 },
   choicePitch: { fontSize: 10, lineHeight: 14, marginTop: 3 },
   recruitButton: { marginTop: 14 },
-  inventoryText: { fontSize: 11.5, lineHeight: 17 }
+  inventoryText: { fontSize: 11.5, lineHeight: 17 },
+  commanderTitle: { fontSize: 18, fontWeight: '900' },
+  commanderSubtitle: { fontSize: 10, fontWeight: '900', marginTop: 3 },
+  commanderBody: { fontSize: 11.5, lineHeight: 17, marginTop: 7 }
 });

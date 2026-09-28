@@ -8,12 +8,14 @@ import {
   View
 } from 'react-native';
 import type { NavId } from './game/types';
+import type { EncounterId } from './game/encounters';
 import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
 import { ArmyScreen } from './screens/ArmyScreen';
 import { BattlePrepScreen } from './screens/BattlePrepScreen';
 import { BattleScreen } from './screens/BattleScreen';
 import { CampaignScreen } from './screens/CampaignScreen';
+import { CommanderChoiceScreen } from './screens/CommanderChoiceScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
 import { ForgeScreen } from './screens/ForgeScreen';
 import { FormationScreen } from './screens/FormationScreen';
@@ -34,6 +36,7 @@ type FlowScreen =
   | 'markedRaiders'
   | 'forge'
   | 'promotion'
+  | 'commanderChoice'
   | 'expedition'
   | 'formationTrial';
 
@@ -61,6 +64,7 @@ const flowTitles: Record<FlowScreen, string> = {
   markedRaiders: 'Marked Raiders',
   forge: 'Field Forge',
   promotion: 'Promotion',
+  commanderChoice: 'Commander Path',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
 };
@@ -74,21 +78,28 @@ export function AppShell({
 }) {
   const [active, setActive] = useState<NavId>('kingdom');
   const [flow, setFlow] = useState<FlowScreen | null>(null);
+  const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
   const { theme, cycleTheme } = useGameTheme();
-  const { finishHoldTheRoad } = useGame();
+  const { finishEncounter, lastBattleResult, commanderPathId } = useGame();
 
   const openRecruitment = () => setFlow('recruitment');
 
   const renderScreen = () => {
     if (flow === 'battlePrep') {
-      return <BattlePrepScreen onBegin={() => setFlow('battle')} />;
+      return (
+        <BattlePrepScreen
+          encounterId={activeEncounterId}
+          onBegin={() => setFlow('battle')}
+        />
+      );
     }
 
     if (flow === 'battle') {
       return (
         <BattleScreen
+          encounterId={activeEncounterId}
           onFinished={() => {
-            finishHoldTheRoad();
+            finishEncounter(activeEncounterId);
             setFlow('results');
           }}
         />
@@ -99,6 +110,10 @@ export function AppShell({
       return (
         <ResultsScreen
           onContinue={() => {
+            if (lastBattleResult?.id === 'mercenary_patrol_result' && !commanderPathId) {
+              setFlow('commanderChoice');
+              return;
+            }
             setFlow(null);
             setActive('kingdom');
           }}
@@ -153,6 +168,17 @@ export function AppShell({
       );
     }
 
+    if (flow === 'commanderChoice') {
+      return (
+        <CommanderChoiceScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('army');
+          }}
+        />
+      );
+    }
+
     if (flow === 'expedition') {
       return (
         <ExpeditionScreen
@@ -183,8 +209,15 @@ export function AppShell({
       case 'campaign':
         return (
           <CampaignScreen
-            onStartBattle={() => setFlow('battlePrep')}
+            onStartBattle={() => {
+              setActiveEncounterId('hold_the_road');
+              setFlow('battlePrep');
+            }}
             onOpenMarkedRaiders={() => setFlow('markedRaiders')}
+            onStartMercenary={() => {
+              setActiveEncounterId('mercenary_patrol');
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -199,6 +232,7 @@ export function AppShell({
             onOpenRecruitment={openRecruitment}
             onOpenForge={() => setFlow('forge')}
             onOpenPromotion={() => setFlow('promotion')}
+            onOpenCommander={() => setFlow('commanderChoice')}
           />
         );
       case 'kingdom':
@@ -218,6 +252,7 @@ export function AppShell({
     flow === 'markedRaiders' ||
     flow === 'forge' ||
     flow === 'promotion' ||
+    flow === 'commanderChoice' ||
     flow === 'expedition' ||
     flow === 'formationTrial';
   const title = flow ? flowTitles[flow] : screenTitles[active];

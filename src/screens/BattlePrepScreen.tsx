@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { holdTheRoadEncounter } from '../game/data';
+import { getEncounter } from '../game/encounters';
+import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
@@ -12,7 +13,13 @@ import {
   UnitPortrait
 } from '../ui/components';
 
-export function BattlePrepScreen({ onBegin }: { onBegin: () => void }) {
+export function BattlePrepScreen({
+  encounterId,
+  onBegin
+}: {
+  encounterId: EncounterId;
+  onBegin: () => void;
+}) {
   const { theme } = useGameTheme();
   const {
     units,
@@ -22,11 +29,13 @@ export function BattlePrepScreen({ onBegin }: { onBegin: () => void }) {
     formationAnalysis,
     formationDoctrineId,
     formationDoctrines,
+    activeCommanderPath,
     claimRewardedAd,
     rewardedAdClaims,
     rewardedAdMessage
   } = useGame();
 
+  const encounter = getEncounter(encounterId);
   const activeUnits = formation
     .filter((unitId): unitId is string => Boolean(unitId))
     .map(unitId => units.find(unit => unit.id === unitId))
@@ -39,16 +48,19 @@ export function BattlePrepScreen({ onBegin }: { onBegin: () => void }) {
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.danger}>
+      <GameCard accent={encounter.difficulty === 'Elite' ? theme.colors.gold : theme.colors.danger}>
         <View style={styles.encounterHeader}>
           <View style={styles.encounterCopy}>
             <Text style={[styles.eyebrow, { color: theme.colors.danger }]}>BATTLE PREP</Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>{holdTheRoadEncounter.name}</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>{encounter.name}</Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-              {holdTheRoadEncounter.subtitle}
+              {encounter.subtitle}
             </Text>
           </View>
-          <Pill label={holdTheRoadEncounter.difficulty} color={theme.colors.danger + '35'} />
+          <Pill
+            label={encounter.difficulty}
+            color={(encounter.difficulty === 'Elite' ? theme.colors.gold : theme.colors.danger) + '35'}
+          />
         </View>
       </GameCard>
 
@@ -56,16 +68,18 @@ export function BattlePrepScreen({ onBegin }: { onBegin: () => void }) {
       <GameCard>
         <View style={styles.enemyRow}>
           <View style={[styles.enemyMark, { borderColor: theme.colors.danger }]}>
-            <Text style={[styles.enemyMarkText, { color: theme.colors.danger }]}>R</Text>
+            <Text style={[styles.enemyMarkText, { color: theme.colors.danger }]}>
+              {encounter.difficulty === 'Elite' ? 'G' : 'R'}
+            </Text>
           </View>
           <View style={styles.enemyCopy}>
             <Text style={[styles.enemyName, { color: theme.colors.text }]}>
-              {holdTheRoadEncounter.enemyName}
+              {encounter.enemyName}
             </Text>
             <Text style={[styles.enemyMeta, { color: theme.colors.textMuted }]}>
               {scoutReport
-                ? holdTheRoadEncounter.enemyCount + ' raiders · ' + holdTheRoadEncounter.enemyHp + ' total HP · light armor · melee pressure'
-                : 'Several raiders · light armor · melee pressure · exact strength unknown'}
+                ? encounter.enemyCount + ' enemies · ' + encounter.enemyHp + ' total HP · exact strength revealed'
+                : 'Enemy strength partially concealed · formation and supplies recommended'}
             </Text>
           </View>
         </View>
@@ -109,6 +123,26 @@ export function BattlePrepScreen({ onBegin }: { onBegin: () => void }) {
         </Text>
       </GameCard>
 
+      {activeCommanderPath ? (
+        <GameCard accent={theme.colors.human}>
+          <View style={styles.commandHeader}>
+            <View style={styles.commandCopy}>
+              <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>COMMANDER</Text>
+              <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+                {activeCommanderPath.name}
+              </Text>
+            </View>
+            <Pill label={activeCommanderPath.skill.effectType.replace('_', ' ').toUpperCase()} />
+          </View>
+          <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+            {activeCommanderPath.passiveDescription}
+          </Text>
+          <Text style={[styles.skillName, { color: theme.colors.gold }]}>
+            {activeCommanderPath.skill.name}: {activeCommanderPath.skill.description}
+          </Text>
+        </GameCard>
+      ) : null}
+
       {formationBonuses.length > 0 ? (
         <>
           <SectionTitle title="Formation synergies" trailing={String(formationBonuses.length)} />
@@ -139,10 +173,6 @@ export function BattlePrepScreen({ onBegin }: { onBegin: () => void }) {
               {hasMedicine ? '✓' : '!'}
             </Text>
             <Text style={[styles.readinessText, { color: theme.colors.text }]}>Medicine available</Text>
-          </View>
-          <View style={styles.readinessRow}>
-            <Text style={[styles.readinessIcon, { color: theme.colors.primary }]}>✓</Text>
-            <Text style={[styles.readinessText, { color: theme.colors.text }]}>No ranged ammunition required</Text>
           </View>
         </View>
       </GameCard>
@@ -177,6 +207,9 @@ const styles = StyleSheet.create({
   doctrineLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
   doctrineName: { fontSize: 16, fontWeight: '900', marginTop: 3 },
   doctrineBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
+  commandHeader: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  commandCopy: { flex: 1 },
+  skillName: { fontSize: 10.5, lineHeight: 16, marginTop: 8, fontWeight: '800' },
   bonusList: { gap: 7 },
   bonusHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
   bonusName: { fontSize: 12, fontWeight: '900' },
