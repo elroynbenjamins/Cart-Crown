@@ -253,7 +253,6 @@ type GameContextValue = {
   upgradeToFort: () => boolean;
   upgradeFactionToFort: () => boolean;
   upgradeFactionToTown: () => boolean;
-  upgradeFactionToTown: () => boolean;
   constructBuilding: (buildingId: string, plotId: string) => boolean;
   moveBuilding: (buildingId: string, targetPlotId: string) => boolean;
   upgradeBuilding: (buildingId: string) => boolean;
