@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { useGameTheme } from '../theme/ThemeProvider';
+import { UnitSprite } from './gameArt';
 
 export function GameCard({
   children,
@@ -172,13 +173,6 @@ export function UnitPortrait({
   compact?: boolean;
 }) {
   const { theme } = useGameTheme();
-  const initials = name
-    .split(' ')
-    .map(part => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
     <View style={styles.portraitRow}>
       <View
@@ -187,7 +181,7 @@ export function UnitPortrait({
           { borderColor: accent, backgroundColor: theme.colors.surface2 }
         ]}
       >
-        <Text style={[styles.portraitInitials, { color: accent }]}>{initials}</Text>
+        <UnitSprite className={className} size={compact ? 42 : 54} />
       </View>
       <View style={styles.portraitCopy}>
         <Text style={[styles.unitName, { color: theme.colors.text }]} numberOfLines={1}>
@@ -324,10 +318,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center'
-  },
-  portraitInitials: {
-    fontSize: 18,
-    fontWeight: '900'
   },
   portraitCopy: {
     flex: 1,

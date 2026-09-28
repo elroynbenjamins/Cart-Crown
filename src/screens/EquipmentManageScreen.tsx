@@ -5,6 +5,7 @@ import { useGame } from '../game/GameProvider';
 import type { EquipmentSlot, ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle } from '../ui/components';
+import { EquipmentSprite, UnitSprite } from '../ui/gameArt';
 
 type ViewMode = 'loadout' | 'forge' | 'promotion';
 
@@ -116,7 +117,7 @@ export function EquipmentManageScreen({
       <GameCard accent={theme.colors.human}>
         <View style={styles.heroRow}>
           <View style={[styles.portrait, { borderColor: theme.colors.human }]}>
-            <Text style={[styles.portraitLetter, { color: theme.colors.human }]}>{unit.name[0]}</Text>
+            <UnitSprite className={unit.className} size={54} />
           </View>
           <View style={styles.heroCopy}>
             <Text style={[styles.eyebrow, { color: theme.colors.human }]}>UNIT EQUIPMENT</Text>
@@ -159,6 +160,11 @@ export function EquipmentManageScreen({
               return (
                 <GameCard key={slot} style={styles.slotCard} accent={item ? theme.colors.gold : undefined}>
                   <Text style={[styles.slotLabel, { color: theme.colors.textMuted }]}>{slotLabels[slot].toUpperCase()}</Text>
+                  {item ? (
+                    <View style={styles.slotArt}>
+                      <EquipmentSprite equipmentId={item.id} size={34} />
+                    </View>
+                  ) : null}
                   <Text style={[styles.slotName, { color: theme.colors.text }]}>
                     {item?.name ?? 'Empty'}
                   </Text>
@@ -393,7 +399,6 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 13 },
   heroRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   portrait: { width: 62, height: 70, borderRadius: 17, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  portraitLetter: { fontSize: 22, fontWeight: '900' },
   heroCopy: { flex: 1 },
   eyebrow: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 24, fontWeight: '900', marginTop: 3 },
@@ -404,6 +409,7 @@ const styles = StyleSheet.create({
   slotGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   slotCard: { width: '48%' },
   slotLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1 },
+  slotArt: { alignItems: 'center', marginVertical: 3 },
   slotName: { fontSize: 13, fontWeight: '900', marginTop: 4 },
   slotStats: { fontSize: 9, fontWeight: '800', marginTop: 5 },
   list: { gap: 9 },

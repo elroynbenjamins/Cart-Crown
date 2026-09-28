@@ -23,6 +23,7 @@ import {
   SecondaryButton,
   SectionTitle
 } from '../ui/components';
+import { BuildingSprite } from '../ui/gameArt';
 
 const resourceIcons: Record<keyof ResourceWallet, string> = {
   gold: '🪙',
@@ -238,7 +239,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
             >
               {building ? (
                 <>
-                  <Text style={styles.buildingIcon}>{building.icon}</Text>
+                  <BuildingSprite buildingId={building.id} size={44} />
                   <Text
                     style={[
                       styles.plotBuildingName,
@@ -388,7 +389,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                     accent={theme.colors.primary}
                   >
                     <View style={styles.optionHeader}>
-                      <Text style={styles.optionIcon}>{building.icon}</Text>
+                      <BuildingSprite buildingId={building.id} size={48} />
                       <View style={styles.optionCopy}>
                         <Text
                           style={[
