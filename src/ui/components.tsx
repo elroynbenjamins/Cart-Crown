@@ -1,12 +1,12 @@
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
+import type { PropsWithChildren } from 'react';
 import {
   Pressable,
-  StyleProp,
   StyleSheet,
   Text,
-  View,
-  ViewStyle
+  View
 } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { useGameTheme } from '../theme/ThemeProvider';
 
 export function GameCard({
@@ -185,7 +185,7 @@ export function ProgressBar({
         style={[
           styles.progressFill,
           {
-            width: String(clamped * 100) + '%',
+            width: (String(clamped * 100) + '%') as ViewStyle['width'],
             backgroundColor: color ?? theme.colors.primary
           }
         ]}
