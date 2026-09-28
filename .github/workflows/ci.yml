@@ -23,3 +23,6 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Balance regression
+        run: npm run balance:check
