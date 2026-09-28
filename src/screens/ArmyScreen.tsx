@@ -68,6 +68,7 @@ export function ArmyScreen({
                 name={unit.name}
                 className={unit.className + ' · Lv. ' + unit.level}
                 accent={theme.colors.human}
+                faction={unit.faction}
               />
               <View style={styles.stats}>
                 <Text style={[styles.stat, { color: theme.colors.text }]}>HP {unit.hp}</Text>
@@ -165,7 +166,7 @@ export function ArmyScreen({
               {recruitOptions.map(choice => (
                 <View key={choice.id} style={[styles.choice, { backgroundColor: theme.colors.surface2 }]}>
                   <View style={[styles.choiceIcon, { borderColor: theme.colors.human }]}>
-                    <UnitSprite className={choice.unit.className} size={36} />
+                    <UnitSprite className={choice.unit.className} faction={choice.unit.faction} size={36} />
                   </View>
                   <View style={styles.choiceCopy}>
                     <Text style={[styles.choiceName, { color: theme.colors.text }]}>{choice.unit.className}</Text>
