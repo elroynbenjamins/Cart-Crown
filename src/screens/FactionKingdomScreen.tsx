@@ -425,6 +425,7 @@ const styles = StyleSheet.create({
   resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   goalTitle: { fontSize: 17, fontWeight: '900', marginTop: 4 },
   goalBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
+  goalCost: { marginTop: 9 },
   button: { marginTop: 10 },
   settlementRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   settlementCopy: { flex: 1 },
@@ -438,12 +439,14 @@ const styles = StyleSheet.create({
   productionName: { fontSize: 12.5, fontWeight: '900', marginTop: 5 },
   productionRate: { fontSize: 9, fontWeight: '900', lineHeight: 14, marginTop: 6 },
   productionStock: { fontSize: 10.5, fontWeight: '900', lineHeight: 16, marginTop: 6 },
+  productionAmounts: { marginTop: 7 },
   buildingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   buildingCard: { width: '48%' },
   buildingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   buildingName: { fontSize: 13.5, fontWeight: '900', marginTop: 7 },
   buildingBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
   buildingHint: { fontSize: 9, lineHeight: 13, fontWeight: '800', marginTop: 7 },
+  buildingCost: { marginTop: 8 },
   cost: { fontSize: 8.5, fontWeight: '900', lineHeight: 13, marginTop: 5 },
   message: { textAlign: 'center', fontSize: 10.5, fontWeight: '800' }
 });
