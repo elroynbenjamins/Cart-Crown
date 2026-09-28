@@ -81,7 +81,7 @@ export function unitProductionAsset(faction: FactionId, kind: UnitVisualKind) {
 }
 
 export function equipmentProductionAsset(
-  faction: FactionId,
+  faction: FactionId | 'global',
   equipmentId: string,
   kind: EquipmentVisualKind
 ) {
