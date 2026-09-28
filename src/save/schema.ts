@@ -545,8 +545,31 @@ export function normalizeSaveRecord(
     return null;
   }
 
+  const factionOrder: FactionId[] = ['human', 'elf', 'orc'];
+  const storedSnapshot = record.snapshot;
+  const activeState = storedSnapshot.factionStates[storedSnapshot.activeFaction];
+  const activeFaction =
+    activeState?.faction === storedSnapshot.activeFaction
+      ? storedSnapshot.activeFaction
+      : factionOrder.find(faction => {
+          const state = storedSnapshot.factionStates[faction];
+          return state?.faction === faction;
+        });
+
+  if (!activeFaction) {
+    return null;
+  }
+
+  const snapshot =
+    activeFaction === storedSnapshot.activeFaction
+      ? storedSnapshot
+      : {
+          ...storedSnapshot,
+          activeFaction
+        };
+
   return {
-    snapshot: record.snapshot,
-    metadata: metadataFromSnapshot(slotId, record.snapshot, record.metadata)
+    snapshot,
+    metadata: metadataFromSnapshot(slotId, snapshot, record.metadata)
   };
 }
