@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
-import { EquipmentSprite, StoryScene } from '../ui/gameArt';
+import { EquipmentSprite } from '../ui/gameArt';
 
 export function MarkedRaidersScreen({
   onOpenForge,
@@ -31,8 +31,14 @@ export function MarkedRaidersScreen({
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           The road is secure, but the weapons left behind do not match the story everyone expects.
         </Text>
-        <View style={styles.sceneWrap}>
-          <StoryScene scene="royal_ledger" size={236} />
+        <View style={styles.evidenceStrip}>
+          <View style={styles.evidenceStripItem}>
+            <EquipmentSprite equipmentId="hum_iron_sword" faction="orc" size={44} />
+          </View>
+          <Text style={[styles.evidenceVs, { color: theme.colors.textMuted }]}>≠</Text>
+          <View style={styles.evidenceStripItem}>
+            <EquipmentSprite equipmentId="hum_padded_armor" faction="human" size={44} />
+          </View>
         </View>
       </GameCard>
 
@@ -96,7 +102,9 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 13, lineHeight: 19, marginTop: 6 },
-  sceneWrap: { alignItems: 'center', marginTop: 10 },
+  evidenceStrip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 10 },
+  evidenceStripItem: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center' },
+  evidenceVs: { fontSize: 20, fontWeight: '900' },
   evidenceRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   evidenceIcon: { width: 54, height: 54, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   evidenceCopy: { flex: 1 },
