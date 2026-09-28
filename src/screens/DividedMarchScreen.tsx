@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
+import { ResourceSiteSprite, StoryCharacterPortrait, StoryScene } from '../ui/gameArt';
 
 export function DividedMarchScreen({ onComplete }: { onComplete: () => void }) {
   const { theme } = useGameTheme();
@@ -19,13 +20,16 @@ export function DividedMarchScreen({ onComplete }: { onComplete: () => void }) {
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           With Siege Road open, the marcher captains finally compare their orders. The seals are genuine, but the instructions were deliberately issued to make every house distrust the others.
         </Text>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="grand_council" size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title="What Greenkeep gains" />
 
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>📜</Text>
+          <View style={styles.rowArt}><StoryCharacterPortrait role="delegate" size={46} /></View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Shared evidence</Text>
             <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
@@ -37,7 +41,7 @@ export function DividedMarchScreen({ onComplete }: { onComplete: () => void }) {
 
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>🏚️</Text>
+          <View style={styles.rowArt}><ResourceSiteSprite siteId="marcher_depot" faction="human" size={46} /></View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Marcher Supply Depot</Text>
             <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
@@ -73,8 +77,9 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  row: { flexDirection: 'row', gap: 12 },
-  icon: { fontSize: 28 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
+  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  rowArt: { width: 54, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   rowTitle: { fontSize: 15, fontWeight: '900' },
   rowBody: { fontSize: 11, lineHeight: 16, marginTop: 4 },
