@@ -70,6 +70,18 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'orc_invader_scouts_result';
   const orcBossResult =
     lastBattleResult.id === 'orc_blamecaller_result';
+  const elfChapterTwoBattleResult =
+    lastBattleResult.id === 'elf_last_heartgrove_result';
+  const elfChapterTwoEliteResult =
+    lastBattleResult.id === 'elf_ward_hunters_result';
+  const elfChapterTwoBossResult =
+    lastBattleResult.id === 'elf_ashroot_stalker_result';
+  const orcChapterTwoBattleResult =
+    lastBattleResult.id === 'orc_gather_clans_result';
+  const orcChapterTwoEliteResult =
+    lastBattleResult.id === 'orc_stonejaw_challengers_result';
+  const orcChapterTwoBossResult =
+    lastBattleResult.id === 'orc_clanbreaker_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -113,7 +125,79 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {elfBossResult ? (
+      {elfChapterTwoBossResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CHAPTER 2 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Heartgrove can become a Wardhold
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Ashroot Stalker is defeated. Upgrade the Warden Lodge, Moon Forge and Caravan Grove, then fund the Wardhold project to open Moonlit Pass.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterTwoEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>WARD NETWORK</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Ward Beacon blueprint unlocked
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Ward Hunters carried route maps that can be reused to rebuild Heartgrove’s far-sight network.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterTwoBattleResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>HEARTGROVE HOLDS</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Moonwell route opened
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The inner grove is secure enough to restore the Moonwell Grove and begin permanent regional production.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterTwoBossResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>ORC CHAPTER 2 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Emberclan can become a Warhold
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Clanbreaker is defeated. Upgrade the Clan Yard, Bone Forge and War Cartwright, then raise the Warhold before entering the Stonejaw Trial.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterTwoEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>CLAN SIGNALS</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Watchfire blueprint unlocked
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Stonejaw challenge exposes the need for faster clan signals before a larger warband can move safely.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterTwoBattleResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>CLANS GATHERED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Red Plains hunt opened
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The envoys arrive safely. Emberclan can now secure Warg Pens and permanent hunt routes.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfBossResult ? (
         <>
           <GameCard accent={theme.colors.elf}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CHAPTER 1 COMPLETE</Text>

@@ -36,6 +36,7 @@ export function BattlePrepScreen({
     activeLastLoyalistsChoice,
     activeRoyalDecree,
     buildingLevels,
+    factionBuildingIds,
     settlementEffects,
     claimRewardedAd,
     rewardedAdClaims,
@@ -64,7 +65,7 @@ export function BattlePrepScreen({
     marcherDoctrineActive &&
     Boolean(activeMarcherWarningChoice?.detailedIntel);
   const towerIntel =
-    (buildingLevels.signal_tower ?? 0) >= 2 ||
+    (buildingLevels[factionBuildingIds.scout] ?? 0) >= 2 ||
     settlementEffects.detailedIntel;
   const loyalistIntel =
     loyalistApproachActive &&

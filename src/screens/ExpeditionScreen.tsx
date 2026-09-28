@@ -15,7 +15,8 @@ export function ExpeditionScreen({ onExit }: { onExit: () => void }) {
     rewardedAdClaims,
     rewardedAdMessage,
     settlementEffects,
-    buildingLevels
+    buildingLevels,
+    factionBuildingIds
   } = useGame();
   const [started, setStarted] = useState(false);
   const [nodeIndex, setNodeIndex] = useState(0);
@@ -106,7 +107,7 @@ export function ExpeditionScreen({ onExit }: { onExit: () => void }) {
           <Text style={[styles.finishBody, { color: theme.colors.textMuted }]}>
             +35 Gold · +{
               8 +
-              ((buildingLevels.wagonwright ?? 0) >= 2 ? 1 : 0) +
+              ((buildingLevels[factionBuildingIds.logistics] ?? 0) >= 2 ? 1 : 0) +
               settlementEffects.expeditionWoodBonus
             } Wood · +{4 + settlementEffects.expeditionProvisionBonus} Provisions
           </Text>

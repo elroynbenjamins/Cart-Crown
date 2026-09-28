@@ -22,6 +22,9 @@ import { ConcordVaultScreen } from './screens/ConcordVaultScreen';
 import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
 import { FactionCampScreen } from './screens/FactionCampScreen';
+import { FactionChapterTwoEventScreen } from './screens/FactionChapterTwoEventScreen';
+import { FactionKingdomScreen } from './screens/FactionKingdomScreen';
+import { FactionRecruitmentScreen } from './screens/FactionRecruitmentScreen';
 import { FactionChapterOneEventScreen } from './screens/FactionChapterOneEventScreen';
 import { ForgeScreen } from './screens/ForgeScreen';
 import { FormationScreen } from './screens/FormationScreen';
@@ -78,6 +81,9 @@ type FlowScreen =
   | 'forcedBeacon'
   | 'factionInvestigation'
   | 'factionSupply'
+  | 'factionRecruitment'
+  | 'factionChapterTwoResource'
+  | 'factionChapterTwoCouncil'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -127,6 +133,9 @@ const flowTitles: Record<FlowScreen, string> = {
   forcedBeacon: 'The Forced Beacon',
   factionInvestigation: 'Campaign Investigation',
   factionSupply: 'Campaign Supplies',
+  factionRecruitment: 'Faction Muster',
+  factionChapterTwoResource: 'Chapter 2 Resource',
+  factionChapterTwoCouncil: 'Chapter 2 Council',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -149,7 +158,8 @@ export function AppShell({
     finishEncounter,
     lastBattleResult,
     commanderPathId,
-    firstPromotionComplete
+    firstPromotionComplete,
+    settlementUpgraded
   } = useGame();
 
   const openRecruitment = () => setFlow('recruitment');
@@ -180,7 +190,14 @@ export function AppShell({
       return (
         <ResultsScreen
           onContinue={() => {
-            if (lastBattleResult?.id === 'mercenary_patrol_result' && !commanderPathId) {
+            if (
+              [
+                'mercenary_patrol_result',
+                'elf_hollow_warden_result',
+                'orc_blamecaller_result'
+              ].includes(lastBattleResult?.id ?? '') &&
+              !commanderPathId
+            ) {
               setFlow('commanderChoice');
               return;
             }
@@ -479,6 +496,41 @@ export function AppShell({
       );
     }
 
+    if (flow === 'factionRecruitment') {
+      return (
+        <FactionRecruitmentScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'factionChapterTwoResource') {
+      return (
+        <FactionChapterTwoEventScreen
+          stage="resource"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'factionChapterTwoCouncil') {
+      return (
+        <FactionChapterTwoEventScreen
+          stage="council"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -634,6 +686,39 @@ export function AppShell({
               );
               setFlow('battlePrep');
             }}
+            onOpenFactionChapterTwoRecruitment={() =>
+              setFlow('factionRecruitment')
+            }
+            onStartFactionChapterTwoBattle={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_last_heartgrove'
+                  : 'orc_gather_clans'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenFactionChapterTwoResource={() =>
+              setFlow('factionChapterTwoResource')
+            }
+            onStartFactionChapterTwoElite={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_ward_hunters'
+                  : 'orc_stonejaw_challengers'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenFactionChapterTwoCouncil={() =>
+              setFlow('factionChapterTwoCouncil')
+            }
+            onStartFactionChapterTwoBoss={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_ashroot_stalker'
+                  : 'orc_clanbreaker'
+              );
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -658,6 +743,16 @@ export function AppShell({
       case 'kingdom':
       default:
         if (activeFaction !== 'human') {
+          if (settlementUpgraded) {
+            return (
+              <FactionKingdomScreen
+                onOpenSettlement={() => setFlow('settlement')}
+                onOpenRecruitment={() => setFlow('factionRecruitment')}
+                onOpenCommander={() => setFlow('commanderChoice')}
+              />
+            );
+          }
+
           return (
             <FactionCampScreen
               onOpenCommander={() => setFlow('commanderChoice')}
@@ -710,6 +805,9 @@ export function AppShell({
     flow === 'forcedBeacon' ||
     flow === 'factionInvestigation' ||
     flow === 'factionSupply' ||
+    flow === 'factionRecruitment' ||
+    flow === 'factionChapterTwoResource' ||
+    flow === 'factionChapterTwoCouncil' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

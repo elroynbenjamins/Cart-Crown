@@ -23,7 +23,13 @@ export type EncounterId =
   | 'elf_hollow_warden'
   | 'orc_red_road'
   | 'orc_invader_scouts'
-  | 'orc_blamecaller';
+  | 'orc_blamecaller'
+  | 'elf_last_heartgrove'
+  | 'elf_ward_hunters'
+  | 'elf_ashroot_stalker'
+  | 'orc_gather_clans'
+  | 'orc_stonejaw_challengers'
+  | 'orc_clanbreaker';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -237,6 +243,60 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 5,
     enemyHp: 385,
     difficulty: 'Boss'
+  },
+  elf_last_heartgrove: {
+    id: 'elf_last_heartgrove',
+    name: 'The Last Heartgrove',
+    subtitle: 'Wardens defend the surviving inner grove while ash-marked raiders test every weak point in the ward line.',
+    enemyName: 'Ash-Marked Raiders',
+    enemyCount: 4,
+    enemyHp: 315,
+    difficulty: 'Normal'
+  },
+  elf_ward_hunters: {
+    id: 'elf_ward_hunters',
+    name: 'Ward Hunters',
+    subtitle: 'Specialists carrying ward-cutting tools move through the moonwell paths toward the sanctuary.',
+    enemyName: 'Ward Hunter Cell',
+    enemyCount: 5,
+    enemyHp: 445,
+    difficulty: 'Elite'
+  },
+  elf_ashroot_stalker: {
+    id: 'elf_ashroot_stalker',
+    name: 'Ashroot Stalker',
+    subtitle: 'A corrupted stalker feeds on broken ward lines and guards the road toward Moonlit Pass.',
+    enemyName: 'Ashroot Stalker',
+    enemyCount: 5,
+    enemyHp: 640,
+    difficulty: 'Boss'
+  },
+  orc_gather_clans: {
+    id: 'orc_gather_clans',
+    name: 'Gather the Clans',
+    subtitle: 'Emberclan escorts envoys across the Red Plains while false-marked raiders try to prevent the clans from meeting.',
+    enemyName: 'Red Plains Raiders',
+    enemyCount: 4,
+    enemyHp: 325,
+    difficulty: 'Normal'
+  },
+  orc_stonejaw_challengers: {
+    id: 'orc_stonejaw_challengers',
+    name: 'Stonejaw Challengers',
+    subtitle: 'A rival warband tests Emberclan strength before allowing passage toward the Stonejaw Range.',
+    enemyName: 'Stonejaw Challengers',
+    enemyCount: 5,
+    enemyHp: 465,
+    difficulty: 'Elite'
+  },
+  orc_clanbreaker: {
+    id: 'orc_clanbreaker',
+    name: 'Clanbreaker',
+    subtitle: 'A paid agitator and his veterans are trying to turn the gathered clans against one another before the council can bind them.',
+    enemyName: 'Clanbreaker Host',
+    enemyCount: 5,
+    enemyHp: 665,
+    difficulty: 'Boss'
   }
 };
 
@@ -332,6 +392,30 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   orc_blamecaller: {
     resources: { gold: 100, wood: 24, stone: 12, iron: 6, provisions: 10 },
     storySummary: 'The Blamecaller falls. Emberclan now has proof that outsiders are manufacturing clan violence to keep the Orcs divided.'
+  },
+  elf_last_heartgrove: {
+    resources: { gold: 58, wood: 14, stone: 4, provisions: 6 },
+    storySummary: 'The inner grove holds. The attackers were probing for moonwell routes rather than trying to seize territory.'
+  },
+  elf_ward_hunters: {
+    resources: { gold: 72, wood: 14, stone: 8, provisions: 6 },
+    storySummary: 'The Ward Hunters are defeated. Their route maps point toward a hidden organizer beyond the restored moonwell paths.'
+  },
+  elf_ashroot_stalker: {
+    resources: { gold: 135, wood: 50, stone: 28, iron: 6, provisions: 10 },
+    storySummary: 'The Ashroot Stalker falls. Heartgrove can now fortify the rootway and prepare to enter Moonlit Pass.'
+  },
+  orc_gather_clans: {
+    resources: { gold: 56, wood: 12, iron: 3, provisions: 7 },
+    storySummary: 'The clan envoys arrive safely. The raids were meant to keep the clans isolated and suspicious.'
+  },
+  orc_stonejaw_challengers: {
+    resources: { gold: 70, wood: 12, stone: 7, iron: 5, provisions: 7 },
+    storySummary: 'The Stonejaw challengers yield. Emberclan has earned the right to call a wider Warfire Council.'
+  },
+  orc_clanbreaker: {
+    resources: { gold: 140, wood: 45, stone: 26, iron: 10, provisions: 12 },
+    storySummary: 'The Clanbreaker falls. The gathered clans agree to march toward the Stonejaw Trial under a single temporary pact.'
   }
 };
 

@@ -27,7 +27,9 @@ export function FactionCampScreen({
     formation,
     commanderChoiceUnlocked,
     activeCommanderPath,
-    commanderRespecCost
+    commanderRespecCost,
+    canUpgradeSettlement,
+    upgradeSettlement
   } = useGame();
 
   const faction = factions[activeFaction];
@@ -141,6 +143,36 @@ export function FactionCampScreen({
                     : 'Choose Commander Path'
                 }
                 onPress={onOpenCommander}
+              />
+            </View>
+          </GameCard>
+        </>
+      ) : null}
+
+      {activeCommanderPath ? (
+        <>
+          <SectionTitle title={elf ? 'Restore Heartgrove' : 'Raise the Warcamp'} />
+          <GameCard accent={accent}>
+            <Text style={[styles.mechanicName, { color: theme.colors.text }]}>
+              {elf ? 'Heartgrove Sanctuary' : 'Emberclan Warcamp'}
+            </Text>
+            <Text style={[styles.mechanicBody, { color: theme.colors.textMuted }]}>
+              {elf
+                ? 'Use the Chapter 1 victory to establish a permanent warded sanctuary, expand the Wayfarer Caravan to 4×5, and support a third squad.'
+                : 'Use the Chapter 1 victory to establish a permanent clan warcamp, expand the War Cart to 4×5, and support a third squad.'}
+            </Text>
+            <Text style={[styles.identity, { color: theme.colors.gold }]}>
+              {elf
+                ? 'Cost · 70 Wood · 15 Stone · 8 Provisions'
+                : 'Cost · 70 Wood · 15 Stone · 4 Iron'}
+            </Text>
+            <View style={styles.commanderButton}>
+              <PrimaryButton
+                label={elf ? 'Build Heartgrove Sanctuary' : 'Raise Emberclan Warcamp'}
+                disabled={!canUpgradeSettlement}
+                onPress={() => {
+                  upgradeSettlement();
+                }}
               />
             </View>
           </GameCard>

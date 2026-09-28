@@ -98,6 +98,172 @@ export const humanBuildings: BuildingDefinition[] = [
   }
 ];
 
+export const elfBuildings: BuildingDefinition[] = [
+  {
+    id: 'elf_heartgrove_hall',
+    faction: 'elf',
+    name: 'Heartgrove Sanctuary',
+    role: 'KINGDOM',
+    icon: '🌳',
+    maxLevel: 5,
+    constructionCost: {},
+    description: 'Anchors the restored Heartgrove settlement and future ward expansion.'
+  },
+  {
+    id: 'elf_warden_lodge',
+    faction: 'elf',
+    name: 'Warden Lodge',
+    role: 'ARMY',
+    icon: '🏹',
+    maxLevel: 5,
+    constructionCost: {},
+    description: 'Trains Wardens, scouts and deeper Elven troop branches.'
+  },
+  {
+    id: 'elf_moon_forge',
+    faction: 'elf',
+    name: 'Moon Forge',
+    role: 'EQUIPMENT',
+    icon: '🌙',
+    maxLevel: 5,
+    constructionCost: { gold: 28, wood: 8 },
+    description: 'Shapes moon-silver, spiritwood and warded equipment.'
+  },
+  {
+    id: 'elf_caravan_grove',
+    faction: 'elf',
+    name: 'Caravan Grove',
+    role: 'LOGISTICS',
+    icon: '🍃',
+    maxLevel: 5,
+    constructionCost: {},
+    description: 'Improves the Wayfarer Caravan and rootway logistics.'
+  },
+  {
+    id: 'elf_spirit_stores',
+    faction: 'elf',
+    name: 'Spirit Stores',
+    role: 'SUPPLY',
+    icon: '🌿',
+    maxLevel: 5,
+    constructionCost: { gold: 40, wood: 14, provisions: 8 },
+    description: 'Stores herbs, food and ward reagents for long campaigns.'
+  },
+  {
+    id: 'elf_council_glade',
+    faction: 'elf',
+    name: 'Council Glade',
+    role: 'COMMAND',
+    icon: '🌀',
+    maxLevel: 5,
+    constructionCost: { gold: 55, wood: 18, stone: 4 },
+    description: 'Supports commander paths, ward doctrine and later retraining.'
+  },
+  {
+    id: 'elf_stag_enclosure',
+    faction: 'elf',
+    name: 'Stag Enclosure',
+    role: 'MOUNT',
+    icon: '🦌',
+    maxLevel: 5,
+    constructionCost: { gold: 70, wood: 24, provisions: 10 },
+    description: 'Trains Stags and unlocks mounted Elven progression.'
+  },
+  {
+    id: 'elf_ward_beacon',
+    faction: 'elf',
+    name: 'Ward Beacon',
+    role: 'SCOUT',
+    icon: '✨',
+    maxLevel: 5,
+    constructionCost: { gold: 58, wood: 16, stone: 8 },
+    description: 'Extends ward-sight and reveals threats along the rootways.'
+  }
+];
+
+export const orcBuildings: BuildingDefinition[] = [
+  {
+    id: 'orc_warhold',
+    faction: 'orc',
+    name: 'Emberclan Warhold',
+    role: 'KINGDOM',
+    icon: '🪨',
+    maxLevel: 5,
+    constructionCost: {},
+    description: 'Anchors the clan settlement and gates Warhold expansion.'
+  },
+  {
+    id: 'orc_clan_yard',
+    faction: 'orc',
+    name: 'Clan Yard',
+    role: 'ARMY',
+    icon: '🪓',
+    maxLevel: 5,
+    constructionCost: {},
+    description: 'Trains clan warriors and deeper Orc troop branches.'
+  },
+  {
+    id: 'orc_bone_forge',
+    faction: 'orc',
+    name: 'Bone Forge',
+    role: 'EQUIPMENT',
+    icon: '⚒️',
+    maxLevel: 5,
+    constructionCost: { gold: 26, wood: 6, iron: 2 },
+    description: 'Forges black iron, bone fittings and clan weapons.'
+  },
+  {
+    id: 'orc_cartwright',
+    faction: 'orc',
+    name: 'War Cartwright',
+    role: 'LOGISTICS',
+    icon: '🛞',
+    maxLevel: 5,
+    constructionCost: {},
+    description: 'Reinforces the War Cart and campaign hauling capacity.'
+  },
+  {
+    id: 'orc_smokehouse',
+    faction: 'orc',
+    name: 'Smokehouse',
+    role: 'SUPPLY',
+    icon: '🍖',
+    maxLevel: 5,
+    constructionCost: { gold: 35, wood: 15, provisions: 8 },
+    description: 'Preserves hunt supplies and keeps warbands provisioned.'
+  },
+  {
+    id: 'orc_war_council',
+    faction: 'orc',
+    name: 'War Council',
+    role: 'COMMAND',
+    icon: '🔥',
+    maxLevel: 5,
+    constructionCost: { gold: 52, wood: 16, stone: 5 },
+    description: 'Coordinates clan commanders, Momentum doctrine and later retraining.'
+  },
+  {
+    id: 'orc_warg_pens',
+    faction: 'orc',
+    name: 'Warg Pens',
+    role: 'MOUNT',
+    icon: '🐺',
+    maxLevel: 5,
+    constructionCost: { gold: 68, wood: 22, provisions: 12 },
+    description: 'Breeds and trains Wargs for mounted Orc branches.'
+  },
+  {
+    id: 'orc_watchfire',
+    faction: 'orc',
+    name: 'Watchfire',
+    role: 'SCOUT',
+    icon: '🔥',
+    maxLevel: 5,
+    constructionCost: { gold: 54, wood: 18, stone: 8 },
+    description: 'Links clan signals and improves battlefield intelligence.'
+  }
+];
+
 export const humanBuildingLevels: BuildingLevelDefinition[] = [
   {
     buildingId: 'barracks',
@@ -297,12 +463,145 @@ export const humanBuildingLevels: BuildingLevelDefinition[] = [
   }
 ];
 
+export const elfBuildingLevels: BuildingLevelDefinition[] = [
+  {
+    buildingId: 'elf_warden_lodge',
+    level: 2,
+    cost: { gold: 50, wood: 24 },
+    effect: 'Advanced Warden training unlocked for Chapter 2.',
+    requirement: 'Heartgrove Sanctuary'
+  },
+  {
+    buildingId: 'elf_moon_forge',
+    level: 2,
+    cost: { gold: 62, wood: 12, iron: 6 },
+    effect: 'Tier II Elven equipment preparation unlocked.',
+    requirement: 'Heartgrove Sanctuary'
+  },
+  {
+    buildingId: 'elf_caravan_grove',
+    level: 2,
+    cost: { gold: 42, wood: 32 },
+    effect: 'Rootway frame reinforcement improves Expedition supply recovery.',
+    requirement: 'Heartgrove Sanctuary'
+  },
+  {
+    buildingId: 'elf_spirit_stores',
+    level: 2,
+    cost: { gold: 52, wood: 18, provisions: 10 },
+    effect: 'Prepared herb stores grant +1 base Expedition Ticket.',
+    requirement: 'Moonwell Grove restored'
+  },
+  {
+    buildingId: 'elf_council_glade',
+    level: 2,
+    cost: { gold: 70, wood: 18 },
+    effect: 'Commander retraining cost reduced.',
+    requirement: 'Elf commander chosen'
+  },
+  {
+    buildingId: 'elf_ward_beacon',
+    level: 2,
+    cost: { gold: 72, wood: 18, stone: 12 },
+    effect: 'Permanent detailed enemy scouting through the ward network.',
+    requirement: 'Ward Hunters defeated'
+  }
+];
+
+export const orcBuildingLevels: BuildingLevelDefinition[] = [
+  {
+    buildingId: 'orc_clan_yard',
+    level: 2,
+    cost: { gold: 48, wood: 24, iron: 2 },
+    effect: 'Advanced clan training unlocked for Chapter 2.',
+    requirement: 'Emberclan Warcamp'
+  },
+  {
+    buildingId: 'orc_bone_forge',
+    level: 2,
+    cost: { gold: 60, wood: 10, iron: 8 },
+    effect: 'Tier II Orc equipment preparation unlocked.',
+    requirement: 'Emberclan Warcamp'
+  },
+  {
+    buildingId: 'orc_cartwright',
+    level: 2,
+    cost: { gold: 40, wood: 34, iron: 4 },
+    effect: 'Reinforced War Cart improves Expedition supply recovery.',
+    requirement: 'Emberclan Warcamp'
+  },
+  {
+    buildingId: 'orc_smokehouse',
+    level: 2,
+    cost: { gold: 50, wood: 18, provisions: 12 },
+    effect: 'Prepared hunt stores grant +1 base Expedition Ticket.',
+    requirement: 'Warg Pens secured'
+  },
+  {
+    buildingId: 'orc_war_council',
+    level: 2,
+    cost: { gold: 68, wood: 18 },
+    effect: 'Commander retraining cost reduced.',
+    requirement: 'Orc commander chosen'
+  },
+  {
+    buildingId: 'orc_watchfire',
+    level: 2,
+    cost: { gold: 70, wood: 18, stone: 12 },
+    effect: 'Linked clan signals provide detailed enemy scouting.',
+    requirement: 'Stonejaw Challengers defeated'
+  }
+];
+
+export const factionBuildingIds = {
+  human: {
+    hall: 'hall',
+    army: 'barracks',
+    forge: 'forge',
+    logistics: 'wagonwright',
+    supply: 'quartermaster',
+    command: 'war_room',
+    mount: 'stable',
+    scout: 'signal_tower'
+  },
+  elf: {
+    hall: 'elf_heartgrove_hall',
+    army: 'elf_warden_lodge',
+    forge: 'elf_moon_forge',
+    logistics: 'elf_caravan_grove',
+    supply: 'elf_spirit_stores',
+    command: 'elf_council_glade',
+    mount: 'elf_stag_enclosure',
+    scout: 'elf_ward_beacon'
+  },
+  orc: {
+    hall: 'orc_warhold',
+    army: 'orc_clan_yard',
+    forge: 'orc_bone_forge',
+    logistics: 'orc_cartwright',
+    supply: 'orc_smokehouse',
+    command: 'orc_war_council',
+    mount: 'orc_warg_pens',
+    scout: 'orc_watchfire'
+  }
+} satisfies Record<FactionId, Record<string, string>>;
+
+export function getFactionBuildingIds(faction: FactionId) {
+  return factionBuildingIds[faction];
+}
+
 export function getBuildings(faction: FactionId) {
-  return faction === 'human' ? humanBuildings : [];
+  if (faction === 'elf') return elfBuildings;
+  if (faction === 'orc') return orcBuildings;
+  return humanBuildings;
 }
 
 export function getBuildingLevelDefinition(buildingId: string, level: number) {
-  return humanBuildingLevels.find(
+  return [
+    ...humanBuildingLevels,
+    ...elfBuildingLevels,
+    ...orcBuildingLevels
+  ].find(
     definition => definition.buildingId === buildingId && definition.level === level
   ) ?? null;
 }

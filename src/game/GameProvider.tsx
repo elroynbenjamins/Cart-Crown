@@ -11,6 +11,15 @@ import {
   humanResourceSites
 } from './chapter2';
 import {
+  elfChapterThreeNodes,
+  elfChapterTwoNodes,
+  elfThirdRecruitOptions,
+  factionChapterTwoResourceSites,
+  orcChapterThreeNodes,
+  orcChapterTwoNodes,
+  orcThirdRecruitOptions
+} from './factionChapter2';
+import {
   chapterThreeNodes,
   marcherAuxiliaryOptions,
   marcherResourceSites,
@@ -66,12 +75,14 @@ import { analyzeFormation, formationCells, getFactionDoctrines } from './formati
 import {
   canPayBuildingCost,
   getBuildingLevelDefinition,
-  getBuildings
+  getBuildings,
+  getFactionBuildingIds
 } from './kingdom';
 import {
   analyzeSettlementAdjacency,
   applyCostMultiplier,
-  humanSettlementPlots,
+  getInitialSettlementPlacements,
+  getSettlementPlots,
   isSettlementPlotUnlocked
 } from './settlement';
 import { sideModes } from './sideModes';
@@ -198,6 +209,9 @@ type GameContextValue = {
   canUpgradeToFort: boolean;
   lastBattleResult: BattleResult | null;
   canUpgradeSettlement: boolean;
+  factionFortUpgradeAvailable: boolean;
+  canUpgradeFactionFort: boolean;
+  factionBuildingIds: Record<string, string>;
   sideModeDefinitions: SideModeDefinition[];
   expeditionTickets: number;
   expeditionRunsCompleted: number;
@@ -208,10 +222,14 @@ type GameContextValue = {
   completeFactionChapterOneEvent: (
     stage: 'investigation' | 'supply'
   ) => boolean;
+  completeFactionChapterTwoEvent: (
+    stage: 'resource' | 'council'
+  ) => boolean;
   completeMarkedRaiders: () => boolean;
   completeRefugeeCamp: () => boolean;
   upgradeSettlement: () => boolean;
   upgradeToFort: () => boolean;
+  upgradeFactionToFort: () => boolean;
   constructBuilding: (buildingId: string, plotId: string) => boolean;
   moveBuilding: (buildingId: string, targetPlotId: string) => boolean;
   upgradeBuilding: (buildingId: string) => boolean;
@@ -482,9 +500,18 @@ export function GameProvider({
   );
 
   const buildings = useMemo(() => getBuildings(activeFaction), [activeFaction]);
+  const factionBuildingIds = useMemo(
+    () => getFactionBuildingIds(activeFaction),
+    [activeFaction]
+  );
   const settlementAnalysis = useMemo(
-    () => analyzeSettlementAdjacency(buildingPlacements, buildingLevels),
-    [buildingLevels, buildingPlacements]
+    () =>
+      analyzeSettlementAdjacency(
+        buildingPlacements,
+        buildingLevels,
+        activeFaction
+      ),
+    [activeFaction, buildingLevels, buildingPlacements]
   );
   const settlementAdjacencyBonuses = settlementAnalysis.bonuses;
   const settlementEffects = settlementAnalysis.effects;
@@ -496,7 +523,8 @@ export function GameProvider({
         ...marcherResourceSites,
         ...crownroadResourceSites,
         ...capitalResourceSites,
-        ...crownspireResourceSites
+        ...crownspireResourceSites,
+        ...factionChapterTwoResourceSites
       ].filter(site => site.faction === activeFaction),
     [activeFaction]
   );
@@ -541,7 +569,12 @@ export function GameProvider({
     [commanderPathId]
   );
   const commanderBaseRespecCost =
-    commanderPathId && (buildingLevels.war_room ?? 0) >= 2 ? 50 : commanderPathId ? 75 : 0;
+    commanderPathId &&
+    (buildingLevels[factionBuildingIds.command] ?? 0) >= 2
+      ? 50
+      : commanderPathId
+        ? 75
+        : 0;
   const commanderRespecCost = Math.max(
     0,
     commanderBaseRespecCost - settlementEffects.commanderRespecDiscount
@@ -556,6 +589,13 @@ export function GameProvider({
       'hum_banner_captain_reinforcement'
     ].includes(unit.id)
   );
+  const recruitOptions =
+    activeFaction === 'elf'
+      ? elfThirdRecruitOptions
+      : activeFaction === 'orc'
+        ? orcThirdRecruitOptions
+        : humanRecruitOptions;
+
   const completedCampaigns = sharedProgress.completedCampaigns;
 
   const campaignAvailability = useMemo<CampaignAvailability[]>(() => {
@@ -588,16 +628,40 @@ export function GameProvider({
     ];
   }, [completedCampaigns]);
 
+  const factionChapterOneBossWon =
+    activeFaction === 'elf'
+      ? Boolean(chapterNodes.find(node => node.id === 'elf_node_6')?.completed)
+      : activeFaction === 'orc'
+        ? Boolean(chapterNodes.find(node => node.id === 'orc_node_6')?.completed)
+        : false;
+
   const canUpgradeSettlement =
-    holdTheRoadWon &&
-    !settlementUpgraded &&
-    resources.wood >= 90 &&
-    resources.stone >= 20;
+    activeFaction === 'human'
+      ? holdTheRoadWon &&
+        !settlementUpgraded &&
+        resources.wood >= 90 &&
+        resources.stone >= 20
+      : activeFaction === 'elf'
+        ? factionChapterOneBossWon &&
+          Boolean(commanderPathId) &&
+          !settlementUpgraded &&
+          resources.wood >= 70 &&
+          resources.stone >= 15 &&
+          resources.provisions >= 8
+        : factionChapterOneBossWon &&
+          Boolean(commanderPathId) &&
+          !settlementUpgraded &&
+          resources.wood >= 70 &&
+          resources.stone >= 15 &&
+          resources.iron >= 4;
 
   const tollCaptainWon = Boolean(
     chapterNodes.find(node => node.id === 'node_6')?.completed
   );
-  const fortUpgradeAvailable = tollCaptainWon && currentWagonStage.id === 'settlement';
+  const fortUpgradeAvailable =
+    activeFaction === 'human' &&
+    tollCaptainWon &&
+    currentWagonStage.id === 'settlement';
   const canUpgradeToFort =
     fortUpgradeAvailable &&
     (buildingLevels.barracks ?? 0) >= 2 &&
@@ -607,6 +671,29 @@ export function GameProvider({
     resources.wood >= 70 &&
     resources.stone >= 35 &&
     resources.iron >= 10;
+
+  const factionChapterTwoBossWon =
+    activeFaction === 'elf'
+      ? Boolean(chapterNodes.find(node => node.id === 'elf2_node_6')?.completed)
+      : activeFaction === 'orc'
+        ? Boolean(chapterNodes.find(node => node.id === 'orc2_node_6')?.completed)
+        : false;
+
+  const factionFortUpgradeAvailable =
+    activeFaction !== 'human' &&
+    factionChapterTwoBossWon &&
+    currentWagonStage.id === 'settlement';
+
+  const canUpgradeFactionFort =
+    factionFortUpgradeAvailable &&
+    (buildingLevels[factionBuildingIds.army] ?? 0) >= 2 &&
+    (buildingLevels[factionBuildingIds.forge] ?? 0) >= 2 &&
+    (buildingLevels[factionBuildingIds.logistics] ?? 0) >= 2 &&
+    (buildingLevels[factionBuildingIds.command] ?? 0) >= 1 &&
+    resources.gold >= (activeFaction === 'elf' ? 140 : 135) &&
+    resources.wood >= (activeFaction === 'elf' ? 75 : 70) &&
+    resources.stone >= (activeFaction === 'elf' ? 35 : 30) &&
+    resources.iron >= (activeFaction === 'orc' ? 8 : 0);
 
   const townUpgradeAvailable =
     ironProvostWon && currentWagonStage.id === 'fort';
@@ -773,7 +860,7 @@ export function GameProvider({
 
   const snapshot = useMemo<GameSnapshot>(
     () => ({
-      schemaVersion: 10,
+      schemaVersion: 11,
       activeFaction,
       shared: sharedProgress,
       factionStates: {
@@ -845,7 +932,8 @@ export function GameProvider({
           ...marcherResourceSites,
           ...crownroadResourceSites,
           ...capitalResourceSites,
-          ...crownspireResourceSites
+          ...crownspireResourceSites,
+          ...factionChapterTwoResourceSites
         ].find(candidate => candidate.id === siteId);
         if (!site) continue;
         const productionMultiplier =
@@ -1045,6 +1133,172 @@ export function GameProvider({
       setLastBattleResult({
         id: 'orc_blamecaller_result',
         title: 'Blamecaller Defeated',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'elf_last_heartgrove') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf2_node_2')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'elf2_node_2') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'elf2_node_3') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'elf_last_heartgrove_result',
+        title: 'Heartgrove Road Held',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'elf_ward_hunters') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf2_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'elf2_node_4') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'elf2_node_5') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'elf_ward_hunters_result',
+        title: 'Ward Hunters Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'elf_ashroot_stalker') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf2_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'elf2_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setLastBattleResult({
+        id: 'elf_ashroot_stalker_result',
+        title: 'Ashroot Stalker Defeated',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_gather_clans') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc2_node_2')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'orc2_node_2') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'orc2_node_3') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'orc_gather_clans_result',
+        title: 'Clan Road Secured',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_stonejaw_challengers') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc2_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'orc2_node_4') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'orc2_node_5') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'orc_stonejaw_challengers_result',
+        title: 'Stonejaw Challenge Won',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_clanbreaker') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc2_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'orc2_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setLastBattleResult({
+        id: 'orc_clanbreaker_result',
+        title: 'Clanbreaker Defeated',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -1662,6 +1916,98 @@ export function GameProvider({
     return false;
   };
 
+  const completeFactionChapterTwoEvent = (
+    stage: 'resource' | 'council'
+  ) => {
+    if (activeFaction === 'elf') {
+      const nodeId =
+        stage === 'resource' ? 'elf2_node_3' : 'elf2_node_5';
+      const nextId =
+        stage === 'resource' ? 'elf2_node_4' : 'elf2_node_6';
+
+      if (!chapterNodes.find(node => node.id === nodeId)?.current) {
+        return false;
+      }
+
+      if (stage === 'resource') {
+        setUnlockedResourceSites(previous =>
+          previous.includes('elf_moonwell_herbs')
+            ? previous
+            : [...previous, 'elf_moonwell_herbs']
+        );
+        setResources(previous => ({
+          ...previous,
+          wood: previous.wood + 12,
+          provisions: previous.provisions + 8
+        }));
+      } else {
+        setResources(previous => ({
+          ...previous,
+          gold: previous.gold + 20,
+          stone: previous.stone + 6
+        }));
+      }
+
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === nextId) {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      return true;
+    }
+
+    if (activeFaction === 'orc') {
+      const nodeId =
+        stage === 'resource' ? 'orc2_node_3' : 'orc2_node_5';
+      const nextId =
+        stage === 'resource' ? 'orc2_node_4' : 'orc2_node_6';
+
+      if (!chapterNodes.find(node => node.id === nodeId)?.current) {
+        return false;
+      }
+
+      if (stage === 'resource') {
+        setUnlockedResourceSites(previous =>
+          previous.includes('orc_red_plains_hunt')
+            ? previous
+            : [...previous, 'orc_red_plains_hunt']
+        );
+        setResources(previous => ({
+          ...previous,
+          provisions: previous.provisions + 12,
+          iron: previous.iron + 3
+        }));
+      } else {
+        setResources(previous => ({
+          ...previous,
+          gold: previous.gold + 18,
+          wood: previous.wood + 10
+        }));
+      }
+
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === nextId) {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      return true;
+    }
+
+    return false;
+  };
+
   const completeMarkedRaiders = () => {
     if (!holdTheRoadWon || markedRaidersInvestigated) return false;
 
@@ -1711,15 +2057,51 @@ export function GameProvider({
   const upgradeSettlement = () => {
     if (!canUpgradeSettlement) return false;
 
+    if (activeFaction === 'human') {
+      setResources(previous => ({
+        ...previous,
+        wood: previous.wood - 90,
+        stone: previous.stone - 20
+      }));
+      setSettlementUpgraded(true);
+      setBuildingLevels(previous => ({ ...previous, hall: 2 }));
+      setRecruitChoiceAvailable(true);
+      setWagonStageId('settlement');
+      return true;
+    }
+
     setResources(previous => ({
       ...previous,
-      wood: previous.wood - 90,
-      stone: previous.stone - 20
+      wood: previous.wood - 70,
+      stone: previous.stone - 15,
+      iron:
+        previous.iron -
+        (activeFaction === 'orc' ? 4 : 0),
+      provisions:
+        previous.provisions -
+        (activeFaction === 'elf' ? 8 : 0)
     }));
     setSettlementUpgraded(true);
-    setBuildingLevels(previous => ({ ...previous, hall: 2 }));
-    setRecruitChoiceAvailable(true);
     setWagonStageId('settlement');
+    setChapterNumber(2);
+    setChapterNodes(
+      cloneNodes(
+        activeFaction === 'elf'
+          ? elfChapterTwoNodes
+          : orcChapterTwoNodes
+      )
+    );
+    setRecruitChoiceAvailable(true);
+    setRecruitChosen(false);
+    setBuildingLevels(previous => ({
+      ...previous,
+      [factionBuildingIds.hall]: 2,
+      [factionBuildingIds.army]: 1,
+      [factionBuildingIds.logistics]: 1
+    }));
+    setBuildingPlacements(
+      getInitialSettlementPlacements(activeFaction)
+    );
     return true;
   };
 
@@ -1749,18 +2131,95 @@ export function GameProvider({
     return true;
   };
 
+  const upgradeFactionToFort = () => {
+    if (!canUpgradeFactionFort) return false;
+
+    setResources(previous => ({
+      ...previous,
+      gold:
+        previous.gold -
+        (activeFaction === 'elf' ? 140 : 135),
+      wood:
+        previous.wood -
+        (activeFaction === 'elf' ? 75 : 70),
+      stone:
+        previous.stone -
+        (activeFaction === 'elf' ? 35 : 30),
+      iron:
+        previous.iron -
+        (activeFaction === 'orc' ? 8 : 0)
+    }));
+    setWagonStageId('fort');
+    setBuildingLevels(previous => ({
+      ...previous,
+      [factionBuildingIds.hall]: 3
+    }));
+    setChapterNumber(3);
+    setChapterNodes(
+      cloneNodes(
+        activeFaction === 'elf'
+          ? elfChapterThreeNodes
+          : orcChapterThreeNodes
+      )
+    );
+    return true;
+  };
+
   const isBuildingUnlocked = (buildingId: string) => {
-    if (['hall', 'barracks', 'wagonwright'].includes(buildingId)) return true;
-    if (buildingId === 'forge') return forgeUnlocked;
-    if (buildingId === 'war_room') return commanderChoiceUnlocked;
-    if (buildingId === 'quartermaster') return refugeeCampSecured;
-    if (buildingId === 'stable') {
-      return ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
+    if (activeFaction === 'human') {
+      if (['hall', 'barracks', 'wagonwright'].includes(buildingId)) return true;
+      if (buildingId === 'forge') return forgeUnlocked;
+      if (buildingId === 'war_room') return commanderChoiceUnlocked;
+      if (buildingId === 'quartermaster') return refugeeCampSecured;
+      if (buildingId === 'stable') {
+        return ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
+      }
+      if (buildingId === 'signal_tower') return signalTowerUnlocked;
+      if (buildingId === 'officer_academy') {
+        return ['stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
+      }
+      return false;
     }
-    if (buildingId === 'signal_tower') return signalTowerUnlocked;
-    if (buildingId === 'officer_academy') {
-      return ['stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
+
+    if (!settlementUpgraded) return false;
+
+    if (
+      [
+        factionBuildingIds.hall,
+        factionBuildingIds.army,
+        factionBuildingIds.logistics,
+        factionBuildingIds.forge
+      ].includes(buildingId)
+    ) {
+      return true;
     }
+
+    if (buildingId === factionBuildingIds.command) {
+      return commanderChoiceUnlocked;
+    }
+
+    if (buildingId === factionBuildingIds.supply) {
+      return activeFaction === 'elf'
+        ? unlockedResourceSites.includes('elf_moonwell_herbs')
+        : unlockedResourceSites.includes('orc_red_plains_hunt');
+    }
+
+    if (buildingId === factionBuildingIds.scout) {
+      return activeFaction === 'elf'
+        ? Boolean(chapterNodes.find(node => node.id === 'elf2_node_4')?.completed) ||
+            chapterNumber >= 3
+        : Boolean(chapterNodes.find(node => node.id === 'orc2_node_4')?.completed) ||
+            chapterNumber >= 3;
+    }
+
+    if (buildingId === factionBuildingIds.mount) {
+      return activeFaction === 'elf'
+        ? Boolean(chapterNodes.find(node => node.id === 'elf2_node_5')?.completed) ||
+            chapterNumber >= 3
+        : Boolean(chapterNodes.find(node => node.id === 'orc2_node_5')?.completed) ||
+            chapterNumber >= 3;
+    }
+
     return false;
   };
 
@@ -1769,7 +2228,9 @@ export function GameProvider({
     if ((buildingLevels[buildingId] ?? 0) > 0) return false;
 
     const building = buildings.find(candidate => candidate.id === buildingId);
-    const plot = humanSettlementPlots.find(candidate => candidate.id === plotId);
+    const plot = getSettlementPlots(activeFaction).find(
+      candidate => candidate.id === plotId
+    );
 
     if (!building || !plot) return false;
     if (!isSettlementPlotUnlocked(plot, currentWagonStage.id)) return false;
@@ -1792,7 +2253,9 @@ export function GameProvider({
   const moveBuilding = (buildingId: string, targetPlotId: string) => {
     if ((buildingLevels[buildingId] ?? 0) <= 0) return false;
 
-    const targetPlot = humanSettlementPlots.find(plot => plot.id === targetPlotId);
+    const targetPlot = getSettlementPlots(activeFaction).find(
+      plot => plot.id === targetPlotId
+    );
     if (!targetPlot || !isSettlementPlotUnlocked(targetPlot, currentWagonStage.id)) {
       return false;
     }
@@ -1836,10 +2299,12 @@ export function GameProvider({
 
     if (!definition || !canPayBuildingCost(resources, definition.cost)) return false;
 
-    if (buildingId === 'barracks' && !settlementUpgraded) return false;
-    if (buildingId === 'forge' && !markedRaidersInvestigated) return false;
-    if (buildingId === 'quartermaster' && !refugeeCampSecured) return false;
-    if (buildingId === 'war_room' && !commanderPathId) return false;
+    if (activeFaction === 'human') {
+      if (buildingId === 'barracks' && !settlementUpgraded) return false;
+      if (buildingId === 'forge' && !markedRaidersInvestigated) return false;
+      if (buildingId === 'quartermaster' && !refugeeCampSecured) return false;
+      if (buildingId === 'war_room' && !commanderPathId) return false;
+    }
 
     setResources(previous => payCost(previous, definition.cost));
     setBuildingLevels(previous => ({
@@ -1847,7 +2312,7 @@ export function GameProvider({
       [buildingId]: targetLevel
     }));
 
-    if (buildingId === 'quartermaster' && targetLevel === 2) {
+    if (buildingId === factionBuildingIds.supply && targetLevel === 2) {
       setExpeditionTickets(previous => previous + 1);
     }
 
@@ -1857,7 +2322,7 @@ export function GameProvider({
   const chooseRecruit = (choiceId: string) => {
     if (!recruitChoiceAvailable || recruitChosen) return false;
 
-    const choice = humanRecruitOptions.find(option => option.id === choiceId);
+    const choice = recruitOptions.find(option => option.id === choiceId);
     if (!choice) return false;
 
     setUnits(previous => [...previous, { ...choice.unit }]);
@@ -1876,6 +2341,29 @@ export function GameProvider({
     });
     setRecruitChosen(true);
     setRecruitChoiceAvailable(false);
+
+    if (activeFaction === 'elf' || activeFaction === 'orc') {
+      const musterId =
+        activeFaction === 'elf'
+          ? 'elf2_node_1'
+          : 'orc2_node_1';
+      const battleId =
+        activeFaction === 'elf'
+          ? 'elf2_node_2'
+          : 'orc2_node_2';
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === musterId) {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === battleId) {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+    }
+
     return true;
   };
 
@@ -2692,12 +3180,16 @@ export function GameProvider({
     }
 
     setCommanderPathId(pathId);
-    setChapterNodes(previous =>
-      previous.map(node => {
-        if (node.id === 'node_5') return { ...node, current: true };
-        return { ...node, current: false };
-      })
-    );
+
+    if (activeFaction === 'human') {
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+    }
+
     return true;
   };
 
@@ -2771,7 +3263,10 @@ export function GameProvider({
   };
 
   const finishExpedition = () => {
-    const extraWood = (buildingLevels.wagonwright ?? 0) >= 2 ? 1 : 0;
+    const extraWood =
+      (buildingLevels[factionBuildingIds.logistics] ?? 0) >= 2
+        ? 1
+        : 0;
     setExpeditionRunsCompleted(previous => previous + 1);
     accrueRegionalProduction();
     setResources(previous => ({
@@ -2828,7 +3323,10 @@ export function GameProvider({
     }
 
     if (placementId === 'daily_supply') {
-      const quartermasterBonus = (buildingLevels.quartermaster ?? 0) >= 2 ? 5 : 0;
+      const quartermasterBonus =
+        (buildingLevels[factionBuildingIds.supply] ?? 0) >= 2
+          ? 5
+          : 0;
       setResources(previous => ({
         ...previous,
         wood: previous.wood + 15,
@@ -2947,6 +3445,9 @@ export function GameProvider({
       canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,
+      factionFortUpgradeAvailable,
+      canUpgradeFactionFort,
+      factionBuildingIds,
       sideModeDefinitions: sideModes,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -2955,10 +3456,12 @@ export function GameProvider({
       rewardedAdMessage,
       finishEncounter,
       completeFactionChapterOneEvent,
+      completeFactionChapterTwoEvent,
       completeMarkedRaiders,
       completeRefugeeCamp,
       upgradeSettlement,
       upgradeToFort,
+      upgradeFactionToFort,
       constructBuilding,
       moveBuilding,
       upgradeBuilding,
@@ -3004,7 +3507,7 @@ export function GameProvider({
       completeFormationTrial,
       claimRewardedAd,
       completeCampaign,
-      recruitOptions: humanRecruitOptions
+      recruitOptions
     }),
     [
       resources,
@@ -3064,11 +3567,15 @@ export function GameProvider({
       canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,
+      factionFortUpgradeAvailable,
+      canUpgradeFactionFort,
+      factionBuildingIds,
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
       rewardedAdClaims,
-      rewardedAdMessage
+      rewardedAdMessage,
+      recruitOptions
     ]
   );
 

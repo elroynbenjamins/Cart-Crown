@@ -39,13 +39,6 @@ export type WagonItemVisualKind =
   | 'banner'
   | 'repair';
 
-export type EnemyVisualKind =
-  | 'raider'
-  | 'mercenary'
-  | 'ashen'
-  | 'scout'
-  | 'hollow';
-
 export const VISUAL_ASSET_VERSION = 2;
 
 export const unitClassVisuals: Record<string, UnitVisualKind> = {
@@ -112,7 +105,25 @@ export const buildingVisuals: Record<string, BuildingVisualKind> = {
   war_room: 'war_room',
   stable: 'stable',
   signal_tower: 'signal_tower',
-  officer_academy: 'officer_academy'
+  officer_academy: 'officer_academy',
+
+  elf_heartgrove_hall: 'hall',
+  elf_warden_lodge: 'barracks',
+  elf_moon_forge: 'forge',
+  elf_caravan_grove: 'wagonwright',
+  elf_spirit_stores: 'quartermaster',
+  elf_council_glade: 'war_room',
+  elf_stag_enclosure: 'stable',
+  elf_ward_beacon: 'signal_tower',
+
+  orc_warhold: 'hall',
+  orc_clan_yard: 'barracks',
+  orc_bone_forge: 'forge',
+  orc_cartwright: 'wagonwright',
+  orc_smokehouse: 'quartermaster',
+  orc_war_council: 'war_room',
+  orc_warg_pens: 'stable',
+  orc_watchfire: 'signal_tower'
 };
 
 export const resourceVisuals: Record<string, ResourceVisualKind> = {
@@ -153,27 +164,4 @@ export function getBuildingVisualKind(buildingId: string): BuildingVisualKind {
 
 export function getWagonItemVisualKind(itemId: string): WagonItemVisualKind {
   return wagonItemVisuals[itemId] ?? 'rations';
-}
-
-
-export function getEnemyVisualKind(
-  enemyName: string
-): EnemyVisualKind {
-  const key = enemyName.toLowerCase();
-  if (key.includes('hollow') || key.includes('warden')) return 'hollow';
-  if (key.includes('ashen') || key.includes('regent')) return 'ashen';
-  if (key.includes('scout') || key.includes('tracker')) return 'scout';
-  if (
-    key.includes('merc') ||
-    key.includes('guard') ||
-    key.includes('provost') ||
-    key.includes('veteran') ||
-    key.includes('company') ||
-    key.includes('column') ||
-    key.includes('patrol') ||
-    key.includes('host')
-  ) {
-    return 'mercenary';
-  }
-  return 'raider';
 }

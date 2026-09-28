@@ -9,8 +9,8 @@ import {
 import type { ViewStyle } from 'react-native';
 import {
   analyzeSettlementAdjacency,
-  humanAdjacencyBonuses,
-  humanSettlementPlots,
+  getSettlementAdjacencyBonuses,
+  getSettlementPlots,
   isSettlementPlotUnlocked
 } from '../game/settlement';
 import { useGame } from '../game/GameProvider';
@@ -43,6 +43,7 @@ const terrainMarks: Record<string, string> = {
 export function SettlementScreen({ onExit }: { onExit: () => void }) {
   const { theme } = useGameTheme();
   const {
+    activeFaction,
     resources,
     currentWagonStage,
     buildings,
@@ -58,8 +59,17 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  const settlementPlots = getSettlementPlots(activeFaction);
+  const adjacencyRecipes = getSettlementAdjacencyBonuses(activeFaction);
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
+
   const selectedPlot =
-    humanSettlementPlots.find(plot => plot.id === selectedPlotId) ?? null;
+    settlementPlots.find(plot => plot.id === selectedPlotId) ?? null;
   const selectedBuilding =
     buildings.find(building => building.id === selectedBuildingId) ?? null;
 
@@ -109,34 +119,47 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
 
     return analyzeSettlementAdjacency(
       hypotheticalPlacements,
-      hypotheticalLevels
+      hypotheticalLevels,
+      activeFaction
     ).bonuses
       .filter(bonus => !activeBonusIds.has(bonus.id))
       .map(bonus => bonus.name);
   };
 
   const stageLabel =
-    currentWagonStage.id === 'grand'
-      ? 'GREENKEEP GRAND CAMPAIGN'
-      : currentWagonStage.id === 'capital'
-        ? 'GREENKEEP CAPITAL'
-        : currentWagonStage.id === 'stronghold'
-        ? 'GREENKEEP STRONGHOLD'
-        : currentWagonStage.id === 'town'
-        ? 'GREENKEEP TOWN'
-        : currentWagonStage.id === 'fort'
-          ? 'GREENKEEP FORT'
+    activeFaction === 'elf'
+      ? currentWagonStage.id === 'fort'
+        ? 'HEARTGROVE WARDHOLD'
+        : currentWagonStage.id === 'settlement'
+          ? 'HEARTGROVE SANCTUARY'
+          : 'HEARTGROVE REFUGE'
+      : activeFaction === 'orc'
+        ? currentWagonStage.id === 'fort'
+          ? 'EMBERCLAN WARHOLD'
           : currentWagonStage.id === 'settlement'
-            ? 'GREENKEEP SETTLEMENT'
-            : 'REFUGEE CAMP';
+            ? 'EMBERCLAN WARCAMP'
+            : 'EMBERCLAN CAMP'
+        : currentWagonStage.id === 'grand'
+          ? 'GREENKEEP GRAND CAMPAIGN'
+          : currentWagonStage.id === 'capital'
+            ? 'GREENKEEP CAPITAL'
+            : currentWagonStage.id === 'stronghold'
+              ? 'GREENKEEP STRONGHOLD'
+              : currentWagonStage.id === 'town'
+                ? 'GREENKEEP TOWN'
+                : currentWagonStage.id === 'fort'
+                  ? 'GREENKEEP FORT'
+                  : currentWagonStage.id === 'settlement'
+                    ? 'GREENKEEP SETTLEMENT'
+                    : 'REFUGEE CAMP';
 
   return (
     <ScrollView
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <GameCard accent={theme.colors.human}>
-        <Text style={[styles.eyebrow, { color: theme.colors.human }]}>
+      <GameCard accent={factionAccent}>
+        <Text style={[styles.eyebrow, { color: factionAccent }]}>
           SETTLEMENT VIEW
         </Text>
         <Text style={[styles.title, { color: theme.colors.text }]}>
@@ -172,7 +195,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
           ]}
         />
 
-        {humanSettlementPlots.map(plot => {
+        {settlementPlots.map(plot => {
           const unlocked = isSettlementPlotUnlocked(
             plot,
             currentWagonStage.id
@@ -230,7 +253,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                     plotSelected || buildingSelected
                       ? theme.colors.gold
                       : building
-                        ? theme.colors.human
+                        ? factionAccent
                         : theme.colors.border,
                   borderWidth:
                     plotSelected || buildingSelected ? 3 : 1.5,
@@ -519,7 +542,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
       <SectionTitle title="District Recipes" trailing="Orthogonal" />
       <GameCard>
         <View style={styles.recipeList}>
-          {humanAdjacencyBonuses.map(bonus => {
+          {adjacencyRecipes.map(bonus => {
             const first =
               buildings.find(building => building.id === bonus.buildingA);
             const second =

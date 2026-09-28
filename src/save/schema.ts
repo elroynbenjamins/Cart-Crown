@@ -23,7 +23,7 @@ import type {
   SaveSlotMetadata
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 10;
+export const SAVE_SCHEMA_VERSION = 11;
 
 export function createHumanFactionState(): FactionGameState {
   return {
@@ -116,15 +116,14 @@ export function createElfFactionState(): FactionGameState {
     chapterNodes: elfChapterOneNodes.map(node => ({ ...node })),
     formationDoctrineId: 'elf_open',
     buildingLevels: {
-      hall: 0,
-      barracks: 0,
-      forge: 0,
-      wagonwright: 0,
-      quartermaster: 0,
-      war_room: 0,
-      stable: 0,
-      signal_tower: 0,
-      officer_academy: 0
+      elf_heartgrove_hall: 0,
+      elf_warden_lodge: 0,
+      elf_moon_forge: 0,
+      elf_caravan_grove: 0,
+      elf_spirit_stores: 0,
+      elf_council_glade: 0,
+      elf_stag_enclosure: 0,
+      elf_ward_beacon: 0
     },
     buildingPlacements: {
       plot_nw: null,
@@ -164,15 +163,14 @@ export function createOrcFactionState(): FactionGameState {
     chapterNodes: orcChapterOneNodes.map(node => ({ ...node })),
     formationDoctrineId: 'orc_warband',
     buildingLevels: {
-      hall: 0,
-      barracks: 0,
-      forge: 0,
-      wagonwright: 0,
-      quartermaster: 0,
-      war_room: 0,
-      stable: 0,
-      signal_tower: 0,
-      officer_academy: 0
+      orc_warhold: 0,
+      orc_clan_yard: 0,
+      orc_bone_forge: 0,
+      orc_cartwright: 0,
+      orc_smokehouse: 0,
+      orc_war_council: 0,
+      orc_warg_pens: 0,
+      orc_watchfire: 0
     },
     buildingPlacements: {
       plot_nw: null,
@@ -230,33 +228,63 @@ export function metadataFromSnapshot(
   let chapterLabel = 'Chapter 1 · Hold the Road';
 
   if (current.faction === 'elf') {
-    chapterLabel = current.commanderChoiceUnlocked
-      ? current.commanderPathId
-        ? 'Elf Chapter 1 Complete · Commander Chosen'
-        : 'Elf Chapter 1 Complete · Choose Commander'
-      : current.chapterNodes.find(node => node.id === 'elf_node_6')?.current
-        ? 'Elf Chapter 1 · The Hollow Warden'
-        : current.chapterNodes.find(node => node.id === 'elf_node_5')?.current
-          ? 'Elf Chapter 1 · Wayfarer Camp'
-          : current.chapterNodes.find(node => node.id === 'elf_node_4')?.current
-            ? 'Elf Chapter 1 · Ashen Tracks'
-            : current.chapterNodes.find(node => node.id === 'elf_node_3')?.current
-              ? 'Elf Chapter 1 · Whispering Roots'
-              : 'Elf Chapter 1 · Wardbreakers';
+    chapterLabel =
+      current.chapterNumber >= 3
+        ? 'Elf Chapter 3 · Moonlit Pass Muster'
+        : current.chapterNumber === 2
+          ? current.chapterNodes.find(node => node.id === 'elf2_node_6')?.current
+            ? 'Elf Chapter 2 · Ashroot Stalker'
+            : current.chapterNodes.find(node => node.id === 'elf2_node_5')?.current
+              ? 'Elf Chapter 2 · Root Council'
+              : current.chapterNodes.find(node => node.id === 'elf2_node_4')?.current
+                ? 'Elf Chapter 2 · Ward Hunters'
+                : current.chapterNodes.find(node => node.id === 'elf2_node_3')?.current
+                  ? 'Elf Chapter 2 · Moonwell Grove'
+                  : current.chapterNodes.find(node => node.id === 'elf2_node_2')?.current
+                    ? 'Elf Chapter 2 · The Last Heartgrove'
+                    : 'Elf Chapter 2 · Sanctuary Muster'
+          : current.commanderChoiceUnlocked
+            ? current.commanderPathId
+              ? 'Elf Chapter 1 Complete · Build Sanctuary'
+              : 'Elf Chapter 1 Complete · Choose Commander'
+            : current.chapterNodes.find(node => node.id === 'elf_node_6')?.current
+              ? 'Elf Chapter 1 · The Hollow Warden'
+              : current.chapterNodes.find(node => node.id === 'elf_node_5')?.current
+                ? 'Elf Chapter 1 · Wayfarer Camp'
+                : current.chapterNodes.find(node => node.id === 'elf_node_4')?.current
+                  ? 'Elf Chapter 1 · Ashen Tracks'
+                  : current.chapterNodes.find(node => node.id === 'elf_node_3')?.current
+                    ? 'Elf Chapter 1 · Whispering Roots'
+                    : 'Elf Chapter 1 · Wardbreakers';
   } else if (current.faction === 'orc') {
-    chapterLabel = current.commanderChoiceUnlocked
-      ? current.commanderPathId
-        ? 'Orc Chapter 1 Complete · Commander Chosen'
-        : 'Orc Chapter 1 Complete · Choose Commander'
-      : current.chapterNodes.find(node => node.id === 'orc_node_6')?.current
-        ? 'Orc Chapter 1 · The Blamecaller'
-        : current.chapterNodes.find(node => node.id === 'orc_node_5')?.current
-          ? 'Orc Chapter 1 · Gathering Fire'
-          : current.chapterNodes.find(node => node.id === 'orc_node_4')?.current
-            ? 'Orc Chapter 1 · Invader Scouts'
-            : current.chapterNodes.find(node => node.id === 'orc_node_3')?.current
-              ? 'Orc Chapter 1 · Broken Clan Marks'
-              : 'Orc Chapter 1 · Blood on the Red Road';
+    chapterLabel =
+      current.chapterNumber >= 3
+        ? 'Orc Chapter 3 · Stonejaw Muster'
+        : current.chapterNumber === 2
+          ? current.chapterNodes.find(node => node.id === 'orc2_node_6')?.current
+            ? 'Orc Chapter 2 · Clanbreaker'
+            : current.chapterNodes.find(node => node.id === 'orc2_node_5')?.current
+              ? 'Orc Chapter 2 · Warfire Council'
+              : current.chapterNodes.find(node => node.id === 'orc2_node_4')?.current
+                ? 'Orc Chapter 2 · Stonejaw Challengers'
+                : current.chapterNodes.find(node => node.id === 'orc2_node_3')?.current
+                  ? 'Orc Chapter 2 · Warg Pens'
+                  : current.chapterNodes.find(node => node.id === 'orc2_node_2')?.current
+                    ? 'Orc Chapter 2 · Gather the Clans'
+                    : 'Orc Chapter 2 · Clan Muster'
+          : current.commanderChoiceUnlocked
+            ? current.commanderPathId
+              ? 'Orc Chapter 1 Complete · Raise Warcamp'
+              : 'Orc Chapter 1 Complete · Choose Commander'
+            : current.chapterNodes.find(node => node.id === 'orc_node_6')?.current
+              ? 'Orc Chapter 1 · The Blamecaller'
+              : current.chapterNodes.find(node => node.id === 'orc_node_5')?.current
+                ? 'Orc Chapter 1 · Gathering Fire'
+                : current.chapterNodes.find(node => node.id === 'orc_node_4')?.current
+                  ? 'Orc Chapter 1 · Invader Scouts'
+                  : current.chapterNodes.find(node => node.id === 'orc_node_3')?.current
+                    ? 'Orc Chapter 1 · Broken Clan Marks'
+                    : 'Orc Chapter 1 · Blood on the Red Road';
   } else if (humanComplete) {
     chapterLabel = 'Human Campaign Complete · Oath Seal';
   } else if (current.chapterNumber >= 6) {
@@ -341,9 +369,17 @@ export function metadataFromSnapshot(
 
   const kingdomName =
     current.faction === 'elf'
-      ? 'Heartgrove Refuge'
+      ? current.wagonStageId === 'fort'
+        ? 'Heartgrove Wardhold'
+        : current.settlementUpgraded
+          ? 'Heartgrove Sanctuary'
+          : 'Heartgrove Refuge'
       : current.faction === 'orc'
-        ? 'Emberclan Camp'
+        ? current.wagonStageId === 'fort'
+          ? 'Emberclan Warhold'
+          : current.settlementUpgraded
+            ? 'Emberclan Warcamp'
+            : 'Emberclan Camp'
         : current.wagonStageId === 'grand'
           ? 'Greenkeep Grand Campaign'
           : current.wagonStageId === 'capital'

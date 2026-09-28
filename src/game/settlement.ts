@@ -1,6 +1,7 @@
 import type {
   ActiveSettlementAdjacencyBonus,
   BuildingDefinition,
+  FactionId,
   ResourceWallet,
   SettlementAdjacencyBonusDefinition,
   SettlementAdjacencyEffects,
@@ -27,6 +28,30 @@ export const initialHumanPlacements: Record<string, string | null> = {
   plot_w: 'barracks',
   plot_center: 'hall',
   plot_e: 'wagonwright',
+  plot_sw: null,
+  plot_s: null,
+  plot_se: null
+};
+
+export const initialElfPlacements: Record<string, string | null> = {
+  plot_nw: null,
+  plot_n: null,
+  plot_ne: null,
+  plot_w: 'elf_warden_lodge',
+  plot_center: 'elf_heartgrove_hall',
+  plot_e: 'elf_caravan_grove',
+  plot_sw: null,
+  plot_s: null,
+  plot_se: null
+};
+
+export const initialOrcPlacements: Record<string, string | null> = {
+  plot_nw: null,
+  plot_n: null,
+  plot_ne: null,
+  plot_w: 'orc_clan_yard',
+  plot_center: 'orc_warhold',
+  plot_e: 'orc_cartwright',
   plot_sw: null,
   plot_s: null,
   plot_se: null
@@ -96,6 +121,116 @@ export const humanAdjacencyBonuses: SettlementAdjacencyBonusDefinition[] = [
   }
 ];
 
+export const elfAdjacencyBonuses: SettlementAdjacencyBonusDefinition[] = [
+  {
+    id: 'mooncraft_circle',
+    name: 'Mooncraft Circle',
+    buildingA: 'elf_warden_lodge',
+    buildingB: 'elf_moon_forge',
+    description: 'Wardens test moon-forged equipment directly beside the training lodge.',
+    effectText: '-10% equipment crafting and upgrade costs',
+    effects: { equipmentCostMultiplier: 0.9 }
+  },
+  {
+    id: 'rootway_stores',
+    name: 'Rootway Stores',
+    buildingA: 'elf_caravan_grove',
+    buildingB: 'elf_spirit_stores',
+    description: 'Herbs and supplies are loaded directly into the Wayfarer Caravan.',
+    effectText: '+2 Wood and +3 Provisions from Expeditions; +5 Daily Supply Provisions',
+    effects: {
+      expeditionWoodBonus: 2,
+      expeditionProvisionBonus: 3,
+      dailyProvisionBonus: 5
+    }
+  },
+  {
+    id: 'stag_warden_path',
+    name: 'Stag Warden Path',
+    buildingA: 'elf_warden_lodge',
+    buildingB: 'elf_stag_enclosure',
+    description: 'Scouts and Stag keepers train on the same rootway.',
+    effectText: '-15% mount crafting costs',
+    effects: { mountCostMultiplier: 0.85 }
+  },
+  {
+    id: 'far_sight_circle',
+    name: 'Far-Sight Circle',
+    buildingA: 'elf_council_glade',
+    buildingB: 'elf_ward_beacon',
+    description: 'Council seers interpret ward-signals before the army moves.',
+    effectText: '+15% commander skill power and detailed Battle Prep intel',
+    effects: {
+      commanderSkillPowerMultiplier: 1.15,
+      detailedIntel: true
+    }
+  },
+  {
+    id: 'heartgrove_council',
+    name: 'Heartgrove Council',
+    buildingA: 'elf_heartgrove_hall',
+    buildingB: 'elf_council_glade',
+    description: 'The commander advises the Sanctuary directly beneath the old boughs.',
+    effectText: '-15 Gold commander retraining cost',
+    effects: { commanderRespecDiscount: 15 }
+  }
+];
+
+export const orcAdjacencyBonuses: SettlementAdjacencyBonusDefinition[] = [
+  {
+    id: 'war_smiths',
+    name: 'War Smiths',
+    buildingA: 'orc_clan_yard',
+    buildingB: 'orc_bone_forge',
+    description: 'Clan fighters test weapons while the forge is still hot.',
+    effectText: '-10% equipment crafting and upgrade costs',
+    effects: { equipmentCostMultiplier: 0.9 }
+  },
+  {
+    id: 'raid_stores',
+    name: 'Raid Stores',
+    buildingA: 'orc_cartwright',
+    buildingB: 'orc_smokehouse',
+    description: 'Preserved hunt supplies are packed straight into the War Cart.',
+    effectText: '+3 Wood and +2 Provisions from Expeditions; +5 Daily Supply Provisions',
+    effects: {
+      expeditionWoodBonus: 3,
+      expeditionProvisionBonus: 2,
+      dailyProvisionBonus: 5
+    }
+  },
+  {
+    id: 'pack_yard',
+    name: 'Pack Yard',
+    buildingA: 'orc_clan_yard',
+    buildingB: 'orc_warg_pens',
+    description: 'Young Wargs train beside the warbands they will eventually carry.',
+    effectText: '-15% mount crafting costs',
+    effects: { mountCostMultiplier: 0.85 }
+  },
+  {
+    id: 'war_signals',
+    name: 'War Signals',
+    buildingA: 'orc_war_council',
+    buildingB: 'orc_watchfire',
+    description: 'Watchfires feed battlefield information directly into the War Council.',
+    effectText: '+15% commander skill power and detailed Battle Prep intel',
+    effects: {
+      commanderSkillPowerMultiplier: 1.15,
+      detailedIntel: true
+    }
+  },
+  {
+    id: 'chieftain_seat',
+    name: 'Chieftain Seat',
+    buildingA: 'orc_warhold',
+    buildingB: 'orc_war_council',
+    description: 'The War Council meets beside the clan seat instead of through messengers.',
+    effectText: '-15 Gold commander retraining cost',
+    effects: { commanderRespecDiscount: 15 }
+  }
+];
+
 const stageRank: Record<WagonStage['id'], number> = {
   camp: 0,
   settlement: 1,
@@ -126,6 +261,22 @@ export const defaultSettlementEffects: SettlementAdjacencyEffects = {
   detailedIntel: false
 };
 
+export function getSettlementPlots(_faction: FactionId) {
+  return humanSettlementPlots;
+}
+
+export function getInitialSettlementPlacements(faction: FactionId) {
+  if (faction === 'elf') return { ...initialElfPlacements };
+  if (faction === 'orc') return { ...initialOrcPlacements };
+  return { ...initialHumanPlacements };
+}
+
+export function getSettlementAdjacencyBonuses(faction: FactionId) {
+  if (faction === 'elf') return elfAdjacencyBonuses;
+  if (faction === 'orc') return orcAdjacencyBonuses;
+  return humanAdjacencyBonuses;
+}
+
 export function isSettlementPlotUnlocked(
   plot: SettlementPlotDefinition,
   wagonStageId: string
@@ -145,19 +296,21 @@ export function arePlotsOrthogonallyAdjacent(
 
 function findPlacedPlot(
   placements: Record<string, string | null>,
-  buildingId: string
+  buildingId: string,
+  faction: FactionId
 ) {
   const plotId = Object.entries(placements).find(
     ([, value]) => value === buildingId
   )?.[0];
   return plotId
-    ? humanSettlementPlots.find(plot => plot.id === plotId) ?? null
+    ? getSettlementPlots(faction).find(plot => plot.id === plotId) ?? null
     : null;
 }
 
 export function analyzeSettlementAdjacency(
   placements: Record<string, string | null>,
-  buildingLevels: Record<string, number>
+  buildingLevels: Record<string, number>,
+  faction: FactionId = 'human'
 ): {
   bonuses: ActiveSettlementAdjacencyBonus[];
   effects: SettlementAdjacencyEffects;
@@ -165,7 +318,7 @@ export function analyzeSettlementAdjacency(
   const bonuses: ActiveSettlementAdjacencyBonus[] = [];
   const effects: SettlementAdjacencyEffects = { ...defaultSettlementEffects };
 
-  for (const definition of humanAdjacencyBonuses) {
+  for (const definition of getSettlementAdjacencyBonuses(faction)) {
     if (
       (buildingLevels[definition.buildingA] ?? 0) <= 0 ||
       (buildingLevels[definition.buildingB] ?? 0) <= 0
@@ -173,8 +326,8 @@ export function analyzeSettlementAdjacency(
       continue;
     }
 
-    const plotA = findPlacedPlot(placements, definition.buildingA);
-    const plotB = findPlacedPlot(placements, definition.buildingB);
+    const plotA = findPlacedPlot(placements, definition.buildingA, faction);
+    const plotB = findPlacedPlot(placements, definition.buildingB, faction);
 
     if (!plotA || !plotB || !arePlotsOrthogonallyAdjacent(plotA, plotB)) {
       continue;

@@ -54,6 +54,12 @@ export function CampaignScreen({
   onStartFactionEliteBattle,
   onOpenFactionSupply,
   onStartFactionBoss,
+  onOpenFactionChapterTwoRecruitment,
+  onStartFactionChapterTwoBattle,
+  onOpenFactionChapterTwoResource,
+  onStartFactionChapterTwoElite,
+  onOpenFactionChapterTwoCouncil,
+  onStartFactionChapterTwoBoss,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -97,6 +103,12 @@ export function CampaignScreen({
   onStartFactionEliteBattle: () => void;
   onOpenFactionSupply: () => void;
   onStartFactionBoss: () => void;
+  onOpenFactionChapterTwoRecruitment: () => void;
+  onStartFactionChapterTwoBattle: () => void;
+  onOpenFactionChapterTwoResource: () => void;
+  onStartFactionChapterTwoElite: () => void;
+  onOpenFactionChapterTwoCouncil: () => void;
+  onStartFactionChapterTwoBoss: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -145,6 +157,12 @@ export function CampaignScreen({
         onStartEliteBattle={onStartFactionEliteBattle}
         onOpenSupply={onOpenFactionSupply}
         onStartBoss={onStartFactionBoss}
+        onOpenChapterTwoRecruitment={onOpenFactionChapterTwoRecruitment}
+        onStartChapterTwoBattle={onStartFactionChapterTwoBattle}
+        onOpenChapterTwoResource={onOpenFactionChapterTwoResource}
+        onStartChapterTwoElite={onStartFactionChapterTwoElite}
+        onOpenChapterTwoCouncil={onOpenFactionChapterTwoCouncil}
+        onStartChapterTwoBoss={onStartFactionChapterTwoBoss}
       />
     );
   }

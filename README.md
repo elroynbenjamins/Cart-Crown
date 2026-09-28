@@ -493,3 +493,94 @@ Defeating the Blamecaller unlocks the Orc commander choice:
 - Warcaller
 
 Both Chapter 1s now have faction-specific evidence, supply rewards, battle results and save-slot objective labels.
+
+
+## Elf and Orc settlement progression
+
+Alternate factions now grow visible settlements instead of reusing Greenkeep.
+
+### Elves
+
+Chapter 1 completion + an Elf commander allows construction of **Heartgrove Sanctuary**.
+
+The Sanctuary:
+- expands the Wayfarer Caravan from 4×4 to 4×5
+- raises active squad capacity from 2 to 3
+- opens **Sanctuary Muster**
+- enables the visual settlement placement screen
+
+Elf buildings:
+- Heartgrove Sanctuary
+- Warden Lodge
+- Moon Forge
+- Caravan Grove
+- Spirit Stores
+- Council Glade
+- Stag Enclosure
+- Ward Beacon
+
+Elf adjacency:
+- Warden Lodge + Moon Forge → **Mooncraft Circle**
+- Caravan Grove + Spirit Stores → **Rootway Stores**
+- Warden Lodge + Stag Enclosure → **Stag Warden Path**
+- Council Glade + Ward Beacon → **Far-Sight Circle**
+- Heartgrove Sanctuary + Council Glade → **Heartgrove Council**
+
+### Orcs
+
+Chapter 1 completion + an Orc commander allows construction of **Emberclan Warcamp**.
+
+The Warcamp:
+- expands the War Cart from 4×4 to 4×5
+- raises active squad capacity from 2 to 3
+- opens **Clan Muster**
+- enables the visual settlement placement screen
+
+Orc buildings:
+- Emberclan Warhold
+- Clan Yard
+- Bone Forge
+- War Cartwright
+- Smokehouse
+- War Council
+- Warg Pens
+- Watchfire
+
+Orc adjacency:
+- Clan Yard + Bone Forge → **War Smiths**
+- War Cartwright + Smokehouse → **Raid Stores**
+- Clan Yard + Warg Pens → **Pack Yard**
+- War Council + Watchfire → **War Signals**
+- Emberclan Warhold + War Council → **Chieftain Seat**
+
+## Elf Chapter 2 — The Last Heartgrove
+
+1. Sanctuary Muster — choose a third squad
+   - Grove Acolyte
+   - Bow Warden
+   - Stag Scout
+2. The Last Heartgrove
+3. Moonwell Grove
+4. Ward Hunters
+5. Root Council
+6. Ashroot Stalker
+
+Chapter 2 unlocks Moonwell regional production, Spirit Stores, Ward Beacon and Stag Enclosure.
+
+Defeating the Ashroot Stalker unlocks the **Heartgrove Wardhold** project. The Wardhold expands the caravan to 5×5, raises active squad capacity to 4 and begins Chapter 3 / Moonlit Pass.
+
+## Orc Chapter 2 — Gather the Clans
+
+1. Clan Muster — choose a third squad
+   - Clan Warrior
+   - War Drummer
+   - Warg Scout
+2. Gather the Clans
+3. Warg Pens
+4. Stonejaw Challengers
+5. Warfire Council
+6. Clanbreaker
+
+Chapter 2 unlocks Red Plains Hunt production, Smokehouse, Watchfire and Warg Pens.
+
+Defeating the Clanbreaker unlocks the **Emberclan Warhold** project. The Warhold expands the War Cart to 5×5, raises active squad capacity to 4 and begins Chapter 3 / The Stonejaw Trial.
