@@ -28,9 +28,11 @@ import {
 } from './factionChapter3';
 import {
   elfChapterFiveNodes,
+  elfChapterFiveReinforcement,
   elfFifthRecruitOptions,
   factionChapterFourResourceSites,
   orcChapterFiveNodes,
+  orcChapterFiveReinforcement,
   orcFifthRecruitOptions
 } from './factionChapter4';
 import {
@@ -3084,6 +3086,21 @@ export function GameProvider({
           gold: previous.gold + 25,
           provisions: previous.provisions + 25
         }));
+        setUnits(previous =>
+          previous.some(unit => unit.id === elfChapterFiveReinforcement.id)
+            ? previous
+            : [...previous, { ...elfChapterFiveReinforcement }]
+        );
+        setFormation(previous => {
+          if (previous.includes(elfChapterFiveReinforcement.id)) return previous;
+          const next = [...previous];
+          const preferredSlots = [0, 2, 1, 3, 5, 4, 6, 8, 7];
+          const empty = preferredSlots.find(slot => next[slot] === null);
+          if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
+            next[empty] = elfChapterFiveReinforcement.id;
+          }
+          return next;
+        });
       } else if (stage === 'resource') {
         setUnlockedResourceSites(previous =>
           previous.includes('elf_worldroot_nursery')
@@ -3142,6 +3159,21 @@ export function GameProvider({
           gold: previous.gold + 20,
           provisions: previous.provisions + 28
         }));
+        setUnits(previous =>
+          previous.some(unit => unit.id === orcChapterFiveReinforcement.id)
+            ? previous
+            : [...previous, { ...orcChapterFiveReinforcement }]
+        );
+        setFormation(previous => {
+          if (previous.includes(orcChapterFiveReinforcement.id)) return previous;
+          const next = [...previous];
+          const preferredSlots = [0, 2, 1, 3, 5, 4, 6, 8, 7];
+          const empty = preferredSlots.find(slot => next[slot] === null);
+          if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
+            next[empty] = orcChapterFiveReinforcement.id;
+          }
+          return next;
+        });
       } else if (stage === 'resource') {
         setUnlockedResourceSites(previous =>
           previous.includes('orc_united_clan_depot')
@@ -4765,13 +4797,46 @@ export function GameProvider({
   const completeFormationTrial = () => {
     if (!isSideModeUnlocked('formation_trials') || formationTrialCompleted) return false;
 
-    const harlan = formation.indexOf('hum_militia');
-    const mira = formation.indexOf('hum_recruit');
-    const harlanFront = harlan >= 0 && harlan <= 2;
-    const miraBehind = mira >= 3;
-    const sameColumn = harlan >= 0 && mira >= 0 && harlan % 3 === mira % 3;
+    const occupiedSlots = formation
+      .map((unitId, index) => (unitId ? index : -1))
+      .filter(index => index >= 0);
+    const areOrthogonallyAdjacent = (a: number, b: number) => {
+      const aRow = Math.floor(a / 3);
+      const aColumn = a % 3;
+      const bRow = Math.floor(b / 3);
+      const bColumn = b % 3;
+      return Math.abs(aRow - bRow) + Math.abs(aColumn - bColumn) === 1;
+    };
 
-    if (!harlanFront || !miraBehind || !sameColumn) return false;
+    let trialReady = false;
+
+    if (activeFaction === 'human') {
+      const harlan = formation.indexOf('hum_militia');
+      const mira = formation.indexOf('hum_recruit');
+      const harlanFront = harlan >= 0 && harlan <= 2;
+      const miraBehind = mira >= 3;
+      const sameColumn =
+        harlan >= 0 && mira >= 0 && harlan % 3 === mira % 3;
+      trialReady = harlanFront && miraBehind && sameColumn;
+    } else if (activeFaction === 'elf') {
+      trialReady =
+        occupiedSlots.length >= 2 &&
+        occupiedSlots.every((slot, index) =>
+          occupiedSlots
+            .slice(index + 1)
+            .every(other => !areOrthogonallyAdjacent(slot, other))
+        );
+    } else {
+      trialReady =
+        occupiedSlots.length >= 2 &&
+        occupiedSlots.some((slot, index) =>
+          occupiedSlots
+            .slice(index + 1)
+            .some(other => areOrthogonallyAdjacent(slot, other))
+        );
+    }
+
+    if (!trialReady) return false;
 
     setFormationTrialCompleted(true);
     setResources(previous => ({
