@@ -8,7 +8,8 @@ import {
   GameCard,
   Pill,
   PrimaryButton,
-  SectionTitle
+  SectionTitle,
+  StatusPill
 } from '../ui/components';
 import { CampaignNodeSprite, FactionCrest, RegionMapBackdrop } from '../ui/gameArt';
 
@@ -214,7 +215,7 @@ export function FactionOpeningCampaignScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={accent}>
+      <GameCard accent={accent} faction={activeFaction}>
         <View style={styles.chapterHero}>
           <View style={styles.chapterCopy}>
             <Text style={[styles.eyebrow, { color: accent }]}>
@@ -253,7 +254,7 @@ export function FactionOpeningCampaignScreen({
         </View>
       </GameCard>
 
-      <GameCard accent={accent}>
+      <GameCard accent={accent} faction={activeFaction}>
         <Text style={[styles.mechanicLabel, { color: theme.colors.textMuted }]}>
           UNIQUE MECHANIC · {faction.mechanicName.toUpperCase()}
         </Text>
@@ -434,7 +435,11 @@ export function FactionOpeningCampaignScreen({
               {index > 0 ? (
                 <View style={[styles.connector, { backgroundColor: theme.colors.border }]} />
               ) : null}
-              <GameCard accent={node.current ? accent : undefined}>
+              <GameCard
+                accent={node.current ? accent : undefined}
+                faction={activeFaction}
+                state={node.completed ? 'ready' : node.current ? 'selected' : 'locked'}
+              >
                 <View style={styles.nodeRow}>
                   <View
                     style={[
@@ -463,7 +468,22 @@ export function FactionOpeningCampaignScreen({
                       {node.type.toUpperCase()}
                     </Text>
                   </View>
-                  <Pill label={status} />
+                  <StatusPill
+                    label={status}
+                    tone={
+                      node.completed
+                        ? 'done'
+                        : bossPlayable
+                          ? 'boss'
+                          : elitePlayable
+                            ? 'elite'
+                            : playable
+                              ? 'ready'
+                              : node.current
+                                ? 'current'
+                                : 'locked'
+                    }
+                  />
                 </View>
 
                 {playable && action ? (
@@ -531,7 +551,18 @@ export function FactionOpeningCampaignScreen({
                 : theme.colors.orc;
 
           return (
-            <GameCard key={id} accent={current ? factionAccent : undefined}>
+            <GameCard
+              key={id}
+              accent={current ? factionAccent : undefined}
+              faction={id}
+              state={
+                current
+                  ? 'selected'
+                  : availability?.unlocked
+                    ? 'default'
+                    : 'locked'
+              }
+            >
               <View style={styles.factionHeader}>
                 <FactionCrest faction={id} size={38} />
                 <View style={styles.factionCopy}>
@@ -542,7 +573,7 @@ export function FactionOpeningCampaignScreen({
                     {definition.campaignName}
                   </Text>
                 </View>
-                <Pill
+                <StatusPill
                   label={
                     current
                       ? 'CURRENT'
@@ -551,6 +582,15 @@ export function FactionOpeningCampaignScreen({
                         : availability?.unlocked
                           ? 'AVAILABLE'
                           : 'LOCKED'
+                  }
+                  tone={
+                    current
+                      ? 'current'
+                      : availability?.completed
+                        ? 'done'
+                        : availability?.unlocked
+                          ? 'available'
+                          : 'locked'
                   }
                 />
               </View>
