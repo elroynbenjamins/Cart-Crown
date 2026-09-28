@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle } from '../ui/components';
+import { FactionCrest, StoryScene } from '../ui/gameArt';
 
 export function RoyalDecreesScreen({
   onExit
@@ -42,11 +43,19 @@ export function RoyalDecreesScreen({
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <GameCard accent={theme.colors.gold}>
-        <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>CAPITAL ADMINISTRATION</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Royal Decrees</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          Greenkeep now governs more than one road and settlement. One decree can be active at a time. The first choice is free; replacing it later costs {royalDecreeSwitchCost} Gold.
-        </Text>
+        <View style={styles.heroRow}>
+          <View style={styles.heroCopy}>
+            <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>CAPITAL ADMINISTRATION</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>Royal Decrees</Text>
+            <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+              Greenkeep now governs more than one road and settlement. One decree can be active at a time. The first choice is free; replacing it later costs {royalDecreeSwitchCost} Gold.
+            </Text>
+          </View>
+          <FactionCrest faction="human" size={52} />
+        </View>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="grand_council" size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title="Choose the Capital’s priority" trailing={activeRoyalDecree ? '1 active' : 'Choose 1'} />
@@ -126,6 +135,9 @@ export function RoyalDecreesScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 13 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  heroCopy: { flex: 1 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12, lineHeight: 18, marginTop: 6 },
