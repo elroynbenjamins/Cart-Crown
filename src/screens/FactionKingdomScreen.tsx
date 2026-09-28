@@ -12,7 +12,7 @@ import {
   ResourceChip,
   SectionTitle
 } from '../ui/components';
-import { BuildingSprite, SettlementStageSprite } from '../ui/gameArt';
+import { BuildingSprite, ResourceSiteSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
 
 const resourceIcons: Record<keyof ResourceWallet, string> = {
   gold: '🪙',
@@ -156,10 +156,10 @@ export function FactionKingdomScreen({
       </GameCard>
 
       <View style={styles.resources}>
-        <ResourceChip icon="🪙" value={resources.gold} label="Gold" />
-        <ResourceChip icon="🪵" value={resources.wood} label="Wood" />
-        <ResourceChip icon="🪨" value={resources.stone} label="Stone" />
-        <ResourceChip icon="⛓" value={resources.iron} label="Iron" />
+        <ResourceChip art={<ResourceSprite resource="gold" size={28} />} value={resources.gold} label="Gold" />
+        <ResourceChip art={<ResourceSprite resource="wood" size={28} />} value={resources.wood} label="Wood" />
+        <ResourceChip art={<ResourceSprite resource="stone" size={28} />} value={resources.stone} label="Stone" />
+        <ResourceChip art={<ResourceSprite resource="iron" size={28} />} value={resources.iron} label="Iron" />
       </View>
 
       <GameCard>
@@ -220,7 +220,7 @@ export function FactionKingdomScreen({
               .filter(site => unlockedResourceSites.includes(site.id))
               .map(site => (
                 <GameCard key={site.id} style={styles.productionCard} accent={accent}>
-                  <Text style={styles.productionIcon}>{site.icon}</Text>
+                  <View style={styles.productionIcon}><ResourceSiteSprite siteId={site.id} faction={activeFaction} size={44} /></View>
                   <Text style={[styles.productionName, { color: theme.colors.text }]}>{site.name}</Text>
                   <Text style={[styles.productionRate, { color: accent }]}>
                     {Object.entries(site.productionPerActivity)
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   commanderCopy: { flex: 1 },
   productionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   productionCard: { width: '48%' },
-  productionIcon: { fontSize: 23 },
+  productionIcon: { height: 46, alignItems: 'center', justifyContent: 'center' },
   productionName: { fontSize: 12.5, fontWeight: '900', marginTop: 5 },
   productionRate: { fontSize: 9, fontWeight: '900', lineHeight: 14, marginTop: 6 },
   productionStock: { fontSize: 10.5, fontWeight: '900', lineHeight: 16, marginTop: 6 },

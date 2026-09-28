@@ -8,7 +8,7 @@ import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
-import { CampaignNodeSprite, FactionCrest } from '../ui/gameArt';
+import { CampaignNodeSprite, FactionCrest, RegionMapBackdrop } from '../ui/gameArt';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 
 type CampaignView = 'story' | 'activities' | 'factions';
@@ -230,6 +230,7 @@ export function CampaignScreen({
       <SectionTitle title="Caelora" trailing="Western frontier" />
 
       <View style={[styles.map, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+        <RegionMapBackdrop faction="human" chapter={chapterNumber} />
         <View style={[styles.humanTerritory, { backgroundColor: theme.colors.human + '24' }]} />
         <View style={[styles.neutralTerritory, { backgroundColor: theme.colors.gold + '18' }]} />
 

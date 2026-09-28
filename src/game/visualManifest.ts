@@ -44,9 +44,26 @@ export type EnemyVisualKind =
   | 'mercenary'
   | 'ashen'
   | 'scout'
-  | 'hollow';
+  | 'hollow'
+  | 'stalker'
+  | 'champion'
+  | 'ranger'
+  | 'agitator';
 
-export const VISUAL_ASSET_VERSION = 2;
+export type ResourceSiteVisualKind =
+  | 'farm'
+  | 'mine'
+  | 'timber'
+  | 'depot'
+  | 'salvage'
+  | 'archive'
+  | 'vault'
+  | 'herb_grove'
+  | 'hunt'
+  | 'beacon'
+  | 'quarry';
+
+export const VISUAL_ASSET_VERSION = 4;
 
 export const unitClassVisuals: Record<string, UnitVisualKind> = {
   militia: 'infantry',
@@ -148,6 +165,20 @@ export const wagonItemVisuals: Record<string, WagonItemVisualKind> = {
   repair: 'repair'
 };
 
+export const resourceSiteVisuals: Record<string, ResourceSiteVisualKind> = {
+  greenkeep_farms: 'farm',
+  iron_hills_mine: 'mine',
+  greenwood_camp: 'timber',
+  marcher_depot: 'depot',
+  crownroad_salvage: 'salvage',
+  royal_archive_stores: 'archive',
+  concord_cache: 'vault',
+  elf_moonwell_herbs: 'herb_grove',
+  orc_red_plains_hunt: 'hunt',
+  elf_moonlit_watch: 'beacon',
+  orc_stonejaw_quarry: 'quarry'
+};
+
 export function getUnitVisualKind(className: string): UnitVisualKind {
   const key = className.trim().toLowerCase();
   const exact = unitClassVisuals[key];
@@ -173,11 +204,19 @@ export function getWagonItemVisualKind(itemId: string): WagonItemVisualKind {
   return wagonItemVisuals[itemId] ?? 'rations';
 }
 
+export function getResourceSiteVisualKind(siteId: string): ResourceSiteVisualKind {
+  return resourceSiteVisuals[siteId] ?? 'depot';
+}
+
 
 export function getEnemyVisualKind(
   enemyName: string
 ): EnemyVisualKind {
   const key = enemyName.toLowerCase();
+  if (key.includes('ashroot stalker')) return 'stalker';
+  if (key.includes('stonejaw champion')) return 'champion';
+  if (key.includes('pale ranger')) return 'ranger';
+  if (key.includes('blamecaller') || key.includes('clanbreaker')) return 'agitator';
   if (key.includes('hollow') || key.includes('warden')) return 'hollow';
   if (key.includes('ashen') || key.includes('regent')) return 'ashen';
   if (key.includes('scout') || key.includes('tracker')) return 'scout';
