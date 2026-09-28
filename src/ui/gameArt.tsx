@@ -5,6 +5,7 @@ import {
   getBuildingVisualKind,
   getEnemyVisualKind,
   getEquipmentVisualKind,
+  getResourceSiteVisualKind,
   getUnitVisualKind,
   getWagonItemVisualKind
 } from '../game/visualManifest';
@@ -683,6 +684,122 @@ export function EquipmentSprite({
   return <PixelSprite artKey={keyByKind[kind]} size={size} faction={faction} />;
 }
 
+function FactionBuildingSilhouette({
+  buildingId,
+  faction,
+  size
+}: {
+  buildingId: string;
+  faction: FactionId;
+  size: number;
+}) {
+  if (faction === 'human') return null;
+  const kind = getBuildingVisualKind(buildingId);
+
+  if (faction === 'elf') {
+    return (
+      <>
+        <View
+          style={{
+            position: 'absolute',
+            left: size * 0.14,
+            bottom: size * 0.08,
+            width: size * 0.1,
+            height: size * 0.48,
+            backgroundColor: palette.wood
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            right: size * 0.14,
+            bottom: size * 0.08,
+            width: size * 0.1,
+            height: size * 0.48,
+            backgroundColor: palette.wood
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            left: size * 0.08,
+            right: size * 0.08,
+            top: size * 0.11,
+            height: size * 0.13,
+            backgroundColor: palette.elf,
+            borderRadius: size * 0.08
+          }}
+        />
+        {kind === 'signal_tower' || kind === 'war_room' ? (
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.42,
+              top: size * 0.02,
+              width: size * 0.16,
+              height: size * 0.16,
+              borderRadius: size * 0.08,
+              backgroundColor: palette.elfLight
+            }}
+          />
+        ) : null}
+        {kind === 'stable' ? (
+          <>
+            <View style={{ position: 'absolute', left: size * 0.05, bottom: size * 0.13, width: size * 0.16, height: size * 0.1, backgroundColor: palette.elfLight }} />
+            <View style={{ position: 'absolute', right: size * 0.05, bottom: size * 0.13, width: size * 0.16, height: size * 0.1, backgroundColor: palette.elfLight }} />
+          </>
+        ) : null}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <View
+        style={{
+          position: 'absolute',
+          left: size * 0.04,
+          top: size * 0.18,
+          width: size * 0.18,
+          height: size * 0.08,
+          backgroundColor: palette.outline,
+          transform: [{ rotate: '-34deg' }]
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          right: size * 0.04,
+          top: size * 0.18,
+          width: size * 0.18,
+          height: size * 0.08,
+          backgroundColor: palette.outline,
+          transform: [{ rotate: '34deg' }]
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          left: size * 0.12,
+          right: size * 0.12,
+          top: size * 0.08,
+          height: size * 0.08,
+          backgroundColor: palette.orc
+        }}
+      />
+      {kind === 'forge' ? (
+        <View style={{ position: 'absolute', right: size * 0.13, top: size * 0.31, width: size * 0.11, height: size * 0.11, backgroundColor: palette.red }} />
+      ) : null}
+      {kind === 'stable' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.03, bottom: size * 0.08, width: size * 0.2, height: size * 0.06, backgroundColor: palette.outline }} />
+          <View style={{ position: 'absolute', right: size * 0.03, bottom: size * 0.08, width: size * 0.2, height: size * 0.06, backgroundColor: palette.outline }} />
+        </>
+      ) : null}
+    </>
+  );
+}
+
 export function BuildingSprite({
   buildingId,
   faction = 'human',
@@ -704,7 +821,12 @@ export function BuildingSprite({
     signal_tower: 'building_signal_tower',
     officer_academy: 'building_officer_academy'
   };
-  return <PixelSprite artKey={keyByKind[kind]} size={size} faction={faction} />;
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      <PixelSprite artKey={keyByKind[kind]} size={size} faction={faction} />
+      <FactionBuildingSilhouette buildingId={buildingId} faction={faction} size={size} />
+    </View>
+  );
 }
 
 export function ResourceSprite({
@@ -963,9 +1085,44 @@ export function EnemySprite({
     mercenary: 'enemy_mercenary',
     ashen: 'enemy_ashen',
     scout: 'enemy_scout',
-    hollow: 'enemy_hollow'
+    hollow: 'enemy_hollow',
+    stalker: 'enemy_hollow',
+    champion: 'enemy_mercenary',
+    ranger: 'enemy_scout',
+    agitator: 'enemy_raider'
   };
-  return <PixelSprite artKey={keyByKind[kind]} size={size} />;
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      <PixelSprite artKey={keyByKind[kind]} size={size} />
+      {kind === 'stalker' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.05, top: size * 0.26, width: size * 0.2, height: size * 0.08, backgroundColor: palette.greenLight, transform: [{ rotate: '-28deg' }] }} />
+          <View style={{ position: 'absolute', right: size * 0.05, top: size * 0.26, width: size * 0.2, height: size * 0.08, backgroundColor: palette.greenLight, transform: [{ rotate: '28deg' }] }} />
+          <View style={{ position: 'absolute', left: size * 0.38, top: size * 0.02, width: size * 0.24, height: size * 0.08, backgroundColor: palette.red }} />
+        </>
+      ) : null}
+      {kind === 'champion' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.03, top: size * 0.27, width: size * 0.25, height: size * 0.13, backgroundColor: palette.orc }} />
+          <View style={{ position: 'absolute', right: size * 0.03, top: size * 0.27, width: size * 0.25, height: size * 0.13, backgroundColor: palette.orc }} />
+          <View style={{ position: 'absolute', left: size * 0.32, top: 0, width: size * 0.36, height: size * 0.08, backgroundColor: palette.gold }} />
+        </>
+      ) : null}
+      {kind === 'ranger' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.17, top: size * 0.14, width: size * 0.12, height: size * 0.5, backgroundColor: palette.elf, opacity: 0.9 }} />
+          <View style={{ position: 'absolute', right: size * 0.09, top: size * 0.2, width: size * 0.06, height: size * 0.58, backgroundColor: palette.elfLight }} />
+        </>
+      ) : null}
+      {kind === 'agitator' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.11, top: size * 0.08, width: size * 0.78, height: size * 0.08, backgroundColor: palette.red }} />
+          <View style={{ position: 'absolute', left: size * 0.45, top: 0, width: size * 0.1, height: size * 0.22, backgroundColor: palette.wood }} />
+        </>
+      ) : null}
+    </View>
+  );
 }
 
 export function FactionCrest({
@@ -1207,6 +1364,130 @@ export function SettlementTerrainBackdrop({
           <View style={{ position: 'absolute', right: '7%', bottom: '17%', width: 16, height: 7, backgroundColor: palette.red, opacity: 0.65 }} />
         </>
       ) : null}
+    </View>
+  );
+}
+
+
+export function ResourceSiteSprite({
+  siteId,
+  faction = 'human',
+  size = 48
+}: {
+  siteId: string;
+  faction?: FactionId;
+  size?: number;
+}) {
+  const kind = getResourceSiteVisualKind(siteId);
+  const accent = faction === 'elf' ? palette.elf : faction === 'orc' ? palette.orc : palette.human;
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      <View style={{ position: 'absolute', left: size * 0.08, right: size * 0.08, bottom: size * 0.08, height: size * 0.16, backgroundColor: kind === 'hunt' ? palette.brown : palette.green }} />
+      {kind === 'farm' ? (
+        <>
+          {[0.2, 0.38, 0.56, 0.74].map((x, index) => (
+            <View key={String(index)} style={{ position: 'absolute', left: size * x, bottom: size * 0.16, width: size * 0.05, height: size * 0.42, backgroundColor: palette.food }} />
+          ))}
+        </>
+      ) : kind === 'mine' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.18, bottom: size * 0.18, width: size * 0.64, height: size * 0.48, backgroundColor: palette.stone }} />
+          <View style={{ position: 'absolute', left: size * 0.35, bottom: size * 0.18, width: size * 0.3, height: size * 0.31, backgroundColor: palette.outline }} />
+          <View style={{ position: 'absolute', right: size * 0.18, top: size * 0.12, width: size * 0.12, height: size * 0.12, backgroundColor: palette.steel }} />
+        </>
+      ) : kind === 'timber' ? (
+        <>
+          {[0.18, 0.42, 0.68].map((x, index) => (
+            <View key={String(index)} style={{ position: 'absolute', left: size * x, bottom: size * 0.18 }}>
+              <View style={{ width: size * 0.08, height: size * 0.36, backgroundColor: palette.wood }} />
+              <View style={{ position: 'absolute', left: -size * 0.07, top: -size * 0.14, width: size * 0.22, height: size * 0.18, backgroundColor: palette.green }} />
+            </View>
+          ))}
+        </>
+      ) : kind === 'herb_grove' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.19, bottom: size * 0.18, width: size * 0.16, height: size * 0.24, backgroundColor: palette.elf }} />
+          <View style={{ position: 'absolute', right: size * 0.19, bottom: size * 0.18, width: size * 0.16, height: size * 0.24, backgroundColor: palette.elfLight }} />
+          <View style={{ position: 'absolute', left: size * 0.38, bottom: size * 0.15, width: size * 0.24, height: size * 0.24, borderRadius: size * 0.12, backgroundColor: palette.blue }} />
+        </>
+      ) : kind === 'hunt' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.18, bottom: size * 0.2, width: size * 0.5, height: size * 0.28, backgroundColor: palette.brownLight }} />
+          <View style={{ position: 'absolute', right: size * 0.15, bottom: size * 0.32, width: size * 0.22, height: size * 0.2, backgroundColor: palette.brownLight }} />
+          <View style={{ position: 'absolute', left: size * 0.25, bottom: size * 0.13, width: size * 0.08, height: size * 0.18, backgroundColor: palette.outline }} />
+          <View style={{ position: 'absolute', left: size * 0.53, bottom: size * 0.13, width: size * 0.08, height: size * 0.18, backgroundColor: palette.outline }} />
+        </>
+      ) : kind === 'archive' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.2, bottom: size * 0.16, width: size * 0.6, height: size * 0.48, backgroundColor: palette.stoneLight }} />
+          <View style={{ position: 'absolute', left: size * 0.28, top: size * 0.2, width: size * 0.44, height: size * 0.1, backgroundColor: palette.gold }} />
+          <View style={{ position: 'absolute', left: size * 0.31, bottom: size * 0.17, width: size * 0.12, height: size * 0.27, backgroundColor: palette.wood }} />
+          <View style={{ position: 'absolute', right: size * 0.31, bottom: size * 0.17, width: size * 0.12, height: size * 0.27, backgroundColor: palette.wood }} />
+        </>
+      ) : kind === 'vault' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.16, bottom: size * 0.15, width: size * 0.68, height: size * 0.5, backgroundColor: palette.steelDark }} />
+          <View style={{ position: 'absolute', left: size * 0.31, bottom: size * 0.17, width: size * 0.38, height: size * 0.38, borderRadius: size * 0.19, backgroundColor: palette.steel }} />
+          <View style={{ position: 'absolute', left: size * 0.46, bottom: size * 0.29, width: size * 0.08, height: size * 0.12, backgroundColor: palette.gold }} />
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.15, bottom: size * 0.16, width: size * 0.7, height: size * 0.34, backgroundColor: kind === 'salvage' ? palette.steelDark : palette.wood }} />
+          <View style={{ position: 'absolute', left: size * 0.25, top: size * 0.19, width: size * 0.5, height: size * 0.09, backgroundColor: accent }} />
+        </>
+      )}
+    </View>
+  );
+}
+
+export function RegionMapBackdrop({
+  faction,
+  chapter,
+  compact = false
+}: {
+  faction: FactionId;
+  chapter: number;
+  compact?: boolean;
+}) {
+  const height = compact ? 122 : 170;
+  const accent = faction === 'elf' ? palette.elf : faction === 'orc' ? palette.orc : palette.human;
+  const ground = faction === 'elf' ? '#263D30' : faction === 'orc' ? '#5A3A2B' : '#405542';
+
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: ground, overflow: 'hidden' }}>
+      {faction === 'elf' ? (
+        <>
+          {(['4%', '18%', '73%', '87%'] as const).map((left, index) => (
+            <View key={String(index)} style={{ position: 'absolute', left, top: index % 2 ? 12 : 28, width: 34, height: 34, backgroundColor: palette.elf, opacity: 0.55 }} />
+          ))}
+          <View style={{ position: 'absolute', left: '8%', right: '8%', top: '48%', height: 7, backgroundColor: palette.elfLight, opacity: 0.55, transform: [{ rotate: '-8deg' }] }} />
+          <View style={{ position: 'absolute', left: chapter >= 2 ? '58%' : '38%', top: chapter >= 3 ? '14%' : '34%', width: 27, height: 27, borderRadius: 14, backgroundColor: palette.blue, opacity: 0.75 }} />
+        </>
+      ) : faction === 'orc' ? (
+        <>
+          <View style={{ position: 'absolute', left: '4%', right: '4%', top: '56%', height: 8, backgroundColor: palette.brownLight, opacity: 0.65, transform: [{ rotate: '5deg' }] }} />
+          {(['12%', '30%', '68%', '84%'] as const).map((left, index) => (
+            <View key={String(index)} style={{ position: 'absolute', left, top: index % 2 ? 18 : 32, width: 18, height: 13, backgroundColor: palette.red, opacity: 0.62 }} />
+          ))}
+          {chapter >= 3 ? (
+            <>
+              <View style={{ position: 'absolute', right: '12%', top: '10%', width: 0, height: 0, borderLeftWidth: 24, borderRightWidth: 24, borderBottomWidth: 44, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: palette.stone }} />
+              <View style={{ position: 'absolute', right: '28%', top: '20%', width: 0, height: 0, borderLeftWidth: 19, borderRightWidth: 19, borderBottomWidth: 34, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: palette.stoneLight }} />
+            </>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', left: '3%', right: '3%', top: '55%', height: 7, backgroundColor: palette.brownLight, opacity: 0.6, transform: [{ rotate: '-4deg' }] }} />
+          <View style={{ position: 'absolute', left: '11%', top: '20%', width: 48, height: 34, backgroundColor: palette.green, opacity: 0.65 }} />
+          <View style={{ position: 'absolute', right: '8%', top: '13%', width: 0, height: 0, borderLeftWidth: 28, borderRightWidth: 28, borderBottomWidth: 50, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: palette.stone }} />
+          {chapter >= 5 ? (
+            <View style={{ position: 'absolute', right: '18%', bottom: '13%', width: 25, height: 44, backgroundColor: palette.stoneLight, borderTopWidth: 5, borderTopColor: palette.gold }} />
+          ) : null}
+        </>
+      )}
+      <View style={{ position: 'absolute', left: '12%', right: '12%', bottom: compact ? height * 0.13 : 18, height: 4, backgroundColor: accent, opacity: 0.48 }} />
     </View>
   );
 }
