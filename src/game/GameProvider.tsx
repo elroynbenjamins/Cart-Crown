@@ -102,6 +102,8 @@ import {
 } from './commanders';
 import {
   analyzeFormation,
+  areFormationSlotsAdjacent,
+  areFormationSlotsVerticallyAligned,
   formationCells,
   formationShapes,
   getFactionDoctrines,
@@ -4894,31 +4896,32 @@ export function GameProvider({
     const occupiedSlots = formation
       .map((unitId, index) => (unitId ? index : -1))
       .filter(index => index >= 0);
-    const areOrthogonallyAdjacent = (a: number, b: number) => {
-      const aRow = Math.floor(a / 3);
-      const aColumn = a % 3;
-      const bRow = Math.floor(b / 3);
-      const bColumn = b % 3;
-      return Math.abs(aRow - bRow) + Math.abs(aColumn - bColumn) === 1;
-    };
 
     let trialReady = false;
 
     if (activeFaction === 'human') {
       const harlan = formation.indexOf('hum_militia');
       const mira = formation.indexOf('hum_recruit');
-      const harlanFront = harlan >= 0 && harlan <= 2;
-      const miraBehind = mira >= 3;
-      const sameColumn =
-        harlan >= 0 && mira >= 0 && harlan % 3 === mira % 3;
-      trialReady = harlanFront && miraBehind && sameColumn;
+      const harlanFront =
+        harlan >= 0 && activeFormationShape.rows.front.includes(harlan);
+      const miraBehind =
+        mira >= 0 &&
+        (
+          activeFormationShape.rows.middle.includes(mira) ||
+          activeFormationShape.rows.rear.includes(mira)
+        );
+      const protectedLane =
+        harlan >= 0 &&
+        mira >= 0 &&
+        areFormationSlotsVerticallyAligned(formationShapeId, harlan, mira);
+      trialReady = harlanFront && miraBehind && protectedLane;
     } else if (activeFaction === 'elf') {
       trialReady =
         occupiedSlots.length >= 2 &&
         occupiedSlots.every((slot, index) =>
           occupiedSlots
             .slice(index + 1)
-            .every(other => !areOrthogonallyAdjacent(slot, other))
+            .every(other => !areFormationSlotsAdjacent(formationShapeId, slot, other))
         );
     } else {
       trialReady =
@@ -4926,7 +4929,7 @@ export function GameProvider({
         occupiedSlots.some((slot, index) =>
           occupiedSlots
             .slice(index + 1)
-            .some(other => areOrthogonallyAdjacent(slot, other))
+            .some(other => areFormationSlotsAdjacent(formationShapeId, slot, other))
         );
     }
 
