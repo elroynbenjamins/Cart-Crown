@@ -10,6 +10,7 @@ import type {
   FactionId,
   ResourceWallet,
   UnitDefinition,
+  UnitEquipmentLoadout,
   WagonItemDefinition
 } from '../game/types';
 import type {
@@ -17,10 +18,11 @@ import type {
   GameSnapshot,
   SaveRecord,
   SaveSlotId,
-  SaveSlotMetadata
+  SaveSlotMetadata,
+  SharedProgress
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 3;
+export const SAVE_SCHEMA_VERSION = 4;
 
 type LegacyGameSnapshotV1 = {
   schemaVersion: 1;
@@ -43,29 +45,120 @@ type LegacyGameSnapshotV1 = {
   formationTrialCompleted: boolean;
 };
 
-type LegacyFactionGameStateV2 = Omit<
-  FactionGameState,
-  'mercenaryPatrolWon' | 'commanderChoiceUnlocked' | 'commanderPathId'
->;
+type LegacyFactionV2 = {
+  faction: FactionId;
+  resources: ResourceWallet;
+  units: UnitDefinition[];
+  formation: Array<string | null>;
+  wagonItems: WagonItemDefinition[];
+  wagonStageId: string;
+  chapterNodes: ChapterNode[];
+  formationDoctrineId: string;
+  holdTheRoadWon: boolean;
+  settlementUpgraded: boolean;
+  recruitChoiceAvailable: boolean;
+  recruitChosen: boolean;
+  markedRaidersInvestigated: boolean;
+  forgeUnlocked: boolean;
+  firstPromotionComplete: boolean;
+  equipmentInventory: string[];
+  unitWeapons: Record<string, string | null>;
+  lastBattleResult: BattleResult | null;
+  expeditionTickets: number;
+  expeditionRunsCompleted: number;
+  formationTrialCompleted: boolean;
+};
 
-type LegacyGameSnapshotV2 = {
+type LegacyFactionV3 = LegacyFactionV2 & {
+  mercenaryPatrolWon: boolean;
+  commanderChoiceUnlocked: boolean;
+  commanderPathId: string | null;
+};
+
+type LegacySnapshotV2 = {
   schemaVersion: 2;
   activeFaction: FactionId;
-  shared: GameSnapshot['shared'];
-  factionStates: Record<FactionId, LegacyFactionGameStateV2 | null>;
+  shared: SharedProgress;
+  factionStates: Record<FactionId, LegacyFactionV2 | null>;
+};
+
+type LegacySnapshotV3 = {
+  schemaVersion: 3;
+  activeFaction: FactionId;
+  shared: SharedProgress;
+  factionStates: Record<FactionId, LegacyFactionV3 | null>;
 };
 
 function normalizeFormation(formation: Array<string | null>) {
   return Array.from({ length: 9 }, (_, index) => formation[index] ?? null);
 }
 
-function commanderDefaults(state: LegacyFactionGameStateV2): FactionGameState {
+function defaultBuildings(
+  settlementUpgraded: boolean,
+  forgeUnlocked: boolean,
+  commanderPathId: string | null
+) {
   return {
-    ...state,
+    hall: settlementUpgraded ? 2 : 1,
+    barracks: 1,
+    forge: forgeUnlocked ? 1 : 0,
+    wagonwright: 1,
+    quartermaster: 0,
+    war_room: commanderPathId ? 1 : 0,
+    stable: 0
+  };
+}
+
+function equipmentFromWeapons(
+  unitWeapons: Record<string, string | null>
+): Record<string, UnitEquipmentLoadout> {
+  const result: Record<string, UnitEquipmentLoadout> = {};
+
+  for (const [unitId, equipmentId] of Object.entries(unitWeapons)) {
+    if (equipmentId) {
+      result[unitId] = { weapon: equipmentId };
+    }
+  }
+
+  return result;
+}
+
+function upgradeLegacyFaction(
+  state: LegacyFactionV2 | LegacyFactionV3
+): FactionGameState {
+  const v3 = state as Partial<LegacyFactionV3>;
+
+  return {
+    faction: state.faction,
+    resources: { ...state.resources },
+    units: state.units.map(unit => ({ ...unit })),
     formation: normalizeFormation(state.formation),
-    mercenaryPatrolWon: false,
-    commanderChoiceUnlocked: false,
-    commanderPathId: null
+    wagonItems: state.wagonItems.map(item => ({ ...item })),
+    wagonStageId: state.wagonStageId,
+    chapterNodes: state.chapterNodes.map(node => ({ ...node })),
+    formationDoctrineId: state.formationDoctrineId,
+    holdTheRoadWon: state.holdTheRoadWon,
+    settlementUpgraded: state.settlementUpgraded,
+    recruitChoiceAvailable: state.recruitChoiceAvailable,
+    recruitChosen: state.recruitChosen,
+    markedRaidersInvestigated: state.markedRaidersInvestigated,
+    forgeUnlocked: state.forgeUnlocked,
+    firstPromotionComplete: state.firstPromotionComplete,
+    equipmentInventory: [...state.equipmentInventory],
+    unitEquipment: equipmentFromWeapons(state.unitWeapons),
+    mercenaryPatrolWon: v3.mercenaryPatrolWon ?? false,
+    commanderChoiceUnlocked: v3.commanderChoiceUnlocked ?? false,
+    commanderPathId: v3.commanderPathId ?? null,
+    refugeeCampSecured: false,
+    buildingLevels: defaultBuildings(
+      state.settlementUpgraded,
+      state.forgeUnlocked,
+      v3.commanderPathId ?? null
+    ),
+    lastBattleResult: state.lastBattleResult ? { ...state.lastBattleResult } : null,
+    expeditionTickets: state.expeditionTickets,
+    expeditionRunsCompleted: state.expeditionRunsCompleted,
+    formationTrialCompleted: state.formationTrialCompleted
   };
 }
 
@@ -97,10 +190,20 @@ export function createHumanFactionState(): FactionGameState {
     forgeUnlocked: false,
     firstPromotionComplete: false,
     equipmentInventory: [],
-    unitWeapons: {},
+    unitEquipment: {},
     mercenaryPatrolWon: false,
     commanderChoiceUnlocked: false,
     commanderPathId: null,
+    refugeeCampSecured: false,
+    buildingLevels: {
+      hall: 1,
+      barracks: 1,
+      forge: 0,
+      wagonwright: 1,
+      quartermaster: 0,
+      war_room: 0,
+      stable: 0
+    },
     lastBattleResult: null,
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
@@ -128,7 +231,7 @@ export function createInitialGameSnapshot(): GameSnapshot {
 
 function migrateV1(snapshot: LegacyGameSnapshotV1): GameSnapshot {
   const human: FactionGameState = {
-    faction: 'human',
+    ...createHumanFactionState(),
     resources: { ...snapshot.resources },
     units: snapshot.units.map(unit => ({ ...unit })),
     formation: normalizeFormation(snapshot.formation),
@@ -140,14 +243,11 @@ function migrateV1(snapshot: LegacyGameSnapshotV1): GameSnapshot {
     settlementUpgraded: snapshot.settlementUpgraded,
     recruitChoiceAvailable: snapshot.recruitChoiceAvailable,
     recruitChosen: snapshot.recruitChosen,
-    markedRaidersInvestigated: false,
-    forgeUnlocked: false,
-    firstPromotionComplete: false,
-    equipmentInventory: [],
-    unitWeapons: {},
-    mercenaryPatrolWon: false,
-    commanderChoiceUnlocked: false,
-    commanderPathId: null,
+    buildingLevels: defaultBuildings(
+      snapshot.settlementUpgraded,
+      false,
+      null
+    ),
     lastBattleResult: snapshot.lastBattleResult ? { ...snapshot.lastBattleResult } : null,
     expeditionTickets: snapshot.expeditionTickets,
     expeditionRunsCompleted: snapshot.expeditionRunsCompleted,
@@ -171,7 +271,7 @@ function migrateV1(snapshot: LegacyGameSnapshotV1): GameSnapshot {
   };
 }
 
-function migrateV2(snapshot: LegacyGameSnapshotV2): GameSnapshot {
+function migrateV2(snapshot: LegacySnapshotV2): GameSnapshot {
   return {
     schemaVersion: SAVE_SCHEMA_VERSION,
     activeFaction: snapshot.activeFaction,
@@ -183,13 +283,37 @@ function migrateV2(snapshot: LegacyGameSnapshotV2): GameSnapshot {
     },
     factionStates: {
       human: snapshot.factionStates.human
-        ? commanderDefaults(snapshot.factionStates.human)
+        ? upgradeLegacyFaction(snapshot.factionStates.human)
         : createHumanFactionState(),
       elf: snapshot.factionStates.elf
-        ? commanderDefaults(snapshot.factionStates.elf)
+        ? upgradeLegacyFaction(snapshot.factionStates.elf)
         : null,
       orc: snapshot.factionStates.orc
-        ? commanderDefaults(snapshot.factionStates.orc)
+        ? upgradeLegacyFaction(snapshot.factionStates.orc)
+        : null
+    }
+  };
+}
+
+function migrateV3(snapshot: LegacySnapshotV3): GameSnapshot {
+  return {
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    activeFaction: snapshot.activeFaction,
+    shared: {
+      completedCampaigns: [...snapshot.shared.completedCampaigns],
+      achievements: [...snapshot.shared.achievements],
+      lore: [...snapshot.shared.lore],
+      cosmetics: [...snapshot.shared.cosmetics]
+    },
+    factionStates: {
+      human: snapshot.factionStates.human
+        ? upgradeLegacyFaction(snapshot.factionStates.human)
+        : createHumanFactionState(),
+      elf: snapshot.factionStates.elf
+        ? upgradeLegacyFaction(snapshot.factionStates.elf)
+        : null,
+      orc: snapshot.factionStates.orc
+        ? upgradeLegacyFaction(snapshot.factionStates.orc)
         : null
     }
   };
@@ -208,7 +332,9 @@ export function metadataFromSnapshot(
   const humanComplete = snapshot.shared.completedCampaigns.includes('human');
 
   let chapterLabel = 'Chapter 1 · Hold the Road';
-  if (current.mercenaryPatrolWon && !current.commanderPathId) {
+  if (current.refugeeCampSecured) {
+    chapterLabel = 'Chapter 1 · The Toll Captain';
+  } else if (current.mercenaryPatrolWon && !current.commanderPathId) {
     chapterLabel = 'Chapter 1 · Choose Commander';
   } else if (current.mercenaryPatrolWon) {
     chapterLabel = 'Chapter 1 · Refugee Camp';
@@ -252,17 +378,21 @@ export function normalizeSaveRecord(
 
   const record = value as {
     metadata?: SaveSlotMetadata;
-    snapshot?: GameSnapshot | LegacyGameSnapshotV1 | LegacyGameSnapshotV2;
+    snapshot?: GameSnapshot | LegacyGameSnapshotV1 | LegacySnapshotV2 | LegacySnapshotV3;
   };
+
   if (!record.snapshot) {
     return null;
   }
 
   let snapshot: GameSnapshot;
-  if (record.snapshot.schemaVersion === 3) {
+
+  if (record.snapshot.schemaVersion === 4) {
     snapshot = record.snapshot as GameSnapshot;
+  } else if (record.snapshot.schemaVersion === 3) {
+    snapshot = migrateV3(record.snapshot as LegacySnapshotV3);
   } else if (record.snapshot.schemaVersion === 2) {
-    snapshot = migrateV2(record.snapshot as LegacyGameSnapshotV2);
+    snapshot = migrateV2(record.snapshot as LegacySnapshotV2);
   } else if (record.snapshot.schemaVersion === 1) {
     snapshot = migrateV1(record.snapshot as LegacyGameSnapshotV1);
   } else {

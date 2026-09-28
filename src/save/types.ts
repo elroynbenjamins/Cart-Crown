@@ -4,6 +4,7 @@ import type {
   FactionId,
   ResourceWallet,
   UnitDefinition,
+  UnitEquipmentLoadout,
   WagonItemDefinition
 } from '../game/types';
 
@@ -26,10 +27,12 @@ export type FactionGameState = {
   forgeUnlocked: boolean;
   firstPromotionComplete: boolean;
   equipmentInventory: string[];
-  unitWeapons: Record<string, string | null>;
+  unitEquipment: Record<string, UnitEquipmentLoadout>;
   mercenaryPatrolWon: boolean;
   commanderChoiceUnlocked: boolean;
   commanderPathId: string | null;
+  refugeeCampSecured: boolean;
+  buildingLevels: Record<string, number>;
   lastBattleResult: BattleResult | null;
   expeditionTickets: number;
   expeditionRunsCompleted: number;
@@ -44,7 +47,7 @@ export type SharedProgress = {
 };
 
 export type GameSnapshot = {
-  schemaVersion: 3;
+  schemaVersion: 4;
   activeFaction: FactionId;
   shared: SharedProgress;
   factionStates: Record<FactionId, FactionGameState | null>;

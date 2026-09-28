@@ -1,15 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { getBuildingLevelDefinition } from '../game/kingdom';
 import { useGame } from '../game/GameProvider';
+import type { ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
+  Pill,
   PrimaryButton,
   ProgressBar,
   ResourceChip,
   SecondaryButton,
   SectionTitle
 } from '../ui/components';
+
+const resourceIcons: Record<keyof ResourceWallet, string> = {
+  gold: '🪙',
+  wood: '🪵',
+  stone: '🪨',
+  iron: '⛓',
+  provisions: '🍞'
+};
 
 export function KingdomScreen({
   onOpenRecruitment,
@@ -27,41 +38,22 @@ export function KingdomScreen({
     recruitChosen,
     canUpgradeSettlement,
     forgeUnlocked,
+    buildings,
+    buildingLevels,
+    isBuildingUnlocked,
+    upgradeBuilding,
     rewardedAdClaims,
     rewardedAdMessage,
     claimRewardedAd,
     upgradeSettlement
   } = useGame();
 
+  const [buildingMessage, setBuildingMessage] = useState<string | null>(null);
+
   const settlementName = settlementUpgraded ? 'Greenkeep Settlement' : 'Refugee Camp';
   const progress = holdTheRoadWon ? 1 : 0.34;
   const dailySupplyClaimed = (rewardedAdClaims.daily_supply ?? 0) >= 1;
-
-  const buildings = [
-    {
-      name: settlementUpgraded ? 'Greenkeep Hall' : 'Camp Hall',
-      level: settlementUpgraded ? 2 : 1,
-      subtitle: settlementUpgraded
-        ? 'Coordinates the growing settlement and its survivors.'
-        : 'Keeps the surviving camp organized.',
-      next: settlementUpgraded ? 'Fort foundations' : 'Greenkeep Settlement',
-      icon: settlementUpgraded ? '🏰' : '🏕️'
-    },
-    {
-      name: 'Barracks',
-      level: 1,
-      subtitle: 'Trains recruits and unlocks troop promotion paths.',
-      next: 'Sword and spear training',
-      icon: '🛡️'
-    },
-    {
-      name: 'Wagonwright',
-      level: 1,
-      subtitle: 'Builds and reinforces the Supply Wagon.',
-      next: settlementUpgraded ? '5×5 Fort Frame' : '4×5 Settlement Bed',
-      icon: '🛞'
-    }
-  ];
+  const unlockedCount = buildings.filter(building => isBuildingUnlocked(building.id)).length;
 
   let milestoneTitle = 'Establish a permanent settlement';
   let milestoneBody = 'Win Hold the Road, then spend 90 Wood and 20 Stone to establish Greenkeep.';
@@ -83,24 +75,29 @@ export function KingdomScreen({
       return true;
     };
   } else if (settlementUpgraded && recruitChosen) {
-    milestoneTitle = 'Prepare for the Fort';
-    milestoneBody = 'With three active squads, the next campaign stretch will open the Iron Road and Fort progression.';
-    buttonLabel = 'Fort progression not yet available';
+    milestoneTitle = 'Build toward the Fort';
+    milestoneBody = 'Upgrade specialized buildings while the campaign opens the road toward the first Fort tier.';
+    buttonLabel = 'Fort tier is story-gated';
     disabled = true;
-    requirement = 'Continue Chapter 1';
+    requirement = 'Improve Greenkeep and continue Chapter 1';
     action = () => false;
   }
+
+  const formatCost = (cost: Partial<ResourceWallet>) =>
+    Object.entries(cost)
+      .map(([key, amount]) => resourceIcons[key as keyof ResourceWallet] + ' ' + String(amount))
+      .join('  ');
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <GameCard accent={theme.colors.human} style={styles.hero}>
         <View style={styles.heroTop}>
           <View style={styles.heroCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>HUMAN CAMPAIGN</Text>
+            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>HUMAN KINGDOM</Text>
             <Text style={[styles.heroTitle, { color: theme.colors.text }]}>{settlementName}</Text>
             <Text style={[styles.heroBody, { color: theme.colors.textMuted }]}>
               {settlementUpgraded
-                ? 'The frontier has a foothold again. Now the army can grow.'
+                ? 'Campaign milestones bring people and knowledge. You decide which systems receive the kingdom’s resources.'
                 : 'Two squads, one damaged wagon, and the road to Greenkeep.'}
             </Text>
           </View>
@@ -111,13 +108,13 @@ export function KingdomScreen({
 
         <View style={styles.progressCopy}>
           <Text style={[styles.progressLabel, { color: theme.colors.text }]}>
-            {settlementUpgraded ? 'Greenkeep established' : 'Raise Greenkeep Settlement'}
+            {settlementUpgraded ? 'Settlement tier · 2' : 'Raise Greenkeep Settlement'}
           </Text>
           <Text style={[styles.progressValue, { color: theme.colors.textMuted }]}>
-            {Math.round(progress * 100)}%
+            {settlementUpgraded ? unlockedCount + ' buildings online' : Math.round(progress * 100) + '%'}
           </Text>
         </View>
-        <ProgressBar value={progress} color={theme.colors.human} />
+        <ProgressBar value={settlementUpgraded ? 0.34 : progress} color={theme.colors.human} />
       </GameCard>
 
       <View style={styles.resources}>
@@ -130,7 +127,7 @@ export function KingdomScreen({
       <GameCard>
         <View style={styles.goalRow}>
           <View style={styles.goalCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>NEXT MILESTONE</Text>
+            <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>CURRENT KINGDOM GOAL</Text>
             <Text style={[styles.goalTitle, { color: theme.colors.text }]}>{milestoneTitle}</Text>
             <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>{milestoneBody}</Text>
           </View>
@@ -145,27 +142,106 @@ export function KingdomScreen({
         <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>{requirement}</Text>
       </GameCard>
 
-      <GameCard>
-        <View style={styles.logisticsRow}>
-          <View>
-            <Text style={[styles.logisticsLabel, { color: theme.colors.textMuted }]}>SUPPLY WAGON</Text>
-            <Text style={[styles.logisticsValue, { color: theme.colors.text }]}>
-              {currentWagonStage.name}
-            </Text>
-          </View>
-          <Text style={[styles.gridSize, { color: theme.colors.primary }]}>
+      <View style={styles.summaryRow}>
+        <GameCard style={styles.summaryCard}>
+          <Text style={[styles.summaryLabel, { color: theme.colors.textMuted }]}>SUPPLY WAGON</Text>
+          <Text style={[styles.summaryValue, { color: theme.colors.text }]}>
             {currentWagonStage.width}×{currentWagonStage.height}
           </Text>
-        </View>
-      </GameCard>
+          <Text style={[styles.summaryNote, { color: theme.colors.primary }]}>
+            {currentWagonStage.formationSlots} active squads
+          </Text>
+        </GameCard>
+
+        <GameCard style={styles.summaryCard}>
+          <Text style={[styles.summaryLabel, { color: theme.colors.textMuted }]}>DEVELOPMENT</Text>
+          <Text style={[styles.summaryValue, { color: theme.colors.text }]}>{unlockedCount}/{buildings.length}</Text>
+          <Text style={[styles.summaryNote, { color: theme.colors.gold }]}>buildings unlocked</Text>
+        </GameCard>
+      </View>
+
+      <SectionTitle title="Kingdom Buildings" trailing="Tap upgrade where available" />
+
+      <View style={styles.buildingGrid}>
+        {buildings.map(building => {
+          const level = buildingLevels[building.id] ?? 0;
+          const unlocked = isBuildingUnlocked(building.id);
+          const nextDefinition = getBuildingLevelDefinition(building.id, level + 1);
+          const canAttemptUpgrade = unlocked && Boolean(nextDefinition);
+          const cost = nextDefinition?.cost ?? {};
+
+          return (
+            <GameCard
+              key={building.id}
+              style={styles.buildingCard}
+              accent={unlocked ? theme.colors.human : undefined}
+            >
+              <View style={styles.buildingTop}>
+                <Text style={styles.buildingEmoji}>{building.icon}</Text>
+                <Pill label={unlocked ? 'LV.' + level : 'LOCKED'} />
+              </View>
+              <Text style={[styles.buildingName, { color: theme.colors.text }]}>{building.name}</Text>
+              <Text style={[styles.buildingBody, { color: theme.colors.textMuted }]}>
+                {building.description}
+              </Text>
+
+              {unlocked && nextDefinition ? (
+                <>
+                  <Text style={[styles.nextEffect, { color: theme.colors.primary }]}>
+                    Next: {nextDefinition.effect}
+                  </Text>
+                  <Text style={[styles.buildingCost, { color: theme.colors.gold }]}>
+                    {formatCost(cost)}
+                  </Text>
+                  <View style={styles.buildingButton}>
+                    <PrimaryButton
+                      label={'Upgrade to Lv.' + (level + 1)}
+                      onPress={() => {
+                        const ok = upgradeBuilding(building.id);
+                        setBuildingMessage(
+                          ok
+                            ? building.name + ' upgraded to Lv.' + (level + 1) + '.'
+                            : 'Requirements or resources are missing for ' + building.name + '.'
+                        );
+                      }}
+                    />
+                  </View>
+                </>
+              ) : unlocked ? (
+                <Text style={[styles.lockNote, { color: theme.colors.textMuted }]}>
+                  {building.id === 'hall'
+                    ? 'Next settlement tier requires campaign progression.'
+                    : 'No further upgrade in this prototype yet.'}
+                </Text>
+              ) : (
+                <Text style={[styles.lockNote, { color: theme.colors.textMuted }]}>
+                  {building.id === 'forge'
+                    ? 'Investigate Marked Raiders.'
+                    : building.id === 'war_room'
+                      ? 'Win Mercenary Patrol.'
+                      : building.id === 'quartermaster'
+                        ? 'Secure Refugee Camp.'
+                        : building.id === 'stable'
+                          ? 'Reach the Iron Road.'
+                          : 'Story milestone required.'}
+                </Text>
+              )}
+            </GameCard>
+          );
+        })}
+      </View>
+
+      {buildingMessage ? (
+        <Text style={[styles.message, { color: theme.colors.textMuted }]}>{buildingMessage}</Text>
+      ) : null}
 
       {forgeUnlocked ? (
         <>
-          <SectionTitle title="Field Forge" trailing="New" />
+          <SectionTitle title="Field Forge" trailing={'Lv.' + (buildingLevels.forge ?? 0)} />
           <GameCard accent={theme.colors.gold}>
-            <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>Recovered Metalwork</Text>
+            <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>Troop Equipment</Text>
             <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
-              Marked Raiders revealed that the enemy gear was forged locally. Use the recovered metal to craft Mira's first class-defining weapon.
+              Craft base equipment, assign it to squads, then upgrade the piece itself. Forge Lv.2 unlocks Tier II equipment and advanced class branches.
             </Text>
             <View style={styles.supplyButton}>
               <PrimaryButton label="Open Field Forge" onPress={onOpenForge} />
@@ -178,9 +254,11 @@ export function KingdomScreen({
       <GameCard>
         <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>Frontier Supplies</Text>
         <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
-          Watch an optional rewarded ad for a small common-resource package. Skipping it never removes normal rewards.
+          Watch an optional rewarded ad for common supplies. A developed Quartermaster improves provision efficiency.
         </Text>
-        <Text style={[styles.supplyReward, { color: theme.colors.gold }]}>+15 Wood · +15 Provisions</Text>
+        <Text style={[styles.supplyReward, { color: theme.colors.gold }]}>
+          +15 Wood · +{(buildingLevels.quartermaster ?? 0) >= 2 ? 20 : 15} Provisions
+        </Text>
         <View style={styles.supplyButton}>
           <SecondaryButton
             label={dailySupplyClaimed ? 'Supply claimed' : 'Watch optional ad'}
@@ -192,34 +270,6 @@ export function KingdomScreen({
           <Text style={[styles.adMessage, { color: theme.colors.textMuted }]}>{rewardedAdMessage}</Text>
         ) : null}
       </GameCard>
-
-      <SectionTitle title="Buildings" trailing="3 active" />
-
-      <View style={styles.buildingList}>
-        {buildings.map(building => (
-          <GameCard key={building.name}>
-            <View style={styles.buildingRow}>
-              <View style={[styles.buildingIcon, { backgroundColor: theme.colors.surface2 }]}>
-                <Text style={styles.buildingEmoji}>{building.icon}</Text>
-              </View>
-              <View style={styles.buildingCopy}>
-                <View style={styles.nameRow}>
-                  <Text style={[styles.buildingName, { color: theme.colors.text }]}>
-                    {building.name}
-                  </Text>
-                  <Text style={[styles.level, { color: theme.colors.gold }]}>Lv. {building.level}</Text>
-                </View>
-                <Text style={[styles.buildingBody, { color: theme.colors.textMuted }]}>
-                  {building.subtitle}
-                </Text>
-                <Text style={[styles.unlockText, { color: theme.colors.primary }]}>
-                  Next: {building.next}
-                </Text>
-              </View>
-            </View>
-          </GameCard>
-        ))}
-      </View>
     </ScrollView>
   );
 }
@@ -229,39 +279,41 @@ const styles = StyleSheet.create({
   hero: { gap: 16 },
   heroTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
   heroCopy: { flex: 1 },
-  eyebrow: { fontSize: 11, letterSpacing: 1.2, fontWeight: '900' },
+  eyebrow: { fontSize: 10, letterSpacing: 1.2, fontWeight: '900' },
   heroTitle: { fontSize: 28, lineHeight: 34, fontWeight: '900', marginTop: 5 },
-  heroBody: { fontSize: 14, lineHeight: 20, marginTop: 6 },
+  heroBody: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   keepMark: { width: 74, height: 74, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   keepMarkIcon: { fontSize: 36 },
   progressCopy: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   progressLabel: { fontSize: 13, fontWeight: '800' },
-  progressValue: { fontSize: 12, fontWeight: '800' },
+  progressValue: { fontSize: 11, fontWeight: '800' },
   resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   goalRow: { flexDirection: 'row', gap: 14, marginBottom: 14 },
   goalCopy: { flex: 1 },
   goalTitle: { fontSize: 17, fontWeight: '900', marginTop: 4 },
-  goalBody: { fontSize: 13, lineHeight: 18, marginTop: 5 },
+  goalBody: { fontSize: 12, lineHeight: 18, marginTop: 5 },
   goalCost: { alignItems: 'flex-end', justifyContent: 'center', gap: 5 },
   costText: { fontSize: 13, fontWeight: '900' },
   requirement: { textAlign: 'center', marginTop: 9, fontSize: 11 },
-  logisticsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  logisticsLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
-  logisticsValue: { fontSize: 16, fontWeight: '900', marginTop: 3 },
-  gridSize: { fontSize: 23, fontWeight: '900' },
+  summaryRow: { flexDirection: 'row', gap: 8 },
+  summaryCard: { flex: 1 },
+  summaryLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1 },
+  summaryValue: { fontSize: 22, fontWeight: '900', marginTop: 4 },
+  summaryNote: { fontSize: 9.5, fontWeight: '800', marginTop: 3 },
+  buildingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  buildingCard: { width: '48%' },
+  buildingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 6 },
+  buildingEmoji: { fontSize: 24 },
+  buildingName: { fontSize: 14, fontWeight: '900', marginTop: 8 },
+  buildingBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
+  nextEffect: { fontSize: 9, lineHeight: 13, fontWeight: '800', marginTop: 7 },
+  buildingCost: { fontSize: 8.5, lineHeight: 13, fontWeight: '900', marginTop: 6 },
+  buildingButton: { marginTop: 9 },
+  lockNote: { fontSize: 9, lineHeight: 13, fontWeight: '700', marginTop: 8 },
+  message: { fontSize: 10.5, lineHeight: 16, textAlign: 'center', fontWeight: '800' },
   supplyTitle: { fontSize: 15, fontWeight: '900' },
   supplyBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
   supplyReward: { fontSize: 11, fontWeight: '900', marginTop: 7 },
   supplyButton: { marginTop: 11 },
-  adMessage: { fontSize: 10, textAlign: 'center', marginTop: 7 },
-  buildingList: { gap: 10 },
-  buildingRow: { flexDirection: 'row', gap: 12 },
-  buildingIcon: { width: 54, height: 54, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  buildingEmoji: { fontSize: 25 },
-  buildingCopy: { flex: 1 },
-  nameRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  buildingName: { fontSize: 16, fontWeight: '900' },
-  level: { fontSize: 12, fontWeight: '900' },
-  buildingBody: { fontSize: 12, lineHeight: 17, marginTop: 4 },
-  unlockText: { fontSize: 11, fontWeight: '800', marginTop: 7 }
+  adMessage: { fontSize: 10, textAlign: 'center', marginTop: 7 }
 });

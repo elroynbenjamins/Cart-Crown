@@ -24,12 +24,14 @@ export function CampaignScreen({
   onStartBattle,
   onOpenMarkedRaiders,
   onStartMercenary,
+  onOpenRefugeeCamp,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
   onStartBattle: () => void;
   onOpenMarkedRaiders: () => void;
   onStartMercenary: () => void;
+  onOpenRefugeeCamp: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -40,6 +42,7 @@ export function CampaignScreen({
     firstPromotionComplete,
     mercenaryPatrolWon,
     commanderPathId,
+    refugeeCampSecured,
     campaignAvailability,
     sideModeDefinitions,
     isSideModeUnlocked,
@@ -135,7 +138,12 @@ export function CampaignScreen({
             node.id === 'node_4' &&
             firstPromotionComplete &&
             !mercenaryPatrolWon;
-          const playable = battlePlayable || storyPlayable || mercenaryPlayable;
+          const refugeePlayable =
+            node.current &&
+            node.id === 'node_5' &&
+            Boolean(commanderPathId) &&
+            !refugeeCampSecured;
+          const playable = battlePlayable || storyPlayable || mercenaryPlayable || refugeePlayable;
           const status = node.completed
             ? 'DONE'
             : mercenaryPlayable
@@ -144,7 +152,9 @@ export function CampaignScreen({
                 ? 'PROMOTE FIRST'
                 : node.id === 'node_5' && node.current && !commanderPathId
                   ? 'CHOOSE COMMANDER'
-                  : playable
+                  : refugeePlayable
+                    ? 'WELCOME REFUGEES'
+                    : playable
                     ? 'PLAY'
                     : node.current
                       ? 'NEXT'
@@ -155,7 +165,9 @@ export function CampaignScreen({
               ? onOpenMarkedRaiders
               : mercenaryPlayable
                 ? onStartMercenary
-                : undefined;
+                : refugeePlayable
+                  ? onOpenRefugeeCamp
+                  : undefined;
 
           return (
             <Pressable

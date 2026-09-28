@@ -16,6 +16,7 @@ import { BattlePrepScreen } from './screens/BattlePrepScreen';
 import { BattleScreen } from './screens/BattleScreen';
 import { CampaignScreen } from './screens/CampaignScreen';
 import { CommanderChoiceScreen } from './screens/CommanderChoiceScreen';
+import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
 import { ForgeScreen } from './screens/ForgeScreen';
 import { FormationScreen } from './screens/FormationScreen';
@@ -24,6 +25,7 @@ import { KingdomScreen } from './screens/KingdomScreen';
 import { MarkedRaidersScreen } from './screens/MarkedRaidersScreen';
 import { PromotionScreen } from './screens/PromotionScreen';
 import { RecruitmentScreen } from './screens/RecruitmentScreen';
+import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
@@ -36,7 +38,9 @@ type FlowScreen =
   | 'markedRaiders'
   | 'forge'
   | 'promotion'
+  | 'equipment'
   | 'commanderChoice'
+  | 'refugeeCamp'
   | 'expedition'
   | 'formationTrial';
 
@@ -64,7 +68,9 @@ const flowTitles: Record<FlowScreen, string> = {
   markedRaiders: 'Marked Raiders',
   forge: 'Field Forge',
   promotion: 'Promotion',
+  equipment: 'Equipment',
   commanderChoice: 'Commander Path',
+  refugeeCamp: 'Refugee Camp',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
 };
@@ -79,8 +85,14 @@ export function AppShell({
   const [active, setActive] = useState<NavId>('kingdom');
   const [flow, setFlow] = useState<FlowScreen | null>(null);
   const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
+  const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const { theme, cycleTheme } = useGameTheme();
-  const { finishEncounter, lastBattleResult, commanderPathId } = useGame();
+  const {
+    finishEncounter,
+    lastBattleResult,
+    commanderPathId,
+    firstPromotionComplete
+  } = useGame();
 
   const openRecruitment = () => setFlow('recruitment');
 
@@ -168,12 +180,35 @@ export function AppShell({
       );
     }
 
+    if (flow === 'equipment') {
+      return (
+        <EquipmentManageScreen
+          unitId={equipmentUnitId}
+          onExit={() => {
+            setFlow(null);
+            setActive('army');
+          }}
+        />
+      );
+    }
+
     if (flow === 'commanderChoice') {
       return (
         <CommanderChoiceScreen
           onComplete={() => {
             setFlow(null);
             setActive('army');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'refugeeCamp') {
+      return (
+        <RefugeeCampScreen
+          onExit={() => {
+            setFlow(null);
+            setActive('campaign');
           }}
         />
       );
@@ -218,6 +253,7 @@ export function AppShell({
               setActiveEncounterId('mercenary_patrol');
               setFlow('battlePrep');
             }}
+            onOpenRefugeeCamp={() => setFlow('refugeeCamp')}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -233,6 +269,10 @@ export function AppShell({
             onOpenForge={() => setFlow('forge')}
             onOpenPromotion={() => setFlow('promotion')}
             onOpenCommander={() => setFlow('commanderChoice')}
+            onOpenEquipment={(unitId) => {
+              setEquipmentUnitId(unitId);
+              setFlow('equipment');
+            }}
           />
         );
       case 'kingdom':
@@ -240,7 +280,14 @@ export function AppShell({
         return (
           <KingdomScreen
             onOpenRecruitment={openRecruitment}
-            onOpenForge={() => setFlow('forge')}
+            onOpenForge={() => {
+              if (firstPromotionComplete) {
+                setEquipmentUnitId('hum_recruit');
+                setFlow('equipment');
+              } else {
+                setFlow('forge');
+              }
+            }}
           />
         );
     }
@@ -252,7 +299,9 @@ export function AppShell({
     flow === 'markedRaiders' ||
     flow === 'forge' ||
     flow === 'promotion' ||
+    flow === 'equipment' ||
     flow === 'commanderChoice' ||
+    flow === 'refugeeCamp' ||
     flow === 'expedition' ||
     flow === 'formationTrial';
   const title = flow ? flowTitles[flow] : screenTitles[active];

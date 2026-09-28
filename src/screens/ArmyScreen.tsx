@@ -9,12 +9,14 @@ export function ArmyScreen({
   onOpenRecruitment,
   onOpenForge,
   onOpenPromotion,
-  onOpenCommander
+  onOpenCommander,
+  onOpenEquipment
 }: {
   onOpenRecruitment: () => void;
   onOpenForge: () => void;
   onOpenPromotion: () => void;
   onOpenCommander: () => void;
+  onOpenEquipment: (unitId: string) => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -26,7 +28,7 @@ export function ArmyScreen({
     recruitOptions,
     forgeUnlocked,
     firstPromotionComplete,
-    unitWeapons,
+    unitEquipment,
     equipmentInventory,
     commanderChoiceUnlocked,
     activeCommanderPath,
@@ -35,7 +37,9 @@ export function ArmyScreen({
 
   const activeCount = formation.filter(Boolean).length;
   const mira = units.find(unit => unit.id === 'hum_recruit');
-  const miraWeapon = unitWeapons.hum_recruit ? getEquipment(unitWeapons.hum_recruit) : null;
+  const miraWeapon = unitEquipment.hum_recruit?.weapon
+    ? getEquipment(unitEquipment.hum_recruit.weapon)
+    : null;
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -86,7 +90,21 @@ export function ArmyScreen({
                 {forgeUnlocked && !firstPromotionComplete ? (
                   <View style={styles.promotionActions}>
                     <View style={styles.actionGrow}>
-                      <PrimaryButton label={equipmentInventory.length > 0 ? 'Promote Mira' : 'Open Forge'} onPress={equipmentInventory.length > 0 ? onOpenPromotion : onOpenForge} />
+                      <PrimaryButton
+                        label={equipmentInventory.length > 0 ? 'Promote Mira' : 'Open Forge'}
+                        onPress={equipmentInventory.length > 0 ? onOpenPromotion : onOpenForge}
+                      />
+                    </View>
+                  </View>
+                ) : null}
+
+                {firstPromotionComplete ? (
+                  <View style={styles.promotionActions}>
+                    <View style={styles.actionGrow}>
+                      <PrimaryButton
+                        label="Manage Equipment & Branch"
+                        onPress={() => onOpenEquipment(unit.id)}
+                      />
                     </View>
                   </View>
                 ) : null}

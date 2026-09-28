@@ -6,7 +6,9 @@ import {
   wagonStages
 } from './data';
 import {
+  advancedPromotions,
   equipmentDefinitions,
+  getAdvancedPromotionsForClass,
   getEquipment,
   getRecruitPromotionByEquipment,
   recruitPromotions
@@ -20,13 +22,21 @@ import {
   getCommanderPaths
 } from './commanders';
 import { analyzeFormation, formationCells, getFactionDoctrines } from './formation';
+import {
+  canPayBuildingCost,
+  getBuildingLevelDefinition,
+  getBuildings
+} from './kingdom';
 import { sideModes } from './sideModes';
 import type {
+  AdvancedPromotionDefinition,
   BattleResult,
+  BuildingDefinition,
   CampaignAvailability,
   ChapterNode,
   CommanderPathDefinition,
   EquipmentDefinition,
+  EquipmentSlot,
   FactionId,
   FormationBonus,
   FormationDoctrine,
@@ -36,6 +46,7 @@ import type {
   SideModeDefinition,
   SideModeId,
   UnitDefinition,
+  UnitEquipmentLoadout,
   WagonItemDefinition,
   WagonStage
 } from './types';
@@ -79,15 +90,19 @@ type GameContextValue = {
   forgeUnlocked: boolean;
   firstPromotionComplete: boolean;
   equipmentInventory: string[];
-  unitWeapons: Record<string, string | null>;
+  unitEquipment: Record<string, UnitEquipmentLoadout>;
   equipmentDefinitions: EquipmentDefinition[];
   recruitPromotions: PromotionDefinition[];
+  advancedPromotions: AdvancedPromotionDefinition[];
   mercenaryPatrolWon: boolean;
   commanderChoiceUnlocked: boolean;
   commanderPathId: string | null;
   commanderPaths: CommanderPathDefinition[];
   activeCommanderPath: CommanderPathDefinition | null;
   commanderRespecCost: number;
+  refugeeCampSecured: boolean;
+  buildingLevels: Record<string, number>;
+  buildings: BuildingDefinition[];
   lastBattleResult: BattleResult | null;
   canUpgradeSettlement: boolean;
   sideModeDefinitions: SideModeDefinition[];
@@ -98,10 +113,17 @@ type GameContextValue = {
   rewardedAdMessage: string | null;
   finishEncounter: (encounterId: EncounterId) => void;
   completeMarkedRaiders: () => boolean;
+  completeRefugeeCamp: () => boolean;
   upgradeSettlement: () => boolean;
+  upgradeBuilding: (buildingId: string) => boolean;
+  isBuildingUnlocked: (buildingId: string) => boolean;
   chooseRecruit: (choiceId: string) => boolean;
   craftEquipment: (equipmentId: string) => boolean;
+  equipEquipment: (unitId: string, equipmentId: string) => boolean;
+  upgradeEquippedItem: (unitId: string, targetEquipmentId: string) => boolean;
   promoteMira: (equipmentId: string) => boolean;
+  advancedPromoteUnit: (unitId: string, promotionId: string) => boolean;
+  getAdvancedPromotionsForUnit: (unitId: string) => AdvancedPromotionDefinition[];
   chooseCommanderPath: (pathId: string) => boolean;
   moveFormationUnit: (unitId: string, targetSlot: number) => boolean;
   moveWagonItem: (itemId: string, x: number, y: number) => boolean;
@@ -138,6 +160,14 @@ function cloneWagon(items: WagonItemDefinition[]): WagonItemDefinition[] {
 
 function cloneNodes(nodes: ChapterNode[]): ChapterNode[] {
   return nodes.map(node => ({ ...node }));
+}
+
+function cloneLoadouts(
+  loadouts: Record<string, UnitEquipmentLoadout>
+): Record<string, UnitEquipmentLoadout> {
+  return Object.fromEntries(
+    Object.entries(loadouts).map(([unitId, loadout]) => [unitId, { ...loadout }])
+  );
 }
 
 function itemDimensions(item: WagonItemDefinition) {
@@ -206,6 +236,19 @@ function addResources(
   };
 }
 
+function applyEquipmentDelta(
+  unit: UnitDefinition,
+  removeItem: EquipmentDefinition | null,
+  addItem: EquipmentDefinition | null
+): UnitDefinition {
+  return {
+    ...unit,
+    attack: unit.attack - (removeItem?.attackBonus ?? 0) + (addItem?.attackBonus ?? 0),
+    armor: unit.armor - (removeItem?.armorBonus ?? 0) + (addItem?.armorBonus ?? 0),
+    speed: unit.speed - (removeItem?.speedBonus ?? 0) + (addItem?.speedBonus ?? 0)
+  };
+}
+
 const stageRank: Record<string, number> = {
   camp: 0,
   settlement: 1,
@@ -257,10 +300,16 @@ export function GameProvider({
   const [forgeUnlocked, setForgeUnlocked] = useState(initialFaction.forgeUnlocked);
   const [firstPromotionComplete, setFirstPromotionComplete] = useState(initialFaction.firstPromotionComplete);
   const [equipmentInventory, setEquipmentInventory] = useState<string[]>(() => [...initialFaction.equipmentInventory]);
-  const [unitWeapons, setUnitWeapons] = useState<Record<string, string | null>>(() => ({ ...initialFaction.unitWeapons }));
+  const [unitEquipment, setUnitEquipment] = useState<Record<string, UnitEquipmentLoadout>>(
+    () => cloneLoadouts(initialFaction.unitEquipment)
+  );
   const [mercenaryPatrolWon, setMercenaryPatrolWon] = useState(initialFaction.mercenaryPatrolWon);
   const [commanderChoiceUnlocked, setCommanderChoiceUnlocked] = useState(initialFaction.commanderChoiceUnlocked);
   const [commanderPathId, setCommanderPathId] = useState<string | null>(initialFaction.commanderPathId);
+  const [refugeeCampSecured, setRefugeeCampSecured] = useState(initialFaction.refugeeCampSecured);
+  const [buildingLevels, setBuildingLevels] = useState<Record<string, number>>(
+    () => ({ ...initialFaction.buildingLevels })
+  );
   const [lastBattleResult, setLastBattleResult] = useState<BattleResult | null>(
     initialFaction.lastBattleResult ? { ...initialFaction.lastBattleResult } : null
   );
@@ -275,6 +324,7 @@ export function GameProvider({
     [wagonStageId]
   );
 
+  const buildings = useMemo(() => getBuildings(activeFaction), [activeFaction]);
   const formationDoctrines = useMemo(
     () => getFactionDoctrines(activeFaction),
     [activeFaction]
@@ -293,7 +343,8 @@ export function GameProvider({
     () => getCommanderPath(commanderPathId),
     [commanderPathId]
   );
-  const commanderRespecCost = commanderPathId ? 75 : 0;
+  const commanderRespecCost =
+    commanderPathId && (buildingLevels.war_room ?? 0) >= 2 ? 50 : commanderPathId ? 75 : 0;
 
   const formationBonuses = formationAnalysis.bonuses;
   const activeSquadCap = currentWagonStage.formationSlots;
@@ -353,10 +404,12 @@ export function GameProvider({
       forgeUnlocked,
       firstPromotionComplete,
       equipmentInventory,
-      unitWeapons,
+      unitEquipment,
       mercenaryPatrolWon,
       commanderChoiceUnlocked,
       commanderPathId,
+      refugeeCampSecured,
+      buildingLevels,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -379,10 +432,12 @@ export function GameProvider({
       forgeUnlocked,
       firstPromotionComplete,
       equipmentInventory,
-      unitWeapons,
+      unitEquipment,
       mercenaryPatrolWon,
       commanderChoiceUnlocked,
       commanderPathId,
+      refugeeCampSecured,
+      buildingLevels,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -392,7 +447,7 @@ export function GameProvider({
 
   const snapshot = useMemo<GameSnapshot>(
     () => ({
-      schemaVersion: 3,
+      schemaVersion: 4,
       activeFaction,
       shared: sharedProgress,
       factionStates: {
@@ -478,6 +533,7 @@ export function GameProvider({
 
     setMarkedRaidersInvestigated(true);
     setForgeUnlocked(true);
+    setBuildingLevels(previous => ({ ...previous, forge: Math.max(1, previous.forge ?? 0) }));
     setResources(previous => ({
       ...previous,
       wood: previous.wood + 5,
@@ -499,6 +555,29 @@ export function GameProvider({
     return true;
   };
 
+  const completeRefugeeCamp = () => {
+    if (!mercenaryPatrolWon || !commanderPathId || refugeeCampSecured) return false;
+
+    setRefugeeCampSecured(true);
+    setBuildingLevels(previous => ({
+      ...previous,
+      quartermaster: Math.max(1, previous.quartermaster ?? 0)
+    }));
+    setResources(previous => ({
+      ...previous,
+      wood: previous.wood + 15,
+      provisions: previous.provisions + 20
+    }));
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'node_5') return { ...node, completed: true, current: false };
+        if (node.id === 'node_6') return { ...node, current: true };
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
   const upgradeSettlement = () => {
     if (!canUpgradeSettlement) return false;
 
@@ -508,8 +587,45 @@ export function GameProvider({
       stone: previous.stone - 20
     }));
     setSettlementUpgraded(true);
+    setBuildingLevels(previous => ({ ...previous, hall: 2 }));
     setRecruitChoiceAvailable(true);
     setWagonStageId('settlement');
+    return true;
+  };
+
+  const isBuildingUnlocked = (buildingId: string) => {
+    if (['hall', 'barracks', 'wagonwright'].includes(buildingId)) return true;
+    if (buildingId === 'forge') return forgeUnlocked;
+    if (buildingId === 'war_room') return commanderChoiceUnlocked;
+    if (buildingId === 'quartermaster') return refugeeCampSecured;
+    if (buildingId === 'stable') return false;
+    return false;
+  };
+
+  const upgradeBuilding = (buildingId: string) => {
+    if (!isBuildingUnlocked(buildingId)) return false;
+
+    const currentLevel = buildingLevels[buildingId] ?? 0;
+    const targetLevel = currentLevel + 1;
+    const definition = getBuildingLevelDefinition(buildingId, targetLevel);
+
+    if (!definition || !canPayBuildingCost(resources, definition.cost)) return false;
+
+    if (buildingId === 'barracks' && !settlementUpgraded) return false;
+    if (buildingId === 'forge' && !markedRaidersInvestigated) return false;
+    if (buildingId === 'quartermaster' && !refugeeCampSecured) return false;
+    if (buildingId === 'war_room' && !commanderPathId) return false;
+
+    setResources(previous => payCost(previous, definition.cost));
+    setBuildingLevels(previous => ({
+      ...previous,
+      [buildingId]: targetLevel
+    }));
+
+    if (buildingId === 'quartermaster' && targetLevel === 2) {
+      setExpeditionTickets(previous => previous + 1);
+    }
+
     return true;
   };
 
@@ -540,12 +656,97 @@ export function GameProvider({
 
   const craftEquipment = (equipmentId: string) => {
     if (!forgeUnlocked) return false;
+
     const equipment = getEquipment(equipmentId);
-    if (!equipment || equipment.faction !== activeFaction) return false;
-    if (!canAfford(resources, equipment.craftCost)) return false;
+    const forgeLevel = buildingLevels.forge ?? 0;
+
+    if (
+      !equipment ||
+      equipment.faction !== activeFaction ||
+      equipment.upgradeFromId ||
+      equipment.requiredForgeLevel > forgeLevel ||
+      !canAfford(resources, equipment.craftCost)
+    ) {
+      return false;
+    }
 
     setResources(previous => payCost(previous, equipment.craftCost));
     setEquipmentInventory(previous => [...previous, equipment.id]);
+    return true;
+  };
+
+  const equipEquipment = (unitId: string, equipmentId: string) => {
+    const equipment = getEquipment(equipmentId);
+    const inventoryIndex = equipmentInventory.indexOf(equipmentId);
+    const unit = units.find(candidate => candidate.id === unitId);
+
+    if (!equipment || inventoryIndex < 0 || !unit) return false;
+
+    const currentId = unitEquipment[unitId]?.[equipment.slot] ?? null;
+    const currentItem = currentId ? getEquipment(currentId) : null;
+
+    setEquipmentInventory(previous => {
+      const next = [...previous];
+      next.splice(inventoryIndex, 1);
+      if (currentId) next.push(currentId);
+      return next;
+    });
+
+    setUnitEquipment(previous => ({
+      ...previous,
+      [unitId]: {
+        ...(previous[unitId] ?? {}),
+        [equipment.slot]: equipmentId
+      }
+    }));
+
+    setUnits(previous =>
+      previous.map(candidate =>
+        candidate.id === unitId
+          ? applyEquipmentDelta(candidate, currentItem, equipment)
+          : candidate
+      )
+    );
+
+    return true;
+  };
+
+  const upgradeEquippedItem = (unitId: string, targetEquipmentId: string) => {
+    const target = getEquipment(targetEquipmentId);
+    const forgeLevel = buildingLevels.forge ?? 0;
+    const unit = units.find(candidate => candidate.id === unitId);
+
+    if (
+      !target ||
+      !target.upgradeFromId ||
+      target.requiredForgeLevel > forgeLevel ||
+      !unit ||
+      !canAfford(resources, target.craftCost)
+    ) {
+      return false;
+    }
+
+    const currentId = unitEquipment[unitId]?.[target.slot] ?? null;
+    if (currentId !== target.upgradeFromId) return false;
+
+    const currentItem = getEquipment(currentId);
+
+    setResources(previous => payCost(previous, target.craftCost));
+    setUnitEquipment(previous => ({
+      ...previous,
+      [unitId]: {
+        ...(previous[unitId] ?? {}),
+        [target.slot]: target.id
+      }
+    }));
+    setUnits(previous =>
+      previous.map(candidate =>
+        candidate.id === unitId
+          ? applyEquipmentDelta(candidate, currentItem, target)
+          : candidate
+      )
+    );
+
     return true;
   };
 
@@ -566,7 +767,13 @@ export function GameProvider({
       next.splice(inventoryIndex, 1);
       return next;
     });
-    setUnitWeapons(previous => ({ ...previous, hum_recruit: equipmentId }));
+    setUnitEquipment(previous => ({
+      ...previous,
+      hum_recruit: {
+        ...(previous.hum_recruit ?? {}),
+        weapon: equipmentId
+      }
+    }));
     setUnits(previous =>
       previous.map(unit =>
         unit.id === 'hum_recruit'
@@ -587,13 +794,54 @@ export function GameProvider({
     return true;
   };
 
+  const getAdvancedPromotionsForUnit = (unitId: string) => {
+    const unit = units.find(candidate => candidate.id === unitId);
+    return unit ? getAdvancedPromotionsForClass(unit.className) : [];
+  };
+
+  const advancedPromoteUnit = (unitId: string, promotionId: string) => {
+    const unit = units.find(candidate => candidate.id === unitId);
+    const promotion = advancedPromotions.find(candidate => candidate.id === promotionId);
+
+    if (!unit || !promotion || promotion.fromClass !== unit.className) return false;
+
+    const equippedIds = Object.values(unitEquipment[unitId] ?? {}).filter(
+      (value): value is string => Boolean(value)
+    );
+
+    const meetsGear = promotion.requiredEquippedIds.every(id => equippedIds.includes(id));
+    const meetsBuildings =
+      (buildingLevels.barracks ?? 0) >= promotion.requiredBarracksLevel &&
+      (buildingLevels.forge ?? 0) >= promotion.requiredForgeLevel;
+
+    if (!meetsGear || !meetsBuildings) return false;
+
+    setUnits(previous =>
+      previous.map(candidate =>
+        candidate.id === unitId
+          ? {
+              ...candidate,
+              className: promotion.toClass,
+              role: promotion.role,
+              tier: candidate.tier + 1,
+              attack: candidate.attack + promotion.attackBonus,
+              armor: candidate.armor + promotion.armorBonus,
+              speed: candidate.speed + promotion.speedBonus
+            }
+          : candidate
+      )
+    );
+
+    return true;
+  };
+
   const chooseCommanderPath = (pathId: string) => {
     if (!commanderChoiceUnlocked) return false;
 
     const path = commanderPaths.find(candidate => candidate.id === pathId);
     if (!path) return false;
 
-    const cost = commanderPathId ? 75 : 0;
+    const cost = commanderPathId ? commanderRespecCost : 0;
     if (resources.gold < cost) return false;
 
     if (cost > 0) {
@@ -604,6 +852,10 @@ export function GameProvider({
     }
 
     setCommanderPathId(pathId);
+    setBuildingLevels(previous => ({
+      ...previous,
+      war_room: Math.max(1, previous.war_room ?? 0)
+    }));
     setChapterNodes(previous =>
       previous.map(node => {
         if (node.id === 'node_5') return { ...node, current: true };
@@ -683,11 +935,12 @@ export function GameProvider({
   };
 
   const finishExpedition = () => {
+    const extraWood = (buildingLevels.wagonwright ?? 0) >= 2 ? 1 : 0;
     setExpeditionRunsCompleted(previous => previous + 1);
     setResources(previous => ({
       ...previous,
       gold: previous.gold + 35,
-      wood: previous.wood + 8,
+      wood: previous.wood + 8 + extraWood,
       provisions: previous.provisions + 4
     }));
   };
@@ -731,10 +984,11 @@ export function GameProvider({
     }
 
     if (placementId === 'daily_supply') {
+      const quartermasterBonus = (buildingLevels.quartermaster ?? 0) >= 2 ? 5 : 0;
       setResources(previous => ({
         ...previous,
         wood: previous.wood + 15,
-        provisions: previous.provisions + 15
+        provisions: previous.provisions + 15 + quartermasterBonus
       }));
     } else if (placementId === 'expedition_ticket') {
       setExpeditionTickets(previous => previous + 1);
@@ -788,15 +1042,19 @@ export function GameProvider({
       forgeUnlocked,
       firstPromotionComplete,
       equipmentInventory,
-      unitWeapons,
+      unitEquipment,
       equipmentDefinitions,
       recruitPromotions,
+      advancedPromotions,
       mercenaryPatrolWon,
       commanderChoiceUnlocked,
       commanderPathId,
       commanderPaths,
       activeCommanderPath,
       commanderRespecCost,
+      refugeeCampSecured,
+      buildingLevels,
+      buildings,
       lastBattleResult,
       canUpgradeSettlement,
       sideModeDefinitions: sideModes,
@@ -807,10 +1065,17 @@ export function GameProvider({
       rewardedAdMessage,
       finishEncounter,
       completeMarkedRaiders,
+      completeRefugeeCamp,
       upgradeSettlement,
+      upgradeBuilding,
+      isBuildingUnlocked,
       chooseRecruit,
       craftEquipment,
+      equipEquipment,
+      upgradeEquippedItem,
       promoteMira,
+      advancedPromoteUnit,
+      getAdvancedPromotionsForUnit,
       chooseCommanderPath,
       moveFormationUnit,
       moveWagonItem,
@@ -848,13 +1113,16 @@ export function GameProvider({
       forgeUnlocked,
       firstPromotionComplete,
       equipmentInventory,
-      unitWeapons,
+      unitEquipment,
       mercenaryPatrolWon,
       commanderChoiceUnlocked,
       commanderPathId,
       commanderPaths,
       activeCommanderPath,
       commanderRespecCost,
+      refugeeCampSecured,
+      buildingLevels,
+      buildings,
       lastBattleResult,
       canUpgradeSettlement,
       expeditionTickets,

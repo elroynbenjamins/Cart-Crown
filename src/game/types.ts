@@ -44,6 +44,8 @@ export type EquipmentDefinition = {
   armorBonus: number;
   speedBonus: number;
   craftCost: Partial<ResourceWallet>;
+  requiredForgeLevel: number;
+  upgradeFromId?: string;
   description: string;
 };
 
@@ -69,6 +71,50 @@ export type CommanderPathDefinition = {
   speedMultiplier: number;
   skill: CommanderSkillDefinition;
 };
+
+export type AdvancedPromotionDefinition = {
+  id: string;
+  faction: FactionId;
+  fromClass: string;
+  toClass: string;
+  role: UnitRole;
+  requiredEquippedIds: string[];
+  requiredBarracksLevel: number;
+  requiredForgeLevel: number;
+  attackBonus: number;
+  armorBonus: number;
+  speedBonus: number;
+  pitch: string;
+};
+
+export type BuildingRole =
+  | 'KINGDOM'
+  | 'ARMY'
+  | 'EQUIPMENT'
+  | 'LOGISTICS'
+  | 'SUPPLY'
+  | 'COMMAND'
+  | 'MOUNT';
+
+export type BuildingDefinition = {
+  id: string;
+  faction: FactionId;
+  name: string;
+  role: BuildingRole;
+  icon: string;
+  maxLevel: number;
+  description: string;
+};
+
+export type BuildingLevelDefinition = {
+  buildingId: string;
+  level: number;
+  cost: Partial<ResourceWallet>;
+  effect: string;
+  requirement: string;
+};
+
+export type UnitEquipmentLoadout = Partial<Record<EquipmentSlot, string>>;
 
 export type PromotionDefinition = {
   id: string;

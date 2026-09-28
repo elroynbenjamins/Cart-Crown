@@ -25,13 +25,18 @@ export function ForgeScreen({
     resources,
     equipmentDefinitions,
     equipmentInventory,
+    buildingLevels,
     craftEquipment,
     firstPromotionComplete
   } = useGame();
   const [message, setMessage] = useState<string | null>(null);
 
   const humanWeapons = equipmentDefinitions.filter(
-    item => item.faction === 'human' && item.slot === 'weapon'
+    item =>
+      item.faction === 'human' &&
+      item.slot === 'weapon' &&
+      !item.upgradeFromId &&
+      item.requiredForgeLevel <= (buildingLevels.forge ?? 0)
   );
 
   const craft = (id: string, name: string) => {
