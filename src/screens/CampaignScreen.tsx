@@ -8,7 +8,7 @@ import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
-import { CampaignNodeSprite, FactionCrest, RegionMapBackdrop } from '../ui/gameArt';
+import { CampaignNodeSprite, FactionCrest, LockIcon, RegionMapBackdrop } from '../ui/gameArt';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 
 type CampaignView = 'story' | 'activities' | 'factions';
@@ -802,13 +802,21 @@ export function CampaignScreen({
           (mode.id === 'kingdom_defense' && defenseIntroduced);
 
         return (
-          <GameCard key={mode.id} accent={unlocked ? theme.colors.primary : undefined}>
+          <GameCard
+            key={mode.id}
+            faction="human"
+            state={unlocked ? 'default' : 'locked'}
+            accent={unlocked ? theme.colors.primary : undefined}
+          >
             <View style={styles.modeHeader}>
               <View style={styles.modeCopy}>
                 <Text style={[styles.modeName, { color: theme.colors.text }]}>{mode.name}</Text>
                 <Text style={[styles.modeSubtitle, { color: theme.colors.primary }]}>{mode.subtitle}</Text>
               </View>
-              <Pill label={unlocked ? 'UNLOCKED' : mode.unlockStage.toUpperCase()} />
+              <StatusPill
+                label={unlocked ? 'UNLOCKED' : mode.unlockStage.toUpperCase()}
+                tone={unlocked ? 'available' : 'locked'}
+              />
             </View>
             <Text style={[styles.modeBody, { color: theme.colors.textMuted }]}>{mode.description}</Text>
             <Text style={[styles.modeExample, { color: theme.colors.text }]}>Example: {mode.example}</Text>
@@ -821,7 +829,9 @@ export function CampaignScreen({
             ) : null}
 
             {mode.id === 'formation_trials' && formationTrialCompleted ? (
-              <Text style={[styles.modeMeta, { color: theme.colors.primary }]}>First trial completed ✓</Text>
+              <View style={styles.modeStatusRow}>
+                <StatusPill label="FIRST TRIAL COMPLETE" tone="done" />
+              </View>
             ) : null}
 
             {unlocked && functional ? (
@@ -876,14 +886,27 @@ export function CampaignScreen({
           id === 'human' ? theme.colors.human : id === 'elf' ? theme.colors.elf : theme.colors.orc;
 
         return (
-          <GameCard key={id} accent={availability?.unlocked ? accent : undefined}>
+          <GameCard
+            key={id}
+            faction={id}
+            state={
+              id === activeFaction
+                ? 'selected'
+                : availability?.completed
+                  ? 'ready'
+                  : availability?.unlocked
+                    ? 'default'
+                    : 'locked'
+            }
+            accent={availability?.unlocked ? accent : undefined}
+          >
             <View style={styles.factionHeader}>
               <FactionCrest faction={id} size={46} />
               <View style={styles.factionCopy}>
                 <Text style={[styles.factionName, { color: theme.colors.text }]}>{faction.name}</Text>
                 <Text style={[styles.factionCampaign, { color: accent }]}>{faction.campaignName}</Text>
               </View>
-              <Pill
+              <StatusPill
                 label={
                   id === activeFaction
                     ? 'CURRENT'
@@ -892,6 +915,15 @@ export function CampaignScreen({
                       : availability?.unlocked
                         ? 'AVAILABLE'
                         : 'LOCKED'
+                }
+                tone={
+                  id === activeFaction
+                    ? 'current'
+                    : availability?.completed
+                      ? 'done'
+                      : availability?.unlocked
+                        ? 'available'
+                        : 'locked'
                 }
               />
             </View>
@@ -910,9 +942,12 @@ export function CampaignScreen({
               Why replay: {faction.replayReason}
             </Text>
             {!availability?.unlocked ? (
-              <Text style={[styles.unlockText, { color: theme.colors.textMuted }]}>
-                🔒 {availability?.unlockText}
-              </Text>
+              <View style={styles.unlockRow}>
+                <LockIcon color={theme.colors.textMuted} size={20} />
+                <Text style={[styles.unlockText, { color: theme.colors.textMuted }]}>
+                  {availability?.unlockText}
+                </Text>
+              </View>
             ) : null}
 
             {availability?.unlocked && id !== activeFaction ? (
@@ -938,9 +973,12 @@ export function CampaignScreen({
         <Text style={[styles.modeBody, { color: theme.colors.textMuted }]}>
           Final single-player Crownspire campaign. Choose one completed faction while the other two arrive as allied NPC armies.
         </Text>
-        <Text style={[styles.unlockText, { color: theme.colors.textMuted }]}>
-          🔒 {campaignById('meta')?.unlockText}
-        </Text>
+        <View style={styles.unlockRow}>
+          <LockIcon color={theme.colors.textMuted} size={20} />
+          <Text style={[styles.unlockText, { color: theme.colors.textMuted }]}>
+            {campaignById('meta')?.unlockText}
+          </Text>
+        </View>
       </GameCard>
     </>
   );
