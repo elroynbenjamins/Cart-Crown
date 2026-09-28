@@ -8,19 +8,10 @@ import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
-import { FactionCrest } from '../ui/gameArt';
+import { CampaignNodeSprite, FactionCrest } from '../ui/gameArt';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 
 type CampaignView = 'story' | 'activities' | 'factions';
-
-const nodeIcons: Record<string, string> = {
-  story: '◆',
-  battle: '⚔',
-  event: '?',
-  elite: '✦',
-  supply: '▣',
-  boss: '♛'
-};
 
 export function CampaignScreen({
   onStartBattle,
@@ -664,7 +655,12 @@ export function CampaignScreen({
                     }
                   ]}
                 >
-                  <Text style={styles.nodeIconText}>{node.completed ? '✓' : nodeIcons[node.type]}</Text>
+                  <CampaignNodeSprite
+                    type={node.type}
+                    faction="human"
+                    active={node.completed || node.current}
+                    size={26}
+                  />
                 </View>
                 <View style={styles.nodeCopy}>
                   <Text style={[styles.nodeMeta, { color: theme.colors.textMuted }]}>
