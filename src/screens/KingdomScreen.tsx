@@ -13,7 +13,7 @@ import {
   SecondaryButton,
   SectionTitle
 } from '../ui/components';
-import { BuildingSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
+import { BuildingSprite, ResourceSiteSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
 
 const resourceIcons: Record<keyof ResourceWallet, string> = {
   gold: '🪙',
@@ -353,7 +353,7 @@ export function KingdomScreen({
               .filter(site => unlockedResourceSites.includes(site.id))
               .map(site => (
                 <GameCard key={site.id} style={styles.productionCard} accent={theme.colors.primary}>
-                  <Text style={styles.productionIcon}>{site.icon}</Text>
+                  <View style={styles.productionIcon}><ResourceSiteSprite siteId={site.id} faction={site.faction} size={44} /></View>
                   <Text style={[styles.productionName, { color: theme.colors.text }]}>{site.name}</Text>
                   <Text style={[styles.productionBody, { color: theme.colors.textMuted }]}>
                     {site.description}
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
   summaryNote: { fontSize: 9.5, fontWeight: '800', marginTop: 3 },
   productionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   productionCard: { width: '48%' },
-  productionIcon: { fontSize: 23 },
+  productionIcon: { height: 46, alignItems: 'center', justifyContent: 'center' },
   productionName: { fontSize: 13, fontWeight: '900', marginTop: 6 },
   productionBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
   productionRate: { fontSize: 8.5, lineHeight: 13, fontWeight: '900', marginTop: 6 },
