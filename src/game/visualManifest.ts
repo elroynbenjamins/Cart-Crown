@@ -263,7 +263,9 @@ export const resourceSiteVisuals: Record<string, ResourceSiteVisualKind> = {
   elf_moonlit_watch: 'beacon',
   orc_stonejaw_quarry: 'quarry',
   elf_burned_ward_reclamation: 'herb_grove',
-  orc_steppe_war_camp: 'depot'
+  orc_steppe_war_camp: 'depot',
+  elf_worldroot_nursery: 'herb_grove',
+  orc_united_clan_depot: 'depot'
 };
 
 export function getUnitVisualKind(className: string): UnitVisualKind {
@@ -300,6 +302,7 @@ export function getEnemyVisualKind(
   enemyName: string
 ): EnemyVisualKind {
   const key = enemyName.toLowerCase();
+  if (key.includes('worldroot guardian')) return 'hollow';
   if (key.includes('ashroot stalker')) return 'stalker';
   if (key.includes('stonejaw champion')) return 'champion';
   if (key.includes('pale ranger')) return 'ranger';

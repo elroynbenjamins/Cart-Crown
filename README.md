@@ -751,3 +751,113 @@ The generic equipment screen now uses the active faction's actual buildings:
 - Field Forge / Stable / Barracks for Humans
 - Moon Forge / Stag Enclosure / Warden Lodge for Elves
 - Bone Forge / Warg Pens / Clan Yard for Orcs
+
+
+## Elf Chapter 5 — The Wounded Worldroot
+
+The six-squad Worldroot Sanctuary tier is now fully playable:
+
+1. **Worldroot Muster**
+   - no seventh squad; the combat cap remains six
+   - +25 Gold and +25 Provisions
+2. **The Wounded Worldroot**
+3. **Rootscar Records**
+   - unlocks Worldroot Nursery
+   - +5 Wood and +4 Provisions per meaningful activity
+   - confirms the Worldroot damage follows the same three-part Concord geometry
+4. **Ashen Rootkeepers**
+5. **Echo of the Root Seal**
+   - confirms the Root Seal survived
+   - traces its living signature toward Crownspire
+   - does not recover the Seal yet
+6. **Worldroot Guardian**
+
+Defeating the Worldroot Guardian unlocks the **Starroot Conclave** project.
+
+Starroot Conclave requirements:
+- Warden Lodge Lv.5
+- Moon Forge Lv.5
+- Caravan Grove Lv.5
+- Council Glade Lv.4
+- Spirit Stores Lv.4
+- Stag Enclosure Lv.3
+- Ward Beacon Lv.3
+- 650 Gold
+- 270 Wood
+- 210 Stone
+- 65 Iron
+
+Starroot Conclave:
+- expands the Wayfarer Caravan from 6×7 to **7×8**
+- keeps the six-squad cap
+- begins Elf Chapter 6 / **Stars over Crownspire**
+- unlocks **Worldroot Attunements**
+
+### Worldroot Attunements
+One can be active at a time:
+- **Living Canopy** — +9% army armor
+- **Moonwatch** — +6% speed and detailed Battle Prep intel
+- **Rootway Stewardship** — +25% regional production
+
+The first Attunement is free. Changing it later costs 100 Gold.
+
+## Orc Chapter 5 — No Clan Left Behind
+
+The six-squad High Warhold tier is now fully playable:
+
+1. **High Warhold Muster**
+   - no seventh squad; all six squads march under one column
+   - +20 Gold and +28 Provisions
+2. **No Clan Left Behind**
+3. **Missing Warfires**
+   - unlocks United Clan Depot
+   - +3 Iron and +4 Provisions per meaningful activity
+   - proves the Warfires were deliberately extinguished in a coordinated pattern
+4. **Ashen Clanbreakers**
+5. **Echo of the Clan Seal**
+   - confirms the Clan Seal survived
+   - traces the old oath-stones toward Crownspire
+6. **Last Clanbreaker**
+
+Defeating the Last Clanbreaker unlocks the **Warfire Confederacy** project.
+
+Warfire Confederacy requirements:
+- Clan Yard Lv.5
+- Bone Forge Lv.5
+- War Cartwright Lv.5
+- War Council Lv.4
+- Smokehouse Lv.4
+- Warg Pens Lv.3
+- Watchfire Lv.3
+- 660 Gold
+- 260 Wood
+- 200 Stone
+- 80 Iron
+
+Warfire Confederacy:
+- expands the War Cart from 6×7 to **7×8**
+- keeps the six-squad cap
+- begins Orc Chapter 6 / **The Truth at Crownspire**
+- unlocks **Clan Pacts**
+
+### Clan Pacts
+One can be active at a time:
+- **Blood Hunt Pact** — +9% attack and +3% speed
+- **Iron Clan Pact** — +10% armor
+- **Shared Spoils Pact** — +25% regional production
+
+The first Pact is free. Changing it later costs 100 Gold.
+
+## Chapter 6 opening
+
+The first strategic choice immediately affects gameplay.
+
+After choosing an Attunement or Pact:
+- Elves play **Stars over Crownspire**
+- Orcs play **The Truth at Crownspire**
+
+Winning opens:
+- **Concord Rootway** for Elves
+- **Concord Warpath** for Orcs
+
+The remaining Chapter 6 nodes are reserved for the next final-campaign pass, where the Root Seal and Clan Seal will actually be recovered.

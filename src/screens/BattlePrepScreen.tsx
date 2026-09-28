@@ -35,6 +35,7 @@ export function BattlePrepScreen({
     activeMarcherWarningChoice,
     activeLastLoyalistsChoice,
     activeRoyalDecree,
+    activeFactionMandate,
     buildingLevels,
     factionBuildingIds,
     settlementEffects,
@@ -70,10 +71,12 @@ export function BattlePrepScreen({
   const loyalistIntel =
     loyalistApproachActive &&
     Boolean(activeLastLoyalistsChoice?.detailedIntel);
+  const mandateIntel = Boolean(activeFactionMandate?.detailedIntel);
   const scoutReport =
     towerIntel ||
     marcherIntel ||
     loyalistIntel ||
+    mandateIntel ||
     (rewardedAdClaims.scout_report ?? 0) > 0;
   const doctrine = formationDoctrines.find(candidate => candidate.id === formationDoctrineId);
 
@@ -104,7 +107,9 @@ export function BattlePrepScreen({
               ? 'Verified Marcher intel'
               : loyalistIntel
                 ? 'Loyalist intelligence'
-                : towerIntel
+                : mandateIntel
+                  ? activeFactionMandate?.name ?? 'Faction intelligence'
+                  : towerIntel
                 ? 'Signal Tower intel'
                 : scoutReport
                   ? 'Scouted'
@@ -192,6 +197,20 @@ export function BattlePrepScreen({
           </Text>
           <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
             {activeLastLoyalistsChoice.effectText}
+          </Text>
+        </GameCard>
+      ) : null}
+
+      {activeFactionMandate ? (
+        <GameCard accent={factionAccent}>
+          <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+            {activeFaction === 'elf' ? 'WORLDROOT ATTUNEMENT' : 'CLAN PACT'}
+          </Text>
+          <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+            {activeFactionMandate.name}
+          </Text>
+          <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+            {activeFactionMandate.effectText}
           </Text>
         </GameCard>
       ) : null}

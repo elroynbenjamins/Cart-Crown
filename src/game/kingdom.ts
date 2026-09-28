@@ -568,6 +568,55 @@ export const elfBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 105, wood: 30, provisions: 20 },
     effect: 'Large herb and reagent stores support six active squads.',
     requirement: 'Living Root Council'
+  },
+  {
+    buildingId: 'elf_warden_lodge',
+    level: 5,
+    cost: { gold: 225, wood: 85, iron: 18 },
+    effect: 'Starroot command training prepared for the final Crownspire campaign.',
+    requirement: 'Worldroot Guardian defeated'
+  },
+  {
+    buildingId: 'elf_moon_forge',
+    level: 5,
+    cost: { gold: 250, wood: 38, iron: 34 },
+    effect: 'Master moon-forging prepared for Crownspire operations.',
+    requirement: 'Worldroot Guardian defeated'
+  },
+  {
+    buildingId: 'elf_caravan_grove',
+    level: 5,
+    cost: { gold: 205, wood: 105, iron: 18 },
+    effect: 'Starroot Conclave caravan frame prepared.',
+    requirement: 'Worldroot Guardian defeated'
+  },
+  {
+    buildingId: 'elf_council_glade',
+    level: 4,
+    cost: { gold: 185, wood: 42, stone: 25 },
+    effect: 'The Council can govern a multi-region Starroot Conclave.',
+    requirement: 'Echo of the Root Seal traced'
+  },
+  {
+    buildingId: 'elf_spirit_stores',
+    level: 4,
+    cost: { gold: 165, wood: 44, provisions: 30 },
+    effect: 'Conclave stores support the final Crownspire campaign.',
+    requirement: 'Echo of the Root Seal traced'
+  },
+  {
+    buildingId: 'elf_stag_enclosure',
+    level: 3,
+    cost: { gold: 145, wood: 34, provisions: 24 },
+    effect: 'Master Stag routes prepared for Crownspire.',
+    requirement: 'Worldroot Guardian defeated'
+  },
+  {
+    buildingId: 'elf_ward_beacon',
+    level: 3,
+    cost: { gold: 150, wood: 30, stone: 24 },
+    effect: 'The ward network reaches the Crownspire approaches.',
+    requirement: 'Worldroot Guardian defeated'
   }
 ];
 
@@ -676,6 +725,55 @@ export const orcBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 102, wood: 30, provisions: 22 },
     effect: 'Large preserved stores support six active squads.',
     requirement: 'Two-Front Council'
+  },
+  {
+    buildingId: 'orc_clan_yard',
+    level: 5,
+    cost: { gold: 230, wood: 80, iron: 26 },
+    effect: 'Confederacy-wide veteran training prepared for Crownspire.',
+    requirement: 'Last Clanbreaker defeated'
+  },
+  {
+    buildingId: 'orc_bone_forge',
+    level: 5,
+    cost: { gold: 255, wood: 34, iron: 40 },
+    effect: 'Master black-iron forging prepared for Crownspire.',
+    requirement: 'Last Clanbreaker defeated'
+  },
+  {
+    buildingId: 'orc_cartwright',
+    level: 5,
+    cost: { gold: 210, wood: 100, iron: 24 },
+    effect: 'Confederacy War Cart frame prepared.',
+    requirement: 'Last Clanbreaker defeated'
+  },
+  {
+    buildingId: 'orc_war_council',
+    level: 4,
+    cost: { gold: 188, wood: 40, stone: 26 },
+    effect: 'The Council can govern a permanent Warfire Confederacy.',
+    requirement: 'Echo of the Clan Seal traced'
+  },
+  {
+    buildingId: 'orc_smokehouse',
+    level: 4,
+    cost: { gold: 168, wood: 42, provisions: 34 },
+    effect: 'Confederacy stores support the final Crownspire campaign.',
+    requirement: 'Echo of the Clan Seal traced'
+  },
+  {
+    buildingId: 'orc_warg_pens',
+    level: 3,
+    cost: { gold: 148, wood: 32, provisions: 26 },
+    effect: 'Master Warg routes prepared for Crownspire.',
+    requirement: 'Last Clanbreaker defeated'
+  },
+  {
+    buildingId: 'orc_watchfire',
+    level: 3,
+    cost: { gold: 152, wood: 28, stone: 26 },
+    effect: 'The Warfire network reaches the Crownspire approaches.',
+    requirement: 'Last Clanbreaker defeated'
   }
 ];
 

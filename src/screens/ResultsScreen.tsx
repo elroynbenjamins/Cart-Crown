@@ -100,6 +100,22 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'orc_broken_steppe_war_result';
   const orcChapterFourBossResult =
     lastBattleResult.id === 'orc_split_chieftain_result';
+  const elfChapterFiveBattleResult =
+    lastBattleResult.id === 'elf_wounded_worldroot_result';
+  const elfChapterFiveEliteResult =
+    lastBattleResult.id === 'elf_ashen_rootkeepers_result';
+  const elfChapterFiveBossResult =
+    lastBattleResult.id === 'elf_worldroot_guardian_result';
+  const orcChapterFiveBattleResult =
+    lastBattleResult.id === 'orc_no_clan_left_behind_result';
+  const orcChapterFiveEliteResult =
+    lastBattleResult.id === 'orc_ashen_clanbreakers_result';
+  const orcChapterFiveBossResult =
+    lastBattleResult.id === 'orc_last_clanbreaker_result';
+  const elfChapterSixOpeningResult =
+    lastBattleResult.id === 'elf_stars_over_crownspire_result';
+  const orcChapterSixOpeningResult =
+    lastBattleResult.id === 'orc_truth_at_crownspire_result';
   const resultScene =
     returnToCrownspireResult ||
     crownspireGateResult ||
@@ -156,7 +172,87 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {elfChapterFourBossResult ? (
+      {elfChapterSixOpeningResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>CROWNSPIRE ROOTWAY</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The Starwatch is broken</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The chosen Worldroot Attunement carried the army through the first Crownspire defense. The next lead is the old Concord Rootway.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterSixOpeningResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>CROWNSPIRE WARPATH</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The Warfire Guard breaks</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The active Clan Pact held through the first Crownspire battle. The united clans can now trace the original Concord Warpath.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterFiveBossResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CHAPTER 5 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>Starroot Conclave project unlocked</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Worldroot Guardian is released. The Root Seal was not recovered here; it has been traced to Crownspire.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterFiveEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ROOT SEAL CONFIRMED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The Seal survived the Crownfall</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The remaining root-signature points toward Crownspire.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterFiveBattleResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>WORLDROOT RECORDS</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The scars follow Concord geometry</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Securing the scar line opens Rootscar Records and the Worldroot Nursery.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterFiveBossResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>ORC CHAPTER 5 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>Warfire Confederacy project unlocked</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Last Clanbreaker falls. The Clan Seal survived and was taken toward Crownspire.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterFiveEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>CLAN SEAL CONFIRMED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The old oath-stones agree</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Every surviving oath points toward Crownspire.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterFiveBattleResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>UNITED CLAN DEPOT</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The isolated clans return</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The missing Warfires form a deliberate pattern and the united depot can now support the six-squad campaign.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterFourBossResult ? (
         <>
           <GameCard accent={theme.colors.elf}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CHAPTER 4 COMPLETE</Text>

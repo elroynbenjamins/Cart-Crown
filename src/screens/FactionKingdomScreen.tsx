@@ -25,11 +25,13 @@ const resourceIcons: Record<keyof ResourceWallet, string> = {
 export function FactionKingdomScreen({
   onOpenSettlement,
   onOpenRecruitment,
-  onOpenCommander
+  onOpenCommander,
+  onOpenFactionMandate
 }: {
   onOpenSettlement: () => void;
   onOpenRecruitment: () => void;
   onOpenCommander: () => void;
+  onOpenFactionMandate: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -47,9 +49,14 @@ export function FactionKingdomScreen({
     canUpgradeFactionTown,
     factionStrongholdUpgradeAvailable,
     canUpgradeFactionStronghold,
+    factionCapitalUpgradeAvailable,
+    canUpgradeFactionCapital,
     upgradeFactionToFort,
     upgradeFactionToTown,
     upgradeFactionToStronghold,
+    upgradeFactionToCapital,
+    activeFactionMandate,
+    factionMandateSwitchCost,
     upgradeBuilding,
     isBuildingUnlocked,
     activeCommanderPath,
@@ -67,15 +74,19 @@ export function FactionKingdomScreen({
 
   const settlementName =
     elf
-      ? currentWagonStage.id === 'stronghold'
-        ? 'Worldroot Sanctuary'
+      ? currentWagonStage.id === 'capital'
+        ? 'Starroot Conclave'
+        : currentWagonStage.id === 'stronghold'
+          ? 'Worldroot Sanctuary'
         : currentWagonStage.id === 'town'
           ? 'Heartgrove Enclave'
           : currentWagonStage.id === 'fort'
             ? 'Heartgrove Wardhold'
             : 'Heartgrove Sanctuary'
-      : currentWagonStage.id === 'stronghold'
-        ? 'Emberclan High Warhold'
+      : currentWagonStage.id === 'capital'
+        ? 'Warfire Confederacy'
+        : currentWagonStage.id === 'stronghold'
+          ? 'Emberclan High Warhold'
         : currentWagonStage.id === 'town'
           ? 'Emberclan Great Warhold'
           : currentWagonStage.id === 'fort'
@@ -138,12 +149,40 @@ export function FactionKingdomScreen({
       : '400 Gold · 170 Wood · 125 Stone · 45 Iron';
     goalDisabled = !canUpgradeFactionStronghold;
     goalAction = upgradeFactionToStronghold;
-  } else if (currentWagonStage.id === 'stronghold') {
-    goalTitle = elf ? 'Worldroot Sanctuary established' : 'High Warhold established';
+  } else if (factionCapitalUpgradeAvailable) {
+    goalTitle = elf ? 'Raise Starroot Conclave' : 'Form the Warfire Confederacy';
     goalBody = elf
-      ? 'Six-squad capacity and 6×7 caravan logistics are ready for The Wounded Worldroot.'
-      : 'Six-squad capacity and 6×7 War Cart logistics are ready for No Clan Left Behind.';
-    goalButton = 'Chapter 5 ready';
+      ? 'The Worldroot Guardian is released and the Root Seal has been traced to Crownspire. Raise Warden Lodge, Moon Forge and Caravan Grove to Lv.5; Council Glade and Spirit Stores to Lv.4; Stag Enclosure and Ward Beacon to Lv.3.'
+      : 'The Last Clanbreaker is defeated and the Clan Seal has been traced to Crownspire. Raise Clan Yard, Bone Forge and War Cartwright to Lv.5; War Council and Smokehouse to Lv.4; Warg Pens and Watchfire to Lv.3.';
+    goalButton = elf ? 'Build Starroot Conclave' : 'Form Warfire Confederacy';
+    goalCost = elf
+      ? '650 Gold · 270 Wood · 210 Stone · 65 Iron'
+      : '660 Gold · 260 Wood · 200 Stone · 80 Iron';
+    goalDisabled = !canUpgradeFactionCapital;
+    goalAction = upgradeFactionToCapital;
+  } else if (currentWagonStage.id === 'capital') {
+    goalTitle = elf ? 'Starroot Conclave established' : 'Warfire Confederacy established';
+    goalBody = activeFactionMandate
+      ? activeFactionMandate.effectText + ' The first Crownspire route is open.'
+      : elf
+        ? 'Choose a Worldroot Attunement before the Conclave begins its final Crownspire campaign.'
+        : 'Choose a Clan Pact before the Confederacy begins its final Crownspire campaign.';
+    goalButton = activeFactionMandate
+      ? 'Chapter 6 underway'
+      : elf
+        ? 'Choose Worldroot Attunement'
+        : 'Choose Clan Pact';
+    goalDisabled = Boolean(activeFactionMandate);
+    goalAction = () => {
+      onOpenFactionMandate();
+      return true;
+    };
+  } else if (currentWagonStage.id === 'stronghold') {
+    goalTitle = elf ? 'Heal the Wounded Worldroot' : 'Leave No Clan Behind';
+    goalBody = elf
+      ? 'Use the six-squad Sanctuary to trace the Root Seal and defeat the Worldroot Guardian.'
+      : 'Use the six-squad High Warhold to recover isolated clans and trace the Clan Seal.';
+    goalButton = 'Capital tier is story-gated';
     goalDisabled = true;
   } else if (currentWagonStage.id === 'town') {
     goalTitle = elf ? 'Fight through Roots in Ash' : 'Hold the two-front war';
@@ -226,6 +265,42 @@ export function FactionKingdomScreen({
           <PrimaryButton label="Open Settlement View" onPress={onOpenSettlement} />
         </View>
       </GameCard>
+
+      {currentWagonStage.id === 'capital' ? (
+        <GameCard accent={accent}>
+          <View style={styles.commanderRow}>
+            <View style={styles.commanderCopy}>
+              <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
+                {activeFactionMandate?.name ??
+                  (elf ? 'Worldroot Attunement' : 'Clan Pact')}
+              </Text>
+              <Text style={[styles.cardBody, { color: theme.colors.textMuted }]}>
+                {activeFactionMandate
+                  ? activeFactionMandate.effectText +
+                    ' Changing it costs ' +
+                    factionMandateSwitchCost +
+                    ' Gold.'
+                  : 'One strategic choice can be active at a time. Your first choice is free.'}
+              </Text>
+            </View>
+            <Pill label={activeFactionMandate ? 'ACTIVE' : 'CHOOSE'} />
+          </View>
+          <View style={styles.button}>
+            <PrimaryButton
+              label={
+                activeFactionMandate
+                  ? elf
+                    ? 'Manage Attunement'
+                    : 'Manage Clan Pact'
+                  : elf
+                    ? 'Choose Attunement'
+                    : 'Choose Clan Pact'
+              }
+              onPress={onOpenFactionMandate}
+            />
+          </View>
+        </GameCard>
+      ) : null}
 
       {activeCommanderPath ? (
         <GameCard>

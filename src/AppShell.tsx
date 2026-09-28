@@ -25,6 +25,8 @@ import { FactionCampScreen } from './screens/FactionCampScreen';
 import { FactionChapterTwoEventScreen } from './screens/FactionChapterTwoEventScreen';
 import { FactionChapterThreeEventScreen } from './screens/FactionChapterThreeEventScreen';
 import { FactionChapterFourEventScreen } from './screens/FactionChapterFourEventScreen';
+import { FactionChapterFiveEventScreen } from './screens/FactionChapterFiveEventScreen';
+import { FactionMandateScreen } from './screens/FactionMandateScreen';
 import { FactionFourthRecruitmentScreen } from './screens/FactionFourthRecruitmentScreen';
 import { FactionFifthRecruitmentScreen } from './screens/FactionFifthRecruitmentScreen';
 import { FactionKingdomScreen } from './screens/FactionKingdomScreen';
@@ -94,6 +96,10 @@ type FlowScreen =
   | 'factionFifthRecruitment'
   | 'factionChapterFourResource'
   | 'factionChapterFourCouncil'
+  | 'factionChapterFiveMuster'
+  | 'factionChapterFiveResource'
+  | 'factionChapterFiveSeal'
+  | 'factionMandate'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -152,6 +158,10 @@ const flowTitles: Record<FlowScreen, string> = {
   factionFifthRecruitment: 'Faction Muster',
   factionChapterFourResource: 'Chapter 4 Recovery',
   factionChapterFourCouncil: 'Chapter 4 Council',
+  factionChapterFiveMuster: 'Chapter 5 Muster',
+  factionChapterFiveResource: 'Chapter 5 Records',
+  factionChapterFiveSeal: 'Seal Trace',
+  factionMandate: 'Faction Strategy',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -617,6 +627,53 @@ export function AppShell({
       );
     }
 
+    if (flow === 'factionChapterFiveMuster') {
+      return (
+        <FactionChapterFiveEventScreen
+          stage="muster"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'factionChapterFiveResource') {
+      return (
+        <FactionChapterFiveEventScreen
+          stage="resource"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'factionChapterFiveSeal') {
+      return (
+        <FactionChapterFiveEventScreen
+          stage="seal"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'factionMandate') {
+      return (
+        <FactionMandateScreen
+          onExit={() => {
+            setFlow(null);
+            setActive('kingdom');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -871,6 +928,48 @@ export function AppShell({
               );
               setFlow('battlePrep');
             }}
+            onOpenFactionChapterFiveMuster={() =>
+              setFlow('factionChapterFiveMuster')
+            }
+            onStartFactionChapterFiveBattle={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_wounded_worldroot'
+                  : 'orc_no_clan_left_behind'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenFactionChapterFiveResource={() =>
+              setFlow('factionChapterFiveResource')
+            }
+            onStartFactionChapterFiveElite={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_ashen_rootkeepers'
+                  : 'orc_ashen_clanbreakers'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenFactionChapterFiveSeal={() =>
+              setFlow('factionChapterFiveSeal')
+            }
+            onStartFactionChapterFiveBoss={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_worldroot_guardian'
+                  : 'orc_last_clanbreaker'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenFactionMandate={() => setFlow('factionMandate')}
+            onStartFactionChapterSixBattle={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_stars_over_crownspire'
+                  : 'orc_truth_at_crownspire'
+              );
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -901,6 +1000,7 @@ export function AppShell({
                 onOpenSettlement={() => setFlow('settlement')}
                 onOpenRecruitment={() => setFlow('factionRecruitment')}
                 onOpenCommander={() => setFlow('commanderChoice')}
+                onOpenFactionMandate={() => setFlow('factionMandate')}
               />
             );
           }
@@ -966,6 +1066,10 @@ export function AppShell({
     flow === 'factionFifthRecruitment' ||
     flow === 'factionChapterFourResource' ||
     flow === 'factionChapterFourCouncil' ||
+    flow === 'factionChapterFiveMuster' ||
+    flow === 'factionChapterFiveResource' ||
+    flow === 'factionChapterFiveSeal' ||
+    flow === 'factionMandate' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

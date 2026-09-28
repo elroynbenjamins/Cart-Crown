@@ -72,6 +72,14 @@ export function CampaignScreen({
   onStartFactionChapterFourElite,
   onOpenFactionChapterFourCouncil,
   onStartFactionChapterFourBoss,
+  onOpenFactionChapterFiveMuster,
+  onStartFactionChapterFiveBattle,
+  onOpenFactionChapterFiveResource,
+  onStartFactionChapterFiveElite,
+  onOpenFactionChapterFiveSeal,
+  onStartFactionChapterFiveBoss,
+  onOpenFactionMandate,
+  onStartFactionChapterSixBattle,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -133,6 +141,14 @@ export function CampaignScreen({
   onStartFactionChapterFourElite: () => void;
   onOpenFactionChapterFourCouncil: () => void;
   onStartFactionChapterFourBoss: () => void;
+  onOpenFactionChapterFiveMuster: () => void;
+  onStartFactionChapterFiveBattle: () => void;
+  onOpenFactionChapterFiveResource: () => void;
+  onStartFactionChapterFiveElite: () => void;
+  onOpenFactionChapterFiveSeal: () => void;
+  onStartFactionChapterFiveBoss: () => void;
+  onOpenFactionMandate: () => void;
+  onStartFactionChapterSixBattle: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -199,6 +215,14 @@ export function CampaignScreen({
         onStartChapterFourElite={onStartFactionChapterFourElite}
         onOpenChapterFourCouncil={onOpenFactionChapterFourCouncil}
         onStartChapterFourBoss={onStartFactionChapterFourBoss}
+        onOpenChapterFiveMuster={onOpenFactionChapterFiveMuster}
+        onStartChapterFiveBattle={onStartFactionChapterFiveBattle}
+        onOpenChapterFiveResource={onOpenFactionChapterFiveResource}
+        onStartChapterFiveElite={onStartFactionChapterFiveElite}
+        onOpenChapterFiveSeal={onOpenFactionChapterFiveSeal}
+        onStartChapterFiveBoss={onStartFactionChapterFiveBoss}
+        onOpenFactionMandate={onOpenFactionMandate}
+        onStartChapterSixBattle={onStartFactionChapterSixBattle}
       />
     );
   }

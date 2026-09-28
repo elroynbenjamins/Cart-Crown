@@ -23,7 +23,7 @@ import type {
   SaveSlotMetadata
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 11;
+export const SAVE_SCHEMA_VERSION = 12;
 
 export function createHumanFactionState(): FactionGameState {
   return {
@@ -85,6 +85,7 @@ export function createHumanFactionState(): FactionGameState {
     lastLoyalistsChoiceId: null,
     pretenderGeneralWon: false,
     royalDecreeId: null,
+    factionMandateId: null,
     lastBattleResult: null,
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
@@ -229,8 +230,24 @@ export function metadataFromSnapshot(
 
   if (current.faction === 'elf') {
     chapterLabel =
-      current.chapterNumber >= 5
-        ? 'Elf Chapter 5 · Worldroot Muster'
+      current.chapterNumber >= 6
+        ? current.chapterNodes.find(node => node.id === 'elf6_node_3')?.current
+          ? 'Elf Chapter 6 · Concord Rootway'
+          : current.chapterNodes.find(node => node.id === 'elf6_node_2')?.current
+            ? 'Elf Chapter 6 · Stars over Crownspire'
+            : 'Elf Chapter 6 · Starroot Council'
+        : current.chapterNumber === 5
+          ? current.chapterNodes.find(node => node.id === 'elf5_node_6')?.current
+            ? 'Elf Chapter 5 · Worldroot Guardian'
+            : current.chapterNodes.find(node => node.id === 'elf5_node_5')?.current
+              ? 'Elf Chapter 5 · Echo of the Root Seal'
+              : current.chapterNodes.find(node => node.id === 'elf5_node_4')?.current
+                ? 'Elf Chapter 5 · Ashen Rootkeepers'
+                : current.chapterNodes.find(node => node.id === 'elf5_node_3')?.current
+                  ? 'Elf Chapter 5 · Rootscar Records'
+                  : current.chapterNodes.find(node => node.id === 'elf5_node_2')?.current
+                    ? 'Elf Chapter 5 · The Wounded Worldroot'
+                    : 'Elf Chapter 5 · Worldroot Muster'
         : current.chapterNumber === 4
           ? current.chapterNodes.find(node => node.id === 'elf4_node_6')?.current
             ? 'Elf Chapter 4 · Ashen Druid'
@@ -282,8 +299,24 @@ export function metadataFromSnapshot(
                     : 'Elf Chapter 1 · Wardbreakers';
   } else if (current.faction === 'orc') {
     chapterLabel =
-      current.chapterNumber >= 5
-        ? 'Orc Chapter 5 · High Warhold Muster'
+      current.chapterNumber >= 6
+        ? current.chapterNodes.find(node => node.id === 'orc6_node_3')?.current
+          ? 'Orc Chapter 6 · Concord Warpath'
+          : current.chapterNodes.find(node => node.id === 'orc6_node_2')?.current
+            ? 'Orc Chapter 6 · The Truth at Crownspire'
+            : 'Orc Chapter 6 · Confederacy Council'
+        : current.chapterNumber === 5
+          ? current.chapterNodes.find(node => node.id === 'orc5_node_6')?.current
+            ? 'Orc Chapter 5 · Last Clanbreaker'
+            : current.chapterNodes.find(node => node.id === 'orc5_node_5')?.current
+              ? 'Orc Chapter 5 · Echo of the Clan Seal'
+              : current.chapterNodes.find(node => node.id === 'orc5_node_4')?.current
+                ? 'Orc Chapter 5 · Ashen Clanbreakers'
+                : current.chapterNodes.find(node => node.id === 'orc5_node_3')?.current
+                  ? 'Orc Chapter 5 · Missing Warfires'
+                  : current.chapterNodes.find(node => node.id === 'orc5_node_2')?.current
+                    ? 'Orc Chapter 5 · No Clan Left Behind'
+                    : 'Orc Chapter 5 · High Warhold Muster'
         : current.chapterNumber === 4
           ? current.chapterNodes.find(node => node.id === 'orc4_node_6')?.current
             ? 'Orc Chapter 4 · The Split-Chieftain'
@@ -417,8 +450,10 @@ export function metadataFromSnapshot(
 
   const kingdomName =
     current.faction === 'elf'
-      ? current.wagonStageId === 'stronghold'
-        ? 'Worldroot Sanctuary'
+      ? current.wagonStageId === 'capital'
+        ? 'Starroot Conclave'
+        : current.wagonStageId === 'stronghold'
+          ? 'Worldroot Sanctuary'
         : current.wagonStageId === 'town'
           ? 'Heartgrove Enclave'
           : current.wagonStageId === 'fort'
@@ -427,8 +462,10 @@ export function metadataFromSnapshot(
             ? 'Heartgrove Sanctuary'
             : 'Heartgrove Refuge'
       : current.faction === 'orc'
-        ? current.wagonStageId === 'stronghold'
-          ? 'Emberclan High Warhold'
+        ? current.wagonStageId === 'capital'
+          ? 'Warfire Confederacy'
+          : current.wagonStageId === 'stronghold'
+            ? 'Emberclan High Warhold'
           : current.wagonStageId === 'town'
             ? 'Emberclan Great Warhold'
             : current.wagonStageId === 'fort'

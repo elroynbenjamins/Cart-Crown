@@ -40,6 +40,7 @@ export function BattleScreen({
     activeMarcherWarningChoice,
     activeLastLoyalistsChoice,
     activeRoyalDecree,
+    activeFactionMandate,
     settlementEffects
   } = useGame();
 
@@ -82,6 +83,14 @@ export function BattleScreen({
     activeRoyalDecree?.attackMultiplier ?? 1;
   const decreeArmorMultiplier =
     activeRoyalDecree?.armorMultiplier ?? 1;
+  const mandateAttackMultiplier =
+    activeFactionMandate?.attackMultiplier ?? 1;
+  const mandateArmorMultiplier =
+    activeFactionMandate?.armorMultiplier ?? 1;
+  const mandateSpeedMultiplier =
+    activeFactionMandate?.speedMultiplier ?? 1;
+  const mandateCommanderSkillMultiplier =
+    activeFactionMandate?.commanderSkillPowerMultiplier ?? 1;
 
   const activeUnits = useMemo(
     () =>
@@ -141,7 +150,9 @@ export function BattleScreen({
         const adjustedSkillPower = Math.max(
           1,
           Math.round(
-            skill.power * settlementEffects.commanderSkillPowerMultiplier
+            skill.power *
+              settlementEffects.commanderSkillPowerMultiplier *
+              mandateCommanderSkillMultiplier
           )
         );
         setSkillTriggered(true);
@@ -197,6 +208,7 @@ export function BattleScreen({
             marcherAttackMultiplier *
             loyalistAttackMultiplier *
             decreeAttackMultiplier *
+            mandateAttackMultiplier *
             momentum *
             attackFactor
         )
@@ -219,7 +231,8 @@ export function BattleScreen({
                 commanderArmorMultiplier *
                 marcherArmorMultiplier *
                 loyalistArmorMultiplier *
-                decreeArmorMultiplier
+                decreeArmorMultiplier *
+                mandateArmorMultiplier
             )
         )
       );
@@ -246,7 +259,8 @@ export function BattleScreen({
           (
             formationAnalysis.speedMultiplier *
             commanderSpeedMultiplier *
-            marcherSpeedMultiplier
+            marcherSpeedMultiplier *
+            mandateSpeedMultiplier
           )
       )
     ));
@@ -273,7 +287,11 @@ export function BattleScreen({
     loyalistArmorMultiplier,
     loyalistRetaliationMultiplier,
     decreeAttackMultiplier,
-    decreeArmorMultiplier
+    decreeArmorMultiplier,
+    mandateAttackMultiplier,
+    mandateArmorMultiplier,
+    mandateSpeedMultiplier,
+    mandateCommanderSkillMultiplier
   ]);
 
   return (
@@ -326,6 +344,12 @@ export function BattleScreen({
           {partyHp} / {partyMaxHp} HP
         </Text>
         <ProgressBar value={partyMaxHp > 0 ? partyHp / partyMaxHp : 0} color={theme.colors.primary} />
+
+        {activeFactionMandate ? (
+          <Text style={[styles.commanderLine, { color: factionAccent }]}>
+            {activeFactionMandate.name}
+          </Text>
+        ) : null}
 
         {activeRoyalDecree ? (
           <Text style={[styles.commanderLine, { color: theme.colors.primary }]}>

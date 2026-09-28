@@ -35,7 +35,15 @@ export function FactionOpeningCampaignScreen({
   onOpenChapterFourResource,
   onStartChapterFourElite,
   onOpenChapterFourCouncil,
-  onStartChapterFourBoss
+  onStartChapterFourBoss,
+  onOpenChapterFiveMuster,
+  onStartChapterFiveBattle,
+  onOpenChapterFiveResource,
+  onStartChapterFiveElite,
+  onOpenChapterFiveSeal,
+  onStartChapterFiveBoss,
+  onOpenFactionMandate,
+  onStartChapterSixBattle
 }: {
   onStartOpeningBattle: () => void;
   onOpenInvestigation: () => void;
@@ -60,6 +68,14 @@ export function FactionOpeningCampaignScreen({
   onStartChapterFourElite: () => void;
   onOpenChapterFourCouncil: () => void;
   onStartChapterFourBoss: () => void;
+  onOpenChapterFiveMuster: () => void;
+  onStartChapterFiveBattle: () => void;
+  onOpenChapterFiveResource: () => void;
+  onStartChapterFiveElite: () => void;
+  onOpenChapterFiveSeal: () => void;
+  onStartChapterFiveBoss: () => void;
+  onOpenFactionMandate: () => void;
+  onStartChapterSixBattle: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -82,88 +98,116 @@ export function FactionOpeningCampaignScreen({
   const chapterTwo = chapterNumber === 2;
   const chapterThree = chapterNumber === 3;
   const chapterFour = chapterNumber === 4;
-  const chapterFive = chapterNumber >= 5;
+  const chapterFive = chapterNumber === 5;
+  const chapterSix = chapterNumber >= 6;
   const ids =
-    chapterFive
-      ? {
-          muster: '',
-          battle: '',
-          eventA: '',
-          elite: '',
-          eventB: '',
-          boss: ''
-        }
-      : activeFaction === 'elf'
-      ? chapterFour
+    activeFaction === 'elf'
+      ? chapterSix
         ? {
-            muster: 'elf4_node_1',
-            battle: 'elf4_node_2',
-            eventA: 'elf4_node_3',
-            elite: 'elf4_node_4',
-            eventB: 'elf4_node_5',
-            boss: 'elf4_node_6'
+            muster: 'elf6_node_1',
+            battle: 'elf6_node_2',
+            eventA: '',
+            elite: '',
+            eventB: '',
+            boss: ''
           }
-        : chapterThree
+        : chapterFive
           ? {
-              muster: 'elf3_node_1',
-              battle: 'elf3_node_2',
-              eventA: 'elf3_node_3',
-              elite: 'elf3_node_4',
-              eventB: 'elf3_node_5',
-              boss: 'elf3_node_6'
+              muster: 'elf5_node_1',
+              battle: 'elf5_node_2',
+              eventA: 'elf5_node_3',
+              elite: 'elf5_node_4',
+              eventB: 'elf5_node_5',
+              boss: 'elf5_node_6'
             }
-          : chapterTwo
+          : chapterFour
             ? {
-                muster: 'elf2_node_1',
-                battle: 'elf2_node_2',
-                eventA: 'elf2_node_3',
-                elite: 'elf2_node_4',
-                eventB: 'elf2_node_5',
-                boss: 'elf2_node_6'
+                muster: 'elf4_node_1',
+                battle: 'elf4_node_2',
+                eventA: 'elf4_node_3',
+                elite: 'elf4_node_4',
+                eventB: 'elf4_node_5',
+                boss: 'elf4_node_6'
               }
-            : {
-                muster: '',
-                battle: 'elf_node_2',
-                eventA: 'elf_node_3',
-                elite: 'elf_node_4',
-                eventB: 'elf_node_5',
-                boss: 'elf_node_6'
-              }
-      : chapterFour
+            : chapterThree
+              ? {
+                  muster: 'elf3_node_1',
+                  battle: 'elf3_node_2',
+                  eventA: 'elf3_node_3',
+                  elite: 'elf3_node_4',
+                  eventB: 'elf3_node_5',
+                  boss: 'elf3_node_6'
+                }
+              : chapterTwo
+                ? {
+                    muster: 'elf2_node_1',
+                    battle: 'elf2_node_2',
+                    eventA: 'elf2_node_3',
+                    elite: 'elf2_node_4',
+                    eventB: 'elf2_node_5',
+                    boss: 'elf2_node_6'
+                  }
+                : {
+                    muster: '',
+                    battle: 'elf_node_2',
+                    eventA: 'elf_node_3',
+                    elite: 'elf_node_4',
+                    eventB: 'elf_node_5',
+                    boss: 'elf_node_6'
+                  }
+      : chapterSix
         ? {
-            muster: 'orc4_node_1',
-            battle: 'orc4_node_2',
-            eventA: 'orc4_node_3',
-            elite: 'orc4_node_4',
-            eventB: 'orc4_node_5',
-            boss: 'orc4_node_6'
+            muster: 'orc6_node_1',
+            battle: 'orc6_node_2',
+            eventA: '',
+            elite: '',
+            eventB: '',
+            boss: ''
           }
-        : chapterThree
+        : chapterFive
           ? {
-              muster: 'orc3_node_1',
-              battle: 'orc3_node_2',
-              eventA: 'orc3_node_3',
-              elite: 'orc3_node_4',
-              eventB: 'orc3_node_5',
-              boss: 'orc3_node_6'
+              muster: 'orc5_node_1',
+              battle: 'orc5_node_2',
+              eventA: 'orc5_node_3',
+              elite: 'orc5_node_4',
+              eventB: 'orc5_node_5',
+              boss: 'orc5_node_6'
             }
-          : chapterTwo
+          : chapterFour
             ? {
-                muster: 'orc2_node_1',
-                battle: 'orc2_node_2',
-                eventA: 'orc2_node_3',
-                elite: 'orc2_node_4',
-                eventB: 'orc2_node_5',
-                boss: 'orc2_node_6'
+                muster: 'orc4_node_1',
+                battle: 'orc4_node_2',
+                eventA: 'orc4_node_3',
+                elite: 'orc4_node_4',
+                eventB: 'orc4_node_5',
+                boss: 'orc4_node_6'
               }
-            : {
-                muster: '',
-                battle: 'orc_node_2',
-                eventA: 'orc_node_3',
-                elite: 'orc_node_4',
-                eventB: 'orc_node_5',
-                boss: 'orc_node_6'
-              };
+            : chapterThree
+              ? {
+                  muster: 'orc3_node_1',
+                  battle: 'orc3_node_2',
+                  eventA: 'orc3_node_3',
+                  elite: 'orc3_node_4',
+                  eventB: 'orc3_node_5',
+                  boss: 'orc3_node_6'
+                }
+              : chapterTwo
+                ? {
+                    muster: 'orc2_node_1',
+                    battle: 'orc2_node_2',
+                    eventA: 'orc2_node_3',
+                    elite: 'orc2_node_4',
+                    eventB: 'orc2_node_5',
+                    boss: 'orc2_node_6'
+                  }
+                : {
+                    muster: '',
+                    battle: 'orc_node_2',
+                    eventA: 'orc_node_3',
+                    elite: 'orc_node_4',
+                    eventB: 'orc_node_5',
+                    boss: 'orc_node_6'
+                  };
 
   const campaignById = (id: FactionId) =>
     campaignAvailability.find(campaign => campaign.id === id);
@@ -178,18 +222,22 @@ export function FactionOpeningCampaignScreen({
             </Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>
               {activeFaction === 'elf'
-                ? chapterFive
-                  ? 'The Wounded Worldroot'
-                  : chapterFour
+                ? chapterSix
+                  ? 'Stars over Crownspire'
+                  : chapterFive
+                    ? 'The Wounded Worldroot'
+                    : chapterFour
                     ? 'Roots in Ash'
                   : chapterThree
                     ? 'Moonlit Pass'
                     : chapterTwo
                       ? 'The Last Heartgrove'
                       : 'Fading Wards'
-                : chapterFive
-                  ? 'No Clan Left Behind'
-                  : chapterFour
+                : chapterSix
+                  ? 'The Truth at Crownspire'
+                  : chapterFive
+                    ? 'No Clan Left Behind'
+                    : chapterFour
                     ? 'War on Two Fronts'
                   : chapterThree
                     ? 'The Stonejaw Trial'
@@ -217,18 +265,22 @@ export function FactionOpeningCampaignScreen({
       <SectionTitle
         title={
           activeFaction === 'elf'
-            ? chapterFive
-              ? 'Worldroot Basin'
-              : chapterFour
+            ? chapterSix
+              ? 'Crownspire Basin'
+              : chapterFive
+                ? 'Worldroot Basin'
+                : chapterFour
                 ? 'Ashen Groves'
               : chapterThree
                 ? 'Moonlit Pass'
                 : chapterTwo
                   ? 'Heartgrove'
                   : 'Outer Heartgrove'
-            : chapterFive
-              ? 'Great Warhold March'
-              : chapterFour
+            : chapterSix
+              ? 'Crownspire Basin'
+              : chapterFive
+                ? 'Great Warhold March'
+                : chapterFour
                 ? 'Broken Steppe'
               : chapterThree
                 ? 'Stonejaw Range'
@@ -253,7 +305,7 @@ export function FactionOpeningCampaignScreen({
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
           const musterPlayable =
-            (chapterTwo || chapterThree || chapterFour) &&
+            (chapterTwo || chapterThree || chapterFour || chapterFive || chapterSix) &&
             node.current &&
             node.id === ids.muster;
           const battlePlayable =
@@ -280,18 +332,28 @@ export function FactionOpeningCampaignScreen({
               : elitePlayable
                 ? 'ELITE'
                 : musterPlayable
-                  ? 'CHOOSE SQUAD'
+                  ? chapterSix
+                    ? activeFaction === 'elf'
+                      ? 'ATTUNE'
+                      : 'CHOOSE PACT'
+                    : chapterFive
+                      ? 'MUSTER'
+                      : 'CHOOSE SQUAD'
                   : eventAPlayable
-                    ? chapterFour
-                      ? 'RECOVER'
+                    ? chapterFive
+                      ? 'RECORDS'
+                      : chapterFour
+                        ? 'RECOVER'
                       : chapterThree
                         ? 'RESTORE ROUTE'
                         : chapterTwo
                         ? 'SECURE SITE'
                         : 'INVESTIGATE'
                     : eventBPlayable
-                      ? chapterFour
-                        ? 'COUNCIL'
+                      ? chapterFive
+                        ? 'TRACE SEAL'
+                        : chapterFour
+                          ? 'COUNCIL'
                         : chapterThree
                           ? 'OATH / COUNCIL'
                           : chapterTwo
@@ -304,51 +366,67 @@ export function FactionOpeningCampaignScreen({
                           : 'LOCKED';
 
           const action = musterPlayable
-            ? chapterFour
-              ? onOpenChapterFourRecruitment
-              : chapterThree
-                ? onOpenChapterThreeRecruitment
-                : onOpenChapterTwoRecruitment
-            : battlePlayable
-              ? chapterFour
-                ? onStartChapterFourBattle
-                : chapterThree
-                  ? onStartChapterThreeBattle
-                  : chapterTwo
-                    ? onStartChapterTwoBattle
-                    : onStartOpeningBattle
-              : eventAPlayable
-                ? chapterFour
-                  ? onOpenChapterFourResource
+            ? chapterSix
+              ? onOpenFactionMandate
+              : chapterFive
+                ? onOpenChapterFiveMuster
+                : chapterFour
+                  ? onOpenChapterFourRecruitment
                   : chapterThree
-                    ? onOpenChapterThreeResource
-                    : chapterTwo
-                      ? onOpenChapterTwoResource
-                      : onOpenInvestigation
-                : elitePlayable
-                  ? chapterFour
-                    ? onStartChapterFourElite
+                    ? onOpenChapterThreeRecruitment
+                    : onOpenChapterTwoRecruitment
+            : battlePlayable
+              ? chapterSix
+                ? onStartChapterSixBattle
+                : chapterFive
+                  ? onStartChapterFiveBattle
+                  : chapterFour
+                    ? onStartChapterFourBattle
                     : chapterThree
-                      ? onStartChapterThreeElite
+                      ? onStartChapterThreeBattle
                       : chapterTwo
-                        ? onStartChapterTwoElite
-                        : onStartEliteBattle
-                  : eventBPlayable
-                    ? chapterFour
-                      ? onOpenChapterFourCouncil
+                        ? onStartChapterTwoBattle
+                        : onStartOpeningBattle
+              : eventAPlayable
+                ? chapterFive
+                  ? onOpenChapterFiveResource
+                  : chapterFour
+                    ? onOpenChapterFourResource
+                    : chapterThree
+                      ? onOpenChapterThreeResource
+                      : chapterTwo
+                        ? onOpenChapterTwoResource
+                        : onOpenInvestigation
+                : elitePlayable
+                  ? chapterFive
+                    ? onStartChapterFiveElite
+                    : chapterFour
+                      ? onStartChapterFourElite
                       : chapterThree
-                        ? onOpenChapterThreeCouncil
+                        ? onStartChapterThreeElite
                         : chapterTwo
-                          ? onOpenChapterTwoCouncil
-                          : onOpenSupply
-                    : bossPlayable
-                      ? chapterFour
-                        ? onStartChapterFourBoss
+                          ? onStartChapterTwoElite
+                          : onStartEliteBattle
+                  : eventBPlayable
+                    ? chapterFive
+                      ? onOpenChapterFiveSeal
+                      : chapterFour
+                        ? onOpenChapterFourCouncil
                         : chapterThree
-                          ? onStartChapterThreeBoss
+                          ? onOpenChapterThreeCouncil
                           : chapterTwo
-                            ? onStartChapterTwoBoss
-                            : onStartBoss
+                            ? onOpenChapterTwoCouncil
+                            : onOpenSupply
+                    : bossPlayable
+                      ? chapterFive
+                        ? onStartChapterFiveBoss
+                        : chapterFour
+                          ? onStartChapterFourBoss
+                          : chapterThree
+                            ? onStartChapterThreeBoss
+                            : chapterTwo
+                              ? onStartChapterTwoBoss
+                              : onStartBoss
                       : undefined;
 
           return (
@@ -393,27 +471,37 @@ export function FactionOpeningCampaignScreen({
                     <PrimaryButton
                       label={
                         musterPlayable
-                          ? chapterFour
-                            ? 'Choose fifth squad'
-                            : chapterThree
-                              ? 'Choose fourth squad'
-                              : 'Choose third squad'
-                          : eventAPlayable
-                            ? chapterFour
-                              ? 'Recover ' + node.name
-                              : chapterThree
-                                ? 'Restore ' + node.name
-                                : chapterTwo
-                                ? 'Secure ' + node.name
-                                : 'Investigate ' + node.name
-                            : eventBPlayable
-                              ? chapterFour
-                                ? 'Open ' + node.name
+                          ? chapterSix
+                            ? activeFaction === 'elf'
+                              ? 'Choose Worldroot Attunement'
+                              : 'Choose Clan Pact'
+                            : chapterFive
+                              ? 'Prepare full army'
+                              : chapterFour
+                                ? 'Choose fifth squad'
                                 : chapterThree
-                                  ? 'Complete ' + node.name
+                                  ? 'Choose fourth squad'
+                                  : 'Choose third squad'
+                          : eventAPlayable
+                            ? chapterFive
+                              ? 'Secure ' + node.name
+                              : chapterFour
+                                ? 'Recover ' + node.name
+                                : chapterThree
+                                  ? 'Restore ' + node.name
                                   : chapterTwo
+                                    ? 'Secure ' + node.name
+                                    : 'Investigate ' + node.name
+                            : eventBPlayable
+                              ? chapterFive
+                                ? 'Trace ' + node.name
+                                : chapterFour
                                   ? 'Open ' + node.name
-                                  : 'Prepare at ' + node.name
+                                  : chapterThree
+                                    ? 'Complete ' + node.name
+                                    : chapterTwo
+                                      ? 'Open ' + node.name
+                                      : 'Prepare at ' + node.name
                               : bossPlayable
                                 ? 'Challenge ' + node.name
                                 : 'Start ' + node.name

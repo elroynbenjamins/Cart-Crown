@@ -41,7 +41,15 @@ export type EncounterId =
   | 'elf_ashen_druid'
   | 'orc_two_front_war'
   | 'orc_broken_steppe_war'
-  | 'orc_split_chieftain';
+  | 'orc_split_chieftain'
+  | 'elf_wounded_worldroot'
+  | 'elf_ashen_rootkeepers'
+  | 'elf_worldroot_guardian'
+  | 'orc_no_clan_left_behind'
+  | 'orc_ashen_clanbreakers'
+  | 'orc_last_clanbreaker'
+  | 'elf_stars_over_crownspire'
+  | 'orc_truth_at_crownspire';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -417,6 +425,78 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 1360,
     difficulty: 'Boss'
+  },
+  elf_wounded_worldroot: {
+    id: 'elf_wounded_worldroot',
+    name: 'The Wounded Worldroot',
+    subtitle: 'The Sanctuary reaches the ancient Worldroot basin where Ashen cuts still pulse through living ward-lines.',
+    enemyName: 'Worldroot Scar Guard',
+    enemyCount: 6,
+    enemyHp: 1180,
+    difficulty: 'Normal'
+  },
+  elf_ashen_rootkeepers: {
+    id: 'elf_ashen_rootkeepers',
+    name: 'Ashen Rootkeepers',
+    subtitle: 'Corrupted keepers are sealing the deepest maintenance roots and destroying records of the old Concord safeguards.',
+    enemyName: 'Ashen Rootkeepers',
+    enemyCount: 6,
+    enemyHp: 1510,
+    difficulty: 'Elite'
+  },
+  elf_worldroot_guardian: {
+    id: 'elf_worldroot_guardian',
+    name: 'Worldroot Guardian',
+    subtitle: 'A guardian bound to damaged Crownfall instructions blocks the route that still points toward the Root Seal.',
+    enemyName: 'Worldroot Guardian',
+    enemyCount: 6,
+    enemyHp: 1960,
+    difficulty: 'Boss'
+  },
+  orc_no_clan_left_behind: {
+    id: 'orc_no_clan_left_behind',
+    name: 'No Clan Left Behind',
+    subtitle: 'The High Warhold marches to recover isolated clans before Ashen agents can erase their Warfires and histories.',
+    enemyName: 'Ashen Isolation Warband',
+    enemyCount: 6,
+    enemyHp: 1210,
+    difficulty: 'Normal'
+  },
+  orc_ashen_clanbreakers: {
+    id: 'orc_ashen_clanbreakers',
+    name: 'Ashen Clanbreakers',
+    subtitle: 'Veteran agitators attack the united clans with forged oaths, stolen banners and contradictory blood-debts.',
+    enemyName: 'Ashen Clanbreakers',
+    enemyCount: 6,
+    enemyHp: 1540,
+    difficulty: 'Elite'
+  },
+  orc_last_clanbreaker: {
+    id: 'orc_last_clanbreaker',
+    name: 'Last Clanbreaker',
+    subtitle: 'The final Ashen organizer guarding the old clan oath-stones refuses to let the clans learn where the Clan Seal was taken.',
+    enemyName: 'Last Clanbreaker Host',
+    enemyCount: 6,
+    enemyHp: 2010,
+    difficulty: 'Boss'
+  },
+  elf_stars_over_crownspire: {
+    id: 'elf_stars_over_crownspire',
+    name: 'Stars over Crownspire',
+    subtitle: 'The Starroot Conclave enters the neutral approaches under a chosen Worldroot Attunement.',
+    enemyName: 'Ashen Starwatch',
+    enemyCount: 6,
+    enemyHp: 1680,
+    difficulty: 'Elite'
+  },
+  orc_truth_at_crownspire: {
+    id: 'orc_truth_at_crownspire',
+    name: 'The Truth at Crownspire',
+    subtitle: 'The Warfire Confederacy reaches Crownspire with every clan bound by one active Pact.',
+    enemyName: 'Ashen Warfire Guard',
+    enemyCount: 6,
+    enemyHp: 1710,
+    difficulty: 'Elite'
   }
 };
 
@@ -584,6 +664,38 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   orc_split_chieftain: {
     resources: { gold: 275, wood: 115, stone: 88, iron: 30, provisions: 20 },
     storySummary: 'The Split-Chieftain yields. The clans accept a permanent High Warhold and prepare to bring every clan into the next campaign.'
+  },
+  elf_wounded_worldroot: {
+    resources: { gold: 145, wood: 30, stone: 18, provisions: 10 },
+    storySummary: 'The Worldroot scar line is secured. Old maintenance roots reveal that the damage follows the same three-part Concord geometry seen at Crownspire.'
+  },
+  elf_ashen_rootkeepers: {
+    resources: { gold: 175, wood: 34, stone: 22, iron: 8, provisions: 11 },
+    storySummary: 'The Ashen Rootkeepers fall. Their records prove the Root Seal still exists and was moved toward Crownspire after the Crownfall.'
+  },
+  elf_worldroot_guardian: {
+    resources: { gold: 360, wood: 160, stone: 120, iron: 36, provisions: 22 },
+    storySummary: 'The Worldroot Guardian is released from the damaged command. The road to Crownspire is open, but the Root Seal itself still lies ahead.'
+  },
+  orc_no_clan_left_behind: {
+    resources: { gold: 150, wood: 26, stone: 18, iron: 10, provisions: 12 },
+    storySummary: 'The isolated clans are recovered. Their extinguished Warfires form a deliberate pattern leading toward the old Crownspire routes.'
+  },
+  orc_ashen_clanbreakers: {
+    resources: { gold: 180, wood: 30, stone: 22, iron: 12, provisions: 12 },
+    storySummary: 'The Ashen Clanbreakers are defeated. Oath-stones confirm the Clan Seal survived and was carried toward Crownspire.'
+  },
+  orc_last_clanbreaker: {
+    resources: { gold: 370, wood: 150, stone: 115, iron: 42, provisions: 24 },
+    storySummary: 'The Last Clanbreaker falls. Every surviving clan recognizes one Confederacy and one final road toward the Clan Seal at Crownspire.'
+  },
+  elf_stars_over_crownspire: {
+    resources: { gold: 215, wood: 36, stone: 26, iron: 10, provisions: 12 },
+    storySummary: 'The Ashen Starwatch is broken. The chosen Worldroot Attunement carries the Elven army into Crownspire’s Concord rootways.'
+  },
+  orc_truth_at_crownspire: {
+    resources: { gold: 220, wood: 34, stone: 25, iron: 14, provisions: 13 },
+    storySummary: 'The Ashen Warfire Guard breaks. The united clans enter Crownspire and begin tracing the original Concord warpath.'
   }
 };
 

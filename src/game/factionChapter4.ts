@@ -148,7 +148,7 @@ export const elfChapterFiveNodes: ChapterNode[] = [
   { id: 'elf5_node_2', name: 'The Wounded Worldroot', type: 'battle', completed: false },
   { id: 'elf5_node_3', name: 'Rootscar Records', type: 'event', completed: false },
   { id: 'elf5_node_4', name: 'Ashen Rootkeepers', type: 'elite', completed: false },
-  { id: 'elf5_node_5', name: 'The Root Seal', type: 'event', completed: false },
+  { id: 'elf5_node_5', name: 'Echo of the Root Seal', type: 'event', completed: false },
   { id: 'elf5_node_6', name: 'Worldroot Guardian', type: 'boss', completed: false }
 ];
 
@@ -157,6 +157,6 @@ export const orcChapterFiveNodes: ChapterNode[] = [
   { id: 'orc5_node_2', name: 'No Clan Left Behind', type: 'battle', completed: false },
   { id: 'orc5_node_3', name: 'Missing Warfires', type: 'event', completed: false },
   { id: 'orc5_node_4', name: 'Ashen Clanbreakers', type: 'elite', completed: false },
-  { id: 'orc5_node_5', name: 'The Clan Seal', type: 'event', completed: false },
+  { id: 'orc5_node_5', name: 'Echo of the Clan Seal', type: 'event', completed: false },
   { id: 'orc5_node_6', name: 'Last Clanbreaker', type: 'boss', completed: false }
 ];
