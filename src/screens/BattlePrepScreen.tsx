@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { getEncounter } from '../game/encounters';
+import { getEncounter, getEnemyFormationTactic } from '../game/encounters';
+import { getFormationShape } from '../game/formation';
 import {
   getArmyReadinessProfile,
   getUnitCombatProfile
@@ -39,6 +40,7 @@ export function BattlePrepScreen({
     wagonItems,
     formationBonuses,
     formationAnalysis,
+    activeFormationShape,
     activeSquadCap,
     formationDoctrineId,
     formationDoctrines,
@@ -56,6 +58,8 @@ export function BattlePrepScreen({
   } = useGame();
 
   const encounter = getEncounter(encounterId);
+  const enemyTactic = getEnemyFormationTactic(encounterId);
+  const enemyShape = getFormationShape(enemyTactic.formationShapeId);
   const factionAccent =
     activeFaction === 'elf'
       ? theme.colors.elf
@@ -171,6 +175,14 @@ export function BattlePrepScreen({
                 ? encounter.enemyCount + ' enemies · ' + encounter.enemyHp + ' total HP · exact strength revealed'
                 : 'Enemy strength partially concealed · formation and supplies recommended'}
             </Text>
+            <Text style={[styles.enemyFormation, { color: theme.colors.danger }]}>
+              {enemyShape.layout} · {enemyTactic.name}
+            </Text>
+            <Text style={[styles.enemyTactic, { color: theme.colors.textMuted }]}>
+              {scoutReport
+                ? enemyTactic.summary + ' ATK ×' + enemyTactic.attackMultiplier.toFixed(2) + ' · ARM ×' + enemyTactic.armorMultiplier.toFixed(2) + ' · SPD ×' + enemyTactic.speedMultiplier.toFixed(2)
+                : 'Formation identified. Scout intel reveals its exact combat modifiers.'}
+            </Text>
           </View>
         </View>
 
@@ -230,7 +242,9 @@ export function BattlePrepScreen({
 
       <GameCard accent={theme.colors.gold} faction={activeFaction}>
         <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>ACTIVE ORDER</Text>
-        <Text style={[styles.doctrineName, { color: theme.colors.text }]}>{doctrine?.name}</Text>
+        <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+          {activeFormationShape.layout} · {activeFormationShape.name} · {doctrine?.name}
+        </Text>
         <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
           Attack ×{formationAnalysis.attackMultiplier.toFixed(2)} · Armor ×{formationAnalysis.armorMultiplier.toFixed(2)} · Speed ×{formationAnalysis.speedMultiplier.toFixed(2)}
         </Text>
@@ -439,6 +453,8 @@ const styles = StyleSheet.create({
   enemyCopy: { flex: 1 },
   enemyName: { fontSize: 16, fontWeight: '900' },
   enemyMeta: { fontSize: 12, lineHeight: 17, marginTop: 4 },
+  enemyFormation: { fontSize: 11, fontWeight: '900', marginTop: 7 },
+  enemyTactic: { fontSize: 9.5, lineHeight: 14, marginTop: 3 },
   scoutButton: { marginTop: 12 },
   unitList: { gap: 8 },
   unitRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },

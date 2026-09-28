@@ -100,7 +100,16 @@ import {
   getCommanderPath,
   getCommanderPaths
 } from './commanders';
-import { analyzeFormation, formationCells, getFactionDoctrines } from './formation';
+import {
+  analyzeFormation,
+  areFormationSlotsAdjacent,
+  areFormationSlotsVerticallyAligned,
+  formationCells,
+  formationShapes,
+  getFactionDoctrines,
+  getFormationShape,
+  getPreferredFormationSlots
+} from './formation';
 import {
   canPayBuildingCost,
   getBuildingLevelDefinition,
@@ -134,6 +143,8 @@ import type {
   FactionId,
   FormationBonus,
   FormationDoctrine,
+  FormationShapeDefinition,
+  FormationShapeId,
   PromotionDefinition,
   RecruitOption,
   ResourceSiteDefinition,
@@ -181,6 +192,9 @@ type GameContextValue = {
   metaCampaignUnlocked: boolean;
   hasFactionState: (faction: FactionId) => boolean;
   switchFaction: (faction: FactionId) => Promise<boolean>;
+  formationShapeId: FormationShapeId;
+  formationShapes: FormationShapeDefinition[];
+  activeFormationShape: FormationShapeDefinition;
   formationDoctrineId: string;
   formationDoctrines: FormationDoctrine[];
   formationBonuses: FormationBonus[];
@@ -357,6 +371,7 @@ type GameContextValue = {
   moveWagonItem: (itemId: string, x: number, y: number) => boolean;
   rotateWagonItem: (itemId: string) => boolean;
   resetWagon: () => void;
+  setFormationShape: (shapeId: FormationShapeId) => boolean;
   setFormationDoctrine: (doctrineId: string) => boolean;
   isSideModeUnlocked: (id: SideModeId) => boolean;
   consumeExpeditionTicket: () => boolean;
@@ -493,6 +508,14 @@ const sideModeUnlockRank: Record<SideModeDefinition['unlockStage'], number> = {
   stronghold: 4
 };
 
+const formationShapeUnlockRank: Record<FormationShapeDefinition['unlock'], number> = {
+  Start: 0,
+  Settlement: 1,
+  Fort: 2,
+  Town: 3,
+  Stronghold: 4
+};
+
 export function GameProvider({
   children,
   initialSnapshot,
@@ -525,6 +548,9 @@ export function GameProvider({
     metaCampaignStep: initialSnapshot.shared.metaCampaignStep,
     metaCampaignComplete: initialSnapshot.shared.metaCampaignComplete
   }));
+  const [formationShapeId, setFormationShapeIdState] = useState<FormationShapeId>(
+    initialFaction.formationShapeId ?? 'balanced_333'
+  );
   const [formationDoctrineId, setFormationDoctrineId] = useState(initialFaction.formationDoctrineId);
   const [holdTheRoadWon, setHoldTheRoadWon] = useState(initialFaction.holdTheRoadWon);
   const [settlementUpgraded, setSettlementUpgraded] = useState(initialFaction.settlementUpgraded);
@@ -668,9 +694,19 @@ export function GameProvider({
   );
   const factionMandateSwitchCost = 100;
 
+  const activeFormationShape = useMemo(
+    () => getFormationShape(formationShapeId),
+    [formationShapeId]
+  );
   const formationAnalysis = useMemo(
-    () => analyzeFormation(formation, units, activeFaction, formationDoctrineId),
-    [activeFaction, formation, formationDoctrineId, units]
+    () => analyzeFormation(
+      formation,
+      units,
+      activeFaction,
+      formationDoctrineId,
+      formationShapeId
+    ),
+    [activeFaction, formation, formationDoctrineId, formationShapeId, units]
   );
 
   const commanderPaths = useMemo(
@@ -976,6 +1012,7 @@ export function GameProvider({
       resources,
       units,
       formation,
+      formationShapeId,
       wagonItems,
       wagonStageId,
       armyReadiness,
@@ -1022,6 +1059,7 @@ export function GameProvider({
       resources,
       units,
       formation,
+      formationShapeId,
       wagonItems,
       wagonStageId,
       armyReadiness,
@@ -3155,7 +3193,7 @@ export function GameProvider({
         setFormation(previous => {
           if (previous.includes(elfChapterFiveReinforcement.id)) return previous;
           const next = [...previous];
-          const preferredSlots = [0, 2, 1, 3, 5, 4, 6, 8, 7];
+          const preferredSlots = getPreferredFormationSlots(formationShapeId, elfChapterFiveReinforcement.role);
           const empty = preferredSlots.find(slot => next[slot] === null);
           if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
             next[empty] = elfChapterFiveReinforcement.id;
@@ -3228,7 +3266,7 @@ export function GameProvider({
         setFormation(previous => {
           if (previous.includes(orcChapterFiveReinforcement.id)) return previous;
           const next = [...previous];
-          const preferredSlots = [0, 2, 1, 3, 5, 4, 6, 8, 7];
+          const preferredSlots = getPreferredFormationSlots(formationShapeId, orcChapterFiveReinforcement.role);
           const empty = preferredSlots.find(slot => next[slot] === null);
           if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
             next[empty] = orcChapterFiveReinforcement.id;
@@ -3737,10 +3775,7 @@ export function GameProvider({
     setUnits(previous => [...previous, { ...choice.unit }]);
     setFormation(previous => {
       const next = [...previous];
-      const preferredSlots =
-        choice.unit.role === 'ranged' || choice.unit.role === 'support'
-          ? [6, 7, 8, 3, 4, 5, 0, 1, 2]
-          : [3, 4, 5, 0, 1, 2, 6, 7, 8];
+      const preferredSlots = getPreferredFormationSlots(formationShapeId, choice.unit.role);
       const empty = preferredSlots.find(slot => next[slot] === null);
 
       if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
@@ -3794,10 +3829,7 @@ export function GameProvider({
     setUnits(previous => [...previous, { ...choice.unit }]);
     setFormation(previous => {
       const next = [...previous];
-      const preferredSlots =
-        choice.unit.role === 'ranged' || choice.unit.role === 'support'
-          ? [6, 8, 7, 3, 5, 4, 0, 2, 1]
-          : [3, 5, 4, 0, 2, 1, 6, 8, 7];
+      const preferredSlots = getPreferredFormationSlots(formationShapeId, choice.unit.role);
       const empty = preferredSlots.find(slot => next[slot] === null);
 
       if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
@@ -3843,10 +3875,7 @@ export function GameProvider({
     setUnits(previous => [...previous, { ...choice.unit }]);
     setFormation(previous => {
       const next = [...previous];
-      const preferredSlots =
-        choice.unit.role === 'ranged' || choice.unit.role === 'support'
-          ? [6, 8, 7, 3, 5, 4, 0, 2, 1]
-          : [3, 5, 4, 0, 2, 1, 6, 8, 7];
+      const preferredSlots = getPreferredFormationSlots(formationShapeId, choice.unit.role);
       const empty = preferredSlots.find(slot => next[slot] === null);
 
       if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
@@ -3878,10 +3907,7 @@ export function GameProvider({
     setUnits(previous => [...previous, { ...choice.unit }]);
     setFormation(previous => {
       const next = [...previous];
-      const preferredSlots =
-        choice.unit.role === 'ranged'
-          ? [6, 8, 7, 3, 5, 4, 0, 2, 1]
-          : [3, 5, 4, 0, 2, 1, 6, 8, 7];
+      const preferredSlots = getPreferredFormationSlots(formationShapeId, choice.unit.role);
       const empty = preferredSlots.find(slot => next[slot] === null);
       if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
         next[empty] = choice.unit.id;
@@ -3917,10 +3943,7 @@ export function GameProvider({
     setUnits(previous => [...previous, { ...choice.unit }]);
     setFormation(previous => {
       const next = [...previous];
-      const preferredSlots =
-        choice.unit.role === 'support' || choice.unit.role === 'skirmish'
-          ? [6, 8, 7, 3, 5, 4, 0, 2, 1]
-          : [3, 5, 4, 0, 2, 1, 6, 8, 7];
+      const preferredSlots = getPreferredFormationSlots(formationShapeId, choice.unit.role);
       const empty = preferredSlots.find(slot => next[slot] === null);
 
       if (
@@ -3962,10 +3985,7 @@ export function GameProvider({
     setUnits(previous => [...previous, { ...choice.unit }]);
     setFormation(previous => {
       const next = [...previous];
-      const preferredSlots =
-        choice.unit.role === 'ranged' || choice.unit.role === 'support'
-          ? [6, 8, 7, 3, 5, 4, 0, 2, 1]
-          : [3, 5, 4, 0, 2, 1, 6, 8, 7];
+      const preferredSlots = getPreferredFormationSlots(formationShapeId, choice.unit.role);
       const empty = preferredSlots.find(slot => next[slot] === null);
 
       if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
@@ -4818,6 +4838,15 @@ export function GameProvider({
     setWagonItems(cloneWagon(starterWagonItems));
   };
 
+  const setFormationShape = (shapeId: FormationShapeId) => {
+    const shape = formationShapes.find(candidate => candidate.id === shapeId);
+    if (!shape) return false;
+    const currentRank = stageRank[currentWagonStage.id] ?? 0;
+    if (currentRank < formationShapeUnlockRank[shape.unlock]) return false;
+    setFormationShapeIdState(shapeId);
+    return true;
+  };
+
   const setFormationDoctrine = (doctrineId: string) => {
     if (!formationDoctrines.some(doctrine => doctrine.id === doctrineId)) return false;
     setFormationDoctrineId(doctrineId);
@@ -4867,31 +4896,32 @@ export function GameProvider({
     const occupiedSlots = formation
       .map((unitId, index) => (unitId ? index : -1))
       .filter(index => index >= 0);
-    const areOrthogonallyAdjacent = (a: number, b: number) => {
-      const aRow = Math.floor(a / 3);
-      const aColumn = a % 3;
-      const bRow = Math.floor(b / 3);
-      const bColumn = b % 3;
-      return Math.abs(aRow - bRow) + Math.abs(aColumn - bColumn) === 1;
-    };
 
     let trialReady = false;
 
     if (activeFaction === 'human') {
       const harlan = formation.indexOf('hum_militia');
       const mira = formation.indexOf('hum_recruit');
-      const harlanFront = harlan >= 0 && harlan <= 2;
-      const miraBehind = mira >= 3;
-      const sameColumn =
-        harlan >= 0 && mira >= 0 && harlan % 3 === mira % 3;
-      trialReady = harlanFront && miraBehind && sameColumn;
+      const harlanFront =
+        harlan >= 0 && activeFormationShape.rows.front.includes(harlan);
+      const miraBehind =
+        mira >= 0 &&
+        (
+          activeFormationShape.rows.middle.includes(mira) ||
+          activeFormationShape.rows.rear.includes(mira)
+        );
+      const protectedLane =
+        harlan >= 0 &&
+        mira >= 0 &&
+        areFormationSlotsVerticallyAligned(formationShapeId, harlan, mira);
+      trialReady = harlanFront && miraBehind && protectedLane;
     } else if (activeFaction === 'elf') {
       trialReady =
         occupiedSlots.length >= 2 &&
         occupiedSlots.every((slot, index) =>
           occupiedSlots
             .slice(index + 1)
-            .every(other => !areOrthogonallyAdjacent(slot, other))
+            .every(other => !areFormationSlotsAdjacent(formationShapeId, slot, other))
         );
     } else {
       trialReady =
@@ -4899,7 +4929,7 @@ export function GameProvider({
         occupiedSlots.some((slot, index) =>
           occupiedSlots
             .slice(index + 1)
-            .some(other => areOrthogonallyAdjacent(slot, other))
+            .some(other => areFormationSlotsAdjacent(formationShapeId, slot, other))
         );
     }
 
@@ -4992,6 +5022,9 @@ export function GameProvider({
       metaCampaignUnlocked,
       hasFactionState,
       switchFaction,
+      formationShapeId,
+      formationShapes,
+      activeFormationShape,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,
@@ -5142,6 +5175,7 @@ export function GameProvider({
       moveWagonItem,
       rotateWagonItem,
       resetWagon,
+      setFormationShape,
       setFormationDoctrine,
       isSideModeUnlocked,
       consumeExpeditionTicket,
@@ -5167,6 +5201,8 @@ export function GameProvider({
       metaCampaignStep,
       metaCampaignComplete,
       metaCampaignUnlocked,
+      formationShapeId,
+      activeFormationShape,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,

@@ -1,12 +1,107 @@
-import type { FactionId, FormationBonus, FormationDoctrine, UnitDefinition } from './types';
+import type {
+  FactionId,
+  FormationBonus,
+  FormationDoctrine,
+  FormationShapeDefinition,
+  FormationShapeId,
+  UnitDefinition,
+  UnitRole
+} from './types';
 
 export const formationCells = Array.from({ length: 9 }, (_, index) => index);
-export const frontRow = [0, 1, 2];
-export const middleRow = [3, 4, 5];
-export const rearRow = [6, 7, 8];
-export const leftFlank = [0, 3, 6];
-export const centerColumn = [1, 4, 7];
-export const rightFlank = [2, 5, 8];
+
+export const formationShapes: FormationShapeDefinition[] = [
+  {
+    id: 'balanced_333',
+    name: 'Balanced Line',
+    layout: '3–3–3',
+    rows: { front: [0, 1, 2], middle: [3, 4, 5], rear: [6, 7, 8] },
+    unlock: 'Start',
+    summary: 'Even depth across all three lines. Easy to read and hard to exploit.',
+    strength: 'Reliable mixed armies',
+    risk: 'No specialized pressure'
+  },
+  {
+    id: 'assault_432',
+    name: 'Assault Line',
+    layout: '4–3–2',
+    rows: { front: [0, 1, 2, 3], middle: [4, 5, 6], rear: [7, 8] },
+    unlock: 'Settlement',
+    summary: 'Commits more bodies forward while keeping enough depth for a mixed force.',
+    strength: 'Melee pressure and aggressive cavalry',
+    risk: 'Less protected ranged space'
+  },
+  {
+    id: 'deep_234',
+    name: 'Deep Formation',
+    layout: '2–3–4',
+    rows: { front: [0, 1], middle: [2, 3, 4], rear: [5, 6, 7, 8] },
+    unlock: 'Settlement',
+    summary: 'A narrow screen protects a deeper reserve and ranged line.',
+    strength: 'Support, ranged and counterattacks',
+    risk: 'Thin first contact'
+  },
+  {
+    id: 'wide_vanguard_522',
+    name: 'Wide Vanguard',
+    layout: '5–2–2',
+    rows: { front: [0, 1, 2, 3, 4], middle: [5, 6], rear: [7, 8] },
+    unlock: 'Fort',
+    summary: 'A broad first line denies easy flanks and lets durable infantry occupy more frontage.',
+    strength: 'Shield infantry and line holders',
+    risk: 'Limited depth behind the front'
+  },
+  {
+    id: 'protected_rear_225',
+    name: 'Protected Rear',
+    layout: '2–2–5',
+    rows: { front: [0, 1], middle: [2, 3], rear: [4, 5, 6, 7, 8] },
+    unlock: 'Fort',
+    summary: 'A compact screen buys time for a large ranged or support back line.',
+    strength: 'Archers, crossbows and support',
+    risk: 'Breakthroughs are dangerous'
+  },
+  {
+    id: 'reinforced_center_252',
+    name: 'Reinforced Center',
+    layout: '2–5–2',
+    rows: { front: [0, 1], middle: [2, 3, 4, 5, 6], rear: [7, 8] },
+    unlock: 'Town',
+    summary: 'A dense central reserve can reinforce either side and absorb a broken front.',
+    strength: 'Flexible elites and reserves',
+    risk: 'Front line starts narrow'
+  },
+  {
+    id: 'spear_wall_531',
+    name: 'Spear Wall',
+    layout: '5–3–1',
+    rows: { front: [0, 1, 2, 3, 4], middle: [5, 6, 7], rear: [8] },
+    unlock: 'Town',
+    summary: 'Maximum frontage with a supporting second rank and almost no rear depth.',
+    strength: 'Spears, shields and anti-charge armies',
+    risk: 'Very little protected rear space'
+  },
+  {
+    id: 'skirmish_screen_243',
+    name: 'Skirmish Screen',
+    layout: '2–4–3',
+    rows: { front: [0, 1], middle: [2, 3, 4, 5], rear: [6, 7, 8] },
+    unlock: 'Town',
+    summary: 'A light screen gives mobile troops room to rotate through the middle.',
+    strength: 'Scouts, cavalry and flexible ranged units',
+    risk: 'Less staying power on first contact'
+  },
+  {
+    id: 'heavy_front_441',
+    name: 'Heavy Front',
+    layout: '4–4–1',
+    rows: { front: [0, 1, 2, 3], middle: [4, 5, 6, 7], rear: [8] },
+    unlock: 'Stronghold',
+    summary: 'Two heavy combat ranks overwhelm the center at the cost of rear protection.',
+    strength: 'Veteran melee and shock troops',
+    risk: 'Almost no safe ranged line'
+  }
+];
 
 export const formationDoctrines: FormationDoctrine[] = [
   {
@@ -83,6 +178,139 @@ export type FormationAnalysis = {
   bonuses: FormationBonus[];
 };
 
+type SlotPosition = {
+  row: 'front' | 'middle' | 'rear';
+  rowIndex: number;
+  x: number;
+  y: number;
+};
+
+export function getFormationShape(id: FormationShapeId | string | null | undefined) {
+  return formationShapes.find(shape => shape.id === id) ?? formationShapes[0]!;
+}
+
+export function getFormationRows(id: FormationShapeId | string | null | undefined) {
+  return getFormationShape(id).rows;
+}
+
+export function getFormationShapeByLayout(layout: string) {
+  return formationShapes.find(shape => shape.layout === layout) ?? formationShapes[0]!;
+}
+
+function centerFirst(indices: number[]) {
+  const middle = (indices.length - 1) / 2;
+  return [...indices].sort(
+    (a, b) => Math.abs(indices.indexOf(a) - middle) - Math.abs(indices.indexOf(b) - middle)
+  );
+}
+
+function edgeFirst(indices: number[]) {
+  if (indices.length <= 2) return [...indices];
+  const result: number[] = [];
+  let left = 0;
+  let right = indices.length - 1;
+  while (left <= right) {
+    result.push(indices[left]!);
+    if (right !== left) result.push(indices[right]!);
+    left += 1;
+    right -= 1;
+  }
+  return result;
+}
+
+export function getPreferredFormationSlots(
+  shapeId: FormationShapeId | string | null | undefined,
+  role: UnitRole
+) {
+  const rows = getFormationRows(shapeId);
+
+  if (role === 'ranged' || role === 'support') {
+    return [
+      ...centerFirst(rows.rear),
+      ...centerFirst(rows.middle),
+      ...centerFirst(rows.front)
+    ];
+  }
+
+  if (role === 'cavalry' || role === 'skirmish') {
+    return [
+      ...edgeFirst(rows.front),
+      ...edgeFirst(rows.middle),
+      ...edgeFirst(rows.rear)
+    ];
+  }
+
+  return [
+    ...centerFirst(rows.front),
+    ...centerFirst(rows.middle),
+    ...centerFirst(rows.rear)
+  ];
+}
+
+function buildSlotPositions(shapeId: FormationShapeId | string | null | undefined) {
+  const rows = getFormationRows(shapeId);
+  const positions = new Map<number, SlotPosition>();
+
+  ([
+    ['front', rows.front, 0],
+    ['middle', rows.middle, 1],
+    ['rear', rows.rear, 2]
+  ] as const).forEach(([row, slots, y]) => {
+    slots.forEach((slot, rowIndex) => {
+      positions.set(slot, {
+        row,
+        rowIndex,
+        x: slots.length === 1 ? 0.5 : rowIndex / (slots.length - 1),
+        y
+      });
+    });
+  });
+
+  return positions;
+}
+
+function neighborSlots(
+  slot: number,
+  shapeId: FormationShapeId | string | null | undefined
+) {
+  const positions = buildSlotPositions(shapeId);
+  const current = positions.get(slot);
+  if (!current) return [];
+
+  return formationCells.filter(otherSlot => {
+    if (otherSlot === slot) return false;
+    const other = positions.get(otherSlot);
+    if (!other) return false;
+
+    if (other.row === current.row) {
+      return Math.abs(other.rowIndex - current.rowIndex) === 1;
+    }
+
+    return Math.abs(other.y - current.y) === 1 && Math.abs(other.x - current.x) <= 0.27;
+  });
+}
+
+export function areFormationSlotsAdjacent(
+  shapeId: FormationShapeId | string | null | undefined,
+  a: number,
+  b: number
+) {
+  return neighborSlots(a, shapeId).includes(b);
+}
+
+export function areFormationSlotsVerticallyAligned(
+  shapeId: FormationShapeId | string | null | undefined,
+  a: number,
+  b: number
+) {
+  const positions = buildSlotPositions(shapeId);
+  const first = positions.get(a);
+  const second = positions.get(b);
+  if (!first || !second || first.row === second.row) return false;
+
+  return Math.abs(first.x - second.x) <= 0.28;
+}
+
 function unitAt(
   formation: Array<string | null>,
   units: UnitDefinition[],
@@ -96,27 +324,18 @@ function occupied(formation: Array<string | null>, index: number) {
   return Boolean(formation[index]);
 }
 
-function orthogonalNeighbors(index: number) {
-  const row = Math.floor(index / 3);
-  const col = index % 3;
-  const result: number[] = [];
-
-  if (row > 0) result.push(index - 3);
-  if (row < 2) result.push(index + 3);
-  if (col > 0) result.push(index - 1);
-  if (col < 2) result.push(index + 1);
-
-  return result;
-}
-
-function adjacentPairs(indices: number[], formation: Array<string | null>, units: UnitDefinition[]) {
+function adjacentPairs(
+  formation: Array<string | null>,
+  units: UnitDefinition[],
+  shapeId: FormationShapeId | string | null | undefined
+) {
   let pairs = 0;
 
-  for (const index of indices) {
+  for (const index of formationCells) {
     const unit = unitAt(formation, units, index);
     if (!unit) continue;
 
-    for (const neighbor of orthogonalNeighbors(index)) {
+    for (const neighbor of neighborSlots(index, shapeId)) {
       if (neighbor <= index) continue;
       const other = unitAt(formation, units, neighbor);
       if (!other) continue;
@@ -136,11 +355,73 @@ export function getFactionDoctrines(faction: FactionId) {
   return formationDoctrines.filter(doctrine => doctrine.faction === faction);
 }
 
+function applyShapeIdentity(
+  shapeId: FormationShapeId,
+  rearSpecialistPresent: boolean,
+  pushBonus: (bonus: FormationBonus) => void
+) {
+  let attack = 0;
+  let armor = 0;
+  let speed = 0;
+  let healing = 0;
+
+  if (shapeId === 'assault_432') {
+    attack += 0.03;
+    speed += 0.02;
+    armor -= 0.01;
+  } else if (shapeId === 'deep_234') {
+    armor += 0.03;
+    healing += 0.04;
+  } else if (shapeId === 'wide_vanguard_522') {
+    armor += 0.04;
+    speed -= 0.02;
+  } else if (shapeId === 'protected_rear_225') {
+    if (rearSpecialistPresent) {
+      attack += 0.04;
+      healing += 0.04;
+    }
+    armor -= 0.02;
+  } else if (shapeId === 'reinforced_center_252') {
+    attack += 0.02;
+    armor += 0.03;
+  } else if (shapeId === 'spear_wall_531') {
+    armor += 0.05;
+    speed -= 0.03;
+  } else if (shapeId === 'skirmish_screen_243') {
+    attack += 0.02;
+    speed += 0.05;
+    armor -= 0.02;
+  } else if (shapeId === 'heavy_front_441') {
+    attack += 0.04;
+    armor += 0.03;
+    speed -= 0.03;
+  }
+
+  if (attack !== 0 || armor !== 0 || speed !== 0 || healing !== 0) {
+    const shape = getFormationShape(shapeId);
+    const parts: string[] = [];
+    if (attack) parts.push((attack > 0 ? '+' : '') + String(Math.round(attack * 100)) + '% ATK');
+    if (armor) parts.push((armor > 0 ? '+' : '') + String(Math.round(armor * 100)) + '% ARM');
+    if (speed) parts.push((speed > 0 ? '+' : '') + String(Math.round(speed * 100)) + '% SPD');
+    if (healing) parts.push((healing > 0 ? '+' : '') + String(Math.round(healing * 100)) + '% healing');
+    pushBonus({
+      id: 'shape_' + shape.id,
+      name: shape.layout + ' · ' + shape.name,
+      description: shape.summary,
+      value: parts.join(' · '),
+      active: true
+    });
+  }
+
+  return { attack, armor, speed, healing };
+}
+
 export function analyzeFormation(
   formation: Array<string | null>,
   units: UnitDefinition[],
   faction: FactionId,
-  doctrineId: string
+  doctrineId: string,
+  shapeId: FormationShapeId = 'balanced_333'
 ): FormationAnalysis {
   let attackMultiplier = 1;
   let armorMultiplier = 1;
@@ -149,15 +430,22 @@ export function analyzeFormation(
   let momentumPerExchange = 0;
 
   const bonuses: FormationBonus[] = [];
+  const shape = getFormationShape(shapeId);
+  const rows = shape.rows;
+  const positions = buildSlotPositions(shape.id);
   const activeUnits = formation
-    .map((id, index) => ({ unit: id ? units.find(candidate => candidate.id === id) ?? null : null, index }))
+    .map((id, index) => ({
+      unit: id ? units.find(candidate => candidate.id === id) ?? null : null,
+      index
+    }))
     .filter(entry => entry.unit !== null);
 
-  const frontUnits = activeUnits.filter(entry => frontRow.includes(entry.index));
-  const rearUnits = activeUnits.filter(entry => rearRow.includes(entry.index));
-  const flankUnits = activeUnits.filter(
-    entry => leftFlank.includes(entry.index) || rightFlank.includes(entry.index)
-  );
+  const frontUnits = activeUnits.filter(entry => rows.front.includes(entry.index));
+  const rearUnits = activeUnits.filter(entry => rows.rear.includes(entry.index));
+  const flankUnits = activeUnits.filter(entry => {
+    const position = positions.get(entry.index);
+    return Boolean(position && (position.x <= 0.01 || position.x >= 0.99));
+  });
 
   if (frontUnits.length > 0) {
     armorMultiplier += 0.04;
@@ -186,57 +474,77 @@ export function analyzeFormation(
   }
 
   if (flankUnits.length > 0) {
-    speedMultiplier += Math.min(0.08, flankUnits.length * 0.015);
+    const flankBonus = Math.min(0.08, flankUnits.length * 0.015);
+    speedMultiplier += flankBonus;
     bonuses.push({
       id: 'flank_space',
       name: 'Flank Initiative',
-      description: 'Units on the left and right edges have clearer movement lanes.',
-      value: '+' + String(Math.round(Math.min(0.08, flankUnits.length * 0.015) * 100)) + '% speed',
+      description: 'Units on the outer edges have clearer movement lanes.',
+      value: '+' + String(Math.round(flankBonus * 100)) + '% speed',
       active: true
     });
   }
 
-  if (faction === 'human') {
-    let protectedColumns = 0;
-    for (let col = 0; col < 3; col += 1) {
-      const front = unitAt(formation, units, col);
-      const middle = unitAt(formation, units, col + 3);
-      const rear = unitAt(formation, units, col + 6);
-      const protectedUnit = rear ?? middle;
+  const shapeIdentity = applyShapeIdentity(
+    shape.id,
+    rearSpecialists.length > 0,
+    bonus => bonuses.push(bonus)
+  );
+  attackMultiplier += shapeIdentity.attack;
+  armorMultiplier += shapeIdentity.armor;
+  speedMultiplier += shapeIdentity.speed;
+  healingMultiplier += shapeIdentity.healing;
 
-      if (
-        front &&
-        protectedUnit &&
-        ['frontline', 'melee'].includes(front.role) &&
-        ['ranged', 'support'].includes(protectedUnit.role)
-      ) {
-        protectedColumns += 1;
-      }
+  if (faction === 'human') {
+    let protectedPositions = 0;
+
+    for (const entry of activeUnits) {
+      if (!entry.unit || !['ranged', 'support'].includes(entry.unit.role)) continue;
+      const specialistPosition = positions.get(entry.index);
+      if (!specialistPosition || specialistPosition.row === 'front') continue;
+
+      const protectedByFront = rows.front.some(frontSlot => {
+        const front = unitAt(formation, units, frontSlot);
+        const frontPosition = positions.get(frontSlot);
+        return Boolean(
+          front &&
+            frontPosition &&
+            ['frontline', 'melee'].includes(front.role) &&
+            Math.abs(frontPosition.x - specialistPosition.x) <= 0.28
+        );
+      });
+
+      if (protectedByFront) protectedPositions += 1;
     }
 
-    if (protectedColumns > 0) {
-      attackMultiplier += protectedColumns * 0.04;
-      armorMultiplier += protectedColumns * 0.02;
+    if (protectedPositions > 0) {
+      const capped = Math.min(3, protectedPositions);
+      attackMultiplier += capped * 0.04;
+      armorMultiplier += capped * 0.02;
       bonuses.push({
         id: 'human_combined_arms',
         name: 'Protected Position',
-        description: 'Human specialists directly behind infantry gain coordinated protection.',
-        value: '+' + String(protectedColumns * 4) + '% offense',
+        description: 'Human specialists aligned behind infantry gain coordinated protection.',
+        value: '+' + String(capped * 4) + '% offense',
         active: true
       });
     }
 
-    const frontAdjacent =
-      (occupied(formation, 0) && occupied(formation, 1) ? 1 : 0) +
-      (occupied(formation, 1) && occupied(formation, 2) ? 1 : 0);
+    let frontAdjacent = 0;
+    rows.front.forEach((slot, index) => {
+      const next = rows.front[index + 1];
+      if (next !== undefined && occupied(formation, slot) && occupied(formation, next)) {
+        frontAdjacent += 1;
+      }
+    });
 
     if (frontAdjacent > 0) {
-      armorMultiplier += 0.06;
+      armorMultiplier += Math.min(0.1, 0.04 + frontAdjacent * 0.02);
       bonuses.push({
         id: 'human_shield_line',
         name: 'Locked Line',
         description: 'Adjacent Human front-row squads brace together.',
-        value: '+6% armor',
+        value: '+' + String(Math.min(10, 4 + frontAdjacent * 2)) + '% armor',
         active: true
       });
     }
@@ -251,7 +559,7 @@ export function analyzeFormation(
       const rangedBehindLine = activeUnits.some(
         entry =>
           entry.unit?.role === 'ranged' &&
-          (middleRow.includes(entry.index) || rearRow.includes(entry.index))
+          (rows.middle.includes(entry.index) || rows.rear.includes(entry.index))
       );
       if (rangedBehindLine && frontUnits.length > 0) {
         attackMultiplier += 0.12;
@@ -261,7 +569,7 @@ export function analyzeFormation(
 
   if (faction === 'elf') {
     const openUnits = activeUnits.filter(entry =>
-      orthogonalNeighbors(entry.index).every(neighbor => !occupied(formation, neighbor))
+      neighborSlots(entry.index, shape.id).every(neighbor => !occupied(formation, neighbor))
     );
 
     if (openUnits.length > 0) {
@@ -271,18 +579,20 @@ export function analyzeFormation(
       bonuses.push({
         id: 'elf_open_order',
         name: 'Open Order',
-        description: 'Elven squads with no orthogonally adjacent ally gain precision and speed.',
+        description: 'Elven squads with no nearby ally gain precision and speed.',
         value: '+' + String(Math.round(bonus * 100)) + '% speed',
         active: true
       });
     }
 
-    const leftRanged = activeUnits.some(
-      entry => leftFlank.includes(entry.index) && entry.unit?.role === 'ranged'
-    );
-    const rightRanged = activeUnits.some(
-      entry => rightFlank.includes(entry.index) && entry.unit?.role === 'ranged'
-    );
+    const leftRanged = activeUnits.some(entry => {
+      const position = positions.get(entry.index);
+      return entry.unit?.role === 'ranged' && Boolean(position && position.x <= 0.01);
+    });
+    const rightRanged = activeUnits.some(entry => {
+      const position = positions.get(entry.index);
+      return entry.unit?.role === 'ranged' && Boolean(position && position.x >= 0.99);
+    });
     if (leftRanged && rightRanged) {
       attackMultiplier += 0.1;
       bonuses.push({
@@ -294,7 +604,10 @@ export function analyzeFormation(
       });
     }
 
-    const centerSupport = centerColumn.some(index => unitAt(formation, units, index)?.role === 'support');
+    const centerSupport = activeUnits.some(entry => {
+      const position = positions.get(entry.index);
+      return entry.unit?.role === 'support' && Boolean(position && Math.abs(position.x - 0.5) <= 0.16);
+    });
     if (centerSupport) {
       armorMultiplier += 0.06;
       healingMultiplier += 0.1;
@@ -313,7 +626,7 @@ export function analyzeFormation(
   }
 
   if (faction === 'orc') {
-    const pairs = adjacentPairs(formationCells, formation, units);
+    const pairs = adjacentPairs(formation, units, shape.id);
     if (pairs > 0) {
       const bonus = Math.min(0.16, pairs * 0.04);
       attackMultiplier += bonus;
@@ -327,12 +640,14 @@ export function analyzeFormation(
       });
     }
 
-    const leftCavalry = activeUnits.some(
-      entry => leftFlank.includes(entry.index) && entry.unit?.role === 'cavalry'
-    );
-    const rightCavalry = activeUnits.some(
-      entry => rightFlank.includes(entry.index) && entry.unit?.role === 'cavalry'
-    );
+    const leftCavalry = activeUnits.some(entry => {
+      const position = positions.get(entry.index);
+      return entry.unit?.role === 'cavalry' && Boolean(position && position.x <= 0.01);
+    });
+    const rightCavalry = activeUnits.some(entry => {
+      const position = positions.get(entry.index);
+      return entry.unit?.role === 'cavalry' && Boolean(position && position.x >= 0.99);
+    });
     if (leftCavalry && rightCavalry) {
       attackMultiplier += 0.12;
       speedMultiplier += 0.06;

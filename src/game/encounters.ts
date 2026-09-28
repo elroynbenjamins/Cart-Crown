@@ -1,4 +1,4 @@
-import type { EncounterDefinition, ResourceWallet } from './types';
+import type { EncounterDefinition, FormationShapeId, ResourceWallet } from './types';
 
 export type EncounterId =
   | 'hold_the_road'
@@ -569,6 +569,152 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     difficulty: 'Boss'
   }
 };
+
+
+export type EnemyFormationTactic = {
+  formationShapeId: FormationShapeId;
+  name: string;
+  summary: string;
+  attackMultiplier: number;
+  armorMultiplier: number;
+  speedMultiplier: number;
+};
+
+const enemyFormationProfiles: Record<FormationShapeId, Omit<EnemyFormationTactic, 'formationShapeId'>> = {
+  balanced_333: {
+    name: 'Balanced Line',
+    summary: 'Even depth with no obvious weak lane.',
+    attackMultiplier: 1,
+    armorMultiplier: 1,
+    speedMultiplier: 1
+  },
+  assault_432: {
+    name: 'Assault Line',
+    summary: 'Four squads press the first rank while a smaller rear line trades safety for tempo.',
+    attackMultiplier: 1.06,
+    armorMultiplier: 0.98,
+    speedMultiplier: 1.02
+  },
+  deep_234: {
+    name: 'Deep Formation',
+    summary: 'A narrow screen protects deeper reserves and makes the enemy harder to finish quickly.',
+    attackMultiplier: 1,
+    armorMultiplier: 1.05,
+    speedMultiplier: 0.98
+  },
+  wide_vanguard_522: {
+    name: 'Wide Vanguard',
+    summary: 'A five-wide front is difficult to flank but has little depth if the line breaks.',
+    attackMultiplier: 1.02,
+    armorMultiplier: 1.06,
+    speedMultiplier: 0.97
+  },
+  protected_rear_225: {
+    name: 'Protected Rear',
+    summary: 'A thin screen buys time for dangerous ranged or support pressure from the rear.',
+    attackMultiplier: 1.07,
+    armorMultiplier: 0.96,
+    speedMultiplier: 1
+  },
+  reinforced_center_252: {
+    name: 'Reinforced Center',
+    summary: 'A dense reserve reinforces whichever lane starts to fail.',
+    attackMultiplier: 1.04,
+    armorMultiplier: 1.04,
+    speedMultiplier: 0.98
+  },
+  heavy_front_441: {
+    name: 'Heavy Front',
+    summary: 'Two combat-heavy ranks push hard with almost no safe rear line.',
+    attackMultiplier: 1.08,
+    armorMultiplier: 1.04,
+    speedMultiplier: 0.95
+  },
+  spear_wall_531: {
+    name: 'Spear Wall',
+    summary: 'A broad braced line absorbs charges and slows the fight into a frontal grind.',
+    attackMultiplier: 0.99,
+    armorMultiplier: 1.09,
+    speedMultiplier: 0.92
+  },
+  skirmish_screen_243: {
+    name: 'Skirmish Screen',
+    summary: 'A light front and mobile middle rank create faster, less predictable exchanges.',
+    attackMultiplier: 1.03,
+    armorMultiplier: 0.95,
+    speedMultiplier: 1.08
+  }
+};
+
+const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
+  hold_the_road: 'skirmish_screen_243',
+  mercenary_patrol: 'assault_432',
+  toll_captain: 'wide_vanguard_522',
+  iron_road_skirmish: 'balanced_333',
+  iron_provost: 'spear_wall_531',
+  border_fort: 'wide_vanguard_522',
+  siege_road: 'spear_wall_531',
+  lord_marshal_veyr: 'reinforced_center_252',
+  broken_standards: 'assault_432',
+  crownroad_ambush: 'skirmish_screen_243',
+  pretender_general: 'reinforced_center_252',
+  old_royal_lands: 'balanced_333',
+  ashen_envoy: 'protected_rear_225',
+  gate_of_crownspire: 'heavy_front_441',
+  sundered_fields: 'skirmish_screen_243',
+  ashen_court: 'protected_rear_225',
+  return_to_crownspire: 'heavy_front_441',
+
+  elf_wardbreakers: 'skirmish_screen_243',
+  elf_ashen_tracks: 'skirmish_screen_243',
+  elf_hollow_warden: 'deep_234',
+  elf_last_heartgrove: 'deep_234',
+  elf_ward_hunters: 'protected_rear_225',
+  elf_ashroot_stalker: 'skirmish_screen_243',
+  elf_moonlit_pass: 'deep_234',
+  elf_ashen_groves: 'protected_rear_225',
+  elf_pale_ranger: 'protected_rear_225',
+  elf_roots_in_ash: 'deep_234',
+  elf_two_fronts: 'skirmish_screen_243',
+  elf_ashen_druid: 'protected_rear_225',
+  elf_wounded_worldroot: 'deep_234',
+  elf_ashen_rootkeepers: 'reinforced_center_252',
+  elf_worldroot_guardian: 'reinforced_center_252',
+  elf_stars_over_crownspire: 'skirmish_screen_243',
+  elf_ashen_starwatch: 'protected_rear_225',
+  elf_return_through_roots: 'reinforced_center_252',
+
+  orc_red_road: 'assault_432',
+  orc_invader_scouts: 'skirmish_screen_243',
+  orc_blamecaller: 'wide_vanguard_522',
+  orc_gather_clans: 'assault_432',
+  orc_stonejaw_challengers: 'wide_vanguard_522',
+  orc_clanbreaker: 'heavy_front_441',
+  orc_stonejaw_trial: 'wide_vanguard_522',
+  orc_broken_steppe: 'skirmish_screen_243',
+  orc_stonejaw_champion: 'heavy_front_441',
+  orc_two_front_war: 'assault_432',
+  orc_broken_steppe_war: 'wide_vanguard_522',
+  orc_split_chieftain: 'heavy_front_441',
+  orc_no_clan_left_behind: 'assault_432',
+  orc_ashen_clanbreakers: 'heavy_front_441',
+  orc_last_clanbreaker: 'heavy_front_441',
+  orc_truth_at_crownspire: 'wide_vanguard_522',
+  orc_ashen_warfires: 'spear_wall_531',
+  orc_crownspire_warmaster: 'heavy_front_441',
+
+  three_seals_convergence: 'reinforced_center_252',
+  ashen_triumvirate: 'heavy_front_441',
+  unbound_beacon: 'balanced_333'
+};
+
+export function getEnemyFormationTactic(id: EncounterId): EnemyFormationTactic {
+  const formationShapeId = enemyFormationByEncounter[id] ?? 'balanced_333';
+  return {
+    formationShapeId,
+    ...enemyFormationProfiles[formationShapeId]
+  };
+}
 
 export const encounterRewards: Record<EncounterId, EncounterReward> = {
   hold_the_road: {

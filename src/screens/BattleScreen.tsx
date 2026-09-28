@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { getEncounter } from '../game/encounters';
+import { getEncounter, getEnemyFormationTactic } from '../game/encounters';
 import {
   getArmyReadinessProfile,
   getEnemyStrikePressure,
   getTacticalSpeedDamageMultiplier,
   getUnitCombatProfile
 } from '../game/balance';
+import { getFormationShape } from '../game/formation';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -29,6 +30,58 @@ const combatLines = [
   'Your army drives the remaining fighters from the field.'
 ];
 
+function centerFirst(slots: number[]) {
+  const middle = (slots.length - 1) / 2;
+  return [...slots].sort(
+    (a, b) => Math.abs(slots.indexOf(a) - middle) - Math.abs(slots.indexOf(b) - middle)
+  );
+}
+
+function getEnemyOccupiedSlots(
+  rows: { front: number[]; middle: number[]; rear: number[] },
+  enemyCount: number
+) {
+  const rowList = [rows.front, rows.middle, rows.rear];
+  const capacities = rowList.map(row => row.length);
+  const ideals = capacities.map(capacity => (enemyCount * capacity) / 9);
+  const counts = ideals.map(value => Math.floor(value));
+  let remaining = Math.max(0, Math.min(9, enemyCount) - counts.reduce((sum, value) => sum + value, 0));
+
+  while (remaining > 0) {
+    let bestRow = -1;
+    let bestNeed = -Infinity;
+
+    counts.forEach((count, index) => {
+      if (count >= capacities[index]!) return;
+      const need = ideals[index]! - count;
+      if (need > bestNeed) {
+        bestNeed = need;
+        bestRow = index;
+      }
+    });
+
+    if (bestRow < 0) break;
+    counts[bestRow] = counts[bestRow]! + 1;
+    remaining -= 1;
+  }
+
+  const occupied = new Set<number>();
+  rowList.forEach((row, index) => {
+    centerFirst(row)
+      .slice(0, counts[index] ?? 0)
+      .forEach(slot => occupied.add(slot));
+  });
+  return occupied;
+}
+
+function slotWidthForRow(count: number) {
+  if (count >= 5) return 44;
+  if (count === 4) return 54;
+  if (count === 3) return 66;
+  if (count === 2) return 78;
+  return 84;
+}
+
 export function BattleScreen({
   encounterId,
   onFinished,
@@ -42,6 +95,7 @@ export function BattleScreen({
   const {
     units,
     formation,
+    activeFormationShape,
     formationAnalysis,
     activeSquadCap,
     activeFaction,
@@ -56,6 +110,19 @@ export function BattleScreen({
   } = useGame();
 
   const encounter = getEncounter(encounterId);
+  const enemyTactic = useMemo(
+    () => getEnemyFormationTactic(encounterId),
+    [encounterId]
+  );
+  const enemyShape = useMemo(
+    () => getFormationShape(enemyTactic.formationShapeId),
+    [enemyTactic.formationShapeId]
+  );
+  const enemyOccupiedSlots = useMemo(
+    () => getEnemyOccupiedSlots(enemyShape.rows, encounter.enemyCount),
+    [enemyShape.rows, encounter.enemyCount]
+  );
+
   const factionAccent =
     activeFaction === 'elf'
       ? theme.colors.elf
@@ -155,7 +222,9 @@ export function BattleScreen({
   const [turn, setTurn] = useState(0);
   const [skillTriggered, setSkillTriggered] = useState(false);
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
-  const [lastAction, setLastAction] = useState(combatLines[0]!);
+  const [lastAction, setLastAction] = useState(
+    enemyTactic.name + ' meets your ' + activeFormationShape.name + '.'
+  );
 
   const defeated = partyHp <= 0;
   const finished = enemyHp <= 0 && !defeated;
@@ -171,6 +240,9 @@ export function BattleScreen({
   const supportRecovery = Math.round(
     combatProfile.supportRecovery * formationAnalysis.healingMultiplier
   );
+  const enemyPressureMultiplier =
+    enemyTactic.attackMultiplier *
+    (1 + (enemyTactic.speedMultiplier - 1) * 0.6);
 
   useEffect(() => {
     if (battleEnded) return;
@@ -242,7 +314,7 @@ export function BattleScreen({
           ? 1 + Math.min(0.28, turn * 0.04 + formationAnalysis.momentumPerExchange * turn * 0.015)
           : 1;
 
-      const playerStrike = Math.max(
+      const rawPlayerStrike = Math.max(
         18,
         Math.round(
           (partyAttack + 5 + turn * 2) *
@@ -257,6 +329,14 @@ export function BattleScreen({
             tacticalSpeedDamageMultiplier
         )
       );
+      const playerDamage = Math.max(
+        1,
+        Math.round(
+          (rawPlayerStrike + skillDamage + ongoingDamage) /
+            enemyTactic.armorMultiplier
+        )
+      );
+
       const rawEnemyStrike = getEnemyStrikePressure(
         encounter,
         activeSquadCap,
@@ -266,6 +346,7 @@ export function BattleScreen({
         4,
         Math.round(
           (rawEnemyStrike *
+            enemyPressureMultiplier *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -283,7 +364,7 @@ export function BattleScreen({
       );
 
       setEnemyHp(previous =>
-        Math.max(0, previous - playerStrike - skillDamage - ongoingDamage)
+        Math.max(0, previous - playerDamage)
       );
       setPartyHp(previous => {
         const damaged = Math.max(0, previous - enemyStrike);
@@ -293,8 +374,10 @@ export function BattleScreen({
       setTurn(previous => previous + 1);
       setLastAction(
         ongoingDamage > 0
-          ? action + ' Ongoing damage deals ' + ongoingDamage + '.'
-          : action
+          ? action + ' Ongoing damage adds ' + ongoingDamage + ' before enemy formation armor.'
+          : turn === 0
+            ? action + ' The ' + enemyTactic.name + ' changes the opening pressure.'
+            : action
       );
 
       if (effect) {
@@ -325,6 +408,8 @@ export function BattleScreen({
     battleEnded,
     combatProfile.armorStatMultiplier,
     encounter,
+    enemyPressureMultiplier,
+    enemyTactic,
     formationAnalysis,
     partyAttack,
     skillTriggered,
@@ -350,6 +435,99 @@ export function BattleScreen({
     partyMaxHp
   ]);
 
+  const renderPlayerRow = (slots: number[]) => {
+    const width = slotWidthForRow(slots.length);
+    const dense = slots.length >= 5;
+
+    return (
+      <View style={styles.formationRow}>
+        {slots.map(slot => {
+          const unitId = formation[slot] ?? null;
+          const unit = units.find(candidate => candidate.id === unitId);
+          const favored = Boolean(
+            unit && activeCommanderPath?.favoredRoles.includes(unit.role)
+          );
+
+          return (
+            <View
+              key={slot}
+              style={[
+                styles.miniSlot,
+                {
+                  width,
+                  backgroundColor: unit ? theme.colors.surface2 : theme.colors.appBg,
+                  borderColor: favored
+                    ? theme.colors.gold
+                    : unit
+                      ? factionAccent
+                      : theme.colors.border
+                }
+              ]}
+            >
+              {unit ? (
+                <>
+                  <UnitSprite
+                    className={unit.className}
+                    faction={unit.faction}
+                    size={dense ? 20 : 24}
+                  />
+                  {!dense ? (
+                    <Text style={[styles.tokenName, { color: theme.colors.text }]} numberOfLines={1}>
+                      {unit.className}
+                    </Text>
+                  ) : null}
+                </>
+              ) : null}
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
+  const renderEnemyRow = (slots: number[]) => {
+    const width = slotWidthForRow(slots.length);
+    const dense = slots.length >= 5;
+
+    return (
+      <View style={styles.formationRow}>
+        {slots.map(slot => {
+          const occupied = enemyOccupiedSlots.has(slot);
+
+          return (
+            <View
+              key={slot}
+              style={[
+                styles.enemySlot,
+                {
+                  width,
+                  borderColor: occupied ? theme.colors.danger : theme.colors.border,
+                  backgroundColor: occupied ? theme.colors.surface2 : theme.colors.appBg,
+                  opacity: occupied ? 1 : 0.45
+                }
+              ]}
+            >
+              {occupied ? (
+                <>
+                  <EnemySprite enemyName={encounter.enemyName} size={dense ? 21 : 25} />
+                  {!dense ? (
+                    <Text style={[styles.tokenName, { color: theme.colors.text }]}>
+                      {encounter.difficulty === 'Boss'
+                        ? 'Guard'
+                        : encounter.difficulty === 'Elite'
+                          ? 'Elite'
+                          : 'Unit'}
+                    </Text>
+                  ) : null}
+                </>
+              ) : null}
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.screen}>
       <View style={styles.topCopy}>
@@ -361,40 +539,13 @@ export function BattleScreen({
       </View>
 
       <GameCard style={styles.arena}>
-        <Text style={[styles.sideLabel, { color: factionAccent }]}>YOUR 3×3 FORMATION</Text>
-        <View style={styles.miniBoard}>
-          {formation.map((unitId, index) => {
-            const unit = units.find(candidate => candidate.id === unitId);
-            const favored = Boolean(
-              unit && activeCommanderPath?.favoredRoles.includes(unit.role)
-            );
-
-            return (
-              <View
-                key={index}
-                style={[
-                  styles.miniSlot,
-                  {
-                    backgroundColor: unit ? theme.colors.surface2 : theme.colors.appBg,
-                    borderColor: favored
-                      ? theme.colors.gold
-                      : unit
-                        ? factionAccent
-                        : theme.colors.border
-                  }
-                ]}
-              >
-                {unit ? (
-                  <>
-                    <UnitSprite className={unit.className} faction={unit.faction} size={32} />
-                    <Text style={[styles.tokenName, { color: theme.colors.text }]} numberOfLines={1}>
-                      {unit.className}
-                    </Text>
-                  </>
-                ) : null}
-              </View>
-            );
-          })}
+        <Text style={[styles.sideLabel, { color: factionAccent }]}>
+          YOUR {activeFormationShape.layout} · {activeFormationShape.name.toUpperCase()}
+        </Text>
+        <View style={styles.formationBoard}>
+          {renderPlayerRow(activeFormationShape.rows.front)}
+          {renderPlayerRow(activeFormationShape.rows.middle)}
+          {renderPlayerRow(activeFormationShape.rows.rear)}
         </View>
         <Text style={[styles.hpLabel, { color: theme.colors.text }]}>
           {partyHp} / {partyMaxHp} HP
@@ -443,28 +594,16 @@ export function BattleScreen({
         <Text style={[styles.versus, { color: theme.colors.textMuted }]}>VS</Text>
 
         <Text style={[styles.sideLabel, { color: theme.colors.danger }]}>
-          {encounter.enemyName.toUpperCase()}
+          ENEMY {enemyShape.layout} · {enemyTactic.name.toUpperCase()}
         </Text>
-        <View style={styles.enemyTokens}>
-          {Array.from({ length: encounter.enemyCount }).map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.enemyToken,
-                { borderColor: theme.colors.danger, backgroundColor: theme.colors.surface2 }
-              ]}
-            >
-              <EnemySprite enemyName={encounter.enemyName} size={34} />
-              <Text style={[styles.tokenName, { color: theme.colors.text }]}>
-                {encounter.difficulty === 'Boss'
-                  ? 'Boss Guard'
-                  : encounter.difficulty === 'Elite'
-                    ? 'Elite'
-                    : 'Raider'}
-              </Text>
-            </View>
-          ))}
+        <View style={styles.formationBoard}>
+          {renderEnemyRow(enemyShape.rows.front)}
+          {renderEnemyRow(enemyShape.rows.middle)}
+          {renderEnemyRow(enemyShape.rows.rear)}
         </View>
+        <Text style={[styles.enemyDoctrine, { color: theme.colors.textMuted }]}>
+          ATK ×{enemyTactic.attackMultiplier.toFixed(2)} · ARM ×{enemyTactic.armorMultiplier.toFixed(2)} · SPD ×{enemyTactic.speedMultiplier.toFixed(2)}
+        </Text>
         <Text style={[styles.hpLabel, { color: theme.colors.text }]}>
           {enemyHp} / {encounter.enemyHp} HP
         </Text>
@@ -530,38 +669,38 @@ export function BattleScreen({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 16, gap: 12 },
-  topCopy: { alignItems: 'center', paddingTop: 5 },
-  eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.4 },
-  title: { fontSize: 27, fontWeight: '900', marginTop: 4 },
-  turn: { fontSize: 12, fontWeight: '800', marginTop: 5 },
-  arena: { flex: 1, justifyContent: 'center', gap: 8 },
-  sideLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1, textAlign: 'center' },
-  miniBoard: { alignSelf: 'center', width: 252, flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  screen: { flex: 1, padding: 16, gap: 10 },
+  topCopy: { alignItems: 'center', paddingTop: 3 },
+  eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.3 },
+  title: { fontSize: 24, fontWeight: '900', marginTop: 3 },
+  turn: { fontSize: 11, fontWeight: '800', marginTop: 4 },
+  arena: { flex: 1, justifyContent: 'center', gap: 5 },
+  sideLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8, textAlign: 'center' },
+  formationBoard: { alignSelf: 'center', gap: 3, minWidth: 220 },
+  formationRow: { flexDirection: 'row', justifyContent: 'center', gap: 4 },
   miniSlot: {
-    width: 80,
-    height: 53,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    height: 38,
+    borderRadius: 9,
+    borderWidth: 1.2,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    paddingHorizontal: 2
   },
-  enemyTokens: { flexDirection: 'row', justifyContent: 'center', gap: 7 },
-  enemyToken: {
-    width: 64,
-    height: 58,
-    borderRadius: 15,
-    borderWidth: 2,
+  enemySlot: {
+    height: 38,
+    borderRadius: 9,
+    borderWidth: 1.2,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    paddingHorizontal: 2
   },
-  unitInitial: { fontSize: 17, fontWeight: '900' },
-  tokenName: { fontSize: 7.5, fontWeight: '800', marginTop: 2, maxWidth: '94%' },
-  hpLabel: { fontSize: 10, fontWeight: '800', textAlign: 'right' },
-  readinessLine: { fontSize: 9, fontWeight: '900', textAlign: 'center' },
-  commanderLine: { fontSize: 9.5, fontWeight: '900', textAlign: 'center' },
-  versus: { fontSize: 12, fontWeight: '900', textAlign: 'center', marginVertical: 2 },
-  logLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
-  logLine: { fontSize: 12, lineHeight: 18, fontWeight: '700', marginTop: 4 },
-  effectLine: { fontSize: 9.5, fontWeight: '900', marginTop: 6, textTransform: 'uppercase' }
+  tokenName: { fontSize: 6.5, fontWeight: '800', marginTop: 1, maxWidth: '94%' },
+  hpLabel: { fontSize: 9, fontWeight: '800', textAlign: 'right' },
+  readinessLine: { fontSize: 8.5, fontWeight: '900', textAlign: 'center' },
+  enemyDoctrine: { fontSize: 8, fontWeight: '800', textAlign: 'center' },
+  commanderLine: { fontSize: 8.5, fontWeight: '900', textAlign: 'center' },
+  versus: { fontSize: 10, fontWeight: '900', textAlign: 'center', marginVertical: 1 },
+  logLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1.1 },
+  logLine: { fontSize: 11, lineHeight: 16, fontWeight: '700', marginTop: 3 },
+  effectLine: { fontSize: 9, fontWeight: '900', marginTop: 5, textTransform: 'uppercase' }
 });
