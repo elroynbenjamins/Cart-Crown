@@ -61,7 +61,7 @@ export type ResourceSiteVisualKind =
   | 'herb_grove'
   | 'hunt';
 
-export const VISUAL_ASSET_VERSION = 2;
+export const VISUAL_ASSET_VERSION = 4;
 
 export const unitClassVisuals: Record<string, UnitVisualKind> = {
   militia: 'infantry',
