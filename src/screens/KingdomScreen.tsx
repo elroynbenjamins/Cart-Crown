@@ -25,11 +25,13 @@ const resourceIcons: Record<keyof ResourceWallet, string> = {
 export function KingdomScreen({
   onOpenRecruitment,
   onOpenForge,
-  onOpenSettlement
+  onOpenSettlement,
+  onOpenRoyalDecrees
 }: {
   onOpenRecruitment: () => void;
   onOpenForge: () => void;
   onOpenSettlement: () => void;
+  onOpenRoyalDecrees: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -48,8 +50,13 @@ export function KingdomScreen({
     canUpgradeToTown,
     strongholdUpgradeAvailable,
     canUpgradeToStronghold,
+    capitalUpgradeAvailable,
+    canUpgradeToCapital,
     upgradeToTown,
     upgradeToStronghold,
+    upgradeToCapital,
+    activeRoyalDecree,
+    royalDecreeSwitchCost,
     resourceSites,
     unlockedResourceSites,
     productionStock,
@@ -68,9 +75,11 @@ export function KingdomScreen({
   const [buildingMessage, setBuildingMessage] = useState<string | null>(null);
 
   const settlementName =
-    currentWagonStage.id === 'stronghold'
-      ? 'Greenkeep Stronghold'
-      : currentWagonStage.id === 'town'
+    currentWagonStage.id === 'capital'
+      ? 'Greenkeep Capital'
+      : currentWagonStage.id === 'stronghold'
+        ? 'Greenkeep Stronghold'
+        : currentWagonStage.id === 'town'
         ? 'Greenkeep Town'
         : currentWagonStage.id === 'fort'
         ? 'Greenkeep Fort'
@@ -107,12 +116,27 @@ export function KingdomScreen({
       onOpenRecruitment();
       return true;
     };
-  } else if (currentWagonStage.id === 'stronghold') {
-    milestoneTitle = 'Greenkeep Stronghold established';
-    milestoneBody = 'The Border Marches now answer to Greenkeep. The army can field six active squads and push toward the broken Crown.';
-    buttonLabel = 'Stronghold established';
+  } else if (currentWagonStage.id === 'capital') {
+    milestoneTitle = 'Greenkeep Capital established';
+    milestoneBody = 'Greenkeep now governs the western provinces directly. Royal Decrees let you choose whether the realm prioritizes army power, production or equipment.';
+    buttonLabel = 'Capital established';
     disabled = true;
-    requirement = 'Chapter 4 · The Broken Crown';
+    requirement = 'Chapter 5 · Old Royal Lands';
+    action = () => false;
+  } else if (currentWagonStage.id === 'stronghold' && capitalUpgradeAvailable) {
+    milestoneTitle = 'Raise Greenkeep Capital';
+    milestoneBody = 'The Pretender General is defeated. Mature the Stronghold’s military, logistics, signals and officer corps before funding the Capital expansion.';
+    buttonLabel = 'Build Greenkeep Capital';
+    disabled = !canUpgradeToCapital;
+    requirement =
+      'Requires Barracks Lv.5 · Forge Lv.5 · Wagonwright Lv.5 · War Room Lv.4 · Quartermaster Lv.4 · Stable Lv.3 · Signal Tower Lv.3 · Officer Academy Lv.2 · 650 Gold · 280 Wood · 220 Stone · 70 Iron';
+    action = upgradeToCapital;
+  } else if (currentWagonStage.id === 'stronghold') {
+    milestoneTitle = 'Break the old royal command';
+    milestoneBody = 'Use the six-squad Stronghold army and elite equipment to expose the officers still issuing orders in the name of an empty throne.';
+    buttonLabel = 'Capital tier is story-gated';
+    disabled = true;
+    requirement = 'Defeat the Pretender General';
     action = () => false;
   } else if (currentWagonStage.id === 'town' && strongholdUpgradeAvailable) {
     milestoneTitle = 'Raise Greenkeep Stronghold';
@@ -186,9 +210,11 @@ export function KingdomScreen({
 
         <View style={styles.progressCopy}>
           <Text style={[styles.progressLabel, { color: theme.colors.text }]}>
-            {currentWagonStage.id === 'stronghold'
-              ? 'Stronghold tier · 5'
-              : currentWagonStage.id === 'town'
+            {currentWagonStage.id === 'capital'
+              ? 'Capital tier · 6'
+              : currentWagonStage.id === 'stronghold'
+                ? 'Stronghold tier · 5'
+                : currentWagonStage.id === 'town'
                 ? 'Town tier · 4'
                 : currentWagonStage.id === 'fort'
                 ? 'Fort tier · 3'
@@ -242,6 +268,13 @@ export function KingdomScreen({
               <Text style={[styles.costText, { color: theme.colors.text }]}>180 🪵</Text>
               <Text style={[styles.costText, { color: theme.colors.text }]}>140 🪨</Text>
               <Text style={[styles.costText, { color: theme.colors.text }]}>40 ⛓</Text>
+            </View>
+          ) : capitalUpgradeAvailable && currentWagonStage.id === 'stronghold' ? (
+            <View style={styles.goalCost}>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>650 🪙</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>280 🪵</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>220 🪨</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>70 ⛓</Text>
             </View>
           ) : null}
         </View>
@@ -424,6 +457,33 @@ export function KingdomScreen({
             </Text>
             <View style={styles.supplyButton}>
               <PrimaryButton label="Open Field Forge" onPress={onOpenForge} />
+            </View>
+          </GameCard>
+        </>
+      ) : null}
+
+      {currentWagonStage.id === 'capital' ? (
+        <>
+          <SectionTitle title="Royal Decrees" trailing={activeRoyalDecree ? 'Active' : 'Choose one'} />
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>
+              {activeRoyalDecree?.name ?? 'Capital Council'}
+            </Text>
+            <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
+              {activeRoyalDecree
+                ? activeRoyalDecree.effectText
+                : 'Choose the first decree that defines Greenkeep’s Capital priority.'}
+            </Text>
+            <Text style={[styles.supplyReward, { color: theme.colors.gold }]}>
+              {activeRoyalDecree
+                ? 'Changing decree costs ' + royalDecreeSwitchCost + ' Gold'
+                : 'First decree is free'}
+            </Text>
+            <View style={styles.supplyButton}>
+              <PrimaryButton
+                label={activeRoyalDecree ? 'Manage Royal Decrees' : 'Choose Royal Decree'}
+                onPress={onOpenRoyalDecrees}
+              />
             </View>
           </GameCard>
         </>

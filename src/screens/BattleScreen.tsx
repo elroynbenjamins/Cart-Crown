@@ -37,12 +37,16 @@ export function BattleScreen({
     activeFaction,
     activeCommanderPath,
     activeMarcherWarningChoice,
+    activeLastLoyalistsChoice,
+    activeRoyalDecree,
     settlementEffects
   } = useGame();
 
   const encounter = getEncounter(encounterId);
   const marcherDoctrineActive =
     encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
+  const loyalistApproachActive =
+    encounterId === 'pretender_general';
   const marcherAttackMultiplier =
     marcherDoctrineActive && activeMarcherWarningChoice
       ? activeMarcherWarningChoice.attackMultiplier
@@ -55,6 +59,22 @@ export function BattleScreen({
     marcherDoctrineActive && activeMarcherWarningChoice
       ? activeMarcherWarningChoice.speedMultiplier
       : 1;
+  const loyalistAttackMultiplier =
+    loyalistApproachActive && activeLastLoyalistsChoice
+      ? activeLastLoyalistsChoice.attackMultiplier
+      : 1;
+  const loyalistArmorMultiplier =
+    loyalistApproachActive && activeLastLoyalistsChoice
+      ? activeLastLoyalistsChoice.armorMultiplier
+      : 1;
+  const loyalistRetaliationMultiplier =
+    loyalistApproachActive && activeLastLoyalistsChoice
+      ? activeLastLoyalistsChoice.retaliationMultiplier
+      : 1;
+  const decreeAttackMultiplier =
+    activeRoyalDecree?.attackMultiplier ?? 1;
+  const decreeArmorMultiplier =
+    activeRoyalDecree?.armorMultiplier ?? 1;
 
   const activeUnits = useMemo(
     () =>
@@ -168,6 +188,8 @@ export function BattleScreen({
           (partyAttack + 5 + turn * 2) *
             formationAnalysis.attackMultiplier *
             marcherAttackMultiplier *
+            loyalistAttackMultiplier *
+            decreeAttackMultiplier *
             momentum *
             attackFactor
         )
@@ -181,12 +203,16 @@ export function BattleScreen({
       const enemyStrike = Math.max(
         4,
         Math.round(
-          (rawEnemyStrike * retaliationFactor) /
+          (rawEnemyStrike *
+            retaliationFactor *
+            loyalistRetaliationMultiplier) /
             Math.max(
               0.7,
               formationAnalysis.armorMultiplier *
                 commanderArmorMultiplier *
-                marcherArmorMultiplier
+                marcherArmorMultiplier *
+                loyalistArmorMultiplier *
+                decreeArmorMultiplier
             )
         )
       );
@@ -235,7 +261,12 @@ export function BattleScreen({
     settlementEffects.commanderSkillEarlyTrigger,
     marcherAttackMultiplier,
     marcherArmorMultiplier,
-    marcherSpeedMultiplier
+    marcherSpeedMultiplier,
+    loyalistAttackMultiplier,
+    loyalistArmorMultiplier,
+    loyalistRetaliationMultiplier,
+    decreeAttackMultiplier,
+    decreeArmorMultiplier
   ]);
 
   return (
@@ -290,6 +321,18 @@ export function BattleScreen({
           {partyHp} / {partyMaxHp} HP
         </Text>
         <ProgressBar value={partyMaxHp > 0 ? partyHp / partyMaxHp : 0} color={theme.colors.primary} />
+
+        {activeRoyalDecree ? (
+          <Text style={[styles.commanderLine, { color: theme.colors.primary }]}>
+            {activeRoyalDecree.name}
+          </Text>
+        ) : null}
+
+        {loyalistApproachActive && activeLastLoyalistsChoice ? (
+          <Text style={[styles.commanderLine, { color: theme.colors.gold }]}>
+            {activeLastLoyalistsChoice.name}
+          </Text>
+        ) : null}
 
         {marcherDoctrineActive && activeMarcherWarningChoice ? (
           <Text style={[styles.commanderLine, { color: theme.colors.primary }]}>

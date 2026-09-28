@@ -13,7 +13,7 @@ import type {
   SaveSlotMetadata
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 9;
+export const SAVE_SCHEMA_VERSION = 10;
 
 export function createHumanFactionState(): FactionGameState {
   return {
@@ -72,6 +72,9 @@ export function createHumanFactionState(): FactionGameState {
     marcherWarningChoiceId: null,
     dividedMarchResolved: false,
     lordMarshalWon: false,
+    lastLoyalistsChoiceId: null,
+    pretenderGeneralWon: false,
+    royalDecreeId: null,
     lastBattleResult: null,
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
@@ -112,16 +115,26 @@ export function metadataFromSnapshot(
 
   let chapterLabel = 'Chapter 1 · Hold the Road';
 
-  if (current.chapterNumber >= 4) {
-    chapterLabel = current.chapterNodes.find(node => node.id === 'ch4_node_5')?.current
-      ? 'Chapter 4 · The Last Loyalists'
-      : current.chapterNodes.find(node => node.id === 'ch4_node_4')?.current
-        ? 'Chapter 4 · Crownroad Ambush'
-        : current.chapterNodes.find(node => node.id === 'ch4_node_3')?.current
-          ? 'Chapter 4 · The Empty Throne'
-          : current.chapterNodes.find(node => node.id === 'ch4_node_2')?.current
-            ? 'Chapter 4 · Broken Standards'
-            : 'Chapter 4 · Stronghold Muster';
+  if (current.chapterNumber >= 5) {
+    chapterLabel = current.chapterNodes.find(node => node.id === 'ch5_node_3')?.current
+      ? 'Chapter 5 · Broken Archives'
+      : current.chapterNodes.find(node => node.id === 'ch5_node_2')?.current
+        ? 'Chapter 5 · Old Royal Lands'
+        : 'Chapter 5 · Capital Council';
+  } else if (current.chapterNumber === 4) {
+    chapterLabel = current.pretenderGeneralWon
+      ? 'Chapter 4 · Raise Greenkeep Capital'
+      : current.chapterNodes.find(node => node.id === 'ch4_node_6')?.current
+        ? 'Chapter 4 · The Pretender General'
+        : current.chapterNodes.find(node => node.id === 'ch4_node_5')?.current
+          ? 'Chapter 4 · The Last Loyalists'
+          : current.chapterNodes.find(node => node.id === 'ch4_node_4')?.current
+            ? 'Chapter 4 · Crownroad Ambush'
+            : current.chapterNodes.find(node => node.id === 'ch4_node_3')?.current
+              ? 'Chapter 4 · The Empty Throne'
+              : current.chapterNodes.find(node => node.id === 'ch4_node_2')?.current
+                ? 'Chapter 4 · Broken Standards'
+                : 'Chapter 4 · Stronghold Muster';
   } else if (current.chapterNumber === 3) {
     chapterLabel = current.lordMarshalWon
       ? 'Chapter 3 · Raise Greenkeep Stronghold'
@@ -165,9 +178,11 @@ export function metadataFromSnapshot(
   }
 
   const kingdomName =
-    current.wagonStageId === 'stronghold'
-      ? 'Greenkeep Stronghold'
-      : current.wagonStageId === 'town'
+    current.wagonStageId === 'capital'
+      ? 'Greenkeep Capital'
+      : current.wagonStageId === 'stronghold'
+        ? 'Greenkeep Stronghold'
+        : current.wagonStageId === 'town'
         ? 'Greenkeep Town'
         : current.wagonStageId === 'fort'
         ? 'Greenkeep Fort'

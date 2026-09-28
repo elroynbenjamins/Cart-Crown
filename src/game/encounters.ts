@@ -10,7 +10,9 @@ export type EncounterId =
   | 'siege_road'
   | 'lord_marshal_veyr'
   | 'broken_standards'
-  | 'crownroad_ambush';
+  | 'crownroad_ambush'
+  | 'pretender_general'
+  | 'old_royal_lands';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -107,6 +109,24 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 790,
     difficulty: 'Elite'
+  },
+  pretender_general: {
+    id: 'pretender_general',
+    name: 'The Pretender General',
+    subtitle: 'The officer commanding the last royal companies claims emergency authority over the crownless realm.',
+    enemyName: 'Pretender General’s Host',
+    enemyCount: 6,
+    enemyHp: 1120,
+    difficulty: 'Boss'
+  },
+  old_royal_lands: {
+    id: 'old_royal_lands',
+    name: 'Old Royal Lands',
+    subtitle: 'Greenkeep’s Capital army enters the abandoned royal estates where patrols still enforce obsolete Crown decrees.',
+    enemyName: 'Royal Estate Patrol',
+    enemyCount: 6,
+    enemyHp: 930,
+    difficulty: 'Elite'
   }
 };
 
@@ -150,6 +170,14 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   crownroad_ambush: {
     resources: { gold: 145, wood: 24, stone: 18, iron: 14, provisions: 7 },
     storySummary: 'The ambush fails. Greenkeep captures veteran officers who still claim to serve a court that no longer exists.'
+  },
+  pretender_general: {
+    resources: { gold: 430, wood: 210, stone: 175, iron: 55, provisions: 18 },
+    storySummary: 'The Pretender General falls. With the old royal command broken, Greenkeep becomes the strongest organized authority in the western realm.'
+  },
+  old_royal_lands: {
+    resources: { gold: 175, wood: 28, stone: 22, iron: 16, provisions: 8 },
+    storySummary: 'The estate patrol yields. Greenkeep captures administrative ledgers that point toward deliberately altered records in the old royal archives.'
   }
 };
 

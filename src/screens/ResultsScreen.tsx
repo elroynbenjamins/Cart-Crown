@@ -44,6 +44,10 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'broken_standards_result';
   const crownroadAmbushResult =
     lastBattleResult.id === 'crownroad_ambush_result';
+  const pretenderGeneralResult =
+    lastBattleResult.id === 'pretender_general_result';
+  const oldRoyalLandsResult =
+    lastBattleResult.id === 'old_royal_lands_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -87,7 +91,38 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {crownroadAmbushResult ? (
+      {oldRoyalLandsResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>ROYAL ARCHIVES</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Administrative records recovered
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The captured estate ledgers point toward intentionally altered records in the old royal archives. The next trail leads to the Broken Archives.
+            </Text>
+          </GameCard>
+        </>
+      ) : pretenderGeneralResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM TIER UNLOCKED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Greenkeep can become a Capital
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The old royal command is broken. Mature the Stronghold infrastructure, then fund the Capital project to unlock provincial Royal Decrees.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>No crown, but an authority</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Greenkeep is now the strongest organized government in the western realm. The next question is not who holds the old throne, but how the realm should be governed while Crownspire remains unresolved.
+            </Text>
+          </GameCard>
+        </>
+      ) : crownroadAmbushResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>VETERAN PRISONERS</Text>

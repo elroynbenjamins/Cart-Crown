@@ -115,9 +115,11 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
   };
 
   const stageLabel =
-    currentWagonStage.id === 'stronghold'
-      ? 'GREENKEEP STRONGHOLD'
-      : currentWagonStage.id === 'town'
+    currentWagonStage.id === 'capital'
+      ? 'GREENKEEP CAPITAL'
+      : currentWagonStage.id === 'stronghold'
+        ? 'GREENKEEP STRONGHOLD'
+        : currentWagonStage.id === 'town'
         ? 'GREENKEEP TOWN'
         : currentWagonStage.id === 'fort'
           ? 'GREENKEEP FORT'
@@ -319,9 +321,11 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
             <Text
               style={[styles.gateLabel, { color: theme.colors.gold }]}
             >
-              {currentWagonStage.id === 'stronghold'
-                ? 'STRONGHOLD GATE'
-                : currentWagonStage.id === 'town'
+              {currentWagonStage.id === 'capital'
+                ? 'CAPITAL GATE'
+                : currentWagonStage.id === 'stronghold'
+                  ? 'STRONGHOLD GATE'
+                  : currentWagonStage.id === 'town'
                   ? 'TOWN GATE'
                   : 'FORT GATE'}
             </Text>

@@ -4,6 +4,22 @@ import type {
   ResourceSiteDefinition
 } from './types';
 
+export type LastLoyalistsChoiceId =
+  | 'offer_amnesty'
+  | 'publish_the_seals'
+  | 'seize_the_arsenal';
+
+export type LastLoyalistsChoice = {
+  id: LastLoyalistsChoiceId;
+  name: string;
+  description: string;
+  effectText: string;
+  attackMultiplier: number;
+  armorMultiplier: number;
+  retaliationMultiplier: number;
+  detailedIntel: boolean;
+};
+
 export const chapterFourNodes: ChapterNode[] = [
   { id: 'ch4_node_1', name: 'Stronghold Muster', type: 'event', completed: false, current: true },
   { id: 'ch4_node_2', name: 'Broken Standards', type: 'battle', completed: false },
@@ -70,6 +86,39 @@ export const strongholdMusterOptions: RecruitOption[] = [
       armor: 9,
       speed: 10
     }
+  }
+];
+
+export const lastLoyalistChoices: LastLoyalistsChoice[] = [
+  {
+    id: 'offer_amnesty',
+    name: 'Offer Amnesty',
+    description: 'Promise rank-and-file loyalists safe return if they abandon the Pretender General before battle.',
+    effectText: '+10% armor against the Pretender General',
+    attackMultiplier: 1,
+    armorMultiplier: 1.1,
+    retaliationMultiplier: 1,
+    detailedIntel: false
+  },
+  {
+    id: 'publish_the_seals',
+    name: 'Publish the Royal Seals',
+    description: 'Distribute copies of the conflicting royal orders and force the Pretender General to defend the legitimacy of his command.',
+    effectText: 'Detailed intel and -20% enemy retaliation',
+    attackMultiplier: 1,
+    armorMultiplier: 1,
+    retaliationMultiplier: 0.8,
+    detailedIntel: true
+  },
+  {
+    id: 'seize_the_arsenal',
+    name: 'Seize the Loyalist Arsenal',
+    description: 'Strike the remaining supply depots before the final battle and turn their own weapons against them.',
+    effectText: '+10% attack against the Pretender General',
+    attackMultiplier: 1.1,
+    armorMultiplier: 1,
+    retaliationMultiplier: 1,
+    detailedIntel: false
   }
 ];
 

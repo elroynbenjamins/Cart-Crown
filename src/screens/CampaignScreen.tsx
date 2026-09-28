@@ -42,6 +42,10 @@ export function CampaignScreen({
   onStartBrokenStandards,
   onOpenEmptyThrone,
   onStartCrownroadAmbush,
+  onOpenLastLoyalists,
+  onStartPretenderGeneral,
+  onOpenRoyalDecrees,
+  onStartOldRoyalLands,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -66,6 +70,10 @@ export function CampaignScreen({
   onStartBrokenStandards: () => void;
   onOpenEmptyThrone: () => void;
   onStartCrownroadAmbush: () => void;
+  onOpenLastLoyalists: () => void;
+  onStartPretenderGeneral: () => void;
+  onOpenRoyalDecrees: () => void;
+  onStartOldRoyalLands: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -87,6 +95,9 @@ export function CampaignScreen({
     dividedMarchResolved,
     lordMarshalWon,
     sixthRecruitChosen,
+    lastLoyalistsChoiceId,
+    pretenderGeneralWon,
+    royalDecreeId,
     campaignAvailability,
     sideModeDefinitions,
     isSideModeUnlocked,
@@ -118,7 +129,9 @@ export function CampaignScreen({
                   ? 'The Iron Road'
                   : chapterNumber === 3
                     ? 'Border Kingdoms'
-                    : 'The Broken Crown'}
+                    : chapterNumber === 4
+                      ? 'The Broken Crown'
+                      : 'Old Royal Lands'}
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
               {chapterNumber === 1
@@ -127,7 +140,9 @@ export function CampaignScreen({
                   ? 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'
                   : chapterNumber === 3
                     ? 'Carry Greenkeep’s authority into the divided Border Marches.'
-                    : 'Push beyond the marcher crisis toward the broken western crown.'}
+                    : chapterNumber === 4
+                      ? 'Push beyond the marcher crisis toward the broken western crown.'
+                      : 'Govern the western realm as a Capital and trace the final royal records toward Crownspire.'}
             </Text>
           </View>
           <Pill label={String(completed) + ' / 6'} color={theme.colors.surface2} />
@@ -143,17 +158,22 @@ export function CampaignScreen({
         {humanRegions.map(region => {
           const greenkeepUnlocked = region.id === 'greenkeep_vale' && settlementUpgraded;
           const ironRoadUnlocked = region.id === 'iron_hills' && chapterNumber >= 2;
-          const borderUnlocked = region.id === 'border_marches' && chapterNumber >= 3;
+          const borderUnlocked =
+            region.id === 'border_marches' && chapterNumber >= 3;
+          const crownspireUnlocked =
+            region.id === 'crownspire' && chapterNumber >= 5;
           const active =
             region.state === 'current' ||
             greenkeepUnlocked ||
             ironRoadUnlocked ||
-            borderUnlocked;
+            borderUnlocked ||
+            crownspireUnlocked;
           const locked =
             region.state === 'locked' &&
             !greenkeepUnlocked &&
             !ironRoadUnlocked &&
-            !borderUnlocked;
+            !borderUnlocked &&
+            !crownspireUnlocked;
           const accent = region.faction === 'neutral' ? theme.colors.gold : theme.colors.human;
 
           return (
@@ -205,7 +225,9 @@ export function CampaignScreen({
               ? 'Iron Hills Approach'
               : chapterNumber === 3
                 ? 'Border Marches'
-                : 'Crown Road'
+                : chapterNumber === 4
+                  ? 'Crown Road'
+                  : 'Old Royal Lands'
         }
         trailing="Current region"
       />
@@ -320,6 +342,28 @@ export function CampaignScreen({
             chapterNumber === 4 &&
             node.current &&
             node.id === 'ch4_node_4';
+          const lastLoyalistsPlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_5' &&
+            !lastLoyalistsChoiceId;
+          const pretenderGeneralPlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_6' &&
+            Boolean(lastLoyalistsChoiceId) &&
+            !pretenderGeneralWon;
+
+          const capitalCouncilPlayable =
+            chapterNumber === 5 &&
+            node.current &&
+            node.id === 'ch5_node_1' &&
+            !royalDecreeId;
+          const oldRoyalLandsPlayable =
+            chapterNumber === 5 &&
+            node.current &&
+            node.id === 'ch5_node_2' &&
+            Boolean(royalDecreeId);
 
           const playable =
             chapterOneBattle ||
@@ -342,7 +386,11 @@ export function CampaignScreen({
             strongholdMusterPlayable ||
             brokenStandardsPlayable ||
             emptyThronePlayable ||
-            crownroadAmbushPlayable;
+            crownroadAmbushPlayable ||
+            lastLoyalistsPlayable ||
+            pretenderGeneralPlayable ||
+            capitalCouncilPlayable ||
+            oldRoyalLandsPlayable;
 
           const status = node.completed
             ? 'DONE'
@@ -384,7 +432,15 @@ export function CampaignScreen({
                                                 ? 'INVESTIGATE'
                                                 : crownroadAmbushPlayable
                                                   ? 'PLAY'
-                                                  : bossPlayable
+                                                  : lastLoyalistsPlayable
+                                                    ? 'CHOOSE APPROACH'
+                                                    : pretenderGeneralPlayable
+                                                      ? 'BOSS'
+                                                      : capitalCouncilPlayable
+                                                        ? 'CHOOSE DECREE'
+                                                        : oldRoyalLandsPlayable
+                                                          ? 'PLAY'
+                                                          : bossPlayable
                                 ? 'BOSS'
                             : playable
                               ? 'PLAY'
@@ -434,7 +490,15 @@ export function CampaignScreen({
                                                   ? onOpenEmptyThrone
                                                   : crownroadAmbushPlayable
                                                     ? onStartCrownroadAmbush
-                                                    : undefined;
+                                                    : lastLoyalistsPlayable
+                                                      ? onOpenLastLoyalists
+                                                      : pretenderGeneralPlayable
+                                                        ? onStartPretenderGeneral
+                                                        : capitalCouncilPlayable
+                                                          ? onOpenRoyalDecrees
+                                                          : oldRoyalLandsPlayable
+                                                            ? onStartOldRoyalLands
+                                                            : undefined;
 
           return (
             <Pressable

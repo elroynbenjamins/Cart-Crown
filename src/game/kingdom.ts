@@ -210,6 +210,62 @@ export const humanBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 165, wood: 45, stone: 20 },
     effect: 'Veteran curriculum prepared for later commander and elite-unit upgrades.',
     requirement: 'Greenkeep Stronghold'
+  },
+  {
+    buildingId: 'barracks',
+    level: 5,
+    cost: { gold: 230, wood: 95, iron: 24 },
+    effect: 'Capital drill command prepared for top-tier Human formations.',
+    requirement: 'Pretender General defeated'
+  },
+  {
+    buildingId: 'forge',
+    level: 5,
+    cost: { gold: 260, iron: 42, stone: 20 },
+    effect: 'Masterwork forging floor prepared for Capital equipment.',
+    requirement: 'Pretender General defeated'
+  },
+  {
+    buildingId: 'wagonwright',
+    level: 5,
+    cost: { gold: 210, wood: 125, iron: 22 },
+    effect: 'Capital campaign chassis prepared.',
+    requirement: 'Pretender General defeated'
+  },
+  {
+    buildingId: 'war_room',
+    level: 4,
+    cost: { gold: 190, wood: 45, stone: 25 },
+    effect: 'Provincial command planning prepared for Capital administration.',
+    requirement: 'Pretender General defeated'
+  },
+  {
+    buildingId: 'quartermaster',
+    level: 4,
+    cost: { gold: 165, wood: 55, provisions: 30 },
+    effect: 'Provincial stores support the Capital campaign network.',
+    requirement: 'Pretender General defeated'
+  },
+  {
+    buildingId: 'stable',
+    level: 3,
+    cost: { gold: 155, wood: 35, provisions: 25 },
+    effect: 'Capital remount program supports long-range cavalry operations.',
+    requirement: 'Pretender General defeated'
+  },
+  {
+    buildingId: 'signal_tower',
+    level: 3,
+    cost: { gold: 145, wood: 35, stone: 30 },
+    effect: 'Regional signal network prepared for Capital governance.',
+    requirement: 'Pretender General defeated'
+  },
+  {
+    buildingId: 'officer_academy',
+    level: 3,
+    cost: { gold: 205, wood: 55, stone: 30 },
+    effect: 'Senior officers prepared for provincial administration and final campaign planning.',
+    requirement: 'Pretender General defeated'
   }
 ];
 

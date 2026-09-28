@@ -31,6 +31,8 @@ export function BattlePrepScreen({
     formationDoctrines,
     activeCommanderPath,
     activeMarcherWarningChoice,
+    activeLastLoyalistsChoice,
+    activeRoyalDecree,
     buildingLevels,
     settlementEffects,
     claimRewardedAd,
@@ -48,15 +50,21 @@ export function BattlePrepScreen({
   const hasMedicine = wagonItems.some(item => item.id === 'medicine');
   const marcherDoctrineActive =
     encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
+  const loyalistApproachActive =
+    encounterId === 'pretender_general';
   const marcherIntel =
     marcherDoctrineActive &&
     Boolean(activeMarcherWarningChoice?.detailedIntel);
   const towerIntel =
     (buildingLevels.signal_tower ?? 0) >= 2 ||
     settlementEffects.detailedIntel;
+  const loyalistIntel =
+    loyalistApproachActive &&
+    Boolean(activeLastLoyalistsChoice?.detailedIntel);
   const scoutReport =
     towerIntel ||
     marcherIntel ||
+    loyalistIntel ||
     (rewardedAdClaims.scout_report ?? 0) > 0;
   const doctrine = formationDoctrines.find(candidate => candidate.id === formationDoctrineId);
 
@@ -85,7 +93,9 @@ export function BattlePrepScreen({
             ? 'Command Network intel'
             : marcherIntel
               ? 'Verified Marcher intel'
-              : towerIntel
+              : loyalistIntel
+                ? 'Loyalist intelligence'
+                : towerIntel
                 ? 'Signal Tower intel'
                 : scoutReport
                   ? 'Scouted'
@@ -160,6 +170,34 @@ export function BattlePrepScreen({
           </Text>
           <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
             {activeMarcherWarningChoice.effectText}
+          </Text>
+        </GameCard>
+      ) : null}
+
+      {loyalistApproachActive && activeLastLoyalistsChoice ? (
+        <GameCard accent={theme.colors.gold}>
+          <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+            PRETENDER PREPARATION
+          </Text>
+          <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+            {activeLastLoyalistsChoice.name}
+          </Text>
+          <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+            {activeLastLoyalistsChoice.effectText}
+          </Text>
+        </GameCard>
+      ) : null}
+
+      {activeRoyalDecree ? (
+        <GameCard accent={theme.colors.primary}>
+          <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+            ROYAL DECREE
+          </Text>
+          <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+            {activeRoyalDecree.name}
+          </Text>
+          <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+            {activeRoyalDecree.effectText}
           </Text>
         </GameCard>
       ) : null}

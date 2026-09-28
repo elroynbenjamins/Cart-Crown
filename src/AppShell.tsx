@@ -25,12 +25,14 @@ import { FortMusterScreen } from './screens/FortMusterScreen';
 import { FormationTrialScreen } from './screens/FormationTrialScreen';
 import { KingdomScreen } from './screens/KingdomScreen';
 import { MarkedRaidersScreen } from './screens/MarkedRaidersScreen';
+import { LastLoyalistsScreen } from './screens/LastLoyalistsScreen';
 import { MarcherEnvoyScreen } from './screens/MarcherEnvoyScreen';
 import { PromotionScreen } from './screens/PromotionScreen';
 import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
 import { KingdomDefenseScreen } from './screens/KingdomDefenseScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { RoyalDecreesScreen } from './screens/RoyalDecreesScreen';
 import { StrongholdMusterScreen } from './screens/StrongholdMusterScreen';
 import { EmptyThroneScreen } from './screens/EmptyThroneScreen';
 import { ThreeWarningsScreen } from './screens/ThreeWarningsScreen';
@@ -60,6 +62,8 @@ type FlowScreen =
   | 'dividedMarch'
   | 'strongholdMuster'
   | 'emptyThrone'
+  | 'lastLoyalists'
+  | 'royalDecrees'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -100,6 +104,8 @@ const flowTitles: Record<FlowScreen, string> = {
   dividedMarch: 'The Divided March',
   strongholdMuster: 'Stronghold Muster',
   emptyThrone: 'The Empty Throne',
+  lastLoyalists: 'The Last Loyalists',
+  royalDecrees: 'Royal Decrees',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -350,6 +356,28 @@ export function AppShell({
       );
     }
 
+    if (flow === 'lastLoyalists') {
+      return (
+        <LastLoyalistsScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'royalDecrees') {
+      return (
+        <RoyalDecreesScreen
+          onExit={() => {
+            setFlow(null);
+            setActive('kingdom');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -442,6 +470,16 @@ export function AppShell({
               setActiveEncounterId('crownroad_ambush');
               setFlow('battlePrep');
             }}
+            onOpenLastLoyalists={() => setFlow('lastLoyalists')}
+            onStartPretenderGeneral={() => {
+              setActiveEncounterId('pretender_general');
+              setFlow('battlePrep');
+            }}
+            onOpenRoyalDecrees={() => setFlow('royalDecrees')}
+            onStartOldRoyalLands={() => {
+              setActiveEncounterId('old_royal_lands');
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -469,6 +507,7 @@ export function AppShell({
           <KingdomScreen
             onOpenRecruitment={openRecruitment}
             onOpenSettlement={() => setFlow('settlement')}
+            onOpenRoyalDecrees={() => setFlow('royalDecrees')}
             onOpenForge={() => {
               if (firstPromotionComplete) {
                 setEquipmentUnitId('hum_recruit');
@@ -500,6 +539,8 @@ export function AppShell({
     flow === 'dividedMarch' ||
     flow === 'strongholdMuster' ||
     flow === 'emptyThrone' ||
+    flow === 'lastLoyalists' ||
+    flow === 'royalDecrees' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

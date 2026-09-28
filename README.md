@@ -244,3 +244,74 @@ It supports elite-unit training and has a Stronghold-specific adjacency:
   - commander skill triggers one exchange earlier
 
 This is intentionally different from a generic percentage increase: settlement layout changes when the commander’s signature ability enters the battle.
+
+
+## Chapter 4 climax — The Last Loyalists
+
+After Crownroad Ambush, the player chooses how Greenkeep handles the remaining royal loyalists before the Pretender General fight:
+
+- **Offer Amnesty**
+  - +10% armor against the Pretender General
+- **Publish the Royal Seals**
+  - detailed boss intelligence
+  - -20% enemy retaliation
+- **Seize the Loyalist Arsenal**
+  - +10% attack against the Pretender General
+
+This is a one-boss tactical preparation choice, not a permanent account build.
+
+## The Pretender General
+
+The Pretender General is now the Chapter 4 boss.
+
+Defeating him breaks the last organized royal command in the western realm and unlocks the **Greenkeep Capital** project.
+
+Capital requirements:
+- Barracks Lv.5
+- Forge Lv.5
+- Wagonwright Lv.5
+- War Room Lv.4
+- Quartermaster Lv.4
+- Stable Lv.3
+- Signal Tower Lv.3
+- Officer Academy Lv.2
+- 650 Gold
+- 280 Wood
+- 220 Stone
+- 70 Iron
+
+Capital construction:
+- raises Greenkeep Hall to Lv.6
+- expands the Wagon from 6×7 to **7×8**
+- keeps the six-squad cap
+- begins Chapter 5 / **Old Royal Lands**
+- unlocks **Royal Decrees**
+
+## Royal Decrees
+
+Capital introduces one active policy at a time.
+
+The first decree is free. Replacing it later costs 100 Gold.
+
+- **Royal Muster**
+  - +7% army attack
+  - +7% army armor
+- **Provincial Tithe**
+  - +25% regional production from meaningful activities
+- **Masterwork Commission**
+  - -12% equipment crafting and upgrade costs
+
+Royal Decrees are deliberately mutually exclusive so Capital becomes a strategic priority choice instead of another stack of passive bonuses.
+
+## Chapter 5 — Old Royal Lands
+
+The first Capital-era nodes are now connected:
+
+1. **Capital Council** — choose the first Royal Decree
+2. **Old Royal Lands** — first battle under Capital administration
+3. **Broken Archives** — next story expansion
+4. Ashen Envoy
+5. The Royal Ledger
+6. Gate of Crownspire
+
+The Old Royal Lands battle is the first encounter that can immediately demonstrate the new decree system.
