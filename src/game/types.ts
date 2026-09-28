@@ -2,6 +2,32 @@ export type FactionId = 'human' | 'elf' | 'orc';
 export type CampaignId = FactionId | 'meta';
 export type NavId = 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army';
 export type UnitRole = 'frontline' | 'melee' | 'ranged' | 'support' | 'cavalry' | 'skirmish';
+
+export type FormationShapeId =
+  | 'balanced_333'
+  | 'assault_432'
+  | 'deep_234'
+  | 'wide_vanguard_522'
+  | 'protected_rear_225'
+  | 'reinforced_center_252'
+  | 'heavy_front_441'
+  | 'spear_wall_531'
+  | 'skirmish_screen_243';
+
+export type FormationShapeDefinition = {
+  id: FormationShapeId;
+  name: string;
+  layout: string;
+  rows: {
+    front: number[];
+    middle: number[];
+    rear: number[];
+  };
+  unlock: 'Start' | 'Settlement' | 'Fort' | 'Town' | 'Stronghold';
+  summary: string;
+  strength: string;
+  risk: string;
+};
 export type SideModeId = 'expeditions' | 'formation_trials' | 'kingdom_defense' | 'relic_hunts';
 export type EquipmentSlot = 'weapon' | 'armor' | 'shield' | 'mount' | 'artifact';
 export type CommanderSkillEffectType =
