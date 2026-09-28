@@ -296,16 +296,12 @@ export function BattlePrepScreen({
         </View>
         <View style={styles.readinessList}>
           <View style={styles.readinessRow}>
-            <Text style={[styles.readinessIcon, { color: hasFood ? theme.colors.primary : theme.colors.danger }]}>
-              {hasFood ? '✓' : '!'}
-            </Text>
-            <Text style={[styles.readinessText, { color: theme.colors.text }]}>Food packed</Text>
+            <StatusPill label={hasFood ? 'PACKED' : 'MISSING'} tone={hasFood ? 'done' : 'elite'} />
+            <Text style={[styles.readinessText, { color: theme.colors.text }]}>Food</Text>
           </View>
           <View style={styles.readinessRow}>
-            <Text style={[styles.readinessIcon, { color: hasMedicine ? theme.colors.primary : theme.colors.gold }]}>
-              {hasMedicine ? '✓' : '!'}
-            </Text>
-            <Text style={[styles.readinessText, { color: theme.colors.text }]}>Medicine available</Text>
+            <StatusPill label={hasMedicine ? 'PACKED' : 'OPTIONAL'} tone={hasMedicine ? 'done' : 'available'} />
+            <Text style={[styles.readinessText, { color: theme.colors.text }]}>Medicine</Text>
           </View>
         </View>
       </GameCard>
@@ -350,7 +346,6 @@ const styles = StyleSheet.create({
   readinessTitle: { fontSize: 14, fontWeight: '900' },
   readinessList: { gap: 10 },
   readinessRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  readinessIcon: { width: 20, fontSize: 16, fontWeight: '900' },
   readinessText: { fontSize: 13, fontWeight: '700' },
   adMessage: { fontSize: 10, textAlign: 'center' }
 });
