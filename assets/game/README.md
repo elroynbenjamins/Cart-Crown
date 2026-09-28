@@ -10,6 +10,8 @@ The game currently uses code-rendered pixel art as a safe fallback. Final PNG ar
 - `enemies/<enemy-kind>.png` — 256×256 transparent
 - `commanders/<faction>/<commander-id>.png` — 512×512 transparent
 - `resource_sites/<faction>/<site-id>.png` — 256×256 transparent
+- `resources/<resource-id>.png` — 128×128 transparent
+- `wagon_items/<item-id>.png` — 256×256 transparent
 - `scenes/<faction>/<scene-id>.png` — 768×432 opaque/background scene
 - `ui/<ui-id>.png` — 96×96 transparent
 
