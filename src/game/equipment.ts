@@ -1,7 +1,8 @@
 import type {
   AdvancedPromotionDefinition,
   EquipmentDefinition,
-  PromotionDefinition
+  PromotionDefinition,
+  UnitDefinition
 } from './types';
 
 export const equipmentDefinitions: EquipmentDefinition[] = [
@@ -1023,6 +1024,71 @@ export const advancedPromotions: AdvancedPromotionDefinition[] = [
 
 export function getEquipment(id: string) {
   return equipmentDefinitions.find(item => item.id === id) ?? null;
+}
+
+export function canUnitEquipEquipment(
+  unit: UnitDefinition,
+  equipment: EquipmentDefinition
+) {
+  if (equipment.faction !== unit.faction) return false;
+
+  if (equipment.slot === 'artifact') return true;
+
+  if (equipment.slot === 'mount') {
+    return (
+      unit.role === 'cavalry' ||
+      ['Scout', 'Stag Scout', 'Warg Scout'].includes(unit.className)
+    );
+  }
+
+  if (equipment.slot === 'shield') {
+    return ['frontline', 'melee', 'cavalry'].includes(unit.role);
+  }
+
+  if (equipment.slot === 'armor') {
+    if (equipment.tags.includes('heavy') || equipment.tags.includes('plate')) {
+      return ['frontline', 'melee', 'cavalry'].includes(unit.role);
+    }
+    return true;
+  }
+
+  if (equipment.slot === 'weapon') {
+    const recruitException = unit.className === 'Recruit';
+    const mountedWeapon =
+      equipment.tags.includes('cavalry') ||
+      equipment.tags.includes('lance');
+    if (mountedWeapon) {
+      return (
+        unit.role === 'cavalry' ||
+        ['Scout Rider', 'Stag Rider', 'Warg Rider'].includes(unit.className)
+      );
+    }
+
+    if (
+      equipment.tags.includes('bow') ||
+      equipment.tags.includes('ranged')
+    ) {
+      return (
+        recruitException ||
+        ['ranged', 'skirmish', 'cavalry'].includes(unit.role)
+      );
+    }
+
+    if (
+      equipment.tags.includes('sword') ||
+      equipment.tags.includes('axe') ||
+      equipment.tags.includes('spear') ||
+      equipment.tags.includes('reach') ||
+      equipment.tags.includes('melee')
+    ) {
+      return (
+        recruitException ||
+        ['frontline', 'melee', 'cavalry'].includes(unit.role)
+      );
+    }
+  }
+
+  return true;
 }
 
 export function equipmentSatisfiesRequirement(

@@ -4,11 +4,23 @@ import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, ProgressBar, ResourceAmountRow, SecondaryButton, StatusPill } from '../ui/components';
 
-const waves = [
-  { id: 'wave_1', name: 'Road Raiders', threat: 90, pressure: 'Light melee rush' },
-  { id: 'wave_2', name: 'Mercenary Bowline', threat: 115, pressure: 'Ranged pressure behind shields' },
-  { id: 'wave_3', name: 'Green Banner Assault', threat: 140, pressure: 'Mixed elite attack' }
-];
+const wavesByFaction = {
+  human: [
+    { id: 'wave_1', name: 'Road Raiders', threat: 90, pressure: 'Light melee rush' },
+    { id: 'wave_2', name: 'Mercenary Bowline', threat: 115, pressure: 'Ranged pressure behind shields' },
+    { id: 'wave_3', name: 'Green Banner Assault', threat: 140, pressure: 'Mixed elite attack' }
+  ],
+  elf: [
+    { id: 'wave_1', name: 'Ashwood Raiders', threat: 90, pressure: 'Fast pressure through the outer paths' },
+    { id: 'wave_2', name: 'Wardbreaker Bowline', threat: 115, pressure: 'Ranged pressure against the grove line' },
+    { id: 'wave_3', name: 'Ashen Grove Assault', threat: 140, pressure: 'Mixed elite attack on the ward network' }
+  ],
+  orc: [
+    { id: 'wave_1', name: 'Steppe Raiders', threat: 90, pressure: 'Fast melee pressure at the outer fires' },
+    { id: 'wave_2', name: 'Clanbreaker Bowline', threat: 115, pressure: 'Ranged pressure against the warband line' },
+    { id: 'wave_3', name: 'Ashen Warhost Assault', threat: 140, pressure: 'Mixed elite attack on the Warhold' }
+  ]
+} as const;
 
 export function KingdomDefenseScreen({
   onEditFormation,
@@ -19,6 +31,7 @@ export function KingdomDefenseScreen({
 }) {
   const { theme } = useGameTheme();
   const {
+    activeFaction,
     units,
     formation,
     formationAnalysis,
@@ -30,6 +43,27 @@ export function KingdomDefenseScreen({
   const [waveIndex, setWaveIndex] = useState(0);
   const [failed, setFailed] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [firstClearReward, setFirstClearReward] = useState(false);
+  const waves = wavesByFaction[activeFaction];
+
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
+  const defenseTitle =
+    activeFaction === 'elf'
+      ? 'Heartgrove Defense'
+      : activeFaction === 'orc'
+        ? 'Warhold Defense'
+        : 'Kingdom Defense';
+  const victoryTitle =
+    activeFaction === 'elf'
+      ? 'Heartgrove Holds'
+      : activeFaction === 'orc'
+        ? 'The Warhold Holds'
+        : 'Greenkeep Holds';
 
   const defensePower = useMemo(() => {
     const activeUnits = formation
@@ -72,7 +106,9 @@ export function KingdomDefenseScreen({
     }
 
     if (waveIndex >= waves.length - 1) {
+      const wasFirstClear = !kingdomDefenseCompleted;
       const ok = completeKingdomDefense();
+      if (ok) setFirstClearReward(wasFirstClear);
       setComplete(ok);
       return;
     }
@@ -83,11 +119,11 @@ export function KingdomDefenseScreen({
 
   return (
     <View style={styles.content}>
-      <GameCard accent={theme.colors.human} faction="human">
+      <GameCard accent={factionAccent} faction={activeFaction}>
         <View style={styles.header}>
           <View style={styles.headerCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>FORT SIDE MODE</Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>Kingdom Defense</Text>
+            <Text style={[styles.eyebrow, { color: factionAccent }]}>FORT SIDE MODE</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>{defenseTitle}</Text>
             <Text style={[styles.body, { color: theme.colors.textMuted }]}>
               One formation and one Wagon must hold through consecutive waves. Your tactical setup carries through the entire defense.
             </Text>
@@ -100,7 +136,7 @@ export function KingdomDefenseScreen({
       </GameCard>
 
       <GameCard
-        faction="human"
+        faction={activeFaction}
         state={defensePower >= currentWave.threat ? 'ready' : 'danger'}
         accent={defensePower >= currentWave.threat ? theme.colors.primary : theme.colors.gold}
       >
@@ -120,7 +156,7 @@ export function KingdomDefenseScreen({
         />
       </GameCard>
 
-      <GameCard faction="human">
+      <GameCard faction={activeFaction}>
         <View style={styles.waveHeader}>
           <Text style={[styles.waveLabel, { color: theme.colors.gold }]}>
             WAVE {waveIndex + 1} / {waves.length}
@@ -135,7 +171,7 @@ export function KingdomDefenseScreen({
       </GameCard>
 
       {failed ? (
-        <GameCard accent={theme.colors.danger} faction="human" state="danger">
+        <GameCard accent={theme.colors.danger} faction={activeFaction} state="danger">
           <Text style={[styles.failTitle, { color: theme.colors.text }]}>The line will not hold</Text>
           <Text style={[styles.failBody, { color: theme.colors.textMuted }]}>
             Improve equipment, change formation synergies, or adjust commander specialization before attempting this wave again.
@@ -144,13 +180,20 @@ export function KingdomDefenseScreen({
       ) : null}
 
       {complete ? (
-        <GameCard accent={theme.colors.primary} faction="human" state="ready">
+        <GameCard accent={theme.colors.primary} faction={activeFaction} state="ready">
           <View style={styles.completeHeader}>
-            <Text style={[styles.failTitle, { color: theme.colors.text }]}>Greenkeep Holds</Text>
+            <Text style={[styles.failTitle, { color: theme.colors.text }]}>{victoryTitle}</Text>
             <StatusPill label="DEFENDED" tone="done" />
           </View>
           <View style={styles.rewardRow}>
-            <ResourceAmountRow prefix="+" values={{ gold: 60, stone: 8, provisions: 4 }} />
+            <ResourceAmountRow
+              prefix="+"
+              values={
+                firstClearReward
+                  ? { gold: 75, stone: 10, iron: 4, provisions: 5 }
+                  : { gold: 50, stone: 6, iron: 2, provisions: 5 }
+              }
+            />
           </View>
           <Text style={[styles.failBody, { color: theme.colors.textMuted }]}>
             Regional production also advances one cycle.

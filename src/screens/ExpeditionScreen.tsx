@@ -29,6 +29,12 @@ export function ExpeditionScreen({ onExit }: { onExit: () => void }) {
       : activeFaction === 'orc'
         ? theme.colors.orc
         : theme.colors.human;
+  const expeditionTitle =
+    activeFaction === 'elf'
+      ? 'Rootway Expedition'
+      : activeFaction === 'orc'
+        ? 'Warpath Expedition'
+        : 'Iron Road Expedition';
 
   const start = () => {
     if (consumeExpeditionTicket()) {
@@ -52,7 +58,7 @@ export function ExpeditionScreen({ onExit }: { onExit: () => void }) {
         <View style={styles.header}>
           <View style={styles.headerCopy}>
             <Text style={[styles.eyebrow, { color: theme.colors.primary }]}>SIDE MODE</Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>Iron Road Expedition</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>{expeditionTitle}</Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
               A short repeatable run. One wagon loadout must survive the entire route.
             </Text>
@@ -128,11 +134,13 @@ export function ExpeditionScreen({ onExit }: { onExit: () => void }) {
             <ResourceAmountRow
               prefix="+"
               values={{
-                gold: 35,
+                gold: 40,
                 wood:
                   8 +
                   ((buildingLevels[factionBuildingIds.logistics] ?? 0) >= 2 ? 1 : 0) +
                   settlementEffects.expeditionWoodBonus,
+                stone: 2,
+                iron: 1,
                 provisions: 4 + settlementEffects.expeditionProvisionBonus
               }}
             />

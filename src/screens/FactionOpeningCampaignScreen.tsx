@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { factionOrder, factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
-import type { FactionId } from '../game/types';
+import type { FactionId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -49,7 +49,10 @@ export function FactionOpeningCampaignScreen({
   onStartChapterSixElite,
   onOpenChapterSixSeal,
   onStartChapterSixBoss,
-  onOpenMetaCampaign
+  onOpenMetaCampaign,
+  onOpenExpedition,
+  onOpenFormationTrial,
+  onOpenKingdomDefense
 }: {
   onStartOpeningBattle: () => void;
   onOpenInvestigation: () => void;
@@ -87,6 +90,9 @@ export function FactionOpeningCampaignScreen({
   onOpenChapterSixSeal: () => void;
   onStartChapterSixBoss: () => void;
   onOpenMetaCampaign: () => void;
+  onOpenExpedition: () => void;
+  onOpenFormationTrial: () => void;
+  onOpenKingdomDefense: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -96,7 +102,13 @@ export function FactionOpeningCampaignScreen({
     campaignAvailability,
     completedCampaigns,
     hasFactionState,
-    switchFaction
+    switchFaction,
+    sideModeDefinitions,
+    isSideModeUnlocked,
+    expeditionTickets,
+    expeditionRunsCompleted,
+    formationTrialCompleted,
+    kingdomDefenseCompleted
   } = useGame();
 
   const faction = factions[activeFaction];
@@ -574,6 +586,73 @@ export function FactionOpeningCampaignScreen({
             </View>
           );
         })}
+      </View>
+
+      <SectionTitle title="Activities" trailing="Recovery & tactics" />
+      <View style={styles.factionList}>
+        {sideModeDefinitions
+          .filter(mode =>
+            ['expeditions', 'formation_trials', 'kingdom_defense'].includes(mode.id)
+          )
+          .map(mode => {
+            const unlocked = isSideModeUnlocked(mode.id);
+            const openMode = (id: SideModeId) => {
+              if (id === 'expeditions') onOpenExpedition();
+              if (id === 'formation_trials') onOpenFormationTrial();
+              if (id === 'kingdom_defense') onOpenKingdomDefense();
+            };
+
+            const status =
+              mode.id === 'expeditions'
+                ? expeditionTickets + ' ticket' + (expeditionTickets === 1 ? '' : 's')
+                : mode.id === 'formation_trials'
+                  ? formationTrialCompleted
+                    ? 'First trial complete'
+                    : 'Tactical challenge'
+                  : kingdomDefenseCompleted
+                    ? 'Repeatable'
+                    : 'First clear available';
+
+            return (
+              <GameCard
+                key={mode.id}
+                faction={activeFaction}
+                state={unlocked ? 'default' : 'locked'}
+                accent={unlocked ? accent : undefined}
+              >
+                <View style={styles.factionHeader}>
+                  <View style={styles.factionCopy}>
+                    <Text style={[styles.factionName, { color: theme.colors.text }]}>
+                      {mode.name}
+                    </Text>
+                    <Text style={[styles.factionSubtitle, { color: accent }]}>
+                      {status}
+                    </Text>
+                  </View>
+                  <StatusPill
+                    label={unlocked ? 'AVAILABLE' : mode.unlockStage.toUpperCase()}
+                    tone={unlocked ? 'available' : 'locked'}
+                  />
+                </View>
+                <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+                  {mode.description}
+                </Text>
+                {mode.id === 'expeditions' ? (
+                  <Text style={[styles.factionSubtitle, { color: theme.colors.textMuted }]}>
+                    Completed runs: {expeditionRunsCompleted}
+                  </Text>
+                ) : null}
+                {unlocked ? (
+                  <View style={styles.switchButton}>
+                    <PrimaryButton
+                      label={'Open ' + mode.name}
+                      onPress={() => openMode(mode.id)}
+                    />
+                  </View>
+                ) : null}
+              </GameCard>
+            );
+          })}
       </View>
 
       <SectionTitle title="Campaigns in this save" />

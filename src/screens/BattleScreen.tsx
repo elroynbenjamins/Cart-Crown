@@ -147,8 +147,8 @@ export function BattleScreen({
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
   const [lastAction, setLastAction] = useState(combatLines[0]!);
 
-  const finished = enemyHp <= 0;
-  const defeated = partyHp <= 0 && !finished;
+  const defeated = partyHp <= 0;
+  const finished = enemyHp <= 0 && !defeated;
   const battleEnded = finished || defeated;
   const tacticalSpeedDamageMultiplier = getTacticalSpeedDamageMultiplier(
     combatProfile.speedStatMultiplier,
