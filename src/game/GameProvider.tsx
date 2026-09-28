@@ -84,6 +84,7 @@ import type {
 } from './capital';
 import {
   advancedPromotions,
+  canUnitEquipEquipment,
   equipmentDefinitions,
   equipmentSatisfiesRequirement,
   getAdvancedPromotionsForClass,
@@ -4493,7 +4494,8 @@ export function GameProvider({
       inventoryIndex < 0 ||
       !unit ||
       equipment.faction !== activeFaction ||
-      unit.faction !== activeFaction
+      unit.faction !== activeFaction ||
+      !canUnitEquipEquipment(unit, equipment)
     ) return false;
 
     const currentId = unitEquipment[unitId]?.[equipment.slot] ?? null;
@@ -4540,7 +4542,8 @@ export function GameProvider({
       (target.requiredStableLevel ?? 0) > stableLevel ||
       !unit ||
       target.faction !== activeFaction ||
-      unit.faction !== activeFaction
+      unit.faction !== activeFaction ||
+      !canUnitEquipEquipment(unit, target)
     ) {
       return false;
     }
