@@ -23,7 +23,7 @@ import type {
   SaveSlotMetadata
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 12;
+export const SAVE_SCHEMA_VERSION = 13;
 
 export function createHumanFactionState(): FactionGameState {
   return {
@@ -203,7 +203,9 @@ export function createInitialGameSnapshot(): GameSnapshot {
       completedCampaigns: [],
       achievements: [],
       lore: [],
-      cosmetics: []
+      cosmetics: [],
+      metaCampaignStep: 0,
+      metaCampaignComplete: false
     },
     factionStates: {
       human: createHumanFactionState(),
@@ -231,11 +233,19 @@ export function metadataFromSnapshot(
   if (current.faction === 'elf') {
     chapterLabel =
       current.chapterNumber >= 6
-        ? current.chapterNodes.find(node => node.id === 'elf6_node_3')?.current
-          ? 'Elf Chapter 6 · Concord Rootway'
-          : current.chapterNodes.find(node => node.id === 'elf6_node_2')?.current
-            ? 'Elf Chapter 6 · Stars over Crownspire'
-            : 'Elf Chapter 6 · Starroot Council'
+        ? snapshot.shared.completedCampaigns.includes('elf')
+          ? 'Elf Campaign Complete · Root Seal'
+          : current.chapterNodes.find(node => node.id === 'elf6_node_6')?.current
+            ? 'Elf Chapter 6 · Return through the Roots'
+            : current.chapterNodes.find(node => node.id === 'elf6_node_5')?.current
+              ? 'Elf Chapter 6 · The Root Seal'
+              : current.chapterNodes.find(node => node.id === 'elf6_node_4')?.current
+                ? 'Elf Chapter 6 · Ashen Starwatch'
+                : current.chapterNodes.find(node => node.id === 'elf6_node_3')?.current
+                  ? 'Elf Chapter 6 · Concord Rootway'
+                  : current.chapterNodes.find(node => node.id === 'elf6_node_2')?.current
+                    ? 'Elf Chapter 6 · Stars over Crownspire'
+                    : 'Elf Chapter 6 · Starroot Council'
         : current.chapterNumber === 5
           ? current.chapterNodes.find(node => node.id === 'elf5_node_6')?.current
             ? 'Elf Chapter 5 · Worldroot Guardian'
@@ -300,11 +310,19 @@ export function metadataFromSnapshot(
   } else if (current.faction === 'orc') {
     chapterLabel =
       current.chapterNumber >= 6
-        ? current.chapterNodes.find(node => node.id === 'orc6_node_3')?.current
-          ? 'Orc Chapter 6 · Concord Warpath'
-          : current.chapterNodes.find(node => node.id === 'orc6_node_2')?.current
-            ? 'Orc Chapter 6 · The Truth at Crownspire'
-            : 'Orc Chapter 6 · Confederacy Council'
+        ? snapshot.shared.completedCampaigns.includes('orc')
+          ? 'Orc Campaign Complete · Clan Seal'
+          : current.chapterNodes.find(node => node.id === 'orc6_node_6')?.current
+            ? 'Orc Chapter 6 · Truth at Crownspire'
+            : current.chapterNodes.find(node => node.id === 'orc6_node_5')?.current
+              ? 'Orc Chapter 6 · The Clan Seal'
+              : current.chapterNodes.find(node => node.id === 'orc6_node_4')?.current
+                ? 'Orc Chapter 6 · Ashen Warfires'
+                : current.chapterNodes.find(node => node.id === 'orc6_node_3')?.current
+                  ? 'Orc Chapter 6 · Concord Warpath'
+                  : current.chapterNodes.find(node => node.id === 'orc6_node_2')?.current
+                    ? 'Orc Chapter 6 · The Truth at Crownspire'
+                    : 'Orc Chapter 6 · Confederacy Council'
         : current.chapterNumber === 5
           ? current.chapterNodes.find(node => node.id === 'orc5_node_6')?.current
             ? 'Orc Chapter 5 · Last Clanbreaker'

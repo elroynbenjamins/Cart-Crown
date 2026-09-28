@@ -164,6 +164,9 @@ type GameContextValue = {
   activeFaction: FactionId;
   completedCampaigns: FactionId[];
   campaignAvailability: CampaignAvailability[];
+  metaCampaignStep: number;
+  metaCampaignComplete: boolean;
+  metaCampaignUnlocked: boolean;
   hasFactionState: (faction: FactionId) => boolean;
   switchFaction: (faction: FactionId) => Promise<boolean>;
   formationDoctrineId: string;
@@ -281,6 +284,11 @@ type GameContextValue = {
   completeFactionChapterFiveEvent: (
     stage: 'muster' | 'resource' | 'seal'
   ) => boolean;
+  completeFactionChapterSixEvent: (
+    stage: 'concord' | 'seal'
+  ) => boolean;
+  completeMetaCouncil: () => boolean;
+  completeMetaConcordChamber: () => boolean;
   completeMarkedRaiders: () => boolean;
   completeRefugeeCamp: () => boolean;
   upgradeSettlement: () => boolean;
@@ -700,6 +708,12 @@ export function GameProvider({
     );
 
   const completedCampaigns = sharedProgress.completedCampaigns;
+  const metaCampaignStep = sharedProgress.metaCampaignStep;
+  const metaCampaignComplete = sharedProgress.metaCampaignComplete;
+  const metaCampaignUnlocked =
+    completedCampaigns.includes('human') &&
+    completedCampaigns.includes('elf') &&
+    completedCampaigns.includes('orc');
 
   const campaignAvailability = useMemo<CampaignAvailability[]>(() => {
     const humanComplete = completedCampaigns.includes('human');
@@ -725,11 +739,15 @@ export function GameProvider({
       {
         id: 'meta',
         unlocked: allComplete,
-        completed: false,
-        unlockText: allComplete ? 'Three Seals campaign unlocked' : 'Complete all three faction campaigns'
+        completed: metaCampaignComplete,
+        unlockText: metaCampaignComplete
+          ? 'Concord restored'
+          : allComplete
+            ? 'Three Seals campaign unlocked'
+            : 'Complete all three faction campaigns'
       }
     ];
-  }, [completedCampaigns]);
+  }, [completedCampaigns, metaCampaignComplete]);
 
   const factionChapterOneBossWon =
     activeFaction === 'elf'
@@ -1041,7 +1059,7 @@ export function GameProvider({
 
   const snapshot = useMemo<GameSnapshot>(
     () => ({
-      schemaVersion: 12,
+      schemaVersion: 13,
       activeFaction,
       shared: sharedProgress,
       factionStates: {
@@ -2012,6 +2030,190 @@ export function GameProvider({
       setLastBattleResult({
         id: 'orc_truth_at_crownspire_result',
         title: 'Crownspire Warpath Open',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'elf_ashen_starwatch') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf6_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'elf6_node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'elf6_node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'elf_ashen_starwatch_result',
+        title: 'Ashen Starwatch Falls',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'elf_return_through_roots') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf6_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'elf6_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setSharedProgress(previous => ({
+        ...previous,
+        completedCampaigns: previous.completedCampaigns.includes('elf')
+          ? previous.completedCampaigns
+          : [...previous.completedCampaigns, 'elf'],
+        lore: previous.lore.includes('elf_root_seal')
+          ? previous.lore
+          : [...previous.lore, 'elf_root_seal']
+      }));
+      setLastBattleResult({
+        id: 'elf_return_through_roots_result',
+        title: 'Root Seal Recovered',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_ashen_warfires') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc6_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'orc6_node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'orc6_node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'orc_ashen_warfires_result',
+        title: 'Ashen Warfires Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_crownspire_warmaster') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc6_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'orc6_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setSharedProgress(previous => ({
+        ...previous,
+        completedCampaigns: previous.completedCampaigns.includes('orc')
+          ? previous.completedCampaigns
+          : [...previous.completedCampaigns, 'orc'],
+        lore: previous.lore.includes('orc_clan_seal')
+          ? previous.lore
+          : [...previous.lore, 'orc_clan_seal']
+      }));
+      setLastBattleResult({
+        id: 'orc_crownspire_warmaster_result',
+        title: 'Clan Seal Recovered',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'three_seals_convergence') {
+      if (!metaCampaignUnlocked || metaCampaignStep !== 1) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setSharedProgress(previous => ({
+        ...previous,
+        metaCampaignStep: 2
+      }));
+      setLastBattleResult({
+        id: 'three_seals_convergence_result',
+        title: 'Three Roads Converge',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ashen_triumvirate') {
+      if (!metaCampaignUnlocked || metaCampaignStep !== 3) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setSharedProgress(previous => ({
+        ...previous,
+        metaCampaignStep: 4
+      }));
+      setLastBattleResult({
+        id: 'ashen_triumvirate_result',
+        title: 'Triumvirate Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'unbound_beacon') {
+      if (!metaCampaignUnlocked || metaCampaignStep !== 4) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setSharedProgress(previous => ({
+        ...previous,
+        metaCampaignStep: 5,
+        metaCampaignComplete: true,
+        achievements: previous.achievements.includes('concord_restored')
+          ? previous.achievements
+          : [...previous.achievements, 'concord_restored'],
+        lore: previous.lore.includes('three_seals_restored')
+          ? previous.lore
+          : [...previous.lore, 'three_seals_restored']
+      }));
+      setLastBattleResult({
+        id: 'unbound_beacon_result',
+        title: 'Concord Restored',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -2993,6 +3195,96 @@ export function GameProvider({
     }
 
     return false;
+  };
+
+  const completeFactionChapterSixEvent = (
+    stage: 'concord' | 'seal'
+  ) => {
+    if (activeFaction === 'elf') {
+      const nodeId = stage === 'concord' ? 'elf6_node_3' : 'elf6_node_5';
+      const nextId = stage === 'concord' ? 'elf6_node_4' : 'elf6_node_6';
+
+      if (!chapterNodes.find(node => node.id === nodeId)?.current) return false;
+
+      setSharedProgress(previous => ({
+        ...previous,
+        lore:
+          stage === 'concord'
+            ? previous.lore.includes('elf_concord_rootway')
+              ? previous.lore
+              : [...previous.lore, 'elf_concord_rootway']
+            : previous.lore.includes('elf_root_seal_reached')
+              ? previous.lore
+              : [...previous.lore, 'elf_root_seal_reached']
+      }));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) return { ...node, completed: true, current: false };
+          if (node.id === nextId) return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      return true;
+    }
+
+    if (activeFaction === 'orc') {
+      const nodeId = stage === 'concord' ? 'orc6_node_3' : 'orc6_node_5';
+      const nextId = stage === 'concord' ? 'orc6_node_4' : 'orc6_node_6';
+
+      if (!chapterNodes.find(node => node.id === nodeId)?.current) return false;
+
+      setSharedProgress(previous => ({
+        ...previous,
+        lore:
+          stage === 'concord'
+            ? previous.lore.includes('orc_concord_warpath')
+              ? previous.lore
+              : [...previous.lore, 'orc_concord_warpath']
+            : previous.lore.includes('orc_clan_seal_reached')
+              ? previous.lore
+              : [...previous.lore, 'orc_clan_seal_reached']
+      }));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) return { ...node, completed: true, current: false };
+          if (node.id === nextId) return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      return true;
+    }
+
+    return false;
+  };
+
+  const completeMetaCouncil = () => {
+    if (!metaCampaignUnlocked || metaCampaignComplete || metaCampaignStep !== 0) {
+      return false;
+    }
+
+    setSharedProgress(previous => ({
+      ...previous,
+      metaCampaignStep: 1,
+      lore: previous.lore.includes('three_seals_council')
+        ? previous.lore
+        : [...previous.lore, 'three_seals_council']
+    }));
+    return true;
+  };
+
+  const completeMetaConcordChamber = () => {
+    if (!metaCampaignUnlocked || metaCampaignComplete || metaCampaignStep !== 2) {
+      return false;
+    }
+
+    setSharedProgress(previous => ({
+      ...previous,
+      metaCampaignStep: 3,
+      lore: previous.lore.includes('three_seals_in_chamber')
+        ? previous.lore
+        : [...previous.lore, 'three_seals_in_chamber']
+    }));
+    return true;
   };
 
   const completeMarkedRaiders = () => {
@@ -4608,6 +4900,9 @@ export function GameProvider({
       activeFaction,
       completedCampaigns,
       campaignAvailability,
+      metaCampaignStep,
+      metaCampaignComplete,
+      metaCampaignUnlocked,
       hasFactionState,
       switchFaction,
       formationDoctrineId,
@@ -4706,6 +5001,9 @@ export function GameProvider({
       completeFactionChapterThreeEvent,
       completeFactionChapterFourEvent,
       completeFactionChapterFiveEvent,
+      completeFactionChapterSixEvent,
+      completeMetaCouncil,
+      completeMetaConcordChamber,
       completeMarkedRaiders,
       completeRefugeeCamp,
       upgradeSettlement,
@@ -4775,6 +5073,9 @@ export function GameProvider({
       activeFaction,
       completedCampaigns,
       campaignAvailability,
+      metaCampaignStep,
+      metaCampaignComplete,
+      metaCampaignUnlocked,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,

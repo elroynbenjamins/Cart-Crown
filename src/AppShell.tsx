@@ -26,6 +26,7 @@ import { FactionChapterTwoEventScreen } from './screens/FactionChapterTwoEventSc
 import { FactionChapterThreeEventScreen } from './screens/FactionChapterThreeEventScreen';
 import { FactionChapterFourEventScreen } from './screens/FactionChapterFourEventScreen';
 import { FactionChapterFiveEventScreen } from './screens/FactionChapterFiveEventScreen';
+import { FactionChapterSixEventScreen } from './screens/FactionChapterSixEventScreen';
 import { FactionMandateScreen } from './screens/FactionMandateScreen';
 import { FactionFourthRecruitmentScreen } from './screens/FactionFourthRecruitmentScreen';
 import { FactionFifthRecruitmentScreen } from './screens/FactionFifthRecruitmentScreen';
@@ -42,6 +43,7 @@ import { KingdomScreen } from './screens/KingdomScreen';
 import { MarkedRaidersScreen } from './screens/MarkedRaidersScreen';
 import { LastLoyalistsScreen } from './screens/LastLoyalistsScreen';
 import { MarcherEnvoyScreen } from './screens/MarcherEnvoyScreen';
+import { MetaCampaignScreen } from './screens/MetaCampaignScreen';
 import { PromotionScreen } from './screens/PromotionScreen';
 import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
@@ -101,6 +103,9 @@ type FlowScreen =
   | 'factionChapterFiveResource'
   | 'factionChapterFiveSeal'
   | 'factionMandate'
+  | 'factionChapterSixConcord'
+  | 'factionChapterSixSeal'
+  | 'metaCampaign'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -163,6 +168,9 @@ const flowTitles: Record<FlowScreen, string> = {
   factionChapterFiveResource: 'Chapter 5 Records',
   factionChapterFiveSeal: 'Seal Trace',
   factionMandate: 'Faction Strategy',
+  factionChapterSixConcord: 'Concord Route',
+  factionChapterSixSeal: 'The Seal',
+  metaCampaign: 'Three Seals',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -228,6 +236,29 @@ export function AppShell({
               setFlow('commanderChoice');
               return;
             }
+            if (
+              [
+                'elf_return_through_roots_result',
+                'orc_crownspire_warmaster_result'
+              ].includes(lastBattleResult?.id ?? '')
+            ) {
+              setFlow(null);
+              setActive('campaign');
+              return;
+            }
+
+            if (
+              [
+                'three_seals_convergence_result',
+                'ashen_triumvirate_result',
+                'unbound_beacon_result'
+              ].includes(lastBattleResult?.id ?? '')
+            ) {
+              setFlow('metaCampaign');
+              setActive('campaign');
+              return;
+            }
+
             setFlow(null);
             setActive('kingdom');
           }}
@@ -675,6 +706,53 @@ export function AppShell({
       );
     }
 
+    if (flow === 'factionChapterSixConcord') {
+      return (
+        <FactionChapterSixEventScreen
+          stage="concord"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'factionChapterSixSeal') {
+      return (
+        <FactionChapterSixEventScreen
+          stage="seal"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'metaCampaign') {
+      return (
+        <MetaCampaignScreen
+          onStartConvergence={() => {
+            setActiveEncounterId('three_seals_convergence');
+            setFlow('battlePrep');
+          }}
+          onStartTriumvirate={() => {
+            setActiveEncounterId('ashen_triumvirate');
+            setFlow('battlePrep');
+          }}
+          onStartFinalBoss={() => {
+            setActiveEncounterId('unbound_beacon');
+            setFlow('battlePrep');
+          }}
+          onExit={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -971,6 +1049,29 @@ export function AppShell({
               );
               setFlow('battlePrep');
             }}
+            onOpenFactionChapterSixConcord={() =>
+              setFlow('factionChapterSixConcord')
+            }
+            onStartFactionChapterSixElite={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_ashen_starwatch'
+                  : 'orc_ashen_warfires'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenFactionChapterSixSeal={() =>
+              setFlow('factionChapterSixSeal')
+            }
+            onStartFactionChapterSixBoss={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_return_through_roots'
+                  : 'orc_crownspire_warmaster'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenMetaCampaign={() => setFlow('metaCampaign')}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -1086,6 +1187,9 @@ export function AppShell({
     flow === 'factionChapterFiveResource' ||
     flow === 'factionChapterFiveSeal' ||
     flow === 'factionMandate' ||
+    flow === 'factionChapterSixConcord' ||
+    flow === 'factionChapterSixSeal' ||
+    flow === 'metaCampaign' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

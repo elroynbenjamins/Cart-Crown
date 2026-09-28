@@ -49,7 +49,14 @@ export type EncounterId =
   | 'orc_ashen_clanbreakers'
   | 'orc_last_clanbreaker'
   | 'elf_stars_over_crownspire'
-  | 'orc_truth_at_crownspire';
+  | 'orc_truth_at_crownspire'
+  | 'elf_ashen_starwatch'
+  | 'elf_return_through_roots'
+  | 'orc_ashen_warfires'
+  | 'orc_crownspire_warmaster'
+  | 'three_seals_convergence'
+  | 'ashen_triumvirate'
+  | 'unbound_beacon';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -497,6 +504,69 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 1710,
     difficulty: 'Elite'
+  },
+  elf_ashen_starwatch: {
+    id: 'elf_ashen_starwatch',
+    name: 'Ashen Starwatch',
+    subtitle: 'The Conclave assaults the observatory network guarding the Root Seal chamber.',
+    enemyName: 'Ashen Starwatch',
+    enemyCount: 6,
+    enemyHp: 2140,
+    difficulty: 'Elite'
+  },
+  elf_return_through_roots: {
+    id: 'elf_return_through_roots',
+    name: 'Return through the Roots',
+    subtitle: 'An Ashen Regent retreats through Crownspire with the Root Seal while the living rootways collapse behind the army.',
+    enemyName: 'Rootbound Ashen Regent',
+    enemyCount: 6,
+    enemyHp: 2860,
+    difficulty: 'Boss'
+  },
+  orc_ashen_warfires: {
+    id: 'orc_ashen_warfires',
+    name: 'Ashen Warfires',
+    subtitle: 'The Confederacy assaults false Warfires guarding the Clan Seal chamber.',
+    enemyName: 'Ashen Warfire Host',
+    enemyCount: 6,
+    enemyHp: 2190,
+    difficulty: 'Elite'
+  },
+  orc_crownspire_warmaster: {
+    id: 'orc_crownspire_warmaster',
+    name: 'Truth at Crownspire',
+    subtitle: 'The final Ashen Warmaster retreats with the Clan Seal and tries to fracture the Confederacy one last time.',
+    enemyName: 'Ashen Warfire Regent',
+    enemyCount: 6,
+    enemyHp: 2920,
+    difficulty: 'Boss'
+  },
+  three_seals_convergence: {
+    id: 'three_seals_convergence',
+    name: 'Converging Roads',
+    subtitle: 'The lead army opens the central Crownspire road while Human, Elf and Orc allied forces converge from three directions.',
+    enemyName: 'Ashen Convergence Guard',
+    enemyCount: 6,
+    enemyHp: 2380,
+    difficulty: 'Elite'
+  },
+  ashen_triumvirate: {
+    id: 'ashen_triumvirate',
+    name: 'Ashen Triumvirate',
+    subtitle: 'Three senior Ashen commanders launch a coordinated attack to break the alliance before the Seals can stabilize the Beacon.',
+    enemyName: 'Ashen Triumvirate',
+    enemyCount: 6,
+    enemyHp: 2860,
+    difficulty: 'Elite'
+  },
+  unbound_beacon: {
+    id: 'unbound_beacon',
+    name: 'The Unbound Beacon',
+    subtitle: 'The last Ashen Regent forces the Beacon beyond its safeguards while all three allied armies hold the chamber approaches.',
+    enemyName: 'Unbound Beacon Regent',
+    enemyCount: 6,
+    enemyHp: 3600,
+    difficulty: 'Boss'
   }
 };
 
@@ -696,6 +766,34 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   orc_truth_at_crownspire: {
     resources: { gold: 220, wood: 34, stone: 25, iron: 14, provisions: 13 },
     storySummary: 'The Ashen Warfire Guard breaks. The united clans enter Crownspire and begin tracing the original Concord warpath.'
+  },
+  elf_ashen_starwatch: {
+    resources: { gold: 250, wood: 42, stone: 30, iron: 12, provisions: 14 },
+    storySummary: 'The Ashen Starwatch falls. The Conclave reaches the Root Seal chamber before the final Regent can escape.'
+  },
+  elf_return_through_roots: {
+    resources: { gold: 620, wood: 240, stone: 190, iron: 60, provisions: 26 },
+    storySummary: 'The Rootbound Regent falls. Heartgrove recovers the Root Seal and the Elf campaign is complete.'
+  },
+  orc_ashen_warfires: {
+    resources: { gold: 255, wood: 40, stone: 30, iron: 16, provisions: 15 },
+    storySummary: 'The Ashen Warfires are extinguished. The Confederacy reaches the Clan Seal chamber before the Warmaster can escape.'
+  },
+  orc_crownspire_warmaster: {
+    resources: { gold: 640, wood: 230, stone: 185, iron: 70, provisions: 28 },
+    storySummary: 'The Ashen Warmaster falls. The united clans recover the Clan Seal and the Orc campaign is complete.'
+  },
+  three_seals_convergence: {
+    resources: { gold: 320, wood: 60, stone: 50, iron: 24, provisions: 18 },
+    storySummary: 'The Converging Roads are secured. All three allied armies now hold routes into the Concord Chamber.'
+  },
+  ashen_triumvirate: {
+    resources: { gold: 420, wood: 70, stone: 60, iron: 30, provisions: 20 },
+    storySummary: 'The Ashen Triumvirate breaks. The three-faction alliance holds long enough to begin the final Beacon stabilization.'
+  },
+  unbound_beacon: {
+    resources: { gold: 1000, wood: 300, stone: 260, iron: 100, provisions: 40 },
+    storySummary: 'The last Ashen Regent falls. The Oath, Root and Clan Seals stabilize the Beacon under the restored three-part Concord.'
   }
 };
 

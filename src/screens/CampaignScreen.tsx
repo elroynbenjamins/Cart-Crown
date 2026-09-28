@@ -80,6 +80,11 @@ export function CampaignScreen({
   onStartFactionChapterFiveBoss,
   onOpenFactionMandate,
   onStartFactionChapterSixBattle,
+  onOpenFactionChapterSixConcord,
+  onStartFactionChapterSixElite,
+  onOpenFactionChapterSixSeal,
+  onStartFactionChapterSixBoss,
+  onOpenMetaCampaign,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -149,6 +154,11 @@ export function CampaignScreen({
   onStartFactionChapterFiveBoss: () => void;
   onOpenFactionMandate: () => void;
   onStartFactionChapterSixBattle: () => void;
+  onOpenFactionChapterSixConcord: () => void;
+  onStartFactionChapterSixElite: () => void;
+  onOpenFactionChapterSixSeal: () => void;
+  onStartFactionChapterSixBoss: () => void;
+  onOpenMetaCampaign: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -223,6 +233,11 @@ export function CampaignScreen({
         onStartChapterFiveBoss={onStartFactionChapterFiveBoss}
         onOpenFactionMandate={onOpenFactionMandate}
         onStartChapterSixBattle={onStartFactionChapterSixBattle}
+        onOpenChapterSixConcord={onOpenFactionChapterSixConcord}
+        onStartChapterSixElite={onStartFactionChapterSixElite}
+        onOpenChapterSixSeal={onOpenFactionChapterSixSeal}
+        onStartChapterSixBoss={onStartFactionChapterSixBoss}
+        onOpenMetaCampaign={onOpenMetaCampaign}
       />
     );
   }
@@ -933,14 +948,23 @@ export function CampaignScreen({
         );
       })}
 
-      <GameCard>
+      <GameCard accent={campaignById('meta')?.unlocked ? theme.colors.gold : undefined}>
         <Text style={[styles.modeName, { color: theme.colors.text }]}>Three Seals</Text>
         <Text style={[styles.modeBody, { color: theme.colors.textMuted }]}>
-          Final single-player Crownspire campaign. Choose one completed faction while the other two arrive as allied NPC armies.
+          Final single-player Crownspire campaign. The currently active completed faction leads while the other two arrive as allied NPC armies.
         </Text>
-        <Text style={[styles.unlockText, { color: theme.colors.textMuted }]}>
-          🔒 {campaignById('meta')?.unlockText}
-        </Text>
+        {campaignById('meta')?.unlocked ? (
+          <View style={styles.modeButton}>
+            <PrimaryButton
+              label={campaignById('meta')?.completed ? 'View Restored Concord' : 'Enter Three Seals Campaign'}
+              onPress={onOpenMetaCampaign}
+            />
+          </View>
+        ) : (
+          <Text style={[styles.unlockText, { color: theme.colors.textMuted }]}>
+            🔒 {campaignById('meta')?.unlockText}
+          </Text>
+        )}
       </GameCard>
     </>
   );

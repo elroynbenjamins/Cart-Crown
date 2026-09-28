@@ -63,6 +63,11 @@ export function BattlePrepScreen({
     encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
   const loyalistApproachActive =
     encounterId === 'pretender_general';
+  const metaAllianceActive = [
+    'three_seals_convergence',
+    'ashen_triumvirate',
+    'unbound_beacon'
+  ].includes(encounterId);
   const marcherIntel =
     marcherDoctrineActive &&
     Boolean(activeMarcherWarningChoice?.detailedIntel);

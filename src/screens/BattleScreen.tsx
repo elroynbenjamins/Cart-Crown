@@ -55,6 +55,11 @@ export function BattleScreen({
     encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
   const loyalistApproachActive =
     encounterId === 'pretender_general';
+  const metaAllianceActive = [
+    'three_seals_convergence',
+    'ashen_triumvirate',
+    'unbound_beacon'
+  ].includes(encounterId);
   const marcherAttackMultiplier =
     marcherDoctrineActive && activeMarcherWarningChoice
       ? activeMarcherWarningChoice.attackMultiplier
@@ -91,6 +96,8 @@ export function BattleScreen({
     activeFactionMandate?.speedMultiplier ?? 1;
   const mandateCommanderSkillMultiplier =
     activeFactionMandate?.commanderSkillPowerMultiplier ?? 1;
+  const allianceAttackMultiplier = metaAllianceActive ? 1.1 : 1;
+  const allianceArmorMultiplier = metaAllianceActive ? 1.08 : 1;
 
   const activeUnits = useMemo(
     () =>
@@ -209,6 +216,7 @@ export function BattleScreen({
             loyalistAttackMultiplier *
             decreeAttackMultiplier *
             mandateAttackMultiplier *
+            allianceAttackMultiplier *
             momentum *
             attackFactor
         )
@@ -232,7 +240,8 @@ export function BattleScreen({
                 marcherArmorMultiplier *
                 loyalistArmorMultiplier *
                 decreeArmorMultiplier *
-                mandateArmorMultiplier
+                mandateArmorMultiplier *
+                allianceArmorMultiplier
             )
         )
       );
@@ -291,7 +300,9 @@ export function BattleScreen({
     mandateAttackMultiplier,
     mandateArmorMultiplier,
     mandateSpeedMultiplier,
-    mandateCommanderSkillMultiplier
+    mandateCommanderSkillMultiplier,
+    allianceAttackMultiplier,
+    allianceArmorMultiplier
   ]);
 
   return (
@@ -344,6 +355,12 @@ export function BattleScreen({
           {partyHp} / {partyMaxHp} HP
         </Text>
         <ProgressBar value={partyMaxHp > 0 ? partyHp / partyMaxHp : 0} color={theme.colors.primary} />
+
+        {metaAllianceActive ? (
+          <Text style={[styles.commanderLine, { color: theme.colors.gold }]}>
+            Three Seals Alliance · +10% ATK · +8% ARM
+          </Text>
+        ) : null}
 
         {activeFactionMandate ? (
           <Text style={[styles.commanderLine, { color: factionAccent }]}>

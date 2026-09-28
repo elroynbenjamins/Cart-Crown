@@ -61,10 +61,12 @@ export type SharedProgress = {
   achievements: string[];
   lore: string[];
   cosmetics: string[];
+  metaCampaignStep: number;
+  metaCampaignComplete: boolean;
 };
 
 export type GameSnapshot = {
-  schemaVersion: 12;
+  schemaVersion: 13;
   activeFaction: FactionId;
   shared: SharedProgress;
   factionStates: Record<FactionId, FactionGameState | null>;

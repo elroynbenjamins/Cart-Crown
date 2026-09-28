@@ -861,3 +861,83 @@ Winning opens:
 - **Concord Warpath** for Orcs
 
 The remaining Chapter 6 nodes are reserved for the next final-campaign pass, where the Root Seal and Clan Seal will actually be recovered.
+
+
+## Elf Chapter 6 — Stars over Crownspire complete
+
+The Starroot Conclave final campaign is now fully playable:
+
+1. **Starroot Council**
+   - choose a Worldroot Attunement
+2. **Stars over Crownspire**
+3. **Concord Rootway**
+   - confirms the Beacon approach was physically maintained by Humans, Elves and Orcs together
+4. **Ashen Starwatch**
+5. **The Root Seal**
+   - reaches the Seal chamber, but the Rootbound Ashen Regent escapes with the Seal
+6. **Return through the Roots**
+   - final Elf boss
+   - recovers the actual **Root Seal**
+   - marks the Elf campaign complete
+
+The completed Elven kingdom remains available for equipment, settlement, side-mode and formation work.
+
+## Orc Chapter 6 — The Truth at Crownspire complete
+
+The Warfire Confederacy final campaign is now fully playable:
+
+1. **Confederacy Council**
+   - choose a Clan Pact
+2. **The Truth at Crownspire**
+3. **Concord Warpath**
+   - proves the Clan Seal was one part of a shared three-faction safeguard
+4. **Ashen Warfires**
+5. **The Clan Seal**
+   - reaches the oath chamber, but the Ashen Warfire Regent escapes with the Seal
+6. **Truth at Crownspire**
+   - final Orc boss
+   - recovers the actual **Clan Seal**
+   - marks the Orc campaign complete
+
+The completed Orc kingdom remains available afterward.
+
+## Three Seals shared endgame
+
+Completing Human, Elf and Orc campaigns now unlocks a real shared endgame instead of only an unlock label.
+
+Progress is stored at save/account level rather than as a fourth faction save.
+
+The currently active completed faction becomes the **lead army**. The other two completed factions fight as allied NPC armies.
+
+Meta battles receive:
+- +10% alliance attack
+- +8% alliance armor
+
+Three Seals progression:
+
+1. **Three Seals Council**
+   - assemble Oath, Root and Clan Seals
+2. **Converging Roads**
+   - first three-faction battle
+3. **Concord Chamber**
+   - restore all three Seals to their intended positions
+4. **Ashen Triumvirate**
+   - elite alliance battle
+5. **The Unbound Beacon**
+   - final boss
+   - defeat the last Ashen Regent
+   - restore the original three-part Concord
+
+Completing the final battle unlocks the **Concord Restored** achievement/lore state.
+
+The meta campaign can be reopened afterward as **View Restored Concord**.
+
+## Save schema v13
+
+Development saves now include shared meta-campaign state:
+- meta campaign step
+- meta completion flag
+- recovered-faction campaign completion
+- shared Concord/Seal lore
+
+As agreed for the development phase, legacy development-save migration is intentionally not maintained.

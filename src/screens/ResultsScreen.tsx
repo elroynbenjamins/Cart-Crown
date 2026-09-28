@@ -116,11 +116,30 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'elf_stars_over_crownspire_result';
   const orcChapterSixOpeningResult =
     lastBattleResult.id === 'orc_truth_at_crownspire_result';
+  const elfChapterSixEliteResult =
+    lastBattleResult.id === 'elf_ashen_starwatch_result';
+  const elfChapterSixBossResult =
+    lastBattleResult.id === 'elf_return_through_roots_result';
+  const orcChapterSixEliteResult =
+    lastBattleResult.id === 'orc_ashen_warfires_result';
+  const orcChapterSixBossResult =
+    lastBattleResult.id === 'orc_crownspire_warmaster_result';
+  const metaConvergenceResult =
+    lastBattleResult.id === 'three_seals_convergence_result';
+  const metaTriumvirateResult =
+    lastBattleResult.id === 'ashen_triumvirate_result';
+  const metaFinalResult =
+    lastBattleResult.id === 'unbound_beacon_result';
   const resultScene =
     returnToCrownspireResult ||
     crownspireGateResult ||
     ashenCourtResult ||
-    ashenEnvoyResult
+    ashenEnvoyResult ||
+    elfChapterSixBossResult ||
+    orcChapterSixBossResult ||
+    metaConvergenceResult ||
+    metaTriumvirateResult ||
+    metaFinalResult
       ? 'crownspire'
       : 'victory';
 
@@ -172,7 +191,77 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {elfChapterSixOpeningResult ? (
+      {metaFinalResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>THREE SEALS COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The Concord is restored</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Oath, Root and Clan Seals stabilize the Beacon together. No single faction controls Crownspire, and the Ashen Court can no longer force the old system through one authority.
+            </Text>
+          </GameCard>
+        </>
+      ) : metaTriumvirateResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>ALLIANCE HOLDS</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The Ashen Triumvirate breaks</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              All three armies keep their approaches open. The final Ashen Regent is now forcing the Beacon without the safeguards.
+            </Text>
+          </GameCard>
+        </>
+      ) : metaConvergenceResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>THREE ROADS, ONE CHAMBER</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The alliance reaches the Concord Chamber</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Human, Elf and Orc forces now hold simultaneous routes into Crownspire. The three Seals can be restored to the chamber.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterSixBossResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CAMPAIGN COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>Root Seal recovered</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Heartgrove has recovered its part of the original Concord safeguard. The completed Elven kingdom remains available, and the Root Seal now counts toward Three Seals.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterSixEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ROOT SEAL CHAMBER OPEN</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The Ashen Starwatch falls</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Root Seal is finally visible, but the Rootbound Regent seizes it and retreats through the collapsing rootways.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterSixBossResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>ORC CAMPAIGN COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>Clan Seal recovered</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Confederacy has recovered its part of the original Concord safeguard. The completed Orc kingdom remains available, and the Clan Seal now counts toward Three Seals.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterSixEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>CLAN SEAL CHAMBER OPEN</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>The Ashen Warfires break</Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Clan Seal is reached, but the final Ashen Warmaster seizes it and tries to fracture the Confederacy during the retreat.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterSixOpeningResult ? (
         <>
           <GameCard accent={theme.colors.elf}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>CROWNSPIRE ROOTWAY</Text>

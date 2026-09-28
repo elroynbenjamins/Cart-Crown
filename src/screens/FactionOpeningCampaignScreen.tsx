@@ -44,7 +44,12 @@ export function FactionOpeningCampaignScreen({
   onOpenChapterFiveSeal,
   onStartChapterFiveBoss,
   onOpenFactionMandate,
-  onStartChapterSixBattle
+  onStartChapterSixBattle,
+  onOpenChapterSixConcord,
+  onStartChapterSixElite,
+  onOpenChapterSixSeal,
+  onStartChapterSixBoss,
+  onOpenMetaCampaign
 }: {
   onStartOpeningBattle: () => void;
   onOpenInvestigation: () => void;
@@ -77,6 +82,11 @@ export function FactionOpeningCampaignScreen({
   onStartChapterFiveBoss: () => void;
   onOpenFactionMandate: () => void;
   onStartChapterSixBattle: () => void;
+  onOpenChapterSixConcord: () => void;
+  onStartChapterSixElite: () => void;
+  onOpenChapterSixSeal: () => void;
+  onStartChapterSixBoss: () => void;
+  onOpenMetaCampaign: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -84,6 +94,7 @@ export function FactionOpeningCampaignScreen({
     chapterNumber,
     chapterNodes,
     campaignAvailability,
+    completedCampaigns,
     hasFactionState,
     switchFaction
   } = useGame();
@@ -107,10 +118,10 @@ export function FactionOpeningCampaignScreen({
         ? {
             muster: 'elf6_node_1',
             battle: 'elf6_node_2',
-            eventA: '',
-            elite: '',
-            eventB: '',
-            boss: ''
+            eventA: 'elf6_node_3',
+            elite: 'elf6_node_4',
+            eventB: 'elf6_node_5',
+            boss: 'elf6_node_6'
           }
         : chapterFive
           ? {
@@ -160,10 +171,10 @@ export function FactionOpeningCampaignScreen({
         ? {
             muster: 'orc6_node_1',
             battle: 'orc6_node_2',
-            eventA: '',
-            elite: '',
-            eventB: '',
-            boss: ''
+            eventA: 'orc6_node_3',
+            elite: 'orc6_node_4',
+            eventB: 'orc6_node_5',
+            boss: 'orc6_node_6'
           }
         : chapterFive
           ? {
@@ -254,6 +265,19 @@ export function FactionOpeningCampaignScreen({
         </View>
       </GameCard>
 
+      {completedCampaigns.includes(activeFaction) ? (
+        <GameCard accent={theme.colors.gold} state="ready">
+          <Text style={[styles.mechanicLabel, { color: theme.colors.gold }]}>
+            CAMPAIGN COMPLETE
+          </Text>
+          <Text style={[styles.mechanicBody, { color: theme.colors.text }]}>
+            {activeFaction === 'elf'
+              ? 'Root Seal recovered. Heartgrove remains available for side activities and equipment refinement.'
+              : 'Clan Seal recovered. The Warfire Confederacy remains available for side activities and equipment refinement.'}
+          </Text>
+        </GameCard>
+      ) : null}
+
       <GameCard accent={accent} faction={activeFaction}>
         <Text style={[styles.mechanicLabel, { color: theme.colors.textMuted }]}>
           UNIQUE MECHANIC · {faction.mechanicName.toUpperCase()}
@@ -341,8 +365,10 @@ export function FactionOpeningCampaignScreen({
                       ? 'MUSTER'
                       : 'CHOOSE SQUAD'
                   : eventAPlayable
-                    ? chapterFive
-                      ? 'RECORDS'
+                    ? chapterSix
+                      ? 'CONCORD'
+                      : chapterFive
+                        ? 'RECORDS'
                       : chapterFour
                         ? 'RECOVER'
                       : chapterThree
@@ -351,8 +377,10 @@ export function FactionOpeningCampaignScreen({
                         ? 'SECURE SITE'
                         : 'INVESTIGATE'
                     : eventBPlayable
-                      ? chapterFive
-                        ? 'TRACE SEAL'
+                      ? chapterSix
+                        ? 'SEAL'
+                        : chapterFive
+                          ? 'TRACE SEAL'
                         : chapterFour
                           ? 'COUNCIL'
                         : chapterThree
@@ -389,45 +417,53 @@ export function FactionOpeningCampaignScreen({
                         ? onStartChapterTwoBattle
                         : onStartOpeningBattle
               : eventAPlayable
-                ? chapterFive
-                  ? onOpenChapterFiveResource
-                  : chapterFour
-                    ? onOpenChapterFourResource
-                    : chapterThree
-                      ? onOpenChapterThreeResource
-                      : chapterTwo
-                        ? onOpenChapterTwoResource
-                        : onOpenInvestigation
-                : elitePlayable
-                  ? chapterFive
-                    ? onStartChapterFiveElite
+                ? chapterSix
+                  ? onOpenChapterSixConcord
+                  : chapterFive
+                    ? onOpenChapterFiveResource
                     : chapterFour
-                      ? onStartChapterFourElite
+                      ? onOpenChapterFourResource
                       : chapterThree
-                        ? onStartChapterThreeElite
+                        ? onOpenChapterThreeResource
                         : chapterTwo
-                          ? onStartChapterTwoElite
-                          : onStartEliteBattle
-                  : eventBPlayable
-                    ? chapterFive
-                      ? onOpenChapterFiveSeal
+                          ? onOpenChapterTwoResource
+                          : onOpenInvestigation
+                : elitePlayable
+                  ? chapterSix
+                    ? onStartChapterSixElite
+                    : chapterFive
+                      ? onStartChapterFiveElite
                       : chapterFour
-                        ? onOpenChapterFourCouncil
+                        ? onStartChapterFourElite
                         : chapterThree
-                          ? onOpenChapterThreeCouncil
+                          ? onStartChapterThreeElite
                           : chapterTwo
-                            ? onOpenChapterTwoCouncil
-                            : onOpenSupply
-                    : bossPlayable
-                      ? chapterFive
-                        ? onStartChapterFiveBoss
+                            ? onStartChapterTwoElite
+                            : onStartEliteBattle
+                  : eventBPlayable
+                    ? chapterSix
+                      ? onOpenChapterSixSeal
+                      : chapterFive
+                        ? onOpenChapterFiveSeal
                         : chapterFour
-                          ? onStartChapterFourBoss
+                          ? onOpenChapterFourCouncil
                           : chapterThree
-                            ? onStartChapterThreeBoss
+                            ? onOpenChapterThreeCouncil
                             : chapterTwo
-                              ? onStartChapterTwoBoss
-                              : onStartBoss
+                              ? onOpenChapterTwoCouncil
+                              : onOpenSupply
+                    : bossPlayable
+                      ? chapterSix
+                        ? onStartChapterSixBoss
+                        : chapterFive
+                          ? onStartChapterFiveBoss
+                          : chapterFour
+                            ? onStartChapterFourBoss
+                            : chapterThree
+                              ? onStartChapterThreeBoss
+                              : chapterTwo
+                                ? onStartChapterTwoBoss
+                                : onStartBoss
                       : undefined;
 
           return (
@@ -503,8 +539,10 @@ export function FactionOpeningCampaignScreen({
                                   ? 'Choose fourth squad'
                                   : 'Choose third squad'
                           : eventAPlayable
-                            ? chapterFive
-                              ? 'Secure ' + node.name
+                            ? chapterSix
+                              ? 'Open ' + node.name
+                              : chapterFive
+                                ? 'Secure ' + node.name
                               : chapterFour
                                 ? 'Recover ' + node.name
                                 : chapterThree
@@ -513,8 +551,10 @@ export function FactionOpeningCampaignScreen({
                                     ? 'Secure ' + node.name
                                     : 'Investigate ' + node.name
                             : eventBPlayable
-                              ? chapterFive
-                                ? 'Trace ' + node.name
+                              ? chapterSix
+                                ? 'Reach ' + node.name
+                                : chapterFive
+                                  ? 'Trace ' + node.name
                                 : chapterFour
                                   ? 'Open ' + node.name
                                   : chapterThree
@@ -613,6 +653,29 @@ export function FactionOpeningCampaignScreen({
           );
         })}
       </View>
+
+      <GameCard accent={campaignAvailability.find(campaign => campaign.id === 'meta')?.unlocked ? theme.colors.gold : undefined}>
+        <Text style={[styles.factionName, { color: theme.colors.text }]}>Three Seals</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+          Shared Crownspire endgame. Lead with the currently active completed faction while the other two arrive as allied NPC armies.
+        </Text>
+        {campaignAvailability.find(campaign => campaign.id === 'meta')?.unlocked ? (
+          <View style={styles.switchButton}>
+            <PrimaryButton
+              label={
+                campaignAvailability.find(campaign => campaign.id === 'meta')?.completed
+                  ? 'View Restored Concord'
+                  : 'Enter Three Seals Campaign'
+              }
+              onPress={onOpenMetaCampaign}
+            />
+          </View>
+        ) : (
+          <Text style={[styles.factionSubtitle, { color: theme.colors.textMuted }]}>
+            Complete Human, Elf and Orc campaigns to unlock.
+          </Text>
+        )}
+      </GameCard>
     </ScrollView>
   );
 }
