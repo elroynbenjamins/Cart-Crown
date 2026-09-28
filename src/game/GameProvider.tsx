@@ -12,8 +12,15 @@ import {
 } from './chapter2';
 import {
   chapterThreeNodes,
-  marcherAuxiliaryOptions
+  marcherAuxiliaryOptions,
+  marcherResourceSites,
+  marcherWarningChoices
 } from './chapter3';
+import type {
+  MarcherWarningChoice,
+  MarcherWarningChoiceId
+} from './chapter3';
+import { chapterFourNodes } from './chapter4';
 import {
   advancedPromotions,
   equipmentDefinitions,
@@ -129,6 +136,11 @@ type GameContextValue = {
   fourthRecruitChosen: boolean;
   fortMusterOptions: RecruitOption[];
   marcherAuxiliaryOptions: RecruitOption[];
+  marcherWarningChoices: MarcherWarningChoice[];
+  marcherWarningChoiceId: string | null;
+  activeMarcherWarningChoice: MarcherWarningChoice | null;
+  dividedMarchResolved: boolean;
+  lordMarshalWon: boolean;
   unlockedResourceSites: string[];
   resourceSites: ResourceSiteDefinition[];
   productionStock: ResourceWallet;
@@ -139,6 +151,8 @@ type GameContextValue = {
   fortUpgradeAvailable: boolean;
   townUpgradeAvailable: boolean;
   canUpgradeToTown: boolean;
+  strongholdUpgradeAvailable: boolean;
+  canUpgradeToStronghold: boolean;
   canUpgradeToFort: boolean;
   lastBattleResult: BattleResult | null;
   canUpgradeSettlement: boolean;
@@ -160,11 +174,14 @@ type GameContextValue = {
   chooseRecruit: (choiceId: string) => boolean;
   chooseFortRecruit: (choiceId: string) => boolean;
   chooseMarcherAuxiliary: (choiceId: string) => boolean;
+  chooseMarcherWarning: (choiceId: MarcherWarningChoiceId) => boolean;
+  completeDividedMarch: () => boolean;
   unlockTimberCamp: () => boolean;
   claimProduction: () => boolean;
   completeKingdomDefense: () => boolean;
   completeBrokenSignalTower: () => boolean;
   upgradeToTown: () => boolean;
+  upgradeToStronghold: () => boolean;
   getEquipmentCraftCost: (equipment: EquipmentDefinition) => Partial<ResourceWallet>;
   craftEquipment: (equipmentId: string) => boolean;
   equipEquipment: (unitId: string, equipmentId: string) => boolean;
@@ -378,6 +395,13 @@ export function GameProvider({
   const [kingdomDefenseRuns, setKingdomDefenseRuns] = useState(initialFaction.kingdomDefenseRuns);
   const [signalTowerUnlocked, setSignalTowerUnlocked] = useState(initialFaction.signalTowerUnlocked);
   const [ironProvostWon, setIronProvostWon] = useState(initialFaction.ironProvostWon);
+  const [marcherWarningChoiceId, setMarcherWarningChoiceId] = useState<string | null>(
+    initialFaction.marcherWarningChoiceId
+  );
+  const [dividedMarchResolved, setDividedMarchResolved] = useState(
+    initialFaction.dividedMarchResolved
+  );
+  const [lordMarshalWon, setLordMarshalWon] = useState(initialFaction.lordMarshalWon);
   const [lastBattleResult, setLastBattleResult] = useState<BattleResult | null>(
     initialFaction.lastBattleResult ? { ...initialFaction.lastBattleResult } : null
   );
@@ -401,12 +425,23 @@ export function GameProvider({
   const settlementEffects = settlementAnalysis.effects;
 
   const resourceSites = useMemo(
-    () => humanResourceSites.filter(site => site.faction === activeFaction),
+    () =>
+      [...humanResourceSites, ...marcherResourceSites].filter(
+        site => site.faction === activeFaction
+      ),
     [activeFaction]
   );
   const formationDoctrines = useMemo(
     () => getFactionDoctrines(activeFaction),
     [activeFaction]
+  );
+
+  const activeMarcherWarningChoice = useMemo(
+    () =>
+      marcherWarningChoices.find(
+        choice => choice.id === marcherWarningChoiceId
+      ) ?? null,
+    [marcherWarningChoiceId]
   );
 
   const formationAnalysis = useMemo(
@@ -498,6 +533,23 @@ export function GameProvider({
     resources.stone >= 80 &&
     resources.iron >= 25;
 
+  const strongholdUpgradeAvailable =
+    lordMarshalWon && currentWagonStage.id === 'town';
+
+  const canUpgradeToStronghold =
+    strongholdUpgradeAvailable &&
+    (buildingLevels.barracks ?? 0) >= 4 &&
+    (buildingLevels.forge ?? 0) >= 4 &&
+    (buildingLevels.wagonwright ?? 0) >= 4 &&
+    (buildingLevels.war_room ?? 0) >= 3 &&
+    (buildingLevels.quartermaster ?? 0) >= 3 &&
+    (buildingLevels.stable ?? 0) >= 2 &&
+    (buildingLevels.signal_tower ?? 0) >= 2 &&
+    resources.gold >= 400 &&
+    resources.wood >= 180 &&
+    resources.stone >= 140 &&
+    resources.iron >= 40;
+
   const currentFactionState = useMemo<FactionGameState>(
     () => ({
       faction: activeFaction,
@@ -532,6 +584,9 @@ export function GameProvider({
       kingdomDefenseRuns,
       signalTowerUnlocked,
       ironProvostWon,
+      marcherWarningChoiceId,
+      dividedMarchResolved,
+      lordMarshalWon,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -570,6 +625,9 @@ export function GameProvider({
       kingdomDefenseRuns,
       signalTowerUnlocked,
       ironProvostWon,
+      marcherWarningChoiceId,
+      dividedMarchResolved,
+      lordMarshalWon,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -579,7 +637,7 @@ export function GameProvider({
 
   const snapshot = useMemo<GameSnapshot>(
     () => ({
-      schemaVersion: 7,
+      schemaVersion: 8,
       activeFaction,
       shared: sharedProgress,
       factionStates: {
@@ -797,6 +855,76 @@ export function GameProvider({
       setLastBattleResult({
         id: 'border_fort_result',
         title: 'Border Fort Opened',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'siege_road') {
+      if (
+        chapterNumber !== 3 ||
+        !marcherWarningChoiceId ||
+        !chapterNodes.find(node => node.id === 'ch3_node_4')?.current
+      ) {
+        return;
+      }
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch3_node_4') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'ch3_node_5') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'siege_road_result',
+        title: 'Siege Road Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'lord_marshal_veyr') {
+      if (
+        chapterNumber !== 3 ||
+        lordMarshalWon ||
+        !dividedMarchResolved ||
+        !chapterNodes.find(node => node.id === 'ch3_node_6')?.current
+      ) {
+        return;
+      }
+
+      setLordMarshalWon(true);
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'ch3_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setSharedProgress(previous => ({
+        ...previous,
+        lore: previous.lore.includes('veyr_false_orders')
+          ? previous.lore
+          : [...previous.lore, 'veyr_false_orders']
+      }));
+      setLastBattleResult({
+        id: 'lord_marshal_veyr_result',
+        title: 'The Marches Yield',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -1097,6 +1225,67 @@ export function GameProvider({
     return true;
   };
 
+  const chooseMarcherWarning = (choiceId: MarcherWarningChoiceId) => {
+    if (
+      chapterNumber !== 3 ||
+      marcherWarningChoiceId ||
+      !chapterNodes.find(node => node.id === 'ch3_node_3')?.current
+    ) {
+      return false;
+    }
+
+    const choice = marcherWarningChoices.find(option => option.id === choiceId);
+    if (!choice) return false;
+
+    setMarcherWarningChoiceId(choiceId);
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch3_node_3') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch3_node_4') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const completeDividedMarch = () => {
+    if (
+      chapterNumber !== 3 ||
+      dividedMarchResolved ||
+      !chapterNodes.find(node => node.id === 'ch3_node_5')?.current
+    ) {
+      return false;
+    }
+
+    setDividedMarchResolved(true);
+    setUnlockedResourceSites(previous =>
+      previous.includes('marcher_depot')
+        ? previous
+        : [...previous, 'marcher_depot']
+    );
+    setResources(previous => ({
+      ...previous,
+      gold: previous.gold + 40,
+      provisions: previous.provisions + 10
+    }));
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch3_node_5') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch3_node_6') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
   const unlockTimberCamp = () => {
     if (
       chapterNumber !== 2 ||
@@ -1218,6 +1407,27 @@ export function GameProvider({
     }));
     setChapterNumber(3);
     setChapterNodes(cloneNodes(chapterThreeNodes));
+    return true;
+  };
+
+  const upgradeToStronghold = () => {
+    if (!canUpgradeToStronghold) return false;
+
+    setResources(previous => ({
+      ...previous,
+      gold: previous.gold - 400,
+      wood: previous.wood - 180,
+      stone: previous.stone - 140,
+      iron: previous.iron - 40
+    }));
+    setWagonStageId('stronghold');
+    setBuildingLevels(previous => ({
+      ...previous,
+      hall: 5
+    }));
+    setChapterNumber(4);
+    setChapterNodes(cloneNodes(chapterFourNodes));
+    setMarcherWarningChoiceId(null);
     return true;
   };
 
@@ -1655,6 +1865,11 @@ export function GameProvider({
       fourthRecruitChosen,
       fortMusterOptions,
       marcherAuxiliaryOptions,
+      marcherWarningChoices,
+      marcherWarningChoiceId,
+      activeMarcherWarningChoice,
+      dividedMarchResolved,
+      lordMarshalWon,
       unlockedResourceSites,
       resourceSites,
       productionStock,
@@ -1665,6 +1880,8 @@ export function GameProvider({
       fortUpgradeAvailable,
       townUpgradeAvailable,
       canUpgradeToTown,
+      strongholdUpgradeAvailable,
+      canUpgradeToStronghold,
       canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,
@@ -1686,11 +1903,14 @@ export function GameProvider({
       chooseRecruit,
       chooseFortRecruit,
       chooseMarcherAuxiliary,
+      chooseMarcherWarning,
+      completeDividedMarch,
       unlockTimberCamp,
       claimProduction,
       completeKingdomDefense,
       completeBrokenSignalTower,
       upgradeToTown,
+      upgradeToStronghold,
       getEquipmentCraftCost,
       craftEquipment,
       equipEquipment,
@@ -1761,6 +1981,8 @@ export function GameProvider({
       fortUpgradeAvailable,
       townUpgradeAvailable,
       canUpgradeToTown,
+      strongholdUpgradeAvailable,
+      canUpgradeToStronghold,
       canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,
