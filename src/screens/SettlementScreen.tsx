@@ -82,11 +82,13 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
     });
 
   const stageLabel =
-    currentWagonStage.id === 'fort'
-      ? 'GREENKEEP FORT'
-      : currentWagonStage.id === 'settlement'
-        ? 'GREENKEEP SETTLEMENT'
-        : 'REFUGEE CAMP';
+    currentWagonStage.id === 'town'
+      ? 'GREENKEEP TOWN'
+      : currentWagonStage.id === 'fort'
+        ? 'GREENKEEP FORT'
+        : currentWagonStage.id === 'settlement'
+          ? 'GREENKEEP SETTLEMENT'
+          : 'REFUGEE CAMP';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -183,11 +185,13 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
           );
         })}
 
-        {currentWagonStage.id === 'fort' ? (
+        {['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
           <>
             <View style={[styles.wallTop, { borderColor: theme.colors.gold }]} />
             <View style={[styles.wallBottom, { borderColor: theme.colors.gold }]} />
-            <Text style={[styles.gateLabel, { color: theme.colors.gold }]}>FORT GATE</Text>
+            <Text style={[styles.gateLabel, { color: theme.colors.gold }]}>
+              {currentWagonStage.id === 'town' ? 'TOWN GATE' : 'FORT GATE'}
+            </Text>
           </>
         ) : null}
       </View>

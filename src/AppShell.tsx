@@ -14,6 +14,7 @@ import { useGame } from './game/GameProvider';
 import { ArmyScreen } from './screens/ArmyScreen';
 import { BattlePrepScreen } from './screens/BattlePrepScreen';
 import { BattleScreen } from './screens/BattleScreen';
+import { BrokenSignalTowerScreen } from './screens/BrokenSignalTowerScreen';
 import { CampaignScreen } from './screens/CampaignScreen';
 import { CommanderChoiceScreen } from './screens/CommanderChoiceScreen';
 import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
@@ -48,6 +49,7 @@ type FlowScreen =
   | 'fortMuster'
   | 'timberClaim'
   | 'kingdomDefense'
+  | 'brokenSignalTower'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -82,6 +84,7 @@ const flowTitles: Record<FlowScreen, string> = {
   fortMuster: 'Fort Muster',
   timberClaim: 'Timber Claim',
   kingdomDefense: 'Kingdom Defense',
+  brokenSignalTower: 'Broken Signal Tower',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -266,6 +269,17 @@ export function AppShell({
       );
     }
 
+    if (flow === 'brokenSignalTower') {
+      return (
+        <BrokenSignalTowerScreen
+          onExit={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -328,6 +342,11 @@ export function AppShell({
             }}
             onOpenTimberClaim={() => setFlow('timberClaim')}
             onOpenKingdomDefense={() => setFlow('kingdomDefense')}
+            onOpenBrokenSignalTower={() => setFlow('brokenSignalTower')}
+            onStartIronProvost={() => {
+              setActiveEncounterId('iron_provost');
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -380,6 +399,7 @@ export function AppShell({
     flow === 'fortMuster' ||
     flow === 'timberClaim' ||
     flow === 'kingdomDefense' ||
+    flow === 'brokenSignalTower' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

@@ -30,6 +30,8 @@ export function CampaignScreen({
   onStartIronRoad,
   onOpenTimberClaim,
   onOpenKingdomDefense,
+  onOpenBrokenSignalTower,
+  onStartIronProvost,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -42,6 +44,8 @@ export function CampaignScreen({
   onStartIronRoad: () => void;
   onOpenTimberClaim: () => void;
   onOpenKingdomDefense: () => void;
+  onOpenBrokenSignalTower: () => void;
+  onStartIronProvost: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -57,6 +61,8 @@ export function CampaignScreen({
     fourthRecruitChosen,
     unlockedResourceSites,
     kingdomDefenseCompleted,
+    signalTowerUnlocked,
+    ironProvostWon,
     campaignAvailability,
     sideModeDefinitions,
     isSideModeUnlocked,
@@ -82,12 +88,18 @@ export function CampaignScreen({
               CHAPTER {chapterNumber}
             </Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>
-              {chapterNumber === 1 ? 'The Last Wagon' : 'The Iron Road'}
+              {chapterNumber === 1
+                ? 'The Last Wagon'
+                : chapterNumber === 2
+                  ? 'The Iron Road'
+                  : 'Border Kingdoms'}
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
               {chapterNumber === 1
                 ? 'Reach ruined Greenkeep with the surviving squads.'
-                : 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'}
+                : chapterNumber === 2
+                  ? 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'
+                  : 'Carry Greenkeep’s authority into the divided Border Marches.'}
             </Text>
           </View>
           <Pill label={String(completed) + ' / 6'} color={theme.colors.surface2} />
@@ -103,9 +115,17 @@ export function CampaignScreen({
         {humanRegions.map(region => {
           const greenkeepUnlocked = region.id === 'greenkeep_vale' && settlementUpgraded;
           const ironRoadUnlocked = region.id === 'iron_hills' && chapterNumber >= 2;
-          const active = region.state === 'current' || greenkeepUnlocked || ironRoadUnlocked;
+          const borderUnlocked = region.id === 'border_marches' && chapterNumber >= 3;
+          const active =
+            region.state === 'current' ||
+            greenkeepUnlocked ||
+            ironRoadUnlocked ||
+            borderUnlocked;
           const locked =
-            region.state === 'locked' && !greenkeepUnlocked && !ironRoadUnlocked;
+            region.state === 'locked' &&
+            !greenkeepUnlocked &&
+            !ironRoadUnlocked &&
+            !borderUnlocked;
           const accent = region.faction === 'neutral' ? theme.colors.gold : theme.colors.human;
 
           return (
@@ -150,7 +170,13 @@ export function CampaignScreen({
       </View>
 
       <SectionTitle
-        title={chapterNumber === 1 ? 'Greenkeep Outskirts' : 'Iron Hills Approach'}
+        title={
+          chapterNumber === 1
+            ? 'Greenkeep Outskirts'
+            : chapterNumber === 2
+              ? 'Iron Hills Approach'
+              : 'Border Marches'
+        }
         trailing="Current region"
       />
 
@@ -203,6 +229,18 @@ export function CampaignScreen({
             chapterNumber === 2 &&
             node.current &&
             node.id === 'ch2_node_4';
+          const signalPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_5' &&
+            kingdomDefenseCompleted &&
+            !signalTowerUnlocked;
+          const provostPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_6' &&
+            signalTowerUnlocked &&
+            !ironProvostWon;
 
           const playable =
             chapterOneBattle ||
@@ -213,7 +251,9 @@ export function CampaignScreen({
             fortMusterPlayable ||
             ironRoadPlayable ||
             timberPlayable ||
-            defensePlayable;
+            defensePlayable ||
+            signalPlayable ||
+            provostPlayable;
 
           const status = node.completed
             ? 'DONE'
@@ -231,8 +271,12 @@ export function CampaignScreen({
                         ? 'SECURE SITE'
                         : defensePlayable
                           ? 'DEFEND'
-                          : bossPlayable
-                            ? 'BOSS'
+                          : signalPlayable
+                            ? 'RESTORE'
+                            : provostPlayable
+                              ? 'BOSS'
+                              : bossPlayable
+                                ? 'BOSS'
                             : playable
                               ? 'PLAY'
                               : node.current
@@ -257,7 +301,11 @@ export function CampaignScreen({
                           ? onOpenTimberClaim
                           : defensePlayable
                             ? onOpenKingdomDefense
-                            : undefined;
+                            : signalPlayable
+                              ? onOpenBrokenSignalTower
+                              : provostPlayable
+                                ? onStartIronProvost
+                                : undefined;
 
           return (
             <Pressable

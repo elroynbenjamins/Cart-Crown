@@ -4,7 +4,8 @@ export type EncounterId =
   | 'hold_the_road'
   | 'mercenary_patrol'
   | 'toll_captain'
-  | 'iron_road_skirmish';
+  | 'iron_road_skirmish'
+  | 'iron_provost';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -47,6 +48,15 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 5,
     enemyHp: 285,
     difficulty: 'Elite'
+  },
+  iron_provost: {
+    id: 'iron_provost',
+    name: 'The Iron Provost',
+    subtitle: 'The Crown-trained officer controlling the Iron Road has fortified the old mine headquarters.',
+    enemyName: 'Iron Provost Guard',
+    enemyCount: 6,
+    enemyHp: 470,
+    difficulty: 'Boss'
   }
 };
 
@@ -66,6 +76,10 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   iron_road_skirmish: {
     resources: { gold: 55, iron: 6, provisions: 3 },
     storySummary: 'The patrol secures the roadside mine. Greenkeep can now draw a steady trickle of iron from the Iron Hills approach.'
+  },
+  iron_provost: {
+    resources: { gold: 180, wood: 100, stone: 90, iron: 25, provisions: 10 },
+    storySummary: 'The Iron Provost falls and the road network opens. Greenkeep now has the wealth and authority to grow into a true Town.'
   }
 };
 

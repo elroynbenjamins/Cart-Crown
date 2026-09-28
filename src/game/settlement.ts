@@ -14,7 +14,7 @@ export const humanSettlementPlots: SettlementPlotDefinition[] = [
   { id: 'plot_e', row: 1, column: 2, unlockStage: 'camp', terrain: 'roadside' },
   { id: 'plot_sw', row: 2, column: 0, unlockStage: 'fort', terrain: 'grass' },
   { id: 'plot_s', row: 2, column: 1, unlockStage: 'camp', terrain: 'roadside' },
-  { id: 'plot_se', row: 2, column: 2, unlockStage: 'fort', terrain: 'grass' }
+  { id: 'plot_se', row: 2, column: 2, unlockStage: 'town', terrain: 'grass' }
 ];
 
 export const initialHumanPlacements: Record<string, string | null> = {

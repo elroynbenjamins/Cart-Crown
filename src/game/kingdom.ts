@@ -75,6 +75,16 @@ export const humanBuildings: BuildingDefinition[] = [
     maxLevel: 5,
     constructionCost: { gold: 80, wood: 30, provisions: 10 },
     description: 'Unlocks cavalry recruitment, mount training and mounted equipment.'
+  },
+  {
+    id: 'signal_tower',
+    faction: 'human',
+    name: 'Signal Tower',
+    role: 'SCOUT',
+    icon: '🔥',
+    maxLevel: 5,
+    constructionCost: { gold: 65, wood: 20, stone: 10 },
+    description: 'Restores the frontier warning network and improves enemy intelligence.'
   }
 ];
 
@@ -113,6 +123,41 @@ export const humanBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 85, wood: 20 },
     effect: 'Commander retraining cost reduced from 75 Gold to 50 Gold.',
     requirement: 'Commander path chosen'
+  },
+  {
+    buildingId: 'signal_tower',
+    level: 2,
+    cost: { gold: 80, wood: 20, stone: 15 },
+    effect: 'Permanent detailed enemy scouting in Battle Prep; Scout Report ads become unnecessary.',
+    requirement: 'Broken Signal Tower restored'
+  },
+  {
+    buildingId: 'barracks',
+    level: 3,
+    cost: { gold: 105, wood: 45, iron: 8 },
+    effect: 'Professional drill yard. Opens the next tier of Human troop specialization.',
+    requirement: 'Iron Road secured'
+  },
+  {
+    buildingId: 'forge',
+    level: 3,
+    cost: { gold: 120, iron: 18, stone: 8 },
+    effect: 'Tier III forging infrastructure prepared.',
+    requirement: 'Iron Road secured'
+  },
+  {
+    buildingId: 'wagonwright',
+    level: 3,
+    cost: { gold: 90, wood: 60, iron: 8 },
+    effect: 'Town chassis preparation complete.',
+    requirement: 'Iron Road secured'
+  },
+  {
+    buildingId: 'stable',
+    level: 2,
+    cost: { gold: 95, wood: 25, provisions: 15 },
+    effect: 'Veteran mount training prepared for heavier cavalry branches.',
+    requirement: 'Greenkeep Fort'
   }
 ];
 

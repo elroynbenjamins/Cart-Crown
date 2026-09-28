@@ -35,6 +35,7 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   const mercenaryResult = lastBattleResult.id === 'mercenary_patrol_result';
   const tollCaptainResult = lastBattleResult.id === 'toll_captain_result';
   const ironRoadResult = lastBattleResult.id === 'iron_road_skirmish_result';
+  const ironProvostResult = lastBattleResult.id === 'iron_provost_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -78,7 +79,26 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {ironRoadResult ? (
+      {ironProvostResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM TIER UNLOCKED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Greenkeep can become a Town
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Upgrade Barracks, Forge and Wagonwright to Lv.3, keep a Stable and construct the Signal Tower, then fund the final Town expansion.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>The Iron Road Is Open</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              With the Provost removed, Greenkeep controls the western supply route. The divided Border Marches are now within reach.
+            </Text>
+          </GameCard>
+        </>
+      ) : ironRoadResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>REGIONAL PRODUCTION</Text>

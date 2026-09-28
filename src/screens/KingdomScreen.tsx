@@ -44,6 +44,9 @@ export function KingdomScreen({
     buildingLevels,
     fortUpgradeAvailable,
     canUpgradeToFort,
+    townUpgradeAvailable,
+    canUpgradeToTown,
+    upgradeToTown,
     resourceSites,
     unlockedResourceSites,
     productionStock,
@@ -60,11 +63,13 @@ export function KingdomScreen({
   const [buildingMessage, setBuildingMessage] = useState<string | null>(null);
 
   const settlementName =
-    currentWagonStage.id === 'fort'
-      ? 'Greenkeep Fort'
-      : settlementUpgraded
-        ? 'Greenkeep Settlement'
-        : 'Refugee Camp';
+    currentWagonStage.id === 'town'
+      ? 'Greenkeep Town'
+      : currentWagonStage.id === 'fort'
+        ? 'Greenkeep Fort'
+        : settlementUpgraded
+          ? 'Greenkeep Settlement'
+          : 'Refugee Camp';
   const progress = holdTheRoadWon ? 1 : 0.34;
   const dailySupplyClaimed = (rewardedAdClaims.daily_supply ?? 0) >= 1;
   const unlockedCount = buildings.filter(building => isBuildingUnlocked(building.id)).length;
@@ -95,12 +100,27 @@ export function KingdomScreen({
       onOpenRecruitment();
       return true;
     };
-  } else if (currentWagonStage.id === 'fort') {
-    milestoneTitle = 'Greenkeep Fort established';
-    milestoneBody = 'The western road is secure. The next campaign tier can now push toward the Iron Road and a fourth active squad.';
-    buttonLabel = 'Fort established';
+  } else if (currentWagonStage.id === 'town') {
+    milestoneTitle = 'Greenkeep Town established';
+    milestoneBody = 'The Iron Road is under Greenkeep control. The next campaign now moves into the divided Border Marches.';
+    buttonLabel = 'Town established';
     disabled = true;
-    requirement = 'Chapter 2 progression comes next';
+    requirement = 'Chapter 3 progression comes next';
+    action = () => false;
+  } else if (currentWagonStage.id === 'fort' && townUpgradeAvailable) {
+    milestoneTitle = 'Raise Greenkeep Town';
+    milestoneBody = 'The Iron Provost is defeated. Finish the professional Barracks, Forge and Wagonwright upgrades, maintain a Stable and rebuild the Signal Tower before funding the Town expansion.';
+    buttonLabel = 'Build Greenkeep Town';
+    disabled = !canUpgradeToTown;
+    requirement =
+      'Requires Barracks Lv.3 · Forge Lv.3 · Wagonwright Lv.3 · Stable Lv.1 · Signal Tower Lv.1 · 250 Gold · 120 Wood · 80 Stone · 25 Iron';
+    action = upgradeToTown;
+  } else if (currentWagonStage.id === 'fort') {
+    milestoneTitle = 'Secure the Iron Road';
+    milestoneBody = 'Develop the Fort, expand cavalry and restore the frontier network while pushing toward the Iron Provost.';
+    buttonLabel = 'Town tier is story-gated';
+    disabled = true;
+    requirement = 'Defeat the Iron Provost';
     action = () => false;
   } else if (settlementUpgraded && recruitChosen && fortUpgradeAvailable) {
     milestoneTitle = 'Raise Greenkeep Fort';
@@ -144,11 +164,13 @@ export function KingdomScreen({
 
         <View style={styles.progressCopy}>
           <Text style={[styles.progressLabel, { color: theme.colors.text }]}>
-            {currentWagonStage.id === 'fort'
-              ? 'Fort tier · 3'
-              : settlementUpgraded
-                ? 'Settlement tier · 2'
-                : 'Raise Greenkeep Settlement'}
+            {currentWagonStage.id === 'town'
+              ? 'Town tier · 4'
+              : currentWagonStage.id === 'fort'
+                ? 'Fort tier · 3'
+                : settlementUpgraded
+                  ? 'Settlement tier · 2'
+                  : 'Raise Greenkeep Settlement'}
           </Text>
           <Text style={[styles.progressValue, { color: theme.colors.textMuted }]}>
             {settlementUpgraded ? unlockedCount + ' buildings online' : Math.round(progress * 100) + '%'}
@@ -182,6 +204,13 @@ export function KingdomScreen({
               <Text style={[styles.costText, { color: theme.colors.text }]}>70 🪵</Text>
               <Text style={[styles.costText, { color: theme.colors.text }]}>35 🪨</Text>
               <Text style={[styles.costText, { color: theme.colors.text }]}>10 ⛓</Text>
+            </View>
+          ) : townUpgradeAvailable && currentWagonStage.id === 'fort' ? (
+            <View style={styles.goalCost}>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>250 🪙</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>120 🪵</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>80 🪨</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>25 ⛓</Text>
             </View>
           ) : null}
         </View>
@@ -338,7 +367,9 @@ export function KingdomScreen({
                         ? 'Secure Refugee Camp.'
                         : building.id === 'stable'
                           ? 'Raise Greenkeep Fort.'
-                          : 'Story milestone required.'}
+                          : building.id === 'signal_tower'
+                            ? 'Restore the Broken Signal Tower.'
+                            : 'Story milestone required.'}
                 </Text>
               )}
             </GameCard>

@@ -97,5 +97,13 @@ export const humanResourceSites: ResourceSiteDefinition[] = [
     icon: '🪓',
     description: 'Foresters clear safe timber routes beside the Iron Road.',
     productionPerActivity: { wood: 5 }
+  },
+  {
+    id: 'old_quarry',
+    faction: 'human',
+    name: 'Old Signal Quarry',
+    icon: '🪨',
+    description: 'Stone cut from the ridge below the restored signal tower supports Greenkeep expansion.',
+    productionPerActivity: { stone: 3 }
   }
 ];

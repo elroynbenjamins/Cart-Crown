@@ -96,7 +96,8 @@ export type BuildingRole =
   | 'LOGISTICS'
   | 'SUPPLY'
   | 'COMMAND'
-  | 'MOUNT';
+  | 'MOUNT'
+  | 'SCOUT';
 
 export type BuildingDefinition = {
   id: string;

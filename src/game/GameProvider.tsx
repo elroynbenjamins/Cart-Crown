@@ -10,6 +10,7 @@ import {
   fortMusterOptions,
   humanResourceSites
 } from './chapter2';
+import { chapterThreeNodes } from './chapter3';
 import {
   advancedPromotions,
   equipmentDefinitions,
@@ -123,7 +124,11 @@ type GameContextValue = {
   productionStock: ResourceWallet;
   kingdomDefenseCompleted: boolean;
   kingdomDefenseRuns: number;
+  signalTowerUnlocked: boolean;
+  ironProvostWon: boolean;
   fortUpgradeAvailable: boolean;
+  townUpgradeAvailable: boolean;
+  canUpgradeToTown: boolean;
   canUpgradeToFort: boolean;
   lastBattleResult: BattleResult | null;
   canUpgradeSettlement: boolean;
@@ -146,6 +151,8 @@ type GameContextValue = {
   unlockTimberCamp: () => boolean;
   claimProduction: () => boolean;
   completeKingdomDefense: () => boolean;
+  completeBrokenSignalTower: () => boolean;
+  upgradeToTown: () => boolean;
   craftEquipment: (equipmentId: string) => boolean;
   equipEquipment: (unitId: string, equipmentId: string) => boolean;
   upgradeEquippedItem: (unitId: string, targetEquipmentId: string) => boolean;
@@ -356,6 +363,8 @@ export function GameProvider({
     initialFaction.kingdomDefenseCompleted
   );
   const [kingdomDefenseRuns, setKingdomDefenseRuns] = useState(initialFaction.kingdomDefenseRuns);
+  const [signalTowerUnlocked, setSignalTowerUnlocked] = useState(initialFaction.signalTowerUnlocked);
+  const [ironProvostWon, setIronProvostWon] = useState(initialFaction.ironProvostWon);
   const [lastBattleResult, setLastBattleResult] = useState<BattleResult | null>(
     initialFaction.lastBattleResult ? { ...initialFaction.lastBattleResult } : null
   );
@@ -450,6 +459,21 @@ export function GameProvider({
     resources.stone >= 35 &&
     resources.iron >= 10;
 
+  const townUpgradeAvailable =
+    ironProvostWon && currentWagonStage.id === 'fort';
+
+  const canUpgradeToTown =
+    townUpgradeAvailable &&
+    (buildingLevels.barracks ?? 0) >= 3 &&
+    (buildingLevels.forge ?? 0) >= 3 &&
+    (buildingLevels.wagonwright ?? 0) >= 3 &&
+    (buildingLevels.stable ?? 0) >= 1 &&
+    (buildingLevels.signal_tower ?? 0) >= 1 &&
+    resources.gold >= 250 &&
+    resources.wood >= 120 &&
+    resources.stone >= 80 &&
+    resources.iron >= 25;
+
   const currentFactionState = useMemo<FactionGameState>(
     () => ({
       faction: activeFaction,
@@ -482,6 +506,8 @@ export function GameProvider({
       productionStock,
       kingdomDefenseCompleted,
       kingdomDefenseRuns,
+      signalTowerUnlocked,
+      ironProvostWon,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -518,6 +544,8 @@ export function GameProvider({
       productionStock,
       kingdomDefenseCompleted,
       kingdomDefenseRuns,
+      signalTowerUnlocked,
+      ironProvostWon,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -527,7 +555,7 @@ export function GameProvider({
 
   const snapshot = useMemo<GameSnapshot>(
     () => ({
-      schemaVersion: 6,
+      schemaVersion: 7,
       activeFaction,
       shared: sharedProgress,
       factionStates: {
@@ -679,6 +707,37 @@ export function GameProvider({
         rewards: { ...reward.resources },
         casualties: 0
       });
+      return;
+    }
+
+    if (encounterId === 'iron_provost') {
+      if (
+        chapterNumber !== 2 ||
+        ironProvostWon ||
+        !signalTowerUnlocked ||
+        !chapterNodes.find(node => node.id === 'ch2_node_6')?.current
+      ) {
+        return;
+      }
+
+      setIronProvostWon(true);
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'ch2_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setLastBattleResult({
+        id: 'iron_provost_result',
+        title: 'The Iron Road Is Ours',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
     }
   };
 
@@ -774,7 +833,10 @@ export function GameProvider({
     if (buildingId === 'forge') return forgeUnlocked;
     if (buildingId === 'war_room') return commanderChoiceUnlocked;
     if (buildingId === 'quartermaster') return refugeeCampSecured;
-    if (buildingId === 'stable') return ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
+    if (buildingId === 'stable') {
+      return ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
+    }
+    if (buildingId === 'signal_tower') return signalTowerUnlocked;
     return false;
   };
 
@@ -953,6 +1015,62 @@ export function GameProvider({
       );
     }
 
+    return true;
+  };
+
+  const completeBrokenSignalTower = () => {
+    if (
+      chapterNumber !== 2 ||
+      signalTowerUnlocked ||
+      !kingdomDefenseCompleted ||
+      !chapterNodes.find(node => node.id === 'ch2_node_5')?.current
+    ) {
+      return false;
+    }
+
+    setSignalTowerUnlocked(true);
+    setUnlockedResourceSites(previous =>
+      previous.includes('old_quarry')
+        ? previous
+        : [...previous, 'old_quarry']
+    );
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch2_node_5') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch2_node_6') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
+    setSharedProgress(previous => ({
+      ...previous,
+      lore: previous.lore.includes('signal_network_restored')
+        ? previous.lore
+        : [...previous.lore, 'signal_network_restored']
+    }));
+    return true;
+  };
+
+  const upgradeToTown = () => {
+    if (!canUpgradeToTown) return false;
+
+    setResources(previous => ({
+      ...previous,
+      gold: previous.gold - 250,
+      wood: previous.wood - 120,
+      stone: previous.stone - 80,
+      iron: previous.iron - 25
+    }));
+    setWagonStageId('town');
+    setBuildingLevels(previous => ({
+      ...previous,
+      hall: 4
+    }));
+    setChapterNumber(3);
+    setChapterNodes(cloneNodes(chapterThreeNodes));
     return true;
   };
 
@@ -1369,7 +1487,11 @@ export function GameProvider({
       productionStock,
       kingdomDefenseCompleted,
       kingdomDefenseRuns,
+      signalTowerUnlocked,
+      ironProvostWon,
       fortUpgradeAvailable,
+      townUpgradeAvailable,
+      canUpgradeToTown,
       canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,
@@ -1392,6 +1514,8 @@ export function GameProvider({
       unlockTimberCamp,
       claimProduction,
       completeKingdomDefense,
+      completeBrokenSignalTower,
+      upgradeToTown,
       craftEquipment,
       equipEquipment,
       upgradeEquippedItem,
@@ -1454,7 +1578,11 @@ export function GameProvider({
       productionStock,
       kingdomDefenseCompleted,
       kingdomDefenseRuns,
+      signalTowerUnlocked,
+      ironProvostWon,
       fortUpgradeAvailable,
+      townUpgradeAvailable,
+      canUpgradeToTown,
       canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,

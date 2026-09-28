@@ -30,6 +30,7 @@ export function BattlePrepScreen({
     formationDoctrineId,
     formationDoctrines,
     activeCommanderPath,
+    buildingLevels,
     claimRewardedAd,
     rewardedAdClaims,
     rewardedAdMessage
@@ -43,7 +44,8 @@ export function BattlePrepScreen({
 
   const hasFood = wagonItems.some(item => item.id === 'rations');
   const hasMedicine = wagonItems.some(item => item.id === 'medicine');
-  const scoutReport = (rewardedAdClaims.scout_report ?? 0) > 0;
+  const towerIntel = (buildingLevels.signal_tower ?? 0) >= 2;
+  const scoutReport = towerIntel || (rewardedAdClaims.scout_report ?? 0) > 0;
   const doctrine = formationDoctrines.find(candidate => candidate.id === formationDoctrineId);
 
   return (
@@ -64,7 +66,10 @@ export function BattlePrepScreen({
         </View>
       </GameCard>
 
-      <SectionTitle title="Enemy" trailing={scoutReport ? 'Scouted' : 'Partial intel'} />
+      <SectionTitle
+        title="Enemy"
+        trailing={towerIntel ? 'Signal Tower intel' : scoutReport ? 'Scouted' : 'Partial intel'}
+      />
       <GameCard>
         <View style={styles.enemyRow}>
           <View style={[styles.enemyMark, { borderColor: theme.colors.danger }]}>
@@ -84,7 +89,7 @@ export function BattlePrepScreen({
           </View>
         </View>
 
-        {!scoutReport ? (
+        {!scoutReport && !towerIntel ? (
           <View style={styles.scoutButton}>
             <SecondaryButton
               label="Watch optional ad for Scout Report"

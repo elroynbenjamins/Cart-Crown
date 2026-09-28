@@ -194,6 +194,36 @@ export const equipmentDefinitions: EquipmentDefinition[] = [
     requiredForgeLevel: 0,
     requiredStableLevel: 1,
     description: 'A trained campaign horse. Assigning it to a Scout opens the Scout Rider cavalry path.'
+  },
+  {
+    id: 'hum_cavalry_lance',
+    name: 'Cavalry Lance',
+    faction: 'human',
+    slot: 'weapon',
+    tier: 2,
+    tags: ['lance', 'cavalry', 'human'],
+    attackBonus: 8,
+    armorBonus: 0,
+    speedBonus: 0,
+    craftCost: { gold: 45, wood: 6, iron: 6 },
+    requiredForgeLevel: 2,
+    requiredStableLevel: 1,
+    description: 'Long charge weapon used to specialize a Scout Rider into a Lancer.'
+  },
+  {
+    id: 'hum_rider_bow',
+    name: 'Rider Bow',
+    faction: 'human',
+    slot: 'weapon',
+    tier: 2,
+    tags: ['bow', 'cavalry', 'ranged', 'human'],
+    attackBonus: 7,
+    armorBonus: 0,
+    speedBonus: 1,
+    craftCost: { gold: 42, wood: 9, iron: 2 },
+    requiredForgeLevel: 2,
+    requiredStableLevel: 1,
+    description: 'Compact mounted bow used to specialize a Scout Rider into a Mounted Archer.'
   }
 ];
 
@@ -335,6 +365,51 @@ export const advancedPromotions: AdvancedPromotionDefinition[] = [
     armorBonus: 1,
     speedBonus: 4,
     pitch: 'The first mounted Human branch: fast reconnaissance cavalry that can later become Cavalryman, Lancer or Mounted Archer.'
+  },
+  {
+    id: 'scout_rider_cavalryman',
+    faction: 'human',
+    fromClass: 'Scout Rider',
+    toClass: 'Cavalryman',
+    role: 'cavalry',
+    requiredEquippedIds: ['hum_trained_horse', 'hum_iron_sword'],
+    requiredBarracksLevel: 2,
+    requiredForgeLevel: 1,
+    requiredStableLevel: 1,
+    attackBonus: 5,
+    armorBonus: 3,
+    speedBonus: 1,
+    pitch: 'Balanced mounted soldier with sustained melee pressure and room to become heavy cavalry later.'
+  },
+  {
+    id: 'scout_rider_lancer',
+    faction: 'human',
+    fromClass: 'Scout Rider',
+    toClass: 'Lancer',
+    role: 'cavalry',
+    requiredEquippedIds: ['hum_trained_horse', 'hum_cavalry_lance'],
+    requiredBarracksLevel: 2,
+    requiredForgeLevel: 2,
+    requiredStableLevel: 1,
+    attackBonus: 8,
+    armorBonus: 1,
+    speedBonus: 1,
+    pitch: 'Charge-focused cavalry with the strongest opening impact of the early Human mounted branches.'
+  },
+  {
+    id: 'scout_rider_mounted_archer',
+    faction: 'human',
+    fromClass: 'Scout Rider',
+    toClass: 'Mounted Archer',
+    role: 'cavalry',
+    requiredEquippedIds: ['hum_trained_horse', 'hum_rider_bow'],
+    requiredBarracksLevel: 2,
+    requiredForgeLevel: 2,
+    requiredStableLevel: 1,
+    attackBonus: 6,
+    armorBonus: 0,
+    speedBonus: 3,
+    pitch: 'Mobile ranged cavalry that rewards flanks, speed and Ranger-Captain/Cavalry Marshal hybrid builds.'
   }
 ];
 

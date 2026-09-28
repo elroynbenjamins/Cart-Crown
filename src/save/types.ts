@@ -41,6 +41,8 @@ export type FactionGameState = {
   productionStock: ResourceWallet;
   kingdomDefenseCompleted: boolean;
   kingdomDefenseRuns: number;
+  signalTowerUnlocked: boolean;
+  ironProvostWon: boolean;
   lastBattleResult: BattleResult | null;
   expeditionTickets: number;
   expeditionRunsCompleted: number;
@@ -55,7 +57,7 @@ export type SharedProgress = {
 };
 
 export type GameSnapshot = {
-  schemaVersion: 6;
+  schemaVersion: 7;
   activeFaction: FactionId;
   shared: SharedProgress;
   factionStates: Record<FactionId, FactionGameState | null>;
