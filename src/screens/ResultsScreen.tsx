@@ -33,6 +33,7 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   const rewards = Object.entries(lastBattleResult.rewards).filter(([, value]) => Boolean(value));
   const salvageClaimed = (rewardedAdClaims.salvage_boost ?? 0) >= 1;
   const mercenaryResult = lastBattleResult.id === 'mercenary_patrol_result';
+  const tollCaptainResult = lastBattleResult.id === 'toll_captain_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -76,7 +77,26 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {mercenaryResult ? (
+      {tollCaptainResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM TIER UNLOCKED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Greenkeep can become a Fort
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The road fort provides the stone and authority needed for expansion. Upgrade Barracks, Forge and Wagonwright to Lv.2, then invest the final Fort construction cost in the Kingdom.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Western Road Secured</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Greenkeep now controls the western approach. Chapter 2 can push toward the Iron Road once the new Fort is ready.
+            </Text>
+          </GameCard>
+        </>
+      ) : mercenaryResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>COMMANDER MILESTONE</Text>

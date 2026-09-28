@@ -40,8 +40,11 @@ export function KingdomScreen({
     forgeUnlocked,
     buildings,
     buildingLevels,
+    fortUpgradeAvailable,
+    canUpgradeToFort,
     isBuildingUnlocked,
     upgradeBuilding,
+    upgradeToFort,
     rewardedAdClaims,
     rewardedAdMessage,
     claimRewardedAd,
@@ -74,12 +77,27 @@ export function KingdomScreen({
       onOpenRecruitment();
       return true;
     };
+  } else if (currentWagonStage.id === 'fort') {
+    milestoneTitle = 'Greenkeep Fort established';
+    milestoneBody = 'The western road is secure. The next campaign tier can now push toward the Iron Road and a fourth active squad.';
+    buttonLabel = 'Fort established';
+    disabled = true;
+    requirement = 'Chapter 2 progression comes next';
+    action = () => false;
+  } else if (settlementUpgraded && recruitChosen && fortUpgradeAvailable) {
+    milestoneTitle = 'Raise Greenkeep Fort';
+    milestoneBody = 'The Toll Captain is defeated. Complete the required building upgrades, then invest in walls, roads and a permanent Stable.';
+    buttonLabel = 'Build Greenkeep Fort';
+    disabled = !canUpgradeToFort;
+    requirement =
+      'Requires Barracks Lv.2 · Forge Lv.2 · Wagonwright Lv.2 · 150 Gold · 70 Wood · 35 Stone · 10 Iron';
+    action = upgradeToFort;
   } else if (settlementUpgraded && recruitChosen) {
     milestoneTitle = 'Build toward the Fort';
     milestoneBody = 'Upgrade specialized buildings while the campaign opens the road toward the first Fort tier.';
     buttonLabel = 'Fort tier is story-gated';
     disabled = true;
-    requirement = 'Improve Greenkeep and continue Chapter 1';
+    requirement = 'Improve Greenkeep and defeat the Toll Captain';
     action = () => false;
   }
 
@@ -135,6 +153,13 @@ export function KingdomScreen({
             <View style={styles.goalCost}>
               <Text style={[styles.costText, { color: theme.colors.text }]}>90 🪵</Text>
               <Text style={[styles.costText, { color: theme.colors.text }]}>20 🪨</Text>
+            </View>
+          ) : fortUpgradeAvailable && currentWagonStage.id !== 'fort' ? (
+            <View style={styles.goalCost}>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>150 🪙</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>70 🪵</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>35 🪨</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>10 ⛓</Text>
             </View>
           ) : null}
         </View>
@@ -222,7 +247,7 @@ export function KingdomScreen({
                       : building.id === 'quartermaster'
                         ? 'Secure Refugee Camp.'
                         : building.id === 'stable'
-                          ? 'Reach the Iron Road.'
+                          ? 'Raise Greenkeep Fort.'
                           : 'Story milestone required.'}
                 </Text>
               )}

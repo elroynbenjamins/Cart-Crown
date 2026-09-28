@@ -41,7 +41,7 @@ export function RefugeeCampScreen({ onExit }: { onExit: () => void }) {
           <View style={styles.impactCopy}>
             <Text style={[styles.impactTitle, { color: theme.colors.text }]}>Recovered stores</Text>
             <Text style={[styles.impactBody, { color: theme.colors.textMuted }]}>
-              +20 Provisions · +15 Wood. The new residents bring carts, preserved food and salvageable timber.
+              +20 Provisions · +45 Wood · +8 Iron. The new residents bring carts, preserved food, tools and salvageable building material.
             </Text>
           </View>
         </View>

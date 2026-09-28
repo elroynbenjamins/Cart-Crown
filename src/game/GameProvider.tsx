@@ -103,6 +103,8 @@ type GameContextValue = {
   refugeeCampSecured: boolean;
   buildingLevels: Record<string, number>;
   buildings: BuildingDefinition[];
+  fortUpgradeAvailable: boolean;
+  canUpgradeToFort: boolean;
   lastBattleResult: BattleResult | null;
   canUpgradeSettlement: boolean;
   sideModeDefinitions: SideModeDefinition[];
@@ -115,6 +117,7 @@ type GameContextValue = {
   completeMarkedRaiders: () => boolean;
   completeRefugeeCamp: () => boolean;
   upgradeSettlement: () => boolean;
+  upgradeToFort: () => boolean;
   upgradeBuilding: (buildingId: string) => boolean;
   isBuildingUnlocked: (buildingId: string) => boolean;
   chooseRecruit: (choiceId: string) => boolean;
@@ -386,6 +389,20 @@ export function GameProvider({
     resources.wood >= 90 &&
     resources.stone >= 20;
 
+  const tollCaptainWon = Boolean(
+    chapterNodes.find(node => node.id === 'node_6')?.completed
+  );
+  const fortUpgradeAvailable = tollCaptainWon && currentWagonStage.id === 'settlement';
+  const canUpgradeToFort =
+    fortUpgradeAvailable &&
+    (buildingLevels.barracks ?? 0) >= 2 &&
+    (buildingLevels.forge ?? 0) >= 2 &&
+    (buildingLevels.wagonwright ?? 0) >= 2 &&
+    resources.gold >= 150 &&
+    resources.wood >= 70 &&
+    resources.stone >= 35 &&
+    resources.iron >= 10;
+
   const currentFactionState = useMemo<FactionGameState>(
     () => ({
       faction: activeFaction,
@@ -525,6 +542,30 @@ export function GameProvider({
         rewards: { ...reward.resources },
         casualties: 0
       });
+      return;
+    }
+
+    if (encounterId === 'toll_captain') {
+      if (chapterNodes.find(node => node.id === 'node_6')?.completed || !refugeeCampSecured) {
+        return;
+      }
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setLastBattleResult({
+        id: 'toll_captain_result',
+        title: 'The Western Road Is Ours',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
     }
   };
 
@@ -565,7 +606,8 @@ export function GameProvider({
     }));
     setResources(previous => ({
       ...previous,
-      wood: previous.wood + 15,
+      wood: previous.wood + 45,
+      iron: previous.iron + 8,
       provisions: previous.provisions + 20
     }));
     setChapterNodes(previous =>
@@ -593,12 +635,31 @@ export function GameProvider({
     return true;
   };
 
+  const upgradeToFort = () => {
+    if (!canUpgradeToFort) return false;
+
+    setResources(previous => ({
+      ...previous,
+      gold: previous.gold - 150,
+      wood: previous.wood - 70,
+      stone: previous.stone - 35,
+      iron: previous.iron - 10
+    }));
+    setWagonStageId('fort');
+    setBuildingLevels(previous => ({
+      ...previous,
+      hall: 3,
+      stable: Math.max(1, previous.stable ?? 0)
+    }));
+    return true;
+  };
+
   const isBuildingUnlocked = (buildingId: string) => {
     if (['hall', 'barracks', 'wagonwright'].includes(buildingId)) return true;
     if (buildingId === 'forge') return forgeUnlocked;
     if (buildingId === 'war_room') return commanderChoiceUnlocked;
     if (buildingId === 'quartermaster') return refugeeCampSecured;
-    if (buildingId === 'stable') return false;
+    if (buildingId === 'stable') return (buildingLevels.stable ?? 0) > 0;
     return false;
   };
 
@@ -1055,6 +1116,8 @@ export function GameProvider({
       refugeeCampSecured,
       buildingLevels,
       buildings,
+      fortUpgradeAvailable,
+      canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,
       sideModeDefinitions: sideModes,
@@ -1067,6 +1130,7 @@ export function GameProvider({
       completeMarkedRaiders,
       completeRefugeeCamp,
       upgradeSettlement,
+      upgradeToFort,
       upgradeBuilding,
       isBuildingUnlocked,
       chooseRecruit,
@@ -1123,6 +1187,8 @@ export function GameProvider({
       refugeeCampSecured,
       buildingLevels,
       buildings,
+      fortUpgradeAvailable,
+      canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,
       expeditionTickets,

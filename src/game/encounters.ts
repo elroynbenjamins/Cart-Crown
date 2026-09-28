@@ -1,6 +1,9 @@
 import type { EncounterDefinition, ResourceWallet } from './types';
 
-export type EncounterId = 'hold_the_road' | 'mercenary_patrol';
+export type EncounterId =
+  | 'hold_the_road'
+  | 'mercenary_patrol'
+  | 'toll_captain';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -25,6 +28,15 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 4,
     enemyHp: 220,
     difficulty: 'Elite'
+  },
+  toll_captain: {
+    id: 'toll_captain',
+    name: 'The Toll Captain',
+    subtitle: 'The mercenary captain holding the old Greenkeep toll fort refuses to abandon the road.',
+    enemyName: 'Toll Captain Host',
+    enemyCount: 5,
+    enemyHp: 340,
+    difficulty: 'Boss'
   }
 };
 
@@ -36,6 +48,10 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   mercenary_patrol: {
     resources: { gold: 65, wood: 8, iron: 5, provisions: 3 },
     storySummary: 'The mercenaries retreat, leaving behind sealed pay records tied to Crownspire coin.'
+  },
+  toll_captain: {
+    resources: { gold: 120, wood: 90, stone: 45, iron: 12, provisions: 8 },
+    storySummary: 'The old toll fort falls. Greenkeep now controls the western road and has the stone, timber and authority needed to become a true Fort.'
   }
 };
 

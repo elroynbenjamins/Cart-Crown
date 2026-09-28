@@ -254,6 +254,10 @@ export function AppShell({
               setFlow('battlePrep');
             }}
             onOpenRefugeeCamp={() => setFlow('refugeeCamp')}
+            onStartTollCaptain={() => {
+              setActiveEncounterId('toll_captain');
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />

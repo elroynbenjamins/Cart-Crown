@@ -25,6 +25,7 @@ export function CampaignScreen({
   onOpenMarkedRaiders,
   onStartMercenary,
   onOpenRefugeeCamp,
+  onStartTollCaptain,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -32,6 +33,7 @@ export function CampaignScreen({
   onOpenMarkedRaiders: () => void;
   onStartMercenary: () => void;
   onOpenRefugeeCamp: () => void;
+  onStartTollCaptain: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -143,7 +145,16 @@ export function CampaignScreen({
             node.id === 'node_5' &&
             Boolean(commanderPathId) &&
             !refugeeCampSecured;
-          const playable = battlePlayable || storyPlayable || mercenaryPlayable || refugeePlayable;
+          const bossPlayable =
+            node.current &&
+            node.id === 'node_6' &&
+            refugeeCampSecured;
+          const playable =
+            battlePlayable ||
+            storyPlayable ||
+            mercenaryPlayable ||
+            refugeePlayable ||
+            bossPlayable;
           const status = node.completed
             ? 'DONE'
             : mercenaryPlayable
@@ -167,7 +178,9 @@ export function CampaignScreen({
                 ? onStartMercenary
                 : refugeePlayable
                   ? onOpenRefugeeCamp
-                  : undefined;
+                  : bossPlayable
+                    ? onStartTollCaptain
+                    : undefined;
 
           return (
             <Pressable

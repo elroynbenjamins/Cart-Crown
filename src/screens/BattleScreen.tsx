@@ -131,7 +131,12 @@ export function BattleScreen({
             attackFactor
         )
       );
-      const rawEnemyStrike = Math.max(7, 15 + (encounter.difficulty === 'Elite' ? 4 : 0) - Math.floor(turn / 3));
+      const difficultyPressure =
+        encounter.difficulty === 'Boss' ? 8 : encounter.difficulty === 'Elite' ? 4 : 0;
+      const rawEnemyStrike = Math.max(
+        7,
+        15 + difficultyPressure - Math.floor(turn / 3)
+      );
       const enemyStrike = Math.max(
         4,
         Math.round(
