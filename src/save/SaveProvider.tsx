@@ -14,7 +14,7 @@ import type {
 } from './types';
 
 const SAVE_KEY_PREFIX = '@cart-crown/save/';
-const slotIds: SaveSlotId[] = [1, 2, 3];
+const slotIds: SaveSlotId[] = [1, 2];
 
 type SaveSystemContextValue = {
   ready: boolean;
@@ -39,8 +39,7 @@ async function readRecord(slotId: SaveSlotId): Promise<SaveRecord | null> {
   if (!raw) return null;
 
   try {
-    const parsed = JSON.parse(raw) as SaveRecord;
-    return normalizeSaveRecord(slotId, parsed);
+    return normalizeSaveRecord(slotId, JSON.parse(raw));
   } catch {
     return null;
   }
@@ -52,8 +51,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
   const [selectedRecord, setSelectedRecord] = useState<SaveRecord | null>(null);
   const [records, setRecords] = useState<Record<SaveSlotId, SaveRecord | null>>({
     1: null,
-    2: null,
-    3: null
+    2: null
   });
 
   useEffect(() => {
@@ -64,8 +62,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
 
       setRecords({
         1: values[0] ?? null,
-        2: values[1] ?? null,
-        3: values[2] ?? null
+        2: values[1] ?? null
       });
       setReady(true);
     });
@@ -138,12 +135,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
       deleteSlot,
       leaveToSaveSelect
     }),
-    [
-      ready,
-      selectedSlotId,
-      selectedRecord,
-      slots
-    ]
+    [ready, selectedSlotId, selectedRecord, slots]
   );
 
   return <SaveSystemContext.Provider value={value}>{children}</SaveSystemContext.Provider>;

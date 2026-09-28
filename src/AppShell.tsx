@@ -15,9 +15,12 @@ import { BattlePrepScreen } from './screens/BattlePrepScreen';
 import { BattleScreen } from './screens/BattleScreen';
 import { CampaignScreen } from './screens/CampaignScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
+import { ForgeScreen } from './screens/ForgeScreen';
 import { FormationScreen } from './screens/FormationScreen';
 import { FormationTrialScreen } from './screens/FormationTrialScreen';
 import { KingdomScreen } from './screens/KingdomScreen';
+import { MarkedRaidersScreen } from './screens/MarkedRaidersScreen';
+import { PromotionScreen } from './screens/PromotionScreen';
 import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
 import { WagonScreen } from './screens/WagonScreen';
@@ -28,6 +31,9 @@ type FlowScreen =
   | 'battle'
   | 'results'
   | 'recruitment'
+  | 'markedRaiders'
+  | 'forge'
+  | 'promotion'
   | 'expedition'
   | 'formationTrial';
 
@@ -52,6 +58,9 @@ const flowTitles: Record<FlowScreen, string> = {
   battle: 'Battle',
   results: 'Results',
   recruitment: 'Recruitment',
+  markedRaiders: 'Marked Raiders',
+  forge: 'Field Forge',
+  promotion: 'Promotion',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
 };
@@ -108,6 +117,42 @@ export function AppShell({
       );
     }
 
+    if (flow === 'markedRaiders') {
+      return (
+        <MarkedRaidersScreen
+          onOpenForge={() => setFlow('forge')}
+          onExit={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'forge') {
+      return (
+        <ForgeScreen
+          onOpenPromotion={() => setFlow('promotion')}
+          onExit={() => {
+            setFlow(null);
+            setActive('army');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'promotion') {
+      return (
+        <PromotionScreen
+          onOpenForge={() => setFlow('forge')}
+          onComplete={() => {
+            setFlow(null);
+            setActive('army');
+          }}
+        />
+      );
+    }
+
     if (flow === 'expedition') {
       return (
         <ExpeditionScreen
@@ -139,6 +184,7 @@ export function AppShell({
         return (
           <CampaignScreen
             onStartBattle={() => setFlow('battlePrep')}
+            onOpenMarkedRaiders={() => setFlow('markedRaiders')}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -148,16 +194,30 @@ export function AppShell({
       case 'wagon':
         return <WagonScreen />;
       case 'army':
-        return <ArmyScreen onOpenRecruitment={openRecruitment} />;
+        return (
+          <ArmyScreen
+            onOpenRecruitment={openRecruitment}
+            onOpenForge={() => setFlow('forge')}
+            onOpenPromotion={() => setFlow('promotion')}
+          />
+        );
       case 'kingdom':
       default:
-        return <KingdomScreen onOpenRecruitment={openRecruitment} />;
+        return (
+          <KingdomScreen
+            onOpenRecruitment={openRecruitment}
+            onOpenForge={() => setFlow('forge')}
+          />
+        );
     }
   };
 
   const canGoBack =
     flow === 'battlePrep' ||
     flow === 'recruitment' ||
+    flow === 'markedRaiders' ||
+    flow === 'forge' ||
+    flow === 'promotion' ||
     flow === 'expedition' ||
     flow === 'formationTrial';
   const title = flow ? flowTitles[flow] : screenTitles[active];

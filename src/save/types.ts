@@ -7,27 +7,44 @@ import type {
   WagonItemDefinition
 } from '../game/types';
 
-export type SaveSlotId = 1 | 2 | 3;
+export type SaveSlotId = 1 | 2;
 
-export type GameSnapshot = {
-  schemaVersion: 1;
+export type FactionGameState = {
+  faction: FactionId;
   resources: ResourceWallet;
   units: UnitDefinition[];
   formation: Array<string | null>;
   wagonItems: WagonItemDefinition[];
   wagonStageId: string;
   chapterNodes: ChapterNode[];
-  activeFaction: FactionId;
-  completedCampaigns: FactionId[];
   formationDoctrineId: string;
   holdTheRoadWon: boolean;
   settlementUpgraded: boolean;
   recruitChoiceAvailable: boolean;
   recruitChosen: boolean;
+  markedRaidersInvestigated: boolean;
+  forgeUnlocked: boolean;
+  firstPromotionComplete: boolean;
+  equipmentInventory: string[];
+  unitWeapons: Record<string, string | null>;
   lastBattleResult: BattleResult | null;
   expeditionTickets: number;
   expeditionRunsCompleted: number;
   formationTrialCompleted: boolean;
+};
+
+export type SharedProgress = {
+  completedCampaigns: FactionId[];
+  achievements: string[];
+  lore: string[];
+  cosmetics: string[];
+};
+
+export type GameSnapshot = {
+  schemaVersion: 2;
+  activeFaction: FactionId;
+  shared: SharedProgress;
+  factionStates: Record<FactionId, FactionGameState | null>;
 };
 
 export type SaveSlotMetadata = {

@@ -12,7 +12,7 @@ import { useSaveSystem } from '../save/SaveProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SecondaryButton } from '../ui/components';
 
-const slotIds: SaveSlotId[] = [1, 2, 3];
+const slotIds: SaveSlotId[] = [1, 2];
 
 function formatDate(value: string) {
   const date = new Date(value);
@@ -25,13 +25,7 @@ function formatDate(value: string) {
 
 export function SaveSelectScreen() {
   const { theme } = useGameTheme();
-  const {
-    ready,
-    slots,
-    selectSlot,
-    createSlot,
-    deleteSlot
-  } = useSaveSystem();
+  const { ready, slots, selectSlot, createSlot, deleteSlot } = useSaveSystem();
   const [deleteArmed, setDeleteArmed] = useState<SaveSlotId | null>(null);
 
   if (!ready) {
@@ -50,7 +44,7 @@ export function SaveSelectScreen() {
           <Text style={[styles.brand, { color: theme.colors.gold }]}>CART & CROWN</Text>
           <Text style={[styles.title, { color: theme.colors.text }]}>Choose a Save</Text>
           <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-            Three independent campaigns. Every new save begins with the Human story.
+            Two independent worlds. Each save begins with Humans, then later stores separate Human, Elf and Orc kingdom states inside the same slot.
           </Text>
         </View>
 
@@ -59,23 +53,15 @@ export function SaveSelectScreen() {
             const metadata = slots[index];
 
             return (
-              <GameCard
-                key={slotId}
-                accent={metadata ? theme.colors.human : undefined}
-              >
+              <GameCard key={slotId} accent={metadata ? theme.colors.human : undefined}>
                 <View style={styles.slotHeader}>
                   <View>
-                    <Text style={[styles.slotLabel, { color: theme.colors.textMuted }]}>
-                      SAVE {slotId}
-                    </Text>
+                    <Text style={[styles.slotLabel, { color: theme.colors.textMuted }]}>SAVE {slotId}</Text>
                     <Text style={[styles.slotTitle, { color: theme.colors.text }]}>
                       {metadata ? metadata.kingdomName : 'Empty Slot'}
                     </Text>
                   </View>
-                  <Pill
-                    label={metadata ? 'HUMAN' : 'NEW'}
-                    color={metadata ? theme.colors.human + '45' : undefined}
-                  />
+                  <Pill label={metadata ? metadata.faction.toUpperCase() : 'NEW'} />
                 </View>
 
                 {metadata ? (
@@ -83,7 +69,6 @@ export function SaveSelectScreen() {
                     <Text style={[styles.chapter, { color: theme.colors.textMuted }]}>
                       {metadata.chapterLabel}
                     </Text>
-
                     <View style={styles.metaRow}>
                       <Text style={[styles.metaText, { color: theme.colors.text }]}>
                         {metadata.activeSquads} active squads
@@ -92,7 +77,6 @@ export function SaveSelectScreen() {
                         {formatDate(metadata.updatedAt)}
                       </Text>
                     </View>
-
                     <View style={styles.unlockRow}>
                       <Text style={[styles.unlockText, { color: metadata.elfCampaignUnlocked ? theme.colors.elf : theme.colors.textMuted }]}>
                         {metadata.elfCampaignUnlocked ? '✓' : '🔒'} Elves
@@ -101,13 +85,9 @@ export function SaveSelectScreen() {
                         {metadata.orcCampaignUnlocked ? '✓' : '🔒'} Orcs
                       </Text>
                     </View>
-
                     <View style={styles.actions}>
                       <View style={styles.actionGrow}>
-                        <PrimaryButton
-                          label="Continue"
-                          onPress={() => void selectSlot(slotId)}
-                        />
+                        <PrimaryButton label="Continue" onPress={() => void selectSlot(slotId)} />
                       </View>
                       <View style={styles.actionGrow}>
                         <SecondaryButton
@@ -123,7 +103,6 @@ export function SaveSelectScreen() {
                         />
                       </View>
                     </View>
-
                     {deleteArmed === slotId ? (
                       <Text style={[styles.deleteWarning, { color: theme.colors.danger }]}>
                         Tap Confirm Delete again to permanently clear this save.
@@ -135,10 +114,7 @@ export function SaveSelectScreen() {
                     <Text style={[styles.emptyBody, { color: theme.colors.textMuted }]}>
                       Start with two Human survivors, a 4×4 Supply Wagon and the road to Greenkeep.
                     </Text>
-                    <PrimaryButton
-                      label="Start Human Campaign"
-                      onPress={() => void createSlot(slotId)}
-                    />
+                    <PrimaryButton label="Start Human Campaign" onPress={() => void createSlot(slotId)} />
                   </>
                 )}
               </GameCard>
@@ -147,9 +123,9 @@ export function SaveSelectScreen() {
         </View>
 
         <GameCard>
-          <Text style={[styles.noteTitle, { color: theme.colors.text }]}>Save rules</Text>
+          <Text style={[styles.noteTitle, { color: theme.colors.text }]}>How faction saves work</Text>
           <Text style={[styles.noteBody, { color: theme.colors.textMuted }]}>
-            Progress autosaves after gameplay changes. Human → Elf/Orc unlocks are stored per save, so each slot can be a completely separate playthrough.
+            Once Humans are completed, the same save can hold a separate Elf kingdom and Orc kingdom. Switching faction never deletes the completed Human state, so you can always return to it.
           </Text>
         </GameCard>
       </ScrollView>

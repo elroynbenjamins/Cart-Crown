@@ -4,13 +4,53 @@ import {
   starterUnits,
   starterWagonItems
 } from '../game/data';
-import type { GameSnapshot, SaveRecord, SaveSlotId, SaveSlotMetadata } from './types';
+import type {
+  BattleResult,
+  ChapterNode,
+  FactionId,
+  ResourceWallet,
+  UnitDefinition,
+  WagonItemDefinition
+} from '../game/types';
+import type {
+  FactionGameState,
+  GameSnapshot,
+  SaveRecord,
+  SaveSlotId,
+  SaveSlotMetadata
+} from './types';
 
-export const SAVE_SCHEMA_VERSION = 1;
+export const SAVE_SCHEMA_VERSION = 2;
 
-export function createInitialGameSnapshot(): GameSnapshot {
+type LegacyGameSnapshotV1 = {
+  schemaVersion: 1;
+  resources: ResourceWallet;
+  units: UnitDefinition[];
+  formation: Array<string | null>;
+  wagonItems: WagonItemDefinition[];
+  wagonStageId: string;
+  chapterNodes: ChapterNode[];
+  activeFaction: FactionId;
+  completedCampaigns: FactionId[];
+  formationDoctrineId: string;
+  holdTheRoadWon: boolean;
+  settlementUpgraded: boolean;
+  recruitChoiceAvailable: boolean;
+  recruitChosen: boolean;
+  lastBattleResult: BattleResult | null;
+  expeditionTickets: number;
+  expeditionRunsCompleted: number;
+  formationTrialCompleted: boolean;
+};
+
+function normalizeFormation(formation: Array<string | null>) {
+  const result = Array.from({ length: 9 }, (_, index) => formation[index] ?? null);
+  return result;
+}
+
+export function createHumanFactionState(): FactionGameState {
   return {
-    schemaVersion: SAVE_SCHEMA_VERSION,
+    faction: 'human',
     resources: { ...starterResources },
     units: starterUnits.map(unit => ({ ...unit })),
     formation: [
@@ -27,17 +67,80 @@ export function createInitialGameSnapshot(): GameSnapshot {
     wagonItems: starterWagonItems.map(item => ({ ...item })),
     wagonStageId: 'camp',
     chapterNodes: chapterOneNodes.map(node => ({ ...node })),
-    activeFaction: 'human',
-    completedCampaigns: [],
     formationDoctrineId: 'human_hold',
     holdTheRoadWon: false,
     settlementUpgraded: false,
     recruitChoiceAvailable: false,
     recruitChosen: false,
+    markedRaidersInvestigated: false,
+    forgeUnlocked: false,
+    firstPromotionComplete: false,
+    equipmentInventory: [],
+    unitWeapons: {},
     lastBattleResult: null,
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
     formationTrialCompleted: false
+  };
+}
+
+export function createInitialGameSnapshot(): GameSnapshot {
+  return {
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    activeFaction: 'human',
+    shared: {
+      completedCampaigns: [],
+      achievements: [],
+      lore: [],
+      cosmetics: []
+    },
+    factionStates: {
+      human: createHumanFactionState(),
+      elf: null,
+      orc: null
+    }
+  };
+}
+
+function migrateV1(snapshot: LegacyGameSnapshotV1): GameSnapshot {
+  const human: FactionGameState = {
+    faction: 'human',
+    resources: { ...snapshot.resources },
+    units: snapshot.units.map(unit => ({ ...unit })),
+    formation: normalizeFormation(snapshot.formation),
+    wagonItems: snapshot.wagonItems.map(item => ({ ...item })),
+    wagonStageId: snapshot.wagonStageId,
+    chapterNodes: snapshot.chapterNodes.map(node => ({ ...node })),
+    formationDoctrineId: snapshot.formationDoctrineId,
+    holdTheRoadWon: snapshot.holdTheRoadWon,
+    settlementUpgraded: snapshot.settlementUpgraded,
+    recruitChoiceAvailable: snapshot.recruitChoiceAvailable,
+    recruitChosen: snapshot.recruitChosen,
+    markedRaidersInvestigated: false,
+    forgeUnlocked: false,
+    firstPromotionComplete: false,
+    equipmentInventory: [],
+    unitWeapons: {},
+    lastBattleResult: snapshot.lastBattleResult ? { ...snapshot.lastBattleResult } : null,
+    expeditionTickets: snapshot.expeditionTickets,
+    expeditionRunsCompleted: snapshot.expeditionRunsCompleted,
+    formationTrialCompleted: snapshot.formationTrialCompleted
+  };
+
+  return {
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    activeFaction: snapshot.activeFaction,
+    shared: {
+      completedCampaigns: [...snapshot.completedCampaigns],
+      achievements: [],
+      lore: [],
+      cosmetics: []
+    },
+    factionStates: {
+      human,
+      elf: null,
+      orc: null
+    }
   };
 }
 
@@ -47,17 +150,29 @@ export function metadataFromSnapshot(
   existing?: SaveSlotMetadata
 ): SaveSlotMetadata {
   const now = new Date().toISOString();
-  const activeSquads = snapshot.formation.filter(Boolean).length;
-  const humanComplete = snapshot.completedCampaigns.includes('human');
+  const current =
+    snapshot.factionStates[snapshot.activeFaction] ??
+    snapshot.factionStates.human ??
+    createHumanFactionState();
+  const humanComplete = snapshot.shared.completedCampaigns.includes('human');
+
+  let chapterLabel = 'Chapter 1 · Hold the Road';
+  if (current.markedRaidersInvestigated) {
+    chapterLabel = current.firstPromotionComplete
+      ? 'Chapter 1 · Mercenary Patrol'
+      : 'Chapter 1 · First Promotion';
+  } else if (current.holdTheRoadWon) {
+    chapterLabel = 'Chapter 1 · Marked Raiders';
+  }
 
   return {
     slotId,
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
     faction: snapshot.activeFaction,
-    kingdomName: snapshot.settlementUpgraded ? 'Greenkeep Settlement' : 'Refugee Camp',
-    chapterLabel: snapshot.holdTheRoadWon ? 'Chapter 1 · Marked Raiders' : 'Chapter 1 · Hold the Road',
-    activeSquads,
+    kingdomName: current.settlementUpgraded ? 'Greenkeep Settlement' : 'Refugee Camp',
+    chapterLabel,
+    activeSquads: current.formation.filter(Boolean).length,
     humanCampaignComplete: humanComplete,
     elfCampaignUnlocked: humanComplete,
     orcCampaignUnlocked: humanComplete
@@ -74,17 +189,31 @@ export function createNewSaveRecord(slotId: SaveSlotId): SaveRecord {
 
 export function normalizeSaveRecord(
   slotId: SaveSlotId,
-  value: SaveRecord | null
+  value: unknown
 ): SaveRecord | null {
-  if (!value || !value.snapshot || value.snapshot.schemaVersion !== SAVE_SCHEMA_VERSION) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const record = value as { metadata?: SaveSlotMetadata; snapshot?: GameSnapshot | LegacyGameSnapshotV1 };
+  if (!record.snapshot) {
+    return null;
+  }
+
+  let snapshot: GameSnapshot;
+  if (record.snapshot.schemaVersion === 2) {
+    snapshot = record.snapshot as GameSnapshot;
+  } else if (record.snapshot.schemaVersion === 1) {
+    snapshot = migrateV1(record.snapshot as LegacyGameSnapshotV1);
+  } else {
     return null;
   }
 
   return {
-    snapshot: value.snapshot,
+    snapshot,
     metadata: {
-      ...metadataFromSnapshot(slotId, value.snapshot, value.metadata),
-      updatedAt: value.metadata?.updatedAt ?? new Date().toISOString()
+      ...metadataFromSnapshot(slotId, snapshot, record.metadata),
+      updatedAt: record.metadata?.updatedAt ?? new Date().toISOString()
     }
   };
 }

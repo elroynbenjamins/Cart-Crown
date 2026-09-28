@@ -3,6 +3,7 @@ export type CampaignId = FactionId | 'meta';
 export type NavId = 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army';
 export type UnitRole = 'frontline' | 'melee' | 'ranged' | 'support' | 'cavalry' | 'skirmish';
 export type SideModeId = 'expeditions' | 'formation_trials' | 'kingdom_defense' | 'relic_hunts';
+export type EquipmentSlot = 'weapon' | 'armor' | 'shield' | 'mount' | 'artifact';
 
 export type ResourceWallet = {
   gold: number;
@@ -25,6 +26,33 @@ export type UnitDefinition = {
   armor: number;
   speed: number;
   promotionReady?: boolean;
+};
+
+export type EquipmentDefinition = {
+  id: string;
+  name: string;
+  faction: FactionId | 'global';
+  slot: EquipmentSlot;
+  tier: number;
+  tags: string[];
+  attackBonus: number;
+  armorBonus: number;
+  speedBonus: number;
+  craftCost: Partial<ResourceWallet>;
+  description: string;
+};
+
+export type PromotionDefinition = {
+  id: string;
+  faction: FactionId;
+  fromClass: string;
+  toClass: string;
+  role: UnitRole;
+  requiredEquipmentId: string;
+  attackBonus: number;
+  armorBonus: number;
+  speedBonus: number;
+  pitch: string;
 };
 
 export type WagonItemDefinition = {

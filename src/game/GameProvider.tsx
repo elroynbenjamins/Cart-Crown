@@ -1,21 +1,28 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import {
-  chapterOneNodes,
   holdTheRoadRewards,
   humanRecruitOptions,
   starterWagonItems,
   wagonStages
 } from './data';
+import {
+  equipmentDefinitions,
+  getEquipment,
+  getRecruitPromotionByEquipment,
+  recruitPromotions
+} from './equipment';
 import { analyzeFormation, formationCells, getFactionDoctrines } from './formation';
 import { sideModes } from './sideModes';
 import type {
   BattleResult,
   CampaignAvailability,
   ChapterNode,
+  EquipmentDefinition,
   FactionId,
   FormationBonus,
   FormationDoctrine,
+  PromotionDefinition,
   RecruitOption,
   ResourceWallet,
   SideModeDefinition,
@@ -32,7 +39,11 @@ import type {
   RewardedAdPlacementId,
   RewardedAdResult
 } from '../ads/rewardedAds';
-import type { GameSnapshot } from '../save/types';
+import type {
+  FactionGameState,
+  GameSnapshot,
+  SharedProgress
+} from '../save/types';
 
 type RewardedAdClaimState = Partial<Record<RewardedAdPlacementId, number>>;
 
@@ -56,6 +67,13 @@ type GameContextValue = {
   settlementUpgraded: boolean;
   recruitChoiceAvailable: boolean;
   recruitChosen: boolean;
+  markedRaidersInvestigated: boolean;
+  forgeUnlocked: boolean;
+  firstPromotionComplete: boolean;
+  equipmentInventory: string[];
+  unitWeapons: Record<string, string | null>;
+  equipmentDefinitions: EquipmentDefinition[];
+  recruitPromotions: PromotionDefinition[];
   lastBattleResult: BattleResult | null;
   canUpgradeSettlement: boolean;
   sideModeDefinitions: SideModeDefinition[];
@@ -65,8 +83,11 @@ type GameContextValue = {
   rewardedAdClaims: RewardedAdClaimState;
   rewardedAdMessage: string | null;
   finishHoldTheRoad: () => void;
+  completeMarkedRaiders: () => boolean;
   upgradeSettlement: () => boolean;
   chooseRecruit: (choiceId: string) => boolean;
+  craftEquipment: (equipmentId: string) => boolean;
+  promoteMira: (equipmentId: string) => boolean;
   moveFormationUnit: (unitId: string, targetSlot: number) => boolean;
   moveWagonItem: (itemId: string, x: number, y: number) => boolean;
   rotateWagonItem: (itemId: string) => boolean;
@@ -141,6 +162,22 @@ function canPlaceItem(
   return otherItems.every(other => !overlaps(item, other));
 }
 
+function canAfford(resources: ResourceWallet, cost: Partial<ResourceWallet>) {
+  return Object.entries(cost).every(([key, amount]) => {
+    const resourceKey = key as keyof ResourceWallet;
+    return resources[resourceKey] >= (amount ?? 0);
+  });
+}
+
+function payCost(resources: ResourceWallet, cost: Partial<ResourceWallet>): ResourceWallet {
+  const next = { ...resources };
+  for (const [key, amount] of Object.entries(cost)) {
+    const resourceKey = key as keyof ResourceWallet;
+    next[resourceKey] -= amount ?? 0;
+  }
+  return next;
+}
+
 const stageRank: Record<string, number> = {
   camp: 0,
   settlement: 1,
@@ -162,25 +199,43 @@ export function GameProvider({
   initialSnapshot,
   onSnapshotChange
 }: GameProviderProps) {
-  const [resources, setResources] = useState<ResourceWallet>(() => cloneResources(initialSnapshot.resources));
-  const [units, setUnits] = useState<UnitDefinition[]>(() => cloneUnits(initialSnapshot.units));
-  const [formation, setFormation] = useState<Array<string | null>>(() => [...initialSnapshot.formation]);
-  const [wagonItems, setWagonItems] = useState<WagonItemDefinition[]>(() => cloneWagon(initialSnapshot.wagonItems));
-  const [wagonStageId, setWagonStageId] = useState(initialSnapshot.wagonStageId);
-  const [chapterNodes, setChapterNodes] = useState<ChapterNode[]>(() => cloneNodes(initialSnapshot.chapterNodes));
+  const initialFaction =
+    initialSnapshot.factionStates[initialSnapshot.activeFaction] ??
+    initialSnapshot.factionStates.human;
+
+  if (!initialFaction) {
+    throw new Error('Save has no playable faction state.');
+  }
+
+  const [resources, setResources] = useState<ResourceWallet>(() => cloneResources(initialFaction.resources));
+  const [units, setUnits] = useState<UnitDefinition[]>(() => cloneUnits(initialFaction.units));
+  const [formation, setFormation] = useState<Array<string | null>>(() => [...initialFaction.formation]);
+  const [wagonItems, setWagonItems] = useState<WagonItemDefinition[]>(() => cloneWagon(initialFaction.wagonItems));
+  const [wagonStageId, setWagonStageId] = useState(initialFaction.wagonStageId);
+  const [chapterNodes, setChapterNodes] = useState<ChapterNode[]>(() => cloneNodes(initialFaction.chapterNodes));
   const [activeFaction] = useState<FactionId>(initialSnapshot.activeFaction);
-  const [completedCampaigns, setCompletedCampaigns] = useState<FactionId[]>(() => [...initialSnapshot.completedCampaigns]);
-  const [formationDoctrineId, setFormationDoctrineId] = useState(initialSnapshot.formationDoctrineId);
-  const [holdTheRoadWon, setHoldTheRoadWon] = useState(initialSnapshot.holdTheRoadWon);
-  const [settlementUpgraded, setSettlementUpgraded] = useState(initialSnapshot.settlementUpgraded);
-  const [recruitChoiceAvailable, setRecruitChoiceAvailable] = useState(initialSnapshot.recruitChoiceAvailable);
-  const [recruitChosen, setRecruitChosen] = useState(initialSnapshot.recruitChosen);
+  const [sharedProgress, setSharedProgress] = useState<SharedProgress>(() => ({
+    completedCampaigns: [...initialSnapshot.shared.completedCampaigns],
+    achievements: [...initialSnapshot.shared.achievements],
+    lore: [...initialSnapshot.shared.lore],
+    cosmetics: [...initialSnapshot.shared.cosmetics]
+  }));
+  const [formationDoctrineId, setFormationDoctrineId] = useState(initialFaction.formationDoctrineId);
+  const [holdTheRoadWon, setHoldTheRoadWon] = useState(initialFaction.holdTheRoadWon);
+  const [settlementUpgraded, setSettlementUpgraded] = useState(initialFaction.settlementUpgraded);
+  const [recruitChoiceAvailable, setRecruitChoiceAvailable] = useState(initialFaction.recruitChoiceAvailable);
+  const [recruitChosen, setRecruitChosen] = useState(initialFaction.recruitChosen);
+  const [markedRaidersInvestigated, setMarkedRaidersInvestigated] = useState(initialFaction.markedRaidersInvestigated);
+  const [forgeUnlocked, setForgeUnlocked] = useState(initialFaction.forgeUnlocked);
+  const [firstPromotionComplete, setFirstPromotionComplete] = useState(initialFaction.firstPromotionComplete);
+  const [equipmentInventory, setEquipmentInventory] = useState<string[]>(() => [...initialFaction.equipmentInventory]);
+  const [unitWeapons, setUnitWeapons] = useState<Record<string, string | null>>(() => ({ ...initialFaction.unitWeapons }));
   const [lastBattleResult, setLastBattleResult] = useState<BattleResult | null>(
-    initialSnapshot.lastBattleResult ? { ...initialSnapshot.lastBattleResult } : null
+    initialFaction.lastBattleResult ? { ...initialFaction.lastBattleResult } : null
   );
-  const [expeditionTickets, setExpeditionTickets] = useState(initialSnapshot.expeditionTickets);
-  const [expeditionRunsCompleted, setExpeditionRunsCompleted] = useState(initialSnapshot.expeditionRunsCompleted);
-  const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialSnapshot.formationTrialCompleted);
+  const [expeditionTickets, setExpeditionTickets] = useState(initialFaction.expeditionTickets);
+  const [expeditionRunsCompleted, setExpeditionRunsCompleted] = useState(initialFaction.expeditionRunsCompleted);
+  const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
   const [rewardedAdClaims, setRewardedAdClaims] = useState<RewardedAdClaimState>({});
   const [rewardedAdMessage, setRewardedAdMessage] = useState<string | null>(null);
 
@@ -201,6 +256,7 @@ export function GameProvider({
 
   const formationBonuses = formationAnalysis.bonuses;
   const activeSquadCap = currentWagonStage.formationSlots;
+  const completedCampaigns = sharedProgress.completedCampaigns;
 
   const campaignAvailability = useMemo<CampaignAvailability[]>(() => {
     const humanComplete = completedCampaigns.includes('human');
@@ -210,12 +266,7 @@ export function GameProvider({
       completedCampaigns.includes('orc');
 
     return [
-      {
-        id: 'human',
-        unlocked: true,
-        completed: humanComplete,
-        unlockText: humanComplete ? 'Completed' : 'Available'
-      },
+      { id: 'human', unlocked: true, completed: humanComplete, unlockText: humanComplete ? 'Completed' : 'Available' },
       {
         id: 'elf',
         unlocked: humanComplete,
@@ -243,46 +294,66 @@ export function GameProvider({
     resources.wood >= 90 &&
     resources.stone >= 20;
 
-  const snapshot = useMemo<GameSnapshot>(
+  const currentFactionState = useMemo<FactionGameState>(
     () => ({
-      schemaVersion: 1,
+      faction: activeFaction,
       resources,
       units,
       formation,
       wagonItems,
       wagonStageId,
       chapterNodes,
-      activeFaction,
-      completedCampaigns,
       formationDoctrineId,
       holdTheRoadWon,
       settlementUpgraded,
       recruitChoiceAvailable,
       recruitChosen,
+      markedRaidersInvestigated,
+      forgeUnlocked,
+      firstPromotionComplete,
+      equipmentInventory,
+      unitWeapons,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted
     }),
     [
+      activeFaction,
       resources,
       units,
       formation,
       wagonItems,
       wagonStageId,
       chapterNodes,
-      activeFaction,
-      completedCampaigns,
       formationDoctrineId,
       holdTheRoadWon,
       settlementUpgraded,
       recruitChoiceAvailable,
       recruitChosen,
+      markedRaidersInvestigated,
+      forgeUnlocked,
+      firstPromotionComplete,
+      equipmentInventory,
+      unitWeapons,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted
     ]
+  );
+
+  const snapshot = useMemo<GameSnapshot>(
+    () => ({
+      schemaVersion: 2,
+      activeFaction,
+      shared: sharedProgress,
+      factionStates: {
+        ...initialSnapshot.factionStates,
+        [activeFaction]: currentFactionState
+      }
+    }),
+    [activeFaction, currentFactionState, initialSnapshot.factionStates, sharedProgress]
   );
 
   const saveCallbackRef = useRef(onSnapshotChange);
@@ -303,9 +374,7 @@ export function GameProvider({
   }, [snapshot]);
 
   const finishHoldTheRoad = () => {
-    if (holdTheRoadWon) {
-      return;
-    }
+    if (holdTheRoadWon) return;
 
     setHoldTheRoadWon(true);
     setResources(previous => ({
@@ -318,12 +387,8 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'node_2') {
-          return { ...node, completed: true, current: false };
-        }
-        if (node.id === 'node_3') {
-          return { ...node, current: true };
-        }
+        if (node.id === 'node_2') return { ...node, completed: true, current: false };
+        if (node.id === 'node_3') return { ...node, current: true };
         return { ...node, current: false };
       })
     );
@@ -337,10 +402,34 @@ export function GameProvider({
     });
   };
 
+  const completeMarkedRaiders = () => {
+    if (!holdTheRoadWon || markedRaidersInvestigated) return false;
+
+    setMarkedRaidersInvestigated(true);
+    setForgeUnlocked(true);
+    setResources(previous => ({
+      ...previous,
+      wood: previous.wood + 5,
+      iron: previous.iron + 2
+    }));
+    setSharedProgress(previous => ({
+      ...previous,
+      lore: previous.lore.includes('false_flag_forging')
+        ? previous.lore
+        : [...previous.lore, 'false_flag_forging']
+    }));
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'node_3') return { ...node, completed: true, current: false };
+        if (node.id === 'node_4') return { ...node, current: true };
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
   const upgradeSettlement = () => {
-    if (!canUpgradeSettlement) {
-      return false;
-    }
+    if (!canUpgradeSettlement) return false;
 
     setResources(previous => ({
       ...previous,
@@ -354,14 +443,10 @@ export function GameProvider({
   };
 
   const chooseRecruit = (choiceId: string) => {
-    if (!recruitChoiceAvailable || recruitChosen) {
-      return false;
-    }
+    if (!recruitChoiceAvailable || recruitChosen) return false;
 
     const choice = humanRecruitOptions.find(option => option.id === choiceId);
-    if (!choice) {
-      return false;
-    }
+    if (!choice) return false;
 
     setUnits(previous => [...previous, { ...choice.unit }]);
     setFormation(previous => {
@@ -382,15 +467,60 @@ export function GameProvider({
     return true;
   };
 
-  const moveFormationUnit = (unitId: string, targetSlot: number) => {
-    if (!formationCells.includes(targetSlot)) {
+  const craftEquipment = (equipmentId: string) => {
+    if (!forgeUnlocked) return false;
+    const equipment = getEquipment(equipmentId);
+    if (!equipment || equipment.faction !== activeFaction) return false;
+    if (!canAfford(resources, equipment.craftCost)) return false;
+
+    setResources(previous => payCost(previous, equipment.craftCost));
+    setEquipmentInventory(previous => [...previous, equipment.id]);
+    return true;
+  };
+
+  const promoteMira = (equipmentId: string) => {
+    if (firstPromotionComplete) return false;
+
+    const promotion = getRecruitPromotionByEquipment(equipmentId);
+    const equipment = getEquipment(equipmentId);
+    const inventoryIndex = equipmentInventory.indexOf(equipmentId);
+    const mira = units.find(unit => unit.id === 'hum_recruit');
+
+    if (!promotion || !equipment || inventoryIndex < 0 || !mira || mira.className !== 'Recruit') {
       return false;
     }
 
+    setEquipmentInventory(previous => {
+      const next = [...previous];
+      next.splice(inventoryIndex, 1);
+      return next;
+    });
+    setUnitWeapons(previous => ({ ...previous, hum_recruit: equipmentId }));
+    setUnits(previous =>
+      previous.map(unit =>
+        unit.id === 'hum_recruit'
+          ? {
+              ...unit,
+              className: promotion.toClass,
+              role: promotion.role,
+              tier: 2,
+              attack: unit.attack + promotion.attackBonus + equipment.attackBonus,
+              armor: unit.armor + promotion.armorBonus + equipment.armorBonus,
+              speed: unit.speed + promotion.speedBonus + equipment.speedBonus,
+              promotionReady: false
+            }
+          : unit
+      )
+    );
+    setFirstPromotionComplete(true);
+    return true;
+  };
+
+  const moveFormationUnit = (unitId: string, targetSlot: number) => {
+    if (!formationCells.includes(targetSlot)) return false;
+
     const sourceSlot = formation.indexOf(unitId);
-    if (sourceSlot < 0) {
-      return false;
-    }
+    if (sourceSlot < 0) return false;
 
     setFormation(previous => {
       const next = [...previous];
@@ -404,15 +534,11 @@ export function GameProvider({
 
   const moveWagonItem = (itemId: string, x: number, y: number) => {
     const item = wagonItems.find(candidate => candidate.id === itemId);
-    if (!item) {
-      return false;
-    }
+    if (!item) return false;
 
     const moved: WagonItemDefinition = { ...item, x, y };
     const others = wagonItems.filter(candidate => candidate.id !== itemId);
-    if (!canPlaceItem(moved, others, currentWagonStage)) {
-      return false;
-    }
+    if (!canPlaceItem(moved, others, currentWagonStage)) return false;
 
     setWagonItems(previous =>
       previous.map(candidate => (candidate.id === itemId ? moved : candidate))
@@ -422,18 +548,14 @@ export function GameProvider({
 
   const rotateWagonItem = (itemId: string) => {
     const item = wagonItems.find(candidate => candidate.id === itemId);
-    if (!item || item.width === item.height) {
-      return false;
-    }
+    if (!item || item.width === item.height) return false;
 
     const rotated: WagonItemDefinition = {
       ...item,
       rotation: item.rotation === 0 ? 90 : 0
     };
     const others = wagonItems.filter(candidate => candidate.id !== itemId);
-    if (!canPlaceItem(rotated, others, currentWagonStage)) {
-      return false;
-    }
+    if (!canPlaceItem(rotated, others, currentWagonStage)) return false;
 
     setWagonItems(previous =>
       previous.map(candidate => (candidate.id === itemId ? rotated : candidate))
@@ -446,9 +568,7 @@ export function GameProvider({
   };
 
   const setFormationDoctrine = (doctrineId: string) => {
-    if (!formationDoctrines.some(doctrine => doctrine.id === doctrineId)) {
-      return false;
-    }
+    if (!formationDoctrines.some(doctrine => doctrine.id === doctrineId)) return false;
     setFormationDoctrineId(doctrineId);
     return true;
   };
@@ -460,9 +580,7 @@ export function GameProvider({
   };
 
   const consumeExpeditionTicket = () => {
-    if (!isSideModeUnlocked('expeditions') || expeditionTickets <= 0) {
-      return false;
-    }
+    if (!isSideModeUnlocked('expeditions') || expeditionTickets <= 0) return false;
     setExpeditionTickets(previous => previous - 1);
     return true;
   };
@@ -478,9 +596,7 @@ export function GameProvider({
   };
 
   const completeFormationTrial = () => {
-    if (!isSideModeUnlocked('formation_trials') || formationTrialCompleted) {
-      return false;
-    }
+    if (!isSideModeUnlocked('formation_trials') || formationTrialCompleted) return false;
 
     const harlan = formation.indexOf('hum_militia');
     const mira = formation.indexOf('hum_recruit');
@@ -488,9 +604,7 @@ export function GameProvider({
     const miraBehind = mira >= 3;
     const sameColumn = harlan >= 0 && mira >= 0 && harlan % 3 === mira % 3;
 
-    if (!harlanFront || !miraBehind || !sameColumn) {
-      return false;
-    }
+    if (!harlanFront || !miraBehind || !sameColumn) return false;
 
     setFormationTrialCompleted(true);
     setResources(previous => ({
@@ -505,9 +619,7 @@ export function GameProvider({
     placementId: RewardedAdPlacementId
   ): Promise<RewardedAdResult> => {
     const placement = getRewardedAdPlacement(placementId);
-    if (!placement) {
-      return { status: 'unavailable', provider: 'none' };
-    }
+    if (!placement) return { status: 'unavailable', provider: 'none' };
 
     const used = rewardedAdClaims[placementId] ?? 0;
     if (used >= placement.capPerSession) {
@@ -546,9 +658,12 @@ export function GameProvider({
   };
 
   const completeCampaign = (faction: FactionId) => {
-    setCompletedCampaigns(previous =>
-      previous.includes(faction) ? previous : [...previous, faction]
-    );
+    setSharedProgress(previous => ({
+      ...previous,
+      completedCampaigns: previous.completedCampaigns.includes(faction)
+        ? previous.completedCampaigns
+        : [...previous.completedCampaigns, faction]
+    }));
   };
 
   const value = useMemo<GameContextValue>(
@@ -572,6 +687,13 @@ export function GameProvider({
       settlementUpgraded,
       recruitChoiceAvailable,
       recruitChosen,
+      markedRaidersInvestigated,
+      forgeUnlocked,
+      firstPromotionComplete,
+      equipmentInventory,
+      unitWeapons,
+      equipmentDefinitions,
+      recruitPromotions,
       lastBattleResult,
       canUpgradeSettlement,
       sideModeDefinitions: sideModes,
@@ -581,8 +703,11 @@ export function GameProvider({
       rewardedAdClaims,
       rewardedAdMessage,
       finishHoldTheRoad,
+      completeMarkedRaiders,
       upgradeSettlement,
       chooseRecruit,
+      craftEquipment,
+      promoteMira,
       moveFormationUnit,
       moveWagonItem,
       rotateWagonItem,
@@ -615,6 +740,11 @@ export function GameProvider({
       settlementUpgraded,
       recruitChoiceAvailable,
       recruitChosen,
+      markedRaidersInvestigated,
+      forgeUnlocked,
+      firstPromotionComplete,
+      equipmentInventory,
+      unitWeapons,
       lastBattleResult,
       canUpgradeSettlement,
       expeditionTickets,

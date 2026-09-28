@@ -11,7 +11,13 @@ import {
   SectionTitle
 } from '../ui/components';
 
-export function KingdomScreen({ onOpenRecruitment }: { onOpenRecruitment: () => void }) {
+export function KingdomScreen({
+  onOpenRecruitment,
+  onOpenForge
+}: {
+  onOpenRecruitment: () => void;
+  onOpenForge: () => void;
+}) {
   const { theme } = useGameTheme();
   const {
     resources,
@@ -20,6 +26,7 @@ export function KingdomScreen({ onOpenRecruitment }: { onOpenRecruitment: () => 
     settlementUpgraded,
     recruitChosen,
     canUpgradeSettlement,
+    forgeUnlocked,
     rewardedAdClaims,
     rewardedAdMessage,
     claimRewardedAd,
@@ -151,6 +158,21 @@ export function KingdomScreen({ onOpenRecruitment }: { onOpenRecruitment: () => 
           </Text>
         </View>
       </GameCard>
+
+      {forgeUnlocked ? (
+        <>
+          <SectionTitle title="Field Forge" trailing="New" />
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>Recovered Metalwork</Text>
+            <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
+              Marked Raiders revealed that the enemy gear was forged locally. Use the recovered metal to craft Mira's first class-defining weapon.
+            </Text>
+            <View style={styles.supplyButton}>
+              <PrimaryButton label="Open Field Forge" onPress={onOpenForge} />
+            </View>
+          </GameCard>
+        </>
+      ) : null}
 
       <SectionTitle title="Daily Supply Cart" trailing="Optional rewarded ad" />
       <GameCard>

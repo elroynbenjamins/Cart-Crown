@@ -22,10 +22,12 @@ const nodeIcons: Record<string, string> = {
 
 export function CampaignScreen({
   onStartBattle,
+  onOpenMarkedRaiders,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
   onStartBattle: () => void;
+  onOpenMarkedRaiders: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -121,14 +123,17 @@ export function CampaignScreen({
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
-          const playable = node.current && node.type === 'battle' && node.id === 'node_2';
+          const battlePlayable = node.current && node.type === 'battle' && node.id === 'node_2';
+          const storyPlayable = node.current && node.type === 'event' && node.id === 'node_3';
+          const playable = battlePlayable || storyPlayable;
           const status = node.completed ? 'DONE' : playable ? 'PLAY' : node.current ? 'NEXT' : 'LOCKED';
+          const action = battlePlayable ? onStartBattle : storyPlayable ? onOpenMarkedRaiders : undefined;
 
           return (
             <Pressable
               key={node.id}
               disabled={!playable}
-              onPress={playable ? onStartBattle : undefined}
+              onPress={action}
               style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
             >
               <GameCard accent={node.current ? theme.colors.primary : undefined} style={styles.nodeCard}>
