@@ -239,7 +239,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
             >
               {building ? (
                 <>
-                  <BuildingSprite buildingId={building.id} size={44} />
+                  <BuildingSprite buildingId={building.id} faction={building.faction} size={44} />
                   <Text
                     style={[
                       styles.plotBuildingName,
@@ -389,7 +389,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                     accent={theme.colors.primary}
                   >
                     <View style={styles.optionHeader}>
-                      <BuildingSprite buildingId={building.id} size={48} />
+                      <BuildingSprite buildingId={building.id} faction={building.faction} size={48} />
                       <View style={styles.optionCopy}>
                         <Text
                           style={[
