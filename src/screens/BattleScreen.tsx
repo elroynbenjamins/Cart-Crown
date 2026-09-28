@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { getEncounter } from '../game/encounters';
 import {
+  getArmyReadinessProfile,
   getEnemyStrikePressure,
   getTacticalSpeedDamageMultiplier,
   getUnitCombatProfile
@@ -44,6 +45,8 @@ export function BattleScreen({
     formationAnalysis,
     activeSquadCap,
     activeFaction,
+    armyReadiness,
+    recordBattleWear,
     activeCommanderPath,
     activeMarcherWarningChoice,
     activeLastLoyalistsChoice,
@@ -120,14 +123,21 @@ export function BattleScreen({
     () => getUnitCombatProfile(activeUnits),
     [activeUnits]
   );
-  const partyMaxHp = combatProfile.maxHp;
+  const readinessProfile = getArmyReadinessProfile(armyReadiness);
+  const partyMaxHp =
+    combatProfile.maxHp > 0
+      ? Math.max(
+          1,
+          Math.round(combatProfile.maxHp * readinessProfile.hpMultiplier)
+        )
+      : 0;
   const partyAttack = activeUnits.reduce((total, unit) => {
     const commanderMultiplier =
       activeCommanderPath?.favoredRoles.includes(unit.role)
         ? activeCommanderPath.attackMultiplier
         : 1;
     return total + unit.attack * commanderMultiplier;
-  }, 0);
+  }, 0) * readinessProfile.attackMultiplier;
 
   const favoredCount = activeCommanderPath
     ? activeUnits.filter(unit => activeCommanderPath.favoredRoles.includes(unit.role)).length
@@ -150,13 +160,14 @@ export function BattleScreen({
   const defeated = partyHp <= 0;
   const finished = enemyHp <= 0 && !defeated;
   const battleEnded = finished || defeated;
-  const tacticalSpeedDamageMultiplier = getTacticalSpeedDamageMultiplier(
-    combatProfile.speedStatMultiplier,
-    formationAnalysis.speedMultiplier,
-    commanderSpeedMultiplier,
-    marcherSpeedMultiplier,
-    mandateSpeedMultiplier
-  );
+  const tacticalSpeedDamageMultiplier =
+    getTacticalSpeedDamageMultiplier(
+      combatProfile.speedStatMultiplier,
+      formationAnalysis.speedMultiplier,
+      commanderSpeedMultiplier,
+      marcherSpeedMultiplier,
+      mandateSpeedMultiplier
+    ) * readinessProfile.speedMultiplier;
   const supportRecovery = Math.round(
     combatProfile.supportRecovery * formationAnalysis.healingMultiplier
   );
@@ -389,6 +400,9 @@ export function BattleScreen({
           {partyHp} / {partyMaxHp} HP
         </Text>
         <ProgressBar value={partyMaxHp > 0 ? partyHp / partyMaxHp : 0} color={theme.colors.primary} />
+        <Text style={[styles.readinessLine, { color: factionAccent }]}>
+          Army Readiness {armyReadiness}% · {readinessProfile.label}
+        </Text>
 
         {metaAllianceActive ? (
           <Text style={[styles.commanderLine, { color: theme.colors.gold }]}>
@@ -483,8 +497,34 @@ export function BattleScreen({
         ) : null}
       </GameCard>
 
-      {finished ? <PrimaryButton label="View Results" onPress={onFinished} /> : null}
-      {defeated ? <PrimaryButton label="Regroup" onPress={onDefeated} /> : null}
+      {finished ? (
+        <PrimaryButton
+          label="View Results"
+          onPress={() => {
+            recordBattleWear(
+              partyHp,
+              partyMaxHp,
+              encounter.difficulty,
+              true
+            );
+            onFinished();
+          }}
+        />
+      ) : null}
+      {defeated ? (
+        <PrimaryButton
+          label="Regroup"
+          onPress={() => {
+            recordBattleWear(
+              partyHp,
+              partyMaxHp,
+              encounter.difficulty,
+              false
+            );
+            onDefeated();
+          }}
+        />
+      ) : null}
     </View>
   );
 }
@@ -518,6 +558,7 @@ const styles = StyleSheet.create({
   unitInitial: { fontSize: 17, fontWeight: '900' },
   tokenName: { fontSize: 7.5, fontWeight: '800', marginTop: 2, maxWidth: '94%' },
   hpLabel: { fontSize: 10, fontWeight: '800', textAlign: 'right' },
+  readinessLine: { fontSize: 9, fontWeight: '900', textAlign: 'center' },
   commanderLine: { fontSize: 9.5, fontWeight: '900', textAlign: 'center' },
   versus: { fontSize: 12, fontWeight: '900', textAlign: 'center', marginVertical: 2 },
   logLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
