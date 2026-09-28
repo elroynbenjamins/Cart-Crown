@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
+import { BuildingSprite, ResourceSprite, StoryScene } from '../ui/gameArt';
 
 export function RefugeeCampScreen({ onExit }: { onExit: () => void }) {
   const { theme } = useGameTheme();
@@ -19,13 +20,18 @@ export function RefugeeCampScreen({ onExit }: { onExit: () => void }) {
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           Families displaced from the western road have gathered outside Greenkeep. Taking them in costs organization, but several are experienced teamsters, cooks and storekeepers.
         </Text>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="refugee_camp" size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title="Kingdom impact" />
 
       <GameCard>
         <View style={styles.impactRow}>
-          <Text style={styles.icon}>📦</Text>
+          <View style={styles.impactArt}>
+            <BuildingSprite buildingId="quartermaster" faction="human" size={44} />
+          </View>
           <View style={styles.impactCopy}>
             <Text style={[styles.impactTitle, { color: theme.colors.text }]}>Quartermaster unlocked</Text>
             <Text style={[styles.impactBody, { color: theme.colors.textMuted }]}>
@@ -37,7 +43,9 @@ export function RefugeeCampScreen({ onExit }: { onExit: () => void }) {
 
       <GameCard>
         <View style={styles.impactRow}>
-          <Text style={styles.icon}>🍞</Text>
+          <View style={styles.impactArt}>
+            <ResourceSprite resource="provisions" size={42} />
+          </View>
           <View style={styles.impactCopy}>
             <Text style={[styles.impactTitle, { color: theme.colors.text }]}>Recovered stores</Text>
             <Text style={[styles.impactBody, { color: theme.colors.textMuted }]}>
@@ -73,8 +81,9 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  impactRow: { flexDirection: 'row', gap: 12 },
-  icon: { fontSize: 28 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
+  impactRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  impactArt: { width: 50, alignItems: 'center', justifyContent: 'center' },
   impactCopy: { flex: 1 },
   impactTitle: { fontSize: 15, fontWeight: '900' },
   impactBody: { fontSize: 11, lineHeight: 16, marginTop: 4 },
