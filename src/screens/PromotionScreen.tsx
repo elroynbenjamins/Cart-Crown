@@ -48,6 +48,7 @@ export function PromotionScreen({
           name={mira.name}
           className={mira.className + ' · Lv. ' + mira.level}
           accent={theme.colors.human}
+          faction={mira.faction}
         />
         <Text style={[styles.intro, { color: theme.colors.textMuted }]}>
           Promotions change what a squad is. Equipment upgrades can continue afterward without creating a new class every time.
