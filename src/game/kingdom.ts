@@ -533,6 +533,41 @@ export const elfBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 88, wood: 24, provisions: 14 },
     effect: 'Veteran Stag training prepared for deeper mounted branches.',
     requirement: 'Root Council'
+  },
+  {
+    buildingId: 'elf_warden_lodge',
+    level: 4,
+    cost: { gold: 145, wood: 60, iron: 10 },
+    effect: 'Elite Warden training prepared for the Worldroot Sanctuary.',
+    requirement: 'Roots in Ash secured'
+  },
+  {
+    buildingId: 'elf_moon_forge',
+    level: 4,
+    cost: { gold: 165, wood: 28, iron: 22 },
+    effect: 'Elite moon-forging prepared for Worldroot equipment.',
+    requirement: 'Roots in Ash secured'
+  },
+  {
+    buildingId: 'elf_caravan_grove',
+    level: 4,
+    cost: { gold: 130, wood: 78, iron: 10 },
+    effect: 'Heavy rootway caravan frame prepared for the Worldroot Sanctuary.',
+    requirement: 'Roots in Ash secured'
+  },
+  {
+    buildingId: 'elf_council_glade',
+    level: 3,
+    cost: { gold: 120, wood: 28, stone: 12 },
+    effect: 'Ash-grove campaign command prepared for the Sanctuary tier.',
+    requirement: 'Living Root Council'
+  },
+  {
+    buildingId: 'elf_spirit_stores',
+    level: 3,
+    cost: { gold: 105, wood: 30, provisions: 20 },
+    effect: 'Large herb and reagent stores support six active squads.',
+    requirement: 'Living Root Council'
   }
 ];
 
@@ -606,6 +641,41 @@ export const orcBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 86, wood: 22, provisions: 16 },
     effect: 'Veteran Warg training prepared for deeper mounted branches.',
     requirement: 'Clan Oath'
+  },
+  {
+    buildingId: 'orc_clan_yard',
+    level: 4,
+    cost: { gold: 150, wood: 58, iron: 16 },
+    effect: 'Elite clan training prepared for the High Warhold.',
+    requirement: 'War on Two Fronts secured'
+  },
+  {
+    buildingId: 'orc_bone_forge',
+    level: 4,
+    cost: { gold: 168, wood: 24, iron: 28 },
+    effect: 'Elite black-iron forging prepared for High Warhold equipment.',
+    requirement: 'War on Two Fronts secured'
+  },
+  {
+    buildingId: 'orc_cartwright',
+    level: 4,
+    cost: { gold: 132, wood: 74, iron: 14 },
+    effect: 'Heavy War Cart frame prepared for the High Warhold.',
+    requirement: 'War on Two Fronts secured'
+  },
+  {
+    buildingId: 'orc_war_council',
+    level: 3,
+    cost: { gold: 118, wood: 26, stone: 14 },
+    effect: 'Two-front command prepared for the High Warhold tier.',
+    requirement: 'Two-Front Council'
+  },
+  {
+    buildingId: 'orc_smokehouse',
+    level: 3,
+    cost: { gold: 102, wood: 30, provisions: 22 },
+    effect: 'Large preserved stores support six active squads.',
+    requirement: 'Two-Front Council'
   }
 ];
 

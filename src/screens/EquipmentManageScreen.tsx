@@ -35,12 +35,15 @@ export function EquipmentManageScreen({
 }) {
   const { theme } = useGameTheme();
   const {
+    activeFaction,
     resources,
     units,
     equipmentInventory,
     unitEquipment,
     equipmentDefinitions,
     buildingLevels,
+    buildings,
+    factionBuildingIds,
     settlementAdjacencyBonuses,
     getEquipmentCraftCost,
     craftEquipment,
@@ -54,9 +57,26 @@ export function EquipmentManageScreen({
   const [message, setMessage] = useState<string | null>(null);
   const unit = units.find(candidate => candidate.id === unitId);
   const loadout = unitEquipment[unitId] ?? {};
-  const forgeLevel = buildingLevels.forge ?? 0;
-  const stableLevel = buildingLevels.stable ?? 0;
+  const forgeLevel = buildingLevels[factionBuildingIds.forge] ?? 0;
+  const stableLevel = buildingLevels[factionBuildingIds.mount] ?? 0;
+  const armyLevel = buildingLevels[factionBuildingIds.army] ?? 0;
+  const academyLevel = buildingLevels.officer_academy ?? 0;
   const advanced = getAdvancedPromotionsForUnit(unitId);
+  const forgeName =
+    buildings.find(building => building.id === factionBuildingIds.forge)?.name ??
+    'Forge';
+  const mountName =
+    buildings.find(building => building.id === factionBuildingIds.mount)?.name ??
+    'Mount Building';
+  const armyName =
+    buildings.find(building => building.id === factionBuildingIds.army)?.name ??
+    'Army Building';
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
 
   const inventoryItems = equipmentInventory
     .map(id => getEquipment(id))
@@ -64,7 +84,7 @@ export function EquipmentManageScreen({
 
   const craftableBaseItems = equipmentDefinitions.filter(
     item =>
-      item.faction === 'human' &&
+      item.faction === activeFaction &&
       !item.upgradeFromId &&
       item.requiredForgeLevel <= forgeLevel &&
       (item.requiredStableLevel ?? 0) <= stableLevel
@@ -77,11 +97,13 @@ export function EquipmentManageScreen({
         if (!currentId) return [];
         return equipmentDefinitions.filter(
           item =>
+            item.faction === activeFaction &&
             item.upgradeFromId === currentId &&
-            item.requiredForgeLevel <= forgeLevel
+            item.requiredForgeLevel <= forgeLevel &&
+            (item.requiredStableLevel ?? 0) <= stableLevel
         );
       }),
-    [equipmentDefinitions, forgeLevel, loadout]
+    [activeFaction, equipmentDefinitions, forgeLevel, loadout, stableLevel]
   );
 
   if (!unit) {
@@ -114,13 +136,13 @@ export function EquipmentManageScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.human}>
+      <GameCard accent={factionAccent}>
         <View style={styles.heroRow}>
-          <View style={[styles.portrait, { borderColor: theme.colors.human }]}>
+          <View style={[styles.portrait, { borderColor: factionAccent }]}>
             <UnitSprite className={unit.className} faction={unit.faction} size={54} />
           </View>
           <View style={styles.heroCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>UNIT EQUIPMENT</Text>
+            <Text style={[styles.eyebrow, { color: factionAccent }]}>UNIT EQUIPMENT</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>{unit.name}</Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
               {unit.className} · Tier {unit.tier} · ATK {unit.attack} · ARM {unit.armor} · SPD {unit.speed}
@@ -215,13 +237,22 @@ export function EquipmentManageScreen({
 
       {view === 'forge' ? (
         <>
-          <SectionTitle title={'Field Forge Lv.' + forgeLevel} trailing={forgeLevel >= 2 ? 'Tier II unlocked' : 'Tier I'} />
+          <SectionTitle
+            title={forgeName + ' Lv.' + forgeLevel}
+            trailing={forgeLevel >= 3 ? 'Tier III unlocked' : forgeLevel >= 2 ? 'Tier II unlocked' : 'Tier I'}
+          />
 
-          {settlementAdjacencyBonuses.some(bonus => bonus.id === 'arsenal_district') ? (
+          {settlementAdjacencyBonuses.some(
+            bonus =>
+              bonus.effects.equipmentCostMultiplier !== undefined &&
+              bonus.effects.equipmentCostMultiplier < 1
+          ) ? (
             <GameCard accent={theme.colors.primary}>
-              <Text style={[styles.itemName, { color: theme.colors.text }]}>Arsenal District active</Text>
+              <Text style={[styles.itemName, { color: theme.colors.text }]}>
+                Equipment district active
+              </Text>
               <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>
-                Barracks beside the Forge reduces equipment crafting and upgrade costs by 10%.
+                Your settlement layout reduces equipment crafting and upgrade costs.
               </Text>
             </GameCard>
           ) : null}
@@ -309,13 +340,14 @@ export function EquipmentManageScreen({
                   (value): value is string => Boolean(value)
                 );
                 const gearReady = promotion.requiredEquippedIds.every(id => equippedIds.includes(id));
-                const barracksReady = (buildingLevels.barracks ?? 0) >= promotion.requiredBarracksLevel;
-                const forgeReady = (buildingLevels.forge ?? 0) >= promotion.requiredForgeLevel;
+                const barracksReady =
+                  armyLevel >= promotion.requiredBarracksLevel;
+                const forgeReady =
+                  forgeLevel >= promotion.requiredForgeLevel;
                 const stableReady =
-                  (buildingLevels.stable ?? 0) >=
-                  (promotion.requiredStableLevel ?? 0);
+                  stableLevel >= (promotion.requiredStableLevel ?? 0);
                 const academyReady =
-                  (buildingLevels.officer_academy ?? 0) >=
+                  academyLevel >=
                   (promotion.requiredOfficerAcademyLevel ?? 0);
                 const ready =
                   gearReady &&
@@ -329,7 +361,7 @@ export function EquipmentManageScreen({
                     <View style={styles.itemHeader}>
                       <View style={styles.itemCopy}>
                         <Text style={[styles.itemName, { color: theme.colors.text }]}>{promotion.toClass}</Text>
-                        <Text style={[styles.itemMeta, { color: theme.colors.human }]}>
+                        <Text style={[styles.itemMeta, { color: factionAccent }]}>
                           {promotion.role.toUpperCase()}
                         </Text>
                       </View>
@@ -354,16 +386,16 @@ export function EquipmentManageScreen({
                         {gearReady ? '✓' : '○'} Required gear: {promotion.requiredEquippedIds.map(id => getEquipment(id)?.name ?? id).join(' + ')}
                       </Text>
                       <Text style={[styles.requirement, { color: barracksReady ? theme.colors.primary : theme.colors.textMuted }]}>
-                        {barracksReady ? '✓' : '○'} Barracks Lv.{promotion.requiredBarracksLevel}
+                        {barracksReady ? '✓' : '○'} {armyName} Lv.{promotion.requiredBarracksLevel}
                       </Text>
                       {promotion.requiredForgeLevel > 0 ? (
                         <Text style={[styles.requirement, { color: forgeReady ? theme.colors.primary : theme.colors.textMuted }]}>
-                          {forgeReady ? '✓' : '○'} Forge Lv.{promotion.requiredForgeLevel}
+                          {forgeReady ? '✓' : '○'} {forgeName} Lv.{promotion.requiredForgeLevel}
                         </Text>
                       ) : null}
                       {(promotion.requiredStableLevel ?? 0) > 0 ? (
                         <Text style={[styles.requirement, { color: stableReady ? theme.colors.primary : theme.colors.textMuted }]}>
-                          {stableReady ? '✓' : '○'} Stable Lv.{promotion.requiredStableLevel}
+                          {stableReady ? '✓' : '○'} {mountName} Lv.{promotion.requiredStableLevel}
                         </Text>
                       ) : null}
                       {(promotion.requiredOfficerAcademyLevel ?? 0) > 0 ? (

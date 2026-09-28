@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getEquipment } from '../game/equipment';
+import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle, UnitPortrait } from '../ui/components';
@@ -21,6 +22,7 @@ export function ArmyScreen({
 }) {
   const { theme } = useGameTheme();
   const {
+    activeFaction,
     units,
     formation,
     currentWagonStage,
@@ -34,10 +36,24 @@ export function ArmyScreen({
     commanderChoiceUnlocked,
     activeCommanderPath,
     commanderRespecCost,
-    buildingLevels
+    buildingLevels,
+    factionBuildingIds
   } = useGame();
 
   const activeCount = formation.filter(Boolean).length;
+  const faction = factions[activeFaction];
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
+  const activeForgeLevel =
+    buildingLevels[factionBuildingIds.forge] ?? 0;
+  const forgeAvailable =
+    activeFaction === 'human'
+      ? forgeUnlocked && activeForgeLevel > 0
+      : activeForgeLevel > 0;
   const mira = units.find(unit => unit.id === 'hum_recruit');
   const miraWeapon = unitEquipment.hum_recruit?.weapon
     ? getEquipment(unitEquipment.hum_recruit.weapon)
@@ -45,10 +61,12 @@ export function ArmyScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.human}>
+      <GameCard accent={factionAccent}>
         <View style={styles.header}>
           <View>
-            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>GREENKEEP REMNANT</Text>
+            <Text style={[styles.eyebrow, { color: factionAccent }]}>
+              {faction.name.toUpperCase()} ARMY
+            </Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>Army</Text>
           </View>
           <Pill label={String(activeCount) + ' / ' + String(currentWagonStage.formationSlots) + ' active'} />
@@ -67,7 +85,7 @@ export function ArmyScreen({
               <UnitPortrait
                 name={unit.name}
                 className={unit.className + ' · Lv. ' + unit.level}
-                accent={theme.colors.human}
+                accent={factionAccent}
                 faction={unit.faction}
               />
               <View style={styles.stats}>
@@ -78,7 +96,7 @@ export function ArmyScreen({
               </View>
             </View>
 
-            {unit.id === 'hum_recruit' ? (
+            {activeFaction === 'human' && unit.id === 'hum_recruit' ? (
               <View style={[styles.promotionPreview, { backgroundColor: theme.colors.surface2 }]}>
                 <Text style={[styles.previewTitle, { color: theme.colors.text }]}>
                   {firstPromotionComplete ? 'Assigned equipment' : 'First promotion'}
@@ -111,7 +129,7 @@ export function ArmyScreen({
               </View>
             ) : null}
 
-            {forgeUnlocked && (buildingLevels.forge ?? 0) > 0 ? (
+            {forgeAvailable ? (
               <View style={styles.unitEquipmentButton}>
                 <PrimaryButton
                   label="Loadout / Equipment"
@@ -130,13 +148,13 @@ export function ArmyScreen({
             <Text style={[styles.commanderTitle, { color: theme.colors.text }]}>
               {activeCommanderPath ? activeCommanderPath.name : 'Commander specialization available'}
             </Text>
-            <Text style={[styles.commanderSubtitle, { color: theme.colors.human }]}>
+            <Text style={[styles.commanderSubtitle, { color: factionAccent }]}>
               {activeCommanderPath ? activeCommanderPath.title : 'Choose how your leadership shapes the army'}
             </Text>
             <Text style={[styles.commanderBody, { color: theme.colors.textMuted }]}>
               {activeCommanderPath
                 ? activeCommanderPath.passiveDescription + ' Command skill: ' + activeCommanderPath.skill.name + '.'
-                : 'Pick one of three Human paths: Vanguard Marshal, Ranger-Captain or Cavalry Marshal.'}
+                : 'Choose one of three ' + faction.name + ' commander paths.'}
             </Text>
             <View style={styles.recruitButton}>
               <PrimaryButton
@@ -152,7 +170,7 @@ export function ArmyScreen({
         </>
       ) : null}
 
-      {!recruitChosen ? (
+      {activeFaction === 'human' && !recruitChosen ? (
         <>
           <SectionTitle title="Third squad" trailing={settlementUpgraded ? 'Available now' : 'Unlocks at Settlement'} />
           <GameCard accent={settlementUpgraded ? theme.colors.primary : undefined}>
@@ -165,12 +183,12 @@ export function ArmyScreen({
             <View style={styles.choiceList}>
               {recruitOptions.map(choice => (
                 <View key={choice.id} style={[styles.choice, { backgroundColor: theme.colors.surface2 }]}>
-                  <View style={[styles.choiceIcon, { borderColor: theme.colors.human }]}>
+                  <View style={[styles.choiceIcon, { borderColor: factionAccent }]}>
                     <UnitSprite className={choice.unit.className} faction={choice.unit.faction} size={36} />
                   </View>
                   <View style={styles.choiceCopy}>
                     <Text style={[styles.choiceName, { color: theme.colors.text }]}>{choice.unit.className}</Text>
-                    <Text style={[styles.choiceRole, { color: theme.colors.human }]}>{choice.archetype}</Text>
+                    <Text style={[styles.choiceRole, { color: factionAccent }]}>{choice.archetype}</Text>
                     <Text style={[styles.choicePitch, { color: theme.colors.textMuted }]}>{choice.pitch}</Text>
                   </View>
                 </View>
@@ -185,7 +203,7 @@ export function ArmyScreen({
         </>
       ) : null}
 
-      {forgeUnlocked && (buildingLevels.forge ?? 0) > 0 ? (
+      {forgeAvailable ? (
         <>
           <SectionTitle title="Equipment inventory" trailing={String(equipmentInventory.length)} />
           <GameCard>
@@ -195,7 +213,17 @@ export function ArmyScreen({
                 : 'No unassigned equipment. Crafted gear appears here until equipped or used for a promotion.'}
             </Text>
             <View style={styles.recruitButton}>
-              <PrimaryButton label="Open Field Forge" onPress={onOpenForge} />
+              <PrimaryButton
+                label={activeFaction === 'human' ? 'Open Field Forge' : 'Open Unit Equipment'}
+                onPress={
+                  activeFaction === 'human'
+                    ? onOpenForge
+                    : () => {
+                        const firstUnit = units[0];
+                        if (firstUnit) onOpenEquipment(firstUnit.id);
+                      }
+                }
+              />
             </View>
           </GameCard>
         </>

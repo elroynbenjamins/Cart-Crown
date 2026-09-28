@@ -647,3 +647,107 @@ Great Warhold requirements:
 - 20 Iron
 
 The Great Warhold expands the War Cart from 5×5 to **5×6**, raises active squad capacity from 4 to **5**, and begins Orc Chapter 4 / **War on Two Fronts**.
+
+
+## Elf Chapter 4 — Roots in Ash
+
+The five-squad Enclave tier is now playable:
+
+1. **Ashen Grove Muster**
+   - Blade Warden
+   - Druid
+   - Moon Ranger
+2. **Roots in Ash**
+3. **The Burned Ward**
+   - unlocks Burned Ward Reclamation
+   - +4 Wood and +3 Provisions per meaningful activity
+4. **Two Fronts**
+5. **Living Root Council**
+6. **Ashen Druid**
+
+Defeating the Ashen Druid unlocks the **Worldroot Sanctuary** project.
+
+Worldroot Sanctuary requirements:
+- Warden Lodge Lv.4
+- Moon Forge Lv.4
+- Caravan Grove Lv.4
+- Council Glade Lv.3
+- Spirit Stores Lv.3
+- Stag Enclosure Lv.2
+- Ward Beacon Lv.2
+- 390 Gold
+- 175 Wood
+- 130 Stone
+- 35 Iron
+
+Worldroot Sanctuary:
+- expands the Wayfarer Caravan from 5×6 to **6×7**
+- raises active squad capacity from 5 to **6**
+- begins Elf Chapter 5 / **The Wounded Worldroot**
+
+## Orc Chapter 4 — War on Two Fronts
+
+The five-squad Great Warhold tier is now playable:
+
+1. **Warhold Muster**
+   - Ironhide
+   - Axe Thrower
+   - Bone Shaman
+2. **War on Two Fronts**
+3. **Split Warfire**
+   - unlocks Steppe War Camp
+   - +4 Gold and +4 Provisions per meaningful activity
+4. **Broken Steppe War**
+5. **Two-Front Council**
+6. **The Split-Chieftain**
+
+Defeating the Split-Chieftain unlocks the **Emberclan High Warhold** project.
+
+High Warhold requirements:
+- Clan Yard Lv.4
+- Bone Forge Lv.4
+- War Cartwright Lv.4
+- War Council Lv.3
+- Smokehouse Lv.3
+- Warg Pens Lv.2
+- Watchfire Lv.2
+- 400 Gold
+- 170 Wood
+- 125 Stone
+- 45 Iron
+
+High Warhold:
+- expands the War Cart from 5×6 to **6×7**
+- raises active squad capacity from 5 to **6**
+- begins Orc Chapter 5 / **No Clan Left Behind**
+
+## Stag and Warg mounted branches
+
+Alternate-faction mount buildings now drive real equipment-based promotions.
+
+### Elves
+- Stag Scout + Trained Stag → **Stag Rider**
+- Stag Rider + Stag Rider Bow → **Mounted Ranger**
+- Stag Rider + Moon Lance → **Stag Lancer**
+
+### Orcs
+- Warg Scout + Trained Warg → **Warg Rider**
+- Warg Rider + Raider Axe → **Warg Raider**
+- Warg Rider + Warg Lance → **Warg Lancer**
+
+The mount is assigned equipment, not a consumed promotion token.
+
+Tier III upgrades are also available without forcing another class change:
+- Veteran Stag
+- Star Lance
+- Starbow
+- Starweave Armor
+- Veteran Warg
+- Bonehook Lance
+- Bloodaxe
+- Ironhide Plate
+
+The generic equipment screen now uses the active faction's actual buildings:
+- Field Forge / Stable / Barracks for Humans
+- Moon Forge / Stag Enclosure / Warden Lodge for Elves
+- Bone Forge / Warg Pens / Clan Yard for Orcs

@@ -97,14 +97,20 @@ export const unitClassVisuals: Record<string, UnitVisualKind> = {
   'grove acolyte': 'infantry',
   'spear warden': 'infantry',
   spiritkeeper: 'infantry',
+  'blade warden': 'infantry',
+  druid: 'infantry',
   youngblood: 'infantry',
   'clan warrior': 'infantry',
   'war drummer': 'infantry',
   'spear raider': 'infantry',
   warbringer: 'infantry',
+  ironhide: 'infantry',
+  'bone shaman': 'infantry',
   archer: 'archer',
   'bow warden': 'archer',
+  'moon ranger': 'archer',
   'bone hunter': 'archer',
+  'axe thrower': 'archer',
   longbowman: 'archer',
   marksman: 'archer',
   scout: 'scout',
@@ -119,7 +125,13 @@ export const unitClassVisuals: Record<string, UnitVisualKind> = {
   cavalryman: 'cavalryman',
   'heavy cavalry': 'cavalryman',
   lancer: 'lancer',
-  'mounted archer': 'mounted_archer'
+  'mounted archer': 'mounted_archer',
+  'stag rider': 'scout_rider',
+  'mounted ranger': 'mounted_archer',
+  'stag lancer': 'lancer',
+  'warg rider': 'scout_rider',
+  'warg raider': 'cavalryman',
+  'warg lancer': 'lancer'
 };
 
 export const equipmentVisuals: Record<string, EquipmentVisualKind> = {
@@ -143,7 +155,33 @@ export const equipmentVisuals: Record<string, EquipmentVisualKind> = {
   hum_ranger_coat: 'armor',
   hum_heavy_plate: 'armor',
   hum_trained_horse: 'horse',
-  hum_veteran_warhorse: 'horse'
+  hum_veteran_warhorse: 'horse',
+
+  elf_spiritwood_spear: 'spear',
+  elf_moonsilver_spear: 'spear',
+  elf_moonbow: 'bow',
+  elf_rider_bow: 'bow',
+  elf_starbow: 'bow',
+  elf_moon_lance: 'spear',
+  elf_star_lance: 'spear',
+  elf_leafweave: 'armor',
+  elf_moonweave: 'armor',
+  elf_starweave: 'armor',
+  elf_trained_stag: 'horse',
+  elf_veteran_stag: 'horse',
+
+  orc_iron_axe: 'sword',
+  orc_blackiron_axe: 'sword',
+  orc_raider_axe: 'sword',
+  orc_bloodaxe: 'sword',
+  orc_hunter_bow: 'bow',
+  orc_warg_lance: 'spear',
+  orc_bonehook_lance: 'spear',
+  orc_warhide: 'armor',
+  orc_reinforced_warhide: 'armor',
+  orc_ironhide_plate: 'armor',
+  orc_trained_warg: 'horse',
+  orc_veteran_warg: 'horse'
 };
 
 export const buildingVisuals: Record<string, BuildingVisualKind> = {
@@ -202,7 +240,9 @@ export const resourceSiteVisuals: Record<string, ResourceSiteVisualKind> = {
   elf_moonwell_herbs: 'herb_grove',
   orc_red_plains_hunt: 'hunt',
   elf_moonlit_watch: 'beacon',
-  orc_stonejaw_quarry: 'quarry'
+  orc_stonejaw_quarry: 'quarry',
+  elf_burned_ward_reclamation: 'herb_grove',
+  orc_steppe_war_camp: 'depot'
 };
 
 export function getUnitVisualKind(className: string): UnitVisualKind {

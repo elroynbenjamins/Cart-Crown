@@ -35,7 +35,13 @@ export type EncounterId =
   | 'elf_pale_ranger'
   | 'orc_stonejaw_trial'
   | 'orc_broken_steppe'
-  | 'orc_stonejaw_champion';
+  | 'orc_stonejaw_champion'
+  | 'elf_roots_in_ash'
+  | 'elf_two_fronts'
+  | 'elf_ashen_druid'
+  | 'orc_two_front_war'
+  | 'orc_broken_steppe_war'
+  | 'orc_split_chieftain';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -357,6 +363,60 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 950,
     difficulty: 'Boss'
+  },
+  elf_roots_in_ash: {
+    id: 'elf_roots_in_ash',
+    name: 'Roots in Ash',
+    subtitle: 'The Enclave pushes into groves where living roots and ash-corrupted growth are tangled together.',
+    enemyName: 'Ashroot Warband',
+    enemyCount: 6,
+    enemyHp: 760,
+    difficulty: 'Normal'
+  },
+  elf_two_fronts: {
+    id: 'elf_two_fronts',
+    name: 'Two Fronts',
+    subtitle: 'Wardbreakers strike the rootways while an Ashen force attacks the outer grove at the same time.',
+    enemyName: 'Ashen Twin Front',
+    enemyCount: 6,
+    enemyHp: 980,
+    difficulty: 'Elite'
+  },
+  elf_ashen_druid: {
+    id: 'elf_ashen_druid',
+    name: 'Ashen Druid',
+    subtitle: 'A corrupted Druid is forcing the burned wards to feed an Ashen ritual around the Worldroot approaches.',
+    enemyName: 'Ashen Druid Circle',
+    enemyCount: 6,
+    enemyHp: 1320,
+    difficulty: 'Boss'
+  },
+  orc_two_front_war: {
+    id: 'orc_two_front_war',
+    name: 'War on Two Fronts',
+    subtitle: 'Emberclan must hold the Steppe road while a second false-standard force attacks the rear clan camps.',
+    enemyName: 'Split-Front Raiders',
+    enemyCount: 6,
+    enemyHp: 790,
+    difficulty: 'Normal'
+  },
+  orc_broken_steppe_war: {
+    id: 'orc_broken_steppe_war',
+    name: 'Broken Steppe War',
+    subtitle: 'The false standards spread into a larger Steppe battle while rival clans receive contradictory orders.',
+    enemyName: 'Broken Steppe Warhost',
+    enemyCount: 6,
+    enemyHp: 1010,
+    difficulty: 'Elite'
+  },
+  orc_split_chieftain: {
+    id: 'orc_split_chieftain',
+    name: 'The Split-Chieftain',
+    subtitle: 'A chieftain manipulated by Ashen couriers tries to divide the gathered clans before the two-front pact can hold.',
+    enemyName: 'Split-Chieftain Host',
+    enemyCount: 6,
+    enemyHp: 1360,
+    difficulty: 'Boss'
   }
 };
 
@@ -500,6 +560,30 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   orc_stonejaw_champion: {
     resources: { gold: 190, wood: 75, stone: 52, iron: 18, provisions: 15 },
     storySummary: 'The Stonejaw Champion yields. The clans accept Emberclan’s oath and the Warhold can grow into a Great Warhold.'
+  },
+  elf_roots_in_ash: {
+    resources: { gold: 105, wood: 22, stone: 12, provisions: 8 },
+    storySummary: 'The Enclave holds the ash-root line and proves the burned groves can be reclaimed instead of abandoned.'
+  },
+  elf_two_fronts: {
+    resources: { gold: 128, wood: 26, stone: 14, iron: 6, provisions: 9 },
+    storySummary: 'Both Elven fronts hold. Captured orders point to an Ashen Druid coordinating the simultaneous attacks.'
+  },
+  elf_ashen_druid: {
+    resources: { gold: 265, wood: 120, stone: 90, iron: 24, provisions: 18 },
+    storySummary: 'The Ashen Druid falls. The Worldroot approaches are open and Heartgrove can prepare a true Sanctuary for six active squads.'
+  },
+  orc_two_front_war: {
+    resources: { gold: 108, wood: 20, stone: 12, iron: 8, provisions: 10 },
+    storySummary: 'Emberclan holds both roads. The attacks were deliberately timed to make each clan believe the other had abandoned it.'
+  },
+  orc_broken_steppe_war: {
+    resources: { gold: 132, wood: 24, stone: 16, iron: 9, provisions: 10 },
+    storySummary: 'The Steppe warhost breaks. Ashen couriers were feeding different battle orders to each front.'
+  },
+  orc_split_chieftain: {
+    resources: { gold: 275, wood: 115, stone: 88, iron: 30, provisions: 20 },
+    storySummary: 'The Split-Chieftain yields. The clans accept a permanent High Warhold and prepare to bring every clan into the next campaign.'
   }
 };
 

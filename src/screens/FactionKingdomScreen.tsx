@@ -45,8 +45,11 @@ export function FactionKingdomScreen({
     canUpgradeFactionFort,
     factionTownUpgradeAvailable,
     canUpgradeFactionTown,
+    factionStrongholdUpgradeAvailable,
+    canUpgradeFactionStronghold,
     upgradeFactionToFort,
     upgradeFactionToTown,
+    upgradeFactionToStronghold,
     upgradeBuilding,
     isBuildingUnlocked,
     activeCommanderPath,
@@ -64,16 +67,20 @@ export function FactionKingdomScreen({
 
   const settlementName =
     elf
-      ? currentWagonStage.id === 'town'
-        ? 'Heartgrove Enclave'
-        : currentWagonStage.id === 'fort'
-          ? 'Heartgrove Wardhold'
-          : 'Heartgrove Sanctuary'
-      : currentWagonStage.id === 'town'
-        ? 'Emberclan Great Warhold'
-        : currentWagonStage.id === 'fort'
-          ? 'Emberclan Warhold'
-          : 'Emberclan Warcamp';
+      ? currentWagonStage.id === 'stronghold'
+        ? 'Worldroot Sanctuary'
+        : currentWagonStage.id === 'town'
+          ? 'Heartgrove Enclave'
+          : currentWagonStage.id === 'fort'
+            ? 'Heartgrove Wardhold'
+            : 'Heartgrove Sanctuary'
+      : currentWagonStage.id === 'stronghold'
+        ? 'Emberclan High Warhold'
+        : currentWagonStage.id === 'town'
+          ? 'Emberclan Great Warhold'
+          : currentWagonStage.id === 'fort'
+            ? 'Emberclan Warhold'
+            : 'Emberclan Warcamp';
 
   const productionTotal = Object.values(productionStock).reduce(
     (total, value) => total + value,
@@ -86,6 +93,7 @@ export function FactionKingdomScreen({
     : 'Use the Warcamp, Momentum and a third squad to bind the Red Plains clans.';
   let goalButton = 'Continue Chapter 2';
   let goalDisabled = true;
+  let goalCost: string | null = null;
   let goalAction = () => false;
 
   if (recruitChoiceAvailable && !recruitChosen) {
@@ -103,6 +111,9 @@ export function FactionKingdomScreen({
       ? 'The Ashroot Stalker is defeated. Upgrade the Warden Lodge, Moon Forge and Caravan Grove, then fortify the rootway.'
       : 'The Clanbreaker is defeated. Upgrade the Clan Yard, Bone Forge and War Cartwright, then raise a permanent Warhold.';
     goalButton = elf ? 'Build Wardhold' : 'Build Warhold';
+    goalCost = elf
+      ? '140 Gold · 75 Wood · 35 Stone'
+      : '135 Gold · 70 Wood · 30 Stone · 8 Iron';
     goalDisabled = !canUpgradeFactionFort;
     goalAction = upgradeFactionToFort;
   } else if (factionTownUpgradeAvailable) {
@@ -111,14 +122,35 @@ export function FactionKingdomScreen({
       ? 'The Pale Ranger is defeated. Upgrade the Warden Lodge, Moon Forge and Caravan Grove to Lv.3, maintain Stag and ward infrastructure, then establish a permanent Enclave.'
       : 'The Stonejaw Champion has yielded. Upgrade the Clan Yard, Bone Forge and War Cartwright to Lv.3, maintain Warg and watchfire infrastructure, then raise the Great Warhold.';
     goalButton = elf ? 'Build Heartgrove Enclave' : 'Build Great Warhold';
+    goalCost = elf
+      ? '245 Gold · 115 Wood · 75 Stone · 10 Iron'
+      : '240 Gold · 110 Wood · 70 Stone · 20 Iron';
     goalDisabled = !canUpgradeFactionTown;
     goalAction = upgradeFactionToTown;
-  } else if (currentWagonStage.id === 'town') {
-    goalTitle = elf ? 'Heartgrove Enclave established' : 'Great Warhold established';
+  } else if (factionStrongholdUpgradeAvailable) {
+    goalTitle = elf ? 'Raise Worldroot Sanctuary' : 'Raise the High Warhold';
     goalBody = elf
-      ? 'Five-squad capacity and 5×6 caravan logistics are ready for Roots in Ash.'
-      : 'Five-squad capacity and 5×6 War Cart logistics are ready for War on Two Fronts.';
-    goalButton = 'Chapter 4 ready';
+      ? 'The Ashen Druid is defeated. Upgrade Warden Lodge, Moon Forge and Caravan Grove to Lv.4, Council Glade and Spirit Stores to Lv.3, and Stag/Beacon infrastructure to Lv.2 before establishing the Worldroot Sanctuary.'
+      : 'The Split-Chieftain has yielded. Upgrade Clan Yard, Bone Forge and War Cartwright to Lv.4, War Council and Smokehouse to Lv.3, and Warg/Watchfire infrastructure to Lv.2 before raising the High Warhold.';
+    goalButton = elf ? 'Build Worldroot Sanctuary' : 'Build High Warhold';
+    goalCost = elf
+      ? '390 Gold · 175 Wood · 130 Stone · 35 Iron'
+      : '400 Gold · 170 Wood · 125 Stone · 45 Iron';
+    goalDisabled = !canUpgradeFactionStronghold;
+    goalAction = upgradeFactionToStronghold;
+  } else if (currentWagonStage.id === 'stronghold') {
+    goalTitle = elf ? 'Worldroot Sanctuary established' : 'High Warhold established';
+    goalBody = elf
+      ? 'Six-squad capacity and 6×7 caravan logistics are ready for The Wounded Worldroot.'
+      : 'Six-squad capacity and 6×7 War Cart logistics are ready for No Clan Left Behind.';
+    goalButton = 'Chapter 5 ready';
+    goalDisabled = true;
+  } else if (currentWagonStage.id === 'town') {
+    goalTitle = elf ? 'Fight through Roots in Ash' : 'Hold the two-front war';
+    goalBody = elf
+      ? 'Use five squads, Elven Wards and Stag mobility to defeat the Ashen Druid.'
+      : 'Use five squads, Momentum and Warg mobility to defeat the Split-Chieftain.';
+    goalButton = 'Stronghold tier is story-gated';
     goalDisabled = true;
   } else if (currentWagonStage.id === 'fort') {
     goalTitle = elf ? 'Secure Moonlit Pass' : 'Complete the Stonejaw Trial';
@@ -166,6 +198,11 @@ export function FactionKingdomScreen({
         <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>CURRENT KINGDOM GOAL</Text>
         <Text style={[styles.goalTitle, { color: theme.colors.text }]}>{goalTitle}</Text>
         <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>{goalBody}</Text>
+        {goalCost ? (
+          <Text style={[styles.cost, { color: theme.colors.gold }]}>
+            {goalCost}
+          </Text>
+        ) : null}
         <View style={styles.button}>
           <PrimaryButton label={goalButton} disabled={goalDisabled} onPress={goalAction} />
         </View>

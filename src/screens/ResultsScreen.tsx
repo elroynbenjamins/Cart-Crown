@@ -94,6 +94,18 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'orc_broken_steppe_result';
   const orcChapterThreeBossResult =
     lastBattleResult.id === 'orc_stonejaw_champion_result';
+  const elfChapterFourBattleResult =
+    lastBattleResult.id === 'elf_roots_in_ash_result';
+  const elfChapterFourEliteResult =
+    lastBattleResult.id === 'elf_two_fronts_result';
+  const elfChapterFourBossResult =
+    lastBattleResult.id === 'elf_ashen_druid_result';
+  const orcChapterFourBattleResult =
+    lastBattleResult.id === 'orc_two_front_war_result';
+  const orcChapterFourEliteResult =
+    lastBattleResult.id === 'orc_broken_steppe_war_result';
+  const orcChapterFourBossResult =
+    lastBattleResult.id === 'orc_split_chieftain_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -137,7 +149,79 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {elfChapterThreeBossResult ? (
+      {elfChapterFourBossResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CHAPTER 4 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Worldroot Sanctuary project unlocked
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Ashen Druid is defeated. Mature the Enclave to Lv.4 military/logistics infrastructure and Lv.2 Stag/Beacon support, then establish the six-squad Worldroot Sanctuary.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterFourEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>TWO FRONTS HELD</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Ashen Druid identified
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Captured orders show one Druid is coordinating both attacks. The Living Root Council can now authorize the final hunt.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterFourBattleResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ASH-GROVE RECOVERY</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Burned wards can be reclaimed
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The first ash-root line is secured. Reclaiming the burned ward will add permanent wood/provision production and open the route to the two-front battle.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterFourBossResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>ORC CHAPTER 4 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              High Warhold project unlocked
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Split-Chieftain yields. Mature the Great Warhold to Lv.4 military/logistics infrastructure and Lv.2 Warg/Watchfire support, then raise the six-squad High Warhold.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterFourEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>FALSE ORDERS EXPOSED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              The two-front war was engineered
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Ashen couriers fed different orders to both fronts. The Two-Front Council can now bind the clans before confronting the Split-Chieftain.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterFourBattleResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>STEPPE WAR CAMP</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Both roads held
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Emberclan can establish a permanent Steppe War Camp, adding Gold and Provisions to regional production.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterThreeBossResult ? (
         <>
           <GameCard accent={theme.colors.elf}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CHAPTER 3 COMPLETE</Text>

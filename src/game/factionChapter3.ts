@@ -157,6 +157,6 @@ export const orcChapterFourNodes: ChapterNode[] = [
   { id: 'orc4_node_2', name: 'War on Two Fronts', type: 'battle', completed: false },
   { id: 'orc4_node_3', name: 'Split Warfire', type: 'event', completed: false },
   { id: 'orc4_node_4', name: 'Broken Steppe War', type: 'elite', completed: false },
-  { id: 'orc4_node_5', name: 'No Clan Left Behind', type: 'event', completed: false },
+  { id: 'orc4_node_5', name: 'Two-Front Council', type: 'event', completed: false },
   { id: 'orc4_node_6', name: 'The Split-Chieftain', type: 'boss', completed: false }
 ];
