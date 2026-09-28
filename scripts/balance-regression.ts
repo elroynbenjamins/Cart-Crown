@@ -9,7 +9,10 @@ import {
 import { royalDecrees } from '../src/game/capital';
 import { fortMusterOptions } from '../src/game/chapter2';
 import { marcherAuxiliaryOptions } from '../src/game/chapter3';
-import { strongholdMusterOptions } from '../src/game/chapter4';
+import {
+  lastLoyalistChoices,
+  strongholdMusterOptions
+} from '../src/game/chapter4';
 import { getCommanderPaths } from '../src/game/commanders';
 import { humanRecruitOptions, starterUnits } from '../src/game/data';
 import {
@@ -56,6 +59,7 @@ type CombatModifier = {
   attackMultiplier: number;
   armorMultiplier: number;
   speedMultiplier: number;
+  retaliationMultiplier?: number;
   commanderSkillPowerMultiplier?: number;
 };
 
@@ -791,7 +795,8 @@ function simulate(
       Math.round(
         (rawEnemyStrike *
           enemyPressureMultiplier *
-          retaliationFactor) /
+          retaliationFactor *
+          (modifier.retaliationMultiplier ?? 1)) /
           Math.max(
             0.7,
             profile.armorStatMultiplier *
@@ -1187,6 +1192,53 @@ function runCommanderCoverage() {
       );
     }
   }
+}
+
+function runHumanStoryChoiceCoverage() {
+  const faction: FactionId = 'human';
+  const chapter = 4;
+  const units = normalArmy(faction, chapter);
+  const encounterId: EncounterId = 'pretender_general';
+  const outcomes = new Set<string>();
+
+  for (const choice of lastLoyalistChoices) {
+    const result = simulate({
+      faction,
+      units,
+      doctrineId: doctrineByFaction.human,
+      shapeId: shapeFor('human', chapter),
+      commander: defaultCommander('human'),
+      encounterId,
+      squadCap: 6,
+      readiness: 100,
+      modifier: {
+        attackMultiplier: choice.attackMultiplier,
+        armorMultiplier: choice.armorMultiplier,
+        speedMultiplier: 1,
+        retaliationMultiplier: choice.retaliationMultiplier,
+        commanderSkillPowerMultiplier: 1
+      }
+    });
+
+    expect(
+      result.victory,
+      'Human Chapter 4 became impossible with Loyalist approach: ' +
+        choice.name
+    );
+
+    outcomes.add(
+      [
+        result.turns,
+        result.remainingHp,
+        result.enemyRemainingHp
+      ].join('|')
+    );
+  }
+
+  expect(
+    outcomes.size >= 2,
+    'The three Loyalist approaches no longer produce distinct Chapter 4 combat outcomes.'
+  );
 }
 
 function runLatePolicyCoverage() {
@@ -1697,6 +1749,7 @@ function main() {
   runReadinessCoverage();
   const rows = runChapterMatrix();
   runCommanderCoverage();
+  runHumanStoryChoiceCoverage();
   runLatePolicyCoverage();
   runMountedBranchCoverage();
   runFormationCoverage();
@@ -1725,7 +1778,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: chapter bosses, Readiness thresholds, commander paths, formation shapes, enemy formations, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
+    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, enemy formations, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
   );
 }
 
