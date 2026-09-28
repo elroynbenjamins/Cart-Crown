@@ -9,19 +9,13 @@ import {
   Pill,
   PrimaryButton,
   ProgressBar,
+  ResourceAmountRow,
   ResourceChip,
   SecondaryButton,
-  SectionTitle
+  SectionTitle,
+  StatusPill
 } from '../ui/components';
 import { BuildingSprite, ResourceSiteSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
-
-const resourceIcons: Record<keyof ResourceWallet, string> = {
-  gold: '🪙',
-  wood: '🪵',
-  stone: '🪨',
-  iron: '⛓',
-  provisions: '🍞'
-};
 
 export function KingdomScreen({
   onOpenRecruitment,
@@ -111,6 +105,7 @@ export function KingdomScreen({
     ? 'The road is secure. Resources are ready.'
     : 'Story milestone required: Hold the Road';
   let action = upgradeSettlement;
+  let milestoneCost: Partial<ResourceWallet> | null = { wood: 90, stone: 20 };
 
   if (settlementUpgraded && !recruitChosen) {
     milestoneTitle = 'Choose the first reinforcements';
@@ -122,6 +117,7 @@ export function KingdomScreen({
       onOpenRecruitment();
       return true;
     };
+    milestoneCost = null;
   } else if (currentWagonStage.id === 'grand') {
     milestoneTitle = 'Grand Campaign prepared';
     milestoneBody = 'Greenkeep has committed every major road, depot and command network to the final march into Crownspire.';
@@ -129,6 +125,7 @@ export function KingdomScreen({
     disabled = true;
     requirement = 'Chapter 6 · Return to Crownspire';
     action = () => false;
+    milestoneCost = null;
   } else if (currentWagonStage.id === 'capital' && grandUpgradeAvailable) {
     milestoneTitle = 'Prepare the Grand Campaign';
     milestoneBody = 'The Gate of Crownspire is open. Finish the Capital command, supply, remount and signal network, keep a Royal Decree active, then fund the final 7×9 campaign expansion.';
@@ -137,6 +134,7 @@ export function KingdomScreen({
     requirement =
       'Requires Barracks Lv.5 · Forge Lv.5 · Wagonwright Lv.5 · War Room Lv.5 · Quartermaster Lv.5 · Stable Lv.4 · Signal Tower Lv.4 · Officer Academy Lv.3 · Active Royal Decree · 1000 Gold · 420 Wood · 360 Stone · 120 Iron';
     action = upgradeToGrand;
+    milestoneCost = { gold: 1000, wood: 420, stone: 360, iron: 120 };
   } else if (currentWagonStage.id === 'capital') {
     milestoneTitle = 'Open the Gate of Crownspire';
     milestoneBody = 'Use the Capital’s decree, elite army and provincial production network to expose the Ashen Court and reach Crownspire.';
@@ -144,6 +142,7 @@ export function KingdomScreen({
     disabled = true;
     requirement = 'Defeat the Gate of Crownspire';
     action = () => false;
+    milestoneCost = null;
   } else if (currentWagonStage.id === 'stronghold' && capitalUpgradeAvailable) {
     milestoneTitle = 'Raise Greenkeep Capital';
     milestoneBody = 'The Pretender General is defeated. Mature the Stronghold’s military, logistics, signals and officer corps before funding the Capital expansion.';
@@ -152,6 +151,7 @@ export function KingdomScreen({
     requirement =
       'Requires Barracks Lv.5 · Forge Lv.5 · Wagonwright Lv.5 · War Room Lv.4 · Quartermaster Lv.4 · Stable Lv.3 · Signal Tower Lv.3 · Officer Academy Lv.2 · 650 Gold · 280 Wood · 220 Stone · 70 Iron';
     action = upgradeToCapital;
+    milestoneCost = { gold: 650, wood: 280, stone: 220, iron: 70 };
   } else if (currentWagonStage.id === 'stronghold') {
     milestoneTitle = 'Break the old royal command';
     milestoneBody = 'Use the six-squad Stronghold army and elite equipment to expose the officers still issuing orders in the name of an empty throne.';
@@ -159,6 +159,7 @@ export function KingdomScreen({
     disabled = true;
     requirement = 'Defeat the Pretender General';
     action = () => false;
+    milestoneCost = null;
   } else if (currentWagonStage.id === 'town' && strongholdUpgradeAvailable) {
     milestoneTitle = 'Raise Greenkeep Stronghold';
     milestoneBody = 'Lord Marshal Veyr is defeated. Upgrade Greenkeep’s military, logistics and command buildings before funding the Stronghold walls and heavy campaign infrastructure.';
@@ -167,6 +168,7 @@ export function KingdomScreen({
     requirement =
       'Requires Barracks Lv.4 · Forge Lv.4 · Wagonwright Lv.4 · War Room Lv.3 · Quartermaster Lv.3 · Stable Lv.2 · Signal Tower Lv.2 · 400 Gold · 180 Wood · 140 Stone · 40 Iron';
     action = upgradeToStronghold;
+    milestoneCost = { gold: 400, wood: 180, stone: 140, iron: 40 };
   } else if (currentWagonStage.id === 'town') {
     milestoneTitle = 'Secure the Border Marches';
     milestoneBody = 'Strengthen the Town and expose the false marcher orders while pushing toward Lord Marshal Veyr.';
@@ -174,6 +176,7 @@ export function KingdomScreen({
     disabled = true;
     requirement = 'Defeat Lord Marshal Veyr';
     action = () => false;
+    milestoneCost = null;
   } else if (currentWagonStage.id === 'fort' && townUpgradeAvailable) {
     milestoneTitle = 'Raise Greenkeep Town';
     milestoneBody = 'The Iron Provost is defeated. Finish the professional Barracks, Forge and Wagonwright upgrades, maintain a Stable and rebuild the Signal Tower before funding the Town expansion.';
@@ -182,6 +185,7 @@ export function KingdomScreen({
     requirement =
       'Requires Barracks Lv.3 · Forge Lv.3 · Wagonwright Lv.3 · Stable Lv.1 · Signal Tower Lv.1 · 250 Gold · 120 Wood · 80 Stone · 25 Iron';
     action = upgradeToTown;
+    milestoneCost = { gold: 250, wood: 120, stone: 80, iron: 25 };
   } else if (currentWagonStage.id === 'fort') {
     milestoneTitle = 'Secure the Iron Road';
     milestoneBody = 'Develop the Fort, expand cavalry and restore the frontier network while pushing toward the Iron Provost.';
@@ -189,6 +193,7 @@ export function KingdomScreen({
     disabled = true;
     requirement = 'Defeat the Iron Provost';
     action = () => false;
+    milestoneCost = null;
   } else if (settlementUpgraded && recruitChosen && fortUpgradeAvailable) {
     milestoneTitle = 'Raise Greenkeep Fort';
     milestoneBody = 'The Toll Captain is defeated. Complete the required building upgrades, then invest in walls, roads and a permanent Stable.';
@@ -197,6 +202,7 @@ export function KingdomScreen({
     requirement =
       'Requires Barracks Lv.2 · Forge Lv.2 · Wagonwright Lv.2 · 150 Gold · 70 Wood · 35 Stone · 10 Iron';
     action = upgradeToFort;
+    milestoneCost = { gold: 150, wood: 70, stone: 35, iron: 10 };
   } else if (settlementUpgraded && recruitChosen) {
     milestoneTitle = 'Build toward the Fort';
     milestoneBody = 'Upgrade specialized buildings while the campaign opens the road toward the first Fort tier.';
@@ -204,12 +210,8 @@ export function KingdomScreen({
     disabled = true;
     requirement = 'Improve Greenkeep and defeat the Toll Captain';
     action = () => false;
+    milestoneCost = null;
   }
-
-  const formatCost = (cost: Partial<ResourceWallet>) =>
-    Object.entries(cost)
-      .map(([key, amount]) => resourceIcons[key as keyof ResourceWallet] + ' ' + String(amount))
-      .join('  ');
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -266,45 +268,9 @@ export function KingdomScreen({
             <Text style={[styles.goalTitle, { color: theme.colors.text }]}>{milestoneTitle}</Text>
             <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>{milestoneBody}</Text>
           </View>
-          {!settlementUpgraded ? (
+          {milestoneCost ? (
             <View style={styles.goalCost}>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>90 🪵</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>20 🪨</Text>
-            </View>
-          ) : fortUpgradeAvailable && currentWagonStage.id !== 'fort' ? (
-            <View style={styles.goalCost}>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>150 🪙</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>70 🪵</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>35 🪨</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>10 ⛓</Text>
-            </View>
-          ) : townUpgradeAvailable && currentWagonStage.id === 'fort' ? (
-            <View style={styles.goalCost}>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>250 🪙</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>120 🪵</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>80 🪨</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>25 ⛓</Text>
-            </View>
-          ) : strongholdUpgradeAvailable && currentWagonStage.id === 'town' ? (
-            <View style={styles.goalCost}>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>400 🪙</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>180 🪵</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>140 🪨</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>40 ⛓</Text>
-            </View>
-          ) : capitalUpgradeAvailable && currentWagonStage.id === 'stronghold' ? (
-            <View style={styles.goalCost}>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>650 🪙</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>280 🪵</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>220 🪨</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>70 ⛓</Text>
-            </View>
-          ) : grandUpgradeAvailable && currentWagonStage.id === 'capital' ? (
-            <View style={styles.goalCost}>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>1000 🪙</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>420 🪵</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>360 🪨</Text>
-              <Text style={[styles.costText, { color: theme.colors.text }]}>120 ⛓</Text>
+              <ResourceAmountRow values={milestoneCost} compact />
             </View>
           ) : null}
         </View>
@@ -358,20 +324,19 @@ export function KingdomScreen({
                   <Text style={[styles.productionBody, { color: theme.colors.textMuted }]}>
                     {site.description}
                   </Text>
-                  <Text style={[styles.productionRate, { color: theme.colors.primary }]}>
-                    Per activity · {Object.entries(site.productionPerActivity)
-                      .map(([key, value]) => resourceIcons[key as keyof ResourceWallet] + ' +' + String(value))
-                      .join('  ')}
-                  </Text>
+                  <Text style={[styles.productionRate, { color: theme.colors.primary }]}>Per activity</Text>
+                  <View style={styles.productionAmounts}>
+                    <ResourceAmountRow values={site.productionPerActivity} prefix="+" compact />
+                  </View>
                 </GameCard>
               ))}
           </View>
 
           <GameCard>
             <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>Unclaimed Production</Text>
-            <Text style={[styles.productionStock, { color: theme.colors.gold }]}>
-              🪙 {productionStock.gold} · 🪵 {productionStock.wood} · 🪨 {productionStock.stone} · ⛓ {productionStock.iron} · 🍞 {productionStock.provisions}
-            </Text>
+            <View style={styles.productionAmounts}>
+              <ResourceAmountRow values={productionStock} />
+            </View>
             <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
               Campaign battles, Expeditions and Kingdom Defense advance one production cycle. Claim whenever you return to Greenkeep.
             </Text>
@@ -407,7 +372,10 @@ export function KingdomScreen({
             >
               <View style={styles.buildingTop}>
                 <BuildingSprite buildingId={building.id} faction={building.faction} size={42} />
-                <Pill label={unlocked ? 'LV.' + level : 'LOCKED'} />
+                <StatusPill
+                  label={unlocked ? 'LV.' + level : 'LOCKED'}
+                  tone={unlocked ? 'available' : 'locked'}
+                />
               </View>
               <Text style={[styles.buildingName, { color: theme.colors.text }]}>{building.name}</Text>
               <Text style={[styles.buildingBody, { color: theme.colors.textMuted }]}>
@@ -428,9 +396,9 @@ export function KingdomScreen({
                   <Text style={[styles.nextEffect, { color: theme.colors.primary }]}>
                     Next: {nextDefinition.effect}
                   </Text>
-                  <Text style={[styles.buildingCost, { color: theme.colors.gold }]}>
-                    {formatCost(cost)}
-                  </Text>
+                  <View style={styles.buildingCost}>
+                    <ResourceAmountRow values={cost} compact />
+                  </View>
                   <View style={styles.buildingButton}>
                     <PrimaryButton
                       label={'Upgrade to Lv.' + (level + 1)}
@@ -579,6 +547,7 @@ const styles = StyleSheet.create({
   productionBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
   productionRate: { fontSize: 8.5, lineHeight: 13, fontWeight: '900', marginTop: 6 },
   productionStock: { fontSize: 10.5, lineHeight: 16, fontWeight: '900', marginTop: 6 },
+  productionAmounts: { marginTop: 7 },
   buildingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   buildingCard: { width: '48%' },
   buildingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 6 },

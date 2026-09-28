@@ -2,7 +2,8 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
+import { GameCard, PrimaryButton, SectionTitle, StatusPill } from '../ui/components';
+import { CampaignNodeSprite, FactionCrest, StoryScene } from '../ui/gameArt';
 
 export function FactionChapterSixEventScreen({
   stage,
@@ -62,21 +63,39 @@ export function FactionChapterSixEventScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={accent}>
-        <Text style={[styles.eyebrow, { color: accent }]}>FINAL FACTION CHAPTER</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>{body}</Text>
+      <GameCard accent={accent} faction={activeFaction}>
+        <View style={styles.heroRow}>
+          <View style={styles.heroCopy}>
+            <Text style={[styles.eyebrow, { color: accent }]}>FINAL FACTION CHAPTER</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
+            <Text style={[styles.body, { color: theme.colors.textMuted }]}>{body}</Text>
+          </View>
+          <FactionCrest faction={activeFaction} size={48} />
+        </View>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="crownspire" faction={activeFaction} size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title={stage === 'concord' ? 'Concord evidence' : 'Seal chamber'} />
 
-      <GameCard>
+      <GameCard faction={activeFaction} state={completed ? 'ready' : 'selected'}>
         <View style={styles.row}>
-          <Text style={styles.icon}>{stage === 'concord' ? '🔗' : '🔐'}</Text>
+          <View style={styles.eventArt}>
+            <CampaignNodeSprite
+              type={stage === 'concord' ? 'event' : 'boss'}
+              faction={activeFaction}
+              active
+              size={38}
+            />
+          </View>
           <View style={styles.copy}>
-            <Text style={[styles.rowTitle, { color: theme.colors.text }]}>
-              {stage === 'concord' ? 'Three peoples, one system' : 'The final objective'}
-            </Text>
+            <View style={styles.rowHeader}>
+              <Text style={[styles.rowTitle, { color: theme.colors.text }]}>
+                {stage === 'concord' ? 'Three peoples, one system' : 'The final objective'}
+              </Text>
+              <StatusPill label={completed ? 'SECURED' : 'ACTIVE'} tone={completed ? 'done' : 'current'} />
+            </View>
             <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
               {finding}
             </Text>
@@ -109,12 +128,16 @@ export function FactionChapterSixEventScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 13 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  heroCopy: { flex: 1 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  row: { flexDirection: 'row', gap: 12 },
-  icon: { fontSize: 28 },
+  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  eventArt: { width: 54, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
+  rowHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   rowTitle: { fontSize: 15, fontWeight: '900' },
   rowBody: { fontSize: 11, lineHeight: 16, marginTop: 4 }
 });

@@ -9,18 +9,12 @@ import {
   GameCard,
   Pill,
   PrimaryButton,
+  ResourceAmountRow,
   ResourceChip,
-  SectionTitle
+  SectionTitle,
+  StatusPill
 } from '../ui/components';
 import { BuildingSprite, ResourceSiteSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
-
-const resourceIcons: Record<keyof ResourceWallet, string> = {
-  gold: '🪙',
-  wood: '🪵',
-  stone: '🪨',
-  iron: '⛓',
-  provisions: '🍞'
-};
 
 export function FactionKingdomScreen({
   onOpenSettlement,
@@ -104,7 +98,7 @@ export function FactionKingdomScreen({
     : 'Use the Warcamp, Momentum and a third squad to bind the Red Plains clans.';
   let goalButton = 'Continue Chapter 2';
   let goalDisabled = true;
-  let goalCost: string | null = null;
+  let goalCost: Partial<ResourceWallet> | null = null;
   let goalAction = () => false;
 
   if (recruitChoiceAvailable && !recruitChosen) {
@@ -123,8 +117,8 @@ export function FactionKingdomScreen({
       : 'The Clanbreaker is defeated. Upgrade the Clan Yard, Bone Forge and War Cartwright, then raise a permanent Warhold.';
     goalButton = elf ? 'Build Wardhold' : 'Build Warhold';
     goalCost = elf
-      ? '140 Gold · 75 Wood · 35 Stone'
-      : '135 Gold · 70 Wood · 30 Stone · 8 Iron';
+      ? { gold: 140, wood: 75, stone: 35 }
+      : { gold: 135, wood: 70, stone: 30, iron: 8 };
     goalDisabled = !canUpgradeFactionFort;
     goalAction = upgradeFactionToFort;
   } else if (factionTownUpgradeAvailable) {
@@ -134,8 +128,8 @@ export function FactionKingdomScreen({
       : 'The Stonejaw Champion has yielded. Upgrade the Clan Yard, Bone Forge and War Cartwright to Lv.3, maintain Warg and watchfire infrastructure, then raise the Great Warhold.';
     goalButton = elf ? 'Build Heartgrove Enclave' : 'Build Great Warhold';
     goalCost = elf
-      ? '245 Gold · 115 Wood · 75 Stone · 10 Iron'
-      : '240 Gold · 110 Wood · 70 Stone · 20 Iron';
+      ? { gold: 245, wood: 115, stone: 75, iron: 10 }
+      : { gold: 240, wood: 110, stone: 70, iron: 20 };
     goalDisabled = !canUpgradeFactionTown;
     goalAction = upgradeFactionToTown;
   } else if (factionStrongholdUpgradeAvailable) {
@@ -145,8 +139,8 @@ export function FactionKingdomScreen({
       : 'The Split-Chieftain has yielded. Upgrade Clan Yard, Bone Forge and War Cartwright to Lv.4, War Council and Smokehouse to Lv.3, and Warg/Watchfire infrastructure to Lv.2 before raising the High Warhold.';
     goalButton = elf ? 'Build Worldroot Sanctuary' : 'Build High Warhold';
     goalCost = elf
-      ? '390 Gold · 175 Wood · 130 Stone · 35 Iron'
-      : '400 Gold · 170 Wood · 125 Stone · 45 Iron';
+      ? { gold: 390, wood: 175, stone: 130, iron: 35 }
+      : { gold: 400, wood: 170, stone: 125, iron: 45 };
     goalDisabled = !canUpgradeFactionStronghold;
     goalAction = upgradeFactionToStronghold;
   } else if (factionCapitalUpgradeAvailable) {
@@ -156,8 +150,8 @@ export function FactionKingdomScreen({
       : 'The Last Clanbreaker is defeated and the Clan Seal has been traced to Crownspire. Raise Clan Yard, Bone Forge and War Cartwright to Lv.5; War Council and Smokehouse to Lv.4; Warg Pens and Watchfire to Lv.3.';
     goalButton = elf ? 'Build Starroot Conclave' : 'Form Warfire Confederacy';
     goalCost = elf
-      ? '650 Gold · 270 Wood · 210 Stone · 65 Iron'
-      : '660 Gold · 260 Wood · 200 Stone · 80 Iron';
+      ? { gold: 650, wood: 270, stone: 210, iron: 65 }
+      : { gold: 660, wood: 260, stone: 200, iron: 80 };
     goalDisabled = !canUpgradeFactionCapital;
     goalAction = upgradeFactionToCapital;
   } else if (currentWagonStage.id === 'capital') {
@@ -200,14 +194,9 @@ export function FactionKingdomScreen({
     goalDisabled = true;
   }
 
-  const formatCost = (cost: Partial<ResourceWallet>) =>
-    Object.entries(cost)
-      .map(([key, value]) => resourceIcons[key as keyof ResourceWallet] + ' ' + String(value))
-      .join('  ');
-
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={accent}>
+      <GameCard accent={accent} faction={activeFaction}>
         <View style={styles.heroRow}>
           <View style={styles.heroCopy}>
             <Text style={[styles.eyebrow, { color: accent }]}>
@@ -238,9 +227,9 @@ export function FactionKingdomScreen({
         <Text style={[styles.goalTitle, { color: theme.colors.text }]}>{goalTitle}</Text>
         <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>{goalBody}</Text>
         {goalCost ? (
-          <Text style={[styles.cost, { color: theme.colors.gold }]}>
-            {goalCost}
-          </Text>
+          <View style={styles.goalCost}>
+            <ResourceAmountRow values={goalCost} compact />
+          </View>
         ) : null}
         <View style={styles.button}>
           <PrimaryButton label={goalButton} disabled={goalDisabled} onPress={goalAction} />
@@ -283,7 +272,10 @@ export function FactionKingdomScreen({
                   : 'One strategic choice can be active at a time. Your first choice is free.'}
               </Text>
             </View>
-            <Pill label={activeFactionMandate ? 'ACTIVE' : 'CHOOSE'} />
+            <StatusPill
+              label={activeFactionMandate ? 'ACTIVE' : 'CHOOSE'}
+              tone={activeFactionMandate ? 'current' : 'available'}
+            />
           </View>
           <View style={styles.button}>
             <PrimaryButton
@@ -334,19 +326,17 @@ export function FactionKingdomScreen({
                 <GameCard key={site.id} style={styles.productionCard} accent={accent}>
                   <View style={styles.productionIcon}><ResourceSiteSprite siteId={site.id} faction={activeFaction} size={44} /></View>
                   <Text style={[styles.productionName, { color: theme.colors.text }]}>{site.name}</Text>
-                  <Text style={[styles.productionRate, { color: accent }]}>
-                    {Object.entries(site.productionPerActivity)
-                      .map(([key, value]) => resourceIcons[key as keyof ResourceWallet] + ' +' + String(value))
-                      .join('  ')}
-                  </Text>
+                  <View style={styles.productionAmounts}>
+                    <ResourceAmountRow values={site.productionPerActivity} prefix="+" compact />
+                  </View>
                 </GameCard>
               ))}
           </View>
           <GameCard>
             <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Unclaimed Production</Text>
-            <Text style={[styles.productionStock, { color: theme.colors.gold }]}>
-              🪙 {productionStock.gold} · 🪵 {productionStock.wood} · 🪨 {productionStock.stone} · ⛓ {productionStock.iron} · 🍞 {productionStock.provisions}
-            </Text>
+            <View style={styles.productionAmounts}>
+              <ResourceAmountRow values={productionStock} />
+            </View>
             <View style={styles.button}>
               <PrimaryButton
                 label="Claim Production"
@@ -381,7 +371,10 @@ export function FactionKingdomScreen({
             >
               <View style={styles.buildingTop}>
                 <BuildingSprite buildingId={building.id} faction={activeFaction} size={42} />
-                <Pill label={level > 0 ? 'LV.' + level : unlocked ? 'BLUEPRINT' : 'LOCKED'} />
+                <StatusPill
+                  label={level > 0 ? 'LV.' + level : unlocked ? 'BLUEPRINT' : 'LOCKED'}
+                  tone={level > 0 ? 'available' : unlocked ? 'available' : 'locked'}
+                />
               </View>
               <Text style={[styles.buildingName, { color: theme.colors.text }]}>{building.name}</Text>
               <Text style={[styles.buildingBody, { color: theme.colors.textMuted }]}>{building.description}</Text>
@@ -393,7 +386,9 @@ export function FactionKingdomScreen({
               ) : next ? (
                 <>
                   <Text style={[styles.buildingHint, { color: accent }]}>Next: {next.effect}</Text>
-                  <Text style={[styles.cost, { color: theme.colors.gold }]}>{formatCost(next.cost)}</Text>
+                  <View style={styles.buildingCost}>
+                    <ResourceAmountRow values={next.cost} compact />
+                  </View>
                   <View style={styles.button}>
                     <PrimaryButton
                       label={'Upgrade to Lv.' + (level + 1)}
@@ -430,6 +425,7 @@ const styles = StyleSheet.create({
   resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   goalTitle: { fontSize: 17, fontWeight: '900', marginTop: 4 },
   goalBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
+  goalCost: { marginTop: 9 },
   button: { marginTop: 10 },
   settlementRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   settlementCopy: { flex: 1 },
@@ -443,12 +439,14 @@ const styles = StyleSheet.create({
   productionName: { fontSize: 12.5, fontWeight: '900', marginTop: 5 },
   productionRate: { fontSize: 9, fontWeight: '900', lineHeight: 14, marginTop: 6 },
   productionStock: { fontSize: 10.5, fontWeight: '900', lineHeight: 16, marginTop: 6 },
+  productionAmounts: { marginTop: 7 },
   buildingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   buildingCard: { width: '48%' },
   buildingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   buildingName: { fontSize: 13.5, fontWeight: '900', marginTop: 7 },
   buildingBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
   buildingHint: { fontSize: 9, lineHeight: 13, fontWeight: '800', marginTop: 7 },
+  buildingCost: { marginTop: 8 },
   cost: { fontSize: 8.5, fontWeight: '900', lineHeight: 13, marginTop: 5 },
   message: { textAlign: 'center', fontSize: 10.5, fontWeight: '800' }
 });

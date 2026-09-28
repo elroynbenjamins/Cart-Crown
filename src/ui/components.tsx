@@ -7,9 +7,9 @@ import {
   View
 } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
-import type { FactionId } from '../game/types';
+import type { FactionId, ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { UnitSprite } from './gameArt';
+import { ResourceSprite, UnitSprite } from './gameArt';
 
 export type CardState = 'default' | 'selected' | 'ready' | 'locked' | 'danger';
 
@@ -377,6 +377,49 @@ export function ResourceChip({
   );
 }
 
+export function ResourceAmountRow({
+  values,
+  prefix = '',
+  compact = false
+}: {
+  values: Partial<ResourceWallet>;
+  prefix?: string;
+  compact?: boolean;
+}) {
+  const { theme } = useGameTheme();
+  const order: Array<keyof ResourceWallet> = [
+    'gold',
+    'wood',
+    'stone',
+    'iron',
+    'provisions'
+  ];
+
+  return (
+    <View style={styles.resourceAmountRow}>
+      {order.map(resource => {
+        const value = values[resource] ?? 0;
+        if (!value) return null;
+        return (
+          <View
+            key={resource}
+            style={[
+              styles.resourceAmount,
+              compact ? styles.resourceAmountCompact : undefined,
+              { backgroundColor: theme.colors.surface2 }
+            ]}
+          >
+            <ResourceSprite resource={resource} size={compact ? 20 : 24} />
+            <Text style={[styles.resourceAmountText, { color: theme.colors.text }]}>
+              {prefix}{value}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 export function UnitPortrait({
   name,
   className,
@@ -633,6 +676,27 @@ const styles = StyleSheet.create({
   resourceLabel: {
     fontSize: 10,
     marginTop: 1
+  },
+  resourceAmountRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7
+  },
+  resourceAmount: {
+    minHeight: 34,
+    borderRadius: 11,
+    paddingHorizontal: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5
+  },
+  resourceAmountCompact: {
+    minHeight: 28,
+    paddingHorizontal: 6
+  },
+  resourceAmountText: {
+    fontSize: 10.5,
+    fontWeight: '900'
   },
   portraitRow: {
     flexDirection: 'row',
