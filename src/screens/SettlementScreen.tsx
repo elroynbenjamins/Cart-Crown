@@ -185,7 +185,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
           }
         ]}
       >
-        <SettlementTerrainBackdrop faction="human" />
+        <SettlementTerrainBackdrop faction={activeFaction} />
         <View
           style={[
             styles.roadHorizontal,
