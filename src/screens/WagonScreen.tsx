@@ -9,9 +9,10 @@ import {
   View
 } from 'react-native';
 import type { WagonItemDefinition } from '../game/types';
+import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, SecondaryButton, SectionTitle } from '../ui/components';
+import { GameCard, Pill, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { WagonItemSprite, WagonStageSprite } from '../ui/gameArt';
 
 type DraggableItemProps = {
@@ -99,12 +100,21 @@ export function WagonScreen() {
   const { width } = useWindowDimensions();
   const { theme } = useGameTheme();
   const {
+    activeFaction,
     wagonItems,
     currentWagonStage,
     moveWagonItem,
     rotateWagonItem,
     resetWagon
   } = useGame();
+
+  const faction = factions[activeFaction];
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
 
   const [selectedId, setSelectedId] = useState<string | null>(wagonItems[0]?.id ?? null);
   const [feedback, setFeedback] = useState('Drag an item to move it. Select it to rotate.');
@@ -122,7 +132,7 @@ export function WagonScreen() {
   const palette = [
     theme.colors.gold,
     theme.colors.primary,
-    theme.colors.human,
+    factionAccent,
     theme.colors.info
   ];
 
@@ -141,19 +151,19 @@ export function WagonScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.human}>
+      <GameCard accent={factionAccent} faction={activeFaction}>
         <View style={styles.headerRow}>
           <View style={styles.headerCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>CAMPAIGN PACK</Text>
+            <Text style={[styles.eyebrow, { color: factionAccent }]}>CAMPAIGN PACK</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>
-              {currentWagonStage.name} · {currentWagonStage.width}×{currentWagonStage.height}
+              {faction.wagonName} · {currentWagonStage.width}×{currentWagonStage.height}
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-              Your logistics frame grows with Greenkeep. Early campaigns stay deliberately cramped; later tiers add real packing space.
+              Your logistics frame grows with the {faction.name} campaign. Early tiers stay deliberately cramped; later settlement tiers add real packing space.
             </Text>
           </View>
           <View style={styles.wagonVisual}>
-            <WagonStageSprite stageId={currentWagonStage.id} size={74} />
+            <WagonStageSprite stageId={currentWagonStage.id} faction={activeFaction} size={74} />
             <Pill
               label={String(occupied) + ' / ' + String(currentWagonStage.width * currentWagonStage.height)}
             />
@@ -208,7 +218,11 @@ export function WagonScreen() {
         </View>
       </View>
 
-      <GameCard accent={selected ? theme.colors.gold : undefined}>
+      <GameCard
+        accent={selected ? theme.colors.gold : undefined}
+        faction={activeFaction}
+        state={selected ? 'selected' : 'default'}
+      >
         <Text style={[styles.selectionLabel, { color: theme.colors.textMuted }]}>
           {selected ? 'SELECTED ITEM' : 'WAGON CONTROL'}
         </Text>
@@ -236,7 +250,7 @@ export function WagonScreen() {
         </View>
       </GameCard>
 
-      <GameCard>
+      <GameCard faction={activeFaction} state="ready">
         <View style={styles.readinessRow}>
           <View style={styles.readinessCopy}>
             <Text style={[styles.readyTitle, { color: theme.colors.text }]}>Expedition readiness</Text>
@@ -244,13 +258,13 @@ export function WagonScreen() {
               Food and medicine are packed. No ammunition is required by the current formation.
             </Text>
           </View>
-          <View style={[styles.readyDot, { backgroundColor: theme.colors.primary }]} />
+          <StatusPill label="READY" tone="ready" />
         </View>
       </GameCard>
 
       <SectionTitle title="Active synergies" trailing="1 discovered" />
 
-      <GameCard accent={theme.colors.primary}>
+      <GameCard accent={theme.colors.primary} faction={activeFaction} state="ready">
         <Text style={[styles.synergyName, { color: theme.colors.text }]}>Prepared March</Text>
         <Text style={[styles.synergyBody, { color: theme.colors.textMuted }]}>
           Medicine packed beside food improves healing effectiveness.
@@ -291,7 +305,6 @@ const styles = StyleSheet.create({
   readinessCopy: { flex: 1 },
   readyTitle: { fontSize: 15, fontWeight: '900' },
   readyBody: { fontSize: 12, lineHeight: 17, marginTop: 4 },
-  readyDot: { width: 14, height: 14, borderRadius: 7 },
   synergyName: { fontSize: 15, fontWeight: '900' },
   synergyBody: { fontSize: 12, lineHeight: 17, marginTop: 5 },
   synergyBonus: { fontSize: 12, fontWeight: '900', marginTop: 9 }
