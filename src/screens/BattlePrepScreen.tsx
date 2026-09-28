@@ -148,6 +148,7 @@ export function BattlePrepScreen({
                 name={unit.name}
                 className={unit.className + ' · Lv. ' + unit.level}
                 accent={factionAccent}
+                faction={unit.faction}
                 compact
               />
               <View style={styles.unitStats}>
