@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
+import { ResourceSiteSprite, StoryScene } from '../ui/gameArt';
 
 export function BrokenArchivesScreen({
   onComplete
@@ -24,13 +25,18 @@ export function BrokenArchivesScreen({
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           The recovered estate ledgers lead to a half-burned archive. Orders from different years were altered with the same ash-grey sealing compound and the same accounting marks.
         </Text>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="broken_archives" size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title="What Greenkeep recovers" />
 
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>📚</Text>
+          <View style={styles.archiveArt}>
+            <ResourceSiteSprite siteId="royal_archive_stores" faction="human" size={48} />
+          </View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Royal Archive Stores</Text>
             <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
@@ -61,8 +67,9 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  row: { flexDirection: 'row', gap: 12 },
-  icon: { fontSize: 28 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
+  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  archiveArt: { width: 54, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   rowTitle: { fontSize: 15, fontWeight: '900' },
   rowBody: { fontSize: 11, lineHeight: 16, marginTop: 4 },
