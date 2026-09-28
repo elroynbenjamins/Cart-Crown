@@ -33,6 +33,7 @@ export function FactionCampScreen({
   } = useGame();
 
   const faction = factions[activeFaction];
+  const elf = activeFaction === 'elf';
   const accent =
     activeFaction === 'elf'
       ? theme.colors.elf

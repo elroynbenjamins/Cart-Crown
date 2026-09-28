@@ -211,7 +211,16 @@ type GameContextValue = {
   canUpgradeSettlement: boolean;
   factionFortUpgradeAvailable: boolean;
   canUpgradeFactionFort: boolean;
-  factionBuildingIds: Record<string, string>;
+  factionBuildingIds: {
+    hall: string;
+    army: string;
+    forge: string;
+    logistics: string;
+    supply: string;
+    command: string;
+    mount: string;
+    scout: string;
+  };
   sideModeDefinitions: SideModeDefinition[];
   expeditionTickets: number;
   expeditionRunsCompleted: number;
