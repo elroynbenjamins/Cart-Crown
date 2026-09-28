@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import type { ChapterNode, FactionId, WagonStage } from '../game/types';
 import {
   getBuildingVisualKind,
@@ -11,6 +11,17 @@ import {
   getUnitVisualKind,
   getWagonItemVisualKind
 } from '../game/visualManifest';
+import {
+  buildingProductionAsset,
+  commanderProductionAsset,
+  enemyProductionAsset,
+  equipmentProductionAsset,
+  getProductionAssetSource,
+  resourceSiteProductionAsset,
+  storySceneProductionAsset,
+  uiProductionAsset,
+  unitProductionAsset
+} from './productionAssets';
 
 type PaletteKey =
   | 'outline'
@@ -476,6 +487,29 @@ function PixelSprite({
   );
 }
 
+function ProductionAssetFrame({
+  assetId,
+  width,
+  height = width,
+  children
+}: {
+  assetId: string;
+  width: number;
+  height?: number;
+  children: React.ReactNode;
+}) {
+  const source = getProductionAssetSource(assetId);
+  if (!source) return <>{children}</>;
+
+  return (
+    <Image
+      source={source}
+      resizeMode="contain"
+      style={{ width, height }}
+    />
+  );
+}
+
 export function unitArtKey(className: string): ArtKey {
   const kind = getUnitVisualKind(className);
   const keyByKind: Record<ReturnType<typeof getUnitVisualKind>, ArtKey> = {
@@ -723,11 +757,15 @@ export function UnitSprite({
   faction?: FactionId;
   size?: number;
 }) {
+  const kind = getUnitVisualKind(className);
+  const production = unitProductionAsset(faction, kind);
   return (
-    <View style={{ width: size, height: size, position: 'relative' }}>
-      <PixelSprite artKey={unitArtKey(className)} size={size} faction={faction} />
-      <FactionUnitSilhouette faction={faction} className={className} size={size} />
-    </View>
+    <ProductionAssetFrame assetId={production.id} width={size}>
+      <View style={{ width: size, height: size, position: 'relative' }}>
+        <PixelSprite artKey={unitArtKey(className)} size={size} faction={faction} />
+        <FactionUnitSilhouette faction={faction} className={className} size={size} />
+      </View>
+    </ProductionAssetFrame>
   );
 }
 
@@ -814,12 +852,12 @@ export function EquipmentSprite({
   faction?: FactionId;
   size?: number;
 }) {
+  const kind = getEquipmentVisualKind(equipmentId);
+  const production = equipmentProductionAsset(faction, equipmentId, kind);
   return (
-    <EquipmentKindSprite
-      kind={getEquipmentVisualKind(equipmentId)}
-      faction={faction}
-      size={size}
-    />
+    <ProductionAssetFrame assetId={production.id} width={size}>
+      <EquipmentKindSprite kind={kind} faction={faction} size={size} />
+    </ProductionAssetFrame>
   );
 }
 
@@ -1045,6 +1083,7 @@ export function BuildingSprite({
   size?: number;
 }) {
   const kind = getBuildingVisualKind(buildingId);
+  const production = buildingProductionAsset(faction, buildingId, kind);
   const keyByKind: Record<ReturnType<typeof getBuildingVisualKind>, ArtKey> = {
     hall: 'building_hall',
     barracks: 'building_barracks',
@@ -1057,10 +1096,12 @@ export function BuildingSprite({
     officer_academy: 'building_officer_academy'
   };
   return (
-    <View style={{ width: size, height: size, position: 'relative' }}>
-      <PixelSprite artKey={keyByKind[kind]} size={size} faction={faction} />
-      <FactionBuildingSilhouette buildingId={buildingId} faction={faction} size={size} />
-    </View>
+    <ProductionAssetFrame assetId={production.id} width={size}>
+      <View style={{ width: size, height: size, position: 'relative' }}>
+        <PixelSprite artKey={keyByKind[kind]} size={size} faction={faction} />
+        <FactionBuildingSilhouette buildingId={buildingId} faction={faction} size={size} />
+      </View>
+    </ProductionAssetFrame>
   );
 }
 
@@ -1315,6 +1356,11 @@ export function EnemySprite({
   size?: number;
 }) {
   const kind = getEnemyVisualKind(enemyName);
+  const production = enemyProductionAsset(kind);
+  const productionSource = getProductionAssetSource(production.id);
+  if (productionSource) {
+    return <Image source={productionSource} resizeMode="contain" style={{ width: size, height: size }} />;
+  }
   const keyByKind: Record<ReturnType<typeof getEnemyVisualKind>, ArtKey> = {
     raider: 'enemy_raider',
     mercenary: 'enemy_mercenary',
@@ -1614,6 +1660,11 @@ export function ResourceSiteSprite({
   size?: number;
 }) {
   const kind = getResourceSiteVisualKind(siteId);
+  const production = resourceSiteProductionAsset(faction, siteId, kind);
+  const productionSource = getProductionAssetSource(production.id);
+  if (productionSource) {
+    return <Image source={productionSource} resizeMode="contain" style={{ width: size, height: size }} />;
+  }
   const accent = faction === 'elf' ? palette.elf : faction === 'orc' ? palette.orc : palette.human;
 
   return (
@@ -1751,6 +1802,11 @@ export function CommanderPortrait({
   size?: number;
 }) {
   const kind = getCommanderVisualKind(pathId);
+  const production = commanderProductionAsset(faction, pathId, kind);
+  const productionSource = getProductionAssetSource(production.id);
+  if (productionSource) {
+    return <Image source={productionSource} resizeMode="contain" style={{ width: size, height: size }} />;
+  }
   const baseClass =
     kind === 'ranger' || kind === 'windcaller'
       ? 'Ranger'
@@ -1931,7 +1987,12 @@ export function StoryScene({
   faction?: FactionId;
   size?: number;
 }) {
+  const production = storySceneProductionAsset(scene, faction);
+  const productionSource = getProductionAssetSource(production.id);
   const height = size * 0.45;
+  if (productionSource) {
+    return <Image source={productionSource} resizeMode="cover" style={{ width: size, height }} />;
+  }
   const accent =
     faction === 'elf'
       ? palette.elf
@@ -2021,6 +2082,122 @@ export function StoryScene({
           <View style={{ position: 'absolute', left: size * 0.43, right: size * 0.2, bottom: height * 0.2, height: 5, backgroundColor: palette.gold }} />
         </>
       ) : null}
+    </View>
+  );
+}
+
+
+export type AppNavIconKind = 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army';
+
+export function AppNavIcon({
+  kind,
+  color,
+  size = 22
+}: {
+  kind: AppNavIconKind;
+  color: string;
+  size?: number;
+}) {
+  const production = uiProductionAsset('nav_' + kind);
+  const source = getProductionAssetSource(production.id);
+  if (source) {
+    return <Image source={source} resizeMode="contain" style={{ width: size, height: size }} />;
+  }
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      {kind === 'kingdom' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.2, right: size * 0.2, bottom: size * 0.12, height: size * 0.48, borderWidth: 2, borderColor: color }} />
+          <View style={{ position: 'absolute', left: size * 0.12, top: size * 0.12, width: size * 0.22, height: size * 0.3, backgroundColor: color }} />
+          <View style={{ position: 'absolute', right: size * 0.12, top: size * 0.12, width: size * 0.22, height: size * 0.3, backgroundColor: color }} />
+        </>
+      ) : kind === 'campaign' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.12, top: size * 0.62, width: size * 0.18, height: size * 0.18, borderRadius: size * 0.09, backgroundColor: color }} />
+          <View style={{ position: 'absolute', left: size * 0.42, top: size * 0.38, width: size * 0.18, height: size * 0.18, borderRadius: size * 0.09, backgroundColor: color }} />
+          <View style={{ position: 'absolute', right: size * 0.1, top: size * 0.12, width: size * 0.18, height: size * 0.18, borderRadius: size * 0.09, backgroundColor: color }} />
+          <View style={{ position: 'absolute', left: size * 0.22, top: size * 0.51, width: size * 0.32, height: 2, backgroundColor: color, transform: [{ rotate: '-35deg' }] }} />
+          <View style={{ position: 'absolute', left: size * 0.53, top: size * 0.27, width: size * 0.3, height: 2, backgroundColor: color, transform: [{ rotate: '-35deg' }] }} />
+        </>
+      ) : kind === 'formation' ? (
+        <>
+          {[0, 1, 2].map(row =>
+            [0, 1, 2].map(col => (
+              <View
+                key={String(row) + '-' + String(col)}
+                style={{
+                  position: 'absolute',
+                  left: size * (0.08 + col * 0.31),
+                  top: size * (0.08 + row * 0.31),
+                  width: size * 0.22,
+                  height: size * 0.22,
+                  borderWidth: 1.5,
+                  borderColor: color
+                }}
+              />
+            ))
+          )}
+        </>
+      ) : kind === 'wagon' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.08, right: size * 0.08, top: size * 0.22, height: size * 0.46, borderWidth: 2, borderColor: color }} />
+          <View style={{ position: 'absolute', left: size * 0.18, bottom: size * 0.04, width: size * 0.22, height: size * 0.22, borderRadius: size * 0.11, borderWidth: 2, borderColor: color }} />
+          <View style={{ position: 'absolute', right: size * 0.18, bottom: size * 0.04, width: size * 0.22, height: size * 0.22, borderRadius: size * 0.11, borderWidth: 2, borderColor: color }} />
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.39, top: size * 0.06, width: size * 0.22, height: size * 0.22, borderRadius: size * 0.11, backgroundColor: color }} />
+          <View style={{ position: 'absolute', left: size * 0.25, top: size * 0.3, width: size * 0.5, height: size * 0.38, backgroundColor: color }} />
+          <View style={{ position: 'absolute', left: size * 0.2, bottom: size * 0.05, width: size * 0.18, height: size * 0.28, backgroundColor: color }} />
+          <View style={{ position: 'absolute', right: size * 0.2, bottom: size * 0.05, width: size * 0.18, height: size * 0.28, backgroundColor: color }} />
+        </>
+      )}
+    </View>
+  );
+}
+
+export function ThemeModeIcon({
+  dark,
+  color,
+  size = 20
+}: {
+  dark: boolean;
+  color: string;
+  size?: number;
+}) {
+  const production = uiProductionAsset(dark ? 'theme_dark' : 'theme_light');
+  const source = getProductionAssetSource(production.id);
+  if (source) {
+    return <Image source={source} resizeMode="contain" style={{ width: size, height: size }} />;
+  }
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      {dark ? (
+        <>
+          <View style={{ position: 'absolute', left: 1, top: 1, width: size - 2, height: size - 2, borderRadius: size / 2, backgroundColor: color }} />
+          <View style={{ position: 'absolute', left: size * 0.36, top: -1, width: size, height: size, borderRadius: size / 2, backgroundColor: palette.outline }} />
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.28, top: size * 0.28, width: size * 0.44, height: size * 0.44, borderRadius: size * 0.22, backgroundColor: color }} />
+          {[0, 45, 90, 135].map(angle => (
+            <View
+              key={String(angle)}
+              style={{
+                position: 'absolute',
+                left: size * 0.47,
+                top: size * 0.02,
+                width: size * 0.06,
+                height: size * 0.23,
+                backgroundColor: color,
+                transform: [{ rotate: String(angle) + 'deg' }, { translateY: size * 0.37 }]
+              }}
+            />
+          ))}
+        </>
+      )}
     </View>
   );
 }
