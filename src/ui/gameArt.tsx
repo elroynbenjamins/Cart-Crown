@@ -1148,3 +1148,65 @@ export function FactionCampScene({
     </View>
   );
 }
+
+
+export function SettlementTerrainBackdrop({
+  faction = 'human'
+}: {
+  faction?: FactionId;
+}) {
+  const ground =
+    faction === 'elf'
+      ? '#304935'
+      : faction === 'orc'
+        ? '#4A382C'
+        : '#354A37';
+  const clearing =
+    faction === 'elf'
+      ? '#466247'
+      : faction === 'orc'
+        ? '#624536'
+        : '#506347';
+  const road =
+    faction === 'orc'
+      ? '#7E5D42'
+      : '#8A7353';
+
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        backgroundColor: ground,
+        overflow: 'hidden'
+      }}
+    >
+      <View style={{ position: 'absolute', left: '4%', top: '6%', width: '30%', height: '24%', backgroundColor: clearing, opacity: 0.45 }} />
+      <View style={{ position: 'absolute', right: '4%', top: '8%', width: '27%', height: '20%', backgroundColor: clearing, opacity: 0.4 }} />
+      <View style={{ position: 'absolute', left: '8%', bottom: '7%', width: '26%', height: '20%', backgroundColor: clearing, opacity: 0.35 }} />
+      <View style={{ position: 'absolute', right: '8%', bottom: '8%', width: '29%', height: '22%', backgroundColor: clearing, opacity: 0.38 }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: 30, backgroundColor: road, opacity: 0.78 }} />
+      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '46%', width: 30, backgroundColor: road, opacity: 0.78 }} />
+      <View style={{ position: 'absolute', left: '10%', top: '34%', width: 7, height: 7, backgroundColor: palette.stone, opacity: 0.8 }} />
+      <View style={{ position: 'absolute', right: '13%', top: '33%', width: 5, height: 5, backgroundColor: palette.stoneLight, opacity: 0.8 }} />
+      <View style={{ position: 'absolute', left: '17%', bottom: '29%', width: 5, height: 5, backgroundColor: palette.stoneLight, opacity: 0.75 }} />
+      <View style={{ position: 'absolute', right: '19%', bottom: '24%', width: 8, height: 5, backgroundColor: palette.stone, opacity: 0.75 }} />
+      {faction === 'elf' ? (
+        <>
+          <View style={{ position: 'absolute', left: '3%', top: '18%', width: 18, height: 18, backgroundColor: palette.elf, opacity: 0.72 }} />
+          <View style={{ position: 'absolute', right: '4%', bottom: '18%', width: 21, height: 21, backgroundColor: palette.elf, opacity: 0.68 }} />
+        </>
+      ) : null}
+      {faction === 'orc' ? (
+        <>
+          <View style={{ position: 'absolute', left: '7%', top: '14%', width: 14, height: 6, backgroundColor: palette.red, opacity: 0.7 }} />
+          <View style={{ position: 'absolute', right: '7%', bottom: '17%', width: 16, height: 7, backgroundColor: palette.red, opacity: 0.65 }} />
+        </>
+      ) : null}
+    </View>
+  );
+}
