@@ -6,7 +6,7 @@ import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import type { CommanderSkillEffectType } from '../game/types';
 import { GameCard, PrimaryButton, ProgressBar } from '../ui/components';
-import { UnitSprite } from '../ui/gameArt';
+import { EnemySprite, UnitSprite } from '../ui/gameArt';
 
 type ActiveEffect = {
   type: CommanderSkillEffectType;
@@ -365,11 +365,13 @@ export function BattleScreen({
                 { borderColor: theme.colors.danger, backgroundColor: theme.colors.surface2 }
               ]}
             >
-              <Text style={[styles.unitInitial, { color: theme.colors.danger }]}>
-                {encounter.difficulty === 'Elite' ? 'G' : 'R'}
-              </Text>
+              <EnemySprite enemyName={encounter.enemyName} size={34} />
               <Text style={[styles.tokenName, { color: theme.colors.text }]}>
-                {encounter.difficulty === 'Elite' ? 'Merc' : 'Raider'}
+                {encounter.difficulty === 'Boss'
+                  ? 'Boss Guard'
+                  : encounter.difficulty === 'Elite'
+                    ? 'Elite'
+                    : 'Raider'}
               </Text>
             </View>
           ))}
