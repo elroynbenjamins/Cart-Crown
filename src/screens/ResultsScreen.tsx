@@ -34,6 +34,7 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   const salvageClaimed = (rewardedAdClaims.salvage_boost ?? 0) >= 1;
   const mercenaryResult = lastBattleResult.id === 'mercenary_patrol_result';
   const tollCaptainResult = lastBattleResult.id === 'toll_captain_result';
+  const ironRoadResult = lastBattleResult.id === 'iron_road_skirmish_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -77,7 +78,26 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {tollCaptainResult ? (
+      {ironRoadResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>REGIONAL PRODUCTION</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Iron Hills Mine secured
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Every completed campaign battle, Expedition or Kingdom Defense now adds +2 Iron to Greenkeep's unclaimed regional production.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>The Iron Road Opens</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              The mine road is usable again. Scouts report an abandoned timber camp farther along the route.
+            </Text>
+          </GameCard>
+        </>
+      ) : tollCaptainResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM TIER UNLOCKED</Text>

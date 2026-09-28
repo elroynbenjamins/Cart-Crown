@@ -20,13 +20,16 @@ import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
 import { ForgeScreen } from './screens/ForgeScreen';
 import { FormationScreen } from './screens/FormationScreen';
+import { FortMusterScreen } from './screens/FortMusterScreen';
 import { FormationTrialScreen } from './screens/FormationTrialScreen';
 import { KingdomScreen } from './screens/KingdomScreen';
 import { MarkedRaidersScreen } from './screens/MarkedRaidersScreen';
 import { PromotionScreen } from './screens/PromotionScreen';
 import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
+import { KingdomDefenseScreen } from './screens/KingdomDefenseScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
 
@@ -41,6 +44,9 @@ type FlowScreen =
   | 'equipment'
   | 'commanderChoice'
   | 'refugeeCamp'
+  | 'fortMuster'
+  | 'timberClaim'
+  | 'kingdomDefense'
   | 'expedition'
   | 'formationTrial';
 
@@ -71,6 +77,9 @@ const flowTitles: Record<FlowScreen, string> = {
   equipment: 'Equipment',
   commanderChoice: 'Commander Path',
   refugeeCamp: 'Refugee Camp',
+  fortMuster: 'Fort Muster',
+  timberClaim: 'Timber Claim',
+  kingdomDefense: 'Kingdom Defense',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
 };
@@ -214,6 +223,43 @@ export function AppShell({
       );
     }
 
+    if (flow === 'fortMuster') {
+      return (
+        <FortMusterScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'timberClaim') {
+      return (
+        <TimberClaimScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'kingdomDefense') {
+      return (
+        <KingdomDefenseScreen
+          onExit={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+          onEditFormation={() => {
+            setFlow(null);
+            setActive('formation');
+          }}
+        />
+      );
+    }
+
     if (flow === 'expedition') {
       return (
         <ExpeditionScreen
@@ -258,6 +304,13 @@ export function AppShell({
               setActiveEncounterId('toll_captain');
               setFlow('battlePrep');
             }}
+            onOpenFortMuster={() => setFlow('fortMuster')}
+            onStartIronRoad={() => {
+              setActiveEncounterId('iron_road_skirmish');
+              setFlow('battlePrep');
+            }}
+            onOpenTimberClaim={() => setFlow('timberClaim')}
+            onOpenKingdomDefense={() => setFlow('kingdomDefense')}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -306,6 +359,9 @@ export function AppShell({
     flow === 'equipment' ||
     flow === 'commanderChoice' ||
     flow === 'refugeeCamp' ||
+    flow === 'fortMuster' ||
+    flow === 'timberClaim' ||
+    flow === 'kingdomDefense' ||
     flow === 'expedition' ||
     flow === 'formationTrial';
   const title = flow ? flowTitles[flow] : screenTitles[active];

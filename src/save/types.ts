@@ -12,6 +12,7 @@ export type SaveSlotId = 1 | 2;
 
 export type FactionGameState = {
   faction: FactionId;
+  chapterNumber: number;
   resources: ResourceWallet;
   units: UnitDefinition[];
   formation: Array<string | null>;
@@ -33,6 +34,12 @@ export type FactionGameState = {
   commanderPathId: string | null;
   refugeeCampSecured: boolean;
   buildingLevels: Record<string, number>;
+  fourthRecruitChoiceAvailable: boolean;
+  fourthRecruitChosen: boolean;
+  unlockedResourceSites: string[];
+  productionStock: ResourceWallet;
+  kingdomDefenseCompleted: boolean;
+  kingdomDefenseRuns: number;
   lastBattleResult: BattleResult | null;
   expeditionTickets: number;
   expeditionRunsCompleted: number;
@@ -47,7 +54,7 @@ export type SharedProgress = {
 };
 
 export type GameSnapshot = {
-  schemaVersion: 4;
+  schemaVersion: 5;
   activeFaction: FactionId;
   shared: SharedProgress;
   factionStates: Record<FactionId, FactionGameState | null>;

@@ -179,6 +179,21 @@ export const equipmentDefinitions: EquipmentDefinition[] = [
     requiredForgeLevel: 2,
     upgradeFromId: 'hum_padded_armor',
     description: 'Mobile field gear used for the Ranger branch.'
+  },
+  {
+    id: 'hum_trained_horse',
+    name: 'Trained Horse',
+    faction: 'human',
+    slot: 'mount',
+    tier: 1,
+    tags: ['mount', 'horse', 'human'],
+    attackBonus: 1,
+    armorBonus: 1,
+    speedBonus: 5,
+    craftCost: { gold: 55, provisions: 8 },
+    requiredForgeLevel: 0,
+    requiredStableLevel: 1,
+    description: 'A trained campaign horse. Assigning it to a Scout opens the Scout Rider cavalry path.'
   }
 ];
 
@@ -305,6 +320,21 @@ export const advancedPromotions: AdvancedPromotionDefinition[] = [
     armorBonus: 2,
     speedBonus: 3,
     pitch: 'Mobile ranged branch that trades raw volley power for speed and flexibility.'
+  },
+  {
+    id: 'scout_scout_rider',
+    faction: 'human',
+    fromClass: 'Scout',
+    toClass: 'Scout Rider',
+    role: 'cavalry',
+    requiredEquippedIds: ['hum_trained_horse'],
+    requiredBarracksLevel: 1,
+    requiredForgeLevel: 0,
+    requiredStableLevel: 1,
+    attackBonus: 3,
+    armorBonus: 1,
+    speedBonus: 4,
+    pitch: 'The first mounted Human branch: fast reconnaissance cavalry that can later become Cavalryman, Lancer or Mounted Archer.'
   }
 ];
 

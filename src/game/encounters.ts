@@ -3,7 +3,8 @@ import type { EncounterDefinition, ResourceWallet } from './types';
 export type EncounterId =
   | 'hold_the_road'
   | 'mercenary_patrol'
-  | 'toll_captain';
+  | 'toll_captain'
+  | 'iron_road_skirmish';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -37,6 +38,15 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 5,
     enemyHp: 340,
     difficulty: 'Boss'
+  },
+  iron_road_skirmish: {
+    id: 'iron_road_skirmish',
+    name: 'Iron Road Skirmish',
+    subtitle: 'Greenkeep’s first Fort patrol runs into mercenaries guarding an abandoned roadside mine.',
+    enemyName: 'Iron Road Mercenaries',
+    enemyCount: 5,
+    enemyHp: 285,
+    difficulty: 'Elite'
   }
 };
 
@@ -52,6 +62,10 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   toll_captain: {
     resources: { gold: 120, wood: 90, stone: 45, iron: 12, provisions: 8 },
     storySummary: 'The old toll fort falls. Greenkeep now controls the western road and has the stone, timber and authority needed to become a true Fort.'
+  },
+  iron_road_skirmish: {
+    resources: { gold: 55, iron: 6, provisions: 3 },
+    storySummary: 'The patrol secures the roadside mine. Greenkeep can now draw a steady trickle of iron from the Iron Hills approach.'
   }
 };
 

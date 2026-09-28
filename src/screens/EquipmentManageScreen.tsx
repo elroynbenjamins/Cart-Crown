@@ -52,6 +52,7 @@ export function EquipmentManageScreen({
   const unit = units.find(candidate => candidate.id === unitId);
   const loadout = unitEquipment[unitId] ?? {};
   const forgeLevel = buildingLevels.forge ?? 0;
+  const stableLevel = buildingLevels.stable ?? 0;
   const advanced = getAdvancedPromotionsForUnit(unitId);
 
   const inventoryItems = equipmentInventory
@@ -62,7 +63,8 @@ export function EquipmentManageScreen({
     item =>
       item.faction === 'human' &&
       !item.upgradeFromId &&
-      item.requiredForgeLevel <= forgeLevel
+      item.requiredForgeLevel <= forgeLevel &&
+      (item.requiredStableLevel ?? 0) <= stableLevel
   );
 
   const upgrades = useMemo(
@@ -292,7 +294,9 @@ export function EquipmentManageScreen({
                 const gearReady = promotion.requiredEquippedIds.every(id => equippedIds.includes(id));
                 const barracksReady = (buildingLevels.barracks ?? 0) >= promotion.requiredBarracksLevel;
                 const forgeReady = (buildingLevels.forge ?? 0) >= promotion.requiredForgeLevel;
-                const ready = gearReady && barracksReady && forgeReady;
+                const stableReady =
+                  (buildingLevels.stable ?? 0) >= (promotion.requiredStableLevel ?? 0);
+                const ready = gearReady && barracksReady && forgeReady && stableReady;
 
                 return (
                   <GameCard key={promotion.id} accent={ready ? theme.colors.primary : undefined}>
@@ -313,9 +317,16 @@ export function EquipmentManageScreen({
                       <Text style={[styles.requirement, { color: barracksReady ? theme.colors.primary : theme.colors.textMuted }]}>
                         {barracksReady ? '✓' : '○'} Barracks Lv.{promotion.requiredBarracksLevel}
                       </Text>
-                      <Text style={[styles.requirement, { color: forgeReady ? theme.colors.primary : theme.colors.textMuted }]}>
-                        {forgeReady ? '✓' : '○'} Forge Lv.{promotion.requiredForgeLevel}
-                      </Text>
+                      {promotion.requiredForgeLevel > 0 ? (
+                        <Text style={[styles.requirement, { color: forgeReady ? theme.colors.primary : theme.colors.textMuted }]}>
+                          {forgeReady ? '✓' : '○'} Forge Lv.{promotion.requiredForgeLevel}
+                        </Text>
+                      ) : null}
+                      {(promotion.requiredStableLevel ?? 0) > 0 ? (
+                        <Text style={[styles.requirement, { color: stableReady ? theme.colors.primary : theme.colors.textMuted }]}>
+                          {stableReady ? '✓' : '○'} Stable Lv.{promotion.requiredStableLevel}
+                        </Text>
+                      ) : null}
                     </View>
                     <View style={styles.button}>
                       <PrimaryButton

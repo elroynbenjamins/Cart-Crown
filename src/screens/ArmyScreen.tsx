@@ -99,15 +99,19 @@ export function ArmyScreen({
                 ) : null}
 
                 {firstPromotionComplete ? (
-                  <View style={styles.promotionActions}>
-                    <View style={styles.actionGrow}>
-                      <PrimaryButton
-                        label="Manage Equipment & Branch"
-                        onPress={() => onOpenEquipment(unit.id)}
-                      />
-                    </View>
-                  </View>
+                  <Text style={[styles.previewBody, { color: theme.colors.primary }]}>
+                    Further class branches now depend on assigned gear and Kingdom building levels.
+                  </Text>
                 ) : null}
+              </View>
+            ) : null}
+
+            {forgeUnlocked ? (
+              <View style={styles.unitEquipmentButton}>
+                <PrimaryButton
+                  label="Loadout / Equipment"
+                  onPress={() => onOpenEquipment(unit.id)}
+                />
               </View>
             ) : null}
           </GameCard>
@@ -224,6 +228,7 @@ const styles = StyleSheet.create({
   choicePitch: { fontSize: 10, lineHeight: 14, marginTop: 3 },
   recruitButton: { marginTop: 14 },
   inventoryText: { fontSize: 11.5, lineHeight: 17 },
+  unitEquipmentButton: { marginTop: 11 },
   commanderTitle: { fontSize: 18, fontWeight: '900' },
   commanderSubtitle: { fontSize: 10, fontWeight: '900', marginTop: 3 },
   commanderBody: { fontSize: 11.5, lineHeight: 17, marginTop: 7 }

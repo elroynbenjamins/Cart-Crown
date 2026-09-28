@@ -22,7 +22,7 @@ import type {
   SharedProgress
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 4;
+export const SAVE_SCHEMA_VERSION = 5;
 
 type LegacyGameSnapshotV1 = {
   schemaVersion: 1;
@@ -89,6 +89,24 @@ type LegacySnapshotV3 = {
   factionStates: Record<FactionId, LegacyFactionV3 | null>;
 };
 
+type LegacyFactionV4 = Omit<
+  FactionGameState,
+  | 'chapterNumber'
+  | 'fourthRecruitChoiceAvailable'
+  | 'fourthRecruitChosen'
+  | 'unlockedResourceSites'
+  | 'productionStock'
+  | 'kingdomDefenseCompleted'
+  | 'kingdomDefenseRuns'
+>;
+
+type LegacySnapshotV4 = {
+  schemaVersion: 4;
+  activeFaction: FactionId;
+  shared: SharedProgress;
+  factionStates: Record<FactionId, LegacyFactionV4 | null>;
+};
+
 function normalizeFormation(formation: Array<string | null>) {
   return Array.from({ length: 9 }, (_, index) => formation[index] ?? null);
 }
@@ -124,12 +142,13 @@ function equipmentFromWeapons(
 }
 
 function upgradeLegacyFaction(
-  state: LegacyFactionV2 | LegacyFactionV3
+  state: LegacyFactionV2 | LegacyFactionV3 | LegacyFactionV4
 ): FactionGameState {
   const v3 = state as Partial<LegacyFactionV3>;
 
   return {
     faction: state.faction,
+    chapterNumber: 1,
     resources: { ...state.resources },
     units: state.units.map(unit => ({ ...unit })),
     formation: normalizeFormation(state.formation),
@@ -155,6 +174,12 @@ function upgradeLegacyFaction(
       state.forgeUnlocked,
       v3.commanderPathId ?? null
     ),
+    fourthRecruitChoiceAvailable: false,
+    fourthRecruitChosen: false,
+    unlockedResourceSites: [],
+    productionStock: { gold: 0, wood: 0, stone: 0, iron: 0, provisions: 0 },
+    kingdomDefenseCompleted: false,
+    kingdomDefenseRuns: 0,
     lastBattleResult: state.lastBattleResult ? { ...state.lastBattleResult } : null,
     expeditionTickets: state.expeditionTickets,
     expeditionRunsCompleted: state.expeditionRunsCompleted,
@@ -165,6 +190,7 @@ function upgradeLegacyFaction(
 export function createHumanFactionState(): FactionGameState {
   return {
     faction: 'human',
+    chapterNumber: 1,
     resources: { ...starterResources },
     units: starterUnits.map(unit => ({ ...unit })),
     formation: [
@@ -204,6 +230,12 @@ export function createHumanFactionState(): FactionGameState {
       war_room: 0,
       stable: 0
     },
+    fourthRecruitChoiceAvailable: false,
+    fourthRecruitChosen: false,
+    unlockedResourceSites: [],
+    productionStock: { gold: 0, wood: 0, stone: 0, iron: 0, provisions: 0 },
+    kingdomDefenseCompleted: false,
+    kingdomDefenseRuns: 0,
     lastBattleResult: null,
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
@@ -332,7 +364,17 @@ export function metadataFromSnapshot(
   const humanComplete = snapshot.shared.completedCampaigns.includes('human');
 
   let chapterLabel = 'Chapter 1 · Hold the Road';
-  if (current.refugeeCampSecured) {
+  if (current.chapterNumber >= 2) {
+    chapterLabel = current.kingdomDefenseCompleted
+      ? 'Chapter 2 · Broken Signal Tower'
+      : current.unlockedResourceSites.includes('greenwood_camp')
+        ? 'Chapter 2 · Kingdom Defense'
+        : current.unlockedResourceSites.includes('iron_hills_mine')
+          ? 'Chapter 2 · Timber Claim'
+          : current.fourthRecruitChosen
+            ? 'Chapter 2 · Iron Road Skirmish'
+            : 'Chapter 2 · Fort Muster';
+  } else if (current.refugeeCampSecured) {
     chapterLabel = 'Chapter 1 · The Toll Captain';
   } else if (current.mercenaryPatrolWon && !current.commanderPathId) {
     chapterLabel = 'Chapter 1 · Choose Commander';
@@ -378,7 +420,12 @@ export function normalizeSaveRecord(
 
   const record = value as {
     metadata?: SaveSlotMetadata;
-    snapshot?: GameSnapshot | LegacyGameSnapshotV1 | LegacySnapshotV2 | LegacySnapshotV3;
+    snapshot?:
+      | GameSnapshot
+      | LegacyGameSnapshotV1
+      | LegacySnapshotV2
+      | LegacySnapshotV3
+      | LegacySnapshotV4;
   };
 
   if (!record.snapshot) {
@@ -387,8 +434,31 @@ export function normalizeSaveRecord(
 
   let snapshot: GameSnapshot;
 
-  if (record.snapshot.schemaVersion === 4) {
+  if (record.snapshot.schemaVersion === 5) {
     snapshot = record.snapshot as GameSnapshot;
+  } else if (record.snapshot.schemaVersion === 4) {
+    const legacy = record.snapshot as LegacySnapshotV4;
+    snapshot = {
+      schemaVersion: SAVE_SCHEMA_VERSION,
+      activeFaction: legacy.activeFaction,
+      shared: {
+        completedCampaigns: [...legacy.shared.completedCampaigns],
+        achievements: [...legacy.shared.achievements],
+        lore: [...legacy.shared.lore],
+        cosmetics: [...legacy.shared.cosmetics]
+      },
+      factionStates: {
+        human: legacy.factionStates.human
+          ? upgradeLegacyFaction(legacy.factionStates.human)
+          : createHumanFactionState(),
+        elf: legacy.factionStates.elf
+          ? upgradeLegacyFaction(legacy.factionStates.elf)
+          : null,
+        orc: legacy.factionStates.orc
+          ? upgradeLegacyFaction(legacy.factionStates.orc)
+          : null
+      }
+    };
   } else if (record.snapshot.schemaVersion === 3) {
     snapshot = migrateV3(record.snapshot as LegacySnapshotV3);
   } else if (record.snapshot.schemaVersion === 2) {

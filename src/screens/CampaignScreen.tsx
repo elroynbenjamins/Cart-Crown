@@ -26,6 +26,10 @@ export function CampaignScreen({
   onStartMercenary,
   onOpenRefugeeCamp,
   onStartTollCaptain,
+  onOpenFortMuster,
+  onStartIronRoad,
+  onOpenTimberClaim,
+  onOpenKingdomDefense,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -34,17 +38,25 @@ export function CampaignScreen({
   onStartMercenary: () => void;
   onOpenRefugeeCamp: () => void;
   onStartTollCaptain: () => void;
+  onOpenFortMuster: () => void;
+  onStartIronRoad: () => void;
+  onOpenTimberClaim: () => void;
+  onOpenKingdomDefense: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
+    chapterNumber,
     chapterNodes,
     settlementUpgraded,
     firstPromotionComplete,
     mercenaryPatrolWon,
     commanderPathId,
     refugeeCampSecured,
+    fourthRecruitChosen,
+    unlockedResourceSites,
+    kingdomDefenseCompleted,
     campaignAvailability,
     sideModeDefinitions,
     isSideModeUnlocked,
@@ -66,10 +78,16 @@ export function CampaignScreen({
       <GameCard accent={theme.colors.human}>
         <View style={styles.chapterHeader}>
           <View style={styles.chapterCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>CHAPTER 1</Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>The Last Wagon</Text>
+            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>
+              CHAPTER {chapterNumber}
+            </Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+              {chapterNumber === 1 ? 'The Last Wagon' : 'The Iron Road'}
+            </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-              Reach ruined Greenkeep with the surviving squads.
+              {chapterNumber === 1
+                ? 'Reach ruined Greenkeep with the surviving squads.'
+                : 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'}
             </Text>
           </View>
           <Pill label={String(completed) + ' / 6'} color={theme.colors.surface2} />
@@ -84,8 +102,10 @@ export function CampaignScreen({
 
         {humanRegions.map(region => {
           const greenkeepUnlocked = region.id === 'greenkeep_vale' && settlementUpgraded;
-          const active = region.state === 'current' || greenkeepUnlocked;
-          const locked = region.state === 'locked' && !greenkeepUnlocked;
+          const ironRoadUnlocked = region.id === 'iron_hills' && chapterNumber >= 2;
+          const active = region.state === 'current' || greenkeepUnlocked || ironRoadUnlocked;
+          const locked =
+            region.state === 'locked' && !greenkeepUnlocked && !ironRoadUnlocked;
           const accent = region.faction === 'neutral' ? theme.colors.gold : theme.colors.human;
 
           return (
@@ -133,46 +153,92 @@ export function CampaignScreen({
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
-          const battlePlayable = node.current && node.type === 'battle' && node.id === 'node_2';
-          const storyPlayable = node.current && node.type === 'event' && node.id === 'node_3';
+          const chapterOneBattle =
+            chapterNumber === 1 &&
+            node.current &&
+            node.type === 'battle' &&
+            node.id === 'node_2';
+          const chapterOneStory =
+            chapterNumber === 1 &&
+            node.current &&
+            node.type === 'event' &&
+            node.id === 'node_3';
           const mercenaryPlayable =
+            chapterNumber === 1 &&
             node.current &&
             node.id === 'node_4' &&
             firstPromotionComplete &&
             !mercenaryPatrolWon;
           const refugeePlayable =
+            chapterNumber === 1 &&
             node.current &&
             node.id === 'node_5' &&
             Boolean(commanderPathId) &&
             !refugeeCampSecured;
           const bossPlayable =
+            chapterNumber === 1 &&
             node.current &&
             node.id === 'node_6' &&
             refugeeCampSecured;
+
+          const fortMusterPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_1' &&
+            !fourthRecruitChosen;
+          const ironRoadPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_2' &&
+            fourthRecruitChosen;
+          const timberPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_3' &&
+            unlockedResourceSites.includes('iron_hills_mine');
+          const defensePlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_4';
+
           const playable =
-            battlePlayable ||
-            storyPlayable ||
+            chapterOneBattle ||
+            chapterOneStory ||
             mercenaryPlayable ||
             refugeePlayable ||
-            bossPlayable;
+            bossPlayable ||
+            fortMusterPlayable ||
+            ironRoadPlayable ||
+            timberPlayable ||
+            defensePlayable;
+
           const status = node.completed
             ? 'DONE'
-            : mercenaryPlayable
-              ? 'PLAY'
-              : node.id === 'node_4' && node.current && !firstPromotionComplete
-                ? 'PROMOTE FIRST'
-                : node.id === 'node_5' && node.current && !commanderPathId
-                  ? 'CHOOSE COMMANDER'
-                  : refugeePlayable
-                    ? 'WELCOME REFUGEES'
-                    : playable
-                    ? 'PLAY'
-                    : node.current
-                      ? 'NEXT'
-                      : 'LOCKED';
-          const action = battlePlayable
+            : node.id === 'node_4' && node.current && !firstPromotionComplete
+              ? 'PROMOTE FIRST'
+              : node.id === 'node_5' && node.current && !commanderPathId
+                ? 'CHOOSE COMMANDER'
+                : refugeePlayable
+                  ? 'WELCOME REFUGEES'
+                  : fortMusterPlayable
+                    ? 'CHOOSE SQUAD'
+                    : ironRoadPlayable
+                      ? 'PLAY'
+                      : timberPlayable
+                        ? 'SECURE SITE'
+                        : defensePlayable
+                          ? 'DEFEND'
+                          : bossPlayable
+                            ? 'BOSS'
+                            : playable
+                              ? 'PLAY'
+                              : node.current
+                                ? 'NEXT'
+                                : 'LOCKED';
+
+          const action = chapterOneBattle
             ? onStartBattle
-            : storyPlayable
+            : chapterOneStory
               ? onOpenMarkedRaiders
               : mercenaryPlayable
                 ? onStartMercenary
@@ -180,7 +246,15 @@ export function CampaignScreen({
                   ? onOpenRefugeeCamp
                   : bossPlayable
                     ? onStartTollCaptain
-                    : undefined;
+                    : fortMusterPlayable
+                      ? onOpenFortMuster
+                      : ironRoadPlayable
+                        ? onStartIronRoad
+                        : timberPlayable
+                          ? onOpenTimberClaim
+                          : defensePlayable
+                            ? onOpenKingdomDefense
+                            : undefined;
 
           return (
             <Pressable
@@ -224,6 +298,7 @@ export function CampaignScreen({
   const openMode = (id: SideModeId) => {
     if (id === 'expeditions') onOpenExpedition();
     if (id === 'formation_trials') onOpenFormationTrial();
+    if (id === 'kingdom_defense') onOpenKingdomDefense();
   };
 
   const renderActivities = () => (
@@ -237,7 +312,13 @@ export function CampaignScreen({
 
       {sideModeDefinitions.map(mode => {
         const unlocked = isSideModeUnlocked(mode.id);
-        const functional = mode.id === 'expeditions' || mode.id === 'formation_trials';
+        const defenseIntroduced =
+          kingdomDefenseCompleted ||
+          Boolean(chapterNodes.find(node => node.id === 'ch2_node_4')?.current);
+        const functional =
+          mode.id === 'expeditions' ||
+          mode.id === 'formation_trials' ||
+          (mode.id === 'kingdom_defense' && defenseIntroduced);
 
         return (
           <GameCard key={mode.id} accent={unlocked ? theme.colors.primary : undefined}>

@@ -42,6 +42,10 @@ export function KingdomScreen({
     buildingLevels,
     fortUpgradeAvailable,
     canUpgradeToFort,
+    resourceSites,
+    unlockedResourceSites,
+    productionStock,
+    claimProduction,
     isBuildingUnlocked,
     upgradeBuilding,
     upgradeToFort,
@@ -53,10 +57,21 @@ export function KingdomScreen({
 
   const [buildingMessage, setBuildingMessage] = useState<string | null>(null);
 
-  const settlementName = settlementUpgraded ? 'Greenkeep Settlement' : 'Refugee Camp';
+  const settlementName =
+    currentWagonStage.id === 'fort'
+      ? 'Greenkeep Fort'
+      : settlementUpgraded
+        ? 'Greenkeep Settlement'
+        : 'Refugee Camp';
   const progress = holdTheRoadWon ? 1 : 0.34;
   const dailySupplyClaimed = (rewardedAdClaims.daily_supply ?? 0) >= 1;
   const unlockedCount = buildings.filter(building => isBuildingUnlocked(building.id)).length;
+  const productionTotal =
+    productionStock.gold +
+    productionStock.wood +
+    productionStock.stone +
+    productionStock.iron +
+    productionStock.provisions;
 
   let milestoneTitle = 'Establish a permanent settlement';
   let milestoneBody = 'Win Hold the Road, then spend 90 Wood and 20 Stone to establish Greenkeep.';
@@ -126,7 +141,11 @@ export function KingdomScreen({
 
         <View style={styles.progressCopy}>
           <Text style={[styles.progressLabel, { color: theme.colors.text }]}>
-            {settlementUpgraded ? 'Settlement tier · 2' : 'Raise Greenkeep Settlement'}
+            {currentWagonStage.id === 'fort'
+              ? 'Fort tier · 3'
+              : settlementUpgraded
+                ? 'Settlement tier · 2'
+                : 'Raise Greenkeep Settlement'}
           </Text>
           <Text style={[styles.progressValue, { color: theme.colors.textMuted }]}>
             {settlementUpgraded ? unlockedCount + ' buildings online' : Math.round(progress * 100) + '%'}
@@ -184,6 +203,50 @@ export function KingdomScreen({
           <Text style={[styles.summaryNote, { color: theme.colors.gold }]}>buildings unlocked</Text>
         </GameCard>
       </View>
+
+      {unlockedResourceSites.length > 0 ? (
+        <>
+          <SectionTitle title="Regional Production" trailing={productionTotal > 0 ? 'Stock ready' : 'Build stock through activities'} />
+          <View style={styles.productionGrid}>
+            {resourceSites
+              .filter(site => unlockedResourceSites.includes(site.id))
+              .map(site => (
+                <GameCard key={site.id} style={styles.productionCard} accent={theme.colors.primary}>
+                  <Text style={styles.productionIcon}>{site.icon}</Text>
+                  <Text style={[styles.productionName, { color: theme.colors.text }]}>{site.name}</Text>
+                  <Text style={[styles.productionBody, { color: theme.colors.textMuted }]}>
+                    {site.description}
+                  </Text>
+                  <Text style={[styles.productionRate, { color: theme.colors.primary }]}>
+                    Per activity · {Object.entries(site.productionPerActivity)
+                      .map(([key, value]) => resourceIcons[key as keyof ResourceWallet] + ' +' + String(value))
+                      .join('  ')}
+                  </Text>
+                </GameCard>
+              ))}
+          </View>
+
+          <GameCard>
+            <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>Unclaimed Production</Text>
+            <Text style={[styles.productionStock, { color: theme.colors.gold }]}>
+              🪙 {productionStock.gold} · 🪵 {productionStock.wood} · 🪨 {productionStock.stone} · ⛓ {productionStock.iron} · 🍞 {productionStock.provisions}
+            </Text>
+            <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
+              Campaign battles, Expeditions and Kingdom Defense advance one production cycle. Claim whenever you return to Greenkeep.
+            </Text>
+            <View style={styles.supplyButton}>
+              <PrimaryButton
+                label="Claim Production"
+                disabled={productionTotal <= 0}
+                onPress={() => {
+                  const ok = claimProduction();
+                  setBuildingMessage(ok ? 'Regional production transferred to Greenkeep.' : 'No production is ready yet.');
+                }}
+              />
+            </View>
+          </GameCard>
+        </>
+      ) : null}
 
       <SectionTitle title="Kingdom Buildings" trailing="Tap upgrade where available" />
 
@@ -325,6 +388,13 @@ const styles = StyleSheet.create({
   summaryLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1 },
   summaryValue: { fontSize: 22, fontWeight: '900', marginTop: 4 },
   summaryNote: { fontSize: 9.5, fontWeight: '800', marginTop: 3 },
+  productionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  productionCard: { width: '48%' },
+  productionIcon: { fontSize: 23 },
+  productionName: { fontSize: 13, fontWeight: '900', marginTop: 6 },
+  productionBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
+  productionRate: { fontSize: 8.5, lineHeight: 13, fontWeight: '900', marginTop: 6 },
+  productionStock: { fontSize: 10.5, lineHeight: 16, fontWeight: '900', marginTop: 6 },
   buildingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   buildingCard: { width: '48%' },
   buildingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 6 },

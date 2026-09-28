@@ -45,6 +45,7 @@ export type EquipmentDefinition = {
   speedBonus: number;
   craftCost: Partial<ResourceWallet>;
   requiredForgeLevel: number;
+  requiredStableLevel?: number;
   upgradeFromId?: string;
   description: string;
 };
@@ -81,6 +82,7 @@ export type AdvancedPromotionDefinition = {
   requiredEquippedIds: string[];
   requiredBarracksLevel: number;
   requiredForgeLevel: number;
+  requiredStableLevel?: number;
   attackBonus: number;
   armorBonus: number;
   speedBonus: number;
@@ -208,6 +210,15 @@ export type FormationDoctrine = {
   name: string;
   description: string;
   unlock: 'Start' | 'Settlement' | 'Fort' | 'Town' | 'Stronghold';
+};
+
+export type ResourceSiteDefinition = {
+  id: string;
+  faction: FactionId;
+  name: string;
+  icon: string;
+  description: string;
+  productionPerActivity: Partial<ResourceWallet>;
 };
 
 export type SideModeDefinition = {

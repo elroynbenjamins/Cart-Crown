@@ -6,6 +6,11 @@ import {
   wagonStages
 } from './data';
 import {
+  chapterTwoNodes,
+  fortMusterOptions,
+  humanResourceSites
+} from './chapter2';
+import {
   advancedPromotions,
   equipmentDefinitions,
   getAdvancedPromotionsForClass,
@@ -42,6 +47,7 @@ import type {
   FormationDoctrine,
   PromotionDefinition,
   RecruitOption,
+  ResourceSiteDefinition,
   ResourceWallet,
   SideModeDefinition,
   SideModeId,
@@ -72,6 +78,7 @@ type GameContextValue = {
   formation: Array<string | null>;
   wagonItems: WagonItemDefinition[];
   currentWagonStage: WagonStage;
+  chapterNumber: number;
   chapterNodes: ChapterNode[];
   activeFaction: FactionId;
   completedCampaigns: FactionId[];
@@ -103,6 +110,14 @@ type GameContextValue = {
   refugeeCampSecured: boolean;
   buildingLevels: Record<string, number>;
   buildings: BuildingDefinition[];
+  fourthRecruitChoiceAvailable: boolean;
+  fourthRecruitChosen: boolean;
+  fortMusterOptions: RecruitOption[];
+  unlockedResourceSites: string[];
+  resourceSites: ResourceSiteDefinition[];
+  productionStock: ResourceWallet;
+  kingdomDefenseCompleted: boolean;
+  kingdomDefenseRuns: number;
   fortUpgradeAvailable: boolean;
   canUpgradeToFort: boolean;
   lastBattleResult: BattleResult | null;
@@ -121,6 +136,10 @@ type GameContextValue = {
   upgradeBuilding: (buildingId: string) => boolean;
   isBuildingUnlocked: (buildingId: string) => boolean;
   chooseRecruit: (choiceId: string) => boolean;
+  chooseFortRecruit: (choiceId: string) => boolean;
+  unlockTimberCamp: () => boolean;
+  claimProduction: () => boolean;
+  completeKingdomDefense: () => boolean;
   craftEquipment: (equipmentId: string) => boolean;
   equipEquipment: (unitId: string, equipmentId: string) => boolean;
   upgradeEquippedItem: (unitId: string, targetEquipmentId: string) => boolean;
@@ -286,6 +305,7 @@ export function GameProvider({
   const [formation, setFormation] = useState<Array<string | null>>(() => [...initialFaction.formation]);
   const [wagonItems, setWagonItems] = useState<WagonItemDefinition[]>(() => cloneWagon(initialFaction.wagonItems));
   const [wagonStageId, setWagonStageId] = useState(initialFaction.wagonStageId);
+  const [chapterNumber, setChapterNumber] = useState(initialFaction.chapterNumber);
   const [chapterNodes, setChapterNodes] = useState<ChapterNode[]>(() => cloneNodes(initialFaction.chapterNodes));
   const [activeFaction] = useState<FactionId>(initialSnapshot.activeFaction);
   const [sharedProgress, setSharedProgress] = useState<SharedProgress>(() => ({
@@ -313,6 +333,20 @@ export function GameProvider({
   const [buildingLevels, setBuildingLevels] = useState<Record<string, number>>(
     () => ({ ...initialFaction.buildingLevels })
   );
+  const [fourthRecruitChoiceAvailable, setFourthRecruitChoiceAvailable] = useState(
+    initialFaction.fourthRecruitChoiceAvailable
+  );
+  const [fourthRecruitChosen, setFourthRecruitChosen] = useState(initialFaction.fourthRecruitChosen);
+  const [unlockedResourceSites, setUnlockedResourceSites] = useState<string[]>(
+    () => [...initialFaction.unlockedResourceSites]
+  );
+  const [productionStock, setProductionStock] = useState<ResourceWallet>(
+    () => ({ ...initialFaction.productionStock })
+  );
+  const [kingdomDefenseCompleted, setKingdomDefenseCompleted] = useState(
+    initialFaction.kingdomDefenseCompleted
+  );
+  const [kingdomDefenseRuns, setKingdomDefenseRuns] = useState(initialFaction.kingdomDefenseRuns);
   const [lastBattleResult, setLastBattleResult] = useState<BattleResult | null>(
     initialFaction.lastBattleResult ? { ...initialFaction.lastBattleResult } : null
   );
@@ -328,6 +362,10 @@ export function GameProvider({
   );
 
   const buildings = useMemo(() => getBuildings(activeFaction), [activeFaction]);
+  const resourceSites = useMemo(
+    () => humanResourceSites.filter(site => site.faction === activeFaction),
+    [activeFaction]
+  );
   const formationDoctrines = useMemo(
     () => getFactionDoctrines(activeFaction),
     [activeFaction]
@@ -406,6 +444,7 @@ export function GameProvider({
   const currentFactionState = useMemo<FactionGameState>(
     () => ({
       faction: activeFaction,
+      chapterNumber,
       resources,
       units,
       formation,
@@ -427,6 +466,12 @@ export function GameProvider({
       commanderPathId,
       refugeeCampSecured,
       buildingLevels,
+      fourthRecruitChoiceAvailable,
+      fourthRecruitChosen,
+      unlockedResourceSites,
+      productionStock,
+      kingdomDefenseCompleted,
+      kingdomDefenseRuns,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -434,6 +479,7 @@ export function GameProvider({
     }),
     [
       activeFaction,
+      chapterNumber,
       resources,
       units,
       formation,
@@ -455,6 +501,12 @@ export function GameProvider({
       commanderPathId,
       refugeeCampSecured,
       buildingLevels,
+      fourthRecruitChoiceAvailable,
+      fourthRecruitChosen,
+      unlockedResourceSites,
+      productionStock,
+      kingdomDefenseCompleted,
+      kingdomDefenseRuns,
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
@@ -464,7 +516,7 @@ export function GameProvider({
 
   const snapshot = useMemo<GameSnapshot>(
     () => ({
-      schemaVersion: 4,
+      schemaVersion: 5,
       activeFaction,
       shared: sharedProgress,
       factionStates: {
@@ -492,6 +544,22 @@ export function GameProvider({
     };
   }, [snapshot]);
 
+  const accrueRegionalProduction = () => {
+    setProductionStock(previous => {
+      const next = { ...previous };
+      for (const siteId of unlockedResourceSites) {
+        const site = humanResourceSites.find(candidate => candidate.id === siteId);
+        if (!site) continue;
+        next.gold += site.productionPerActivity.gold ?? 0;
+        next.wood += site.productionPerActivity.wood ?? 0;
+        next.stone += site.productionPerActivity.stone ?? 0;
+        next.iron += site.productionPerActivity.iron ?? 0;
+        next.provisions += site.productionPerActivity.provisions ?? 0;
+      }
+      return next;
+    });
+  };
+
   const finishEncounter = (encounterId: EncounterId) => {
     const reward = encounterRewards[encounterId];
 
@@ -499,6 +567,7 @@ export function GameProvider({
       if (holdTheRoadWon) return;
       setHoldTheRoadWon(true);
       setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node => {
           if (node.id === 'node_2') return { ...node, completed: true, current: false };
@@ -522,6 +591,7 @@ export function GameProvider({
       setMercenaryPatrolWon(true);
       setCommanderChoiceUnlocked(true);
       setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node => {
           if (node.id === 'node_4') return { ...node, completed: true, current: false };
@@ -551,6 +621,7 @@ export function GameProvider({
       }
 
       setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node =>
           node.id === 'node_6'
@@ -561,6 +632,37 @@ export function GameProvider({
       setLastBattleResult({
         id: 'toll_captain_result',
         title: 'The Western Road Is Ours',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'iron_road_skirmish') {
+      if (chapterNumber !== 2 || !fourthRecruitChosen) return;
+
+      const alreadyComplete = chapterNodes.find(node => node.id === 'ch2_node_2')?.completed;
+      if (alreadyComplete) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setUnlockedResourceSites(previous =>
+        previous.includes('iron_hills_mine')
+          ? previous
+          : [...previous, 'iron_hills_mine']
+      );
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch2_node_2') return { ...node, completed: true, current: false };
+          if (node.id === 'ch2_node_3') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'iron_road_skirmish_result',
+        title: 'Mine Road Secured',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -651,6 +753,14 @@ export function GameProvider({
       hall: 3,
       stable: Math.max(1, previous.stable ?? 0)
     }));
+    setChapterNumber(2);
+    setChapterNodes(cloneNodes(chapterTwoNodes));
+    setFourthRecruitChoiceAvailable(true);
+    setUnlockedResourceSites(previous =>
+      previous.includes('greenkeep_farms')
+        ? previous
+        : [...previous, 'greenkeep_farms']
+    );
     return true;
   };
 
@@ -715,17 +825,118 @@ export function GameProvider({
     return true;
   };
 
+  const chooseFortRecruit = (choiceId: string) => {
+    if (!fourthRecruitChoiceAvailable || fourthRecruitChosen) return false;
+
+    const choice = fortMusterOptions.find(option => option.id === choiceId);
+    if (!choice) return false;
+
+    setUnits(previous => [...previous, { ...choice.unit }]);
+    setFormation(previous => {
+      const next = [...previous];
+      const preferredSlots =
+        choice.unit.role === 'ranged'
+          ? [6, 8, 7, 3, 5, 4, 0, 2, 1]
+          : [3, 5, 4, 0, 2, 1, 6, 8, 7];
+      const empty = preferredSlots.find(slot => next[slot] === null);
+      if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
+        next[empty] = choice.unit.id;
+      }
+      return next;
+    });
+    setFourthRecruitChosen(true);
+    setFourthRecruitChoiceAvailable(false);
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch2_node_1') return { ...node, completed: true, current: false };
+        if (node.id === 'ch2_node_2') return { ...node, current: true };
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const unlockTimberCamp = () => {
+    if (
+      chapterNumber !== 2 ||
+      unlockedResourceSites.includes('greenwood_camp') ||
+      !chapterNodes.find(node => node.id === 'ch2_node_3')?.current
+    ) {
+      return false;
+    }
+
+    setUnlockedResourceSites(previous => [...previous, 'greenwood_camp']);
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch2_node_3') return { ...node, completed: true, current: false };
+        if (node.id === 'ch2_node_4') return { ...node, current: true };
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const claimProduction = () => {
+    const total =
+      productionStock.gold +
+      productionStock.wood +
+      productionStock.stone +
+      productionStock.iron +
+      productionStock.provisions;
+
+    if (total <= 0) return false;
+
+    setResources(previous => addResources(previous, productionStock));
+    setProductionStock({ gold: 0, wood: 0, stone: 0, iron: 0, provisions: 0 });
+    return true;
+  };
+
+  const completeKingdomDefense = () => {
+    if (chapterNumber < 2 || ['camp', 'settlement'].includes(currentWagonStage.id)) {
+      return false;
+    }
+
+    const storyDefenseActive = Boolean(
+      chapterNodes.find(node => node.id === 'ch2_node_4')?.current
+    );
+    const firstClear = !kingdomDefenseCompleted;
+
+    setKingdomDefenseCompleted(true);
+    setKingdomDefenseRuns(previous => previous + 1);
+    setResources(previous => ({
+      ...previous,
+      gold: previous.gold + (firstClear ? 60 : 35),
+      stone: previous.stone + (firstClear ? 8 : 4),
+      provisions: previous.provisions + 4
+    }));
+    accrueRegionalProduction();
+
+    if (storyDefenseActive) {
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch2_node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'ch2_node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+    }
+
+    return true;
+  };
+
   const craftEquipment = (equipmentId: string) => {
     if (!forgeUnlocked) return false;
 
     const equipment = getEquipment(equipmentId);
     const forgeLevel = buildingLevels.forge ?? 0;
+    const stableLevel = buildingLevels.stable ?? 0;
 
     if (
       !equipment ||
       equipment.faction !== activeFaction ||
       equipment.upgradeFromId ||
       equipment.requiredForgeLevel > forgeLevel ||
+      (equipment.requiredStableLevel ?? 0) > stableLevel ||
       !canAfford(resources, equipment.craftCost)
     ) {
       return false;
@@ -775,12 +986,14 @@ export function GameProvider({
   const upgradeEquippedItem = (unitId: string, targetEquipmentId: string) => {
     const target = getEquipment(targetEquipmentId);
     const forgeLevel = buildingLevels.forge ?? 0;
+    const stableLevel = buildingLevels.stable ?? 0;
     const unit = units.find(candidate => candidate.id === unitId);
 
     if (
       !target ||
       !target.upgradeFromId ||
       target.requiredForgeLevel > forgeLevel ||
+      (target.requiredStableLevel ?? 0) > stableLevel ||
       !unit ||
       !canAfford(resources, target.craftCost)
     ) {
@@ -873,7 +1086,8 @@ export function GameProvider({
     const meetsGear = promotion.requiredEquippedIds.every(id => equippedIds.includes(id));
     const meetsBuildings =
       (buildingLevels.barracks ?? 0) >= promotion.requiredBarracksLevel &&
-      (buildingLevels.forge ?? 0) >= promotion.requiredForgeLevel;
+      (buildingLevels.forge ?? 0) >= promotion.requiredForgeLevel &&
+      (buildingLevels.stable ?? 0) >= (promotion.requiredStableLevel ?? 0);
 
     if (!meetsGear || !meetsBuildings) return false;
 
@@ -998,6 +1212,7 @@ export function GameProvider({
   const finishExpedition = () => {
     const extraWood = (buildingLevels.wagonwright ?? 0) >= 2 ? 1 : 0;
     setExpeditionRunsCompleted(previous => previous + 1);
+    accrueRegionalProduction();
     setResources(previous => ({
       ...previous,
       gold: previous.gold + 35,
@@ -1085,6 +1300,7 @@ export function GameProvider({
       formation,
       wagonItems,
       currentWagonStage,
+      chapterNumber,
       chapterNodes,
       activeFaction,
       completedCampaigns,
@@ -1116,6 +1332,14 @@ export function GameProvider({
       refugeeCampSecured,
       buildingLevels,
       buildings,
+      fourthRecruitChoiceAvailable,
+      fourthRecruitChosen,
+      fortMusterOptions,
+      unlockedResourceSites,
+      resourceSites,
+      productionStock,
+      kingdomDefenseCompleted,
+      kingdomDefenseRuns,
       fortUpgradeAvailable,
       canUpgradeToFort,
       lastBattleResult,
@@ -1134,6 +1358,10 @@ export function GameProvider({
       upgradeBuilding,
       isBuildingUnlocked,
       chooseRecruit,
+      chooseFortRecruit,
+      unlockTimberCamp,
+      claimProduction,
+      completeKingdomDefense,
       craftEquipment,
       equipEquipment,
       upgradeEquippedItem,
@@ -1160,6 +1388,7 @@ export function GameProvider({
       formation,
       wagonItems,
       currentWagonStage,
+      chapterNumber,
       chapterNodes,
       activeFaction,
       completedCampaigns,
@@ -1187,6 +1416,13 @@ export function GameProvider({
       refugeeCampSecured,
       buildingLevels,
       buildings,
+      fourthRecruitChoiceAvailable,
+      fourthRecruitChosen,
+      unlockedResourceSites,
+      resourceSites,
+      productionStock,
+      kingdomDefenseCompleted,
+      kingdomDefenseRuns,
       fortUpgradeAvailable,
       canUpgradeToFort,
       lastBattleResult,

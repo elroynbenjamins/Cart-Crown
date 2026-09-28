@@ -1,61 +1,91 @@
 # Cart & Crown
 
-Cart & Crown is a portrait-first mobile strategy RPG built around **Kingdom progression, a 3×3 combat Formation, a limited logistics Wagon, persistent troop equipment, and faction-specific command styles**.
+Cart & Crown is a portrait-first mobile strategy RPG built around **Kingdom progression, a 3×3 combat Formation, a limited logistics Wagon, persistent troop equipment, faction-specific command styles, and regional development**.
 
 ## Current prototype
 
-- **2 independent save slots**, both autosaved locally.
-- Save schema v4 stores shared progress plus separate Human / Elf / Orc faction states.
+- **2 independent save slots**, autosaved locally.
+- Save schema v5 stores separate Human / Elf / Orc states plus shared unlocks.
 - Older development saves migrate automatically.
 - Human campaign is the required first playthrough.
 - Original / Dark / Light themes.
 - 3×3 formation board with army capacity growing from 2 to 6 squads.
+- Persistent per-unit loadouts: weapon, armor, shield, mount and artifact.
+- Equipment upgrades can improve a class without changing it.
+- Advanced promotions require gear combinations plus Kingdom building levels.
 - Human Orders, Elven Ward rules and Orc Momentum rules.
-- Drag/rotate Wagon logistics.
-- Persistent per-unit equipment loadouts: weapon, armor, shield, mount and artifact.
-- Equipment can improve without changing class.
-- Class promotions require specific gear combinations plus Kingdom building levels.
-- Expeditions and Formation Trials are playable; Kingdom Defense and Relic Hunts are later unlocks.
-- Optional rewarded-ad placements use one provider adapter; development uses mock rewards.
+- Three commander specializations per faction.
+- Expeditions, Formation Trials and Kingdom Defense.
+- Optional rewarded-ad placements through one provider adapter; development uses mock rewards.
 
-## Human Chapter 1 loop
+## Human progression implemented
 
-1. Start with Harlan the Militia + Mira the Recruit.
-2. Fight **Hold the Road**.
-3. Establish Greenkeep Settlement.
-4. Investigate **Marked Raiders** and unlock the Field Forge.
-5. Craft Mira's first class weapon:
-   - Iron Sword → **Swordsman**
-   - Infantry Spear → **Spearman**
-   - Hunting Bow → **Archer**
-6. Defeat the elite **Mercenary Patrol**.
-7. Choose a player-commander specialization.
-8. Welcome the **Refugee Camp**, unlocking the Quartermaster.
-9. Upgrade Greenkeep buildings.
-10. Defeat **The Toll Captain**.
-11. Meet Fort requirements and construct **Greenkeep Fort**.
+### Chapter 1 — The Last Wagon
+1. Hold the Road
+2. Greenkeep Settlement
+3. Marked Raiders
+4. First weapon / Mira promotion
+5. Mercenary Patrol
+6. Commander specialization
+7. Refugee Camp / Quartermaster
+8. Toll Captain
+9. Build Greenkeep Fort
 
-## Equipment progression
+### Chapter 2 — The Iron Road
+Fort construction now begins the next progression tier:
 
-Assigned gear does not occupy Wagon space.
+1. **Fort Muster** — choose a fourth active squad:
+   - Crossbowman
+   - Man-at-Arms
+   - Scout with cavalry potential
+2. **Iron Road Skirmish** — secures the Iron Hills Mine.
+3. **Timber Claim** — secures the Greenwood Timber Camp.
+4. **Kingdom Defense** — survive three consecutive defense waves.
+5. Broken Signal Tower — next story expansion.
+6. The Iron Provost — future Chapter 2 boss.
 
-Examples of non-class upgrades:
-- Iron Sword → Steel Sword
-- Padded Armor → Chainmail
-- Wooden Shield → Kite Shield
-- Hunting Bow → Longbow
+## Stable and first cavalry path
 
-Advanced class branches require both gear and infrastructure:
-- Swordsman + Kite Shield + Chainmail + Barracks II + Forge II → **Shield Infantry**
-- Swordsman + Greatsword + Barracks II + Forge II → **Greatswordsman**
-- Spearman + Long Pike → **Pikeman**
-- Spearman + Kite Shield → **Shield Spearman**
-- Archer + Longbow → **Longbowman**
-- Archer + Ranger Coat → **Ranger**
+Greenkeep Fort unlocks **Stable Lv.1**.
+
+The Stable can produce a **Trained Horse**. Assigning the horse to any Human Scout opens:
+
+> Scout + Trained Horse → **Scout Rider**
+
+Scout Rider becomes the first true cavalry class and can later branch into Cavalryman, Lancer or Mounted Archer.
+
+## Regional production
+
+Fort-tier territory can produce resources after meaningful activities instead of using background timers.
+
+Current sites:
+
+- **Greenkeep Farms** — +6 Provisions per completed activity.
+- **Iron Hills Mine** — +2 Iron per completed activity.
+- **Greenwood Timber Camp** — +5 Wood per completed activity.
+
+Campaign battles, Expeditions and Kingdom Defense advance production. Stock accumulates separately and is claimed from the Kingdom screen.
+
+## Kingdom Defense
+
+Kingdom Defense becomes available during Chapter 2 and remains repeatable afterward.
+
+The current first defense uses three escalating waves:
+
+1. Road Raiders
+2. Mercenary Bowline
+3. Green Banner Assault
+
+Defense Power is calculated from:
+- active squad stats
+- formation attack/armor synergies
+- commander specialization bonuses
+
+If the player's Defense Power is below the next wave's threat, they are encouraged to improve formation, equipment or Kingdom infrastructure before retrying.
 
 ## Kingdom building
 
-Campaign milestones unlock buildings and specialists. The player decides where resources are invested.
+Campaign milestones unlock opportunities; Kingdom investment turns them into permanent systems.
 
 Current Human buildings:
 - Greenkeep Hall
@@ -67,48 +97,12 @@ Current Human buildings:
 - Stable
 
 Examples:
-- **Barracks II** unlocks advanced class training.
-- **Forge II** unlocks Tier II equipment.
-- **Wagonwright II** improves Expedition supply recovery.
-- **Quartermaster II** grants an extra base Expedition Ticket.
-- **War Room II** reduces commander retraining cost from 75 to 50 Gold.
-
-### Fort tier
-
-After defeating the Toll Captain, Greenkeep can become a Fort only if:
-- Barracks Lv.2
-- Forge Lv.2
-- Wagonwright Lv.2
-- 150 Gold
-- 70 Wood
-- 35 Stone
-- 10 Iron
-
-Fort construction then:
-- raises Hall to Lv.3
-- expands the Wagon to **5×5**
-- increases active squad capacity to **4**
-- opens the Stable
-- unlocks the **Kingdom Defense** side-mode tier
-
-## Commander paths
-
-Each faction has three player-commander paths with favored roles, passive bonuses and an automatic battle command skill.
-
-Humans:
-- Vanguard Marshal — melee/frontline, armor break
-- Ranger-Captain — ranged/skirmish, morale pressure
-- Cavalry Marshal — cavalry, heavy direct damage
-
-Elves:
-- Windcaller — ranged/skirmish
-- Thorn Warden — frontline/support, bleed
-- Moon Seer — support/ranged, morale pressure
-
-Orcs:
-- Bloodchief — melee/frontline, bleed
-- Warglord — cavalry/skirmish, morale pressure
-- Warcaller — support/melee, armor break
+- Barracks II unlocks advanced troop branches.
+- Forge II unlocks Tier II equipment.
+- Wagonwright II improves Expedition supply recovery.
+- Quartermaster II improves provisions and grants another base Expedition Ticket.
+- War Room II reduces commander retraining cost.
+- Stable I unlocks mount production and Scout Rider progression.
 
 ## Tech
 
