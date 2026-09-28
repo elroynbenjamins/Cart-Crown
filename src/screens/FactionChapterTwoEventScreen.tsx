@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
+import { CampaignNodeSprite, FactionCrest, ResourceSiteSprite } from '../ui/gameArt';
 
 export function FactionChapterTwoEventScreen({
   stage,
@@ -62,15 +63,30 @@ export function FactionChapterTwoEventScreen({
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <GameCard accent={accent}>
-        <Text style={[styles.eyebrow, { color: accent }]}>CHAPTER 2 EVENT</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>{body}</Text>
+        <View style={styles.heroRow}>
+          <View style={styles.heroCopy}>
+            <Text style={[styles.eyebrow, { color: accent }]}>CHAPTER 2 EVENT</Text>
+            <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
+            <Text style={[styles.body, { color: theme.colors.textMuted }]}>{body}</Text>
+          </View>
+          <FactionCrest faction={activeFaction} size={48} />
+        </View>
       </GameCard>
 
       <SectionTitle title={stage === 'resource' ? 'Kingdom resource' : 'Faction council'} />
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>{stage === 'resource' ? (elf ? '🌿' : '🐺') : (elf ? '🌳' : '🔥')}</Text>
+          <View style={styles.eventArt}>
+            {stage === 'resource' ? (
+              <ResourceSiteSprite
+                siteId={elf ? 'elf_moonwell_herbs' : 'orc_red_plains_hunt'}
+                faction={activeFaction}
+                size={48}
+              />
+            ) : (
+              <CampaignNodeSprite type="event" faction={activeFaction} active size={36} />
+            )}
+          </View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>
               {stage === 'resource' ? 'Permanent infrastructure' : 'New campaign capability'}
@@ -107,11 +123,13 @@ export function FactionChapterTwoEventScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 13 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  heroCopy: { flex: 1 },
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
   row: { flexDirection: 'row', gap: 12 },
-  icon: { fontSize: 28 },
+  eventArt: { width: 54, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   rowTitle: { fontSize: 15, fontWeight: '900' },
   rowBody: { fontSize: 11, lineHeight: 16, marginTop: 4 }
