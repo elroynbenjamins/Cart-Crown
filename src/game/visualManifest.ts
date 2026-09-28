@@ -59,7 +59,9 @@ export type ResourceSiteVisualKind =
   | 'archive'
   | 'vault'
   | 'herb_grove'
-  | 'hunt';
+  | 'hunt'
+  | 'beacon'
+  | 'quarry';
 
 export const VISUAL_ASSET_VERSION = 4;
 
@@ -172,7 +174,9 @@ export const resourceSiteVisuals: Record<string, ResourceSiteVisualKind> = {
   royal_archive_stores: 'archive',
   concord_cache: 'vault',
   elf_moonwell_herbs: 'herb_grove',
-  orc_red_plains_hunt: 'hunt'
+  orc_red_plains_hunt: 'hunt',
+  elf_moonlit_watch: 'beacon',
+  orc_stonejaw_quarry: 'quarry'
 };
 
 export function getUnitVisualKind(className: string): UnitVisualKind {
