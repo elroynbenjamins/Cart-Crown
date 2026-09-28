@@ -115,7 +115,12 @@ import {
   isSettlementPlotUnlocked
 } from './settlement';
 import { sideModes } from './sideModes';
-import { getExpansionCost } from './balance';
+import {
+  clampArmyReadiness,
+  getArmyResupplyCost,
+  getBattleReadinessWear,
+  getExpansionCost
+} from './balance';
 import type {
   AdvancedPromotionDefinition,
   BattleResult,
@@ -164,6 +169,8 @@ type GameContextValue = {
   formation: Array<string | null>;
   wagonItems: WagonItemDefinition[];
   currentWagonStage: WagonStage;
+  armyReadiness: number;
+  armyResupplyCost: number;
   chapterNumber: number;
   chapterNodes: ChapterNode[];
   activeFaction: FactionId;
@@ -274,6 +281,13 @@ type GameContextValue = {
   rewardedAdClaims: RewardedAdClaimState;
   rewardedAdMessage: string | null;
   finishEncounter: (encounterId: EncounterId) => void;
+  recordBattleWear: (
+    remainingHp: number,
+    maxHp: number,
+    difficulty: 'Normal' | 'Elite' | 'Boss',
+    victory: boolean
+  ) => void;
+  restAndResupplyArmy: () => boolean;
   completeFactionChapterOneEvent: (
     stage: 'investigation' | 'supply'
   ) => boolean;
@@ -497,6 +511,9 @@ export function GameProvider({
   const [formation, setFormation] = useState<Array<string | null>>(() => [...initialFaction.formation]);
   const [wagonItems, setWagonItems] = useState<WagonItemDefinition[]>(() => cloneWagon(initialFaction.wagonItems));
   const [wagonStageId, setWagonStageId] = useState(initialFaction.wagonStageId);
+  const [armyReadiness, setArmyReadiness] = useState(
+    clampArmyReadiness(initialFaction.armyReadiness ?? 100)
+  );
   const [chapterNumber, setChapterNumber] = useState(initialFaction.chapterNumber);
   const [chapterNodes, setChapterNodes] = useState<ChapterNode[]>(() => cloneNodes(initialFaction.chapterNodes));
   const [activeFaction] = useState<FactionId>(initialSnapshot.activeFaction);
@@ -678,6 +695,14 @@ export function GameProvider({
 
   const formationBonuses = formationAnalysis.bonuses;
   const activeSquadCap = currentWagonStage.formationSlots;
+  const hasPackedRations = wagonItems.some(item => item.id === 'rations');
+  const hasPackedMedicine = wagonItems.some(item => item.id === 'medicine');
+  const armyResupplyCost = getArmyResupplyCost(
+    armyReadiness,
+    activeSquadCap,
+    hasPackedRations,
+    hasPackedMedicine
+  );
   const sixthRecruitChosen = units.some(unit =>
     [
       'hum_royal_guard_reinforcement',
@@ -953,6 +978,7 @@ export function GameProvider({
       formation,
       wagonItems,
       wagonStageId,
+      armyReadiness,
       chapterNodes,
       formationDoctrineId,
       holdTheRoadWon,
@@ -998,6 +1024,7 @@ export function GameProvider({
       formation,
       wagonItems,
       wagonStageId,
+      armyReadiness,
       chapterNodes,
       formationDoctrineId,
       holdTheRoadWon,
@@ -1146,6 +1173,39 @@ export function GameProvider({
       }
       return next;
     });
+  };
+
+  const recordBattleWear = (
+    remainingHp: number,
+    maxHp: number,
+    difficulty: 'Normal' | 'Elite' | 'Boss',
+    victory: boolean
+  ) => {
+    const wear = getBattleReadinessWear(
+      remainingHp,
+      maxHp,
+      difficulty,
+      victory,
+      hasPackedRations,
+      hasPackedMedicine
+    );
+
+    if (wear <= 0) return;
+    setArmyReadiness(previous =>
+      clampArmyReadiness(previous - wear)
+    );
+  };
+
+  const restAndResupplyArmy = () => {
+    if (armyReadiness >= 100) return true;
+    if (resources.provisions < armyResupplyCost) return false;
+
+    setResources(previous => ({
+      ...previous,
+      provisions: previous.provisions - armyResupplyCost
+    }));
+    setArmyReadiness(100);
+    return true;
   };
 
   const finishEncounter = (encounterId: EncounterId) => {
@@ -4236,6 +4296,7 @@ export function GameProvider({
       provisions: previous.provisions + 5
     }));
     accrueRegionalProduction();
+    recordBattleWear(65, 100, 'Elite', true);
 
     if (storyDefenseActive) {
       setChapterNodes(previous =>
@@ -4797,6 +4858,7 @@ export function GameProvider({
         4 +
         settlementEffects.expeditionProvisionBonus
     }));
+    recordBattleWear(70, 100, 'Elite', true);
   };
 
   const completeFormationTrial = () => {
@@ -4918,6 +4980,8 @@ export function GameProvider({
       formation,
       wagonItems,
       currentWagonStage,
+      armyReadiness,
+      armyResupplyCost,
       chapterNumber,
       chapterNodes,
       activeFaction,
@@ -5019,6 +5083,8 @@ export function GameProvider({
       rewardedAdClaims,
       rewardedAdMessage,
       finishEncounter,
+      recordBattleWear,
+      restAndResupplyArmy,
       completeFactionChapterOneEvent,
       completeFactionChapterTwoEvent,
       completeFactionChapterThreeEvent,
@@ -5091,6 +5157,8 @@ export function GameProvider({
       formation,
       wagonItems,
       currentWagonStage,
+      armyReadiness,
+      armyResupplyCost,
       chapterNumber,
       chapterNodes,
       activeFaction,

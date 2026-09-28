@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { getArmyReadinessProfile } from '../game/balance';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
@@ -9,6 +10,8 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   const { theme } = useGameTheme();
   const {
     activeFaction,
+    armyReadiness,
+    armyResupplyCost,
     lastBattleResult,
     claimRewardedAd,
     rewardedAdClaims,
@@ -25,6 +28,7 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   }
 
   const rewards = Object.entries(lastBattleResult.rewards).filter(([, value]) => Boolean(value));
+  const readinessProfile = getArmyReadinessProfile(armyReadiness);
   const salvageClaimed = (rewardedAdClaims.salvage_boost ?? 0) >= 1;
   const mercenaryResult = lastBattleResult.id === 'mercenary_patrol_result';
   const tollCaptainResult = lastBattleResult.id === 'toll_captain_result';
@@ -170,6 +174,28 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
             </View>
           ))}
         </View>
+      </GameCard>
+
+      <SectionTitle title="Army condition" trailing={String(armyReadiness) + '%'} />
+      <GameCard
+        faction={activeFaction}
+        state={armyReadiness >= 70 ? 'ready' : armyReadiness >= 50 ? 'default' : 'danger'}
+      >
+        <View style={styles.conditionHeader}>
+          <Text style={[styles.conditionTitle, { color: theme.colors.text }]}>
+            {readinessProfile.label}
+          </Text>
+          <StatusPill
+            label={armyReadiness >= 70 ? 'NO PENALTY' : 'RECOVERY ADVISED'}
+            tone={armyReadiness >= 70 ? 'ready' : armyReadiness >= 50 ? 'available' : 'elite'}
+          />
+        </View>
+        <Text style={[styles.conditionBody, { color: theme.colors.textMuted }]}>
+          Readiness carries into the next battle. Above 70% the army fights at full effectiveness.
+          {armyReadiness < 100
+            ? ' Full field recovery currently costs ' + armyResupplyCost + ' provisions at Battle Prep.'
+            : ''}
+        </Text>
       </GameCard>
 
       <GameCard faction={activeFaction} state={salvageClaimed ? 'ready' : 'default'}>
@@ -973,6 +999,9 @@ const styles = StyleSheet.create({
   resultScene: { alignItems: 'center', marginTop: 12 },
   rewardValue: { fontSize: 18, fontWeight: '900', marginTop: 5 },
   rewardLabel: { fontSize: 10, textTransform: 'capitalize', marginTop: 2 },
+  conditionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  conditionTitle: { fontSize: 16, fontWeight: '900' },
+  conditionBody: { fontSize: 11, lineHeight: 17, marginTop: 6 },
   salvageTitle: { fontSize: 15, fontWeight: '900' },
   salvageBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
   salvageReward: { fontSize: 11, fontWeight: '900', marginTop: 7 },

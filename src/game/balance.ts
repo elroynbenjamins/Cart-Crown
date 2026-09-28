@@ -168,6 +168,93 @@ export function getUnitCombatProfile(
   };
 }
 
+export type ArmyReadinessProfile = {
+  hpMultiplier: number;
+  attackMultiplier: number;
+  speedMultiplier: number;
+  label: 'Fresh' | 'Worn' | 'Exhausted';
+};
+
+export function clampArmyReadiness(value: number) {
+  return Math.max(25, Math.min(100, Math.round(value)));
+}
+
+export function getArmyReadinessProfile(
+  readiness: number
+): ArmyReadinessProfile {
+  const normalized = clampArmyReadiness(readiness);
+
+  if (normalized >= 70) {
+    return {
+      hpMultiplier: 1,
+      attackMultiplier: 1,
+      speedMultiplier: 1,
+      label: 'Fresh'
+    };
+  }
+
+  const fatigue = Math.min(1, Math.max(0, (70 - normalized) / 45));
+  return {
+    hpMultiplier: 1 - fatigue * 0.15,
+    attackMultiplier: 1 - fatigue * 0.08,
+    speedMultiplier: 1 - fatigue * 0.05,
+    label: normalized >= 50 ? 'Worn' : 'Exhausted'
+  };
+}
+
+export function getBattleReadinessWear(
+  remainingHp: number,
+  maxHp: number,
+  difficulty: EncounterDefinition['difficulty'],
+  victory: boolean,
+  hasRations: boolean,
+  hasMedicine: boolean
+) {
+  const hpRatio =
+    maxHp > 0
+      ? Math.max(0, Math.min(1, remainingHp / maxHp))
+      : 0;
+  const damageRatio = 1 - hpRatio;
+  const difficultyWear =
+    difficulty === 'Boss'
+      ? 6
+      : difficulty === 'Elite'
+        ? 3
+        : 0;
+
+  let wear =
+    damageRatio * 24 +
+    difficultyWear +
+    (victory ? 0 : 12);
+
+  if (hasRations) wear *= 0.9;
+  if (hasMedicine) wear *= 0.8;
+
+  const rounded = Math.round(wear);
+  if (!victory) return Math.max(20, rounded);
+  if (damageRatio < 0.08 && difficulty === 'Normal') return 0;
+  return Math.max(2, rounded);
+}
+
+export function getArmyResupplyCost(
+  readiness: number,
+  squadCap: number,
+  hasRations: boolean,
+  hasMedicine: boolean
+) {
+  const normalized = clampArmyReadiness(readiness);
+  if (normalized >= 100) return 0;
+
+  const missingBands = Math.max(1, Math.ceil((100 - normalized) / 10));
+  const armyScale = Math.max(1, Math.ceil(Math.max(2, squadCap) / 2));
+  let cost = missingBands * armyScale;
+
+  if (hasRations) cost *= 0.85;
+  if (hasMedicine) cost *= 0.8;
+
+  return Math.max(1, Math.ceil(cost));
+}
+
 export function getEnemyStrikePressure(
   encounter: EncounterDefinition,
   squadCap: number,

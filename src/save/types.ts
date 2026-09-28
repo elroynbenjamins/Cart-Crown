@@ -18,6 +18,7 @@ export type FactionGameState = {
   formation: Array<string | null>;
   wagonItems: WagonItemDefinition[];
   wagonStageId: string;
+  armyReadiness?: number;
   chapterNodes: ChapterNode[];
   formationDoctrineId: string;
   holdTheRoadWon: boolean;
