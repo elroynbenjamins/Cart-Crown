@@ -52,6 +52,27 @@ export type EnemyVisualKind =
   | 'ranger'
   | 'agitator';
 
+export type CommanderVisualKind =
+  | 'vanguard'
+  | 'ranger'
+  | 'cavalry'
+  | 'windcaller'
+  | 'thorn'
+  | 'moon'
+  | 'bloodchief'
+  | 'warglord'
+  | 'warcaller';
+
+export type StorySceneVisualKind =
+  | 'marcher_envoy'
+  | 'refugee_camp'
+  | 'broken_archives'
+  | 'royal_ledger'
+  | 'grand_council'
+  | 'forced_beacon'
+  | 'crownspire'
+  | 'victory';
+
 export type ClassLoadoutVisualKind =
   | 'blade'
   | 'spear'
@@ -77,7 +98,7 @@ export type ResourceSiteVisualKind =
   | 'beacon'
   | 'quarry';
 
-export const VISUAL_ASSET_VERSION = 5;
+export const VISUAL_ASSET_VERSION = 6;
 
 export const unitClassVisuals: Record<string, UnitVisualKind> = {
   militia: 'infantry',
@@ -295,4 +316,21 @@ export function getClassLoadoutVisuals(
   if (key.includes('spear') || key.includes('pike')) return ['spear', 'shield'];
   if (key.includes('shield')) return ['blade', 'shield'];
   return ['blade', 'heavy_armor'];
+}
+
+
+export const commanderVisuals: Record<string, CommanderVisualKind> = {
+  hum_vanguard: 'vanguard',
+  hum_ranger_captain: 'ranger',
+  hum_cavalry_marshal: 'cavalry',
+  elf_windcaller: 'windcaller',
+  elf_thorn_warden: 'thorn',
+  elf_moon_seer: 'moon',
+  orc_bloodchief: 'bloodchief',
+  orc_warglord: 'warglord',
+  orc_warcaller: 'warcaller'
+};
+
+export function getCommanderVisualKind(pathId: string): CommanderVisualKind {
+  return commanderVisuals[pathId] ?? 'vanguard';
 }
