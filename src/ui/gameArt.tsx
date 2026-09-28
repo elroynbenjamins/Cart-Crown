@@ -1418,6 +1418,19 @@ export function ResourceSiteSprite({
           <View style={{ position: 'absolute', left: size * 0.25, bottom: size * 0.13, width: size * 0.08, height: size * 0.18, backgroundColor: palette.outline }} />
           <View style={{ position: 'absolute', left: size * 0.53, bottom: size * 0.13, width: size * 0.08, height: size * 0.18, backgroundColor: palette.outline }} />
         </>
+      ) : kind === 'beacon' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.44, bottom: size * 0.14, width: size * 0.12, height: size * 0.54, backgroundColor: palette.wood }} />
+          <View style={{ position: 'absolute', left: size * 0.29, top: size * 0.12, width: size * 0.42, height: size * 0.13, backgroundColor: palette.elf }} />
+          <View style={{ position: 'absolute', left: size * 0.4, top: size * 0.02, width: size * 0.2, height: size * 0.2, borderRadius: size * 0.1, backgroundColor: palette.blue }} />
+        </>
+      ) : kind === 'quarry' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.12, bottom: size * 0.14, width: size * 0.76, height: size * 0.42, backgroundColor: palette.stone }} />
+          <View style={{ position: 'absolute', left: size * 0.22, top: size * 0.12, width: size * 0.19, height: size * 0.19, backgroundColor: palette.stoneLight }} />
+          <View style={{ position: 'absolute', right: size * 0.18, top: size * 0.18, width: size * 0.2, height: size * 0.16, backgroundColor: palette.steel }} />
+          <View style={{ position: 'absolute', left: size * 0.45, top: size * 0.02, width: size * 0.07, height: size * 0.44, backgroundColor: palette.wood, transform: [{ rotate: '34deg' }] }} />
+        </>
       ) : kind === 'archive' ? (
         <>
           <View style={{ position: 'absolute', left: size * 0.2, bottom: size * 0.16, width: size * 0.6, height: size * 0.48, backgroundColor: palette.stoneLight }} />
