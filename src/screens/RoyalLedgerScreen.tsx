@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
+import { StoryCharacterPortrait, StoryScene } from '../ui/gameArt';
 
 export function RoyalLedgerScreen({
   onComplete
@@ -24,13 +25,18 @@ export function RoyalLedgerScreen({
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           The Envoy carried a private ledger linking mercenary payments, forged warnings, Crownroad officers and archive alterations to the same name: the Ashen Court.
         </Text>
+        <View style={styles.sceneWrap}>
+          <StoryScene scene="royal_ledger" size={236} />
+        </View>
       </GameCard>
 
       <SectionTitle title="The conspiracy is named" />
 
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>🕯️</Text>
+          <View style={styles.rowArt}>
+            <StoryCharacterPortrait role="ashen" size={48} />
+          </View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Ashen Court</Text>
             <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
@@ -42,7 +48,9 @@ export function RoyalLedgerScreen({
 
       <GameCard>
         <View style={styles.row}>
-          <Text style={styles.icon}>🏰</Text>
+          <View style={styles.crownspireArt}>
+            <StoryScene scene="crownspire" size={92} />
+          </View>
           <View style={styles.copy}>
             <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Crownspire was always the target</Text>
             <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
@@ -66,8 +74,10 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  row: { flexDirection: 'row', gap: 12 },
-  icon: { fontSize: 28 },
+  sceneWrap: { alignItems: 'center', marginTop: 10 },
+  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  rowArt: { width: 54, alignItems: 'center', justifyContent: 'center' },
+  crownspireArt: { width: 96, height: 48, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1 },
   rowTitle: { fontSize: 15, fontWeight: '900' },
   rowBody: { fontSize: 11, lineHeight: 16, marginTop: 4 }
