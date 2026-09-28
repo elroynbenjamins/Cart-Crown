@@ -11,12 +11,42 @@ import type { FactionId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { UnitSprite } from './gameArt';
 
+export type CardState = 'default' | 'selected' | 'ready' | 'locked' | 'danger';
+
+function factionAccentFor(faction: FactionId | undefined, theme: ReturnType<typeof useGameTheme>['theme']) {
+  if (faction === 'elf') return theme.colors.elf;
+  if (faction === 'orc') return theme.colors.orc;
+  if (faction === 'human') return theme.colors.human;
+  return null;
+}
+
 export function GameCard({
   children,
   accent,
+  faction,
+  state = 'default',
+  ornament = Boolean(faction),
   style
-}: PropsWithChildren<{ accent?: string; style?: StyleProp<ViewStyle> }>) {
+}: PropsWithChildren<{
+  accent?: string;
+  faction?: FactionId;
+  state?: CardState;
+  ornament?: boolean;
+  style?: StyleProp<ViewStyle>;
+}>) {
   const { theme } = useGameTheme();
+  const factionAccent = factionAccentFor(faction, theme);
+  const stateAccent =
+    state === 'ready'
+      ? theme.colors.primary
+      : state === 'selected'
+        ? theme.colors.gold
+        : state === 'danger'
+          ? theme.colors.danger
+          : state === 'locked'
+            ? theme.colors.border
+            : null;
+  const edge = accent ?? stateAccent ?? factionAccent ?? theme.colors.border;
 
   return (
     <View
@@ -24,11 +54,31 @@ export function GameCard({
         styles.card,
         {
           backgroundColor: theme.colors.surface1,
-          borderColor: accent ?? theme.colors.border
+          borderColor: edge,
+          opacity: state === 'locked' ? 0.68 : 1
         },
         style
       ]}
     >
+      {ornament && factionAccent ? (
+        <>
+          <View pointerEvents="none" style={[styles.cardFactionRail, { backgroundColor: factionAccent }]} />
+          <View pointerEvents="none" style={[styles.cardCornerTop, { borderColor: factionAccent }]} />
+          <View pointerEvents="none" style={[styles.cardCornerBottom, { borderColor: factionAccent }]} />
+        </>
+      ) : null}
+      {state === 'selected' || state === 'ready' ? (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.cardStateGlow,
+            {
+              borderColor:
+                state === 'ready' ? theme.colors.primary + '66' : theme.colors.gold + '66'
+            }
+          ]}
+        />
+      ) : null}
       {children}
     </View>
   );
@@ -66,6 +116,169 @@ export function Pill({
   return (
     <View style={[styles.pill, { backgroundColor: fill }]}>
       <Text style={[styles.pillText, { color: theme.colors.text }]}>{label}</Text>
+    </View>
+  );
+}
+
+
+export type StatusTone =
+  | 'ready'
+  | 'locked'
+  | 'selected'
+  | 'current'
+  | 'done'
+  | 'boss'
+  | 'elite'
+  | 'available'
+  | 'neutral';
+
+export function StatusPill({
+  label,
+  tone = 'neutral'
+}: {
+  label: string;
+  tone?: StatusTone;
+}) {
+  const { theme } = useGameTheme();
+  const fill =
+    tone === 'ready' || tone === 'done'
+      ? theme.colors.primary + '2F'
+      : tone === 'selected' || tone === 'current' || tone === 'boss'
+        ? theme.colors.gold + '30'
+        : tone === 'elite'
+          ? theme.colors.danger + '28'
+          : tone === 'available'
+            ? theme.colors.info + '28'
+            : tone === 'locked'
+              ? theme.colors.surface3
+              : theme.colors.surface2;
+  const textColor =
+    tone === 'ready' || tone === 'done'
+      ? theme.colors.primary
+      : tone === 'selected' || tone === 'current' || tone === 'boss'
+        ? theme.colors.gold
+        : tone === 'elite'
+          ? theme.colors.danger
+          : tone === 'available'
+            ? theme.colors.info
+            : tone === 'locked'
+              ? theme.colors.textMuted
+              : theme.colors.text;
+  const symbol =
+    tone === 'ready' || tone === 'done'
+      ? '✓'
+      : tone === 'selected' || tone === 'current'
+        ? '●'
+        : tone === 'boss'
+          ? '♛'
+          : tone === 'elite'
+            ? '✦'
+            : tone === 'available'
+              ? '◇'
+              : tone === 'locked'
+                ? '○'
+                : '•';
+
+  return (
+    <View style={[styles.statusPill, { backgroundColor: fill, borderColor: textColor + '55' }]}>
+      <Text style={[styles.statusSymbol, { color: textColor }]}>{symbol}</Text>
+      <Text style={[styles.statusText, { color: textColor }]}>{label}</Text>
+    </View>
+  );
+}
+
+export function FlowProgress({
+  stage,
+  faction
+}: {
+  stage: 'prep' | 'battle' | 'results';
+  faction: FactionId;
+}) {
+  const { theme } = useGameTheme();
+  const accent = factionAccentFor(faction, theme) ?? theme.colors.primary;
+  const stages: Array<{ id: 'prep' | 'battle' | 'results'; label: string }> = [
+    { id: 'prep', label: 'PREP' },
+    { id: 'battle', label: 'BATTLE' },
+    { id: 'results', label: 'RESULT' }
+  ];
+  const currentIndex = stages.findIndex(item => item.id === stage);
+
+  return (
+    <View style={[styles.flowProgress, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+      {stages.map((item, index) => {
+        const reached = index <= currentIndex;
+        const current = index === currentIndex;
+        return (
+          <React.Fragment key={item.id}>
+            {index > 0 ? (
+              <View
+                style={[
+                  styles.flowLine,
+                  { backgroundColor: index <= currentIndex ? accent : theme.colors.border }
+                ]}
+              />
+            ) : null}
+            <View style={styles.flowStep}>
+              <View
+                style={[
+                  styles.flowDot,
+                  {
+                    backgroundColor: reached ? accent : theme.colors.surface3,
+                    borderColor: current ? theme.colors.gold : reached ? accent : theme.colors.border,
+                    borderWidth: current ? 2 : 1
+                  }
+                ]}
+              />
+              <Text style={[styles.flowLabel, { color: current ? theme.colors.text : theme.colors.textMuted }]}>
+                {item.label}
+              </Text>
+            </View>
+          </React.Fragment>
+        );
+      })}
+    </View>
+  );
+}
+
+export function ScreenAtmosphere({
+  faction,
+  section
+}: {
+  faction: FactionId;
+  section: 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army' | 'flow';
+}) {
+  const { theme } = useGameTheme();
+  const accent = factionAccentFor(faction, theme) ?? theme.colors.primary;
+  const secondary =
+    faction === 'elf'
+      ? theme.colors.primary
+      : faction === 'orc'
+        ? theme.colors.danger
+        : theme.colors.info;
+
+  return (
+    <View pointerEvents="none" style={styles.atmosphere}>
+      <View
+        style={[
+          styles.atmosphereHalo,
+          {
+            backgroundColor: accent + (theme.dark ? '12' : '0C'),
+            top: section === 'campaign' ? 16 : -24,
+            right: section === 'army' ? -80 : -44
+          }
+        ]}
+      />
+      <View
+        style={[
+          styles.atmosphereHaloSmall,
+          {
+            backgroundColor: secondary + (theme.dark ? '0D' : '08'),
+            bottom: section === 'wagon' ? 20 : -42,
+            left: section === 'formation' ? -44 : -72
+          }
+        ]}
+      />
+      <View style={[styles.atmosphereRule, { backgroundColor: accent + '2A' }]} />
     </View>
   );
 }
@@ -229,7 +442,48 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
     borderWidth: 1,
-    padding: 16
+    padding: 16,
+    position: 'relative',
+    overflow: 'hidden'
+  },
+  cardFactionRail: {
+    position: 'absolute',
+    left: 0,
+    top: 12,
+    bottom: 12,
+    width: 3,
+    borderTopRightRadius: 3,
+    borderBottomRightRadius: 3,
+    opacity: 0.85
+  },
+  cardCornerTop: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    width: 13,
+    height: 13,
+    borderTopWidth: 2,
+    borderRightWidth: 2,
+    opacity: 0.45
+  },
+  cardCornerBottom: {
+    position: 'absolute',
+    left: 8,
+    bottom: 8,
+    width: 10,
+    height: 10,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    opacity: 0.32
+  },
+  cardStateGlow: {
+    position: 'absolute',
+    left: 3,
+    right: 3,
+    top: 3,
+    bottom: 3,
+    borderRadius: 16,
+    borderWidth: 1
   },
   sectionTitleRow: {
     minHeight: 34,
@@ -257,6 +511,85 @@ const styles = StyleSheet.create({
   pillText: {
     fontSize: 12,
     fontWeight: '800'
+  },
+  statusPill: {
+    minHeight: 29,
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5
+  },
+  statusSymbol: {
+    fontSize: 9,
+    fontWeight: '900'
+  },
+  statusText: {
+    fontSize: 9.5,
+    fontWeight: '900',
+    letterSpacing: 0.3
+  },
+  flowProgress: {
+    minHeight: 42,
+    marginHorizontal: 14,
+    marginTop: 7,
+    marginBottom: 1,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  flowStep: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 48
+  },
+  flowDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5
+  },
+  flowLabel: {
+    fontSize: 7.5,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    marginTop: 3
+  },
+  flowLine: {
+    flex: 1,
+    height: 2,
+    marginBottom: 12,
+    opacity: 0.7
+  },
+  atmosphere: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    overflow: 'hidden'
+  },
+  atmosphereHalo: {
+    position: 'absolute',
+    width: 230,
+    height: 230,
+    borderRadius: 115
+  },
+  atmosphereHaloSmall: {
+    position: 'absolute',
+    width: 170,
+    height: 170,
+    borderRadius: 85
+  },
+  atmosphereRule: {
+    position: 'absolute',
+    left: 18,
+    right: 18,
+    top: 0,
+    height: 1
   },
   primaryButton: {
     minHeight: 52,

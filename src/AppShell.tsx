@@ -57,6 +57,7 @@ import { SettlementScreen } from './screens/SettlementScreen';
 import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
+import { FlowProgress, ScreenAtmosphere } from './ui/components';
 
 type FlowScreen =
   | 'battlePrep'
@@ -1030,6 +1031,21 @@ export function AppShell({
     }
   };
 
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
+  const battleFlowStage =
+    flow === 'battlePrep'
+      ? 'prep'
+      : flow === 'battle'
+        ? 'battle'
+        : flow === 'results'
+          ? 'results'
+          : null;
+
   const canGoBack =
     flow === 'battlePrep' ||
     flow === 'recruitment' ||
@@ -1083,12 +1099,24 @@ export function AppShell({
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.appBg }]}>
+      <ScreenAtmosphere
+        faction={activeFaction}
+        section={flow ? 'flow' : active}
+      />
       <StatusBar
         barStyle={theme.dark ? 'light-content' : 'dark-content'}
         backgroundColor={theme.colors.appBg}
       />
 
-      <View style={[styles.topBar, { borderBottomColor: theme.colors.border }]}>
+      <View
+        style={[
+          styles.topBar,
+          {
+            borderBottomColor: factionAccent + '55',
+            backgroundColor: theme.colors.appBg + (theme.dark ? 'F0' : 'F7')
+          }
+        ]}
+      >
         <View style={styles.titleArea}>
           {canGoBack ? (
             <Pressable
@@ -1144,6 +1172,10 @@ export function AppShell({
         ) : null}
       </View>
 
+      {battleFlowStage ? (
+        <FlowProgress stage={battleFlowStage} faction={activeFaction} />
+      ) : null}
+
       <View style={styles.screen}>{renderScreen()}</View>
 
       {!flow ? (
@@ -1170,13 +1202,13 @@ export function AppShell({
                 <View
                   style={[
                     styles.navIconWrap,
-                    selected ? { backgroundColor: theme.colors.primary + '2F' } : undefined
+                    selected ? { backgroundColor: factionAccent + '2F' } : undefined
                   ]}
                 >
                   <Text
                     style={[
                       styles.navIcon,
-                      { color: selected ? theme.colors.primary : theme.colors.textMuted }
+                      { color: selected ? factionAccent : theme.colors.textMuted }
                     ]}
                   >
                     {item.icon}
@@ -1185,7 +1217,7 @@ export function AppShell({
                 <Text
                   style={[
                     styles.navLabel,
-                    { color: selected ? theme.colors.primary : theme.colors.textMuted }
+                    { color: selected ? factionAccent : theme.colors.textMuted }
                   ]}
                   numberOfLines={1}
                 >
@@ -1201,9 +1233,10 @@ export function AppShell({
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
+  safeArea: { flex: 1, position: 'relative', overflow: 'hidden' },
   topBar: {
     height: 66,
+    zIndex: 2,
     paddingHorizontal: 17,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
@@ -1240,9 +1273,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   themeIcon: { fontSize: 18, color: '#D9A84E' },
-  screen: { flex: 1 },
+  screen: { flex: 1, zIndex: 1 },
   bottomNav: {
     height: 76,
+    zIndex: 2,
     borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',

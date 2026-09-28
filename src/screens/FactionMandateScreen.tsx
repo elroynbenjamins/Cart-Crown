@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, PrimaryButton, SectionTitle } from '../ui/components';
+import { GameCard, PrimaryButton, SectionTitle, StatusPill } from '../ui/components';
+import { FactionCrest } from '../ui/gameArt';
 
 export function FactionMandateScreen({
   onExit
@@ -44,7 +45,9 @@ export function FactionMandateScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={accent}>
+      <GameCard accent={accent} faction={activeFaction}>
+        <View style={styles.heroRow}>
+          <View style={styles.heroCopy}>
         <Text style={[styles.eyebrow, { color: accent }]}>
           {activeFaction === 'elf' ? 'STARROOT CONCLAVE' : 'WARFIRE CONFEDERACY'}
         </Text>
@@ -54,6 +57,9 @@ export function FactionMandateScreen({
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           One strategic priority can be active at a time. The first choice is free; replacing it later costs {factionMandateSwitchCost} Gold.
         </Text>
+          </View>
+          <FactionCrest faction={activeFaction} size={52} />
+        </View>
       </GameCard>
 
       <SectionTitle
@@ -71,7 +77,11 @@ export function FactionMandateScreen({
               key={mandate.id}
               onTouchEnd={() => setSelectedId(mandate.id)}
             >
-              <GameCard accent={selectedOption ? accent : undefined}>
+              <GameCard
+                accent={selectedOption ? accent : undefined}
+                faction={activeFaction}
+                state={selectedOption ? 'selected' : current ? 'ready' : 'default'}
+              >
                 <View style={styles.header}>
                   <View style={styles.copy}>
                     <Text style={[styles.name, { color: theme.colors.text }]}>
@@ -81,7 +91,10 @@ export function FactionMandateScreen({
                       {mandate.subtitle}
                     </Text>
                   </View>
-                  <Pill label={current ? 'ACTIVE' : selectedOption ? 'SELECTED' : 'OPTION'} />
+                  <StatusPill
+                    label={current ? 'ACTIVE' : selectedOption ? 'SELECTED' : 'OPTION'}
+                    tone={current ? 'current' : selectedOption ? 'selected' : 'neutral'}
+                  />
                 </View>
                 <Text style={[styles.description, { color: theme.colors.textMuted }]}>
                   {mandate.description}
@@ -96,7 +109,7 @@ export function FactionMandateScreen({
       </View>
 
       {selected ? (
-        <GameCard>
+        <GameCard faction={activeFaction} state="selected">
           <Text style={[styles.confirmTitle, { color: theme.colors.text }]}>
             {selected.name}
           </Text>
@@ -139,6 +152,8 @@ export function FactionMandateScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 13 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  heroCopy: { flex: 1 },
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12, lineHeight: 18, marginTop: 6 },

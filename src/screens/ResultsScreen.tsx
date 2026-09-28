@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
+import { GameCard, PrimaryButton, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { ResourceSprite, StoryScene } from '../ui/gameArt';
 
 export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
@@ -127,7 +127,7 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.resultHeader}>
-        <Text style={[styles.victory, { color: theme.colors.primary }]}>VICTORY</Text>
+        <StatusPill label="VICTORY" tone="done" />
         <Text style={[styles.title, { color: theme.colors.text }]}>{lastBattleResult.title}</Text>
         <Text style={[styles.summary, { color: theme.colors.textMuted }]}>
           {lastBattleResult.summary}
@@ -138,7 +138,7 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </View>
 
       <SectionTitle title="Rewards" />
-      <GameCard>
+      <GameCard faction={activeFaction} state="ready">
         <View style={styles.rewards}>
           {rewards.map(([key, value]) => (
             <View key={key} style={[styles.reward, { backgroundColor: theme.colors.surface2 }]}>
@@ -153,7 +153,7 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
         </View>
       </GameCard>
 
-      <GameCard>
+      <GameCard faction={activeFaction} state={salvageClaimed ? 'ready' : 'default'}>
         <Text style={[styles.salvageTitle, { color: theme.colors.text }]}>Battlefield Salvage</Text>
         <Text style={[styles.salvageBody, { color: theme.colors.textMuted }]}>
           Optional rewarded ad. Skipping it does not reduce the normal battle reward.

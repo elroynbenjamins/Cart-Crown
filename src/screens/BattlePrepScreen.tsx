@@ -10,6 +10,7 @@ import {
   PrimaryButton,
   SecondaryButton,
   SectionTitle,
+  StatusPill,
   UnitPortrait
 } from '../ui/components';
 import { EnemySprite } from '../ui/gameArt';
@@ -82,7 +83,17 @@ export function BattlePrepScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={encounter.difficulty === 'Elite' ? theme.colors.gold : theme.colors.danger}>
+      <GameCard
+        accent={
+          encounter.difficulty === 'Boss'
+            ? theme.colors.danger
+            : encounter.difficulty === 'Elite'
+              ? theme.colors.gold
+              : factionAccent
+        }
+        faction={activeFaction}
+        state={encounter.difficulty === 'Boss' ? 'danger' : 'default'}
+      >
         <View style={styles.encounterHeader}>
           <View style={styles.encounterCopy}>
             <Text style={[styles.eyebrow, { color: theme.colors.danger }]}>BATTLE PREP</Text>
@@ -91,9 +102,15 @@ export function BattlePrepScreen({
               {encounter.subtitle}
             </Text>
           </View>
-          <Pill
-            label={encounter.difficulty}
-            color={(encounter.difficulty === 'Elite' ? theme.colors.gold : theme.colors.danger) + '35'}
+          <StatusPill
+            label={encounter.difficulty.toUpperCase()}
+            tone={
+              encounter.difficulty === 'Boss'
+                ? 'boss'
+                : encounter.difficulty === 'Elite'
+                  ? 'elite'
+                  : 'neutral'
+            }
           />
         </View>
       </GameCard>
@@ -147,7 +164,7 @@ export function BattlePrepScreen({
       <SectionTitle title="Your formation" trailing={String(activeUnits.length) + ' squads'} />
       <View style={styles.unitList}>
         {activeUnits.map(unit => (
-          <GameCard key={unit.id}>
+          <GameCard key={unit.id} faction={unit.faction}>
             <View style={styles.unitRow}>
               <UnitPortrait
                 name={unit.name}
@@ -165,7 +182,7 @@ export function BattlePrepScreen({
         ))}
       </View>
 
-      <GameCard accent={theme.colors.gold}>
+      <GameCard accent={theme.colors.gold} faction={activeFaction}>
         <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>ACTIVE ORDER</Text>
         <Text style={[styles.doctrineName, { color: theme.colors.text }]}>{doctrine?.name}</Text>
         <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
@@ -202,7 +219,7 @@ export function BattlePrepScreen({
       ) : null}
 
       {activeFactionMandate ? (
-        <GameCard accent={factionAccent}>
+        <GameCard accent={factionAccent} faction={activeFaction}>
           <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
             {activeFaction === 'elf' ? 'WORLDROOT ATTUNEMENT' : 'CLAN PACT'}
           </Text>
@@ -230,7 +247,7 @@ export function BattlePrepScreen({
       ) : null}
 
       {activeCommanderPath ? (
-        <GameCard accent={theme.colors.human}>
+        <GameCard accent={factionAccent} faction={activeFaction}>
           <View style={styles.commandHeader}>
             <View style={styles.commandCopy}>
               <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>COMMANDER</Text>
@@ -266,7 +283,17 @@ export function BattlePrepScreen({
       ) : null}
 
       <SectionTitle title="Readiness" />
-      <GameCard>
+      <GameCard
+        faction={activeFaction}
+        state={hasFood && hasMedicine ? 'ready' : !hasFood ? 'danger' : 'default'}
+      >
+        <View style={styles.readinessHeader}>
+          <Text style={[styles.readinessTitle, { color: theme.colors.text }]}>Campaign supplies</Text>
+          <StatusPill
+            label={hasFood && hasMedicine ? 'READY' : !hasFood ? 'FOOD MISSING' : 'PARTIAL'}
+            tone={hasFood && hasMedicine ? 'ready' : !hasFood ? 'elite' : 'available'}
+          />
+        </View>
         <View style={styles.readinessList}>
           <View style={styles.readinessRow}>
             <Text style={[styles.readinessIcon, { color: hasFood ? theme.colors.primary : theme.colors.danger }]}>
@@ -319,6 +346,8 @@ const styles = StyleSheet.create({
   bonusHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
   bonusName: { fontSize: 12, fontWeight: '900' },
   bonusValue: { fontSize: 10, fontWeight: '900' },
+  readinessHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 },
+  readinessTitle: { fontSize: 14, fontWeight: '900' },
   readinessList: { gap: 10 },
   readinessRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   readinessIcon: { width: 20, fontSize: 16, fontWeight: '900' },
