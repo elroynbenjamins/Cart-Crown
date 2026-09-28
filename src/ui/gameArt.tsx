@@ -16,6 +16,7 @@ import {
   commanderProductionAsset,
   enemyProductionAsset,
   equipmentProductionAsset,
+  factionCrestProductionAsset,
   getProductionAssetSource,
   resourceProductionAsset,
   resourceSiteProductionAsset,
@@ -760,7 +761,7 @@ export function UnitSprite({
   size?: number;
 }) {
   const kind = getUnitVisualKind(className);
-  const production = unitProductionAsset(faction, kind);
+  const production = unitProductionAsset(faction, className, kind);
   return (
     <ProductionAssetFrame assetId={production.id} width={size}>
       <View style={{ width: size, height: size, position: 'relative' }}>
@@ -1426,6 +1427,18 @@ export function FactionCrest({
   faction: FactionId;
   size?: number;
 }) {
+  const production = factionCrestProductionAsset(faction);
+  const productionSource = getProductionAssetSource(production.id);
+  if (productionSource) {
+    return (
+      <Image
+        source={productionSource}
+        resizeMode="contain"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+
   const accent =
     faction === 'elf'
       ? palette.elf
