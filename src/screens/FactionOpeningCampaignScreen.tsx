@@ -10,7 +10,7 @@ import {
   PrimaryButton,
   SectionTitle
 } from '../ui/components';
-import { CampaignNodeSprite, FactionCrest } from '../ui/gameArt';
+import { CampaignNodeSprite, FactionCrest, RegionMapBackdrop } from '../ui/gameArt';
 
 export function FactionOpeningCampaignScreen({
   onStartOpeningBattle,
@@ -151,6 +151,17 @@ export function FactionOpeningCampaignScreen({
         }
         trailing="Current region"
       />
+
+      <View style={[styles.regionPreview, { borderColor: accent }]}>
+        <RegionMapBackdrop faction={activeFaction} chapter={chapterNumber} />
+        <View style={styles.regionRoute}>
+          <View style={[styles.routeDot, { backgroundColor: accent }]} />
+          <View style={[styles.routeLine, { backgroundColor: accent }]} />
+          <View style={[styles.routeDot, { backgroundColor: chapterNumber >= 2 ? accent : theme.colors.border }]} />
+          <View style={[styles.routeLine, { backgroundColor: chapterNumber >= 2 ? accent : theme.colors.border }]} />
+          <View style={[styles.routeDot, { backgroundColor: chapterNumber >= 3 ? accent : theme.colors.border }]} />
+        </View>
+      </View>
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
@@ -354,6 +365,10 @@ const styles = StyleSheet.create({
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
   mechanicLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   mechanicBody: { fontSize: 12, lineHeight: 18, fontWeight: '800', marginTop: 5 },
+  regionPreview: { height: 150, borderWidth: 1, borderRadius: 20, overflow: 'hidden', position: 'relative' },
+  regionRoute: { position: 'absolute', left: '18%', right: '18%', bottom: 18, flexDirection: 'row', alignItems: 'center' },
+  routeDot: { width: 14, height: 14, borderRadius: 7 },
+  routeLine: { flex: 1, height: 3, opacity: 0.8 },
   nodeList: { gap: 0 },
   nodeWrap: { position: 'relative' },
   connector: { width: 2, height: 10, alignSelf: 'center' },
