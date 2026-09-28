@@ -4,6 +4,7 @@ import { getEquipment } from '../game/equipment';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle, UnitPortrait } from '../ui/components';
+import { EquipmentSprite, UnitSprite } from '../ui/gameArt';
 
 export function PromotionScreen({
   onOpenForge,
@@ -76,6 +77,20 @@ export function PromotionScreen({
 
                 <Text style={[styles.pitch, { color: theme.colors.textMuted }]}>{promotion.pitch}</Text>
 
+                <View style={styles.promotionVisual}>
+                  <View style={styles.gearBox}>
+                    <EquipmentSprite
+                      equipmentId={promotion.requiredEquipmentId}
+                      faction={mira.faction}
+                      size={34}
+                    />
+                  </View>
+                  <Text style={[styles.arrow, { color: theme.colors.textMuted }]}>→</Text>
+                  <View style={styles.resultBox}>
+                    <UnitSprite className={promotion.toClass} faction={mira.faction} size={42} />
+                  </View>
+                </View>
+
                 <View style={styles.statRow}>
                   <Text style={[styles.stat, { color: theme.colors.text }]}>Class ATK +{promotion.attackBonus}</Text>
                   <Text style={[styles.stat, { color: theme.colors.text }]}>ARM +{promotion.armorBonus}</Text>
@@ -139,6 +154,10 @@ const styles = StyleSheet.create({
   optionName: { fontSize: 18, fontWeight: '900' },
   role: { fontSize: 9, fontWeight: '900', marginTop: 2 },
   pitch: { fontSize: 11.5, lineHeight: 17, marginTop: 8 },
+  promotionVisual: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
+  gearBox: { width: 44, height: 44, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  resultBox: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  arrow: { fontSize: 18, fontWeight: '900' },
   statRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 9 },
   stat: { fontSize: 9.5, fontWeight: '800' },
   selectButton: { marginTop: 11 },

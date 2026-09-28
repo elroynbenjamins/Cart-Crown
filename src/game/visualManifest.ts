@@ -1,3 +1,5 @@
+import type { FactionId } from './types';
+
 export type UnitVisualKind =
   | 'infantry'
   | 'archer'
@@ -50,6 +52,18 @@ export type EnemyVisualKind =
   | 'ranger'
   | 'agitator';
 
+export type ClassLoadoutVisualKind =
+  | 'blade'
+  | 'spear'
+  | 'bow'
+  | 'shield'
+  | 'light_armor'
+  | 'heavy_armor'
+  | 'stag'
+  | 'warg'
+  | 'drum'
+  | 'ward';
+
 export type ResourceSiteVisualKind =
   | 'farm'
   | 'mine'
@@ -63,7 +77,7 @@ export type ResourceSiteVisualKind =
   | 'beacon'
   | 'quarry';
 
-export const VISUAL_ASSET_VERSION = 4;
+export const VISUAL_ASSET_VERSION = 5;
 
 export const unitClassVisuals: Record<string, UnitVisualKind> = {
   militia: 'infantry',
@@ -80,8 +94,17 @@ export const unitClassVisuals: Record<string, UnitVisualKind> = {
   'field medic': 'infantry',
   'field chaplain': 'infantry',
   warden: 'infantry',
+  'grove acolyte': 'infantry',
+  'spear warden': 'infantry',
+  spiritkeeper: 'infantry',
   youngblood: 'infantry',
+  'clan warrior': 'infantry',
+  'war drummer': 'infantry',
+  'spear raider': 'infantry',
+  warbringer: 'infantry',
   archer: 'archer',
+  'bow warden': 'archer',
+  'bone hunter': 'archer',
   longbowman: 'archer',
   marksman: 'archer',
   scout: 'scout',
@@ -89,7 +112,10 @@ export const unitClassVisuals: Record<string, UnitVisualKind> = {
   'border ranger': 'scout',
   'forest scout': 'scout',
   hunter: 'scout',
+  pathfinder: 'scout',
   'scout rider': 'scout_rider',
+  'stag scout': 'scout_rider',
+  'warg scout': 'scout_rider',
   cavalryman: 'cavalryman',
   'heavy cavalry': 'cavalryman',
   lancer: 'lancer',
@@ -233,4 +259,40 @@ export function getEnemyVisualKind(
     return 'mercenary';
   }
   return 'raider';
+}
+
+
+export function getClassLoadoutVisuals(
+  className: string,
+  faction: FactionId
+): ClassLoadoutVisualKind[] {
+  const key = className.trim().toLowerCase();
+
+  if (faction === 'elf') {
+    if (key.includes('stag')) return ['bow', 'stag'];
+    if (key.includes('bow')) return ['bow', 'light_armor'];
+    if (key.includes('spear')) return ['spear', 'light_armor'];
+    if (key.includes('spirit') || key.includes('acolyte')) return ['ward', 'light_armor'];
+    if (key.includes('pathfinder') || key.includes('scout') || key.includes('ranger')) {
+      return ['bow', 'light_armor'];
+    }
+    return ['blade', 'light_armor'];
+  }
+
+  if (faction === 'orc') {
+    if (key.includes('warg')) return ['spear', 'warg'];
+    if (key.includes('drummer')) return ['drum', 'light_armor'];
+    if (key.includes('bone hunter') || key.includes('hunter')) return ['bow', 'light_armor'];
+    if (key.includes('spear')) return ['spear', 'heavy_armor'];
+    if (key.includes('warbringer')) return ['blade', 'drum'];
+    return ['blade', 'heavy_armor'];
+  }
+
+  if (key.includes('mounted archer')) return ['bow', 'light_armor'];
+  if (key.includes('lancer')) return ['spear', 'heavy_armor'];
+  if (key.includes('cavalry')) return ['blade', 'heavy_armor'];
+  if (key.includes('archer') || key.includes('bow')) return ['bow', 'light_armor'];
+  if (key.includes('spear') || key.includes('pike')) return ['spear', 'shield'];
+  if (key.includes('shield')) return ['blade', 'shield'];
+  return ['blade', 'heavy_armor'];
 }

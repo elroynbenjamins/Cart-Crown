@@ -336,6 +336,19 @@ export function EquipmentManageScreen({
                       <Pill label={ready ? 'READY' : 'LOCKED'} />
                     </View>
                     <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>{promotion.pitch}</Text>
+                    <View style={styles.promotionVisualRow}>
+                      <View style={styles.promotionGear}>
+                        {promotion.requiredEquippedIds.map(id => (
+                          <View key={id} style={styles.promotionGearItem}>
+                            <EquipmentSprite equipmentId={id} faction={unit.faction} size={32} />
+                          </View>
+                        ))}
+                      </View>
+                      <Text style={[styles.promotionArrow, { color: theme.colors.textMuted }]}>→</Text>
+                      <View style={styles.promotionResult}>
+                        <UnitSprite className={promotion.toClass} faction={unit.faction} size={42} />
+                      </View>
+                    </View>
                     <View style={styles.requirements}>
                       <Text style={[styles.requirement, { color: gearReady ? theme.colors.primary : theme.colors.textMuted }]}>
                         {gearReady ? '✓' : '○'} Required gear: {promotion.requiredEquippedIds.map(id => getEquipment(id)?.name ?? id).join(' + ')}
@@ -422,6 +435,11 @@ const styles = StyleSheet.create({
   button: { marginTop: 10 },
   emptyText: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
   explainer: { fontSize: 10.5, lineHeight: 16, paddingHorizontal: 4 },
+  promotionVisualRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  promotionGear: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  promotionGearItem: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  promotionArrow: { fontSize: 18, fontWeight: '900' },
+  promotionResult: { width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
   requirements: { gap: 5, marginTop: 9 },
   requirement: { fontSize: 9.5, lineHeight: 14, fontWeight: '700' },
   message: { textAlign: 'center', fontSize: 10.5, lineHeight: 16, fontWeight: '800' }
