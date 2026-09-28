@@ -115,12 +115,20 @@ export function metadataFromSnapshot(
 
   let chapterLabel = 'Chapter 1 · Hold the Road';
 
-  if (current.chapterNumber >= 5) {
-    chapterLabel = current.chapterNodes.find(node => node.id === 'ch5_node_3')?.current
-      ? 'Chapter 5 · Broken Archives'
-      : current.chapterNodes.find(node => node.id === 'ch5_node_2')?.current
-        ? 'Chapter 5 · Old Royal Lands'
-        : 'Chapter 5 · Capital Council';
+  if (current.chapterNumber >= 6) {
+    chapterLabel = 'Chapter 6 · Grand Council';
+  } else if (current.chapterNumber === 5) {
+    chapterLabel = current.chapterNodes.find(node => node.id === 'ch5_node_6')?.current
+      ? 'Chapter 5 · Gate of Crownspire'
+      : current.chapterNodes.find(node => node.id === 'ch5_node_5')?.current
+        ? 'Chapter 5 · The Royal Ledger'
+        : current.chapterNodes.find(node => node.id === 'ch5_node_4')?.current
+          ? 'Chapter 5 · Ashen Envoy'
+          : current.chapterNodes.find(node => node.id === 'ch5_node_3')?.current
+            ? 'Chapter 5 · Broken Archives'
+            : current.chapterNodes.find(node => node.id === 'ch5_node_2')?.current
+              ? 'Chapter 5 · Old Royal Lands'
+              : 'Chapter 5 · Capital Council';
   } else if (current.chapterNumber === 4) {
     chapterLabel = current.pretenderGeneralWon
       ? 'Chapter 4 · Raise Greenkeep Capital'
@@ -178,9 +186,11 @@ export function metadataFromSnapshot(
   }
 
   const kingdomName =
-    current.wagonStageId === 'capital'
-      ? 'Greenkeep Capital'
-      : current.wagonStageId === 'stronghold'
+    current.wagonStageId === 'grand'
+      ? 'Greenkeep Grand Campaign'
+      : current.wagonStageId === 'capital'
+        ? 'Greenkeep Capital'
+        : current.wagonStageId === 'stronghold'
         ? 'Greenkeep Stronghold'
         : current.wagonStageId === 'town'
         ? 'Greenkeep Town'

@@ -12,7 +12,9 @@ export type EncounterId =
   | 'broken_standards'
   | 'crownroad_ambush'
   | 'pretender_general'
-  | 'old_royal_lands';
+  | 'old_royal_lands'
+  | 'ashen_envoy'
+  | 'gate_of_crownspire';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -127,6 +129,24 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 930,
     difficulty: 'Elite'
+  },
+  ashen_envoy: {
+    id: 'ashen_envoy',
+    name: 'Ashen Envoy',
+    subtitle: 'A masked delegation offers Greenkeep recognition in exchange for ending the investigation into the old royal records.',
+    enemyName: 'Ashen Envoy Retinue',
+    enemyCount: 6,
+    enemyHp: 1180,
+    difficulty: 'Elite'
+  },
+  gate_of_crownspire: {
+    id: 'gate_of_crownspire',
+    name: 'Gate of Crownspire',
+    subtitle: 'Ashen Court forces hold the western gate while Greenkeep’s Capital army pushes toward the neutral fortress.',
+    enemyName: 'Ashen Gate Vanguard',
+    enemyCount: 6,
+    enemyHp: 1580,
+    difficulty: 'Boss'
   }
 };
 
@@ -178,6 +198,14 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   old_royal_lands: {
     resources: { gold: 175, wood: 28, stone: 22, iron: 16, provisions: 8 },
     storySummary: 'The estate patrol yields. Greenkeep captures administrative ledgers that point toward deliberately altered records in the old royal archives.'
+  },
+  ashen_envoy: {
+    resources: { gold: 210, wood: 32, stone: 24, iron: 20, provisions: 9 },
+    storySummary: 'The Envoy’s retinue is defeated. Their private ledger names the Ashen Court and links the false orders across the western realm.'
+  },
+  gate_of_crownspire: {
+    resources: { gold: 520, wood: 240, stone: 210, iron: 70, provisions: 20 },
+    storySummary: 'The western gate opens. Greenkeep reaches Crownspire and can prepare a final Grand Campaign against the Ashen Court around the Concord Beacon.'
   }
 };
 

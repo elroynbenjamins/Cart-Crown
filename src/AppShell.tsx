@@ -15,6 +15,7 @@ import { ArmyScreen } from './screens/ArmyScreen';
 import { BattlePrepScreen } from './screens/BattlePrepScreen';
 import { BattleScreen } from './screens/BattleScreen';
 import { BrokenSignalTowerScreen } from './screens/BrokenSignalTowerScreen';
+import { BrokenArchivesScreen } from './screens/BrokenArchivesScreen';
 import { CampaignScreen } from './screens/CampaignScreen';
 import { CommanderChoiceScreen } from './screens/CommanderChoiceScreen';
 import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
@@ -32,6 +33,7 @@ import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
 import { KingdomDefenseScreen } from './screens/KingdomDefenseScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { RoyalLedgerScreen } from './screens/RoyalLedgerScreen';
 import { RoyalDecreesScreen } from './screens/RoyalDecreesScreen';
 import { StrongholdMusterScreen } from './screens/StrongholdMusterScreen';
 import { EmptyThroneScreen } from './screens/EmptyThroneScreen';
@@ -64,6 +66,8 @@ type FlowScreen =
   | 'emptyThrone'
   | 'lastLoyalists'
   | 'royalDecrees'
+  | 'brokenArchives'
+  | 'royalLedger'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -106,6 +110,8 @@ const flowTitles: Record<FlowScreen, string> = {
   emptyThrone: 'The Empty Throne',
   lastLoyalists: 'The Last Loyalists',
   royalDecrees: 'Royal Decrees',
+  brokenArchives: 'Broken Archives',
+  royalLedger: 'The Royal Ledger',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -378,6 +384,28 @@ export function AppShell({
       );
     }
 
+    if (flow === 'brokenArchives') {
+      return (
+        <BrokenArchivesScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'royalLedger') {
+      return (
+        <RoyalLedgerScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -480,6 +508,16 @@ export function AppShell({
               setActiveEncounterId('old_royal_lands');
               setFlow('battlePrep');
             }}
+            onOpenBrokenArchives={() => setFlow('brokenArchives')}
+            onStartAshenEnvoy={() => {
+              setActiveEncounterId('ashen_envoy');
+              setFlow('battlePrep');
+            }}
+            onOpenRoyalLedger={() => setFlow('royalLedger')}
+            onStartGateOfCrownspire={() => {
+              setActiveEncounterId('gate_of_crownspire');
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -541,6 +579,8 @@ export function AppShell({
     flow === 'emptyThrone' ||
     flow === 'lastLoyalists' ||
     flow === 'royalDecrees' ||
+    flow === 'brokenArchives' ||
+    flow === 'royalLedger' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

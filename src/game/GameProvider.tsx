@@ -30,7 +30,11 @@ import type {
   LastLoyalistsChoice,
   LastLoyalistsChoiceId
 } from './chapter4';
-import { chapterFiveNodes } from './chapter5';
+import {
+  capitalResourceSites,
+  chapterFiveNodes
+} from './chapter5';
+import { chapterSixNodes } from './chapter6';
 import {
   getRoyalDecree,
   royalDecrees
@@ -183,6 +187,8 @@ type GameContextValue = {
   canUpgradeToStronghold: boolean;
   capitalUpgradeAvailable: boolean;
   canUpgradeToCapital: boolean;
+  grandUpgradeAvailable: boolean;
+  canUpgradeToGrand: boolean;
   canUpgradeToFort: boolean;
   lastBattleResult: BattleResult | null;
   canUpgradeSettlement: boolean;
@@ -207,6 +213,8 @@ type GameContextValue = {
   chooseStrongholdRecruit: (choiceId: string) => boolean;
   completeEmptyThrone: () => boolean;
   chooseLastLoyalistsApproach: (choiceId: LastLoyalistsChoiceId) => boolean;
+  completeBrokenArchives: () => boolean;
+  completeRoyalLedger: () => boolean;
   chooseMarcherWarning: (choiceId: MarcherWarningChoiceId) => boolean;
   completeDividedMarch: () => boolean;
   unlockTimberCamp: () => boolean;
@@ -216,6 +224,7 @@ type GameContextValue = {
   upgradeToTown: () => boolean;
   upgradeToStronghold: () => boolean;
   upgradeToCapital: () => boolean;
+  upgradeToGrand: () => boolean;
   chooseRoyalDecree: (decreeId: RoyalDecreeId) => boolean;
   getEquipmentCraftCost: (equipment: EquipmentDefinition) => Partial<ResourceWallet>;
   craftEquipment: (equipmentId: string) => boolean;
@@ -470,9 +479,12 @@ export function GameProvider({
 
   const resourceSites = useMemo(
     () =>
-      [...humanResourceSites, ...marcherResourceSites, ...crownroadResourceSites].filter(
-        site => site.faction === activeFaction
-      ),
+      [
+        ...humanResourceSites,
+        ...marcherResourceSites,
+        ...crownroadResourceSites,
+        ...capitalResourceSites
+      ].filter(site => site.faction === activeFaction),
     [activeFaction]
   );
   const formationDoctrines = useMemo(
@@ -633,6 +645,28 @@ export function GameProvider({
     resources.stone >= 220 &&
     resources.iron >= 70;
 
+  const gateOfCrownspireWon = Boolean(
+    chapterNumber === 5 &&
+      chapterNodes.find(node => node.id === 'ch5_node_6')?.completed
+  );
+  const grandUpgradeAvailable =
+    gateOfCrownspireWon && currentWagonStage.id === 'capital';
+  const canUpgradeToGrand =
+    grandUpgradeAvailable &&
+    Boolean(royalDecreeId) &&
+    (buildingLevels.barracks ?? 0) >= 5 &&
+    (buildingLevels.forge ?? 0) >= 5 &&
+    (buildingLevels.wagonwright ?? 0) >= 5 &&
+    (buildingLevels.war_room ?? 0) >= 5 &&
+    (buildingLevels.quartermaster ?? 0) >= 5 &&
+    (buildingLevels.stable ?? 0) >= 4 &&
+    (buildingLevels.signal_tower ?? 0) >= 4 &&
+    (buildingLevels.officer_academy ?? 0) >= 3 &&
+    resources.gold >= 1000 &&
+    resources.wood >= 420 &&
+    resources.stone >= 360 &&
+    resources.iron >= 120;
+
   const currentFactionState = useMemo<FactionGameState>(
     () => ({
       faction: activeFaction,
@@ -761,7 +795,8 @@ export function GameProvider({
         const site = [
           ...humanResourceSites,
           ...marcherResourceSites,
-          ...crownroadResourceSites
+          ...crownroadResourceSites,
+          ...capitalResourceSites
         ].find(candidate => candidate.id === siteId);
         if (!site) continue;
         const productionMultiplier =
@@ -1168,6 +1203,66 @@ export function GameProvider({
         rewards: { ...reward.resources },
         casualties: 0
       });
+      return;
+    }
+
+    if (encounterId === 'ashen_envoy') {
+      if (
+        chapterNumber !== 5 ||
+        !chapterNodes.find(node => node.id === 'ch5_node_4')?.current
+      ) {
+        return;
+      }
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch5_node_4') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'ch5_node_5') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ashen_envoy_result',
+        title: 'Ashen Envoy Defeated',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'gate_of_crownspire') {
+      if (
+        chapterNumber !== 5 ||
+        !chapterNodes.find(node => node.id === 'ch5_node_6')?.current
+      ) {
+        return;
+      }
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'ch5_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setLastBattleResult({
+        id: 'gate_of_crownspire_result',
+        title: 'Gate of Crownspire Open',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
     }
   };
 
@@ -1568,6 +1663,67 @@ export function GameProvider({
     return true;
   };
 
+  const completeBrokenArchives = () => {
+    if (
+      chapterNumber !== 5 ||
+      !chapterNodes.find(node => node.id === 'ch5_node_3')?.current
+    ) {
+      return false;
+    }
+
+    setUnlockedResourceSites(previous =>
+      previous.includes('royal_archive_stores')
+        ? previous
+        : [...previous, 'royal_archive_stores']
+    );
+    setSharedProgress(previous => ({
+      ...previous,
+      lore: previous.lore.includes('archive_ash_marks')
+        ? previous.lore
+        : [...previous.lore, 'archive_ash_marks']
+    }));
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch5_node_3') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch5_node_4') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const completeRoyalLedger = () => {
+    if (
+      chapterNumber !== 5 ||
+      !chapterNodes.find(node => node.id === 'ch5_node_5')?.current
+    ) {
+      return false;
+    }
+
+    setSharedProgress(previous => ({
+      ...previous,
+      lore: previous.lore.includes('ashen_court_identified')
+        ? previous.lore
+        : [...previous.lore, 'ashen_court_identified']
+    }));
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch5_node_5') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch5_node_6') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
   const chooseMarcherWarning = (choiceId: MarcherWarningChoiceId) => {
     if (
       chapterNumber !== 3 ||
@@ -1796,7 +1952,7 @@ export function GameProvider({
   };
 
   const chooseRoyalDecree = (decreeId: RoyalDecreeId) => {
-    if (currentWagonStage.id !== 'capital') return false;
+    if (!['capital', 'grand'].includes(currentWagonStage.id)) return false;
 
     const decree = royalDecrees.find(option => option.id === decreeId);
     if (!decree) return false;
@@ -1832,6 +1988,22 @@ export function GameProvider({
       );
     }
 
+    return true;
+  };
+
+  const upgradeToGrand = () => {
+    if (!canUpgradeToGrand) return false;
+
+    setResources(previous => ({
+      ...previous,
+      gold: previous.gold - 1000,
+      wood: previous.wood - 420,
+      stone: previous.stone - 360,
+      iron: previous.iron - 120
+    }));
+    setWagonStageId('grand');
+    setChapterNumber(6);
+    setChapterNodes(cloneNodes(chapterSixNodes));
     return true;
   };
 
@@ -2302,6 +2474,8 @@ export function GameProvider({
       canUpgradeToStronghold,
       capitalUpgradeAvailable,
       canUpgradeToCapital,
+      grandUpgradeAvailable,
+      canUpgradeToGrand,
       canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,
@@ -2326,6 +2500,8 @@ export function GameProvider({
       chooseStrongholdRecruit,
       completeEmptyThrone,
       chooseLastLoyalistsApproach,
+      completeBrokenArchives,
+      completeRoyalLedger,
       chooseMarcherWarning,
       completeDividedMarch,
       unlockTimberCamp,
@@ -2335,6 +2511,7 @@ export function GameProvider({
       upgradeToTown,
       upgradeToStronghold,
       upgradeToCapital,
+      upgradeToGrand,
       chooseRoyalDecree,
       getEquipmentCraftCost,
       craftEquipment,
@@ -2410,6 +2587,8 @@ export function GameProvider({
       canUpgradeToStronghold,
       capitalUpgradeAvailable,
       canUpgradeToCapital,
+      grandUpgradeAvailable,
+      canUpgradeToGrand,
       canUpgradeToFort,
       lastBattleResult,
       canUpgradeSettlement,

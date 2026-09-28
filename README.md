@@ -315,3 +315,62 @@ The first Capital-era nodes are now connected:
 6. Gate of Crownspire
 
 The Old Royal Lands battle is the first encounter that can immediately demonstrate the new decree system.
+
+
+## Chapter 5 — Old Royal Lands complete
+
+The Capital-era Human campaign is now playable through Crownspire:
+
+1. **Capital Council**
+   - choose the first Royal Decree
+2. **Old Royal Lands**
+   - first Capital battle
+3. **Broken Archives**
+   - recover records showing the same ash-marked alterations across multiple years
+   - unlock **Royal Archive Stores**
+   - +8 Gold and +2 Stone per meaningful activity
+4. **Ashen Envoy**
+   - first direct battle against the Ashen Court
+5. **The Royal Ledger**
+   - explicitly identifies the Ashen Court as the network behind the false flags, marcher warnings and manipulated royal command
+6. **Gate of Crownspire**
+   - Chapter 5 boss
+   - opens the western approach to Crownspire
+
+## Grand Campaign tier
+
+Defeating the Gate of Crownspire unlocks the final Human logistics project.
+
+Requirements:
+- Barracks Lv.5
+- Forge Lv.5
+- Wagonwright Lv.5
+- War Room Lv.5
+- Quartermaster Lv.5
+- Stable Lv.4
+- Signal Tower Lv.4
+- Officer Academy Lv.3
+- one active Royal Decree
+- 1000 Gold
+- 420 Wood
+- 360 Stone
+- 120 Iron
+
+Grand Campaign construction:
+- expands the Wagon from 7×8 to **7×9**
+- keeps the six-squad combat cap
+- keeps Royal Decrees active
+- begins Chapter 6 / **Return to Crownspire**
+
+## Chapter 6 — Return to Crownspire
+
+The final Human campaign structure is prepared:
+
+1. Grand Council
+2. Sundered Fields
+3. Concord Vault
+4. Ashen Court
+5. The Forced Beacon
+6. Return to Crownspire
+
+This chapter is designed to resolve the Human perspective on the Crownfall, recover the Human Oath Seal, and set up the later multi-faction Three Seals campaign.

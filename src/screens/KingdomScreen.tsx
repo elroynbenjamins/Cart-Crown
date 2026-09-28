@@ -52,9 +52,12 @@ export function KingdomScreen({
     canUpgradeToStronghold,
     capitalUpgradeAvailable,
     canUpgradeToCapital,
+    grandUpgradeAvailable,
+    canUpgradeToGrand,
     upgradeToTown,
     upgradeToStronghold,
     upgradeToCapital,
+    upgradeToGrand,
     activeRoyalDecree,
     royalDecreeSwitchCost,
     resourceSites,
@@ -75,9 +78,11 @@ export function KingdomScreen({
   const [buildingMessage, setBuildingMessage] = useState<string | null>(null);
 
   const settlementName =
-    currentWagonStage.id === 'capital'
-      ? 'Greenkeep Capital'
-      : currentWagonStage.id === 'stronghold'
+    currentWagonStage.id === 'grand'
+      ? 'Greenkeep Grand Campaign'
+      : currentWagonStage.id === 'capital'
+        ? 'Greenkeep Capital'
+        : currentWagonStage.id === 'stronghold'
         ? 'Greenkeep Stronghold'
         : currentWagonStage.id === 'town'
         ? 'Greenkeep Town'
@@ -116,12 +121,27 @@ export function KingdomScreen({
       onOpenRecruitment();
       return true;
     };
-  } else if (currentWagonStage.id === 'capital') {
-    milestoneTitle = 'Greenkeep Capital established';
-    milestoneBody = 'Greenkeep now governs the western provinces directly. Royal Decrees let you choose whether the realm prioritizes army power, production or equipment.';
-    buttonLabel = 'Capital established';
+  } else if (currentWagonStage.id === 'grand') {
+    milestoneTitle = 'Grand Campaign prepared';
+    milestoneBody = 'Greenkeep has committed every major road, depot and command network to the final march into Crownspire.';
+    buttonLabel = 'Grand Campaign ready';
     disabled = true;
-    requirement = 'Chapter 5 · Old Royal Lands';
+    requirement = 'Chapter 6 · Return to Crownspire';
+    action = () => false;
+  } else if (currentWagonStage.id === 'capital' && grandUpgradeAvailable) {
+    milestoneTitle = 'Prepare the Grand Campaign';
+    milestoneBody = 'The Gate of Crownspire is open. Finish the Capital command, supply, remount and signal network, keep a Royal Decree active, then fund the final 7×9 campaign expansion.';
+    buttonLabel = 'Prepare Grand Campaign';
+    disabled = !canUpgradeToGrand;
+    requirement =
+      'Requires Barracks Lv.5 · Forge Lv.5 · Wagonwright Lv.5 · War Room Lv.5 · Quartermaster Lv.5 · Stable Lv.4 · Signal Tower Lv.4 · Officer Academy Lv.3 · Active Royal Decree · 1000 Gold · 420 Wood · 360 Stone · 120 Iron';
+    action = upgradeToGrand;
+  } else if (currentWagonStage.id === 'capital') {
+    milestoneTitle = 'Open the Gate of Crownspire';
+    milestoneBody = 'Use the Capital’s decree, elite army and provincial production network to expose the Ashen Court and reach Crownspire.';
+    buttonLabel = 'Grand Campaign is story-gated';
+    disabled = true;
+    requirement = 'Defeat the Gate of Crownspire';
     action = () => false;
   } else if (currentWagonStage.id === 'stronghold' && capitalUpgradeAvailable) {
     milestoneTitle = 'Raise Greenkeep Capital';
@@ -210,9 +230,11 @@ export function KingdomScreen({
 
         <View style={styles.progressCopy}>
           <Text style={[styles.progressLabel, { color: theme.colors.text }]}>
-            {currentWagonStage.id === 'capital'
-              ? 'Capital tier · 6'
-              : currentWagonStage.id === 'stronghold'
+            {currentWagonStage.id === 'grand'
+              ? 'Grand Campaign · 7'
+              : currentWagonStage.id === 'capital'
+                ? 'Capital tier · 6'
+                : currentWagonStage.id === 'stronghold'
                 ? 'Stronghold tier · 5'
                 : currentWagonStage.id === 'town'
                 ? 'Town tier · 4'
@@ -275,6 +297,13 @@ export function KingdomScreen({
               <Text style={[styles.costText, { color: theme.colors.text }]}>280 🪵</Text>
               <Text style={[styles.costText, { color: theme.colors.text }]}>220 🪨</Text>
               <Text style={[styles.costText, { color: theme.colors.text }]}>70 ⛓</Text>
+            </View>
+          ) : grandUpgradeAvailable && currentWagonStage.id === 'capital' ? (
+            <View style={styles.goalCost}>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>1000 🪙</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>420 🪵</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>360 🪨</Text>
+              <Text style={[styles.costText, { color: theme.colors.text }]}>120 ⛓</Text>
             </View>
           ) : null}
         </View>
@@ -462,7 +491,7 @@ export function KingdomScreen({
         </>
       ) : null}
 
-      {currentWagonStage.id === 'capital' ? (
+      {['capital', 'grand'].includes(currentWagonStage.id) ? (
         <>
           <SectionTitle title="Royal Decrees" trailing={activeRoyalDecree ? 'Active' : 'Choose one'} />
           <GameCard accent={theme.colors.gold}>

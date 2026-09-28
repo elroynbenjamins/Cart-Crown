@@ -46,6 +46,10 @@ export function CampaignScreen({
   onStartPretenderGeneral,
   onOpenRoyalDecrees,
   onStartOldRoyalLands,
+  onOpenBrokenArchives,
+  onStartAshenEnvoy,
+  onOpenRoyalLedger,
+  onStartGateOfCrownspire,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -74,6 +78,10 @@ export function CampaignScreen({
   onStartPretenderGeneral: () => void;
   onOpenRoyalDecrees: () => void;
   onStartOldRoyalLands: () => void;
+  onOpenBrokenArchives: () => void;
+  onStartAshenEnvoy: () => void;
+  onOpenRoyalLedger: () => void;
+  onStartGateOfCrownspire: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -131,7 +139,9 @@ export function CampaignScreen({
                     ? 'Border Kingdoms'
                     : chapterNumber === 4
                       ? 'The Broken Crown'
-                      : 'Old Royal Lands'}
+                      : chapterNumber === 5
+                        ? 'Old Royal Lands'
+                        : 'Return to Crownspire'}
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
               {chapterNumber === 1
@@ -142,7 +152,9 @@ export function CampaignScreen({
                     ? 'Carry Greenkeep’s authority into the divided Border Marches.'
                     : chapterNumber === 4
                       ? 'Push beyond the marcher crisis toward the broken western crown.'
-                      : 'Govern the western realm as a Capital and trace the final royal records toward Crownspire.'}
+                      : chapterNumber === 5
+                        ? 'Govern the western realm as a Capital and trace the final royal records toward Crownspire.'
+                        : 'Lead the Grand Campaign into Crownspire and confront the Ashen Court around the Concord Beacon.'}
             </Text>
           </View>
           <Pill label={String(completed) + ' / 6'} color={theme.colors.surface2} />
@@ -227,7 +239,9 @@ export function CampaignScreen({
                 ? 'Border Marches'
                 : chapterNumber === 4
                   ? 'Crown Road'
-                  : 'Old Royal Lands'
+                  : chapterNumber === 5
+                    ? 'Old Royal Lands'
+                    : 'Crownspire Basin'
         }
         trailing="Current region"
       />
@@ -364,6 +378,22 @@ export function CampaignScreen({
             node.current &&
             node.id === 'ch5_node_2' &&
             Boolean(royalDecreeId);
+          const brokenArchivesPlayable =
+            chapterNumber === 5 &&
+            node.current &&
+            node.id === 'ch5_node_3';
+          const ashenEnvoyPlayable =
+            chapterNumber === 5 &&
+            node.current &&
+            node.id === 'ch5_node_4';
+          const royalLedgerPlayable =
+            chapterNumber === 5 &&
+            node.current &&
+            node.id === 'ch5_node_5';
+          const crownspireGatePlayable =
+            chapterNumber === 5 &&
+            node.current &&
+            node.id === 'ch5_node_6';
 
           const playable =
             chapterOneBattle ||
@@ -390,7 +420,11 @@ export function CampaignScreen({
             lastLoyalistsPlayable ||
             pretenderGeneralPlayable ||
             capitalCouncilPlayable ||
-            oldRoyalLandsPlayable;
+            oldRoyalLandsPlayable ||
+            brokenArchivesPlayable ||
+            ashenEnvoyPlayable ||
+            royalLedgerPlayable ||
+            crownspireGatePlayable;
 
           const status = node.completed
             ? 'DONE'
@@ -440,7 +474,15 @@ export function CampaignScreen({
                                                         ? 'CHOOSE DECREE'
                                                         : oldRoyalLandsPlayable
                                                           ? 'PLAY'
-                                                          : bossPlayable
+                                                          : brokenArchivesPlayable
+                                                            ? 'INVESTIGATE'
+                                                            : ashenEnvoyPlayable
+                                                              ? 'ELITE'
+                                                              : royalLedgerPlayable
+                                                                ? 'READ LEDGER'
+                                                                : crownspireGatePlayable
+                                                                  ? 'BOSS'
+                                                                  : bossPlayable
                                 ? 'BOSS'
                             : playable
                               ? 'PLAY'
@@ -498,7 +540,15 @@ export function CampaignScreen({
                                                           ? onOpenRoyalDecrees
                                                           : oldRoyalLandsPlayable
                                                             ? onStartOldRoyalLands
-                                                            : undefined;
+                                                            : brokenArchivesPlayable
+                                                              ? onOpenBrokenArchives
+                                                              : ashenEnvoyPlayable
+                                                                ? onStartAshenEnvoy
+                                                                : royalLedgerPlayable
+                                                                  ? onOpenRoyalLedger
+                                                                  : crownspireGatePlayable
+                                                                    ? onStartGateOfCrownspire
+                                                                    : undefined;
 
           return (
             <Pressable

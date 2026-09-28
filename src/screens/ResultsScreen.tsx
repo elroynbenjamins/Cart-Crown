@@ -48,6 +48,10 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'pretender_general_result';
   const oldRoyalLandsResult =
     lastBattleResult.id === 'old_royal_lands_result';
+  const ashenEnvoyResult =
+    lastBattleResult.id === 'ashen_envoy_result';
+  const crownspireGateResult =
+    lastBattleResult.id === 'gate_of_crownspire_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -91,7 +95,45 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {oldRoyalLandsResult ? (
+      {crownspireGateResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>FINAL HUMAN TIER UNLOCKED</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Prepare the Grand Campaign
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Crownspire’s western gate is open. Max the Capital command and supply network, maintain an active Royal Decree, then fund the 7×9 Grand Campaign expansion.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Crownspire is no longer neutral</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Ashen Court troops are operating inside the fortress approaches. Greenkeep must now enter Crownspire itself and reach the old Concord Beacon.
+            </Text>
+          </GameCard>
+        </>
+      ) : ashenEnvoyResult ? (
+        <>
+          <GameCard accent={theme.colors.danger}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.danger }]}>ASHEN COURT</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              The hidden network steps into the open
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Envoy’s retinue carried a private Royal Ledger linking the false flags, marcher orders and Crownroad command structure.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Next: The Royal Ledger</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              The ledger is the first document that names the Ashen Court directly and traces its payments to Crownspire.
+            </Text>
+          </GameCard>
+        </>
+      ) : oldRoyalLandsResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>ROYAL ARCHIVES</Text>

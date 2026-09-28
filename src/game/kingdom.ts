@@ -266,6 +266,34 @@ export const humanBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 205, wood: 55, stone: 30 },
     effect: 'Senior officers prepared for provincial administration and final campaign planning.',
     requirement: 'Pretender General defeated'
+  },
+  {
+    buildingId: 'war_room',
+    level: 5,
+    cost: { gold: 285, wood: 65, stone: 45 },
+    effect: 'Grand Campaign command map prepared for Crownspire operations.',
+    requirement: 'Gate of Crownspire opened'
+  },
+  {
+    buildingId: 'quartermaster',
+    level: 5,
+    cost: { gold: 245, wood: 80, provisions: 45 },
+    effect: 'Grand Campaign stores prepared for the final Human offensive.',
+    requirement: 'Gate of Crownspire opened'
+  },
+  {
+    buildingId: 'stable',
+    level: 4,
+    cost: { gold: 220, wood: 50, provisions: 35 },
+    effect: 'Long-range remount network prepared for Crownspire.',
+    requirement: 'Gate of Crownspire opened'
+  },
+  {
+    buildingId: 'signal_tower',
+    level: 4,
+    cost: { gold: 210, wood: 45, stone: 45 },
+    effect: 'Capital signal network reaches the Crownspire approaches.',
+    requirement: 'Gate of Crownspire opened'
   }
 ];
 
