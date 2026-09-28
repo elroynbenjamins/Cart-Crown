@@ -32,6 +32,7 @@ export type WagonItemDefinition = {
   faction: FactionId | 'global';
   width: number;
   height: number;
+  rotation: 0 | 90;
   effect: string;
   x: number;
   y: number;
@@ -60,4 +61,31 @@ export type ChapterNode = {
   type: 'story' | 'battle' | 'event' | 'elite' | 'supply' | 'boss';
   completed: boolean;
   current?: boolean;
+};
+
+export type RecruitOption = {
+  id: string;
+  unit: UnitDefinition;
+  archetype: string;
+  pitch: string;
+  tradeoff: string;
+};
+
+export type BattleResult = {
+  id: string;
+  title: string;
+  victory: boolean;
+  summary: string;
+  rewards: Partial<ResourceWallet>;
+  casualties: number;
+};
+
+export type EncounterDefinition = {
+  id: string;
+  name: string;
+  subtitle: string;
+  enemyName: string;
+  enemyCount: number;
+  enemyHp: number;
+  difficulty: 'Normal' | 'Elite' | 'Boss';
 };

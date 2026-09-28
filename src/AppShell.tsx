@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -7,13 +7,20 @@ import {
   Text,
   View
 } from 'react-native';
-import { NavId } from './game/types';
+import type { NavId } from './game/types';
+import { useGame } from './game/GameProvider';
 import { ArmyScreen } from './screens/ArmyScreen';
+import { BattlePrepScreen } from './screens/BattlePrepScreen';
+import { BattleScreen } from './screens/BattleScreen';
 import { CampaignScreen } from './screens/CampaignScreen';
 import { FormationScreen } from './screens/FormationScreen';
 import { KingdomScreen } from './screens/KingdomScreen';
+import { RecruitmentScreen } from './screens/RecruitmentScreen';
+import { ResultsScreen } from './screens/ResultsScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
+
+type FlowScreen = 'battlePrep' | 'battle' | 'results' | 'recruitment';
 
 const navItems: Array<{ id: NavId; label: string; icon: string }> = [
   { id: 'kingdom', label: 'Kingdom', icon: '♜' },
@@ -31,25 +38,82 @@ const screenTitles: Record<NavId, string> = {
   army: 'Army'
 };
 
+const flowTitles: Record<FlowScreen, string> = {
+  battlePrep: 'Battle Prep',
+  battle: 'Battle',
+  results: 'Results',
+  recruitment: 'Recruitment'
+};
+
 export function AppShell() {
   const [active, setActive] = useState<NavId>('kingdom');
+  const [flow, setFlow] = useState<FlowScreen | null>(null);
   const { theme, cycleTheme } = useGameTheme();
+  const { finishHoldTheRoad } = useGame();
 
-  const screen = useMemo(() => {
+  const openRecruitment = () => setFlow('recruitment');
+
+  const renderScreen = () => {
+    if (flow === 'battlePrep') {
+      return <BattlePrepScreen onBegin={() => setFlow('battle')} />;
+    }
+
+    if (flow === 'battle') {
+      return (
+        <BattleScreen
+          onFinished={() => {
+            finishHoldTheRoad();
+            setFlow('results');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'results') {
+      return (
+        <ResultsScreen
+          onContinue={() => {
+            setFlow(null);
+            setActive('kingdom');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'recruitment') {
+      return (
+        <RecruitmentScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('formation');
+          }}
+        />
+      );
+    }
+
     switch (active) {
       case 'campaign':
-        return <CampaignScreen />;
+        return <CampaignScreen onStartBattle={() => setFlow('battlePrep')} />;
       case 'formation':
         return <FormationScreen />;
       case 'wagon':
         return <WagonScreen />;
       case 'army':
-        return <ArmyScreen />;
+        return <ArmyScreen onOpenRecruitment={openRecruitment} />;
       case 'kingdom':
       default:
-        return <KingdomScreen />;
+        return <KingdomScreen onOpenRecruitment={openRecruitment} />;
     }
-  }, [active]);
+  };
+
+  const canGoBack = flow === 'battlePrep' || flow === 'recruitment';
+  const title = flow ? flowTitles[flow] : screenTitles[active];
+
+  const goBack = () => {
+    if (canGoBack) {
+      setFlow(null);
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.appBg }]}>
@@ -59,92 +123,100 @@ export function AppShell() {
       />
 
       <View style={[styles.topBar, { borderBottomColor: theme.colors.border }]}>
-        <View>
-          <Text style={[styles.brand, { color: theme.colors.gold }]}>CART & CROWN</Text>
-          <Text style={[styles.screenTitle, { color: theme.colors.text }]}>
-            {screenTitles[active]}
-          </Text>
+        <View style={styles.titleArea}>
+          {canGoBack ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              onPress={goBack}
+              style={[styles.backButton, { backgroundColor: theme.colors.surface1 }]}
+            >
+              <Text style={[styles.backText, { color: theme.colors.text }]}>‹</Text>
+            </Pressable>
+          ) : null}
+          <View>
+            <Text style={[styles.brand, { color: theme.colors.gold }]}>CART & CROWN</Text>
+            <Text style={[styles.screenTitle, { color: theme.colors.text }]}>{title}</Text>
+          </View>
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Change theme"
-          onPress={cycleTheme}
-          style={({ pressed }) => [
-            styles.themeButton,
+        {flow !== 'battle' ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Change theme"
+            onPress={cycleTheme}
+            style={({ pressed }) => [
+              styles.themeButton,
+              {
+                backgroundColor: theme.colors.surface1,
+                borderColor: theme.colors.border,
+                opacity: pressed ? 0.78 : 1
+              }
+            ]}
+          >
+            <Text style={styles.themeIcon}>{theme.dark ? '◐' : '☼'}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+
+      <View style={styles.screen}>{renderScreen()}</View>
+
+      {!flow ? (
+        <View
+          style={[
+            styles.bottomNav,
             {
               backgroundColor: theme.colors.surface1,
-              borderColor: theme.colors.border,
-              opacity: pressed ? 0.78 : 1
+              borderTopColor: theme.colors.border
             }
           ]}
         >
-          <Text style={styles.themeIcon}>{theme.dark ? '◐' : '☼'}</Text>
-        </Pressable>
-      </View>
+          {navItems.map(item => {
+            const selected = item.id === active;
 
-      <View style={styles.screen}>{screen}</View>
-
-      <View
-        style={[
-          styles.bottomNav,
-          {
-            backgroundColor: theme.colors.surface1,
-            borderTopColor: theme.colors.border
-          }
-        ]}
-      >
-        {navItems.map(item => {
-          const selected = item.id === active;
-
-          return (
-            <Pressable
-              key={item.id}
-              accessibilityRole="tab"
-              accessibilityState={{ selected }}
-              onPress={() => setActive(item.id)}
-              style={styles.navItem}
-            >
-              <View
-                style={[
-                  styles.navIconWrap,
-                  selected
-                    ? { backgroundColor: theme.colors.primary + '2F' }
-                    : undefined
-                ]}
+            return (
+              <Pressable
+                key={item.id}
+                accessibilityRole="tab"
+                accessibilityState={{ selected }}
+                onPress={() => setActive(item.id)}
+                style={styles.navItem}
               >
-                <Text
+                <View
                   style={[
-                    styles.navIcon,
-                    { color: selected ? theme.colors.primary : theme.colors.textMuted }
+                    styles.navIconWrap,
+                    selected ? { backgroundColor: theme.colors.primary + '2F' } : undefined
                   ]}
                 >
-                  {item.icon}
+                  <Text
+                    style={[
+                      styles.navIcon,
+                      { color: selected ? theme.colors.primary : theme.colors.textMuted }
+                    ]}
+                  >
+                    {item.icon}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.navLabel,
+                    { color: selected ? theme.colors.primary : theme.colors.textMuted }
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.label}
                 </Text>
-              </View>
-              <Text
-                style={[
-                  styles.navLabel,
-                  {
-                    color: selected ? theme.colors.primary : theme.colors.textMuted
-                  }
-                ]}
-                numberOfLines={1}
-              >
-                {item.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1
-  },
+  safeArea: { flex: 1 },
   topBar: {
     height: 66,
     paddingHorizontal: 17,
@@ -153,17 +225,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between'
   },
-  brand: {
-    fontSize: 9,
-    letterSpacing: 1.8,
-    fontWeight: '900'
+  titleArea: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  screenTitle: {
-    fontSize: 21,
-    lineHeight: 26,
-    fontWeight: '900',
-    marginTop: 1
-  },
+  backText: { fontSize: 30, lineHeight: 32, marginTop: -3 },
+  brand: { fontSize: 9, letterSpacing: 1.8, fontWeight: '900' },
+  screenTitle: { fontSize: 21, lineHeight: 26, fontWeight: '900', marginTop: 1 },
   themeButton: {
     width: 48,
     height: 48,
@@ -172,13 +244,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  themeIcon: {
-    fontSize: 20,
-    color: '#D9A84E'
-  },
-  screen: {
-    flex: 1
-  },
+  themeIcon: { fontSize: 20, color: '#D9A84E' },
+  screen: { flex: 1 },
   bottomNav: {
     height: 76,
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -187,26 +254,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingBottom: 4
   },
-  navItem: {
-    flex: 1,
-    minHeight: 64,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  navIconWrap: {
-    width: 36,
-    height: 31,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  navIcon: {
-    fontSize: 20,
-    fontWeight: '900'
-  },
-  navLabel: {
-    fontSize: 9,
-    fontWeight: '800',
-    marginTop: 2
-  }
+  navItem: { flex: 1, minHeight: 64, alignItems: 'center', justifyContent: 'center' },
+  navIconWrap: { width: 36, height: 31, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  navIcon: { fontSize: 20, fontWeight: '900' },
+  navLabel: { fontSize: 9, fontWeight: '800', marginTop: 2 }
 });

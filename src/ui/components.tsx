@@ -104,6 +104,38 @@ export function PrimaryButton({
   );
 }
 
+export function SecondaryButton({
+  label,
+  onPress,
+  disabled
+}: {
+  label: string;
+  onPress?: () => void;
+  disabled?: boolean;
+}) {
+  const { theme } = useGameTheme();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.secondaryButton,
+        {
+          backgroundColor: theme.colors.surface2,
+          borderColor: theme.colors.border,
+          opacity: disabled ? 0.45 : pressed ? 0.8 : 1
+        }
+      ]}
+    >
+      <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 export function ResourceChip({
   icon,
   value,
@@ -236,6 +268,18 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 15,
+    fontWeight: '900'
+  },
+  secondaryButton: {
+    minHeight: 46,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16
+  },
+  secondaryButtonText: {
+    fontSize: 13,
     fontWeight: '900'
   },
   resourceChip: {

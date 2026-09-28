@@ -1,4 +1,13 @@
-import { ChapterNode, RegionDefinition, ResourceWallet, UnitDefinition, WagonItemDefinition, WagonStage } from './types';
+import type {
+  ChapterNode,
+  EncounterDefinition,
+  RecruitOption,
+  RegionDefinition,
+  ResourceWallet,
+  UnitDefinition,
+  WagonItemDefinition,
+  WagonStage
+} from './types';
 
 export const starterResources: ResourceWallet = {
   gold: 120,
@@ -17,6 +26,8 @@ export const wagonStages: WagonStage[] = [
   { id: 'capital', name: 'Capital Wagon', width: 7, height: 8, formationSlots: 6 },
   { id: 'grand', name: 'Grand Campaign Expansion', width: 7, height: 9, formationSlots: 6 }
 ];
+
+export const formationUnlockOrder = [1, 4, 0, 3, 2, 5];
 
 export const starterUnits: UnitDefinition[] = [
   {
@@ -48,6 +59,66 @@ export const starterUnits: UnitDefinition[] = [
   }
 ];
 
+export const humanRecruitOptions: RecruitOption[] = [
+  {
+    id: 'archer',
+    archetype: 'Ranged',
+    pitch: 'Immediate ranged pressure and the first ammunition build.',
+    tradeoff: 'Lower armor and needs arrows on longer expeditions.',
+    unit: {
+      id: 'hum_archer_reinforcement',
+      name: 'Elise',
+      className: 'Archer',
+      faction: 'human',
+      role: 'ranged',
+      tier: 2,
+      level: 2,
+      hp: 90,
+      attack: 15,
+      armor: 4,
+      speed: 11
+    }
+  },
+  {
+    id: 'scout',
+    archetype: 'Skirmish',
+    pitch: 'Fast flexible unit that opens the mounted line later.',
+    tradeoff: 'Less immediate damage than the Archer.',
+    unit: {
+      id: 'hum_scout_reinforcement',
+      name: 'Tomas',
+      className: 'Scout',
+      faction: 'human',
+      role: 'skirmish',
+      tier: 2,
+      level: 2,
+      hp: 95,
+      attack: 12,
+      armor: 4,
+      speed: 14
+    }
+  },
+  {
+    id: 'medic',
+    archetype: 'Support',
+    pitch: 'Early sustain and stronger medicine synergies.',
+    tradeoff: 'Adds little direct damage.',
+    unit: {
+      id: 'hum_medic_reinforcement',
+      name: 'Mara',
+      className: 'Field Medic',
+      faction: 'human',
+      role: 'support',
+      tier: 2,
+      level: 2,
+      hp: 90,
+      attack: 8,
+      armor: 5,
+      speed: 10
+    }
+  }
+];
+
 export const starterWagonItems: WagonItemDefinition[] = [
   {
     id: 'rations',
@@ -56,6 +127,7 @@ export const starterWagonItems: WagonItemDefinition[] = [
     faction: 'global',
     width: 2,
     height: 1,
+    rotation: 0,
     effect: '+3 endurance',
     x: 0,
     y: 0
@@ -67,6 +139,7 @@ export const starterWagonItems: WagonItemDefinition[] = [
     faction: 'global',
     width: 1,
     height: 2,
+    rotation: 0,
     effect: '2 healing charges',
     x: 2,
     y: 0
@@ -78,6 +151,7 @@ export const starterWagonItems: WagonItemDefinition[] = [
     faction: 'global',
     width: 1,
     height: 2,
+    rotation: 0,
     effect: '+8 morale',
     x: 3,
     y: 0
@@ -89,6 +163,7 @@ export const starterWagonItems: WagonItemDefinition[] = [
     faction: 'global',
     width: 2,
     height: 1,
+    rotation: 0,
     effect: 'Restore armor',
     x: 0,
     y: 2
@@ -111,3 +186,20 @@ export const chapterOneNodes: ChapterNode[] = [
   { id: 'node_5', name: 'Refugee Camp', type: 'supply', completed: false },
   { id: 'node_6', name: 'The Toll Captain', type: 'boss', completed: false }
 ];
+
+export const holdTheRoadEncounter: EncounterDefinition = {
+  id: 'hold_the_road',
+  name: 'Hold the Road',
+  subtitle: 'A raider patrol is blocking the refugee road to Greenkeep.',
+  enemyName: 'Road Raiders',
+  enemyCount: 3,
+  enemyHp: 128,
+  difficulty: 'Normal'
+};
+
+export const holdTheRoadRewards: Partial<ResourceWallet> = {
+  gold: 45,
+  wood: 12,
+  iron: 3,
+  provisions: 4
+};
