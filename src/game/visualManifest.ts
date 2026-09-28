@@ -1,3 +1,5 @@
+import type { FactionId } from './types';
+
 export type UnitVisualKind =
   | 'infantry'
   | 'archer'
