@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { getEquipment } from '../game/equipment';
+import {
+  canUnitEquipEquipment,
+  equipmentSatisfiesRequirement,
+  getEquipment
+} from '../game/equipment';
 import { useGame } from '../game/GameProvider';
 import type { EquipmentSlot, ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -91,6 +95,7 @@ export function EquipmentManageScreen({
           item =>
             item.faction === activeFaction &&
             item.upgradeFromId === currentId &&
+            Boolean(unit && canUnitEquipEquipment(unit, item)) &&
             item.requiredForgeLevel <= forgeLevel &&
             (item.requiredStableLevel ?? 0) <= stableLevel
         );
@@ -198,8 +203,14 @@ export function EquipmentManageScreen({
           <SectionTitle title="Unassigned inventory" trailing={String(inventoryItems.length)} />
           {inventoryItems.length > 0 ? (
             <View style={styles.list}>
-              {inventoryItems.map((item, index) => (
-                <GameCard key={item.id + '-' + index} faction={activeFaction}>
+              {inventoryItems.map((item, index) => {
+                const compatible = canUnitEquipEquipment(unit, item);
+                return (
+                <GameCard
+                  key={item.id + '-' + index}
+                  faction={activeFaction}
+                  state={compatible ? 'default' : 'locked'}
+                >
                   <View style={styles.itemHeader}>
                     <View style={styles.itemCopy}>
                       <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
@@ -207,16 +218,21 @@ export function EquipmentManageScreen({
                         Tier {item.tier} · {slotLabels[item.slot]}
                       </Text>
                     </View>
-                    <Pill label="EQUIP" />
+                    <Pill label={compatible ? 'EQUIP' : 'INCOMPATIBLE'} />
                   </View>
                   <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>
                     {item.description}
                   </Text>
                   <View style={styles.button}>
-                    <PrimaryButton label={'Equip ' + item.name} onPress={() => handleEquip(item.id)} />
+                    <PrimaryButton
+                      label={compatible ? 'Equip ' + item.name : 'Not compatible with ' + unit.className}
+                      disabled={!compatible}
+                      onPress={() => handleEquip(item.id)}
+                    />
                   </View>
                 </GameCard>
-              ))}
+                );
+              })}
             </View>
           ) : (
             <GameCard>
@@ -342,7 +358,11 @@ export function EquipmentManageScreen({
                 const equippedIds = Object.values(loadout).filter(
                   (value): value is string => Boolean(value)
                 );
-                const gearReady = promotion.requiredEquippedIds.every(id => equippedIds.includes(id));
+                const gearReady = promotion.requiredEquippedIds.every(requiredId =>
+                  equippedIds.some(equippedId =>
+                    equipmentSatisfiesRequirement(equippedId, requiredId)
+                  )
+                );
                 const barracksReady =
                   armyLevel >= promotion.requiredBarracksLevel;
                 const forgeReady =
