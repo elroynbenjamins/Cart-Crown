@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { factions } from '../game/factions';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, PrimaryButton, SectionTitle } from '../ui/components';
+import { GameCard, Pill, PrimaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { CommanderPortrait, FactionCrest } from '../ui/gameArt';
 
 const effectLabels: Record<string, string> = {
@@ -59,7 +59,7 @@ export function CommanderChoiceScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.gold}>
+      <GameCard accent={theme.colors.gold} faction={activeFaction}>
         <View style={styles.heroRow}>
           <View style={styles.heroCopy}>
             <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>COMMAND PATH</Text>
@@ -93,7 +93,11 @@ export function CommanderChoiceScreen({
 
           return (
             <View key={path.id}>
-              <GameCard accent={chosen ? theme.colors.gold : current ? theme.colors.primary : undefined}>
+              <GameCard
+                accent={chosen ? theme.colors.gold : current ? theme.colors.primary : undefined}
+                faction={path.faction}
+                state={chosen ? 'selected' : current ? 'ready' : 'default'}
+              >
                 <View style={styles.pathHeader}>
                   <View style={styles.commanderPortrait}>
                     <CommanderPortrait pathId={path.id} faction={path.faction} size={66} />
@@ -102,7 +106,10 @@ export function CommanderChoiceScreen({
                     <Text style={[styles.pathName, { color: theme.colors.text }]}>{path.name}</Text>
                     <Text style={[styles.pathTitle, { color: factionAccent }]}>{path.title}</Text>
                   </View>
-                  <Pill label={current ? 'CURRENT' : chosen ? 'SELECTED' : path.favoredRoles.join(' + ').toUpperCase()} />
+                  <StatusPill
+                    label={current ? 'CURRENT' : chosen ? 'SELECTED' : path.favoredRoles.join(' + ').toUpperCase()}
+                    tone={current ? 'current' : chosen ? 'selected' : 'neutral'}
+                  />
                 </View>
 
                 <Text style={[styles.passiveName, { color: theme.colors.text }]}>
@@ -151,7 +158,7 @@ export function CommanderChoiceScreen({
       </View>
 
       {selected ? (
-        <GameCard accent={theme.colors.gold}>
+        <GameCard accent={theme.colors.gold} faction={activeFaction} state="selected">
           <View style={styles.confirmRow}>
             <CommanderPortrait pathId={selected.id} faction={selected.faction} size={72} />
             <View style={styles.confirmCopy}>
