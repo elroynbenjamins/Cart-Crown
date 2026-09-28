@@ -5,14 +5,6 @@ import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
 import { ResourceSprite, StoryScene } from '../ui/gameArt';
 
-const rewardIcons: Record<string, string> = {
-  gold: '🪙',
-  wood: '🪵',
-  stone: '🪨',
-  iron: '⛓',
-  provisions: '🍞'
-};
-
 export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   const { theme } = useGameTheme();
   const {
