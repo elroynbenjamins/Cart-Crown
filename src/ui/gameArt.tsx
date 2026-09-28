@@ -4,6 +4,7 @@ import type { ChapterNode, FactionId, WagonStage } from '../game/types';
 import {
   getBuildingVisualKind,
   getEnemyVisualKind,
+  getClassLoadoutVisuals,
   getEquipmentVisualKind,
   getResourceSiteVisualKind,
   getUnitVisualKind,
@@ -551,16 +552,50 @@ function FactionUnitSilhouette({
           />
         ) : null}
         {mounted ? (
-          <View
-            style={{
-              position: 'absolute',
-              left: size * 0.69,
-              top: size * 0.39,
-              width: size * 0.05,
-              height: size * 0.08,
-              backgroundColor: palette.elfLight
-            }}
-          />
+          <>
+            <View
+              style={{
+                position: 'absolute',
+                right: size * 0.07,
+                top: size * 0.43,
+                width: size * 0.16,
+                height: size * 0.11,
+                backgroundColor: palette.brownLight
+              }}
+            />
+            <View
+              style={{
+                position: 'absolute',
+                right: size * 0.02,
+                top: size * 0.38,
+                width: size * 0.1,
+                height: size * 0.1,
+                backgroundColor: palette.brownLight
+              }}
+            />
+            <View
+              style={{
+                position: 'absolute',
+                right: size * 0.055,
+                top: size * 0.28,
+                width: size * 0.025,
+                height: size * 0.14,
+                backgroundColor: palette.elfLight,
+                transform: [{ rotate: '-24deg' }]
+              }}
+            />
+            <View
+              style={{
+                position: 'absolute',
+                right: size * 0.01,
+                top: size * 0.28,
+                width: size * 0.025,
+                height: size * 0.14,
+                backgroundColor: palette.elfLight,
+                transform: [{ rotate: '24deg' }]
+              }}
+            />
+          </>
         ) : null}
       </>
     );
@@ -623,21 +658,53 @@ function FactionUnitSilhouette({
           <View
             style={{
               position: 'absolute',
-              right: size * 0.16,
-              top: size * 0.41,
-              width: size * 0.07,
-              height: size * 0.1,
+              right: size * 0.05,
+              top: size * 0.42,
+              width: size * 0.21,
+              height: size * 0.13,
               backgroundColor: palette.outline
             }}
           />
           <View
             style={{
               position: 'absolute',
-              right: size * 0.08,
-              top: size * 0.5,
+              right: 0,
+              top: size * 0.4,
               width: size * 0.12,
-              height: size * 0.04,
-              backgroundColor: palette.outline
+              height: size * 0.11,
+              backgroundColor: palette.steelDark
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.075,
+              top: size * 0.32,
+              width: size * 0.035,
+              height: size * 0.11,
+              backgroundColor: palette.outline,
+              transform: [{ rotate: '-18deg' }]
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.015,
+              top: size * 0.32,
+              width: size * 0.035,
+              height: size * 0.11,
+              backgroundColor: palette.outline,
+              transform: [{ rotate: '18deg' }]
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              right: -size * 0.02,
+              top: size * 0.48,
+              width: size * 0.09,
+              height: size * 0.035,
+              backgroundColor: palette.cloth
             }}
           />
         </>
@@ -663,6 +730,80 @@ export function UnitSprite({
   );
 }
 
+function EquipmentKindSprite({
+  kind,
+  faction,
+  size
+}: {
+  kind: ReturnType<typeof getEquipmentVisualKind>;
+  faction: FactionId;
+  size: number;
+}) {
+  const keyByKind: Record<ReturnType<typeof getEquipmentVisualKind>, ArtKey> = {
+    sword: 'eq_sword',
+    spear: 'eq_spear',
+    bow: 'eq_bow',
+    shield: 'eq_shield',
+    armor: 'eq_armor',
+    horse: 'eq_horse'
+  };
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      <PixelSprite artKey={keyByKind[kind]} size={size} faction={faction} />
+      {faction === 'elf' ? (
+        <>
+          {(kind === 'sword' || kind === 'spear') ? (
+            <View style={{ position: 'absolute', left: size * 0.43, top: size * 0.08, width: size * 0.08, height: size * 0.56, backgroundColor: palette.blue, opacity: 0.7 }} />
+          ) : null}
+          {kind === 'bow' ? (
+            <View style={{ position: 'absolute', right: size * 0.16, top: size * 0.17, width: size * 0.07, height: size * 0.58, backgroundColor: palette.elfLight }} />
+          ) : null}
+          {kind === 'shield' ? (
+            <View style={{ position: 'absolute', left: size * 0.34, top: size * 0.21, width: size * 0.32, height: size * 0.16, backgroundColor: palette.elfLight, transform: [{ rotate: '45deg' }] }} />
+          ) : null}
+          {kind === 'armor' ? (
+            <View style={{ position: 'absolute', left: size * 0.29, right: size * 0.29, top: size * 0.36, height: size * 0.08, backgroundColor: palette.elfLight }} />
+          ) : null}
+          {kind === 'horse' ? (
+            <>
+              <View style={{ position: 'absolute', right: size * 0.1, top: size * 0.12, width: size * 0.04, height: size * 0.2, backgroundColor: palette.elfLight, transform: [{ rotate: '-22deg' }] }} />
+              <View style={{ position: 'absolute', right: size * 0.02, top: size * 0.12, width: size * 0.04, height: size * 0.2, backgroundColor: palette.elfLight, transform: [{ rotate: '22deg' }] }} />
+            </>
+          ) : null}
+        </>
+      ) : faction === 'orc' ? (
+        <>
+          {(kind === 'sword' || kind === 'spear') ? (
+            <>
+              <View style={{ position: 'absolute', left: size * 0.3, top: size * 0.17, width: size * 0.12, height: size * 0.08, backgroundColor: palette.cloth, transform: [{ rotate: '-25deg' }] }} />
+              <View style={{ position: 'absolute', right: size * 0.25, top: size * 0.3, width: size * 0.11, height: size * 0.07, backgroundColor: palette.cloth, transform: [{ rotate: '22deg' }] }} />
+            </>
+          ) : null}
+          {kind === 'bow' ? (
+            <View style={{ position: 'absolute', left: size * 0.2, top: size * 0.15, width: size * 0.08, height: size * 0.62, backgroundColor: palette.brown }} />
+          ) : null}
+          {kind === 'shield' ? (
+            <>
+              <View style={{ position: 'absolute', left: size * 0.18, top: size * 0.22, width: size * 0.13, height: size * 0.12, backgroundColor: palette.cloth }} />
+              <View style={{ position: 'absolute', right: size * 0.17, top: size * 0.31, width: size * 0.14, height: size * 0.1, backgroundColor: palette.cloth }} />
+            </>
+          ) : null}
+          {kind === 'armor' ? (
+            <View style={{ position: 'absolute', left: size * 0.18, right: size * 0.18, top: size * 0.34, height: size * 0.12, backgroundColor: palette.orc }} />
+          ) : null}
+          {kind === 'horse' ? (
+            <>
+              <View style={{ position: 'absolute', right: size * 0.04, top: size * 0.24, width: size * 0.18, height: size * 0.13, backgroundColor: palette.outline }} />
+              <View style={{ position: 'absolute', right: 0, top: size * 0.29, width: size * 0.09, height: size * 0.05, backgroundColor: palette.cloth }} />
+            </>
+          ) : null}
+        </>
+      ) : null}
+    </View>
+  );
+}
+
 export function EquipmentSprite({
   equipmentId,
   faction = 'human',
@@ -672,16 +813,109 @@ export function EquipmentSprite({
   faction?: FactionId;
   size?: number;
 }) {
-  const kind = getEquipmentVisualKind(equipmentId);
-  const keyByKind: Record<ReturnType<typeof getEquipmentVisualKind>, ArtKey> = {
-    sword: 'eq_sword',
-    spear: 'eq_spear',
-    bow: 'eq_bow',
-    shield: 'eq_shield',
-    armor: 'eq_armor',
-    horse: 'eq_horse'
-  };
-  return <PixelSprite artKey={keyByKind[kind]} size={size} faction={faction} />;
+  return (
+    <EquipmentKindSprite
+      kind={getEquipmentVisualKind(equipmentId)}
+      faction={faction}
+      size={size}
+    />
+  );
+}
+
+function LoadoutGlyph({
+  kind,
+  faction,
+  size
+}: {
+  kind: ReturnType<typeof getClassLoadoutVisuals>[number];
+  faction: FactionId;
+  size: number;
+}) {
+  if (kind === 'stag') {
+    return (
+      <View style={{ width: size, height: size, position: 'relative' }}>
+        <EquipmentKindSprite kind="horse" faction="elf" size={size} />
+      </View>
+    );
+  }
+  if (kind === 'warg') {
+    return (
+      <View style={{ width: size, height: size, position: 'relative' }}>
+        <EquipmentKindSprite kind="horse" faction="orc" size={size} />
+      </View>
+    );
+  }
+  if (kind === 'drum') {
+    return (
+      <View style={{ width: size, height: size, position: 'relative' }}>
+        <View style={{ position: 'absolute', left: size * 0.18, right: size * 0.18, top: size * 0.28, bottom: size * 0.18, borderRadius: size * 0.25, backgroundColor: palette.brown, borderWidth: Math.max(1, size * 0.06), borderColor: palette.orcLight }} />
+        <View style={{ position: 'absolute', left: size * 0.47, top: size * 0.08, width: size * 0.06, height: size * 0.76, backgroundColor: palette.wood, transform: [{ rotate: '32deg' }] }} />
+      </View>
+    );
+  }
+  if (kind === 'ward') {
+    return (
+      <View style={{ width: size, height: size, position: 'relative' }}>
+        <View style={{ position: 'absolute', left: size * 0.32, top: size * 0.16, width: size * 0.36, height: size * 0.36, transform: [{ rotate: '45deg' }], backgroundColor: palette.blue }} />
+        <View style={{ position: 'absolute', left: size * 0.44, top: size * 0.55, width: size * 0.12, height: size * 0.24, backgroundColor: palette.wood }} />
+      </View>
+    );
+  }
+
+  const equipmentKind =
+    kind === 'blade'
+      ? 'sword'
+      : kind === 'spear'
+        ? 'spear'
+        : kind === 'bow'
+          ? 'bow'
+          : kind === 'shield'
+            ? 'shield'
+            : 'armor';
+
+  return (
+    <EquipmentKindSprite
+      kind={equipmentKind}
+      faction={faction}
+      size={size}
+    />
+  );
+}
+
+export function ClassLoadoutPreview({
+  className,
+  faction,
+  size = 32
+}: {
+  className: string;
+  faction: FactionId;
+  size?: number;
+}) {
+  const loadout = getClassLoadoutVisuals(className, faction);
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+      {loadout.map((kind, index) => (
+        <View
+          key={kind + '-' + String(index)}
+          style={{
+            width: size + 8,
+            height: size + 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 10,
+            backgroundColor:
+              faction === 'elf'
+                ? palette.elf + '24'
+                : faction === 'orc'
+                  ? palette.orc + '24'
+                  : palette.human + '24'
+          }}
+        >
+          <LoadoutGlyph kind={kind} faction={faction} size={size} />
+        </View>
+      ))}
+    </View>
+  );
 }
 
 function FactionBuildingSilhouette({
