@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import {
+  areFormationSlotsAdjacent,
+  areFormationSlotsVerticallyAligned
+} from '../game/formation';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, ResourceAmountRow, SecondaryButton, StatusPill } from '../ui/components';
-
-function areOrthogonallyAdjacent(a: number, b: number) {
-  const aRow = Math.floor(a / 3);
-  const aColumn = a % 3;
-  const bRow = Math.floor(b / 3);
-  const bColumn = b % 3;
-  return Math.abs(aRow - bRow) + Math.abs(aColumn - bColumn) === 1;
-}
 
 export function FormationTrialScreen({
   onEditFormation,
@@ -23,6 +19,8 @@ export function FormationTrialScreen({
   const {
     activeFaction,
     formation,
+    formationShapeId,
+    activeFormationShape,
     formationTrialCompleted,
     completeFormationTrial
   } = useGame();
@@ -34,16 +32,25 @@ export function FormationTrialScreen({
 
   const harlan = formation.indexOf('hum_militia');
   const mira = formation.indexOf('hum_recruit');
-  const humanFront = harlan >= 0 && harlan <= 2;
-  const humanBehind = mira >= 3;
-  const humanColumn = harlan >= 0 && mira >= 0 && harlan % 3 === mira % 3;
+  const humanFront =
+    harlan >= 0 && activeFormationShape.rows.front.includes(harlan);
+  const humanBehind =
+    mira >= 0 &&
+    (
+      activeFormationShape.rows.middle.includes(mira) ||
+      activeFormationShape.rows.rear.includes(mira)
+    );
+  const humanColumn =
+    harlan >= 0 &&
+    mira >= 0 &&
+    areFormationSlotsVerticallyAligned(formationShapeId, harlan, mira);
 
   const elfSpread =
     occupiedSlots.length >= 2 &&
     occupiedSlots.every((slot, index) =>
       occupiedSlots
         .slice(index + 1)
-        .every(other => !areOrthogonallyAdjacent(slot, other))
+        .every(other => !areFormationSlotsAdjacent(formationShapeId, slot, other))
     );
 
   const orcCohesion =
@@ -51,7 +58,7 @@ export function FormationTrialScreen({
     occupiedSlots.some((slot, index) =>
       occupiedSlots
         .slice(index + 1)
-        .some(other => areOrthogonallyAdjacent(slot, other))
+        .some(other => areFormationSlotsAdjacent(formationShapeId, slot, other))
     );
 
   const accent =
@@ -86,7 +93,7 @@ export function FormationTrialScreen({
         ? 'Not quite. Separate every active squad so no two are orthogonally adjacent.'
         : activeFaction === 'orc'
           ? 'Not quite. Put at least two active squads directly beside one another.'
-          : 'Not quite. Put Harlan in the front row and Mira directly behind him in the same column.'
+          : 'Not quite. Put Harlan in the front row and align Mira behind him in the same lane.'
     );
   };
 
@@ -110,7 +117,7 @@ export function FormationTrialScreen({
         {activeFaction === 'human' ? (
           <>
             <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>
-              Harlan must stand in the front row. Mira must stand in the same column somewhere behind him.
+              Harlan must stand in the front row. Mira must align behind him in the same lane of your {activeFormationShape.layout} shape.
             </Text>
             <View style={styles.checks}>
               <View style={styles.checkRow}>
@@ -123,7 +130,7 @@ export function FormationTrialScreen({
               </View>
               <View style={styles.checkRow}>
                 <StatusPill label={humanColumn ? 'DONE' : 'TODO'} tone={humanColumn ? 'done' : 'locked'} />
-                <Text style={[styles.check, { color: theme.colors.text }]}>Same column protection</Text>
+                <Text style={[styles.check, { color: theme.colors.text }]}>Same-lane protection</Text>
               </View>
             </View>
           </>
