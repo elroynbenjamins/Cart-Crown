@@ -31,6 +31,7 @@ export function BattlePrepScreen({
     formationDoctrines,
     activeCommanderPath,
     buildingLevels,
+    settlementEffects,
     claimRewardedAd,
     rewardedAdClaims,
     rewardedAdMessage
@@ -44,8 +45,11 @@ export function BattlePrepScreen({
 
   const hasFood = wagonItems.some(item => item.id === 'rations');
   const hasMedicine = wagonItems.some(item => item.id === 'medicine');
-  const towerIntel = (buildingLevels.signal_tower ?? 0) >= 2;
-  const scoutReport = towerIntel || (rewardedAdClaims.scout_report ?? 0) > 0;
+  const towerIntel =
+    (buildingLevels.signal_tower ?? 0) >= 2 ||
+    settlementEffects.detailedIntel;
+  const scoutReport =
+    towerIntel || (rewardedAdClaims.scout_report ?? 0) > 0;
   const doctrine = formationDoctrines.find(candidate => candidate.id === formationDoctrineId);
 
   return (
@@ -68,7 +72,15 @@ export function BattlePrepScreen({
 
       <SectionTitle
         title="Enemy"
-        trailing={towerIntel ? 'Signal Tower intel' : scoutReport ? 'Scouted' : 'Partial intel'}
+        trailing={
+          settlementEffects.detailedIntel
+            ? 'Command Network intel'
+            : towerIntel
+              ? 'Signal Tower intel'
+              : scoutReport
+                ? 'Scouted'
+                : 'Partial intel'
+        }
       />
       <GameCard>
         <View style={styles.enemyRow}>

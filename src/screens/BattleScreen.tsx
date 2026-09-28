@@ -35,7 +35,8 @@ export function BattleScreen({
     formation,
     formationAnalysis,
     activeFaction,
-    activeCommanderPath
+    activeCommanderPath,
+    settlementEffects
   } = useGame();
 
   const encounter = getEncounter(encounterId);
@@ -88,16 +89,31 @@ export function BattleScreen({
 
       if (activeCommanderPath && !skillTriggered && turn === 1) {
         const skill = activeCommanderPath.skill;
+        const adjustedSkillPower = Math.max(
+          1,
+          Math.round(
+            skill.power * settlementEffects.commanderSkillPowerMultiplier
+          )
+        );
         setSkillTriggered(true);
-        action = activeCommanderPath.name + ' uses ' + skill.name + '.';
+        action =
+          activeCommanderPath.name +
+          ' uses ' +
+          skill.name +
+          (settlementEffects.commanderSkillPowerMultiplier > 1
+            ? ' through the Command Network.'
+            : '.');
 
         if (skill.effectType === 'single_damage') {
-          skillDamage = skill.power;
+          skillDamage = adjustedSkillPower;
         } else {
-          skillDamage = Math.max(6, Math.round(skill.power * 0.55));
+          skillDamage = Math.max(
+            6,
+            Math.round(adjustedSkillPower * 0.55)
+          );
           effect = {
             type: skill.effectType,
-            power: skill.power,
+            power: adjustedSkillPower,
             remaining: skill.durationExchanges
           };
         }
@@ -174,7 +190,8 @@ export function BattleScreen({
     formationAnalysis,
     partyAttack,
     skillTriggered,
-    turn
+    turn,
+    settlementEffects.commanderSkillPowerMultiplier
   ]);
 
   return (

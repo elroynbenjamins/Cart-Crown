@@ -26,6 +26,8 @@ export function ForgeScreen({
     equipmentDefinitions,
     equipmentInventory,
     buildingLevels,
+    settlementAdjacencyBonuses,
+    getEquipmentCraftCost,
     craftEquipment,
     firstPromotionComplete
   } = useGame();
@@ -60,12 +62,22 @@ export function ForgeScreen({
         <ResourceChip icon="🪙" value={resources.gold} label="Gold" />
       </View>
 
+      {settlementAdjacencyBonuses.some(bonus => bonus.id === 'arsenal_district') ? (
+        <GameCard accent={theme.colors.primary}>
+          <Text style={[styles.recipeName, { color: theme.colors.text }]}>Arsenal District</Text>
+          <Text style={[styles.recipeDesc, { color: theme.colors.textMuted }]}>
+            Barracks adjacent to the Field Forge reduces equipment costs by 10%.
+          </Text>
+        </GameCard>
+      ) : null}
+
       <SectionTitle title="Available recipes" trailing="Choose carefully" />
 
       <View style={styles.recipeList}>
         {humanWeapons.map(item => {
           const owned = equipmentInventory.filter(id => id === item.id).length;
-          const affordable = Object.entries(item.craftCost).every(([key, amount]) => {
+          const effectiveCost = getEquipmentCraftCost(item);
+          const affordable = Object.entries(effectiveCost).every(([key, amount]) => {
             const resourceKey = key as keyof ResourceWallet;
             return resources[resourceKey] >= (amount ?? 0);
           });
@@ -97,7 +109,7 @@ export function ForgeScreen({
               </View>
 
               <View style={styles.costRow}>
-                {Object.entries(item.craftCost).map(([key, value]) => (
+                {Object.entries(effectiveCost).map(([key, value]) => (
                   <Text key={key} style={[styles.cost, { color: theme.colors.textMuted }]}>
                     {resourceIcons[key as keyof ResourceWallet]} {value}
                   </Text>

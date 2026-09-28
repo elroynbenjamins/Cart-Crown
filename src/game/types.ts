@@ -118,6 +118,32 @@ export type SettlementPlotDefinition = {
   terrain: 'grass' | 'high_ground' | 'roadside' | 'square';
 };
 
+export type SettlementAdjacencyEffects = {
+  equipmentCostMultiplier: number;
+  mountCostMultiplier: number;
+  expeditionWoodBonus: number;
+  expeditionProvisionBonus: number;
+  dailyProvisionBonus: number;
+  commanderSkillPowerMultiplier: number;
+  commanderRespecDiscount: number;
+  detailedIntel: boolean;
+};
+
+export type SettlementAdjacencyBonusDefinition = {
+  id: string;
+  name: string;
+  buildingA: string;
+  buildingB: string;
+  description: string;
+  effectText: string;
+  effects: Partial<SettlementAdjacencyEffects>;
+};
+
+export type ActiveSettlementAdjacencyBonus = SettlementAdjacencyBonusDefinition & {
+  plotA: string;
+  plotB: string;
+};
+
 export type BuildingLevelDefinition = {
   buildingId: string;
   level: number;

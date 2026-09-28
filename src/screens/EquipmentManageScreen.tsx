@@ -40,6 +40,8 @@ export function EquipmentManageScreen({
     unitEquipment,
     equipmentDefinitions,
     buildingLevels,
+    settlementAdjacencyBonuses,
+    getEquipmentCraftCost,
     craftEquipment,
     equipEquipment,
     upgradeEquippedItem,
@@ -209,6 +211,15 @@ export function EquipmentManageScreen({
         <>
           <SectionTitle title={'Field Forge Lv.' + forgeLevel} trailing={forgeLevel >= 2 ? 'Tier II unlocked' : 'Tier I'} />
 
+          {settlementAdjacencyBonuses.some(bonus => bonus.id === 'arsenal_district') ? (
+            <GameCard accent={theme.colors.primary}>
+              <Text style={[styles.itemName, { color: theme.colors.text }]}>Arsenal District active</Text>
+              <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>
+                Barracks beside the Forge reduces equipment crafting and upgrade costs by 10%.
+              </Text>
+            </GameCard>
+          ) : null}
+
           <Text style={[styles.explainer, { color: theme.colors.textMuted }]}>
             Basic items are crafted into inventory. Tier II pieces preserve your investment by upgrading the item already assigned to this squad.
           </Text>
@@ -224,14 +235,14 @@ export function EquipmentManageScreen({
                     </Text>
                   </View>
                   <Text style={[styles.costText, { color: theme.colors.gold }]}>
-                    {formatCost(item.craftCost)}
+                    {formatCost(getEquipmentCraftCost(item))}
                   </Text>
                 </View>
                 <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>{item.description}</Text>
                 <View style={styles.button}>
                   <PrimaryButton
                     label={'Craft ' + item.name}
-                    disabled={!canAfford(item.craftCost)}
+                    disabled={!canAfford(getEquipmentCraftCost(item))}
                     onPress={() =>
                       setMessage(
                         craftEquipment(item.id)
@@ -258,14 +269,14 @@ export function EquipmentManageScreen({
                       </Text>
                     </View>
                     <Text style={[styles.costText, { color: theme.colors.gold }]}>
-                      {formatCost(item.craftCost)}
+                      {formatCost(getEquipmentCraftCost(item))}
                     </Text>
                   </View>
                   <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>{item.description}</Text>
                   <View style={styles.button}>
                     <PrimaryButton
                       label={'Upgrade to ' + item.name}
-                      disabled={!canAfford(item.craftCost)}
+                      disabled={!canAfford(getEquipmentCraftCost(item))}
                       onPress={() => handleUpgrade(item.id)}
                     />
                   </View>

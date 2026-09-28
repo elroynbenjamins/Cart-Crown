@@ -50,6 +50,8 @@ export function KingdomScreen({
     resourceSites,
     unlockedResourceSites,
     productionStock,
+    settlementAdjacencyBonuses,
+    settlementEffects,
     claimProduction,
     isBuildingUnlocked,
     upgradeBuilding,
@@ -241,7 +243,7 @@ export function KingdomScreen({
           <View style={styles.settlementViewCopy}>
             <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>View Greenkeep</Text>
             <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
-              See the settlement, choose construction plots and buy unlocked buildings. New plots appear as Greenkeep grows.
+              See the settlement, choose construction plots and tune adjacency bonuses. {settlementAdjacencyBonuses.length} district {settlementAdjacencyBonuses.length === 1 ? 'bonus is' : 'bonuses are'} active.
             </Text>
           </View>
           <Text style={styles.settlementViewIcon}>🏘️</Text>
@@ -403,7 +405,11 @@ export function KingdomScreen({
           Watch an optional rewarded ad for common supplies. A developed Quartermaster improves provision efficiency.
         </Text>
         <Text style={[styles.supplyReward, { color: theme.colors.gold }]}>
-          +15 Wood · +{(buildingLevels.quartermaster ?? 0) >= 2 ? 20 : 15} Provisions
+          +15 Wood · +{
+            15 +
+            ((buildingLevels.quartermaster ?? 0) >= 2 ? 5 : 0) +
+            settlementEffects.dailyProvisionBonus
+          } Provisions
         </Text>
         <View style={styles.supplyButton}>
           <SecondaryButton

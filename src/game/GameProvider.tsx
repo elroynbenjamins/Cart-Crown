@@ -34,6 +34,8 @@ import {
   getBuildings
 } from './kingdom';
 import {
+  analyzeSettlementAdjacency,
+  applyCostMultiplier,
   humanSettlementPlots,
   isSettlementPlotUnlocked
 } from './settlement';
@@ -41,6 +43,7 @@ import { sideModes } from './sideModes';
 import type {
   AdvancedPromotionDefinition,
   BattleResult,
+  ActiveSettlementAdjacencyBonus,
   BuildingDefinition,
   CampaignAvailability,
   ChapterNode,
@@ -54,6 +57,7 @@ import type {
   RecruitOption,
   ResourceSiteDefinition,
   ResourceWallet,
+  SettlementAdjacencyEffects,
   SideModeDefinition,
   SideModeId,
   UnitDefinition,
@@ -116,6 +120,8 @@ type GameContextValue = {
   buildingLevels: Record<string, number>;
   buildingPlacements: Record<string, string | null>;
   buildings: BuildingDefinition[];
+  settlementAdjacencyBonuses: ActiveSettlementAdjacencyBonus[];
+  settlementEffects: SettlementAdjacencyEffects;
   fourthRecruitChoiceAvailable: boolean;
   fourthRecruitChosen: boolean;
   fortMusterOptions: RecruitOption[];
@@ -144,6 +150,7 @@ type GameContextValue = {
   upgradeSettlement: () => boolean;
   upgradeToFort: () => boolean;
   constructBuilding: (buildingId: string, plotId: string) => boolean;
+  moveBuilding: (buildingId: string, targetPlotId: string) => boolean;
   upgradeBuilding: (buildingId: string) => boolean;
   isBuildingUnlocked: (buildingId: string) => boolean;
   chooseRecruit: (choiceId: string) => boolean;
@@ -153,6 +160,7 @@ type GameContextValue = {
   completeKingdomDefense: () => boolean;
   completeBrokenSignalTower: () => boolean;
   upgradeToTown: () => boolean;
+  getEquipmentCraftCost: (equipment: EquipmentDefinition) => Partial<ResourceWallet>;
   craftEquipment: (equipmentId: string) => boolean;
   equipEquipment: (unitId: string, equipmentId: string) => boolean;
   upgradeEquippedItem: (unitId: string, targetEquipmentId: string) => boolean;
@@ -380,6 +388,13 @@ export function GameProvider({
   );
 
   const buildings = useMemo(() => getBuildings(activeFaction), [activeFaction]);
+  const settlementAnalysis = useMemo(
+    () => analyzeSettlementAdjacency(buildingPlacements, buildingLevels),
+    [buildingLevels, buildingPlacements]
+  );
+  const settlementAdjacencyBonuses = settlementAnalysis.bonuses;
+  const settlementEffects = settlementAnalysis.effects;
+
   const resourceSites = useMemo(
     () => humanResourceSites.filter(site => site.faction === activeFaction),
     [activeFaction]
@@ -402,8 +417,12 @@ export function GameProvider({
     () => getCommanderPath(commanderPathId),
     [commanderPathId]
   );
-  const commanderRespecCost =
+  const commanderBaseRespecCost =
     commanderPathId && (buildingLevels.war_room ?? 0) >= 2 ? 50 : commanderPathId ? 75 : 0;
+  const commanderRespecCost = Math.max(
+    0,
+    commanderBaseRespecCost - settlementEffects.commanderRespecDiscount
+  );
 
   const formationBonuses = formationAnalysis.bonuses;
   const activeSquadCap = currentWagonStage.formationSlots;
@@ -865,6 +884,29 @@ export function GameProvider({
     return true;
   };
 
+  const moveBuilding = (buildingId: string, targetPlotId: string) => {
+    if ((buildingLevels[buildingId] ?? 0) <= 0) return false;
+
+    const targetPlot = humanSettlementPlots.find(plot => plot.id === targetPlotId);
+    if (!targetPlot || !isSettlementPlotUnlocked(targetPlot, currentWagonStage.id)) {
+      return false;
+    }
+    if (buildingPlacements[targetPlotId]) return false;
+
+    const sourcePlotId = Object.entries(buildingPlacements).find(
+      ([, value]) => value === buildingId
+    )?.[0];
+
+    if (!sourcePlotId) return false;
+
+    setBuildingPlacements(previous => ({
+      ...previous,
+      [sourcePlotId]: null,
+      [targetPlotId]: buildingId
+    }));
+    return true;
+  };
+
   const upgradeBuilding = (buildingId: string) => {
     if (!isBuildingUnlocked(buildingId)) return false;
 
@@ -1074,6 +1116,14 @@ export function GameProvider({
     return true;
   };
 
+  const getEquipmentCraftCost = (equipment: EquipmentDefinition) => {
+    let multiplier = settlementEffects.equipmentCostMultiplier;
+    if (equipment.slot === 'mount') {
+      multiplier *= settlementEffects.mountCostMultiplier;
+    }
+    return applyCostMultiplier(equipment.craftCost, multiplier);
+  };
+
   const craftEquipment = (equipmentId: string) => {
     if (!forgeUnlocked) return false;
 
@@ -1086,13 +1136,15 @@ export function GameProvider({
       equipment.faction !== activeFaction ||
       equipment.upgradeFromId ||
       equipment.requiredForgeLevel > forgeLevel ||
-      (equipment.requiredStableLevel ?? 0) > stableLevel ||
-      !canAfford(resources, equipment.craftCost)
+      (equipment.requiredStableLevel ?? 0) > stableLevel
     ) {
       return false;
     }
 
-    setResources(previous => payCost(previous, equipment.craftCost));
+    const effectiveCost = getEquipmentCraftCost(equipment);
+    if (!canAfford(resources, effectiveCost)) return false;
+
+    setResources(previous => payCost(previous, effectiveCost));
     setEquipmentInventory(previous => [...previous, equipment.id]);
     return true;
   };
@@ -1144,18 +1196,20 @@ export function GameProvider({
       !target.upgradeFromId ||
       target.requiredForgeLevel > forgeLevel ||
       (target.requiredStableLevel ?? 0) > stableLevel ||
-      !unit ||
-      !canAfford(resources, target.craftCost)
+      !unit
     ) {
       return false;
     }
+
+    const effectiveCost = getEquipmentCraftCost(target);
+    if (!canAfford(resources, effectiveCost)) return false;
 
     const currentId = unitEquipment[unitId]?.[target.slot] ?? null;
     if (currentId !== target.upgradeFromId) return false;
 
     const currentItem = getEquipment(currentId);
 
-    setResources(previous => payCost(previous, target.craftCost));
+    setResources(previous => payCost(previous, effectiveCost));
     setUnitEquipment(previous => ({
       ...previous,
       [unitId]: {
@@ -1362,8 +1416,15 @@ export function GameProvider({
     setResources(previous => ({
       ...previous,
       gold: previous.gold + 35,
-      wood: previous.wood + 8 + extraWood,
-      provisions: previous.provisions + 4
+      wood:
+        previous.wood +
+        8 +
+        extraWood +
+        settlementEffects.expeditionWoodBonus,
+      provisions:
+        previous.provisions +
+        4 +
+        settlementEffects.expeditionProvisionBonus
     }));
   };
 
@@ -1410,7 +1471,11 @@ export function GameProvider({
       setResources(previous => ({
         ...previous,
         wood: previous.wood + 15,
-        provisions: previous.provisions + 15 + quartermasterBonus
+        provisions:
+          previous.provisions +
+          15 +
+          quartermasterBonus +
+          settlementEffects.dailyProvisionBonus
       }));
     } else if (placementId === 'expedition_ticket') {
       setExpeditionTickets(previous => previous + 1);
@@ -1479,6 +1544,8 @@ export function GameProvider({
       buildingLevels,
       buildingPlacements,
       buildings,
+      settlementAdjacencyBonuses,
+      settlementEffects,
       fourthRecruitChoiceAvailable,
       fourthRecruitChosen,
       fortMusterOptions,
@@ -1507,6 +1574,7 @@ export function GameProvider({
       upgradeSettlement,
       upgradeToFort,
       constructBuilding,
+      moveBuilding,
       upgradeBuilding,
       isBuildingUnlocked,
       chooseRecruit,
@@ -1516,6 +1584,7 @@ export function GameProvider({
       completeKingdomDefense,
       completeBrokenSignalTower,
       upgradeToTown,
+      getEquipmentCraftCost,
       craftEquipment,
       equipEquipment,
       upgradeEquippedItem,
@@ -1571,6 +1640,8 @@ export function GameProvider({
       buildingLevels,
       buildingPlacements,
       buildings,
+      settlementAdjacencyBonuses,
+      settlementEffects,
       fourthRecruitChoiceAvailable,
       fourthRecruitChosen,
       unlockedResourceSites,

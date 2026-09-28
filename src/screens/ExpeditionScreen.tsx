@@ -13,7 +13,9 @@ export function ExpeditionScreen({ onExit }: { onExit: () => void }) {
     finishExpedition,
     claimRewardedAd,
     rewardedAdClaims,
-    rewardedAdMessage
+    rewardedAdMessage,
+    settlementEffects,
+    buildingLevels
   } = useGame();
   const [started, setStarted] = useState(false);
   const [nodeIndex, setNodeIndex] = useState(0);
@@ -102,7 +104,11 @@ export function ExpeditionScreen({ onExit }: { onExit: () => void }) {
         <GameCard accent={theme.colors.primary}>
           <Text style={[styles.finishTitle, { color: theme.colors.text }]}>Expedition Complete</Text>
           <Text style={[styles.finishBody, { color: theme.colors.textMuted }]}>
-            +35 Gold · +8 Wood · +4 Provisions
+            +35 Gold · +{
+              8 +
+              ((buildingLevels.wagonwright ?? 0) >= 2 ? 1 : 0) +
+              settlementEffects.expeditionWoodBonus
+            } Wood · +{4 + settlementEffects.expeditionProvisionBonus} Provisions
           </Text>
           <View style={styles.finishButton}>
             <PrimaryButton label="Return to Campaign" onPress={onExit} />

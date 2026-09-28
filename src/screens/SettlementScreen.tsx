@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import {
+  analyzeSettlementAdjacency,
+  humanAdjacencyBonuses,
   humanSettlementPlots,
   isSettlementPlotUnlocked
 } from '../game/settlement';
@@ -18,6 +20,7 @@ import {
   GameCard,
   Pill,
   PrimaryButton,
+  SecondaryButton,
   SectionTitle
 } from '../ui/components';
 
@@ -44,14 +47,20 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
     buildings,
     buildingLevels,
     buildingPlacements,
+    settlementAdjacencyBonuses,
     isBuildingUnlocked,
-    constructBuilding
+    constructBuilding,
+    moveBuilding
   } = useGame();
 
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const selectedPlot = humanSettlementPlots.find(plot => plot.id === selectedPlotId) ?? null;
+  const selectedPlot =
+    humanSettlementPlots.find(plot => plot.id === selectedPlotId) ?? null;
+  const selectedBuilding =
+    buildings.find(building => building.id === selectedBuildingId) ?? null;
 
   const placedIds = useMemo(
     () =>
@@ -65,6 +74,10 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
     building =>
       isBuildingUnlocked(building.id) &&
       !placedIds.includes(building.id)
+  );
+
+  const activeBonusIds = new Set(
+    settlementAdjacencyBonuses.map(bonus => bonus.id)
   );
 
   const formatCost = (cost: Partial<ResourceWallet>) =>
@@ -81,6 +94,26 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
       return resources[resourceKey] >= (amount ?? 0);
     });
 
+  const previewBonusNames = (buildingId: string) => {
+    if (!selectedPlot) return [];
+
+    const hypotheticalPlacements = {
+      ...buildingPlacements,
+      [selectedPlot.id]: buildingId
+    };
+    const hypotheticalLevels = {
+      ...buildingLevels,
+      [buildingId]: Math.max(1, buildingLevels[buildingId] ?? 0)
+    };
+
+    return analyzeSettlementAdjacency(
+      hypotheticalPlacements,
+      hypotheticalLevels
+    ).bonuses
+      .filter(bonus => !activeBonusIds.has(bonus.id))
+      .map(bonus => bonus.name);
+  };
+
   const stageLabel =
     currentWagonStage.id === 'town'
       ? 'GREENKEEP TOWN'
@@ -91,12 +124,21 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
           : 'REFUGEE CAMP';
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <GameCard accent={theme.colors.human}>
-        <Text style={[styles.eyebrow, { color: theme.colors.human }]}>SETTLEMENT VIEW</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>{stageLabel}</Text>
+        <Text style={[styles.eyebrow, { color: theme.colors.human }]}>
+          SETTLEMENT VIEW
+        </Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>
+          {stageLabel}
+        </Text>
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          Choose which unlocked building goes on each available plot. Placement is visual for now; building type and level determine the gameplay effect.
+          Orthogonally adjacent buildings can form District Bonuses. Tap a built
+          structure to relocate it, then tap an empty unlocked plot. Moving is
+          free and never removes building levels.
         </Text>
       </GameCard>
 
@@ -109,41 +151,81 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
           }
         ]}
       >
-        <View style={[styles.roadHorizontal, { backgroundColor: theme.colors.surface3 }]} />
-        <View style={[styles.roadVertical, { backgroundColor: theme.colors.surface3 }]} />
+        <View
+          style={[
+            styles.roadHorizontal,
+            { backgroundColor: theme.colors.surface3 }
+          ]}
+        />
+        <View
+          style={[
+            styles.roadVertical,
+            { backgroundColor: theme.colors.surface3 }
+          ]}
+        />
 
         {humanSettlementPlots.map(plot => {
-          const unlocked = isSettlementPlotUnlocked(plot, currentWagonStage.id);
+          const unlocked = isSettlementPlotUnlocked(
+            plot,
+            currentWagonStage.id
+          );
           const buildingId = buildingPlacements[plot.id] ?? null;
           const building = buildingId
             ? buildings.find(candidate => candidate.id === buildingId) ?? null
             : null;
           const level = building ? buildingLevels[building.id] ?? 0 : 0;
-          const selected = selectedPlotId === plot.id;
+          const plotSelected = selectedPlotId === plot.id;
+          const buildingSelected =
+            Boolean(building) && selectedBuildingId === building?.id;
 
           return (
             <Pressable
               key={plot.id}
-              disabled={!unlocked || Boolean(building)}
+              disabled={!unlocked}
               onPress={() => {
-                setSelectedPlotId(selected ? null : plot.id);
                 setMessage(null);
+
+                if (building) {
+                  setSelectedBuildingId(
+                    buildingSelected ? null : building.id
+                  );
+                  setSelectedPlotId(null);
+                  return;
+                }
+
+                if (selectedBuildingId) {
+                  const ok = moveBuilding(selectedBuildingId, plot.id);
+                  setMessage(
+                    ok
+                      ? 'Building relocated. District bonuses recalculated.'
+                      : 'That building cannot be moved to this plot.'
+                  );
+                  if (ok) setSelectedBuildingId(null);
+                  return;
+                }
+
+                setSelectedPlotId(plotSelected ? null : plot.id);
               }}
               style={[
                 styles.plot,
                 {
-                  left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
-                  top: (String(7 + plot.row * 31) + '%') as ViewStyle['top'],
+                  left: (String(5 + plot.column * 32) +
+                    '%') as ViewStyle['left'],
+                  top: (String(7 + plot.row * 31) +
+                    '%') as ViewStyle['top'],
                   backgroundColor: building
                     ? theme.colors.surface2
                     : unlocked
                       ? theme.colors.appBg
                       : theme.colors.surface3,
-                  borderColor: selected
-                    ? theme.colors.gold
-                    : building
-                      ? theme.colors.human
-                      : theme.colors.border,
+                  borderColor:
+                    plotSelected || buildingSelected
+                      ? theme.colors.gold
+                      : building
+                        ? theme.colors.human
+                        : theme.colors.border,
+                  borderWidth:
+                    plotSelected || buildingSelected ? 3 : 1.5,
                   opacity: unlocked ? 1 : 0.45
                 }
               ]}
@@ -152,31 +234,65 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                 <>
                   <Text style={styles.buildingIcon}>{building.icon}</Text>
                   <Text
-                    style={[styles.plotBuildingName, { color: theme.colors.text }]}
+                    style={[
+                      styles.plotBuildingName,
+                      { color: theme.colors.text }
+                    ]}
                     numberOfLines={2}
                   >
                     {building.name}
                   </Text>
-                  <Text style={[styles.plotLevel, { color: theme.colors.gold }]}>
+                  <Text
+                    style={[styles.plotLevel, { color: theme.colors.gold }]}
+                  >
                     Lv.{level}
                   </Text>
                 </>
               ) : unlocked ? (
                 <>
-                  <Text style={[styles.emptyPlus, { color: selected ? theme.colors.gold : theme.colors.textMuted }]}>
+                  <Text
+                    style={[
+                      styles.emptyPlus,
+                      {
+                        color:
+                          plotSelected || selectedBuildingId
+                            ? theme.colors.gold
+                            : theme.colors.textMuted
+                      }
+                    ]}
+                  >
                     +
                   </Text>
-                  <Text style={[styles.emptyText, { color: theme.colors.textMuted }]}>
-                    Empty
+                  <Text
+                    style={[
+                      styles.emptyText,
+                      {
+                        color: selectedBuildingId
+                          ? theme.colors.gold
+                          : theme.colors.textMuted
+                      }
+                    ]}
+                  >
+                    {selectedBuildingId ? 'Move here' : 'Empty'}
                   </Text>
-                  <Text style={[styles.terrain, { color: theme.colors.textMuted }]}>
+                  <Text
+                    style={[
+                      styles.terrain,
+                      { color: theme.colors.textMuted }
+                    ]}
+                  >
                     {terrainMarks[plot.terrain] ?? '·'}
                   </Text>
                 </>
               ) : (
                 <>
                   <Text style={styles.lock}>🔒</Text>
-                  <Text style={[styles.lockText, { color: theme.colors.textMuted }]}>
+                  <Text
+                    style={[
+                      styles.lockText,
+                      { color: theme.colors.textMuted }
+                    ]}
+                  >
                     {plot.unlockStage}
                   </Text>
                 </>
@@ -185,69 +301,154 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
           );
         })}
 
-        {['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
+        {['fort', 'town', 'stronghold', 'capital', 'grand'].includes(
+          currentWagonStage.id
+        ) ? (
           <>
-            <View style={[styles.wallTop, { borderColor: theme.colors.gold }]} />
-            <View style={[styles.wallBottom, { borderColor: theme.colors.gold }]} />
-            <Text style={[styles.gateLabel, { color: theme.colors.gold }]}>
-              {currentWagonStage.id === 'town' ? 'TOWN GATE' : 'FORT GATE'}
+            <View
+              style={[styles.wallTop, { borderColor: theme.colors.gold }]}
+            />
+            <View
+              style={[
+                styles.wallBottom,
+                { borderColor: theme.colors.gold }
+              ]}
+            />
+            <Text
+              style={[styles.gateLabel, { color: theme.colors.gold }]}
+            >
+              {currentWagonStage.id === 'town'
+                ? 'TOWN GATE'
+                : 'FORT GATE'}
             </Text>
           </>
         ) : null}
       </View>
 
       <View style={styles.legend}>
-        <Text style={[styles.legendText, { color: theme.colors.textMuted }]}>
-          Fixed plots · tap an empty unlocked plot to construct
+        <Text
+          style={[styles.legendText, { color: theme.colors.textMuted }]}
+        >
+          Up/down/left/right adjacency only · relocation is free
         </Text>
         <Pill label={String(placedIds.length) + ' BUILT'} />
       </View>
 
-      {selectedPlot ? (
+      {selectedBuilding ? (
+        <GameCard accent={theme.colors.gold}>
+          <Text
+            style={[styles.selectionLabel, { color: theme.colors.gold }]}
+          >
+            RELOCATE
+          </Text>
+          <Text
+            style={[styles.selectionTitle, { color: theme.colors.text }]}
+          >
+            {selectedBuilding.icon} {selectedBuilding.name}
+          </Text>
+          <Text
+            style={[styles.selectionBody, { color: theme.colors.textMuted }]}
+          >
+            Tap any empty unlocked plot. Building level and upgrades are
+            preserved; active district bonuses update immediately.
+          </Text>
+          <View style={styles.button}>
+            <SecondaryButton
+              label="Cancel move"
+              onPress={() => setSelectedBuildingId(null)}
+            />
+          </View>
+        </GameCard>
+      ) : selectedPlot ? (
         <>
-          <SectionTitle title="Construct Building" trailing={selectedPlot.id.replace('plot_', '').toUpperCase()} />
+          <SectionTitle
+            title="Construct Building"
+            trailing={selectedPlot.id.replace('plot_', '').toUpperCase()}
+          />
           {availableBuildings.length > 0 ? (
             <View style={styles.buildingList}>
-              {availableBuildings.map(building => (
-                <GameCard key={building.id} accent={theme.colors.primary}>
-                  <View style={styles.optionHeader}>
-                    <Text style={styles.optionIcon}>{building.icon}</Text>
-                    <View style={styles.optionCopy}>
-                      <Text style={[styles.optionName, { color: theme.colors.text }]}>
-                        {building.name}
-                      </Text>
-                      <Text style={[styles.optionRole, { color: theme.colors.human }]}>
-                        {building.role}
+              {availableBuildings.map(building => {
+                const potentialBonuses = previewBonusNames(building.id);
+
+                return (
+                  <GameCard
+                    key={building.id}
+                    accent={theme.colors.primary}
+                  >
+                    <View style={styles.optionHeader}>
+                      <Text style={styles.optionIcon}>{building.icon}</Text>
+                      <View style={styles.optionCopy}>
+                        <Text
+                          style={[
+                            styles.optionName,
+                            { color: theme.colors.text }
+                          ]}
+                        >
+                          {building.name}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.optionRole,
+                            { color: theme.colors.human }
+                          ]}
+                        >
+                          {building.role}
+                        </Text>
+                      </View>
+                      <Text
+                        style={[styles.cost, { color: theme.colors.gold }]}
+                      >
+                        {formatCost(building.constructionCost)}
                       </Text>
                     </View>
-                    <Text style={[styles.cost, { color: theme.colors.gold }]}>
-                      {formatCost(building.constructionCost)}
+                    <Text
+                      style={[
+                        styles.optionBody,
+                        { color: theme.colors.textMuted }
+                      ]}
+                    >
+                      {building.description}
                     </Text>
-                  </View>
-                  <Text style={[styles.optionBody, { color: theme.colors.textMuted }]}>
-                    {building.description}
-                  </Text>
-                  <View style={styles.button}>
-                    <PrimaryButton
-                      label={'Build ' + building.name}
-                      disabled={!canAfford(building.constructionCost)}
-                      onPress={() => {
-                        const ok = constructBuilding(building.id, selectedPlot.id);
-                        setMessage(
-                          ok
-                            ? building.name + ' constructed.'
-                            : 'This building cannot be constructed here yet.'
-                        );
-                        if (ok) setSelectedPlotId(null);
-                      }}
-                    />
-                  </View>
-                </GameCard>
-              ))}
+
+                    {potentialBonuses.length > 0 ? (
+                      <Text
+                        style={[
+                          styles.potentialBonus,
+                          { color: theme.colors.primary }
+                        ]}
+                      >
+                        Creates: {potentialBonuses.join(' · ')}
+                      </Text>
+                    ) : null}
+
+                    <View style={styles.button}>
+                      <PrimaryButton
+                        label={'Build ' + building.name}
+                        disabled={!canAfford(building.constructionCost)}
+                        onPress={() => {
+                          const ok = constructBuilding(
+                            building.id,
+                            selectedPlot.id
+                          );
+                          setMessage(
+                            ok
+                              ? building.name +
+                                  ' constructed. District bonuses recalculated.'
+                              : 'This building cannot be constructed here yet.'
+                          );
+                          if (ok) setSelectedPlotId(null);
+                        }}
+                      />
+                    </View>
+                  </GameCard>
+                );
+              })}
             </View>
           ) : (
             <GameCard>
-              <Text style={[styles.none, { color: theme.colors.textMuted }]}>
+              <Text
+                style={[styles.none, { color: theme.colors.textMuted }]}
+              >
                 No unlocked unbuilt buildings are currently available.
               </Text>
             </GameCard>
@@ -256,13 +457,113 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
       ) : (
         <GameCard>
           <Text style={[styles.none, { color: theme.colors.textMuted }]}>
-            Select an empty plot to see buildings you can buy and place.
+            Tap an empty plot to build, or tap a constructed building to move
+            it and tune your adjacency bonuses.
           </Text>
         </GameCard>
       )}
 
+      <SectionTitle
+        title="Active District Bonuses"
+        trailing={String(settlementAdjacencyBonuses.length)}
+      />
+
+      {settlementAdjacencyBonuses.length > 0 ? (
+        <View style={styles.bonusList}>
+          {settlementAdjacencyBonuses.map(bonus => (
+            <GameCard key={bonus.id} accent={theme.colors.primary}>
+              <View style={styles.bonusHeader}>
+                <Text
+                  style={[styles.bonusName, { color: theme.colors.text }]}
+                >
+                  {bonus.name}
+                </Text>
+                <Pill label="ACTIVE" color={theme.colors.primary + '33'} />
+              </View>
+              <Text
+                style={[styles.bonusBody, { color: theme.colors.textMuted }]}
+              >
+                {bonus.description}
+              </Text>
+              <Text
+                style={[styles.bonusEffect, { color: theme.colors.primary }]}
+              >
+                {bonus.effectText}
+              </Text>
+            </GameCard>
+          ))}
+        </View>
+      ) : (
+        <GameCard>
+          <Text style={[styles.none, { color: theme.colors.textMuted }]}>
+            No district synergy is active yet. Move compatible buildings next
+            to each other to create one.
+          </Text>
+        </GameCard>
+      )}
+
+      <SectionTitle title="District Recipes" trailing="Orthogonal" />
+      <GameCard>
+        <View style={styles.recipeList}>
+          {humanAdjacencyBonuses.map(bonus => {
+            const first =
+              buildings.find(building => building.id === bonus.buildingA);
+            const second =
+              buildings.find(building => building.id === bonus.buildingB);
+            const active = activeBonusIds.has(bonus.id);
+
+            return (
+              <View
+                key={bonus.id}
+                style={[
+                  styles.recipeRow,
+                  { borderBottomColor: theme.colors.border }
+                ]}
+              >
+                <View style={styles.recipeCopy}>
+                  <Text
+                    style={[styles.recipeName, { color: theme.colors.text }]}
+                  >
+                    {first?.icon} {first?.name} + {second?.icon}{' '}
+                    {second?.name}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.recipeEffect,
+                      {
+                        color: active
+                          ? theme.colors.primary
+                          : theme.colors.textMuted
+                      }
+                    ]}
+                  >
+                    {bonus.effectText}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.recipeStatus,
+                    {
+                      color: active
+                        ? theme.colors.primary
+                        : theme.colors.textMuted
+                    }
+                  ]}
+                >
+                  {active ? 'ACTIVE' : '—'}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      </GameCard>
+
       {message ? (
-        <Text style={[styles.message, { color: theme.colors.textMuted }]}>{message}</Text>
+        <Text
+          style={[styles.message, { color: theme.colors.textMuted }]}
+        >
+          {message}
+        </Text>
       ) : null}
 
       <PrimaryButton label="Return to Kingdom" onPress={onExit} />
@@ -303,19 +604,28 @@ const styles = StyleSheet.create({
     width: '27%',
     height: '25%',
     borderRadius: 18,
-    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 5
   },
   buildingIcon: { fontSize: 25 },
-  plotBuildingName: { fontSize: 9.5, fontWeight: '900', textAlign: 'center', marginTop: 4 },
+  plotBuildingName: {
+    fontSize: 9.5,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginTop: 4
+  },
   plotLevel: { fontSize: 8.5, fontWeight: '900', marginTop: 2 },
   emptyPlus: { fontSize: 28, fontWeight: '600' },
   emptyText: { fontSize: 9, fontWeight: '800' },
   terrain: { position: 'absolute', right: 7, bottom: 5, fontSize: 10 },
   lock: { fontSize: 18 },
-  lockText: { fontSize: 8, fontWeight: '900', textTransform: 'uppercase', marginTop: 4 },
+  lockText: {
+    fontSize: 8,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    marginTop: 4
+  },
   wallTop: {
     position: 'absolute',
     left: '3%',
@@ -332,18 +642,59 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     opacity: 0.75
   },
-  gateLabel: { position: 'absolute', bottom: 7, alignSelf: 'center', fontSize: 8, fontWeight: '900' },
-  legend: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  gateLabel: {
+    position: 'absolute',
+    bottom: 7,
+    alignSelf: 'center',
+    fontSize: 8,
+    fontWeight: '900'
+  },
+  legend: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10
+  },
   legendText: { flex: 1, fontSize: 9.5, lineHeight: 14 },
+  selectionLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  selectionTitle: { fontSize: 16, fontWeight: '900', marginTop: 3 },
+  selectionBody: { fontSize: 10.5, lineHeight: 16, marginTop: 5 },
   buildingList: { gap: 9 },
   optionHeader: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   optionIcon: { fontSize: 25 },
   optionCopy: { flex: 1 },
   optionName: { fontSize: 15, fontWeight: '900' },
   optionRole: { fontSize: 8.5, fontWeight: '900', marginTop: 2 },
-  cost: { fontSize: 8.5, fontWeight: '900', maxWidth: 110, textAlign: 'right' },
+  cost: {
+    fontSize: 8.5,
+    fontWeight: '900',
+    maxWidth: 110,
+    textAlign: 'right'
+  },
   optionBody: { fontSize: 10.5, lineHeight: 15, marginTop: 7 },
+  potentialBonus: { fontSize: 9.5, lineHeight: 14, fontWeight: '900', marginTop: 7 },
   button: { marginTop: 10 },
   none: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
-  message: { fontSize: 10.5, lineHeight: 16, textAlign: 'center', fontWeight: '800' }
+  bonusList: { gap: 8 },
+  bonusHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
+  bonusName: { fontSize: 14, fontWeight: '900' },
+  bonusBody: { fontSize: 10.5, lineHeight: 15, marginTop: 4 },
+  bonusEffect: { fontSize: 10, lineHeight: 15, fontWeight: '900', marginTop: 6 },
+  recipeList: { gap: 0 },
+  recipeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth
+  },
+  recipeCopy: { flex: 1 },
+  recipeName: { fontSize: 10.5, fontWeight: '900' },
+  recipeEffect: { fontSize: 9.5, lineHeight: 14, marginTop: 3 },
+  recipeStatus: { fontSize: 8.5, fontWeight: '900' },
+  message: {
+    fontSize: 10.5,
+    lineHeight: 16,
+    textAlign: 'center',
+    fontWeight: '800'
+  }
 });
