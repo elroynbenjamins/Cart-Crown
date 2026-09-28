@@ -22,6 +22,7 @@ import { ConcordVaultScreen } from './screens/ConcordVaultScreen';
 import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
 import { FactionCampScreen } from './screens/FactionCampScreen';
+import { FactionChapterOneEventScreen } from './screens/FactionChapterOneEventScreen';
 import { ForgeScreen } from './screens/ForgeScreen';
 import { FormationScreen } from './screens/FormationScreen';
 import { FortMusterScreen } from './screens/FortMusterScreen';
@@ -75,6 +76,8 @@ type FlowScreen =
   | 'grandCouncil'
   | 'concordVault'
   | 'forcedBeacon'
+  | 'factionInvestigation'
+  | 'factionSupply'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -122,6 +125,8 @@ const flowTitles: Record<FlowScreen, string> = {
   grandCouncil: 'Grand Council',
   concordVault: 'Concord Vault',
   forcedBeacon: 'The Forced Beacon',
+  factionInvestigation: 'Campaign Investigation',
+  factionSupply: 'Campaign Supplies',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -450,6 +455,30 @@ export function AppShell({
       );
     }
 
+    if (flow === 'factionInvestigation') {
+      return (
+        <FactionChapterOneEventScreen
+          stage="investigation"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'factionSupply') {
+      return (
+        <FactionChapterOneEventScreen
+          stage="supply"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -585,6 +614,26 @@ export function AppShell({
               );
               setFlow('battlePrep');
             }}
+            onOpenFactionInvestigation={() =>
+              setFlow('factionInvestigation')
+            }
+            onStartFactionEliteBattle={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_ashen_tracks'
+                  : 'orc_invader_scouts'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenFactionSupply={() => setFlow('factionSupply')}
+            onStartFactionBoss={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_hollow_warden'
+                  : 'orc_blamecaller'
+              );
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -609,7 +658,11 @@ export function AppShell({
       case 'kingdom':
       default:
         if (activeFaction !== 'human') {
-          return <FactionCampScreen />;
+          return (
+            <FactionCampScreen
+              onOpenCommander={() => setFlow('commanderChoice')}
+            />
+          );
         }
 
         return (
@@ -655,6 +708,8 @@ export function AppShell({
     flow === 'grandCouncil' ||
     flow === 'concordVault' ||
     flow === 'forcedBeacon' ||
+    flow === 'factionInvestigation' ||
+    flow === 'factionSupply' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

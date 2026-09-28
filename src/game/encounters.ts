@@ -19,7 +19,11 @@ export type EncounterId =
   | 'ashen_court'
   | 'return_to_crownspire'
   | 'elf_wardbreakers'
-  | 'orc_red_road';
+  | 'elf_ashen_tracks'
+  | 'elf_hollow_warden'
+  | 'orc_red_road'
+  | 'orc_invader_scouts'
+  | 'orc_blamecaller';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -189,6 +193,24 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyHp: 132,
     difficulty: 'Normal'
   },
+  elf_ashen_tracks: {
+    id: 'elf_ashen_tracks',
+    name: 'Ashen Tracks',
+    subtitle: 'The Wardens follow ash-marked bootprints into a grove where the outer wards have been deliberately weakened.',
+    enemyName: 'Ashen Trackers',
+    enemyCount: 4,
+    enemyHp: 245,
+    difficulty: 'Elite'
+  },
+  elf_hollow_warden: {
+    id: 'elf_hollow_warden',
+    name: 'The Hollow Warden',
+    subtitle: 'A corrupted guardian blocks the rootway while hidden agents continue damaging the Heartgrove wards.',
+    enemyName: 'Hollow Warden',
+    enemyCount: 5,
+    enemyHp: 365,
+    difficulty: 'Boss'
+  },
   orc_red_road: {
     id: 'orc_red_road',
     name: 'Blood on the Red Road',
@@ -197,6 +219,24 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 3,
     enemyHp: 138,
     difficulty: 'Normal'
+  },
+  orc_invader_scouts: {
+    id: 'orc_invader_scouts',
+    name: 'Invader Scouts',
+    subtitle: 'Emberclan catches a foreign scouting party carrying copied clan symbols and maps of rival Orc camps.',
+    enemyName: 'Foreign Scouts',
+    enemyCount: 4,
+    enemyHp: 255,
+    difficulty: 'Elite'
+  },
+  orc_blamecaller: {
+    id: 'orc_blamecaller',
+    name: 'The Blamecaller',
+    subtitle: 'A mercenary agitator is paying raiders to attack under stolen clan marks and spread calls for retaliation.',
+    enemyName: 'Blamecaller Warband',
+    enemyCount: 5,
+    enemyHp: 385,
+    difficulty: 'Boss'
   }
 };
 
@@ -273,9 +313,25 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
     resources: { gold: 42, wood: 10, provisions: 5 },
     storySummary: 'The Wardbreakers flee. Their tools carry unfamiliar ash residue that does not belong to the Heartgrove.'
   },
+  elf_ashen_tracks: {
+    resources: { gold: 58, wood: 12, provisions: 5 },
+    storySummary: 'The Ashen Trackers are driven from the grove. Their tools match the damage found on the outer wardstones.'
+  },
+  elf_hollow_warden: {
+    resources: { gold: 95, wood: 30, stone: 14, provisions: 8 },
+    storySummary: 'The Hollow Warden is released from the corruption. The Wardens now know an organized network is attacking Heartgrove safeguards.'
+  },
   orc_red_road: {
     resources: { gold: 40, wood: 8, iron: 2, provisions: 6 },
     storySummary: 'The false-marked raiders break. Their clan paint was applied over Human-made buckles and foreign leather.'
+  },
+  orc_invader_scouts: {
+    resources: { gold: 55, wood: 10, iron: 3, provisions: 6 },
+    storySummary: 'The foreign scouts are defeated. Their maps mark several clans as targets for manufactured reprisals.'
+  },
+  orc_blamecaller: {
+    resources: { gold: 100, wood: 24, stone: 12, iron: 6, provisions: 10 },
+    storySummary: 'The Blamecaller falls. Emberclan now has proof that outsiders are manufacturing clan violence to keep the Orcs divided.'
   }
 };
 

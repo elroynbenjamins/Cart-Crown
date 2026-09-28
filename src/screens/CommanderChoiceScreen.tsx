@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
+import { factions } from '../game/factions';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle } from '../ui/components';
 
@@ -18,6 +19,7 @@ export function CommanderChoiceScreen({
 }) {
   const { theme } = useGameTheme();
   const {
+    activeFaction,
     resources,
     commanderPaths,
     commanderPathId,
@@ -30,6 +32,13 @@ export function CommanderChoiceScreen({
   const [message, setMessage] = useState<string | null>(null);
 
   const selected = commanderPaths.find(path => path.id === selectedId) ?? null;
+  const faction = factions[activeFaction];
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
   const isRespec = Boolean(commanderPathId && selectedId !== commanderPathId);
   const canAfford = !isRespec || resources.gold >= commanderRespecCost;
 
@@ -66,7 +75,10 @@ export function CommanderChoiceScreen({
         )}
       </GameCard>
 
-      <SectionTitle title="Human commander paths" trailing="Choose 1 of 3" />
+      <SectionTitle
+        title={faction.name + ' commander paths'}
+        trailing="Choose 1 of 3"
+      />
 
       <View style={styles.pathList}>
         {commanderPaths.map(path => {
@@ -79,7 +91,7 @@ export function CommanderChoiceScreen({
                 <View style={styles.pathHeader}>
                   <View style={styles.pathCopy}>
                     <Text style={[styles.pathName, { color: theme.colors.text }]}>{path.name}</Text>
-                    <Text style={[styles.pathTitle, { color: theme.colors.human }]}>{path.title}</Text>
+                    <Text style={[styles.pathTitle, { color: factionAccent }]}>{path.title}</Text>
                   </View>
                   <Pill label={current ? 'CURRENT' : chosen ? 'SELECTED' : path.favoredRoles.join(' + ').toUpperCase()} />
                 </View>

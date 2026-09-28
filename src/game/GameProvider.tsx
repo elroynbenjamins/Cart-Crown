@@ -205,6 +205,9 @@ type GameContextValue = {
   rewardedAdClaims: RewardedAdClaimState;
   rewardedAdMessage: string | null;
   finishEncounter: (encounterId: EncounterId) => void;
+  completeFactionChapterOneEvent: (
+    stage: 'investigation' | 'supply'
+  ) => boolean;
   completeMarkedRaiders: () => boolean;
   completeRefugeeCamp: () => boolean;
   upgradeSettlement: () => boolean;
@@ -928,6 +931,128 @@ export function GameProvider({
       return;
     }
 
+    if (encounterId === 'elf_ashen_tracks') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'elf_node_4') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'elf_node_5') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'elf_ashen_tracks_result',
+        title: 'Ashen Tracks Cleared',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'elf_hollow_warden') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setCommanderChoiceUnlocked(true);
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'elf_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setSharedProgress(previous => ({
+        ...previous,
+        lore: previous.lore.includes('elf_ward_sabotage')
+          ? previous.lore
+          : [...previous.lore, 'elf_ward_sabotage']
+      }));
+      setLastBattleResult({
+        id: 'elf_hollow_warden_result',
+        title: 'Hollow Warden Freed',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_invader_scouts') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'orc_node_4') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'orc_node_5') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'orc_invader_scouts_result',
+        title: 'Invader Scouts Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_blamecaller') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setCommanderChoiceUnlocked(true);
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'orc_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setSharedProgress(previous => ({
+        ...previous,
+        lore: previous.lore.includes('orc_false_clan_war')
+          ? previous.lore
+          : [...previous.lore, 'orc_false_clan_war']
+      }));
+      setLastBattleResult({
+        id: 'orc_blamecaller_result',
+        title: 'Blamecaller Defeated',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
     if (encounterId === 'hold_the_road') {
       if (holdTheRoadWon) return;
       setHoldTheRoadWon(true);
@@ -1454,6 +1579,87 @@ export function GameProvider({
         casualties: 0
       });
     }
+  };
+
+  const completeFactionChapterOneEvent = (
+    stage: 'investigation' | 'supply'
+  ) => {
+    if (activeFaction === 'elf') {
+      const nodeId =
+        stage === 'investigation' ? 'elf_node_3' : 'elf_node_5';
+      const nextId =
+        stage === 'investigation' ? 'elf_node_4' : 'elf_node_6';
+
+      if (!chapterNodes.find(node => node.id === nodeId)?.current) {
+        return false;
+      }
+
+      setResources(previous =>
+        stage === 'investigation'
+          ? {
+              ...previous,
+              gold: previous.gold + 5,
+              wood: previous.wood + 4
+            }
+          : {
+              ...previous,
+              wood: previous.wood + 24,
+              provisions: previous.provisions + 14
+            }
+      );
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === nextId) {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      return true;
+    }
+
+    if (activeFaction === 'orc') {
+      const nodeId =
+        stage === 'investigation' ? 'orc_node_3' : 'orc_node_5';
+      const nextId =
+        stage === 'investigation' ? 'orc_node_4' : 'orc_node_6';
+
+      if (!chapterNodes.find(node => node.id === nodeId)?.current) {
+        return false;
+      }
+
+      setResources(previous =>
+        stage === 'investigation'
+          ? {
+              ...previous,
+              gold: previous.gold + 5,
+              iron: previous.iron + 2
+            }
+          : {
+              ...previous,
+              wood: previous.wood + 20,
+              iron: previous.iron + 4,
+              provisions: previous.provisions + 16
+            }
+      );
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === nextId) {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      return true;
+    }
+
+    return false;
   };
 
   const completeMarkedRaiders = () => {
@@ -2748,6 +2954,7 @@ export function GameProvider({
       rewardedAdClaims,
       rewardedAdMessage,
       finishEncounter,
+      completeFactionChapterOneEvent,
       completeMarkedRaiders,
       completeRefugeeCamp,
       upgradeSettlement,

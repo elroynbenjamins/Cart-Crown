@@ -21,9 +21,17 @@ const nodeIcons: Record<string, string> = {
 };
 
 export function FactionOpeningCampaignScreen({
-  onStartOpeningBattle
+  onStartOpeningBattle,
+  onOpenInvestigation,
+  onStartEliteBattle,
+  onOpenSupply,
+  onStartBoss
 }: {
   onStartOpeningBattle: () => void;
+  onOpenInvestigation: () => void;
+  onStartEliteBattle: () => void;
+  onOpenSupply: () => void;
+  onStartBoss: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -42,8 +50,22 @@ export function FactionOpeningCampaignScreen({
         ? theme.colors.orc
         : theme.colors.human;
 
-  const openingBattleId =
-    activeFaction === 'elf' ? 'elf_node_2' : 'orc_node_2';
+  const ids =
+    activeFaction === 'elf'
+      ? {
+          battle: 'elf_node_2',
+          investigation: 'elf_node_3',
+          elite: 'elf_node_4',
+          supply: 'elf_node_5',
+          boss: 'elf_node_6'
+        }
+      : {
+          battle: 'orc_node_2',
+          investigation: 'orc_node_3',
+          elite: 'orc_node_4',
+          supply: 'orc_node_5',
+          boss: 'orc_node_6'
+        };
 
   const campaignById = (id: FactionId) =>
     campaignAvailability.find(campaign => campaign.id === id);
@@ -75,17 +97,49 @@ export function FactionOpeningCampaignScreen({
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
+          const battlePlayable =
+            node.current && node.id === ids.battle;
+          const investigationPlayable =
+            node.current && node.id === ids.investigation;
+          const elitePlayable =
+            node.current && node.id === ids.elite;
+          const supplyPlayable =
+            node.current && node.id === ids.supply;
+          const bossPlayable =
+            node.current && node.id === ids.boss;
           const playable =
-            node.current &&
-            node.id === openingBattleId &&
-            node.type === 'battle';
+            battlePlayable ||
+            investigationPlayable ||
+            elitePlayable ||
+            supplyPlayable ||
+            bossPlayable;
           const status = node.completed
             ? 'DONE'
-            : playable
-              ? 'PLAY'
-              : node.current
-                ? 'NEXT'
-                : 'LOCKED';
+            : bossPlayable
+              ? 'BOSS'
+              : elitePlayable
+                ? 'ELITE'
+                : investigationPlayable
+                  ? 'INVESTIGATE'
+                  : supplyPlayable
+                    ? 'PREPARE'
+                    : battlePlayable
+                      ? 'PLAY'
+                      : node.current
+                        ? 'NEXT'
+                        : 'LOCKED';
+
+          const action = battlePlayable
+            ? onStartOpeningBattle
+            : investigationPlayable
+              ? onOpenInvestigation
+              : elitePlayable
+                ? onStartEliteBattle
+                : supplyPlayable
+                  ? onOpenSupply
+                  : bossPlayable
+                    ? onStartBoss
+                    : undefined;
 
           return (
             <View key={node.id} style={styles.nodeWrap}>
@@ -129,9 +183,20 @@ export function FactionOpeningCampaignScreen({
                   <Pill label={status} />
                 </View>
 
-                {playable ? (
+                {playable && action ? (
                   <View style={styles.nodeButton}>
-                    <PrimaryButton label={'Start ' + node.name} onPress={onStartOpeningBattle} />
+                    <PrimaryButton
+                      label={
+                        investigationPlayable
+                          ? 'Investigate ' + node.name
+                          : supplyPlayable
+                            ? 'Prepare at ' + node.name
+                            : bossPlayable
+                              ? 'Challenge ' + node.name
+                              : 'Start ' + node.name
+                      }
+                      onPress={action}
+                    />
                   </View>
                 ) : null}
               </GameCard>

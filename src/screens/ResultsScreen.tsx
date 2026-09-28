@@ -62,6 +62,14 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'elf_wardbreakers_result';
   const orcOpeningResult =
     lastBattleResult.id === 'orc_red_road_result';
+  const elfEliteResult =
+    lastBattleResult.id === 'elf_ashen_tracks_result';
+  const elfBossResult =
+    lastBattleResult.id === 'elf_hollow_warden_result';
+  const orcEliteResult =
+    lastBattleResult.id === 'orc_invader_scouts_result';
+  const orcBossResult =
+    lastBattleResult.id === 'orc_blamecaller_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -105,7 +113,55 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {elfOpeningResult ? (
+      {elfBossResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CHAPTER 1 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Commander specialization unlocked
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Hollow Warden is freed from the corruption. Heartgrove now recognizes your command, unlocking Windcaller, Thorn Warden and Moon Seer paths.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>WARDEN TRAIL</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Ashen Tracks cleared
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The attackers used the same tools that damaged the wardstones. Establish the Wayfarer Camp before confronting the Hollow Warden.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcBossResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>ORC CHAPTER 1 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Commander specialization unlocked
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Blamecaller is defeated. Emberclan now recognizes your command, unlocking Bloodchief, Warglord and Warcaller paths.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>CLAN EVIDENCE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Invader scouts broken
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Their maps mark multiple clans for retaliation. Gather supplies at the clanfire before hunting the Blamecaller.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfOpeningResult ? (
         <>
           <GameCard accent={theme.colors.elf}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CAMPAIGN</Text>

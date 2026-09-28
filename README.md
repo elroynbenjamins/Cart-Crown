@@ -460,3 +460,36 @@ Chapter 1 begins:
 4. Invader Scouts
 5. Gathering Fire
 6. The Blamecaller
+
+
+## Elf and Orc Chapter 1 complete
+
+Both alternate campaigns now continue beyond their opening battle.
+
+### Elves — Fading Wards
+1. The Last Wardstone
+2. Wardbreakers
+3. **Whispering Roots**
+4. **Ashen Tracks** — Elite
+5. **Wayfarer Camp**
+6. **The Hollow Warden** — Boss
+
+Defeating the Hollow Warden unlocks the Elf commander choice:
+- Windcaller
+- Thorn Warden
+- Moon Seer
+
+### Orcs — Blamed Blood
+1. The Accused Clan
+2. Blood on the Red Road
+3. **Broken Clan Marks**
+4. **Invader Scouts** — Elite
+5. **Gathering Fire**
+6. **The Blamecaller** — Boss
+
+Defeating the Blamecaller unlocks the Orc commander choice:
+- Bloodchief
+- Warglord
+- Warcaller
+
+Both Chapter 1s now have faction-specific evidence, supply rewards, battle results and save-slot objective labels.

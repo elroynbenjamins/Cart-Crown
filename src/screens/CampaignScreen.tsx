@@ -58,6 +58,10 @@ export function CampaignScreen({
   onOpenForcedBeacon,
   onStartReturnToCrownspire,
   onStartFactionOpeningBattle,
+  onOpenFactionInvestigation,
+  onStartFactionEliteBattle,
+  onOpenFactionSupply,
+  onStartFactionBoss,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -97,6 +101,10 @@ export function CampaignScreen({
   onOpenForcedBeacon: () => void;
   onStartReturnToCrownspire: () => void;
   onStartFactionOpeningBattle: () => void;
+  onOpenFactionInvestigation: () => void;
+  onStartFactionEliteBattle: () => void;
+  onOpenFactionSupply: () => void;
+  onStartFactionBoss: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -141,6 +149,10 @@ export function CampaignScreen({
     return (
       <FactionOpeningCampaignScreen
         onStartOpeningBattle={onStartFactionOpeningBattle}
+        onOpenInvestigation={onOpenFactionInvestigation}
+        onStartEliteBattle={onStartFactionEliteBattle}
+        onOpenSupply={onOpenFactionSupply}
+        onStartBoss={onStartFactionBoss}
       />
     );
   }

@@ -6,19 +6,27 @@ import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
   Pill,
+  PrimaryButton,
   ResourceChip,
   SectionTitle,
   UnitPortrait
 } from '../ui/components';
 
-export function FactionCampScreen() {
+export function FactionCampScreen({
+  onOpenCommander
+}: {
+  onOpenCommander: () => void;
+}) {
   const { theme } = useGameTheme();
   const {
     activeFaction,
     resources,
     units,
     currentWagonStage,
-    formation
+    formation,
+    commanderChoiceUnlocked,
+    activeCommanderPath,
+    commanderRespecCost
   } = useGame();
 
   const faction = factions[activeFaction];
@@ -93,6 +101,40 @@ export function FactionCampScreen() {
         </Text>
       </GameCard>
 
+      {commanderChoiceUnlocked ? (
+        <>
+          <SectionTitle
+            title="Commander"
+            trailing={activeCommanderPath ? 'Specialized' : 'Choose path'}
+          />
+          <GameCard accent={accent}>
+            <Text style={[styles.mechanicName, { color: theme.colors.text }]}>
+              {activeCommanderPath?.name ?? 'Commander specialization available'}
+            </Text>
+            <Text style={[styles.mechanicBody, { color: theme.colors.textMuted }]}>
+              {activeCommanderPath
+                ? activeCommanderPath.passiveDescription +
+                  ' Command skill: ' +
+                  activeCommanderPath.skill.name +
+                  '.'
+                : 'Choose one of three faction-specific commander paths after completing Chapter 1.'}
+            </Text>
+            <View style={styles.commanderButton}>
+              <PrimaryButton
+                label={
+                  activeCommanderPath
+                    ? 'Retrain Commander · ' +
+                      commanderRespecCost +
+                      ' Gold'
+                    : 'Choose Commander Path'
+                }
+                onPress={onOpenCommander}
+              />
+            </View>
+          </GameCard>
+        </>
+      ) : null}
+
       <SectionTitle title="Starting Army" trailing={String(activeUnits.length)} />
       <View style={styles.unitList}>
         {activeUnits.map(unit => (
@@ -136,6 +178,7 @@ const styles = StyleSheet.create({
   identity: { fontSize: 10.5, lineHeight: 15, fontWeight: '900', marginTop: 8 },
   unitList: { gap: 8 },
   unitRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  commanderButton: { marginTop: 11 },
   guideTitle: { fontSize: 15, fontWeight: '900' },
   guideBody: { fontSize: 11, lineHeight: 17, marginTop: 5 }
 });
