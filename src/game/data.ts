@@ -128,7 +128,7 @@ export const starterWagonItems: WagonItemDefinition[] = [
     width: 2,
     height: 1,
     rotation: 0,
-    effect: '+3 endurance',
+    effect: '-10% wear · -15% rest',
     x: 0,
     y: 0
   },
@@ -140,7 +140,7 @@ export const starterWagonItems: WagonItemDefinition[] = [
     width: 1,
     height: 2,
     rotation: 0,
-    effect: '2 healing charges',
+    effect: '-20% wear · -20% rest',
     x: 2,
     y: 0
   },
