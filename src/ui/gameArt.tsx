@@ -2201,3 +2201,89 @@ export function ThemeModeIcon({
     </View>
   );
 }
+
+
+export function LockIcon({
+  color,
+  size = 24
+}: {
+  color: string;
+  size?: number;
+}) {
+  const production = uiProductionAsset('lock');
+  const source = getProductionAssetSource(production.id);
+  if (source) {
+    return <Image source={source} resizeMode="contain" style={{ width: size, height: size }} />;
+  }
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      <View
+        style={{
+          position: 'absolute',
+          left: size * 0.27,
+          top: size * 0.08,
+          width: size * 0.46,
+          height: size * 0.42,
+          borderWidth: Math.max(1, size * 0.08),
+          borderColor: color,
+          borderRadius: size * 0.22
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          left: size * 0.17,
+          right: size * 0.17,
+          bottom: size * 0.08,
+          height: size * 0.48,
+          borderRadius: size * 0.1,
+          backgroundColor: color
+        }}
+      />
+    </View>
+  );
+}
+
+export function PlotTerrainSprite({
+  terrain,
+  color,
+  size = 28
+}: {
+  terrain: string;
+  color: string;
+  size?: number;
+}) {
+  const production = uiProductionAsset('terrain_' + terrain);
+  const source = getProductionAssetSource(production.id);
+  if (source) {
+    return <Image source={source} resizeMode="contain" style={{ width: size, height: size }} />;
+  }
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      {terrain === 'high_ground' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.08, bottom: size * 0.12, width: 0, height: 0, borderLeftWidth: size * 0.2, borderRightWidth: size * 0.2, borderBottomWidth: size * 0.34, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: color }} />
+          <View style={{ position: 'absolute', right: size * 0.07, bottom: size * 0.12, width: 0, height: 0, borderLeftWidth: size * 0.17, borderRightWidth: size * 0.17, borderBottomWidth: size * 0.27, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: color, opacity: 0.65 }} />
+        </>
+      ) : terrain === 'roadside' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.08, right: size * 0.08, top: size * 0.3, height: size * 0.12, backgroundColor: color, transform: [{ rotate: '-14deg' }] }} />
+          <View style={{ position: 'absolute', left: size * 0.08, right: size * 0.08, bottom: size * 0.3, height: size * 0.12, backgroundColor: color, transform: [{ rotate: '-14deg' }] }} />
+        </>
+      ) : terrain === 'square' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.2, top: size * 0.2, width: size * 0.6, height: size * 0.6, borderWidth: Math.max(1, size * 0.07), borderColor: color, transform: [{ rotate: '45deg' }] }} />
+          <View style={{ position: 'absolute', left: size * 0.45, top: size * 0.45, width: size * 0.1, height: size * 0.1, backgroundColor: color }} />
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.2, bottom: size * 0.12, width: size * 0.12, height: size * 0.28, backgroundColor: color, transform: [{ rotate: '-18deg' }] }} />
+          <View style={{ position: 'absolute', left: size * 0.43, bottom: size * 0.1, width: size * 0.11, height: size * 0.38, backgroundColor: color }} />
+          <View style={{ position: 'absolute', right: size * 0.18, bottom: size * 0.12, width: size * 0.1, height: size * 0.25, backgroundColor: color, transform: [{ rotate: '19deg' }] }} />
+        </>
+      )}
+    </View>
+  );
+}
