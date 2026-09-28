@@ -584,3 +584,66 @@ Defeating the Ashroot Stalker unlocks the **Heartgrove Wardhold** project. The W
 Chapter 2 unlocks Red Plains Hunt production, Smokehouse, Watchfire and Warg Pens.
 
 Defeating the Clanbreaker unlocks the **Emberclan Warhold** project. The Warhold expands the War Cart to 5×5, raises active squad capacity to 4 and begins Chapter 3 / The Stonejaw Trial.
+
+
+## Elf Chapter 3 — Moonlit Pass
+
+Heartgrove Wardhold now supports a fourth active squad and Chapter 3 is fully playable:
+
+1. **Moonlit Pass Muster**
+   - Spear Warden
+   - Pathfinder
+   - Spiritkeeper
+2. **Moonlit Pass**
+3. **Silent Beacons**
+   - unlocks Moonlit Watch production
+   - +4 Gold and +3 Provisions per meaningful activity
+4. **Ashen Groves**
+5. **Rootway Council**
+6. **The Pale Ranger**
+
+Defeating the Pale Ranger unlocks the **Heartgrove Enclave** project.
+
+Enclave requirements:
+- Warden Lodge Lv.3
+- Moon Forge Lv.3
+- Caravan Grove Lv.3
+- Stag Enclosure built
+- Ward Beacon built
+- 245 Gold
+- 115 Wood
+- 75 Stone
+- 10 Iron
+
+The Enclave expands the Wayfarer Caravan from 5×5 to **5×6**, raises the active squad cap from 4 to **5**, and begins Elf Chapter 4 / **Roots in Ash**.
+
+## Orc Chapter 3 — The Stonejaw Trial
+
+Emberclan Warhold now supports a fourth active squad and Chapter 3 is fully playable:
+
+1. **Stonejaw Muster**
+   - Spear Raider
+   - Bone Hunter
+   - Warbringer
+2. **The Stonejaw Trial**
+3. **Trial Fires**
+   - unlocks Stonejaw Quarry production
+   - +3 Stone and +2 Iron per meaningful activity
+4. **Broken Steppe**
+5. **Clan Oath**
+6. **Stonejaw Champion**
+
+Defeating the Stonejaw Champion unlocks the **Emberclan Great Warhold** project.
+
+Great Warhold requirements:
+- Clan Yard Lv.3
+- Bone Forge Lv.3
+- War Cartwright Lv.3
+- Warg Pens built
+- Watchfire built
+- 240 Gold
+- 110 Wood
+- 70 Stone
+- 20 Iron
+
+The Great Warhold expands the War Cart from 5×5 to **5×6**, raises active squad capacity from 4 to **5**, and begins Orc Chapter 4 / **War on Two Fronts**.

@@ -23,7 +23,13 @@ export function FactionOpeningCampaignScreen({
   onOpenChapterTwoResource,
   onStartChapterTwoElite,
   onOpenChapterTwoCouncil,
-  onStartChapterTwoBoss
+  onStartChapterTwoBoss,
+  onOpenChapterThreeRecruitment,
+  onStartChapterThreeBattle,
+  onOpenChapterThreeResource,
+  onStartChapterThreeElite,
+  onOpenChapterThreeCouncil,
+  onStartChapterThreeBoss
 }: {
   onStartOpeningBattle: () => void;
   onOpenInvestigation: () => void;
@@ -36,6 +42,12 @@ export function FactionOpeningCampaignScreen({
   onStartChapterTwoElite: () => void;
   onOpenChapterTwoCouncil: () => void;
   onStartChapterTwoBoss: () => void;
+  onOpenChapterThreeRecruitment: () => void;
+  onStartChapterThreeBattle: () => void;
+  onOpenChapterThreeResource: () => void;
+  onStartChapterThreeElite: () => void;
+  onOpenChapterThreeCouncil: () => void;
+  onStartChapterThreeBoss: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -59,40 +71,58 @@ export function FactionOpeningCampaignScreen({
   const chapterThree = chapterNumber >= 3;
   const ids =
     activeFaction === 'elf'
-      ? chapterTwo
+      ? chapterThree
         ? {
-            muster: 'elf2_node_1',
-            battle: 'elf2_node_2',
-            eventA: 'elf2_node_3',
-            elite: 'elf2_node_4',
-            eventB: 'elf2_node_5',
-            boss: 'elf2_node_6'
+            muster: 'elf3_node_1',
+            battle: 'elf3_node_2',
+            eventA: 'elf3_node_3',
+            elite: 'elf3_node_4',
+            eventB: 'elf3_node_5',
+            boss: 'elf3_node_6'
           }
-        : {
-            muster: '',
-            battle: 'elf_node_2',
-            eventA: 'elf_node_3',
-            elite: 'elf_node_4',
-            eventB: 'elf_node_5',
-            boss: 'elf_node_6'
-          }
-      : chapterTwo
+        : chapterTwo
+          ? {
+              muster: 'elf2_node_1',
+              battle: 'elf2_node_2',
+              eventA: 'elf2_node_3',
+              elite: 'elf2_node_4',
+              eventB: 'elf2_node_5',
+              boss: 'elf2_node_6'
+            }
+          : {
+              muster: '',
+              battle: 'elf_node_2',
+              eventA: 'elf_node_3',
+              elite: 'elf_node_4',
+              eventB: 'elf_node_5',
+              boss: 'elf_node_6'
+            }
+      : chapterThree
         ? {
-            muster: 'orc2_node_1',
-            battle: 'orc2_node_2',
-            eventA: 'orc2_node_3',
-            elite: 'orc2_node_4',
-            eventB: 'orc2_node_5',
-            boss: 'orc2_node_6'
+            muster: 'orc3_node_1',
+            battle: 'orc3_node_2',
+            eventA: 'orc3_node_3',
+            elite: 'orc3_node_4',
+            eventB: 'orc3_node_5',
+            boss: 'orc3_node_6'
           }
-        : {
-            muster: '',
-            battle: 'orc_node_2',
-            eventA: 'orc_node_3',
-            elite: 'orc_node_4',
-            eventB: 'orc_node_5',
-            boss: 'orc_node_6'
-          };
+        : chapterTwo
+          ? {
+              muster: 'orc2_node_1',
+              battle: 'orc2_node_2',
+              eventA: 'orc2_node_3',
+              elite: 'orc2_node_4',
+              eventB: 'orc2_node_5',
+              boss: 'orc2_node_6'
+            }
+          : {
+              muster: '',
+              battle: 'orc_node_2',
+              eventA: 'orc_node_3',
+              elite: 'orc_node_4',
+              eventB: 'orc_node_5',
+              boss: 'orc_node_6'
+            };
 
   const campaignById = (id: FactionId) =>
     campaignAvailability.find(campaign => campaign.id === id);
@@ -155,7 +185,9 @@ export function FactionOpeningCampaignScreen({
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
           const musterPlayable =
-            chapterTwo && node.current && node.id === ids.muster;
+            (chapterTwo || chapterThree) &&
+            node.current &&
+            node.id === ids.muster;
           const battlePlayable =
             node.current && node.id === ids.battle;
           const eventAPlayable =
@@ -182,13 +214,17 @@ export function FactionOpeningCampaignScreen({
                 : musterPlayable
                   ? 'CHOOSE SQUAD'
                   : eventAPlayable
-                    ? chapterTwo
-                      ? 'SECURE SITE'
-                      : 'INVESTIGATE'
+                    ? chapterThree
+                      ? 'RESTORE ROUTE'
+                      : chapterTwo
+                        ? 'SECURE SITE'
+                        : 'INVESTIGATE'
                     : eventBPlayable
-                      ? chapterTwo
-                        ? 'COUNCIL'
-                        : 'PREPARE'
+                      ? chapterThree
+                        ? 'OATH / COUNCIL'
+                        : chapterTwo
+                          ? 'COUNCIL'
+                          : 'PREPARE'
                       : battlePlayable
                         ? 'PLAY'
                         : node.current
@@ -196,27 +232,39 @@ export function FactionOpeningCampaignScreen({
                           : 'LOCKED';
 
           const action = musterPlayable
-            ? onOpenChapterTwoRecruitment
+            ? chapterThree
+              ? onOpenChapterThreeRecruitment
+              : onOpenChapterTwoRecruitment
             : battlePlayable
-              ? chapterTwo
-                ? onStartChapterTwoBattle
-                : onStartOpeningBattle
+              ? chapterThree
+                ? onStartChapterThreeBattle
+                : chapterTwo
+                  ? onStartChapterTwoBattle
+                  : onStartOpeningBattle
               : eventAPlayable
-                ? chapterTwo
-                  ? onOpenChapterTwoResource
-                  : onOpenInvestigation
+                ? chapterThree
+                  ? onOpenChapterThreeResource
+                  : chapterTwo
+                    ? onOpenChapterTwoResource
+                    : onOpenInvestigation
                 : elitePlayable
-                  ? chapterTwo
-                    ? onStartChapterTwoElite
-                    : onStartEliteBattle
+                  ? chapterThree
+                    ? onStartChapterThreeElite
+                    : chapterTwo
+                      ? onStartChapterTwoElite
+                      : onStartEliteBattle
                   : eventBPlayable
-                    ? chapterTwo
-                      ? onOpenChapterTwoCouncil
-                      : onOpenSupply
+                    ? chapterThree
+                      ? onOpenChapterThreeCouncil
+                      : chapterTwo
+                        ? onOpenChapterTwoCouncil
+                        : onOpenSupply
                     : bossPlayable
-                      ? chapterTwo
-                        ? onStartChapterTwoBoss
-                        : onStartBoss
+                      ? chapterThree
+                        ? onStartChapterThreeBoss
+                        : chapterTwo
+                          ? onStartChapterTwoBoss
+                          : onStartBoss
                       : undefined;
 
           return (
@@ -261,15 +309,21 @@ export function FactionOpeningCampaignScreen({
                     <PrimaryButton
                       label={
                         musterPlayable
-                          ? 'Choose third squad'
+                          ? chapterThree
+                            ? 'Choose fourth squad'
+                            : 'Choose third squad'
                           : eventAPlayable
-                            ? chapterTwo
-                              ? 'Secure ' + node.name
-                              : 'Investigate ' + node.name
+                            ? chapterThree
+                              ? 'Restore ' + node.name
+                              : chapterTwo
+                                ? 'Secure ' + node.name
+                                : 'Investigate ' + node.name
                             : eventBPlayable
-                              ? chapterTwo
-                                ? 'Open ' + node.name
-                                : 'Prepare at ' + node.name
+                              ? chapterThree
+                                ? 'Complete ' + node.name
+                                : chapterTwo
+                                  ? 'Open ' + node.name
+                                  : 'Prepare at ' + node.name
                               : bossPlayable
                                 ? 'Challenge ' + node.name
                                 : 'Start ' + node.name

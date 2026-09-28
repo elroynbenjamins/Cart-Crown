@@ -29,7 +29,13 @@ export type EncounterId =
   | 'elf_ashroot_stalker'
   | 'orc_gather_clans'
   | 'orc_stonejaw_challengers'
-  | 'orc_clanbreaker';
+  | 'orc_clanbreaker'
+  | 'elf_moonlit_pass'
+  | 'elf_ashen_groves'
+  | 'elf_pale_ranger'
+  | 'orc_stonejaw_trial'
+  | 'orc_broken_steppe'
+  | 'orc_stonejaw_champion';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -297,6 +303,60 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 5,
     enemyHp: 665,
     difficulty: 'Boss'
+  },
+  elf_moonlit_pass: {
+    id: 'elf_moonlit_pass',
+    name: 'Moonlit Pass',
+    subtitle: 'The Wardhold column enters a narrow pass where ward beacons have gone silent one by one.',
+    enemyName: 'Moonlit Pass Raiders',
+    enemyCount: 5,
+    enemyHp: 520,
+    difficulty: 'Normal'
+  },
+  elf_ashen_groves: {
+    id: 'elf_ashen_groves',
+    name: 'Ashen Groves',
+    subtitle: 'A hidden cell has burned ward roots and planted false tracks through the eastern groves.',
+    enemyName: 'Ashen Grove Cell',
+    enemyCount: 6,
+    enemyHp: 690,
+    difficulty: 'Elite'
+  },
+  elf_pale_ranger: {
+    id: 'elf_pale_ranger',
+    name: 'The Pale Ranger',
+    subtitle: 'A former border ranger now commands the saboteurs controlling the far end of Moonlit Pass.',
+    enemyName: 'Pale Ranger Host',
+    enemyCount: 6,
+    enemyHp: 920,
+    difficulty: 'Boss'
+  },
+  orc_stonejaw_trial: {
+    id: 'orc_stonejaw_trial',
+    name: 'The Stonejaw Trial',
+    subtitle: 'The Warhold enters Stonejaw territory and must prove strength without allowing the trial to become another clan war.',
+    enemyName: 'Stonejaw Trial Warband',
+    enemyCount: 5,
+    enemyHp: 540,
+    difficulty: 'Normal'
+  },
+  orc_broken_steppe: {
+    id: 'orc_broken_steppe',
+    name: 'Broken Steppe',
+    subtitle: 'Foreign weapons and false clan standards appear among raiders crossing the Broken Steppe.',
+    enemyName: 'Broken Steppe Raiders',
+    enemyCount: 6,
+    enemyHp: 710,
+    difficulty: 'Elite'
+  },
+  orc_stonejaw_champion: {
+    id: 'orc_stonejaw_champion',
+    name: 'Stonejaw Champion',
+    subtitle: 'A champion convinced the clans are being betrayed challenges Emberclan before the new oath can hold.',
+    enemyName: 'Stonejaw Champion Host',
+    enemyCount: 6,
+    enemyHp: 950,
+    difficulty: 'Boss'
   }
 };
 
@@ -416,6 +476,30 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   orc_clanbreaker: {
     resources: { gold: 140, wood: 45, stone: 26, iron: 10, provisions: 12 },
     storySummary: 'The Clanbreaker falls. The gathered clans agree to march toward the Stonejaw Trial under a single temporary pact.'
+  },
+  elf_moonlit_pass: {
+    resources: { gold: 78, wood: 16, stone: 8, provisions: 7 },
+    storySummary: 'Moonlit Pass is entered. The silent beacons show the sabotage extends beyond Heartgrove itself.'
+  },
+  elf_ashen_groves: {
+    resources: { gold: 95, wood: 18, stone: 10, iron: 4, provisions: 7 },
+    storySummary: 'The Ashen Groves are cleared. The saboteurs carried route orders signed by a Pale Ranger beyond the pass.'
+  },
+  elf_pale_ranger: {
+    resources: { gold: 185, wood: 80, stone: 55, iron: 12, provisions: 14 },
+    storySummary: 'The Pale Ranger falls. Heartgrove controls Moonlit Pass and can grow into a permanent Enclave.'
+  },
+  orc_stonejaw_trial: {
+    resources: { gold: 75, wood: 14, stone: 10, iron: 5, provisions: 8 },
+    storySummary: 'Emberclan passes the first Stonejaw trial without turning it into a blood feud.'
+  },
+  orc_broken_steppe: {
+    resources: { gold: 92, wood: 16, stone: 12, iron: 7, provisions: 8 },
+    storySummary: 'The Broken Steppe raiders are defeated. Their false standards point to another attempt to split the clans.'
+  },
+  orc_stonejaw_champion: {
+    resources: { gold: 190, wood: 75, stone: 52, iron: 18, provisions: 15 },
+    storySummary: 'The Stonejaw Champion yields. The clans accept Emberclan’s oath and the Warhold can grow into a Great Warhold.'
   }
 };
 

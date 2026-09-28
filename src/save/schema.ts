@@ -229,8 +229,20 @@ export function metadataFromSnapshot(
 
   if (current.faction === 'elf') {
     chapterLabel =
-      current.chapterNumber >= 3
-        ? 'Elf Chapter 3 · Moonlit Pass Muster'
+      current.chapterNumber >= 4
+        ? 'Elf Chapter 4 · Ashen Grove Muster'
+        : current.chapterNumber === 3
+          ? current.chapterNodes.find(node => node.id === 'elf3_node_6')?.current
+            ? 'Elf Chapter 3 · The Pale Ranger'
+            : current.chapterNodes.find(node => node.id === 'elf3_node_5')?.current
+              ? 'Elf Chapter 3 · Rootway Council'
+              : current.chapterNodes.find(node => node.id === 'elf3_node_4')?.current
+                ? 'Elf Chapter 3 · Ashen Groves'
+                : current.chapterNodes.find(node => node.id === 'elf3_node_3')?.current
+                  ? 'Elf Chapter 3 · Silent Beacons'
+                  : current.chapterNodes.find(node => node.id === 'elf3_node_2')?.current
+                    ? 'Elf Chapter 3 · Moonlit Pass'
+                    : 'Elf Chapter 3 · Moonlit Pass Muster'
         : current.chapterNumber === 2
           ? current.chapterNodes.find(node => node.id === 'elf2_node_6')?.current
             ? 'Elf Chapter 2 · Ashroot Stalker'
@@ -258,8 +270,20 @@ export function metadataFromSnapshot(
                     : 'Elf Chapter 1 · Wardbreakers';
   } else if (current.faction === 'orc') {
     chapterLabel =
-      current.chapterNumber >= 3
-        ? 'Orc Chapter 3 · Stonejaw Muster'
+      current.chapterNumber >= 4
+        ? 'Orc Chapter 4 · Warhold Muster'
+        : current.chapterNumber === 3
+          ? current.chapterNodes.find(node => node.id === 'orc3_node_6')?.current
+            ? 'Orc Chapter 3 · Stonejaw Champion'
+            : current.chapterNodes.find(node => node.id === 'orc3_node_5')?.current
+              ? 'Orc Chapter 3 · Clan Oath'
+              : current.chapterNodes.find(node => node.id === 'orc3_node_4')?.current
+                ? 'Orc Chapter 3 · Broken Steppe'
+                : current.chapterNodes.find(node => node.id === 'orc3_node_3')?.current
+                  ? 'Orc Chapter 3 · Trial Fires'
+                  : current.chapterNodes.find(node => node.id === 'orc3_node_2')?.current
+                    ? 'Orc Chapter 3 · The Stonejaw Trial'
+                    : 'Orc Chapter 3 · Stonejaw Muster'
         : current.chapterNumber === 2
           ? current.chapterNodes.find(node => node.id === 'orc2_node_6')?.current
             ? 'Orc Chapter 2 · Clanbreaker'
@@ -369,17 +393,21 @@ export function metadataFromSnapshot(
 
   const kingdomName =
     current.faction === 'elf'
-      ? current.wagonStageId === 'fort'
-        ? 'Heartgrove Wardhold'
-        : current.settlementUpgraded
-          ? 'Heartgrove Sanctuary'
-          : 'Heartgrove Refuge'
-      : current.faction === 'orc'
-        ? current.wagonStageId === 'fort'
-          ? 'Emberclan Warhold'
+      ? current.wagonStageId === 'town'
+        ? 'Heartgrove Enclave'
+        : current.wagonStageId === 'fort'
+          ? 'Heartgrove Wardhold'
           : current.settlementUpgraded
-            ? 'Emberclan Warcamp'
-            : 'Emberclan Camp'
+            ? 'Heartgrove Sanctuary'
+            : 'Heartgrove Refuge'
+      : current.faction === 'orc'
+        ? current.wagonStageId === 'town'
+          ? 'Emberclan Great Warhold'
+          : current.wagonStageId === 'fort'
+            ? 'Emberclan Warhold'
+            : current.settlementUpgraded
+              ? 'Emberclan Warcamp'
+              : 'Emberclan Camp'
         : current.wagonStageId === 'grand'
           ? 'Greenkeep Grand Campaign'
           : current.wagonStageId === 'capital'

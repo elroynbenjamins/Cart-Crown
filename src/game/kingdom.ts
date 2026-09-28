@@ -505,6 +505,34 @@ export const elfBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 72, wood: 18, stone: 12 },
     effect: 'Permanent detailed enemy scouting through the ward network.',
     requirement: 'Ward Hunters defeated'
+  },
+  {
+    buildingId: 'elf_warden_lodge',
+    level: 3,
+    cost: { gold: 96, wood: 42, iron: 5 },
+    effect: 'Veteran Warden training prepared for the Heartgrove Enclave.',
+    requirement: 'Moonlit Pass secured'
+  },
+  {
+    buildingId: 'elf_moon_forge',
+    level: 3,
+    cost: { gold: 108, wood: 20, iron: 12 },
+    effect: 'Veteran moon-forging prepared for the Enclave tier.',
+    requirement: 'Moonlit Pass secured'
+  },
+  {
+    buildingId: 'elf_caravan_grove',
+    level: 3,
+    cost: { gold: 82, wood: 52, iron: 5 },
+    effect: 'Enclave caravan frame prepared.',
+    requirement: 'Moonlit Pass secured'
+  },
+  {
+    buildingId: 'elf_stag_enclosure',
+    level: 2,
+    cost: { gold: 88, wood: 24, provisions: 14 },
+    effect: 'Veteran Stag training prepared for deeper mounted branches.',
+    requirement: 'Root Council'
   }
 ];
 
@@ -550,6 +578,34 @@ export const orcBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 70, wood: 18, stone: 12 },
     effect: 'Linked clan signals provide detailed enemy scouting.',
     requirement: 'Stonejaw Challengers defeated'
+  },
+  {
+    buildingId: 'orc_clan_yard',
+    level: 3,
+    cost: { gold: 94, wood: 40, iron: 8 },
+    effect: 'Veteran clan training prepared for the Great Warhold.',
+    requirement: 'Stonejaw Trial passed'
+  },
+  {
+    buildingId: 'orc_bone_forge',
+    level: 3,
+    cost: { gold: 106, wood: 18, iron: 14 },
+    effect: 'Veteran black-iron forging prepared for the Great Warhold.',
+    requirement: 'Stonejaw Trial passed'
+  },
+  {
+    buildingId: 'orc_cartwright',
+    level: 3,
+    cost: { gold: 80, wood: 50, iron: 7 },
+    effect: 'Great Warhold cart frame prepared.',
+    requirement: 'Stonejaw Trial passed'
+  },
+  {
+    buildingId: 'orc_warg_pens',
+    level: 2,
+    cost: { gold: 86, wood: 22, provisions: 16 },
+    effect: 'Veteran Warg training prepared for deeper mounted branches.',
+    requirement: 'Clan Oath'
   }
 ];
 

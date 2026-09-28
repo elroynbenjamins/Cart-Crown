@@ -23,6 +23,8 @@ import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
 import { FactionCampScreen } from './screens/FactionCampScreen';
 import { FactionChapterTwoEventScreen } from './screens/FactionChapterTwoEventScreen';
+import { FactionChapterThreeEventScreen } from './screens/FactionChapterThreeEventScreen';
+import { FactionFourthRecruitmentScreen } from './screens/FactionFourthRecruitmentScreen';
 import { FactionKingdomScreen } from './screens/FactionKingdomScreen';
 import { FactionRecruitmentScreen } from './screens/FactionRecruitmentScreen';
 import { FactionChapterOneEventScreen } from './screens/FactionChapterOneEventScreen';
@@ -84,6 +86,9 @@ type FlowScreen =
   | 'factionRecruitment'
   | 'factionChapterTwoResource'
   | 'factionChapterTwoCouncil'
+  | 'factionFourthRecruitment'
+  | 'factionChapterThreeResource'
+  | 'factionChapterThreeCouncil'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -136,6 +141,9 @@ const flowTitles: Record<FlowScreen, string> = {
   factionRecruitment: 'Faction Muster',
   factionChapterTwoResource: 'Chapter 2 Resource',
   factionChapterTwoCouncil: 'Chapter 2 Council',
+  factionFourthRecruitment: 'Faction Muster',
+  factionChapterThreeResource: 'Chapter 3 Route',
+  factionChapterThreeCouncil: 'Chapter 3 Council',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -531,6 +539,41 @@ export function AppShell({
       );
     }
 
+    if (flow === 'factionFourthRecruitment') {
+      return (
+        <FactionFourthRecruitmentScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'factionChapterThreeResource') {
+      return (
+        <FactionChapterThreeEventScreen
+          stage="resource"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'factionChapterThreeCouncil') {
+      return (
+        <FactionChapterThreeEventScreen
+          stage="council"
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -719,6 +762,39 @@ export function AppShell({
               );
               setFlow('battlePrep');
             }}
+            onOpenFactionChapterThreeRecruitment={() =>
+              setFlow('factionFourthRecruitment')
+            }
+            onStartFactionChapterThreeBattle={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_moonlit_pass'
+                  : 'orc_stonejaw_trial'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenFactionChapterThreeResource={() =>
+              setFlow('factionChapterThreeResource')
+            }
+            onStartFactionChapterThreeElite={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_ashen_groves'
+                  : 'orc_broken_steppe'
+              );
+              setFlow('battlePrep');
+            }}
+            onOpenFactionChapterThreeCouncil={() =>
+              setFlow('factionChapterThreeCouncil')
+            }
+            onStartFactionChapterThreeBoss={() => {
+              setActiveEncounterId(
+                activeFaction === 'elf'
+                  ? 'elf_pale_ranger'
+                  : 'orc_stonejaw_champion'
+              );
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -808,6 +884,9 @@ export function AppShell({
     flow === 'factionRecruitment' ||
     flow === 'factionChapterTwoResource' ||
     flow === 'factionChapterTwoCouncil' ||
+    flow === 'factionFourthRecruitment' ||
+    flow === 'factionChapterThreeResource' ||
+    flow === 'factionChapterThreeCouncil' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

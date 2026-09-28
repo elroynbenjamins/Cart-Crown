@@ -43,7 +43,10 @@ export function FactionKingdomScreen({
     settlementAdjacencyBonuses,
     factionFortUpgradeAvailable,
     canUpgradeFactionFort,
+    factionTownUpgradeAvailable,
+    canUpgradeFactionTown,
     upgradeFactionToFort,
+    upgradeFactionToTown,
     upgradeBuilding,
     isBuildingUnlocked,
     activeCommanderPath,
@@ -61,12 +64,16 @@ export function FactionKingdomScreen({
 
   const settlementName =
     elf
-      ? currentWagonStage.id === 'fort'
-        ? 'Heartgrove Wardhold'
-        : 'Heartgrove Sanctuary'
-      : currentWagonStage.id === 'fort'
-        ? 'Emberclan Warhold'
-        : 'Emberclan Warcamp';
+      ? currentWagonStage.id === 'town'
+        ? 'Heartgrove Enclave'
+        : currentWagonStage.id === 'fort'
+          ? 'Heartgrove Wardhold'
+          : 'Heartgrove Sanctuary'
+      : currentWagonStage.id === 'town'
+        ? 'Emberclan Great Warhold'
+        : currentWagonStage.id === 'fort'
+          ? 'Emberclan Warhold'
+          : 'Emberclan Warcamp';
 
   const productionTotal = Object.values(productionStock).reduce(
     (total, value) => total + value,
@@ -98,12 +105,27 @@ export function FactionKingdomScreen({
     goalButton = elf ? 'Build Wardhold' : 'Build Warhold';
     goalDisabled = !canUpgradeFactionFort;
     goalAction = upgradeFactionToFort;
-  } else if (currentWagonStage.id === 'fort') {
-    goalTitle = elf ? 'Wardhold established' : 'Warhold established';
+  } else if (factionTownUpgradeAvailable) {
+    goalTitle = elf ? 'Raise Heartgrove Enclave' : 'Raise the Great Warhold';
     goalBody = elf
-      ? 'Heartgrove can now push into Moonlit Pass with four-squad capacity.'
-      : 'Emberclan can now enter the Stonejaw Trial with four-squad capacity.';
-    goalButton = 'Chapter 3 ready';
+      ? 'The Pale Ranger is defeated. Upgrade the Warden Lodge, Moon Forge and Caravan Grove to Lv.3, maintain Stag and ward infrastructure, then establish a permanent Enclave.'
+      : 'The Stonejaw Champion has yielded. Upgrade the Clan Yard, Bone Forge and War Cartwright to Lv.3, maintain Warg and watchfire infrastructure, then raise the Great Warhold.';
+    goalButton = elf ? 'Build Heartgrove Enclave' : 'Build Great Warhold';
+    goalDisabled = !canUpgradeFactionTown;
+    goalAction = upgradeFactionToTown;
+  } else if (currentWagonStage.id === 'town') {
+    goalTitle = elf ? 'Heartgrove Enclave established' : 'Great Warhold established';
+    goalBody = elf
+      ? 'Five-squad capacity and 5×6 caravan logistics are ready for Roots in Ash.'
+      : 'Five-squad capacity and 5×6 War Cart logistics are ready for War on Two Fronts.';
+    goalButton = 'Chapter 4 ready';
+    goalDisabled = true;
+  } else if (currentWagonStage.id === 'fort') {
+    goalTitle = elf ? 'Secure Moonlit Pass' : 'Complete the Stonejaw Trial';
+    goalBody = elf
+      ? 'Use four-squad Ward formations and the restored rootway network to reach the Pale Ranger.'
+      : 'Use a four-squad warband, Warg infrastructure and clan signals to defeat the Stonejaw Champion.';
+    goalButton = 'Town tier is story-gated';
     goalDisabled = true;
   }
 

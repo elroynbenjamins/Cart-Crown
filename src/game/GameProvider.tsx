@@ -20,6 +20,13 @@ import {
   orcThirdRecruitOptions
 } from './factionChapter2';
 import {
+  elfChapterFourNodes,
+  elfFourthRecruitOptions,
+  factionChapterThreeResourceSites,
+  orcChapterFourNodes,
+  orcFourthRecruitOptions
+} from './factionChapter3';
+import {
   chapterThreeNodes,
   marcherAuxiliaryOptions,
   marcherResourceSites,
@@ -211,6 +218,9 @@ type GameContextValue = {
   canUpgradeSettlement: boolean;
   factionFortUpgradeAvailable: boolean;
   canUpgradeFactionFort: boolean;
+  factionTownUpgradeAvailable: boolean;
+  canUpgradeFactionTown: boolean;
+  factionFourthRecruitOptions: RecruitOption[];
   factionBuildingIds: {
     hall: string;
     army: string;
@@ -234,16 +244,22 @@ type GameContextValue = {
   completeFactionChapterTwoEvent: (
     stage: 'resource' | 'council'
   ) => boolean;
+  completeFactionChapterThreeEvent: (
+    stage: 'resource' | 'council'
+  ) => boolean;
   completeMarkedRaiders: () => boolean;
   completeRefugeeCamp: () => boolean;
   upgradeSettlement: () => boolean;
   upgradeToFort: () => boolean;
   upgradeFactionToFort: () => boolean;
+  upgradeFactionToTown: () => boolean;
+  upgradeFactionToTown: () => boolean;
   constructBuilding: (buildingId: string, plotId: string) => boolean;
   moveBuilding: (buildingId: string, targetPlotId: string) => boolean;
   upgradeBuilding: (buildingId: string) => boolean;
   isBuildingUnlocked: (buildingId: string) => boolean;
   chooseRecruit: (choiceId: string) => boolean;
+  chooseFactionFourthRecruit: (choiceId: string) => boolean;
   chooseFortRecruit: (choiceId: string) => boolean;
   chooseMarcherAuxiliary: (choiceId: string) => boolean;
   chooseStrongholdRecruit: (choiceId: string) => boolean;
@@ -533,7 +549,8 @@ export function GameProvider({
         ...crownroadResourceSites,
         ...capitalResourceSites,
         ...crownspireResourceSites,
-        ...factionChapterTwoResourceSites
+        ...factionChapterTwoResourceSites,
+        ...factionChapterThreeResourceSites
       ].filter(site => site.faction === activeFaction),
     [activeFaction]
   );
@@ -604,6 +621,13 @@ export function GameProvider({
       : activeFaction === 'orc'
         ? orcThirdRecruitOptions
         : humanRecruitOptions;
+
+  const factionFourthRecruitOptions =
+    activeFaction === 'elf'
+      ? elfFourthRecruitOptions
+      : activeFaction === 'orc'
+        ? orcFourthRecruitOptions
+        : [];
 
   const completedCampaigns = sharedProgress.completedCampaigns;
 
@@ -703,6 +727,30 @@ export function GameProvider({
     resources.wood >= (activeFaction === 'elf' ? 75 : 70) &&
     resources.stone >= (activeFaction === 'elf' ? 35 : 30) &&
     resources.iron >= (activeFaction === 'orc' ? 8 : 0);
+
+  const factionChapterThreeBossWon =
+    activeFaction === 'elf'
+      ? Boolean(chapterNodes.find(node => node.id === 'elf3_node_6')?.completed)
+      : activeFaction === 'orc'
+        ? Boolean(chapterNodes.find(node => node.id === 'orc3_node_6')?.completed)
+        : false;
+
+  const factionTownUpgradeAvailable =
+    activeFaction !== 'human' &&
+    factionChapterThreeBossWon &&
+    currentWagonStage.id === 'fort';
+
+  const canUpgradeFactionTown =
+    factionTownUpgradeAvailable &&
+    (buildingLevels[factionBuildingIds.army] ?? 0) >= 3 &&
+    (buildingLevels[factionBuildingIds.forge] ?? 0) >= 3 &&
+    (buildingLevels[factionBuildingIds.logistics] ?? 0) >= 3 &&
+    (buildingLevels[factionBuildingIds.mount] ?? 0) >= 1 &&
+    (buildingLevels[factionBuildingIds.scout] ?? 0) >= 1 &&
+    resources.gold >= (activeFaction === 'elf' ? 245 : 240) &&
+    resources.wood >= (activeFaction === 'elf' ? 115 : 110) &&
+    resources.stone >= (activeFaction === 'elf' ? 75 : 70) &&
+    resources.iron >= (activeFaction === 'elf' ? 10 : 20);
 
   const townUpgradeAvailable =
     ironProvostWon && currentWagonStage.id === 'fort';
@@ -942,7 +990,8 @@ export function GameProvider({
           ...crownroadResourceSites,
           ...capitalResourceSites,
           ...crownspireResourceSites,
-          ...factionChapterTwoResourceSites
+          ...factionChapterTwoResourceSites,
+          ...factionChapterThreeResourceSites
         ].find(candidate => candidate.id === siteId);
         if (!site) continue;
         const productionMultiplier =
@@ -1308,6 +1357,156 @@ export function GameProvider({
       setLastBattleResult({
         id: 'orc_clanbreaker_result',
         title: 'Clanbreaker Defeated',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'elf_moonlit_pass') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf3_node_2')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'elf3_node_2') return { ...node, completed: true, current: false };
+          if (node.id === 'elf3_node_3') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'elf_moonlit_pass_result',
+        title: 'Moonlit Pass Entered',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'elf_ashen_groves') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf3_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'elf3_node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'elf3_node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'elf_ashen_groves_result',
+        title: 'Ashen Groves Cleared',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'elf_pale_ranger') {
+      if (
+        activeFaction !== 'elf' ||
+        !chapterNodes.find(node => node.id === 'elf3_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'elf3_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setLastBattleResult({
+        id: 'elf_pale_ranger_result',
+        title: 'Pale Ranger Defeated',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_stonejaw_trial') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc3_node_2')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'orc3_node_2') return { ...node, completed: true, current: false };
+          if (node.id === 'orc3_node_3') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'orc_stonejaw_trial_result',
+        title: 'Stonejaw Trial Passed',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_broken_steppe') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc3_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'orc3_node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'orc3_node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'orc_broken_steppe_result',
+        title: 'Broken Steppe Secured',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'orc_stonejaw_champion') {
+      if (
+        activeFaction !== 'orc' ||
+        !chapterNodes.find(node => node.id === 'orc3_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      setChapterNodes(previous =>
+        previous.map(node =>
+          node.id === 'orc3_node_6'
+            ? { ...node, completed: true, current: false }
+            : { ...node, current: false }
+        )
+      );
+      setLastBattleResult({
+        id: 'orc_stonejaw_champion_result',
+        title: 'Stonejaw Champion Yields',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -2017,6 +2216,82 @@ export function GameProvider({
     return false;
   };
 
+  const completeFactionChapterThreeEvent = (
+    stage: 'resource' | 'council'
+  ) => {
+    if (activeFaction === 'elf') {
+      const nodeId = stage === 'resource' ? 'elf3_node_3' : 'elf3_node_5';
+      const nextId = stage === 'resource' ? 'elf3_node_4' : 'elf3_node_6';
+
+      if (!chapterNodes.find(node => node.id === nodeId)?.current) return false;
+
+      if (stage === 'resource') {
+        setUnlockedResourceSites(previous =>
+          previous.includes('elf_moonlit_watch')
+            ? previous
+            : [...previous, 'elf_moonlit_watch']
+        );
+        setResources(previous => ({
+          ...previous,
+          gold: previous.gold + 12,
+          provisions: previous.provisions + 6
+        }));
+      } else {
+        setResources(previous => ({
+          ...previous,
+          gold: previous.gold + 24,
+          wood: previous.wood + 10
+        }));
+      }
+
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) return { ...node, completed: true, current: false };
+          if (node.id === nextId) return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      return true;
+    }
+
+    if (activeFaction === 'orc') {
+      const nodeId = stage === 'resource' ? 'orc3_node_3' : 'orc3_node_5';
+      const nextId = stage === 'resource' ? 'orc3_node_4' : 'orc3_node_6';
+
+      if (!chapterNodes.find(node => node.id === nodeId)?.current) return false;
+
+      if (stage === 'resource') {
+        setUnlockedResourceSites(previous =>
+          previous.includes('orc_stonejaw_quarry')
+            ? previous
+            : [...previous, 'orc_stonejaw_quarry']
+        );
+        setResources(previous => ({
+          ...previous,
+          stone: previous.stone + 8,
+          iron: previous.iron + 5
+        }));
+      } else {
+        setResources(previous => ({
+          ...previous,
+          gold: previous.gold + 22,
+          provisions: previous.provisions + 8
+        }));
+      }
+
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) return { ...node, completed: true, current: false };
+          if (node.id === nextId) return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      return true;
+    }
+
+    return false;
+  };
+
   const completeMarkedRaiders = () => {
     if (!holdTheRoadWon || markedRaidersInvestigated) return false;
 
@@ -2169,6 +2444,34 @@ export function GameProvider({
         activeFaction === 'elf'
           ? elfChapterThreeNodes
           : orcChapterThreeNodes
+      )
+    );
+    setFourthRecruitChoiceAvailable(true);
+    setFourthRecruitChosen(false);
+    return true;
+  };
+
+  const upgradeFactionToTown = () => {
+    if (!canUpgradeFactionTown) return false;
+
+    setResources(previous => ({
+      ...previous,
+      gold: previous.gold - (activeFaction === 'elf' ? 245 : 240),
+      wood: previous.wood - (activeFaction === 'elf' ? 115 : 110),
+      stone: previous.stone - (activeFaction === 'elf' ? 75 : 70),
+      iron: previous.iron - (activeFaction === 'elf' ? 10 : 20)
+    }));
+    setWagonStageId('town');
+    setBuildingLevels(previous => ({
+      ...previous,
+      [factionBuildingIds.hall]: 4
+    }));
+    setChapterNumber(4);
+    setChapterNodes(
+      cloneNodes(
+        activeFaction === 'elf'
+          ? elfChapterFourNodes
+          : orcChapterFourNodes
       )
     );
     return true;
@@ -2373,6 +2676,53 @@ export function GameProvider({
       );
     }
 
+    return true;
+  };
+
+  const chooseFactionFourthRecruit = (choiceId: string) => {
+    if (
+      activeFaction === 'human' ||
+      !fourthRecruitChoiceAvailable ||
+      fourthRecruitChosen ||
+      chapterNumber !== 3
+    ) {
+      return false;
+    }
+
+    const choice = factionFourthRecruitOptions.find(
+      option => option.id === choiceId
+    );
+    if (!choice) return false;
+
+    setUnits(previous => [...previous, { ...choice.unit }]);
+    setFormation(previous => {
+      const next = [...previous];
+      const preferredSlots =
+        choice.unit.role === 'ranged' || choice.unit.role === 'support'
+          ? [6, 8, 7, 3, 5, 4, 0, 2, 1]
+          : [3, 5, 4, 0, 2, 1, 6, 8, 7];
+      const empty = preferredSlots.find(slot => next[slot] === null);
+
+      if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
+        next[empty] = choice.unit.id;
+      }
+      return next;
+    });
+    setFourthRecruitChosen(true);
+    setFourthRecruitChoiceAvailable(false);
+
+    const musterId =
+      activeFaction === 'elf' ? 'elf3_node_1' : 'orc3_node_1';
+    const battleId =
+      activeFaction === 'elf' ? 'elf3_node_2' : 'orc3_node_2';
+
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === musterId) return { ...node, completed: true, current: false };
+        if (node.id === battleId) return { ...node, current: true };
+        return { ...node, current: false };
+      })
+    );
     return true;
   };
 
@@ -3456,6 +3806,9 @@ export function GameProvider({
       canUpgradeSettlement,
       factionFortUpgradeAvailable,
       canUpgradeFactionFort,
+      factionTownUpgradeAvailable,
+      canUpgradeFactionTown,
+      factionFourthRecruitOptions,
       factionBuildingIds,
       sideModeDefinitions: sideModes,
       expeditionTickets,
@@ -3466,16 +3819,19 @@ export function GameProvider({
       finishEncounter,
       completeFactionChapterOneEvent,
       completeFactionChapterTwoEvent,
+      completeFactionChapterThreeEvent,
       completeMarkedRaiders,
       completeRefugeeCamp,
       upgradeSettlement,
       upgradeToFort,
       upgradeFactionToFort,
+      upgradeFactionToTown,
       constructBuilding,
       moveBuilding,
       upgradeBuilding,
       isBuildingUnlocked,
       chooseRecruit,
+      chooseFactionFourthRecruit,
       chooseFortRecruit,
       chooseMarcherAuxiliary,
       chooseStrongholdRecruit,
@@ -3578,6 +3934,9 @@ export function GameProvider({
       canUpgradeSettlement,
       factionFortUpgradeAvailable,
       canUpgradeFactionFort,
+      factionTownUpgradeAvailable,
+      canUpgradeFactionTown,
+      factionFourthRecruitOptions,
       factionBuildingIds,
       expeditionTickets,
       expeditionRunsCompleted,

@@ -82,6 +82,18 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     lastBattleResult.id === 'orc_stonejaw_challengers_result';
   const orcChapterTwoBossResult =
     lastBattleResult.id === 'orc_clanbreaker_result';
+  const elfChapterThreeBattleResult =
+    lastBattleResult.id === 'elf_moonlit_pass_result';
+  const elfChapterThreeEliteResult =
+    lastBattleResult.id === 'elf_ashen_groves_result';
+  const elfChapterThreeBossResult =
+    lastBattleResult.id === 'elf_pale_ranger_result';
+  const orcChapterThreeBattleResult =
+    lastBattleResult.id === 'orc_stonejaw_trial_result';
+  const orcChapterThreeEliteResult =
+    lastBattleResult.id === 'orc_broken_steppe_result';
+  const orcChapterThreeBossResult =
+    lastBattleResult.id === 'orc_stonejaw_champion_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -125,7 +137,79 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {elfChapterTwoBossResult ? (
+      {elfChapterThreeBossResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CHAPTER 3 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Heartgrove can become an Enclave
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Pale Ranger is defeated. Upgrade Warden Lodge, Moon Forge and Caravan Grove to Lv.3, maintain Stag and Ward infrastructure, then establish the Enclave.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterThreeEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ASHEN GROVES</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              The Pale Ranger is identified
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Captured route orders point to a former border ranger coordinating the sabotage beyond Moonlit Pass.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterThreeBattleResult ? (
+        <>
+          <GameCard accent={theme.colors.elf}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>MOONLIT PASS</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Silent beacon route opened
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The pass is secure enough to relight Moonlit Watch and add it to regional production.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterThreeBossResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>ORC CHAPTER 3 COMPLETE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Emberclan can raise the Great Warhold
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Stonejaw Champion yields. Upgrade the Clan Yard, Bone Forge and War Cartwright to Lv.3, maintain Warg and Watchfire infrastructure, then build the Great Warhold.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterThreeEliteResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>BROKEN STEPPE</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Another false clan war exposed
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              The Steppe raiders used forged standards to make Stonejaw and Emberclan blame one another.
+            </Text>
+          </GameCard>
+        </>
+      ) : orcChapterThreeBattleResult ? (
+        <>
+          <GameCard accent={theme.colors.orc}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.orc }]}>STONEJAW TRIAL</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              Quarry roads opened
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Passing the trial opens Stonejaw Quarry and its permanent stone/iron production.
+            </Text>
+          </GameCard>
+        </>
+      ) : elfChapterTwoBossResult ? (
         <>
           <GameCard accent={theme.colors.elf}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.elf }]}>ELF CHAPTER 2 COMPLETE</Text>
