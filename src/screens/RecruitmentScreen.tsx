@@ -39,6 +39,7 @@ export function RecruitmentScreen({ onComplete }: { onComplete: () => void }) {
                     name={option.unit.name}
                     className={option.unit.className + ' · ' + option.archetype}
                     accent={selectedOption ? theme.colors.primary : theme.colors.human}
+                    faction={option.unit.faction}
                   />
                   <View
                     style={[
