@@ -23,7 +23,7 @@ import {
   SecondaryButton,
   SectionTitle
 } from '../ui/components';
-import { BuildingSprite } from '../ui/gameArt';
+import { BuildingSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
 
 const resourceIcons: Record<keyof ResourceWallet, string> = {
   gold: '🪙',
@@ -158,6 +158,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
           }
         ]}
       >
+        <SettlementTerrainBackdrop faction="human" />
         <View
           style={[
             styles.roadHorizontal,
