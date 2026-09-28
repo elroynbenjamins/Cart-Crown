@@ -7,7 +7,7 @@ import { humanRegions } from '../game/data';
 import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
+import { GameCard, Pill, PrimaryButton, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { CampaignNodeSprite, FactionCrest, RegionMapBackdrop } from '../ui/gameArt';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 
@@ -232,7 +232,7 @@ export function CampaignScreen({
 
   const renderStory = () => (
     <>
-      <GameCard accent={theme.colors.human}>
+      <GameCard accent={theme.colors.human} faction="human">
         <View style={styles.chapterHeader}>
           <View style={styles.chapterCopy}>
             <Text style={[styles.eyebrow, { color: theme.colors.human }]}>
@@ -721,7 +721,12 @@ export function CampaignScreen({
               onPress={action}
               style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
             >
-              <GameCard accent={node.current ? theme.colors.primary : undefined} style={styles.nodeCard}>
+              <GameCard
+                accent={node.current ? theme.colors.human : undefined}
+                faction="human"
+                state={node.completed ? 'ready' : node.current ? 'selected' : 'locked'}
+                style={styles.nodeCard}
+              >
                 <View
                   style={[
                     styles.nodeIcon,
@@ -747,9 +752,22 @@ export function CampaignScreen({
                   </Text>
                   <Text style={[styles.nodeName, { color: theme.colors.text }]}>{node.name}</Text>
                 </View>
-                <Text style={[styles.chevron, { color: node.current ? theme.colors.primary : theme.colors.textMuted }]}>
-                  {status}
-                </Text>
+                <StatusPill
+                  label={status}
+                  tone={
+                    node.completed
+                      ? 'done'
+                      : status.includes('BOSS')
+                        ? 'boss'
+                        : status === 'ELITE'
+                          ? 'elite'
+                          : playable
+                            ? 'ready'
+                            : node.current
+                              ? 'current'
+                              : 'locked'
+                  }
+                />
               </GameCard>
             </Pressable>
           );
