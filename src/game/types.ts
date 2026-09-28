@@ -83,6 +83,7 @@ export type AdvancedPromotionDefinition = {
   requiredBarracksLevel: number;
   requiredForgeLevel: number;
   requiredStableLevel?: number;
+  requiredOfficerAcademyLevel?: number;
   attackBonus: number;
   armorBonus: number;
   speedBonus: number;
@@ -126,6 +127,7 @@ export type SettlementAdjacencyEffects = {
   dailyProvisionBonus: number;
   commanderSkillPowerMultiplier: number;
   commanderRespecDiscount: number;
+  commanderSkillEarlyTrigger: boolean;
   detailedIntel: boolean;
 };
 

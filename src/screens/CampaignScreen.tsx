@@ -38,6 +38,10 @@ export function CampaignScreen({
   onStartSiegeRoad,
   onOpenDividedMarch,
   onStartLordMarshal,
+  onOpenStrongholdMuster,
+  onStartBrokenStandards,
+  onOpenEmptyThrone,
+  onStartCrownroadAmbush,
   onOpenExpedition,
   onOpenFormationTrial
 }: {
@@ -58,6 +62,10 @@ export function CampaignScreen({
   onStartSiegeRoad: () => void;
   onOpenDividedMarch: () => void;
   onStartLordMarshal: () => void;
+  onOpenStrongholdMuster: () => void;
+  onStartBrokenStandards: () => void;
+  onOpenEmptyThrone: () => void;
+  onStartCrownroadAmbush: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
 }) {
@@ -78,6 +86,7 @@ export function CampaignScreen({
     marcherWarningChoiceId,
     dividedMarchResolved,
     lordMarshalWon,
+    sixthRecruitChosen,
     campaignAvailability,
     sideModeDefinitions,
     isSideModeUnlocked,
@@ -293,6 +302,25 @@ export function CampaignScreen({
             dividedMarchResolved &&
             !lordMarshalWon;
 
+          const strongholdMusterPlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_1' &&
+            !sixthRecruitChosen;
+          const brokenStandardsPlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_2' &&
+            sixthRecruitChosen;
+          const emptyThronePlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_3';
+          const crownroadAmbushPlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_4';
+
           const playable =
             chapterOneBattle ||
             chapterOneStory ||
@@ -310,7 +338,11 @@ export function CampaignScreen({
             warningsPlayable ||
             siegeRoadPlayable ||
             dividedMarchPlayable ||
-            lordMarshalPlayable;
+            lordMarshalPlayable ||
+            strongholdMusterPlayable ||
+            brokenStandardsPlayable ||
+            emptyThronePlayable ||
+            crownroadAmbushPlayable;
 
           const status = node.completed
             ? 'DONE'
@@ -344,7 +376,15 @@ export function CampaignScreen({
                                         ? 'UNITE MARCHES'
                                         : lordMarshalPlayable
                                           ? 'BOSS'
-                                          : bossPlayable
+                                          : strongholdMusterPlayable
+                                            ? 'CHOOSE SQUAD'
+                                            : brokenStandardsPlayable
+                                              ? 'PLAY'
+                                              : emptyThronePlayable
+                                                ? 'INVESTIGATE'
+                                                : crownroadAmbushPlayable
+                                                  ? 'PLAY'
+                                                  : bossPlayable
                                 ? 'BOSS'
                             : playable
                               ? 'PLAY'
@@ -386,7 +426,15 @@ export function CampaignScreen({
                                           ? onOpenDividedMarch
                                           : lordMarshalPlayable
                                             ? onStartLordMarshal
-                                            : undefined;
+                                            : strongholdMusterPlayable
+                                              ? onOpenStrongholdMuster
+                                              : brokenStandardsPlayable
+                                                ? onStartBrokenStandards
+                                                : emptyThronePlayable
+                                                  ? onOpenEmptyThrone
+                                                  : crownroadAmbushPlayable
+                                                    ? onStartCrownroadAmbush
+                                                    : undefined;
 
           return (
             <Pressable

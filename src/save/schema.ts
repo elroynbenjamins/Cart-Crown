@@ -13,7 +13,7 @@ import type {
   SaveSlotMetadata
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 8;
+export const SAVE_SCHEMA_VERSION = 9;
 
 export function createHumanFactionState(): FactionGameState {
   return {
@@ -57,7 +57,8 @@ export function createHumanFactionState(): FactionGameState {
       quartermaster: 0,
       war_room: 0,
       stable: 0,
-      signal_tower: 0
+      signal_tower: 0,
+      officer_academy: 0
     },
     buildingPlacements: { ...initialHumanPlacements },
     fourthRecruitChoiceAvailable: false,
@@ -112,7 +113,15 @@ export function metadataFromSnapshot(
   let chapterLabel = 'Chapter 1 · Hold the Road';
 
   if (current.chapterNumber >= 4) {
-    chapterLabel = 'Chapter 4 · Stronghold Muster';
+    chapterLabel = current.chapterNodes.find(node => node.id === 'ch4_node_5')?.current
+      ? 'Chapter 4 · The Last Loyalists'
+      : current.chapterNodes.find(node => node.id === 'ch4_node_4')?.current
+        ? 'Chapter 4 · Crownroad Ambush'
+        : current.chapterNodes.find(node => node.id === 'ch4_node_3')?.current
+          ? 'Chapter 4 · The Empty Throne'
+          : current.chapterNodes.find(node => node.id === 'ch4_node_2')?.current
+            ? 'Chapter 4 · Broken Standards'
+            : 'Chapter 4 · Stronghold Muster';
   } else if (current.chapterNumber === 3) {
     chapterLabel = current.lordMarshalWon
       ? 'Chapter 3 · Raise Greenkeep Stronghold'

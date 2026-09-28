@@ -20,7 +20,11 @@ import type {
   MarcherWarningChoice,
   MarcherWarningChoiceId
 } from './chapter3';
-import { chapterFourNodes } from './chapter4';
+import {
+  chapterFourNodes,
+  crownroadResourceSites,
+  strongholdMusterOptions
+} from './chapter4';
 import {
   advancedPromotions,
   equipmentDefinitions,
@@ -136,6 +140,8 @@ type GameContextValue = {
   fourthRecruitChosen: boolean;
   fortMusterOptions: RecruitOption[];
   marcherAuxiliaryOptions: RecruitOption[];
+  strongholdMusterOptions: RecruitOption[];
+  sixthRecruitChosen: boolean;
   marcherWarningChoices: MarcherWarningChoice[];
   marcherWarningChoiceId: string | null;
   activeMarcherWarningChoice: MarcherWarningChoice | null;
@@ -174,6 +180,8 @@ type GameContextValue = {
   chooseRecruit: (choiceId: string) => boolean;
   chooseFortRecruit: (choiceId: string) => boolean;
   chooseMarcherAuxiliary: (choiceId: string) => boolean;
+  chooseStrongholdRecruit: (choiceId: string) => boolean;
+  completeEmptyThrone: () => boolean;
   chooseMarcherWarning: (choiceId: MarcherWarningChoiceId) => boolean;
   completeDividedMarch: () => boolean;
   unlockTimberCamp: () => boolean;
@@ -426,7 +434,7 @@ export function GameProvider({
 
   const resourceSites = useMemo(
     () =>
-      [...humanResourceSites, ...marcherResourceSites].filter(
+      [...humanResourceSites, ...marcherResourceSites, ...crownroadResourceSites].filter(
         site => site.faction === activeFaction
       ),
     [activeFaction]
@@ -466,6 +474,13 @@ export function GameProvider({
 
   const formationBonuses = formationAnalysis.bonuses;
   const activeSquadCap = currentWagonStage.formationSlots;
+  const sixthRecruitChosen = units.some(unit =>
+    [
+      'hum_royal_guard_reinforcement',
+      'hum_siege_engineer_reinforcement',
+      'hum_banner_captain_reinforcement'
+    ].includes(unit.id)
+  );
   const completedCampaigns = sharedProgress.completedCampaigns;
 
   const campaignAvailability = useMemo<CampaignAvailability[]>(() => {
@@ -637,7 +652,7 @@ export function GameProvider({
 
   const snapshot = useMemo<GameSnapshot>(
     () => ({
-      schemaVersion: 8,
+      schemaVersion: 9,
       activeFaction,
       shared: sharedProgress,
       factionStates: {
@@ -669,9 +684,11 @@ export function GameProvider({
     setProductionStock(previous => {
       const next = { ...previous };
       for (const siteId of unlockedResourceSites) {
-        const site = [...humanResourceSites, ...marcherResourceSites].find(
-          candidate => candidate.id === siteId
-        );
+        const site = [
+          ...humanResourceSites,
+          ...marcherResourceSites,
+          ...crownroadResourceSites
+        ].find(candidate => candidate.id === siteId);
         if (!site) continue;
         next.gold += site.productionPerActivity.gold ?? 0;
         next.wood += site.productionPerActivity.wood ?? 0;
@@ -930,6 +947,71 @@ export function GameProvider({
         rewards: { ...reward.resources },
         casualties: 0
       });
+      return;
+    }
+
+    if (encounterId === 'broken_standards') {
+      if (
+        chapterNumber !== 4 ||
+        !sixthRecruitChosen ||
+        !chapterNodes.find(node => node.id === 'ch4_node_2')?.current
+      ) {
+        return;
+      }
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch4_node_2') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'ch4_node_3') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'broken_standards_result',
+        title: 'The Standards Break',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'crownroad_ambush') {
+      if (
+        chapterNumber !== 4 ||
+        !chapterNodes.find(node => node.id === 'ch4_node_4')?.current
+      ) {
+        return;
+      }
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch4_node_4') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'ch4_node_5') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'crownroad_ambush_result',
+        title: 'Crownroad Secured',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
     }
   };
 
@@ -1029,6 +1111,9 @@ export function GameProvider({
       return ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
     }
     if (buildingId === 'signal_tower') return signalTowerUnlocked;
+    if (buildingId === 'officer_academy') {
+      return ['stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
+    }
     return false;
   };
 
@@ -1222,6 +1307,79 @@ export function GameProvider({
       })
     );
 
+    return true;
+  };
+
+  const chooseStrongholdRecruit = (choiceId: string) => {
+    if (
+      chapterNumber !== 4 ||
+      sixthRecruitChosen ||
+      !chapterNodes.find(node => node.id === 'ch4_node_1')?.current
+    ) {
+      return false;
+    }
+
+    const choice = strongholdMusterOptions.find(option => option.id === choiceId);
+    if (!choice) return false;
+
+    setUnits(previous => [...previous, { ...choice.unit }]);
+    setFormation(previous => {
+      const next = [...previous];
+      const preferredSlots =
+        choice.unit.role === 'ranged' || choice.unit.role === 'support'
+          ? [6, 8, 7, 3, 5, 4, 0, 2, 1]
+          : [3, 5, 4, 0, 2, 1, 6, 8, 7];
+      const empty = preferredSlots.find(slot => next[slot] === null);
+
+      if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
+        next[empty] = choice.unit.id;
+      }
+      return next;
+    });
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch4_node_1') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch4_node_2') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const completeEmptyThrone = () => {
+    if (
+      chapterNumber !== 4 ||
+      !chapterNodes.find(node => node.id === 'ch4_node_3')?.current
+    ) {
+      return false;
+    }
+
+    setUnlockedResourceSites(previous =>
+      previous.includes('crownroad_salvage')
+        ? previous
+        : [...previous, 'crownroad_salvage']
+    );
+    setSharedProgress(previous => ({
+      ...previous,
+      lore: previous.lore.includes('empty_throne_records')
+        ? previous.lore
+        : [...previous.lore, 'empty_throne_records']
+    }));
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch4_node_3') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch4_node_4') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
     return true;
   };
 
@@ -1606,7 +1764,9 @@ export function GameProvider({
     const meetsBuildings =
       (buildingLevels.barracks ?? 0) >= promotion.requiredBarracksLevel &&
       (buildingLevels.forge ?? 0) >= promotion.requiredForgeLevel &&
-      (buildingLevels.stable ?? 0) >= (promotion.requiredStableLevel ?? 0);
+      (buildingLevels.stable ?? 0) >= (promotion.requiredStableLevel ?? 0) &&
+      (buildingLevels.officer_academy ?? 0) >=
+        (promotion.requiredOfficerAcademyLevel ?? 0);
 
     if (!meetsGear || !meetsBuildings) return false;
 
@@ -1865,6 +2025,8 @@ export function GameProvider({
       fourthRecruitChosen,
       fortMusterOptions,
       marcherAuxiliaryOptions,
+      strongholdMusterOptions,
+      sixthRecruitChosen,
       marcherWarningChoices,
       marcherWarningChoiceId,
       activeMarcherWarningChoice,
@@ -1903,6 +2065,8 @@ export function GameProvider({
       chooseRecruit,
       chooseFortRecruit,
       chooseMarcherAuxiliary,
+      chooseStrongholdRecruit,
+      completeEmptyThrone,
       chooseMarcherWarning,
       completeDividedMarch,
       unlockTimberCamp,

@@ -102,7 +102,14 @@ export function BattleScreen({
       let skillDamage = 0;
       let action = combatLines[Math.min(turn, combatLines.length - 1)] ?? combatLines[combatLines.length - 1]!;
 
-      if (activeCommanderPath && !skillTriggered && turn === 1) {
+      const commanderSkillTurn =
+        settlementEffects.commanderSkillEarlyTrigger ? 0 : 1;
+
+      if (
+        activeCommanderPath &&
+        !skillTriggered &&
+        turn === commanderSkillTurn
+      ) {
         const skill = activeCommanderPath.skill;
         const adjustedSkillPower = Math.max(
           1,
@@ -115,9 +122,11 @@ export function BattleScreen({
           activeCommanderPath.name +
           ' uses ' +
           skill.name +
-          (settlementEffects.commanderSkillPowerMultiplier > 1
-            ? ' through the Command Network.'
-            : '.');
+          (settlementEffects.commanderSkillEarlyTrigger
+            ? ' through the General Staff.'
+            : settlementEffects.commanderSkillPowerMultiplier > 1
+              ? ' through the Command Network.'
+              : '.');
 
         if (skill.effectType === 'single_damage') {
           skillDamage = adjustedSkillPower;
@@ -223,6 +232,7 @@ export function BattleScreen({
     skillTriggered,
     turn,
     settlementEffects.commanderSkillPowerMultiplier,
+    settlementEffects.commanderSkillEarlyTrigger,
     marcherAttackMultiplier,
     marcherArmorMultiplier,
     marcherSpeedMultiplier

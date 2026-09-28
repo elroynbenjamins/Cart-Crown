@@ -195,3 +195,52 @@ Stronghold construction:
 - begins Chapter 4 / **The Broken Crown**
 
 Building upgrade levels are now capped by settlement tier, so Stronghold-tier infrastructure cannot be pre-built while Greenkeep is still a Settlement/Fort.
+
+
+## Chapter 4 — The Broken Crown
+
+The Stronghold tier now begins a new playable campaign slice:
+
+1. **Stronghold Muster** — choose the sixth and final active squad:
+   - Royal Guard — elite frontline
+   - Siege Engineer — heavy ranged
+   - Banner Captain — command support
+2. **Broken Standards** — first six-squad Stronghold battle
+3. **The Empty Throne** — discover that royal military orders continued after the court stopped functioning
+4. **Crownroad Ambush** — elite six-squad encounter
+5. The Last Loyalists — next story expansion
+6. The Pretender General — future Chapter 4 boss
+
+The Empty Throne also unlocks the **Crownroad Salvage Yard**, adding +4 Wood and +3 Iron per meaningful activity.
+
+## Stronghold equipment tier
+
+Forge III / Barracks IV / Stronghold infrastructure now supports a new equipment tier:
+
+- Steel Sword → Tempered Steel Sword
+- Greatsword → Royal Greatsword
+- Longbow → Warbow
+- Chainmail → Heavy Plate
+- Kite Shield → Tower Shield
+- Trained Horse → Veteran Warhorse
+
+These remain equipment upgrades first; they do not automatically change class.
+
+New elite class branches include:
+- Shield Infantry + Tower Shield + Heavy Plate → **Royal Guard**
+- Greatswordsman + Royal Greatsword → **Champion**
+- Longbowman + Warbow → **Marksman**
+- Cavalryman + Veteran Warhorse + Heavy Plate + Tempered Steel Sword → **Heavy Cavalry**
+
+Elite promotions also require a constructed **Officer Academy**.
+
+## Officer Academy
+
+The Stronghold unlocks Greenkeep’s ninth building blueprint: **Officer Academy**.
+
+It supports elite-unit training and has a Stronghold-specific adjacency:
+
+- **War Room + Officer Academy → General Staff**
+  - commander skill triggers one exchange earlier
+
+This is intentionally different from a generic percentage increase: settlement layout changes when the commander’s signature ability enters the battle.

@@ -8,7 +8,9 @@ export type EncounterId =
   | 'iron_provost'
   | 'border_fort'
   | 'siege_road'
-  | 'lord_marshal_veyr';
+  | 'lord_marshal_veyr'
+  | 'broken_standards'
+  | 'crownroad_ambush';
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -87,6 +89,24 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 760,
     difficulty: 'Boss'
+  },
+  broken_standards: {
+    id: 'broken_standards',
+    name: 'Broken Standards',
+    subtitle: 'Royal companies with mismatched banners block the Stronghold army’s first march toward the abandoned court.',
+    enemyName: 'Broken Standard Companies',
+    enemyCount: 6,
+    enemyHp: 610,
+    difficulty: 'Normal'
+  },
+  crownroad_ambush: {
+    id: 'crownroad_ambush',
+    name: 'Crownroad Ambush',
+    subtitle: 'A veteran force attacks Greenkeep’s full six-squad column among the abandoned royal wagons.',
+    enemyName: 'Crownroad Veterans',
+    enemyCount: 6,
+    enemyHp: 790,
+    difficulty: 'Elite'
   }
 };
 
@@ -122,6 +142,14 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   lord_marshal_veyr: {
     resources: { gold: 260, wood: 150, stone: 120, iron: 35, provisions: 12 },
     storySummary: 'Lord Marshal Veyr is defeated. The Border Marches recognize Greenkeep as the strongest western authority and the road toward the broken Crown opens.'
+  },
+  broken_standards: {
+    resources: { gold: 120, wood: 20, iron: 12, provisions: 6 },
+    storySummary: 'The mismatched royal companies scatter. Their standards all carry legitimate seals from different years, suggesting authority was deliberately fragmented.'
+  },
+  crownroad_ambush: {
+    resources: { gold: 145, wood: 24, stone: 18, iron: 14, provisions: 7 },
+    storySummary: 'The ambush fails. Greenkeep captures veteran officers who still claim to serve a court that no longer exists.'
   }
 };
 

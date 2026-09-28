@@ -31,6 +31,8 @@ import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
 import { KingdomDefenseScreen } from './screens/KingdomDefenseScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { StrongholdMusterScreen } from './screens/StrongholdMusterScreen';
+import { EmptyThroneScreen } from './screens/EmptyThroneScreen';
 import { ThreeWarningsScreen } from './screens/ThreeWarningsScreen';
 import { DividedMarchScreen } from './screens/DividedMarchScreen';
 import { SettlementScreen } from './screens/SettlementScreen';
@@ -56,6 +58,8 @@ type FlowScreen =
   | 'marcherEnvoy'
   | 'threeWarnings'
   | 'dividedMarch'
+  | 'strongholdMuster'
+  | 'emptyThrone'
   | 'settlement'
   | 'expedition'
   | 'formationTrial';
@@ -94,6 +98,8 @@ const flowTitles: Record<FlowScreen, string> = {
   marcherEnvoy: 'Marcher Envoy',
   threeWarnings: 'Three Warnings',
   dividedMarch: 'The Divided March',
+  strongholdMuster: 'Stronghold Muster',
+  emptyThrone: 'The Empty Throne',
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial'
@@ -322,6 +328,28 @@ export function AppShell({
       );
     }
 
+    if (flow === 'strongholdMuster') {
+      return (
+        <StrongholdMusterScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'emptyThrone') {
+      return (
+        <EmptyThroneScreen
+          onComplete={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'settlement') {
       return (
         <SettlementScreen
@@ -404,6 +432,16 @@ export function AppShell({
               setActiveEncounterId('lord_marshal_veyr');
               setFlow('battlePrep');
             }}
+            onOpenStrongholdMuster={() => setFlow('strongholdMuster')}
+            onStartBrokenStandards={() => {
+              setActiveEncounterId('broken_standards');
+              setFlow('battlePrep');
+            }}
+            onOpenEmptyThrone={() => setFlow('emptyThrone')}
+            onStartCrownroadAmbush={() => {
+              setActiveEncounterId('crownroad_ambush');
+              setFlow('battlePrep');
+            }}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -460,6 +498,8 @@ export function AppShell({
     flow === 'marcherEnvoy' ||
     flow === 'threeWarnings' ||
     flow === 'dividedMarch' ||
+    flow === 'strongholdMuster' ||
+    flow === 'emptyThrone' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial';

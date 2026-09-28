@@ -84,6 +84,15 @@ export const humanAdjacencyBonuses: SettlementAdjacencyBonusDefinition[] = [
     description: 'The commander plans campaigns beside the seat of government.',
     effectText: '-15 Gold commander retraining cost',
     effects: { commanderRespecDiscount: 15 }
+  },
+  {
+    id: 'general_staff',
+    name: 'General Staff',
+    buildingA: 'war_room',
+    buildingB: 'officer_academy',
+    description: 'Veteran officers drill directly beside the campaign planners.',
+    effectText: 'Commander skill triggers one exchange earlier',
+    effects: { commanderSkillEarlyTrigger: true }
   }
 ];
 
@@ -113,6 +122,7 @@ export const defaultSettlementEffects: SettlementAdjacencyEffects = {
   dailyProvisionBonus: 0,
   commanderSkillPowerMultiplier: 1,
   commanderRespecDiscount: 0,
+  commanderSkillEarlyTrigger: false,
   detailedIntel: false
 };
 
@@ -197,6 +207,9 @@ export function analyzeSettlementAdjacency(
 
     effects.commanderRespecDiscount +=
       definition.effects.commanderRespecDiscount ?? 0;
+    effects.commanderSkillEarlyTrigger =
+      effects.commanderSkillEarlyTrigger ||
+      Boolean(definition.effects.commanderSkillEarlyTrigger);
     effects.detailedIntel =
       effects.detailedIntel || Boolean(definition.effects.detailedIntel);
   }

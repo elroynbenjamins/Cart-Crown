@@ -306,8 +306,17 @@ export function EquipmentManageScreen({
                 const barracksReady = (buildingLevels.barracks ?? 0) >= promotion.requiredBarracksLevel;
                 const forgeReady = (buildingLevels.forge ?? 0) >= promotion.requiredForgeLevel;
                 const stableReady =
-                  (buildingLevels.stable ?? 0) >= (promotion.requiredStableLevel ?? 0);
-                const ready = gearReady && barracksReady && forgeReady && stableReady;
+                  (buildingLevels.stable ?? 0) >=
+                  (promotion.requiredStableLevel ?? 0);
+                const academyReady =
+                  (buildingLevels.officer_academy ?? 0) >=
+                  (promotion.requiredOfficerAcademyLevel ?? 0);
+                const ready =
+                  gearReady &&
+                  barracksReady &&
+                  forgeReady &&
+                  stableReady &&
+                  academyReady;
 
                 return (
                   <GameCard key={promotion.id} accent={ready ? theme.colors.primary : undefined}>
@@ -336,6 +345,11 @@ export function EquipmentManageScreen({
                       {(promotion.requiredStableLevel ?? 0) > 0 ? (
                         <Text style={[styles.requirement, { color: stableReady ? theme.colors.primary : theme.colors.textMuted }]}>
                           {stableReady ? '✓' : '○'} Stable Lv.{promotion.requiredStableLevel}
+                        </Text>
+                      ) : null}
+                      {(promotion.requiredOfficerAcademyLevel ?? 0) > 0 ? (
+                        <Text style={[styles.requirement, { color: academyReady ? theme.colors.primary : theme.colors.textMuted }]}>
+                          {academyReady ? '✓' : '○'} Officer Academy Lv.{promotion.requiredOfficerAcademyLevel}
                         </Text>
                       ) : null}
                     </View>

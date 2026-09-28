@@ -400,7 +400,9 @@ export function KingdomScreen({
                           ? 'Raise Greenkeep Fort.'
                           : building.id === 'signal_tower'
                             ? 'Restore the Broken Signal Tower.'
-                            : 'Story milestone required.'}
+                            : building.id === 'officer_academy'
+                              ? 'Raise Greenkeep Stronghold.'
+                              : 'Story milestone required.'}
                 </Text>
               )}
             </GameCard>

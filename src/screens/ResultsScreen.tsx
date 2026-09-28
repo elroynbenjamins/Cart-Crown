@@ -40,6 +40,10 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
   const siegeRoadResult = lastBattleResult.id === 'siege_road_result';
   const lordMarshalResult =
     lastBattleResult.id === 'lord_marshal_veyr_result';
+  const brokenStandardsResult =
+    lastBattleResult.id === 'broken_standards_result';
+  const crownroadAmbushResult =
+    lastBattleResult.id === 'crownroad_ambush_result';
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -83,7 +87,45 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
       </GameCard>
 
       <SectionTitle title="What changed" />
-      {lordMarshalResult ? (
+      {crownroadAmbushResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>VETERAN PRISONERS</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              The old court still has soldiers
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Captured officers insist they still serve lawful royal command, but none can name a living ruler who issued their orders.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Next: The Last Loyalists</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              Greenkeep now has enough prisoners and records to identify the remaining officer network behind the Crownroad attacks.
+            </Text>
+          </GameCard>
+        </>
+      ) : brokenStandardsResult ? (
+        <>
+          <GameCard accent={theme.colors.gold}>
+            <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>BROKEN ROYAL AUTHORITY</Text>
+            <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>
+              The standards are genuine—but contradictory
+            </Text>
+            <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+              Each defeated company carried a legitimate royal standard from a different year. The army is fighting fragments of the same old state.
+            </Text>
+          </GameCard>
+
+          <GameCard>
+            <Text style={[styles.storyTitle, { color: theme.colors.text }]}>Next: The Empty Throne</Text>
+            <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
+              The captured route records point toward an abandoned royal audience hall farther along the Crownroad.
+            </Text>
+          </GameCard>
+        </>
+      ) : lordMarshalResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM TIER UNLOCKED</Text>

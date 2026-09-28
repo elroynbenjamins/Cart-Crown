@@ -85,6 +85,16 @@ export const humanBuildings: BuildingDefinition[] = [
     maxLevel: 5,
     constructionCost: { gold: 65, wood: 20, stone: 10 },
     description: 'Restores the frontier warning network and improves enemy intelligence.'
+  },
+  {
+    id: 'officer_academy',
+    faction: 'human',
+    name: 'Officer Academy',
+    role: 'COMMAND',
+    icon: '🎖️',
+    maxLevel: 5,
+    constructionCost: { gold: 150, wood: 45, stone: 20, iron: 10 },
+    description: 'Trains veteran officers and turns Stronghold command into a permanent army system.'
   }
 ];
 
@@ -193,6 +203,13 @@ export const humanBuildingLevels: BuildingLevelDefinition[] = [
     cost: { gold: 110, wood: 35, provisions: 20 },
     effect: 'Large campaign stores support six active squads.',
     requirement: 'Border Marches secured'
+  },
+  {
+    buildingId: 'officer_academy',
+    level: 2,
+    cost: { gold: 165, wood: 45, stone: 20 },
+    effect: 'Veteran curriculum prepared for later commander and elite-unit upgrades.',
+    requirement: 'Greenkeep Stronghold'
   }
 ];
 

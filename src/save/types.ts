@@ -60,7 +60,7 @@ export type SharedProgress = {
 };
 
 export type GameSnapshot = {
-  schemaVersion: 8;
+  schemaVersion: 9;
   activeFaction: FactionId;
   shared: SharedProgress;
   factionStates: Record<FactionId, FactionGameState | null>;
