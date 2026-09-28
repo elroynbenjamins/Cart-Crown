@@ -149,7 +149,10 @@ export function CampaignScreen({
         <View style={[styles.route, { backgroundColor: theme.colors.human }]} />
       </View>
 
-      <SectionTitle title="Greenkeep Outskirts" trailing="Current region" />
+      <SectionTitle
+        title={chapterNumber === 1 ? 'Greenkeep Outskirts' : 'Iron Hills Approach'}
+        trailing="Current region"
+      />
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {

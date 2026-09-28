@@ -144,7 +144,18 @@ function equipmentFromWeapons(
 function upgradeLegacyFaction(
   state: LegacyFactionV2 | LegacyFactionV3 | LegacyFactionV4
 ): FactionGameState {
-  const v3 = state as Partial<LegacyFactionV3>;
+  const hasLoadouts = 'unitEquipment' in state;
+  const hasCommander = 'mercenaryPatrolWon' in state;
+
+  const commanderPathId = hasCommander ? state.commanderPathId : null;
+  const unitEquipment = hasLoadouts
+    ? Object.fromEntries(
+        Object.entries(state.unitEquipment).map(([unitId, loadout]) => [
+          unitId,
+          { ...loadout }
+        ])
+      )
+    : equipmentFromWeapons(state.unitWeapons);
 
   return {
     faction: state.faction,
@@ -164,16 +175,18 @@ function upgradeLegacyFaction(
     forgeUnlocked: state.forgeUnlocked,
     firstPromotionComplete: state.firstPromotionComplete,
     equipmentInventory: [...state.equipmentInventory],
-    unitEquipment: equipmentFromWeapons(state.unitWeapons),
-    mercenaryPatrolWon: v3.mercenaryPatrolWon ?? false,
-    commanderChoiceUnlocked: v3.commanderChoiceUnlocked ?? false,
-    commanderPathId: v3.commanderPathId ?? null,
-    refugeeCampSecured: false,
-    buildingLevels: defaultBuildings(
-      state.settlementUpgraded,
-      state.forgeUnlocked,
-      v3.commanderPathId ?? null
-    ),
+    unitEquipment,
+    mercenaryPatrolWon: hasCommander ? state.mercenaryPatrolWon : false,
+    commanderChoiceUnlocked: hasCommander ? state.commanderChoiceUnlocked : false,
+    commanderPathId,
+    refugeeCampSecured: hasLoadouts ? state.refugeeCampSecured : false,
+    buildingLevels: hasLoadouts
+      ? { ...state.buildingLevels }
+      : defaultBuildings(
+          state.settlementUpgraded,
+          state.forgeUnlocked,
+          commanderPathId
+        ),
     fourthRecruitChoiceAvailable: false,
     fourthRecruitChosen: false,
     unlockedResourceSites: [],
