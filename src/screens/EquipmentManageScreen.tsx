@@ -4,7 +4,7 @@ import { getEquipment } from '../game/equipment';
 import { useGame } from '../game/GameProvider';
 import type { EquipmentSlot, ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, PrimaryButton, SectionTitle } from '../ui/components';
+import { GameCard, Pill, PrimaryButton, ResourceAmountRow, SectionTitle, StatusPill } from '../ui/components';
 import { EquipmentSprite, UnitSprite } from '../ui/gameArt';
 
 type ViewMode = 'loadout' | 'forge' | 'promotion';
@@ -16,14 +16,6 @@ const slotLabels: Record<EquipmentSlot, string> = {
   shield: 'Shield',
   mount: 'Mount',
   artifact: 'Artifact'
-};
-
-const resourceIcons: Record<keyof ResourceWallet, string> = {
-  gold: '🪙',
-  wood: '🪵',
-  stone: '🪨',
-  iron: '⛓',
-  provisions: '🍞'
 };
 
 export function EquipmentManageScreen({
@@ -116,11 +108,6 @@ export function EquipmentManageScreen({
       return resources[resourceKey] >= (amount ?? 0);
     });
 
-  const formatCost = (cost: Partial<ResourceWallet>) =>
-    Object.entries(cost)
-      .map(([key, amount]) => resourceIcons[key as keyof ResourceWallet] + ' ' + String(amount))
-      .join('  ');
-
   const handleEquip = (itemId: string) => {
     setMessage(equipEquipment(unitId, itemId) ? 'Equipment assigned.' : 'Could not equip that item.');
   };
@@ -136,7 +123,7 @@ export function EquipmentManageScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={factionAccent}>
+      <GameCard accent={factionAccent} faction={activeFaction}>
         <View style={styles.heroRow}>
           <View style={[styles.portrait, { borderColor: factionAccent }]}>
             <UnitSprite className={unit.className} faction={unit.faction} size={54} />
@@ -180,7 +167,13 @@ export function EquipmentManageScreen({
             {slotOrder.map(slot => {
               const item = loadout[slot] ? getEquipment(loadout[slot]!) : null;
               return (
-                <GameCard key={slot} style={styles.slotCard} accent={item ? theme.colors.gold : undefined}>
+                <GameCard
+                  key={slot}
+                  style={styles.slotCard}
+                  faction={activeFaction}
+                  state={item ? 'selected' : 'default'}
+                  accent={item ? theme.colors.gold : undefined}
+                >
                   <Text style={[styles.slotLabel, { color: theme.colors.textMuted }]}>{slotLabels[slot].toUpperCase()}</Text>
                   {item ? (
                     <View style={styles.slotArt}>
@@ -206,7 +199,7 @@ export function EquipmentManageScreen({
           {inventoryItems.length > 0 ? (
             <View style={styles.list}>
               {inventoryItems.map((item, index) => (
-                <GameCard key={item.id + '-' + index}>
+                <GameCard key={item.id + '-' + index} faction={activeFaction}>
                   <View style={styles.itemHeader}>
                     <View style={styles.itemCopy}>
                       <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
@@ -263,19 +256,26 @@ export function EquipmentManageScreen({
 
           <View style={styles.list}>
             {craftableBaseItems.map(item => (
-              <GameCard key={item.id}>
+              <GameCard
+                key={item.id}
+                faction={activeFaction}
+                state={canAfford(getEquipmentCraftCost(item)) ? 'default' : 'locked'}
+              >
                 <View style={styles.itemHeader}>
+                  <View style={styles.itemArt}>
+                    <EquipmentSprite equipmentId={item.id} faction={item.faction} size={40} />
+                  </View>
                   <View style={styles.itemCopy}>
                     <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
                     <Text style={[styles.itemMeta, { color: theme.colors.textMuted }]}>
                       Tier {item.tier} · {slotLabels[item.slot]}
                     </Text>
                   </View>
-                  <Text style={[styles.costText, { color: theme.colors.gold }]}>
-                    {formatCost(getEquipmentCraftCost(item))}
-                  </Text>
                 </View>
                 <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>{item.description}</Text>
+                <View style={styles.itemCostRow}>
+                  <ResourceAmountRow values={getEquipmentCraftCost(item)} compact />
+                </View>
                 <View style={styles.button}>
                   <PrimaryButton
                     label={'Craft ' + item.name}
@@ -297,19 +297,22 @@ export function EquipmentManageScreen({
           {upgrades.length > 0 ? (
             <View style={styles.list}>
               {upgrades.map(item => (
-                <GameCard key={item.id} accent={theme.colors.gold}>
+                <GameCard key={item.id} accent={theme.colors.gold} faction={activeFaction} state="selected">
                   <View style={styles.itemHeader}>
+                    <View style={styles.itemArt}>
+                      <EquipmentSprite equipmentId={item.id} faction={item.faction} size={40} />
+                    </View>
                     <View style={styles.itemCopy}>
                       <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
                       <Text style={[styles.itemMeta, { color: theme.colors.textMuted }]}>
                         Upgrade from {getEquipment(item.upgradeFromId ?? '')?.name}
                       </Text>
                     </View>
-                    <Text style={[styles.costText, { color: theme.colors.gold }]}>
-                      {formatCost(getEquipmentCraftCost(item))}
-                    </Text>
                   </View>
                   <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>{item.description}</Text>
+                  <View style={styles.itemCostRow}>
+                    <ResourceAmountRow values={getEquipmentCraftCost(item)} compact />
+                  </View>
                   <View style={styles.button}>
                     <PrimaryButton
                       label={'Upgrade to ' + item.name}
@@ -357,7 +360,12 @@ export function EquipmentManageScreen({
                   academyReady;
 
                 return (
-                  <GameCard key={promotion.id} accent={ready ? theme.colors.primary : undefined}>
+                  <GameCard
+                    key={promotion.id}
+                    faction={activeFaction}
+                    state={ready ? 'ready' : 'locked'}
+                    accent={ready ? theme.colors.primary : undefined}
+                  >
                     <View style={styles.itemHeader}>
                       <View style={styles.itemCopy}>
                         <Text style={[styles.itemName, { color: theme.colors.text }]}>{promotion.toClass}</Text>
@@ -365,7 +373,7 @@ export function EquipmentManageScreen({
                           {promotion.role.toUpperCase()}
                         </Text>
                       </View>
-                      <Pill label={ready ? 'READY' : 'LOCKED'} />
+                      <StatusPill label={ready ? 'READY' : 'LOCKED'} tone={ready ? 'ready' : 'locked'} />
                     </View>
                     <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>{promotion.pitch}</Text>
                     <View style={styles.promotionVisualRow}>
@@ -382,26 +390,41 @@ export function EquipmentManageScreen({
                       </View>
                     </View>
                     <View style={styles.requirements}>
-                      <Text style={[styles.requirement, { color: gearReady ? theme.colors.primary : theme.colors.textMuted }]}>
-                        {gearReady ? '✓' : '○'} Required gear: {promotion.requiredEquippedIds.map(id => getEquipment(id)?.name ?? id).join(' + ')}
-                      </Text>
-                      <Text style={[styles.requirement, { color: barracksReady ? theme.colors.primary : theme.colors.textMuted }]}>
-                        {barracksReady ? '✓' : '○'} {armyName} Lv.{promotion.requiredBarracksLevel}
-                      </Text>
-                      {promotion.requiredForgeLevel > 0 ? (
-                        <Text style={[styles.requirement, { color: forgeReady ? theme.colors.primary : theme.colors.textMuted }]}>
-                          {forgeReady ? '✓' : '○'} {forgeName} Lv.{promotion.requiredForgeLevel}
+                      <View style={styles.requirementRow}>
+                        <StatusPill label={gearReady ? 'DONE' : 'MISSING'} tone={gearReady ? 'done' : 'locked'} />
+                        <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                          Required gear: {promotion.requiredEquippedIds.map(id => getEquipment(id)?.name ?? id).join(' + ')}
                         </Text>
+                      </View>
+                      <View style={styles.requirementRow}>
+                        <StatusPill label={barracksReady ? 'DONE' : 'NEEDED'} tone={barracksReady ? 'done' : 'locked'} />
+                        <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                          {armyName} Lv.{promotion.requiredBarracksLevel}
+                        </Text>
+                      </View>
+                      {promotion.requiredForgeLevel > 0 ? (
+                        <View style={styles.requirementRow}>
+                          <StatusPill label={forgeReady ? 'DONE' : 'NEEDED'} tone={forgeReady ? 'done' : 'locked'} />
+                          <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                            {forgeName} Lv.{promotion.requiredForgeLevel}
+                          </Text>
+                        </View>
                       ) : null}
                       {(promotion.requiredStableLevel ?? 0) > 0 ? (
-                        <Text style={[styles.requirement, { color: stableReady ? theme.colors.primary : theme.colors.textMuted }]}>
-                          {stableReady ? '✓' : '○'} {mountName} Lv.{promotion.requiredStableLevel}
-                        </Text>
+                        <View style={styles.requirementRow}>
+                          <StatusPill label={stableReady ? 'DONE' : 'NEEDED'} tone={stableReady ? 'done' : 'locked'} />
+                          <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                            {mountName} Lv.{promotion.requiredStableLevel}
+                          </Text>
+                        </View>
                       ) : null}
                       {(promotion.requiredOfficerAcademyLevel ?? 0) > 0 ? (
-                        <Text style={[styles.requirement, { color: academyReady ? theme.colors.primary : theme.colors.textMuted }]}>
-                          {academyReady ? '✓' : '○'} Officer Academy Lv.{promotion.requiredOfficerAcademyLevel}
-                        </Text>
+                        <View style={styles.requirementRow}>
+                          <StatusPill label={academyReady ? 'DONE' : 'NEEDED'} tone={academyReady ? 'done' : 'locked'} />
+                          <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                            Officer Academy Lv.{promotion.requiredOfficerAcademyLevel}
+                          </Text>
+                        </View>
                       ) : null}
                     </View>
                     <View style={styles.button}>
@@ -424,7 +447,7 @@ export function EquipmentManageScreen({
           ) : (
             <GameCard>
               <Text style={[styles.emptyText, { color: theme.colors.textMuted }]}>
-                This class has no further branch available in the current prototype.
+                This class has no further branch available in the current progression.
               </Text>
             </GameCard>
           )}
@@ -458,12 +481,13 @@ const styles = StyleSheet.create({
   slotName: { fontSize: 13, fontWeight: '900', marginTop: 4 },
   slotStats: { fontSize: 9, fontWeight: '800', marginTop: 5 },
   list: { gap: 9 },
-  itemHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  itemHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  itemArt: { width: 44, alignItems: 'center', justifyContent: 'center' },
   itemCopy: { flex: 1 },
   itemName: { fontSize: 15, fontWeight: '900' },
   itemMeta: { fontSize: 9.5, fontWeight: '800', marginTop: 2 },
   itemDescription: { fontSize: 10.5, lineHeight: 15, marginTop: 7 },
-  costText: { fontSize: 9.5, fontWeight: '900', textAlign: 'right' },
+  itemCostRow: { marginTop: 9 },
   button: { marginTop: 10 },
   emptyText: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
   explainer: { fontSize: 10.5, lineHeight: 16, paddingHorizontal: 4 },
@@ -472,7 +496,8 @@ const styles = StyleSheet.create({
   promotionGearItem: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   promotionArrow: { fontSize: 18, fontWeight: '900' },
   promotionResult: { width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
-  requirements: { gap: 5, marginTop: 9 },
-  requirement: { fontSize: 9.5, lineHeight: 14, fontWeight: '700' },
+  requirements: { gap: 6, marginTop: 9 },
+  requirementRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  requirement: { flex: 1, fontSize: 9.5, lineHeight: 14, fontWeight: '700' },
   message: { textAlign: 'center', fontSize: 10.5, lineHeight: 16, fontWeight: '800' }
 });

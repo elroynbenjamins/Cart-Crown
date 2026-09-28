@@ -20,25 +20,17 @@ import {
   GameCard,
   Pill,
   PrimaryButton,
+  ResourceAmountRow,
   SecondaryButton,
-  SectionTitle
+  SectionTitle,
+  StatusPill
 } from '../ui/components';
-import { BuildingSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
-
-const resourceIcons: Record<keyof ResourceWallet, string> = {
-  gold: '🪙',
-  wood: '🪵',
-  stone: '🪨',
-  iron: '⛓',
-  provisions: '🍞'
-};
-
-const terrainMarks: Record<string, string> = {
-  grass: '·',
-  high_ground: '⌃',
-  roadside: '═',
-  square: '◇'
-};
+import {
+  BuildingSprite,
+  LockIcon,
+  PlotTerrainSprite,
+  SettlementTerrainBackdrop
+} from '../ui/gameArt';
 
 export function SettlementScreen({ onExit }: { onExit: () => void }) {
   const { theme } = useGameTheme();
@@ -90,14 +82,6 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
   const activeBonusIds = new Set(
     settlementAdjacencyBonuses.map(bonus => bonus.id)
   );
-
-  const formatCost = (cost: Partial<ResourceWallet>) =>
-    Object.entries(cost)
-      .map(
-        ([key, amount]) =>
-          resourceIcons[key as keyof ResourceWallet] + ' ' + String(amount)
-      )
-      .join('  ');
 
   const canAfford = (cost: Partial<ResourceWallet>) =>
     Object.entries(cost).every(([key, amount]) => {
@@ -318,18 +302,17 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                   >
                     {selectedBuildingId ? 'Move here' : 'Empty'}
                   </Text>
-                  <Text
-                    style={[
-                      styles.terrain,
-                      { color: theme.colors.textMuted }
-                    ]}
-                  >
-                    {terrainMarks[plot.terrain] ?? '·'}
-                  </Text>
+                  <View style={styles.terrain}>
+                    <PlotTerrainSprite
+                      terrain={plot.terrain}
+                      color={theme.colors.textMuted}
+                      size={24}
+                    />
+                  </View>
                 </>
               ) : (
                 <>
-                  <Text style={styles.lock}>🔒</Text>
+                  <LockIcon color={theme.colors.textMuted} size={25} />
                   <Text
                     style={[
                       styles.lockText,
@@ -390,11 +373,16 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
           >
             RELOCATE
           </Text>
-          <Text
-            style={[styles.selectionTitle, { color: theme.colors.text }]}
-          >
-            {selectedBuilding.icon} {selectedBuilding.name}
-          </Text>
+          <View style={styles.selectionTitleRow}>
+            <BuildingSprite
+              buildingId={selectedBuilding.id}
+              faction={selectedBuilding.faction}
+              size={38}
+            />
+            <Text style={[styles.selectionTitle, { color: theme.colors.text }]}>
+              {selectedBuilding.name}
+            </Text>
+          </View>
           <Text
             style={[styles.selectionBody, { color: theme.colors.textMuted }]}
           >
@@ -444,11 +432,10 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                           {building.role}
                         </Text>
                       </View>
-                      <Text
-                        style={[styles.cost, { color: theme.colors.gold }]}
-                      >
-                        {formatCost(building.constructionCost)}
-                      </Text>
+                      <ResourceAmountRow
+                        values={building.constructionCost}
+                        compact
+                      />
                     </View>
                     <Text
                       style={[
@@ -527,7 +514,7 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                 >
                   {bonus.name}
                 </Text>
-                <Pill label="ACTIVE" color={theme.colors.primary + '33'} />
+                <StatusPill label="ACTIVE" tone="ready" />
               </View>
               <Text
                 style={[styles.bonusBody, { color: theme.colors.textMuted }]}
