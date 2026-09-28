@@ -12,11 +12,12 @@ import type {
   WagonItemVisualKind
 } from '../game/visualManifest';
 
-export const PRODUCTION_ASSET_PIPELINE_VERSION = 1;
+export const PRODUCTION_ASSET_PIPELINE_VERSION = 2;
 export const PRODUCTION_ASSET_ROOT = 'assets/game';
 
 export type ProductionAssetCategory =
   | 'unit'
+  | 'faction_crest'
   | 'equipment'
   | 'building'
   | 'enemy'
@@ -67,16 +68,34 @@ function spec(
   };
 }
 
-export function unitProductionAsset(faction: FactionId, kind: UnitVisualKind) {
+export function unitProductionAsset(
+  faction: FactionId,
+  className: string,
+  kind: UnitVisualKind
+) {
+  const classSlug = slug(className);
   return spec(
-    'unit.' + faction + '.' + kind,
+    'unit.' + faction + '.' + classSlug,
     'unit',
-    PRODUCTION_ASSET_ROOT + '/units/' + faction + '/' + kind + '.png',
+    PRODUCTION_ASSET_ROOT + '/units/' + faction + '/' + classSlug + '.png',
     256,
     256,
     true,
     10,
-    'Single squad silhouette; centered feet and weapon; no text or baked UI.'
+    'Exact class artwork for ' + className + '. Preserve the ' + kind + ' gameplay silhouette; centered feet and weapon; no text or baked UI.'
+  );
+}
+
+export function factionCrestProductionAsset(faction: FactionId) {
+  return spec(
+    'faction_crest.' + faction,
+    'faction_crest',
+    PRODUCTION_ASSET_ROOT + '/factions/' + faction + '/crest.png',
+    256,
+    256,
+    true,
+    12,
+    'Faction crest only. No text, frame, label or background.'
   );
 }
 
