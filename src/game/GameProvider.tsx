@@ -83,6 +83,7 @@ import type {
 import {
   advancedPromotions,
   equipmentDefinitions,
+  equipmentSatisfiesRequirement,
   getAdvancedPromotionsForClass,
   getEquipment,
   getRecruitPromotionByEquipment,
@@ -111,6 +112,7 @@ import {
   isSettlementPlotUnlocked
 } from './settlement';
 import { sideModes } from './sideModes';
+import { getExpansionCost } from './balance';
 import type {
   AdvancedPromotionDefinition,
   BattleResult,
@@ -790,10 +792,7 @@ export function GameProvider({
     (buildingLevels.barracks ?? 0) >= 2 &&
     (buildingLevels.forge ?? 0) >= 2 &&
     (buildingLevels.wagonwright ?? 0) >= 2 &&
-    resources.gold >= 150 &&
-    resources.wood >= 70 &&
-    resources.stone >= 35 &&
-    resources.iron >= 10;
+    canAfford(resources, getExpansionCost('human', 'fort'));
 
   const factionChapterTwoBossWon =
     activeFaction === 'elf'
@@ -813,10 +812,7 @@ export function GameProvider({
     (buildingLevels[factionBuildingIds.forge] ?? 0) >= 2 &&
     (buildingLevels[factionBuildingIds.logistics] ?? 0) >= 2 &&
     (buildingLevels[factionBuildingIds.command] ?? 0) >= 1 &&
-    resources.gold >= (activeFaction === 'elf' ? 140 : 135) &&
-    resources.wood >= (activeFaction === 'elf' ? 75 : 70) &&
-    resources.stone >= (activeFaction === 'elf' ? 35 : 30) &&
-    resources.iron >= (activeFaction === 'orc' ? 8 : 0);
+    canAfford(resources, getExpansionCost(activeFaction, 'fort'));
 
   const factionChapterThreeBossWon =
     activeFaction === 'elf'
@@ -837,10 +833,7 @@ export function GameProvider({
     (buildingLevels[factionBuildingIds.logistics] ?? 0) >= 3 &&
     (buildingLevels[factionBuildingIds.mount] ?? 0) >= 1 &&
     (buildingLevels[factionBuildingIds.scout] ?? 0) >= 1 &&
-    resources.gold >= (activeFaction === 'elf' ? 245 : 240) &&
-    resources.wood >= (activeFaction === 'elf' ? 115 : 110) &&
-    resources.stone >= (activeFaction === 'elf' ? 75 : 70) &&
-    resources.iron >= (activeFaction === 'elf' ? 10 : 20);
+    canAfford(resources, getExpansionCost(activeFaction, 'town'));
 
   const factionChapterFourBossWon =
     activeFaction === 'elf'
@@ -859,14 +852,11 @@ export function GameProvider({
     (buildingLevels[factionBuildingIds.army] ?? 0) >= 4 &&
     (buildingLevels[factionBuildingIds.forge] ?? 0) >= 4 &&
     (buildingLevels[factionBuildingIds.logistics] ?? 0) >= 4 &&
-    (buildingLevels[factionBuildingIds.command] ?? 0) >= 3 &&
-    (buildingLevels[factionBuildingIds.supply] ?? 0) >= 3 &&
-    (buildingLevels[factionBuildingIds.mount] ?? 0) >= 2 &&
-    (buildingLevels[factionBuildingIds.scout] ?? 0) >= 2 &&
-    resources.gold >= (activeFaction === 'elf' ? 390 : 400) &&
-    resources.wood >= (activeFaction === 'elf' ? 175 : 170) &&
-    resources.stone >= (activeFaction === 'elf' ? 130 : 125) &&
-    resources.iron >= (activeFaction === 'elf' ? 35 : 45);
+    (buildingLevels[factionBuildingIds.command] ?? 0) >= 2 &&
+    (buildingLevels[factionBuildingIds.supply] ?? 0) >= 2 &&
+    (buildingLevels[factionBuildingIds.mount] ?? 0) >= 1 &&
+    (buildingLevels[factionBuildingIds.scout] ?? 0) >= 1 &&
+    canAfford(resources, getExpansionCost(activeFaction, 'stronghold'));
 
   const factionChapterFiveBossWon =
     activeFaction === 'elf'
@@ -885,14 +875,11 @@ export function GameProvider({
     (buildingLevels[factionBuildingIds.army] ?? 0) >= 5 &&
     (buildingLevels[factionBuildingIds.forge] ?? 0) >= 5 &&
     (buildingLevels[factionBuildingIds.logistics] ?? 0) >= 5 &&
-    (buildingLevels[factionBuildingIds.command] ?? 0) >= 4 &&
-    (buildingLevels[factionBuildingIds.supply] ?? 0) >= 4 &&
-    (buildingLevels[factionBuildingIds.mount] ?? 0) >= 3 &&
-    (buildingLevels[factionBuildingIds.scout] ?? 0) >= 3 &&
-    resources.gold >= (activeFaction === 'elf' ? 650 : 660) &&
-    resources.wood >= (activeFaction === 'elf' ? 270 : 260) &&
-    resources.stone >= (activeFaction === 'elf' ? 210 : 200) &&
-    resources.iron >= (activeFaction === 'elf' ? 65 : 80);
+    (buildingLevels[factionBuildingIds.command] ?? 0) >= 3 &&
+    (buildingLevels[factionBuildingIds.supply] ?? 0) >= 3 &&
+    (buildingLevels[factionBuildingIds.mount] ?? 0) >= 2 &&
+    (buildingLevels[factionBuildingIds.scout] ?? 0) >= 2 &&
+    canAfford(resources, getExpansionCost(activeFaction, 'capital'));
 
   const townUpgradeAvailable =
     ironProvostWon && currentWagonStage.id === 'fort';
@@ -904,10 +891,7 @@ export function GameProvider({
     (buildingLevels.wagonwright ?? 0) >= 3 &&
     (buildingLevels.stable ?? 0) >= 1 &&
     (buildingLevels.signal_tower ?? 0) >= 1 &&
-    resources.gold >= 250 &&
-    resources.wood >= 120 &&
-    resources.stone >= 80 &&
-    resources.iron >= 25;
+    canAfford(resources, getExpansionCost('human', 'town'));
 
   const strongholdUpgradeAvailable =
     lordMarshalWon && currentWagonStage.id === 'town';
@@ -917,14 +901,11 @@ export function GameProvider({
     (buildingLevels.barracks ?? 0) >= 4 &&
     (buildingLevels.forge ?? 0) >= 4 &&
     (buildingLevels.wagonwright ?? 0) >= 4 &&
-    (buildingLevels.war_room ?? 0) >= 3 &&
-    (buildingLevels.quartermaster ?? 0) >= 3 &&
-    (buildingLevels.stable ?? 0) >= 2 &&
-    (buildingLevels.signal_tower ?? 0) >= 2 &&
-    resources.gold >= 400 &&
-    resources.wood >= 180 &&
-    resources.stone >= 140 &&
-    resources.iron >= 40;
+    (buildingLevels.war_room ?? 0) >= 2 &&
+    (buildingLevels.quartermaster ?? 0) >= 2 &&
+    (buildingLevels.stable ?? 0) >= 1 &&
+    (buildingLevels.signal_tower ?? 0) >= 1 &&
+    canAfford(resources, getExpansionCost('human', 'stronghold'));
 
   const capitalUpgradeAvailable =
     pretenderGeneralWon && currentWagonStage.id === 'stronghold';
@@ -934,15 +915,12 @@ export function GameProvider({
     (buildingLevels.barracks ?? 0) >= 5 &&
     (buildingLevels.forge ?? 0) >= 5 &&
     (buildingLevels.wagonwright ?? 0) >= 5 &&
-    (buildingLevels.war_room ?? 0) >= 4 &&
-    (buildingLevels.quartermaster ?? 0) >= 4 &&
-    (buildingLevels.stable ?? 0) >= 3 &&
-    (buildingLevels.signal_tower ?? 0) >= 3 &&
-    (buildingLevels.officer_academy ?? 0) >= 2 &&
-    resources.gold >= 650 &&
-    resources.wood >= 280 &&
-    resources.stone >= 220 &&
-    resources.iron >= 70;
+    (buildingLevels.war_room ?? 0) >= 3 &&
+    (buildingLevels.quartermaster ?? 0) >= 3 &&
+    (buildingLevels.stable ?? 0) >= 2 &&
+    (buildingLevels.signal_tower ?? 0) >= 2 &&
+    (buildingLevels.officer_academy ?? 0) >= 1 &&
+    canAfford(resources, getExpansionCost('human', 'capital'));
 
   const gateOfCrownspireWon = Boolean(
     chapterNumber === 5 &&
@@ -956,15 +934,12 @@ export function GameProvider({
     (buildingLevels.barracks ?? 0) >= 5 &&
     (buildingLevels.forge ?? 0) >= 5 &&
     (buildingLevels.wagonwright ?? 0) >= 5 &&
-    (buildingLevels.war_room ?? 0) >= 5 &&
-    (buildingLevels.quartermaster ?? 0) >= 5 &&
-    (buildingLevels.stable ?? 0) >= 4 &&
-    (buildingLevels.signal_tower ?? 0) >= 4 &&
-    (buildingLevels.officer_academy ?? 0) >= 3 &&
-    resources.gold >= 1000 &&
-    resources.wood >= 420 &&
-    resources.stone >= 360 &&
-    resources.iron >= 120;
+    (buildingLevels.war_room ?? 0) >= 4 &&
+    (buildingLevels.quartermaster ?? 0) >= 4 &&
+    (buildingLevels.stable ?? 0) >= 3 &&
+    (buildingLevels.signal_tower ?? 0) >= 3 &&
+    (buildingLevels.officer_academy ?? 0) >= 2 &&
+    canAfford(resources, getExpansionCost('human', 'grand'));
 
   const currentFactionState = useMemo<FactionGameState>(
     () => ({
@@ -1120,8 +1095,13 @@ export function GameProvider({
       }
     };
 
-    await saveCallbackRef.current(nextSnapshot);
-    return true;
+    try {
+      await saveCallbackRef.current(nextSnapshot);
+      return true;
+    } catch {
+      switchingFactionRef.current = false;
+      return false;
+    }
   };
 
   const accrueRegionalProduction = () => {
@@ -3389,13 +3369,9 @@ export function GameProvider({
   const upgradeToFort = () => {
     if (!canUpgradeToFort) return false;
 
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold - 150,
-      wood: previous.wood - 70,
-      stone: previous.stone - 35,
-      iron: previous.iron - 10
-    }));
+    setResources(previous =>
+      payCost(previous, getExpansionCost('human', 'fort'))
+    );
     setWagonStageId('fort');
     setBuildingLevels(previous => ({
       ...previous,
@@ -3415,21 +3391,9 @@ export function GameProvider({
   const upgradeFactionToFort = () => {
     if (!canUpgradeFactionFort) return false;
 
-    setResources(previous => ({
-      ...previous,
-      gold:
-        previous.gold -
-        (activeFaction === 'elf' ? 140 : 135),
-      wood:
-        previous.wood -
-        (activeFaction === 'elf' ? 75 : 70),
-      stone:
-        previous.stone -
-        (activeFaction === 'elf' ? 35 : 30),
-      iron:
-        previous.iron -
-        (activeFaction === 'orc' ? 8 : 0)
-    }));
+    setResources(previous =>
+      payCost(previous, getExpansionCost(activeFaction, 'fort'))
+    );
     setWagonStageId('fort');
     setBuildingLevels(previous => ({
       ...previous,
@@ -3451,13 +3415,9 @@ export function GameProvider({
   const upgradeFactionToTown = () => {
     if (!canUpgradeFactionTown) return false;
 
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold - (activeFaction === 'elf' ? 245 : 240),
-      wood: previous.wood - (activeFaction === 'elf' ? 115 : 110),
-      stone: previous.stone - (activeFaction === 'elf' ? 75 : 70),
-      iron: previous.iron - (activeFaction === 'elf' ? 10 : 20)
-    }));
+    setResources(previous =>
+      payCost(previous, getExpansionCost(activeFaction, 'town'))
+    );
     setWagonStageId('town');
     setBuildingLevels(previous => ({
       ...previous,
@@ -3477,13 +3437,9 @@ export function GameProvider({
   const upgradeFactionToStronghold = () => {
     if (!canUpgradeFactionStronghold) return false;
 
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold - (activeFaction === 'elf' ? 390 : 400),
-      wood: previous.wood - (activeFaction === 'elf' ? 175 : 170),
-      stone: previous.stone - (activeFaction === 'elf' ? 130 : 125),
-      iron: previous.iron - (activeFaction === 'elf' ? 35 : 45)
-    }));
+    setResources(previous =>
+      payCost(previous, getExpansionCost(activeFaction, 'stronghold'))
+    );
     setWagonStageId('stronghold');
     setBuildingLevels(previous => ({
       ...previous,
@@ -3503,13 +3459,9 @@ export function GameProvider({
   const upgradeFactionToCapital = () => {
     if (!canUpgradeFactionCapital) return false;
 
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold - (activeFaction === 'elf' ? 650 : 660),
-      wood: previous.wood - (activeFaction === 'elf' ? 270 : 260),
-      stone: previous.stone - (activeFaction === 'elf' ? 210 : 200),
-      iron: previous.iron - (activeFaction === 'elf' ? 65 : 80)
-    }));
+    setResources(previous =>
+      payCost(previous, getExpansionCost(activeFaction, 'capital'))
+    );
     setWagonStageId('capital');
     setBuildingLevels(previous => ({
       ...previous,
@@ -4243,9 +4195,10 @@ export function GameProvider({
     setKingdomDefenseRuns(previous => previous + 1);
     setResources(previous => ({
       ...previous,
-      gold: previous.gold + (firstClear ? 60 : 35),
-      stone: previous.stone + (firstClear ? 8 : 4),
-      provisions: previous.provisions + 4
+      gold: previous.gold + (firstClear ? 75 : 50),
+      stone: previous.stone + (firstClear ? 10 : 6),
+      iron: previous.iron + (firstClear ? 4 : 2),
+      provisions: previous.provisions + 5
     }));
     accrueRegionalProduction();
 
@@ -4301,13 +4254,9 @@ export function GameProvider({
   const upgradeToTown = () => {
     if (!canUpgradeToTown) return false;
 
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold - 250,
-      wood: previous.wood - 120,
-      stone: previous.stone - 80,
-      iron: previous.iron - 25
-    }));
+    setResources(previous =>
+      payCost(previous, getExpansionCost('human', 'town'))
+    );
     setWagonStageId('town');
     setBuildingLevels(previous => ({
       ...previous,
@@ -4321,13 +4270,9 @@ export function GameProvider({
   const upgradeToStronghold = () => {
     if (!canUpgradeToStronghold) return false;
 
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold - 400,
-      wood: previous.wood - 180,
-      stone: previous.stone - 140,
-      iron: previous.iron - 40
-    }));
+    setResources(previous =>
+      payCost(previous, getExpansionCost('human', 'stronghold'))
+    );
     setWagonStageId('stronghold');
     setBuildingLevels(previous => ({
       ...previous,
@@ -4342,13 +4287,9 @@ export function GameProvider({
   const upgradeToCapital = () => {
     if (!canUpgradeToCapital) return false;
 
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold - 650,
-      wood: previous.wood - 280,
-      stone: previous.stone - 220,
-      iron: previous.iron - 70
-    }));
+    setResources(previous =>
+      payCost(previous, getExpansionCost('human', 'capital'))
+    );
     setWagonStageId('capital');
     setBuildingLevels(previous => ({
       ...previous,
@@ -4455,13 +4396,9 @@ export function GameProvider({
   const upgradeToGrand = () => {
     if (!canUpgradeToGrand) return false;
 
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold - 1000,
-      wood: previous.wood - 420,
-      stone: previous.stone - 360,
-      iron: previous.iron - 120
-    }));
+    setResources(previous =>
+      payCost(previous, getExpansionCost('human', 'grand'))
+    );
     setWagonStageId('grand');
     setChapterNumber(6);
     setChapterNodes(cloneNodes(chapterSixNodes));
@@ -4517,7 +4454,13 @@ export function GameProvider({
     const inventoryIndex = equipmentInventory.indexOf(equipmentId);
     const unit = units.find(candidate => candidate.id === unitId);
 
-    if (!equipment || inventoryIndex < 0 || !unit) return false;
+    if (
+      !equipment ||
+      inventoryIndex < 0 ||
+      !unit ||
+      equipment.faction !== activeFaction ||
+      unit.faction !== activeFaction
+    ) return false;
 
     const currentId = unitEquipment[unitId]?.[equipment.slot] ?? null;
     const currentItem = currentId ? getEquipment(currentId) : null;
@@ -4658,7 +4601,11 @@ export function GameProvider({
       (value): value is string => Boolean(value)
     );
 
-    const meetsGear = promotion.requiredEquippedIds.every(id => equippedIds.includes(id));
+    const meetsGear = promotion.requiredEquippedIds.every(requiredId =>
+      equippedIds.some(equippedId =>
+        equipmentSatisfiesRequirement(equippedId, requiredId)
+      )
+    );
     const meetsBuildings =
       (buildingLevels[factionBuildingIds.army] ?? 0) >=
         promotion.requiredBarracksLevel &&
@@ -4798,12 +4745,14 @@ export function GameProvider({
     accrueRegionalProduction();
     setResources(previous => ({
       ...previous,
-      gold: previous.gold + 35,
+      gold: previous.gold + 40,
       wood:
         previous.wood +
         8 +
         extraWood +
         settlementEffects.expeditionWoodBonus,
+      stone: previous.stone + 2,
+      iron: previous.iron + 1,
       provisions:
         previous.provisions +
         4 +
