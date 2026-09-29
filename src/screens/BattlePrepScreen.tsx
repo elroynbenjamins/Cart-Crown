@@ -15,7 +15,11 @@ import {
   getArmyReadinessProfile,
   getUnitCombatProfile
 } from '../game/balance';
-import { assessBattlePreparation } from '../game/battlePreparation';
+import {
+  assessBattlePreparation,
+  getPreparationEquipmentUnitId
+} from '../game/battlePreparation';
+import type { BattlePreparationFixTarget } from '../game/battlePreparation';
 import {
   evaluateFormationPreset,
   getTacticalAdjustmentAdvice
@@ -42,13 +46,18 @@ import { EnemySprite } from '../ui/gameArt';
 export function BattlePrepScreen({
   encounterId,
   onBegin,
-  onOpenAdjustment
+  onOpenAdjustment,
+  onOpenPreparationFix
 }: {
   encounterId: EncounterId;
   onBegin: () => void;
   onOpenAdjustment?: (
     adjustment: TacticalAdjustmentAdvice,
     presetSlotId: FormationPresetSlotId
+  ) => void;
+  onOpenPreparationFix?: (
+    target: BattlePreparationFixTarget,
+    unitId?: string
   ) => void;
 }) {
   const { theme } = useGameTheme();
@@ -243,6 +252,72 @@ export function BattlePrepScreen({
       : preparation.status === 'risky'
         ? 'available'
         : 'elite';
+  const primaryPreparationConcern =
+    preparationConcerns[0] ?? null;
+  const equipmentFixUnitId =
+    getPreparationEquipmentUnitId(
+      activeUnits,
+      unitEquipment,
+      equipmentDefinitions
+    );
+  const equipmentFixUnit = equipmentFixUnitId
+    ? activeUnits.find(unit => unit.id === equipmentFixUnitId) ?? null
+    : null;
+  const canFullyResupply =
+    resources.provisions >= armyResupplyCost;
+
+  const preparationAction =
+    tacticalGuidance === 'full' &&
+    primaryPreparationConcern
+      ? primaryPreparationConcern.id === 'readiness'
+        ? {
+            label: canFullyResupply
+              ? 'Rest & Resupply · ' +
+                armyResupplyCost +
+                ' provisions'
+              : 'Need ' +
+                armyResupplyCost +
+                ' provisions to recover',
+            disabled: !canFullyResupply,
+            onPress: canFullyResupply
+              ? restAndResupplyArmy
+              : undefined
+          }
+        : primaryPreparationConcern.id === 'squads'
+          ? {
+              label: 'Open Formation · fill squad slot',
+              disabled: false,
+              onPress: () =>
+                onOpenPreparationFix?.('formation')
+            }
+          : primaryPreparationConcern.id === 'rations'
+            ? {
+                label: 'Open Supply Wagon · pack rations',
+                disabled: false,
+                onPress: () =>
+                  onOpenPreparationFix?.('wagon')
+              }
+            : primaryPreparationConcern.id === 'formation'
+              ? {
+                  label: 'Open Formation · review setup',
+                  disabled: false,
+                  onPress: () =>
+                    onOpenPreparationFix?.('formation')
+                }
+              : {
+                  label: equipmentFixUnit
+                    ? 'Open Equipment · ' + equipmentFixUnit.name
+                    : 'Open Equipment',
+                  disabled: !equipmentFixUnitId,
+                  onPress: equipmentFixUnitId
+                    ? () =>
+                        onOpenPreparationFix?.(
+                          'equipment',
+                          equipmentFixUnitId
+                        )
+                    : undefined
+                }
+      : null;
   const marcherDoctrineActive =
     encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
   const loyalistApproachActive =
@@ -609,6 +684,28 @@ export function BattlePrepScreen({
               >
                 Standard shows the overall preparation state and its broad causes; Full Guidance adds the detailed breakdown.
               </Text>
+            ) : null}
+
+            {preparationAction ? (
+              <View style={styles.preparationAction}>
+                <SecondaryButton
+                  label={preparationAction.label}
+                  disabled={
+                    preparationAction.disabled ||
+                    (!preparationAction.onPress &&
+                      primaryPreparationConcern?.id !== 'readiness')
+                  }
+                  onPress={preparationAction.onPress}
+                />
+                <Text
+                  style={[
+                    styles.preparationActionHint,
+                    { color: theme.colors.textMuted }
+                  ]}
+                >
+                  Full Guidance opens the relevant system or performs only the explicitly confirmed recovery action. It never changes a tactical setup automatically.
+                </Text>
+              </View>
             ) : null}
           </View>
         ) : null}
@@ -1528,6 +1625,16 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     lineHeight: 13,
     marginTop: 7
+  },
+  preparationAction: {
+    marginTop: 10,
+    gap: 6
+  },
+  preparationActionHint: {
+    fontSize: 8.2,
+    lineHeight: 12,
+    textAlign: 'center',
+    paddingHorizontal: 5
   },
   unitList: { gap: 8 },
   unitRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
