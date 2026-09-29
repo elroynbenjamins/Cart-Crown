@@ -23,6 +23,8 @@ import type { TacticalAdjustmentAdvice } from '../game/loadoutAnalysis';
 import type { FormationPresetSlotId } from '../game/types';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
+import { getTacticalGuidanceFeatures } from '../game/tacticalGuidance';
+import { usePreferences } from '../preferences/PreferencesProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -49,6 +51,9 @@ export function BattlePrepScreen({
   ) => void;
 }) {
   const { theme } = useGameTheme();
+  const { tacticalGuidance } = usePreferences();
+  const guidanceFeatures =
+    getTacticalGuidanceFeatures(tacticalGuidance);
   const [showBattleDetails, setShowBattleDetails] = React.useState(false);
   const {
     activeFaction,
@@ -239,7 +244,10 @@ export function BattlePrepScreen({
       if (aActive && !bActive) return -1;
       if (bActive && !aActive) return 1;
 
-      if (scoutReport) {
+      if (
+        scoutReport &&
+        guidanceFeatures.sortLoadoutsByFit
+      ) {
         const aScore = presetEvaluations.get(a.slotId)?.score ?? 0;
         const bScore = presetEvaluations.get(b.slotId)?.score ?? 0;
         if (aScore !== bScore) return bScore - aScore;
@@ -267,7 +275,9 @@ export function BattlePrepScreen({
   );
 
   const recommendedPreset =
-    scoutReport && formationPresetOptions.length > 0
+    scoutReport &&
+    guidanceFeatures.showRecommendedLoadout &&
+    formationPresetOptions.length > 0
       ? formationPresetOptions.reduce((best, preset) => {
           if (!best) return preset;
           const bestScore =
@@ -284,6 +294,7 @@ export function BattlePrepScreen({
     : null;
   const tacticalAdjustments =
     scoutReport &&
+    guidanceFeatures.showAdjustmentChecklist &&
     recommendedPreset &&
     recommendedEvaluation &&
     (
@@ -460,7 +471,9 @@ export function BattlePrepScreen({
             tone={hasFood ? 'done' : 'elite'}
           />
         </View>
-        {formationMatchup.result !== 'advantage' && unlockedCounters.length > 0 ? (
+        {guidanceFeatures.showCounterHints &&
+        formationMatchup.result !== 'advantage' &&
+        unlockedCounters.length > 0 ? (
           <Text style={[styles.planHint, { color: theme.colors.gold }]}>
             Counter available · {unlockedCounters.map(shape => shape.layout + ' ' + shape.name).join(' · ')}
           </Text>
@@ -516,7 +529,10 @@ export function BattlePrepScreen({
 
       {formationPresetOptions.length > 0 ? (
         <>
-          {scoutReport && recommendedPreset && recommendedEvaluation ? (
+          {scoutReport &&
+          guidanceFeatures.showRecommendedLoadout &&
+          recommendedPreset &&
+          recommendedEvaluation ? (
             <GameCard
               accent={
                 recommendedEvaluation.rating === 'risky'
@@ -610,8 +626,12 @@ export function BattlePrepScreen({
                         ':' +
                         adjustment.title
                       }
-                      disabled={!onOpenAdjustment}
+                      disabled={
+                        !guidanceFeatures.allowGuidedActions ||
+                        !onOpenAdjustment
+                      }
                       onPress={() =>
+                        guidanceFeatures.allowGuidedActions &&
                         onOpenAdjustment?.(
                           adjustment,
                           recommendedPreset.slotId
@@ -668,7 +688,8 @@ export function BattlePrepScreen({
                           {adjustment.detail}
                         </Text>
                       </View>
-                      {onOpenAdjustment ? (
+                      {guidanceFeatures.allowGuidedActions &&
+                      onOpenAdjustment ? (
                         <Text
                           style={[
                             styles.adjustmentOpen,
@@ -683,7 +704,7 @@ export function BattlePrepScreen({
                 </View>
               ) : null}
             </GameCard>
-          ) : (
+          ) : tacticalGuidance === 'full' ? (
             <Text
               style={[
                 styles.recommendationHint,
@@ -692,12 +713,13 @@ export function BattlePrepScreen({
             >
               Scout Report unlocks full saved-loadout analysis using enemy troop composition.
             </Text>
-          )}
+          ) : null}
 
           <SectionTitle
             title="Tactical loadouts"
             trailing={
-              scoutReport
+              scoutReport &&
+              guidanceFeatures.showFitScores
                 ? 'Scouted fit · shape · roles'
                 : 'Shape · doctrine · positions'
             }
@@ -723,6 +745,7 @@ export function BattlePrepScreen({
                 presetEvaluations.get(preset.slotId) ?? null;
               const recommended =
                 scoutReport &&
+                guidanceFeatures.showRecommendedLoadout &&
                 recommendedPreset?.slotId === preset.slotId;
               const active = presetMatchesCurrent(
                 preset.slotId
@@ -834,7 +857,9 @@ export function BattlePrepScreen({
                       styles.presetSwitchEffect,
                       {
                         color:
-                          scoutReport && evaluation
+                          scoutReport &&
+                          guidanceFeatures.showFitScores &&
+                          evaluation
                             ? evaluation.score >= 58
                               ? theme.colors.primary
                               : evaluation.score < 45
@@ -844,7 +869,9 @@ export function BattlePrepScreen({
                       }
                     ]}
                   >
-                    {scoutReport && evaluation
+                    {scoutReport &&
+                    guidanceFeatures.showFitScores &&
+                    evaluation
                       ? 'Fit ' +
                         evaluation.score +
                         ' · ' +
@@ -857,7 +884,9 @@ export function BattlePrepScreen({
                         ' · received ×' +
                         preview.incomingDamageMultiplier.toFixed(2)}
                   </Text>
-                  {scoutReport && evaluation ? (
+                  {scoutReport &&
+                  guidanceFeatures.showFitScores &&
+                  evaluation ? (
                     <Text
                       style={[
                         styles.presetSwitchRead,
@@ -1060,7 +1089,9 @@ export function BattlePrepScreen({
         <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
           Damage dealt ×{formationMatchup.outgoingDamageMultiplier.toFixed(2)} · Damage received ×{formationMatchup.incomingDamageMultiplier.toFixed(2)}
         </Text>
-        {formationMatchup.result !== 'advantage' && unlockedCounters.length > 0 ? (
+        {guidanceFeatures.showCounterHints &&
+        formationMatchup.result !== 'advantage' &&
+        unlockedCounters.length > 0 ? (
           <Text style={[styles.matchupHint, { color: theme.colors.textMuted }]}>
             Counter available above: {unlockedCounters.map(shape => shape.layout + ' ' + shape.name).join(' · ')}
           </Text>
