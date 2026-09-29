@@ -9,6 +9,7 @@ import {
   MetricTile,
   PrimaryButton,
   ScreenHero,
+  SecondaryButton,
   SectionTitle,
   StatusPill,
   UnitPortrait
@@ -170,7 +171,7 @@ export function ArmyScreen({
 
             {forgeAvailable ? (
               <View style={styles.unitEquipmentButton}>
-                <PrimaryButton
+                <SecondaryButton
                   label="Loadout / Equipment"
                   onPress={() => onOpenEquipment(unit.id)}
                 />
@@ -196,14 +197,17 @@ export function ArmyScreen({
                 : 'Choose one of three ' + faction.name + ' commander paths.'}
             </Text>
             <View style={styles.recruitButton}>
-              <PrimaryButton
-                label={
-                  activeCommanderPath
-                    ? 'Retrain Commander · ' + commanderRespecCost + ' Gold'
-                    : 'Choose Commander Path'
-                }
-                onPress={onOpenCommander}
-              />
+              {activeCommanderPath ? (
+                <SecondaryButton
+                  label={'Retrain Commander · ' + commanderRespecCost + ' Gold'}
+                  onPress={onOpenCommander}
+                />
+              ) : (
+                <PrimaryButton
+                  label="Choose Commander Path"
+                  onPress={onOpenCommander}
+                />
+              )}
             </View>
           </GameCard>
         </>
@@ -256,7 +260,7 @@ export function ArmyScreen({
                 : 'No unassigned equipment. Crafted gear appears here until equipped or used for a promotion.'}
             </Text>
             <View style={styles.recruitButton}>
-              <PrimaryButton
+              <SecondaryButton
                 label={activeFaction === 'human' ? 'Open Field Forge' : 'Open Unit Equipment'}
                 onPress={
                   activeFaction === 'human'
