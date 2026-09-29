@@ -42,6 +42,10 @@ import { FormationTrialScreen } from './screens/FormationTrialScreen';
 import { ForcedBeaconScreen } from './screens/ForcedBeaconScreen';
 import { GrandCouncilScreen } from './screens/GrandCouncilScreen';
 import { KingdomScreen } from './screens/KingdomScreen';
+import {
+  HumanChapterTwoEventScreen,
+  type HumanChapterTwoEventId
+} from './screens/HumanChapterTwoEventScreen';
 import { MarkedRaidersScreen } from './screens/MarkedRaidersScreen';
 import { LastLoyalistsScreen } from './screens/LastLoyalistsScreen';
 import { MarcherEnvoyScreen } from './screens/MarcherEnvoyScreen';
@@ -76,6 +80,7 @@ type FlowScreen =
   | 'equipment'
   | 'commanderChoice'
   | 'refugeeCamp'
+  | 'humanChapterTwoEvent'
   | 'fortMuster'
   | 'timberClaim'
   | 'kingdomDefense'
@@ -142,6 +147,7 @@ const flowTitles: Record<FlowScreen, string> = {
   equipment: 'Equipment',
   commanderChoice: 'Commander Path',
   refugeeCamp: 'Refugee Camp',
+  humanChapterTwoEvent: 'Claim the Road',
   fortMuster: 'Fort Muster',
   timberClaim: 'Timber Claim',
   kingdomDefense: 'Kingdom Defense',
@@ -191,6 +197,8 @@ export function AppShell({
 }) {
   const [active, setActive] = useState<NavId>('kingdom');
   const [flow, setFlow] = useState<FlowScreen | null>(null);
+  const [humanChapterTwoEventId, setHumanChapterTwoEventId] =
+    useState<HumanChapterTwoEventId>('three_roads');
   const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
   const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
@@ -223,6 +231,21 @@ export function AppShell({
       !commanderPathId
     ) {
       setFlow('commanderChoice');
+      return;
+    }
+
+    if (
+      [
+        'toll_captain_result',
+        'ch2_defend_camp_result',
+        'ch2_beyond_fires_result',
+        'ch2_brace_result',
+        'ch2_take_watch_result',
+        'ch2_riders_banner_result'
+      ].includes(lastBattleResult?.id ?? '')
+    ) {
+      setFlow(null);
+      setActive('campaign');
       return;
     }
 
@@ -379,6 +402,18 @@ export function AppShell({
       return (
         <RefugeeCampScreen
           onExit={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'humanChapterTwoEvent') {
+      return (
+        <HumanChapterTwoEventScreen
+          eventId={humanChapterTwoEventId}
+          onComplete={() => {
             setFlow(null);
             setActive('campaign');
           }}
@@ -843,6 +878,14 @@ export function AppShell({
             onStartTollCaptain={() => {
               setActiveEncounterId('toll_captain');
               setFlow('battlePrep');
+            }}
+            onStartHumanChapterTwoEncounter={encounterId => {
+              setActiveEncounterId(encounterId);
+              setFlow('battlePrep');
+            }}
+            onOpenHumanChapterTwoEvent={eventId => {
+              setHumanChapterTwoEventId(eventId);
+              setFlow('humanChapterTwoEvent');
             }}
             onOpenFortMuster={() => setFlow('fortMuster')}
             onStartIronRoad={() => {
