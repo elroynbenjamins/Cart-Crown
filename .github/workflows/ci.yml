@@ -60,6 +60,9 @@ jobs:
       - name: Offensive Siege regression
         run: npm run siege:check
 
+      - name: Relic Hunt regression
+        run: npm run relic-hunt:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 

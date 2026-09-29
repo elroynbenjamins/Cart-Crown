@@ -32,6 +32,7 @@ import { ConcordVaultScreen } from './screens/ConcordVaultScreen';
 import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
 import { SiegeScreen } from './screens/SiegeScreen';
+import { RelicHuntScreen } from './screens/RelicHuntScreen';
 import { FactionCampScreen } from './screens/FactionCampScreen';
 import { FactionChapterTwoEventScreen } from './screens/FactionChapterTwoEventScreen';
 import { FactionChapterThreeEventScreen } from './screens/FactionChapterThreeEventScreen';
@@ -136,6 +137,7 @@ type FlowScreen =
   | 'warTable'
   | 'expedition'
   | 'siege'
+  | 'relicHunt'
   | 'formationTrial'
   | 'settings'
   | 'preparationFix';
@@ -210,6 +212,7 @@ const flowTitles: Record<FlowScreen, string> = {
   warTable: 'War Table',
   expedition: 'Expedition',
   siege: 'Offensive Siege',
+  relicHunt: 'Relic Hunt',
   formationTrial: 'Kingdom Trial',
   settings: 'Settings',
   preparationFix: 'Preparation Fix'
@@ -229,7 +232,7 @@ export function AppShell({
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
   const [formationReturnFlow, setFormationReturnFlow] =
-    useState<'formationTrial' | 'kingdomDefense' | 'expedition' | 'siege' | null>(null);
+    useState<'formationTrial' | 'kingdomDefense' | 'expedition' | 'siege' | 'relicHunt' | null>(null);
   const [wagonReturnFlow, setWagonReturnFlow] =
     useState<'kingdomDefense' | 'expedition' | 'siege' | null>(null);
   const [preparationFixTarget, setPreparationFixTarget] =
@@ -318,6 +321,8 @@ export function AppShell({
       isSideModeUnlocked('expeditions'),
     siegesUnlocked:
       isSideModeUnlocked('sieges'),
+    relicHuntsUnlocked:
+      isSideModeUnlocked('relic_hunts'),
     magicStoryUnlocked: Boolean(
       magicFamilyUnlock &&
       completedStoryGates.includes(
@@ -1254,6 +1259,22 @@ export function AppShell({
       );
     }
 
+    if (flow === 'relicHunt') {
+      return (
+        <RelicHuntScreen
+          onEditFormation={() => {
+            setFormationReturnFlow('relicHunt');
+            setFlow(null);
+            setActive('formation');
+          }}
+          onExit={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'formationTrial') {
       return (
         <FormationTrialScreen
@@ -1557,6 +1578,7 @@ export function AppShell({
             onOpenWarTable={() => setFlow('warTable')}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenSiege={() => setFlow('siege')}
+            onOpenRelicHunt={() => setFlow('relicHunt')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
         );
@@ -1586,7 +1608,9 @@ export function AppShell({
                     ? 'Back to Expedition'
                     : formationReturnFlow === 'siege'
                       ? 'Back to Offensive Siege'
-                      : undefined
+                      : formationReturnFlow === 'relicHunt'
+                        ? 'Back to Relic Hunt'
+                        : undefined
             }
             onReturnToBattlePrep={
               formationGuide
@@ -1752,6 +1776,7 @@ export function AppShell({
     flow === 'warTable' ||
     flow === 'expedition' ||
     flow === 'siege' ||
+    flow === 'relicHunt' ||
     flow === 'formationTrial' ||
     flow === 'settings' ||
     flow === 'preparationFix';

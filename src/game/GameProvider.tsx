@@ -155,6 +155,13 @@ import {
 } from './sieges';
 import type { SiegeRunState } from './sieges';
 import {
+  createRelicHuntRun,
+  getRelicAffinitySnapshot,
+  relicRewards,
+  resolveRelicGuardian
+} from './relicHunts';
+import type { RelicHuntRunState } from './relicHunts';
+import {
   evaluateKingdomTrial,
   isKingdomTrialUnlocked,
   kingdomTrialOrder
@@ -392,6 +399,9 @@ type GameContextValue = {
   siegeRewardChapter: number;
   siegeRewardedRunsThisChapter: number;
   siegeNextRewardMultiplier: 0 | 0.5 | 1;
+  relicHuntRunsCompleted: number;
+  activeRelicHuntRun: RelicHuntRunState | null;
+  relicHuntRewardClaimed: boolean;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions: KingdomTrialId[];
   rewardedAdClaims: RewardedAdClaimState;
@@ -500,6 +510,10 @@ type GameContextValue = {
   ) => boolean;
   abandonSiegeRun: () => void;
   finishSiegeRun: () => boolean;
+  startRelicHuntRun: () => boolean;
+  resolveRelicHuntStage: () => boolean;
+  abandonRelicHuntRun: () => void;
+  finishRelicHuntRun: () => boolean;
   completeFormationTrial: () => boolean;
   completeKingdomTrial: (
     trialId: KingdomTrialId
@@ -849,6 +863,21 @@ export function GameProvider({
   );
   const [siegeRewardedRunsThisChapter, setSiegeRewardedRunsThisChapter] = useState(
     initialFaction.siegeRewardedRunsThisChapter
+  );
+  const [relicHuntRunsCompleted, setRelicHuntRunsCompleted] = useState(
+    initialFaction.relicHuntRunsCompleted
+  );
+  const [activeRelicHuntRun, setActiveRelicHuntRun] = useState<RelicHuntRunState | null>(
+    () => initialFaction.activeRelicHuntRun
+      ? {
+          ...initialFaction.activeRelicHuntRun,
+          affinities: { ...initialFaction.activeRelicHuntRun.affinities },
+          path: [...initialFaction.activeRelicHuntRun.path]
+        }
+      : null
+  );
+  const [relicHuntRewardClaimed, setRelicHuntRewardClaimed] = useState(
+    initialFaction.relicHuntRewardClaimed
   );
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
   const [kingdomTrialCompletions, setKingdomTrialCompletions] = useState<KingdomTrialId[]>(
@@ -1376,6 +1405,28 @@ export function GameProvider({
     ]
   );
 
+  const relicAffinitySnapshot = useMemo(
+    () => {
+      const activeUnits = formation
+        .filter(
+          (unitId): unitId is string =>
+            Boolean(unitId)
+        )
+        .map(unitId =>
+          units.find(unit => unit.id === unitId)
+        )
+        .filter(
+          (unit): unit is UnitDefinition =>
+            Boolean(unit)
+        );
+
+      return getRelicAffinitySnapshot(
+        activeUnits
+      );
+    },
+    [formation, units]
+  );
+
   const siegePreparation = useMemo(
     () =>
       getSiegePreparation({
@@ -1763,6 +1814,9 @@ export function GameProvider({
       activeSiegeRun,
       siegeRewardChapter,
       siegeRewardedRunsThisChapter,
+      relicHuntRunsCompleted,
+      activeRelicHuntRun,
+      relicHuntRewardClaimed,
       formationTrialCompleted,
       kingdomTrialCompletions,
       completedStoryGates,
@@ -6040,8 +6094,13 @@ export function GameProvider({
       );
     }
 
-    // Relic Hunts remain deliberately hidden until their full late-game
-    // progression and reward loop is implemented.
+    if (id === 'relic_hunts') {
+      return (
+        chapterNumber >= 4 &&
+        unlockedFantasyClasses.length > 0
+      );
+    }
+
     return false;
   };
 
@@ -6312,6 +6371,107 @@ export function GameProvider({
       )
     );
     setActiveSiegeRun(null);
+    return true;
+  };
+
+  const startRelicHuntRun = () => {
+    if (
+      !isSideModeUnlocked('relic_hunts') ||
+      activeRelicHuntRun
+    ) {
+      return false;
+    }
+
+    setActiveRelicHuntRun(
+      createRelicHuntRun({
+        readiness: armyReadiness,
+        basePower: expeditionBasePower,
+        playerShapeId: formationShapeId,
+        wagonStageId: currentWagonStage.id,
+        affinities: relicAffinitySnapshot
+      })
+    );
+    return true;
+  };
+
+  const resolveRelicHuntStage = () => {
+    if (!activeRelicHuntRun) return false;
+
+    const result = resolveRelicGuardian({
+      faction: activeFaction,
+      run: activeRelicHuntRun
+    });
+
+    if (!result.ok) return false;
+
+    setActiveRelicHuntRun(result.state);
+    setArmyReadiness(
+      clampArmyReadiness(
+        result.state.readiness
+      )
+    );
+    return true;
+  };
+
+  const abandonRelicHuntRun = () => {
+    setActiveRelicHuntRun(null);
+  };
+
+  const finishRelicHuntRun = () => {
+    if (
+      !activeRelicHuntRun ||
+      !activeRelicHuntRun.completed ||
+      activeRelicHuntRun.failed
+    ) {
+      return false;
+    }
+
+    setRelicHuntRunsCompleted(
+      previous => previous + 1
+    );
+
+    if (!relicHuntRewardClaimed) {
+      const reward =
+        relicRewards[activeFaction];
+
+      setEquipmentInventory(previous =>
+        previous.includes(reward.artifactId)
+          ? previous
+          : [
+              ...previous,
+              reward.artifactId
+            ]
+      );
+
+      setSharedProgress(previous => ({
+        ...previous,
+        cosmetics: previous.cosmetics.includes(
+          reward.cosmeticId
+        )
+          ? previous.cosmetics
+          : [
+              ...previous.cosmetics,
+              reward.cosmeticId
+            ],
+        lore: previous.lore.includes(
+          reward.loreId
+        )
+          ? previous.lore
+          : [
+              ...previous.lore,
+              reward.loreId
+            ]
+      }));
+
+      setRelicHuntRewardClaimed(true);
+    }
+
+    setArmyReadiness(
+      clampArmyReadiness(
+        activeRelicHuntRun.readiness
+      )
+    );
+    setActiveRelicHuntRun(null);
     return true;
   };
 
@@ -6864,6 +7024,9 @@ export function GameProvider({
       siegeRewardChapter,
       siegeRewardedRunsThisChapter,
       siegeNextRewardMultiplier,
+      relicHuntRunsCompleted,
+      activeRelicHuntRun,
+      relicHuntRewardClaimed,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,
@@ -6946,6 +7109,10 @@ export function GameProvider({
       resolveSiegeStageChoice,
       abandonSiegeRun,
       finishSiegeRun,
+      startRelicHuntRun,
+      resolveRelicHuntStage,
+      abandonRelicHuntRun,
+      finishRelicHuntRun,
       completeFormationTrial,
       completeKingdomTrial,
       claimRewardedAd,
@@ -7081,6 +7248,9 @@ export function GameProvider({
       siegeRewardChapter,
       siegeRewardedRunsThisChapter,
       siegeNextRewardMultiplier,
+      relicHuntRunsCompleted,
+      activeRelicHuntRun,
+      relicHuntRewardClaimed,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,

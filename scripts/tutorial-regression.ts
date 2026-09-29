@@ -57,6 +57,7 @@ function baseContext(
     kingdomDefenseModeUnlocked: false,
     expeditionsUnlocked: false,
     siegesUnlocked: false,
+    relicHuntsUnlocked: false,
     magicStoryUnlocked: false,
     flyingStoryUnlocked: false,
     largeStoryUnlocked: false,
@@ -615,6 +616,44 @@ function runSystemCoverage() {
       expeditionsUnlocked: true,
       siegesUnlocked: true
     })
+  );
+
+  expect(
+    sieges?.key === 'system:sieges',
+    'Offensive Siege lesson did not wait for its Chapter 3 progression gate.'
+  );
+
+  const relicHunts = getNextTutorialMoment(
+    baseContext({
+      view: 'campaign',
+      tutorialSeen: [
+        ...core,
+        'system:war-table',
+        'system:kingdom-trials',
+        'system:kingdom-defense-repeatable',
+        'system:expeditions',
+        'system:sieges'
+      ],
+      warTableUnlocked: true,
+      kingdomTrialsUnlocked: true,
+      kingdomDefenseModeUnlocked: true,
+      expeditionsUnlocked: true,
+      siegesUnlocked: true,
+      relicHuntsUnlocked: true
+    })
+  );
+
+  expect(
+    relicHunts?.key ===
+      'system:relic-hunts',
+    'Relic Hunt lesson did not trigger after its fantasy-class progression gate.'
+  );
+  expect(
+    relicHunts?.focusAfterPrimary?.kind ===
+      'campaign-activities' &&
+      relicHunts.focusAfterPrimary.modeId ===
+        'relic_hunts',
+    'Relic Hunt lesson does not route to the new activity.'
   );
   expect(
     sieges?.key === 'system:sieges',

@@ -99,6 +99,7 @@ export function CampaignScreen({
   onOpenWarTable,
   onOpenExpedition,
   onOpenSiege,
+  onOpenRelicHunt,
   onOpenFormationTrial,
   tutorialFocus,
   onTutorialFocusComplete
@@ -177,6 +178,7 @@ export function CampaignScreen({
   onOpenWarTable: () => void;
   onOpenExpedition: () => void;
   onOpenSiege: () => void;
+  onOpenRelicHunt: () => void;
   onOpenFormationTrial: () => void;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
@@ -214,6 +216,9 @@ export function CampaignScreen({
     activeExpeditionRun,
     siegeRunsCompleted,
     activeSiegeRun,
+    relicHuntRunsCompleted,
+    activeRelicHuntRun,
+    relicHuntRewardClaimed,
     warTableCycle,
     warTableCompletedContractIds,
     kingdomTrialCompletions,
@@ -266,6 +271,7 @@ export function CampaignScreen({
         onOpenWarTable={onOpenWarTable}
         onOpenExpedition={onOpenExpedition}
         onOpenSiege={onOpenSiege}
+        onOpenRelicHunt={onOpenRelicHunt}
         onOpenFormationTrial={onOpenFormationTrial}
         onOpenKingdomDefense={onOpenKingdomDefense}
         tutorialFocus={tutorialFocus}
@@ -862,7 +868,8 @@ export function CampaignScreen({
         'formation_trials',
         'kingdom_defense',
         'expeditions',
-        'sieges'
+        'sieges',
+        'relic_hunts'
       ].includes(mode.id) &&
       isSideModeUnlocked(mode.id)
   );
@@ -873,6 +880,7 @@ export function CampaignScreen({
     if (id === 'war_table') onOpenWarTable();
     if (id === 'expeditions') onOpenExpedition();
     if (id === 'sieges') onOpenSiege();
+    if (id === 'relic_hunts') onOpenRelicHunt();
     if (id === 'formation_trials') onOpenFormationTrial();
     if (id === 'kingdom_defense') onOpenKingdomDefense();
   };
@@ -942,6 +950,22 @@ export function CampaignScreen({
             </Text>
           ) : null}
 
+          {mode.id === 'relic_hunts' ? (
+            <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
+              {activeRelicHuntRun
+                ? activeRelicHuntRun.completed
+                  ? 'Relic secured · reward ready'
+                  : activeRelicHuntRun.failed
+                    ? 'Chain broken · return to close it'
+                    : 'Hunt active · Guardian ' +
+                      (activeRelicHuntRun.stageIndex + 1) +
+                      '/3'
+                : relicHuntRewardClaimed
+                  ? relicHuntRunsCompleted + ' clears · unique relic claimed'
+                  : 'Unique relic reward available'}
+            </Text>
+          ) : null}
+
           {mode.id === 'formation_trials' ? (
             <View style={styles.modeStatusRow}>
               <StatusPill
@@ -981,7 +1005,10 @@ export function CampaignScreen({
                   : mode.id === 'sieges' &&
                       activeSiegeRun
                     ? 'Resume Siege'
-                    : 'Open ' + mode.name
+                    : mode.id === 'relic_hunts' &&
+                        activeRelicHuntRun
+                      ? 'Resume Relic Hunt'
+                      : 'Open ' + mode.name
               }
               onPress={() => openMode(mode.id)}
             />
