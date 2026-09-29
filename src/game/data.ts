@@ -18,13 +18,13 @@ export const starterResources: ResourceWallet = {
 };
 
 export const wagonStages: WagonStage[] = [
-  { id: 'camp', name: 'Camp Frame', width: 4, height: 4, formationSlots: 2 },
-  { id: 'settlement', name: 'Settlement Bed', width: 4, height: 5, formationSlots: 3 },
-  { id: 'fort', name: 'Fort Frame', width: 5, height: 5, formationSlots: 4 },
-  { id: 'town', name: 'Town Chassis', width: 5, height: 6, formationSlots: 5 },
-  { id: 'stronghold', name: 'Stronghold Wagon', width: 6, height: 7, formationSlots: 6 },
-  { id: 'capital', name: 'Capital Wagon', width: 7, height: 8, formationSlots: 6 },
-  { id: 'grand', name: 'Grand Campaign Expansion', width: 7, height: 9, formationSlots: 6 }
+  { id: 'camp', name: 'Worn Pack', width: 4, height: 4, formationSlots: 3 },
+  { id: 'settlement', name: 'Pack Gear', width: 4, height: 5, formationSlots: 5 },
+  { id: 'fort', name: 'Handcart', width: 5, height: 5, formationSlots: 7 },
+  { id: 'town', name: 'Supply Cart', width: 5, height: 6, formationSlots: 9 },
+  { id: 'stronghold', name: 'Campaign Wagon', width: 6, height: 7, formationSlots: 9 },
+  { id: 'capital', name: 'Royal Wagon', width: 7, height: 8, formationSlots: 9 },
+  { id: 'grand', name: 'Kingdom Caravan', width: 7, height: 9, formationSlots: 9 }
 ];
 
 export const formationUnlockOrder = [1, 4, 0, 3, 2, 5];
@@ -56,6 +56,48 @@ export const starterUnits: UnitDefinition[] = [
     armor: 3,
     speed: 10,
     promotionReady: false
+  },
+  {
+    id: 'hum_hunter',
+    name: 'Edric',
+    className: 'Hunter',
+    faction: 'human',
+    role: 'ranged',
+    tier: 1,
+    level: 1,
+    hp: 78,
+    attack: 11,
+    armor: 2,
+    speed: 11
+  }
+];
+
+export const humanRefugeeReinforcements: UnitDefinition[] = [
+  {
+    id: 'hum_refugee_scout',
+    name: 'Caleb',
+    className: 'Scout',
+    faction: 'human',
+    role: 'skirmish',
+    tier: 1,
+    level: 2,
+    hp: 90,
+    attack: 11,
+    armor: 3,
+    speed: 14
+  },
+  {
+    id: 'hum_refugee_spear',
+    name: 'Bren',
+    className: 'Spearman',
+    faction: 'human',
+    role: 'frontline',
+    tier: 1,
+    level: 2,
+    hp: 96,
+    attack: 11,
+    armor: 5,
+    speed: 9
   }
 ];
 
