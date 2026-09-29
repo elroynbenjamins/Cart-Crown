@@ -547,7 +547,7 @@ function systemMoment(
 
   if (
     (stageRank[context.wagonStageId] ?? 0) >= 2 &&
-    ['formation', 'battlePrep'].includes(context.view) &&
+    context.view === 'formation' &&
     !seen(context, 'system:advanced-formations')
   ) {
     return {
@@ -609,6 +609,15 @@ export function getNextTutorialMoment(
     buildingMoment(context) ??
     system
   );
+}
+
+export function getTutorialCompletionKeys(
+  tutorialKey: string,
+  focus: TutorialFocusTarget | null
+) {
+  return focus?.kind === 'formation-unit'
+    ? [tutorialKey, 'system:formation']
+    : [tutorialKey];
 }
 
 export function shouldRequestChapterOneReview({
