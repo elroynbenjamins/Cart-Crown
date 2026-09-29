@@ -1,77 +1,72 @@
 import type {
   ChapterNode,
-  RecruitOption,
-  ResourceSiteDefinition
+  ResourceSiteDefinition,
+  UnitDefinition
 } from './types';
 
 export const chapterTwoNodes: ChapterNode[] = [
-  { id: 'ch2_node_1', name: 'Fort Muster', type: 'event', completed: false, current: true },
-  { id: 'ch2_node_2', name: 'Iron Road Skirmish', type: 'battle', completed: false },
-  { id: 'ch2_node_3', name: 'Timber Claim', type: 'event', completed: false },
-  { id: 'ch2_node_4', name: 'Kingdom Defense', type: 'elite', completed: false },
-  { id: 'ch2_node_5', name: 'Broken Signal Tower', type: 'event', completed: false },
-  { id: 'ch2_node_6', name: 'The Iron Provost', type: 'boss', completed: false }
+  { id: 'ch2_node_1', name: 'They Found Us', type: 'battle', completed: false, current: true },
+  { id: 'ch2_node_2', name: 'Beyond the Fires', type: 'battle', completed: false },
+  { id: 'ch2_node_3', name: 'Three Roads', type: 'event', completed: false },
+  { id: 'ch2_node_4', name: 'Horse and Rider', type: 'event', completed: false },
+  { id: 'ch2_node_5', name: 'Brace!', type: 'elite', completed: false },
+  { id: 'ch2_node_6', name: 'The Long Haul', type: 'supply', completed: false },
+  { id: 'ch2_node_7', name: 'Those Who Remain', type: 'event', completed: false },
+  { id: 'ch2_node_8', name: 'Take the Watch', type: 'elite', completed: false },
+  { id: 'ch2_node_9', name: 'Build Something Worth Defending', type: 'event', completed: false },
+  { id: 'ch2_node_10', name: "The Rider's Banner", type: 'boss', completed: false }
 ];
 
-export const fortMusterOptions: RecruitOption[] = [
-  {
-    id: 'crossbowman',
-    archetype: 'Burst Ranged',
-    pitch: 'Heavy ranged damage with slower initiative. Excellent behind a protected Human line.',
-    tradeoff: 'Less mobile than Archer/Ranger builds.',
-    unit: {
-      id: 'hum_crossbow_reinforcement',
-      name: 'Garrick',
-      className: 'Crossbowman',
-      faction: 'human',
-      role: 'ranged',
-      tier: 2,
-      level: 3,
-      hp: 100,
-      attack: 18,
-      armor: 5,
-      speed: 8
-    }
+export const chapterTwoSupportUnit: UnitDefinition = {
+  id: 'hum_banner_sergeant',
+  name: 'Aldric',
+  className: 'Banner Sergeant',
+  faction: 'human',
+  role: 'support',
+  tier: 2,
+  level: 3,
+  hp: 104,
+  attack: 10,
+  armor: 6,
+  speed: 9
+};
+
+export const chapterTwoDiplomacyUnits: Record<
+  'protect' | 'contract' | 'allegiance',
+  UnitDefinition
+> = {
+  protect: {
+    ...chapterTwoSupportUnit,
+    id: 'hum_banner_sergeant',
+    name: 'Aldric'
   },
-  {
-    id: 'man_at_arms',
-    archetype: 'Heavy Frontline',
-    pitch: 'A durable professional infantry squad that immediately strengthens defensive formations.',
-    tradeoff: 'Slow and provides little ranged pressure.',
-    unit: {
-      id: 'hum_man_at_arms_reinforcement',
-      name: 'Roland',
-      className: 'Man-at-Arms',
-      faction: 'human',
-      role: 'frontline',
-      tier: 2,
-      level: 3,
-      hp: 125,
-      attack: 14,
-      armor: 9,
-      speed: 7
-    }
+  contract: {
+    id: 'hum_road_warden',
+    name: 'Merrin',
+    className: 'Road Warden',
+    faction: 'human',
+    role: 'support',
+    tier: 2,
+    level: 3,
+    hp: 98,
+    attack: 11,
+    armor: 5,
+    speed: 11
   },
-  {
-    id: 'fort_scout',
-    archetype: 'Cavalry Potential',
-    pitch: 'Fast scout who can become a Scout Rider by assigning a Trained Horse from the new Stable.',
-    tradeoff: 'Starts weaker than the specialized Crossbowman or Man-at-Arms.',
-    unit: {
-      id: 'hum_fort_scout',
-      name: 'Rowan',
-      className: 'Scout',
-      faction: 'human',
-      role: 'skirmish',
-      tier: 2,
-      level: 3,
-      hp: 100,
-      attack: 13,
-      armor: 5,
-      speed: 15
-    }
+  allegiance: {
+    id: 'hum_veteran_standard',
+    name: 'Oswin',
+    className: 'Veteran Standard',
+    faction: 'human',
+    role: 'support',
+    tier: 2,
+    level: 3,
+    hp: 112,
+    attack: 9,
+    armor: 8,
+    speed: 8
   }
-];
+};
 
 export const humanResourceSites: ResourceSiteDefinition[] = [
   {
