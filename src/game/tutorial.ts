@@ -36,6 +36,7 @@ export type TutorialFocusTarget =
   | { kind: 'settlement-first-plot'; label: string }
   | { kind: 'settlement-building'; buildingId: string; label: string }
   | { kind: 'forge-craft'; label: string }
+  | { kind: 'army-equipment'; label: string }
   | { kind: 'kingdom-production'; label: string };
 
 export type TutorialMoment = {
@@ -441,11 +442,31 @@ function systemMoment(
   }
 
   if (
-    context.forgeUnlocked &&
     context.forgeLevel > 0 &&
+    (
+      context.faction !== 'human' ||
+      context.forgeUnlocked
+    ) &&
     ['kingdom', 'army'].includes(context.view) &&
     !seen(context, 'system:forge')
   ) {
+    if (context.faction !== 'human') {
+      return {
+        key: 'system:forge',
+        kind: 'system',
+        eyebrow: 'SYSTEM UNLOCKED',
+        title: 'Equipment is now available',
+        body:
+          'Your faction forge enables equipment progression for individual squads. Gear changes stats and later class branches, but you do not need to buy something immediately just because it unlocked.',
+        primaryLabel: 'Show Unit Equipment',
+        target: 'army',
+        focusAfterPrimary: {
+          kind: 'army-equipment',
+          label: 'OPEN UNIT EQUIPMENT'
+        }
+      };
+    }
+
     return {
       key: 'system:forge',
       kind: 'system',
