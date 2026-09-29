@@ -702,7 +702,7 @@ export function KingdomDefenseScreen({
                   : power.matchup.result ===
                       'disadvantage'
                     ? 'danger'
-                    : 'neutral'
+                    : 'current'
               }
             />
           </View>
