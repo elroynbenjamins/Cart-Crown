@@ -404,11 +404,11 @@ function defenseReward(
   const first = !state.defenseCompleted;
   return add(
     {
-      gold: first ? 75 : 50,
-      wood: 0,
+      gold: first ? 85 : 60,
+      wood: first ? 10 : 8,
       stone: first ? 10 : 6,
       iron: first ? 4 : 2,
-      provisions: 5
+      provisions: first ? 6 : 5
     },
     productionFor(state)
   );
