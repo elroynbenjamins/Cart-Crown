@@ -10,6 +10,7 @@ import {
   Pill,
   PrimaryButton,
   ScreenHero,
+  SecondaryButton,
   SectionTitle,
   StatusPill
 } from '../ui/components';
@@ -680,7 +681,7 @@ export function FactionOpeningCampaignScreen({
                 ) : null}
                 {unlocked ? (
                   <View style={styles.switchButton}>
-                    <PrimaryButton
+                    <SecondaryButton
                       label={'Open ' + mode.name}
                       onPress={() => {
                         if (tutorialActivityFocused) {
@@ -758,7 +759,7 @@ export function FactionOpeningCampaignScreen({
 
               {availability?.unlocked && !current ? (
                 <View style={styles.switchButton}>
-                  <PrimaryButton
+                  <SecondaryButton
                     label={
                       stateExists
                         ? 'Switch to ' + definition.name
