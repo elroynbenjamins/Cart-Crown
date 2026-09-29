@@ -391,6 +391,58 @@ function getEquipmentFactor(
   };
 }
 
+export type BattlePreparationFixTarget =
+  | 'formation'
+  | 'wagon'
+  | 'equipment';
+
+export function getPreparationEquipmentUnitId(
+  activeUnits: UnitDefinition[],
+  unitEquipment: Record<string, UnitEquipmentLoadout>,
+  equipmentDefinitions: EquipmentDefinition[]
+) {
+  if (activeUnits.length === 0) return null;
+
+  const equipmentById = new Map(
+    equipmentDefinitions.map(item => [item.id, item])
+  );
+
+  const ranked = activeUnits.map((unit, index) => {
+    const items = Object.values(
+      unitEquipment[unit.id] ?? {}
+    )
+      .map(id => (id ? equipmentById.get(id) : null))
+      .filter(
+        (item): item is EquipmentDefinition =>
+          Boolean(item)
+      );
+    const averageTier =
+      items.length > 0
+        ? items.reduce((sum, item) => sum + item.tier, 0) /
+          items.length
+        : 0;
+
+    return {
+      unitId: unit.id,
+      index,
+      itemCount: items.length,
+      averageTier
+    };
+  });
+
+  ranked.sort((a, b) => {
+    if (a.itemCount !== b.itemCount) {
+      return a.itemCount - b.itemCount;
+    }
+    if (a.averageTier !== b.averageTier) {
+      return a.averageTier - b.averageTier;
+    }
+    return a.index - b.index;
+  });
+
+  return ranked[0]?.unitId ?? null;
+}
+
 export function assessBattlePreparation({
   activeUnits,
   squadCap,
