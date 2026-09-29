@@ -14,6 +14,8 @@ import {
   UnitPortrait
 } from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 const rowNotes = {
   front: '+Armor / threat',
@@ -29,11 +31,15 @@ export type FormationGuide = {
 export function FormationScreen({
   guide,
   onClearGuide,
-  onReturnToBattlePrep
+  onReturnToBattlePrep,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   guide?: FormationGuide | null;
   onClearGuide?: () => void;
   onReturnToBattlePrep?: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 } = {}) {
   const { theme } = useGameTheme();
   const {
@@ -221,8 +227,24 @@ export function FormationScreen({
         setSelectedUnitId(null);
         return;
       }
-      if (moveFormationUnit(selectedUnitId, slot)) {
+
+      const selectedIsActive =
+        formation.includes(selectedUnitId);
+      const changed = selectedIsActive
+        ? moveFormationUnit(selectedUnitId, slot)
+        : placeFormationUnit(selectedUnitId, slot);
+
+      if (changed) {
         setSelectedUnitId(null);
+        if (
+          tutorialFocus?.kind === 'formation-basics' ||
+          (
+            tutorialFocus?.kind === 'formation-unit' &&
+            tutorialFocus.unitId === selectedUnitId
+          )
+        ) {
+          onTutorialFocusComplete?.();
+        }
       }
       return;
     }
@@ -237,6 +259,35 @@ export function FormationScreen({
     { key: 'middle' as const, label: 'MIDDLE', slots: activeFormationShape.rows.middle },
     { key: 'rear' as const, label: 'REAR', slots: activeFormationShape.rows.rear }
   ];
+
+  const tutorialUnitFocusId =
+    tutorialFocus?.kind === 'formation-unit'
+      ? tutorialFocus.unitId
+      : tutorialFocus?.kind === 'formation-basics' &&
+          !selectedUnitId
+        ? formation.find(
+            (unitId): unitId is string =>
+              Boolean(unitId)
+          ) ?? null
+        : null;
+
+  const tutorialSlotFocus =
+    selectedUnitId &&
+    (
+      tutorialFocus?.kind === 'formation-basics' ||
+      (
+        tutorialFocus?.kind === 'formation-unit' &&
+        tutorialFocus.unitId === selectedUnitId &&
+        !formation.includes(selectedUnitId)
+      )
+    )
+      ? activeFormationShape.rows.front
+          .concat(
+            activeFormationShape.rows.middle,
+            activeFormationShape.rows.rear
+          )
+          .find(slot => !formation[slot]) ?? null
+      : null;
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -497,10 +548,32 @@ export function FormationScreen({
           const unlocked = unlockedAtStage(shape.unlock);
 
           return (
-            <Pressable
+            <TutorialFocus
               key={shape.id}
+              active={
+                tutorialFocus?.kind === 'formation-shape' &&
+                unlocked &&
+                !selected
+              }
+              label={
+                tutorialFocus?.kind === 'formation-shape' &&
+                unlocked &&
+                !selected
+                  ? tutorialFocus.label
+                  : undefined
+              }
+            >
+            <Pressable
               disabled={!unlocked}
-              onPress={() => setFormationShape(shape.id)}
+              onPress={() => {
+                const changed = setFormationShape(shape.id);
+                if (
+                  changed &&
+                  tutorialFocus?.kind === 'formation-shape'
+                ) {
+                  onTutorialFocusComplete?.();
+                }
+              }}
               style={({ pressed }) => [
                 styles.shapeCard,
                 {
@@ -536,6 +609,7 @@ export function FormationScreen({
                 Risk: {shape.risk}
               </Text>
             </Pressable>
+            </TutorialFocus>
           );
         })}
       </ScrollView>
@@ -561,8 +635,16 @@ export function FormationScreen({
                   const selected = Boolean(unit && selectedUnitId === unit.id);
 
                   return (
-                    <Pressable
+                    <TutorialFocus
                       key={slot}
+                      active={tutorialSlotFocus === slot}
+                      label={
+                        tutorialSlotFocus === slot
+                          ? 'PLACE HERE'
+                          : undefined
+                      }
+                    >
+                    <Pressable
                       onPress={() => handleSlot(slot, unitId)}
                       style={[
                         styles.slot,
@@ -621,6 +703,7 @@ export function FormationScreen({
                         <Text style={[styles.emptyLabel, { color: theme.colors.textMuted }]}>Empty</Text>
                       )}
                     </Pressable>
+                    </TutorialFocus>
                   );
                 })}
               </View>
@@ -696,12 +779,43 @@ export function FormationScreen({
           const active = formation.includes(unit.id);
           const selected = selectedUnitId === unit.id;
 
+          const canSelectReserve =
+            !active && activeCount < activeSquadCap;
+          const tutorialUnitFocused =
+            tutorialUnitFocusId === unit.id;
+
           return (
-            <Pressable
+            <TutorialFocus
               key={unit.id}
-              disabled={!active}
-              onPress={() => setSelectedUnitId(selected ? null : unit.id)}
-              style={({ pressed }) => ({ opacity: pressed ? 0.82 : active ? 1 : 0.55 })}
+              active={tutorialUnitFocused}
+              label={
+                tutorialUnitFocused
+                  ? tutorialFocus?.label
+                  : undefined
+              }
+            >
+            <Pressable
+              disabled={!active && !canSelectReserve}
+              onPress={() => {
+                const nextSelected =
+                  selected ? null : unit.id;
+                setSelectedUnitId(nextSelected);
+
+                if (
+                  tutorialUnitFocused &&
+                  active &&
+                  tutorialFocus?.kind === 'formation-unit'
+                ) {
+                  onTutorialFocusComplete?.();
+                }
+              }}
+              style={({ pressed }) => ({
+                opacity: pressed
+                  ? 0.82
+                  : active || canSelectReserve
+                    ? 1
+                    : 0.55
+              })}
             >
               <GameCard
                 accent={
@@ -731,6 +845,7 @@ export function FormationScreen({
                 </View>
               </GameCard>
             </Pressable>
+            </TutorialFocus>
           );
         })}
       </View>

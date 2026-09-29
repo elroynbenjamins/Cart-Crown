@@ -31,8 +31,18 @@ import {
   PlotTerrainSprite,
   SettlementTerrainBackdrop
 } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
-export function SettlementScreen({ onExit }: { onExit: () => void }) {
+export function SettlementScreen({
+  onExit,
+  tutorialFocus,
+  onTutorialFocusComplete
+}: {
+  onExit: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
+}) {
   const { theme } = useGameTheme();
   const {
     activeFaction,
@@ -78,6 +88,22 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
       isBuildingUnlocked(building.id) &&
       !placedIds.includes(building.id)
   );
+
+  const guidedPlotId =
+    (
+      tutorialFocus?.kind === 'settlement-first-plot' ||
+      tutorialFocus?.kind === 'settlement-building'
+    ) &&
+    !selectedPlotId
+      ? settlementPlots.find(
+          plot =>
+            isSettlementPlotUnlocked(
+              plot,
+              currentWagonStage.id
+            ) &&
+            !buildingPlacements[plot.id]
+        )?.id ?? null
+      : null;
 
   const activeBonusIds = new Set(
     settlementAdjacencyBonuses.map(bonus => bonus.id)
@@ -205,6 +231,9 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
           const buildingSelected =
             Boolean(building) && selectedBuildingId === building?.id;
 
+          const tutorialPlotFocused =
+            guidedPlotId === plot.id;
+
           return (
             <Pressable
               key={plot.id}
@@ -232,6 +261,12 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                 }
 
                 setSelectedPlotId(plotSelected ? null : plot.id);
+                if (
+                  tutorialPlotFocused &&
+                  tutorialFocus?.kind === 'settlement-first-plot'
+                ) {
+                  onTutorialFocusComplete?.();
+                }
               }}
               style={[
                 styles.plot,
@@ -246,17 +281,41 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                       ? theme.colors.appBg
                       : theme.colors.surface3,
                   borderColor:
-                    plotSelected || buildingSelected
+                    tutorialPlotFocused ||
+                    plotSelected ||
+                    buildingSelected
                       ? theme.colors.gold
                       : building
                         ? factionAccent
                         : theme.colors.border,
                   borderWidth:
-                    plotSelected || buildingSelected ? 3 : 1.5,
-                  opacity: unlocked ? 1 : 0.45
+                    tutorialPlotFocused ||
+                    plotSelected ||
+                    buildingSelected
+                      ? 3
+                      : 1.5,
+                  opacity: unlocked ? 1 : 0.45,
+                  transform: tutorialPlotFocused
+                    ? [{ scale: 1.05 }]
+                    : undefined
                 }
               ]}
             >
+              {tutorialPlotFocused ? (
+                <View
+                  pointerEvents="none"
+                  style={[
+                    styles.plotGuideBadge,
+                    { backgroundColor: theme.colors.gold }
+                  ]}
+                >
+                  <Text style={styles.plotGuideText}>
+                    {tutorialFocus?.kind === 'settlement-building'
+                      ? 'TAP EMPTY PLOT'
+                      : tutorialFocus?.label}
+                  </Text>
+                </View>
+              ) : null}
               {building ? (
                 <>
                   <BuildingSprite buildingId={building.id} faction={building.faction} size={44} />
@@ -407,9 +466,17 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
               {availableBuildings.map(building => {
                 const potentialBonuses = previewBonusNames(building.id);
 
+                const tutorialBuildingFocused =
+                  tutorialFocus?.kind === 'settlement-building' &&
+                  tutorialFocus.buildingId === building.id;
+
                 return (
-                  <GameCard
+                  <TutorialFocus
                     key={building.id}
+                    active={tutorialBuildingFocused}
+                    label={tutorialBuildingFocused ? tutorialFocus.label : undefined}
+                  >
+                  <GameCard
                     accent={theme.colors.primary}
                   >
                     <View style={styles.optionHeader}>
@@ -472,11 +539,17 @@ export function SettlementScreen({ onExit }: { onExit: () => void }) {
                                   ' constructed. District bonuses recalculated.'
                               : 'This building cannot be constructed here yet.'
                           );
-                          if (ok) setSelectedPlotId(null);
+                          if (ok) {
+                            setSelectedPlotId(null);
+                            if (tutorialBuildingFocused) {
+                              onTutorialFocusComplete?.();
+                            }
+                          }
                         }}
                       />
                     </View>
                   </GameCard>
+                  </TutorialFocus>
                 );
               })}
             </View>
@@ -634,6 +707,21 @@ const styles = StyleSheet.create({
     width: 28,
     height: '100%',
     opacity: 0.65
+  },
+  plotGuideBadge: {
+    position: 'absolute',
+    top: -12,
+    right: -8,
+    zIndex: 5,
+    borderRadius: 999,
+    paddingHorizontal: 7,
+    paddingVertical: 3
+  },
+  plotGuideText: {
+    color: '#111318',
+    fontSize: 7,
+    lineHeight: 9,
+    fontWeight: '900'
   },
   plot: {
     position: 'absolute',

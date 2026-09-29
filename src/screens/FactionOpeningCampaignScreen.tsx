@@ -12,6 +12,8 @@ import {
   StatusPill
 } from '../ui/components';
 import { CampaignNodeSprite, FactionCrest, RegionMapBackdrop } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function FactionOpeningCampaignScreen({
   onStartOpeningBattle,
@@ -52,7 +54,9 @@ export function FactionOpeningCampaignScreen({
   onOpenMetaCampaign,
   onOpenExpedition,
   onOpenFormationTrial,
-  onOpenKingdomDefense
+  onOpenKingdomDefense,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onStartOpeningBattle: () => void;
   onOpenInvestigation: () => void;
@@ -93,6 +97,8 @@ export function FactionOpeningCampaignScreen({
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
   onOpenKingdomDefense: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -613,9 +619,22 @@ export function FactionOpeningCampaignScreen({
                     ? 'Repeatable'
                     : 'First clear available';
 
+            const tutorialActivityFocused =
+              tutorialFocus?.kind === 'campaign-activities' &&
+              unlocked &&
+              mode.id ===
+                sideModeDefinitions.find(candidate =>
+                  ['expeditions', 'formation_trials', 'kingdom_defense'].includes(candidate.id) &&
+                  isSideModeUnlocked(candidate.id)
+                )?.id;
+
             return (
-              <GameCard
+              <TutorialFocus
                 key={mode.id}
+                active={tutorialActivityFocused}
+                label={tutorialActivityFocused ? tutorialFocus?.label : undefined}
+              >
+              <GameCard
                 faction={activeFaction}
                 state={unlocked ? 'default' : 'locked'}
                 accent={unlocked ? accent : undefined}
@@ -646,11 +665,17 @@ export function FactionOpeningCampaignScreen({
                   <View style={styles.switchButton}>
                     <PrimaryButton
                       label={'Open ' + mode.name}
-                      onPress={() => openMode(mode.id)}
+                      onPress={() => {
+                        if (tutorialActivityFocused) {
+                          onTutorialFocusComplete?.();
+                        }
+                        openMode(mode.id);
+                      }}
                     />
                   </View>
                 ) : null}
               </GameCard>
+              </TutorialFocus>
             );
           })}
       </View>

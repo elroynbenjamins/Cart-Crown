@@ -53,15 +53,29 @@ function runCoreSequence() {
   const steps: Array<{
     view: TutorialContext['view'];
     expected: string;
+    focus?: string;
   }> = [
-    { view: 'kingdom', expected: 'core:kingdom' },
-    { view: 'campaign', expected: 'core:campaign' },
+    {
+      view: 'kingdom',
+      expected: 'core:kingdom',
+      focus: 'nav'
+    },
+    {
+      view: 'campaign',
+      expected: 'core:campaign',
+      focus: 'campaign-current'
+    },
     {
       view: 'battlePrep',
-      expected: 'core:battle-prep'
+      expected: 'core:battle-prep',
+      focus: 'battle-begin'
     },
     { view: 'battle', expected: 'core:battle' },
-    { view: 'results', expected: 'core:results' }
+    {
+      view: 'results',
+      expected: 'core:results',
+      focus: 'results-continue'
+    }
   ];
 
   const seen: string[] = [];
@@ -83,6 +97,23 @@ function runCoreSequence() {
         ', got ' +
         String(moment?.key)
     );
+
+    if (step.focus) {
+      expect(
+        moment?.focusAfterPrimary?.kind ===
+          step.focus,
+        step.expected +
+          ' no longer hands off to the expected ' +
+          step.focus +
+          ' spotlight.'
+      );
+    } else {
+      expect(
+        !moment?.focusAfterPrimary,
+        step.expected +
+          ' unexpectedly leaves a stale spotlight.'
+      );
+    }
 
     if (moment) seen.push(moment.key);
   }
@@ -122,6 +153,13 @@ function runUnitUnlockCoverage() {
   expect(
     moment?.target === 'formation',
     'New squad guidance does not route to Formation.'
+  );
+  expect(
+    moment?.focusAfterPrimary?.kind ===
+      'formation-unit' &&
+      moment.focusAfterPrimary.unitId ===
+        thirdUnit.id,
+    'New squad guidance does not spotlight the unlocked squad.'
   );
 
   const afterUnit = getNextTutorialMoment(
@@ -203,6 +241,13 @@ function runBuildingUnlockCoverage() {
     buildingMoment?.target === 'settlement',
     'Building unlock guidance does not route to Settlement.'
   );
+  expect(
+    buildingMoment?.focusAfterPrimary?.kind ===
+      'settlement-building' &&
+      buildingMoment.focusAfterPrimary.buildingId ===
+        'forge',
+    'Building unlock guidance does not carry the Forge blueprint into Settlement focus.'
+  );
 }
 
 function runSystemCoverage() {
@@ -224,6 +269,11 @@ function runSystemCoverage() {
     forge?.key === 'system:forge',
     'Forge system lesson did not trigger after construction.'
   );
+  expect(
+    forge?.focusAfterPrimary?.kind ===
+      'forge-craft',
+    'Forge lesson does not spotlight the first crafting action.'
+  );
 
   const readiness = getNextTutorialMoment(
     baseContext({
@@ -236,6 +286,26 @@ function runSystemCoverage() {
     readiness?.key === 'system:readiness',
     'Readiness lesson did not trigger after first campaign wear.'
   );
+  expect(
+    readiness?.focusAfterPrimary?.kind ===
+      'battle-readiness',
+    'Battle Prep Readiness lesson does not spotlight the Readiness card.'
+  );
+
+  const readinessAtKingdom =
+    getNextTutorialMoment(
+      baseContext({
+        view: 'kingdom',
+        tutorialSeen: core,
+        armyReadiness: 84
+      })
+    );
+  expect(
+    readinessAtKingdom?.key ===
+      'system:readiness' &&
+      !readinessAtKingdom.focusAfterPrimary,
+    'Kingdom Readiness lesson should explain the system without leaving an invisible Battle Prep spotlight.'
+  );
 
   const production = getNextTutorialMoment(
     baseContext({
@@ -247,6 +317,11 @@ function runSystemCoverage() {
   expect(
     production?.key === 'system:production',
     'Regional production lesson did not trigger after first site unlock.'
+  );
+  expect(
+    production?.focusAfterPrimary?.kind ===
+      'kingdom-production',
+    'Regional production lesson does not spotlight the claim area.'
   );
 
   const advanced = getNextTutorialMoment(
@@ -261,6 +336,11 @@ function runSystemCoverage() {
       'system:advanced-formations',
     'Advanced formation lesson did not trigger at Fort tier.'
   );
+  expect(
+    advanced?.focusAfterPrimary?.kind ===
+      'formation-shape',
+    'Advanced formation lesson does not spotlight formation shapes.'
+  );
 
   const sideModes = getNextTutorialMoment(
     baseContext({
@@ -272,6 +352,11 @@ function runSystemCoverage() {
   expect(
     sideModes?.key === 'system:side-modes',
     'Side-mode lesson did not trigger at Fort tier.'
+  );
+  expect(
+    sideModes?.focusAfterPrimary?.kind ===
+      'campaign-activities',
+    'Side-mode lesson does not spotlight Activities.'
   );
 }
 
@@ -435,7 +520,7 @@ function main() {
   }
 
   console.log(
-    'PASS: staged core onboarding, first-unit/building guidance, system unlock lessons, legacy-save behavior, post-Chapter-1 review timing and Android app identity remain protected.'
+    'PASS: staged onboarding, visual spotlight handoffs, first-unit/building guidance, system unlock lessons, legacy-save behavior, post-Chapter-1 review timing and Android app identity remain protected.'
   );
 }
 

@@ -16,6 +16,7 @@ import {
   getNextTutorialMoment,
   shouldRequestChapterOneReview
 } from './game/tutorial';
+import type { TutorialFocusTarget } from './game/tutorial';
 import type { EncounterId } from './game/encounters';
 import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
@@ -70,6 +71,7 @@ import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
 import { FlowProgress, ScreenAtmosphere } from './ui/components';
 import { TutorialCoach } from './ui/TutorialCoach';
+import { TutorialFocus } from './ui/TutorialFocus';
 import { AppNavIcon, ThemeModeIcon } from './ui/gameArt';
 
 type FlowScreen =
@@ -206,6 +208,8 @@ export function AppShell({
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
   const [preparationFixTarget, setPreparationFixTarget] =
     useState<BattlePreparationFixTarget | null>(null);
+  const [tutorialFocus, setTutorialFocus] =
+    useState<TutorialFocusTarget | null>(null);
   const reviewAttemptedRef = useRef(false);
   const { theme, cycleTheme } = useGameTheme();
   const {
@@ -315,6 +319,9 @@ export function AppShell({
 
     const target = tutorialMoment.target;
     markTutorialSeen(tutorialMoment.key);
+    setTutorialFocus(
+      tutorialMoment.focusAfterPrimary ?? null
+    );
 
     if (target === 'campaign') {
       setFlow(null);
@@ -349,7 +356,9 @@ export function AppShell({
         lastBattleResultId:
           lastBattleResult?.id ?? null,
         reviewPromptShown,
-        tutorialActive: Boolean(tutorialMoment)
+        tutorialActive: Boolean(
+          tutorialMoment || tutorialFocus
+        )
       })
     ) {
       return;
@@ -381,7 +390,8 @@ export function AppShell({
     lastBattleResult?.id,
     markReviewPromptShown,
     reviewPromptShown,
-    tutorialMoment
+    tutorialMoment,
+    tutorialFocus
   ]);
 
   const renderScreen = () => {
@@ -414,6 +424,10 @@ export function AppShell({
       return (
         <BattlePrepScreen
           encounterId={activeEncounterId}
+          tutorialFocus={tutorialFocus}
+          onTutorialFocusComplete={() =>
+            setTutorialFocus(null)
+          }
           onOpenAdjustment={(adjustment, presetSlotId) => {
             setFormationGuide({
               adjustment,
@@ -460,6 +474,10 @@ export function AppShell({
         <ResultsScreen
           battleSummary={lastCombatSummary}
           onContinue={handleResultsContinue}
+          tutorialFocus={tutorialFocus}
+          onTutorialFocusComplete={() =>
+            setTutorialFocus(null)
+          }
         />
       );
     }
@@ -494,6 +512,10 @@ export function AppShell({
       return (
         <ForgeScreen
           onOpenPromotion={() => setFlow('promotion')}
+          tutorialFocus={tutorialFocus}
+          onTutorialFocusComplete={() =>
+            setTutorialFocus(null)
+          }
           onExit={() => {
             setFlow(null);
             setActive('army');
@@ -954,6 +976,10 @@ export function AppShell({
     if (flow === 'settlement') {
       return (
         <SettlementScreen
+          tutorialFocus={tutorialFocus}
+          onTutorialFocusComplete={() =>
+            setTutorialFocus(null)
+          }
           onExit={() => {
             setFlow(null);
             setActive('kingdom');
@@ -992,6 +1018,10 @@ export function AppShell({
       case 'campaign':
         return (
           <CampaignScreen
+            tutorialFocus={tutorialFocus}
+            onTutorialFocusComplete={() =>
+              setTutorialFocus(null)
+            }
             onStartBattle={() => {
               setActiveEncounterId('hold_the_road');
               setFlow('battlePrep');
@@ -1278,6 +1308,10 @@ export function AppShell({
         return (
           <FormationScreen
             guide={formationGuide}
+            tutorialFocus={tutorialFocus}
+            onTutorialFocusComplete={() =>
+              setTutorialFocus(null)
+            }
             onClearGuide={() => setFormationGuide(null)}
             onReturnToBattlePrep={
               formationGuide
@@ -1310,6 +1344,10 @@ export function AppShell({
           if (settlementUpgraded) {
             return (
               <FactionKingdomScreen
+                tutorialFocus={tutorialFocus}
+                onTutorialFocusComplete={() =>
+                  setTutorialFocus(null)
+                }
                 onOpenSettlement={() => setFlow('settlement')}
                 onOpenRecruitment={() => setFlow('factionRecruitment')}
                 onOpenCommander={() => setFlow('commanderChoice')}
@@ -1327,6 +1365,10 @@ export function AppShell({
 
         return (
           <KingdomScreen
+            tutorialFocus={tutorialFocus}
+            onTutorialFocusComplete={() =>
+              setTutorialFocus(null)
+            }
             onOpenRecruitment={openRecruitment}
             onOpenSettlement={() => setFlow('settlement')}
             onOpenRoyalDecrees={() => setFlow('royalDecrees')}
@@ -1411,6 +1453,8 @@ export function AppShell({
   const goBack = () => {
     if (!canGoBack) return;
 
+    setTutorialFocus(null);
+
     if (flow === 'preparationFix') {
       setFlow('battlePrep');
       return;
@@ -1434,11 +1478,13 @@ export function AppShell({
         }
 
         if (action === 'continue_results') {
+          setTutorialFocus(null);
           handleResultsContinue();
           return true;
         }
 
         if (action === 'close_flow') {
+          setTutorialFocus(null);
           setFlow(
             flow === 'preparationFix'
               ? 'battlePrep'
@@ -1448,6 +1494,7 @@ export function AppShell({
         }
 
         if (action === 'go_kingdom') {
+          setTutorialFocus(null);
           setActive('kingdom');
           return true;
         }
@@ -1532,6 +1579,7 @@ export function AppShell({
               accessibilityLabel="Open settings"
               onPress={() => {
                 setFormationGuide(null);
+                setTutorialFocus(null);
                 setFlow('settings');
               }}
               style={({ pressed }) => [
@@ -1599,6 +1647,10 @@ export function AppShell({
           {navItems.map(item => {
             const selected = item.id === active;
 
+            const tutorialNavFocused =
+              tutorialFocus?.kind === 'nav' &&
+              tutorialFocus.nav === item.id;
+
             return (
               <Pressable
                 key={item.id}
@@ -1608,31 +1660,45 @@ export function AppShell({
                   if (item.id !== 'formation') {
                     setFormationGuide(null);
                   }
+                  if (tutorialNavFocused) {
+                    setTutorialFocus(null);
+                  }
                   setActive(item.id);
                 }}
                 style={styles.navItem}
               >
-                <View
-                  style={[
-                    styles.navIconWrap,
-                    selected ? { backgroundColor: factionAccent + '2F' } : undefined
-                  ]}
+                <TutorialFocus
+                  active={tutorialNavFocused}
+                  label={
+                    tutorialNavFocused
+                      ? tutorialFocus.label
+                      : undefined
+                  }
                 >
-                  <AppNavIcon
-                    kind={item.id}
-                    color={selected ? factionAccent : theme.colors.textMuted}
-                    size={21}
-                  />
-                </View>
-                <Text
-                  style={[
-                    styles.navLabel,
-                    { color: selected ? factionAccent : theme.colors.textMuted }
-                  ]}
-                  numberOfLines={1}
-                >
-                  {item.label}
-                </Text>
+                  <View style={styles.navFocusContent}>
+                    <View
+                      style={[
+                        styles.navIconWrap,
+                        selected ? { backgroundColor: factionAccent + '2F' } : undefined
+                      ]}
+                    >
+                      <AppNavIcon
+                        kind={item.id}
+                        color={selected ? factionAccent : theme.colors.textMuted}
+                        size={21}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.navLabel,
+                        { color: selected ? factionAccent : theme.colors.textMuted }
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {item.label}
+                    </Text>
+                  </View>
+                </TutorialFocus>
               </Pressable>
             );
           })}
@@ -1706,6 +1772,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4
   },
   navItem: { flex: 1, minHeight: 64, alignItems: 'center', justifyContent: 'center' },
+  navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 52 },
   navIconWrap: { width: 36, height: 31, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   navLabel: { fontSize: 9, fontWeight: '800', marginTop: 2 }
 });
