@@ -10,6 +10,7 @@ import type { StyleProp, ViewStyle } from 'react-native';
 import type { FactionId, ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { ResourceSprite, UnitSprite } from './gameArt';
+import { shouldAcceptActionPress } from '../game/mobileSession';
 
 export type CardState = 'default' | 'selected' | 'ready' | 'locked' | 'danger';
 
@@ -293,7 +294,14 @@ function useGuardedPress(
     if (disabled || !onPress) return;
 
     const now = Date.now();
-    if (now - lastPressAtRef.current < 450) return;
+    if (
+      !shouldAcceptActionPress(
+        lastPressAtRef.current,
+        now
+      )
+    ) {
+      return;
+    }
 
     lastPressAtRef.current = now;
     onPress();
