@@ -1355,6 +1355,15 @@ export function GameProvider({
   const accrueRegionalProduction = () => {
     setProductionStock(previous => {
       const next = { ...previous };
+      if (activeFaction === 'human' && chapterNumber === 2) {
+        if (chapterTwoRouteId === 'trade_route') {
+          next.gold += 3;
+        } else if (chapterTwoRouteId === 'resource_route') {
+          next.wood += 2;
+          next.iron += 1;
+        }
+      }
+
       for (const siteId of unlockedResourceSites) {
         const site = [
           ...humanResourceSites,
@@ -4918,6 +4927,14 @@ export function GameProvider({
     }));
     setChapterNumber(3);
     setChapterNodes(cloneNodes(chapterThreeNodes));
+    setUnlockedResourceSites(previous => [
+      ...new Set([
+        ...previous,
+        'greenkeep_farms',
+        'iron_hills_mine',
+        'greenwood_camp'
+      ])
+    ]);
     return true;
   };
 
@@ -5065,6 +5082,13 @@ export function GameProvider({
       (activeRoyalDecree?.equipmentCostMultiplier ?? 1);
     if (equipment.slot === 'mount') {
       multiplier *= settlementEffects.mountCostMultiplier;
+      if (
+        activeFaction === 'human' &&
+        chapterNumber === 2 &&
+        chapterTwoRouteId === 'grazing_route'
+      ) {
+        multiplier *= 0.75;
+      }
     }
     return applyCostMultiplier(equipment.craftCost, multiplier);
   };
