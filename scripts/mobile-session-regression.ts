@@ -6,6 +6,7 @@ import {
   resolveHardwareBackAction,
   shouldAcceptActionPress
 } from '../src/game/mobileSession';
+import { getTacticalGuidanceFeatures } from '../src/game/tacticalGuidance';
 
 const failures: string[] = [];
 
@@ -189,12 +190,47 @@ function runInFlightCoverage() {
   );
 }
 
+function runTacticalGuidanceCoverage() {
+  const full = getTacticalGuidanceFeatures('full');
+  const standard = getTacticalGuidanceFeatures('standard');
+  const off = getTacticalGuidanceFeatures('off');
+
+  expect(
+    full.showRecommendedLoadout &&
+      full.showAdjustmentChecklist &&
+      full.allowGuidedActions &&
+      full.sortLoadoutsByFit,
+    'Full Tactical Guidance no longer enables the recommendation and guided-action layer.'
+  );
+
+  expect(
+    standard.showFitScores &&
+      standard.showCounterHints &&
+      !standard.showRecommendedLoadout &&
+      !standard.showAdjustmentChecklist &&
+      !standard.allowGuidedActions &&
+      !standard.sortLoadoutsByFit,
+    'Standard Tactical Guidance no longer shows mechanics without choosing for the player.'
+  );
+
+  expect(
+    !off.showFitScores &&
+      !off.showCounterHints &&
+      !off.showRecommendedLoadout &&
+      !off.showAdjustmentChecklist &&
+      !off.allowGuidedActions &&
+      !off.sortLoadoutsByFit,
+    'Off Tactical Guidance no longer removes optional coaching while preserving core gameplay.'
+  );
+}
+
 async function main() {
   runBackCoverage();
   runPressCoverage();
   runOneShotCoverage();
   runAppStateCoverage();
   runInFlightCoverage();
+  runTacticalGuidanceCoverage();
   await runSerialQueueCoverage();
 
   if (failures.length > 0) {
@@ -215,7 +251,7 @@ async function main() {
   }
 
   console.log(
-    'PASS: Android Back routing, rapid-press throttling, one-shot battle completion, background battle pause, rewarded-ad in-flight locking and serialized save writes remain protected.'
+    'PASS: Android Back routing, rapid-press throttling, one-shot battle completion, background battle pause, rewarded-ad in-flight locking, tactical-guidance separation and serialized save writes remain protected.'
   );
 }
 
