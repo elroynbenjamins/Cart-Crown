@@ -145,3 +145,35 @@ Art direction:
 - Elven classes use slimmer silhouettes, moon-silver, spiritwood, ward/light motifs and cleaner weapon lines.
 - Orc classes use broader silhouettes, rough iron/bone, rust cloth and visibly heavier melee/support equipment.
 - Support classes must read as support at 38–56 px through staff, banner, tome/drum or glow cues rather than text.
+
+
+## Fifth production batch — advanced_promotions_v5
+
+This batch closes the remaining visual gaps in the established advanced promotion trees.
+
+Human:
+- Shield Infantry
+- Greatswordsman
+- Pikeman
+- Shield Spearman
+- Longbowman
+- Ranger
+- Scout Rider
+- Cavalryman
+- Lancer
+- Mounted Archer
+- Champion
+- Marksman
+- Heavy Cavalry
+
+Elf mounted branch:
+- Stag Rider
+- Mounted Ranger
+- Stag Lancer
+
+Orc mounted branch:
+- Warg Rider
+- Warg Raider
+- Warg Lancer
+
+Mounted sprites include the mount in the exact class PNG, so horse/stag/warg progression remains visually obvious even when the unit is rendered at small battle-token size. The assets keep the same 256×256 transparent, nearest-neighbour production contract and require no extra battle animation sheets.

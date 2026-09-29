@@ -147,11 +147,42 @@ export const midgameUnitsProductionBatch: ProductionAssetBatch = {
   ]
 };
 
+export const advancedPromotionsProductionBatch: ProductionAssetBatch = {
+  id: 'advanced_promotions_v5',
+  name: 'Advanced Promotion Identity',
+  purpose:
+    'Exact production sprites for advanced Human promotion branches and mounted Stag/Warg branches so later progression never falls back to generic silhouettes.',
+  assets: [
+    unitProductionAsset('human', 'Shield Infantry', getUnitVisualKind('Shield Infantry')),
+    unitProductionAsset('human', 'Greatswordsman', getUnitVisualKind('Greatswordsman')),
+    unitProductionAsset('human', 'Pikeman', getUnitVisualKind('Pikeman')),
+    unitProductionAsset('human', 'Shield Spearman', getUnitVisualKind('Shield Spearman')),
+    unitProductionAsset('human', 'Longbowman', getUnitVisualKind('Longbowman')),
+    unitProductionAsset('human', 'Ranger', getUnitVisualKind('Ranger')),
+    unitProductionAsset('human', 'Scout Rider', getUnitVisualKind('Scout Rider')),
+    unitProductionAsset('human', 'Cavalryman', getUnitVisualKind('Cavalryman')),
+    unitProductionAsset('human', 'Lancer', getUnitVisualKind('Lancer')),
+    unitProductionAsset('human', 'Mounted Archer', getUnitVisualKind('Mounted Archer')),
+    unitProductionAsset('human', 'Champion', getUnitVisualKind('Champion')),
+    unitProductionAsset('human', 'Marksman', getUnitVisualKind('Marksman')),
+    unitProductionAsset('human', 'Heavy Cavalry', getUnitVisualKind('Heavy Cavalry')),
+
+    unitProductionAsset('elf', 'Stag Rider', getUnitVisualKind('Stag Rider')),
+    unitProductionAsset('elf', 'Mounted Ranger', getUnitVisualKind('Mounted Ranger')),
+    unitProductionAsset('elf', 'Stag Lancer', getUnitVisualKind('Stag Lancer')),
+
+    unitProductionAsset('orc', 'Warg Rider', getUnitVisualKind('Warg Rider')),
+    unitProductionAsset('orc', 'Warg Raider', getUnitVisualKind('Warg Raider')),
+    unitProductionAsset('orc', 'Warg Lancer', getUnitVisualKind('Warg Lancer'))
+  ]
+};
+
 export const productionAssetBatches: ProductionAssetBatch[] = [
   starterProductionBatch,
   earlyProgressionProductionBatch,
   enemyIdentityProductionBatch,
-  midgameUnitsProductionBatch
+  midgameUnitsProductionBatch,
+  advancedPromotionsProductionBatch
 ];
 
 export function getProductionBatch(id: string) {

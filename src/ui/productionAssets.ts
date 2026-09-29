@@ -12,7 +12,7 @@ import type {
   WagonItemVisualKind
 } from '../game/visualManifest';
 
-export const PRODUCTION_ASSET_PIPELINE_VERSION = 4;
+export const PRODUCTION_ASSET_PIPELINE_VERSION = 5;
 export const PRODUCTION_ASSET_ROOT = 'assets/game';
 
 export type ProductionAssetCategory =
@@ -285,6 +285,26 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'unit.orc.ironhide': require('../../assets/game/units/orc/ironhide.png'),
   'unit.orc.axe_thrower': require('../../assets/game/units/orc/axe_thrower.png'),
   'unit.orc.bone_shaman': require('../../assets/game/units/orc/bone_shaman.png'),
+
+  'unit.human.shield_infantry': require('../../assets/game/units/human/shield_infantry.png'),
+  'unit.human.greatswordsman': require('../../assets/game/units/human/greatswordsman.png'),
+  'unit.human.pikeman': require('../../assets/game/units/human/pikeman.png'),
+  'unit.human.shield_spearman': require('../../assets/game/units/human/shield_spearman.png'),
+  'unit.human.longbowman': require('../../assets/game/units/human/longbowman.png'),
+  'unit.human.ranger': require('../../assets/game/units/human/ranger.png'),
+  'unit.human.scout_rider': require('../../assets/game/units/human/scout_rider.png'),
+  'unit.human.cavalryman': require('../../assets/game/units/human/cavalryman.png'),
+  'unit.human.lancer': require('../../assets/game/units/human/lancer.png'),
+  'unit.human.mounted_archer': require('../../assets/game/units/human/mounted_archer.png'),
+  'unit.human.champion': require('../../assets/game/units/human/champion.png'),
+  'unit.human.marksman': require('../../assets/game/units/human/marksman.png'),
+  'unit.human.heavy_cavalry': require('../../assets/game/units/human/heavy_cavalry.png'),
+  'unit.elf.stag_rider': require('../../assets/game/units/elf/stag_rider.png'),
+  'unit.elf.mounted_ranger': require('../../assets/game/units/elf/mounted_ranger.png'),
+  'unit.elf.stag_lancer': require('../../assets/game/units/elf/stag_lancer.png'),
+  'unit.orc.warg_rider': require('../../assets/game/units/orc/warg_rider.png'),
+  'unit.orc.warg_raider': require('../../assets/game/units/orc/warg_raider.png'),
+  'unit.orc.warg_lancer': require('../../assets/game/units/orc/warg_lancer.png'),
 
   'equipment.hum_iron_sword': require('../../assets/game/equipment/human/hum_iron_sword.png'),
   'equipment.hum_infantry_spear': require('../../assets/game/equipment/human/hum_infantry_spear.png'),
