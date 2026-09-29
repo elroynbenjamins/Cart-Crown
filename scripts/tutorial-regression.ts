@@ -56,6 +56,7 @@ function baseContext(
     flyingStoryUnlocked: false,
     largeStoryUnlocked: false,
     hybridStoryUnlocked: false,
+    hybridResearchPrerequisitesMet: false,
     completedMagicResearch: 0,
     completedFlyingResearch: 0,
     completedLargeResearch: 0,
@@ -811,7 +812,8 @@ function runFantasyFamilyCoverage() {
         ...core,
         'system:hybrid-discovery'
       ],
-      hybridStoryUnlocked: true
+      hybridStoryUnlocked: true,
+      hybridResearchPrerequisitesMet: true
     })
   );
 
