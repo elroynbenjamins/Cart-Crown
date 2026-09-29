@@ -61,6 +61,7 @@ import type {
 import type {
   FactionGameState,
   GameSnapshot,
+  ResearchProgressState,
   SaveRecord,
   SaveSlotId,
   SaveSlotMetadata
@@ -454,6 +455,42 @@ function sanitizeStringArray(value: unknown) {
   ];
 }
 
+function sanitizeResearchProgress(
+  value: unknown
+): Record<string, ResearchProgressState> {
+  if (!value || typeof value !== 'object') {
+    return {};
+  }
+
+  const result: Record<string, ResearchProgressState> = {};
+
+  for (const [id, raw] of Object.entries(value)) {
+    if (!raw || typeof raw !== 'object') continue;
+
+    const source = raw as Partial<ResearchProgressState>;
+    const startedAt =
+      typeof source.startedAt === 'number' &&
+      Number.isFinite(source.startedAt) &&
+      source.startedAt > 0
+        ? source.startedAt
+        : null;
+
+    result[id] = {
+      startedAt,
+      rewardedAdsWatched: Math.min(
+        3,
+        nonNegativeInteger(
+          source.rewardedAdsWatched,
+          0
+        )
+      ),
+      completed: Boolean(source.completed)
+    };
+  }
+
+  return result;
+}
+
 export function sanitizeFactionGameState(
   faction: FactionId,
   value: unknown
@@ -615,6 +652,19 @@ export function sanitizeFactionGameState(
       stored.expeditionRunsCompleted,
       defaults.expeditionRunsCompleted
     ),
+    completedStoryGates: sanitizeStringArray(
+      stored.completedStoryGates
+    ),
+    researchProgress: sanitizeResearchProgress(
+      stored.researchProgress
+    ),
+    unlockedFantasyClasses: sanitizeStringArray(
+      stored.unlockedFantasyClasses
+    ),
+    fantasyRecruitSerial: nonNegativeInteger(
+      stored.fantasyRecruitSerial,
+      0
+    ),
     tutorialSeen
   };
 }
@@ -656,6 +706,7 @@ function sanitizeSharedProgress(
     metaCampaignComplete:
       Boolean(source.metaCampaignComplete) &&
       completedCampaigns.length === 3,
+    gems: nonNegativeInteger(source.gems, 0),
     reviewPromptShown:
       Boolean(source.reviewPromptShown)
   };
@@ -775,6 +826,10 @@ export function createHumanFactionState(): FactionGameState {
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
     formationTrialCompleted: false,
+    completedStoryGates: [],
+    researchProgress: {},
+    unlockedFantasyClasses: [],
+    fantasyRecruitSerial: 0,
     tutorialSeen: []
   };
 }
@@ -892,6 +947,7 @@ export function createInitialGameSnapshot(): GameSnapshot {
       cosmetics: [],
       metaCampaignStep: 0,
       metaCampaignComplete: false,
+      gems: 0,
       reviewPromptShown: false
     },
     factionStates: {
