@@ -37,12 +37,16 @@ export function FormationScreen({
   guide,
   onClearGuide,
   onReturnToBattlePrep,
+  onReturnToMode,
+  returnToModeLabel,
   tutorialFocus,
   onTutorialFocusComplete
 }: {
   guide?: FormationGuide | null;
   onClearGuide?: () => void;
   onReturnToBattlePrep?: () => void;
+  onReturnToMode?: () => void;
+  returnToModeLabel?: string;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
 } = {}) {
@@ -406,6 +410,24 @@ export function FormationScreen({
               </Text>
             </Pressable>
           ) : null}
+        </GameCard>
+      ) : null}
+
+      {onReturnToMode ? (
+        <GameCard
+          accent={theme.colors.gold}
+          faction={activeFaction}
+          ornament={false}
+        >
+          <Text style={[styles.guideNote, { color: theme.colors.textMuted }]}>
+            Adjust the formation here, then jump straight back to the tactical challenge to recheck it.
+          </Text>
+          <View style={styles.guideSecondary}>
+            <SecondaryButton
+              label={returnToModeLabel ?? 'Back to Activity'}
+              onPress={onReturnToMode}
+            />
+          </View>
         </GameCard>
       ) : null}
 

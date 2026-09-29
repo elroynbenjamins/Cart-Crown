@@ -222,6 +222,7 @@ export function AppShell({
   const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
+  const [returnToKingdomTrials, setReturnToKingdomTrials] = useState(false);
   const [preparationFixTarget, setPreparationFixTarget] =
     useState<BattlePreparationFixTarget | null>(null);
   const [tutorialFocus, setTutorialFocus] =
@@ -766,6 +767,7 @@ export function AppShell({
             setActive('campaign');
           }}
           onEditFormation={() => {
+            setReturnToKingdomTrials(true);
             setFlow(null);
             setActive('formation');
           }}
@@ -1485,6 +1487,20 @@ export function AppShell({
             tutorialFocus={tutorialFocus}
             onTutorialFocusComplete={completeTutorialFocus}
             onClearGuide={() => setFormationGuide(null)}
+            onReturnToMode={
+              returnToKingdomTrials
+                ? () => {
+                    setReturnToKingdomTrials(false);
+                    setActive('campaign');
+                    setFlow('formationTrial');
+                  }
+                : undefined
+            }
+            returnToModeLabel={
+              returnToKingdomTrials
+                ? 'Back to Kingdom Trials'
+                : undefined
+            }
             onReturnToBattlePrep={
               formationGuide
                 ? () => {
