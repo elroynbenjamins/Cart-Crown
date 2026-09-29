@@ -856,7 +856,14 @@ export function GameProvider({
     );
   const kingdomDefenseNextRewardMultiplier =
     getKingdomDefenseRewardMultiplier({
-      firstClear: !kingdomDefenseCompleted,
+      firstClear:
+        !kingdomDefenseCompleted &&
+        activeFaction === 'human' &&
+        Boolean(
+          chapterNodes.find(
+            node => node.id === 'ch2_node_4'
+          )?.current
+        ),
       currentChapter: chapterNumber,
       rewardChapter:
         kingdomDefenseRewardChapter,
@@ -5066,16 +5073,18 @@ export function GameProvider({
       chapterNodes.find(node => node.id === 'ch2_node_4')?.current
     );
     const firstClear = !kingdomDefenseCompleted;
+    const fullStoryClear =
+      firstClear && storyDefenseActive;
     const rewardMultiplier =
       getKingdomDefenseRewardMultiplier({
-        firstClear,
+        firstClear: fullStoryClear,
         currentChapter: chapterNumber,
         rewardChapter:
           kingdomDefenseRewardChapter,
         rewardedRunsThisChapter:
           kingdomDefenseRewardedRunsThisChapter
       });
-    const reward = firstClear
+    const reward = fullStoryClear
       ? {
           gold: 85,
           wood: 10,
@@ -5103,7 +5112,7 @@ export function GameProvider({
       );
     }
 
-    if (!firstClear && rewardMultiplier > 0) {
+    if (!fullStoryClear && rewardMultiplier > 0) {
       setKingdomDefenseRewardChapter(
         chapterNumber
       );
@@ -5116,7 +5125,7 @@ export function GameProvider({
       );
     }
 
-    if (firstClear || rewardMultiplier > 0) {
+    if (fullStoryClear || rewardMultiplier > 0) {
       accrueRegionalProduction();
     }
 
