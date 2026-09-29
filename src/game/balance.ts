@@ -270,11 +270,20 @@ export function getEnemyStrikePressure(
     8,
     Math.floor(encounter.enemyHp / 700) * 2
   );
+  const forceDisadvantagePressure =
+    Math.min(
+      3,
+      Math.max(
+        0,
+        encounter.enemyCount - Math.max(2, squadCap)
+      )
+    ) * 4;
   const base =
     9 +
     Math.max(2, squadCap) * 2 +
     difficultyPressure +
-    progressionPressure;
+    progressionPressure +
+    forceDisadvantagePressure;
   const escalation = 1 + Math.min(0.18, turn * 0.012);
   return Math.round(base * escalation);
 }
