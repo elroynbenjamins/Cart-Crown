@@ -28,33 +28,37 @@ function formation(
 
 function runUnlockChain() {
   check(
-    isKingdomTrialUnlocked('bronze', []),
-    'Bronze must be the only initially unlocked trial.'
+    !isKingdomTrialUnlocked('bronze', [], 1) &&
+      isKingdomTrialUnlocked('bronze', [], 2),
+    'Bronze must stay locked in Chapter 1 and unlock in Chapter 2.'
   );
   check(
-    !isKingdomTrialUnlocked('silver', []),
+    !isKingdomTrialUnlocked('silver', [], 3),
     'Silver unlocked before Bronze.'
   );
   check(
     isKingdomTrialUnlocked(
       'silver',
-      ['bronze']
+      ['bronze'],
+      3
     ),
-    'Silver did not unlock after Bronze.'
+    'Silver did not unlock after Bronze in Chapter 3.'
   );
   check(
     !isKingdomTrialUnlocked(
       'gold',
-      ['bronze']
+      ['bronze'],
+      4
     ),
     'Gold unlocked before Silver.'
   );
   check(
     isKingdomTrialUnlocked(
       'gold',
-      ['bronze', 'silver']
+      ['bronze', 'silver'],
+      4
     ),
-    'Gold did not unlock after Silver.'
+    'Gold did not unlock after Silver in Chapter 4.'
   );
   check(
     kingdomTrialOrder.join(',') ===
