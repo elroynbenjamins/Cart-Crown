@@ -19,7 +19,7 @@ import {
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import type { CommanderSkillEffectType } from '../game/types';
+import type { CommanderSkillEffectType, UnitRole } from '../game/types';
 import { GameCard, PrimaryButton, ProgressBar } from '../ui/components';
 import { EnemySprite, UnitSprite } from '../ui/gameArt';
 
@@ -37,6 +37,7 @@ type ExchangeFeedback = {
   healed: number;
   activeSlot: number | null;
   enemySlot: number | null;
+  supportSlots: number[];
   commanderSkillName: string | null;
   ongoingDamage: number;
 };
@@ -65,6 +66,51 @@ function slotWidthForRow(count: number) {
   if (count === 3) return 66;
   if (count === 2) return 78;
   return 84;
+}
+
+function attackCueForRole(role: UnitRole) {
+  if (role === 'ranged') return '➶';
+  if (role === 'support') return '✦';
+  if (role === 'cavalry') return '↯';
+  if (role === 'skirmish') return '›';
+  if (role === 'frontline') return '◆';
+  return '⚔';
+}
+
+function activeEffectCopy(effect: ActiveEffect) {
+  if (effect.type === 'bleed') {
+    return {
+      title: 'BLEED',
+      detail:
+        '+' +
+        effect.power +
+        ' ongoing damage · ' +
+        effect.remaining +
+        ' exchanges'
+    };
+  }
+  if (effect.type === 'armor_break') {
+    return {
+      title: 'ARMOR BREAK',
+      detail:
+        '+15% outgoing pressure · ' +
+        effect.remaining +
+        ' exchanges'
+    };
+  }
+  if (effect.type === 'morale_break') {
+    return {
+      title: 'MORALE BREAK',
+      detail:
+        '-25% enemy retaliation · ' +
+        effect.remaining +
+        ' exchanges'
+    };
+  }
+  return {
+    title: 'COMMANDER EFFECT',
+    detail: effect.remaining + ' exchanges'
+  };
 }
 
 export function BattleScreen({
@@ -251,6 +297,7 @@ export function BattleScreen({
   const attackPulse = useRef(new Animated.Value(0)).current;
   const impactPulse = useRef(new Animated.Value(0)).current;
   const feedbackPulse = useRef(new Animated.Value(0)).current;
+  const outcomePulse = useRef(new Animated.Value(0)).current;
   const [lastAction, setLastAction] = useState(
     enemyArmyProfile.name +
       ' in ' +
@@ -362,14 +409,25 @@ export function BattleScreen({
   );
 
   useEffect(() => {
-    if (!battleEnded || !compactLayout) return;
+    if (!battleEnded) return;
+
+    outcomePulse.stopAnimation();
+    outcomePulse.setValue(0);
+    Animated.spring(outcomePulse, {
+      toValue: 1,
+      friction: 7,
+      tension: 70,
+      useNativeDriver: true
+    }).start();
+
+    if (!compactLayout) return;
 
     const timer = setTimeout(() => {
       battleScrollRef.current?.scrollToEnd({ animated: true });
-    }, 160);
+    }, 180);
 
     return () => clearTimeout(timer);
-  }, [battleEnded, compactLayout]);
+  }, [battleEnded, compactLayout, outcomePulse]);
 
   useEffect(() => {
     if (!exchangeFeedback) return;
@@ -594,6 +652,16 @@ export function BattleScreen({
           ? damagedPartyHp
           : Math.min(partyMaxHp, damagedPartyHp + supportRecovery);
       const actualHealing = healedPartyHp - damagedPartyHp;
+      const supportSlots =
+        actualHealing > 0
+          ? activeFormationSlots.filter(slot => {
+              const supportUnitId = formation[slot];
+              const supportUnit = units.find(
+                unit => unit.id === supportUnitId
+              );
+              return supportUnit?.role === 'support';
+            })
+          : [];
 
       setEnemyHp(Math.max(0, enemyHp - playerDamage));
       setPartyHp(healedPartyHp);
@@ -603,6 +671,7 @@ export function BattleScreen({
         healed: actualHealing,
         activeSlot,
         enemySlot: targetAssignment?.slot ?? null,
+        supportSlots,
         commanderSkillName,
         ongoingDamage
       });
@@ -708,6 +777,29 @@ export function BattleScreen({
             Boolean(unit) &&
             !battleEnded &&
             exchangeFeedback?.activeSlot === slot;
+          const healingSource =
+            Boolean(unit) &&
+            !battleEnded &&
+            Boolean(exchangeFeedback?.healed) &&
+            Boolean(exchangeFeedback?.supportSlots.includes(slot));
+          const attackTranslateY =
+            unit?.role === 'cavalry'
+              ? 7
+              : unit?.role === 'skirmish'
+                ? 5
+                : unit?.role === 'frontline' || unit?.role === 'melee'
+                  ? 3
+                  : unit?.role === 'ranged'
+                    ? -2
+                    : 0;
+          const attackScale =
+            unit?.role === 'cavalry'
+              ? 1.1
+              : unit?.role === 'ranged'
+                ? 1.045
+                : unit?.role === 'support'
+                  ? 1.06
+                  : 1.075;
 
           return (
             <Animated.View
@@ -719,17 +811,21 @@ export function BattleScreen({
                   width,
                   backgroundColor: active
                     ? theme.colors.gold + '18'
-                    : unit
-                      ? theme.colors.surface2
-                      : theme.colors.appBg,
+                    : healingSource
+                      ? factionAccent + '18'
+                      : unit
+                        ? theme.colors.surface2
+                        : theme.colors.appBg,
                   borderColor: active
                     ? theme.colors.gold
-                    : favored
-                      ? theme.colors.gold
-                      : unit
-                        ? factionAccent
-                        : theme.colors.border,
-                  borderWidth: active ? 2 : 1.2
+                    : healingSource
+                      ? factionAccent
+                      : favored
+                        ? theme.colors.gold
+                        : unit
+                          ? factionAccent
+                          : theme.colors.border,
+                  borderWidth: active || healingSource ? 2 : 1.2
                 },
                 active
                   ? {
@@ -737,18 +833,29 @@ export function BattleScreen({
                         {
                           translateY: attackPulse.interpolate({
                             inputRange: [0, 1],
-                            outputRange: [0, -4]
+                            outputRange: [0, attackTranslateY]
                           })
                         },
                         {
                           scale: attackPulse.interpolate({
                             inputRange: [0, 1],
-                            outputRange: [1, 1.07]
+                            outputRange: [1, attackScale]
                           })
                         }
                       ]
                     }
-                  : null
+                  : healingSource
+                    ? {
+                        transform: [
+                          {
+                            scale: feedbackPulse.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [1, 1.06]
+                            })
+                          }
+                        ]
+                      }
+                    : null
               ]}
             >
               {unit ? (
@@ -766,6 +873,26 @@ export function BattleScreen({
                           : 24
                     }
                   />
+                  {active ? (
+                    <Text
+                      style={[
+                        styles.roleCue,
+                        { color: theme.colors.gold }
+                      ]}
+                    >
+                      {attackCueForRole(unit.role)}
+                    </Text>
+                  ) : null}
+                  {healingSource ? (
+                    <Text
+                      style={[
+                        styles.healCue,
+                        { color: factionAccent }
+                      ]}
+                    >
+                      +{exchangeFeedback?.healed ?? 0}
+                    </Text>
+                  ) : null}
                   {!dense ? (
                     <Text style={[styles.tokenName, { color: theme.colors.text }]} numberOfLines={1}>
                       {unit.className}
@@ -1207,6 +1334,70 @@ export function BattleScreen({
         ) : null}
       </GameCard>
 
+      {battleEnded ? (
+        <Animated.View
+          style={[
+            styles.outcomeWrap,
+            {
+              opacity: outcomePulse,
+              transform: [
+                {
+                  translateY: outcomePulse.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [10, 0]
+                  })
+                },
+                {
+                  scale: outcomePulse.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.97, 1]
+                  })
+                }
+              ]
+            }
+          ]}
+        >
+          <GameCard
+            accent={
+              finished
+                ? theme.colors.primary
+                : theme.colors.danger
+            }
+            state={finished ? 'ready' : 'danger'}
+          >
+            <View style={styles.outcomeHeader}>
+              <Text
+                style={[
+                  styles.outcomeTitle,
+                  {
+                    color: finished
+                      ? theme.colors.primary
+                      : theme.colors.danger
+                  }
+                ]}
+              >
+                {finished ? 'VICTORY' : 'DEFEAT'}
+              </Text>
+              <Text style={[styles.outcomeMeta, { color: theme.colors.textMuted }]}>
+                {turn} exchanges
+              </Text>
+            </View>
+            <Text style={[styles.outcomeBody, { color: theme.colors.text }]}>
+              {finished
+                ? encounter.enemyName +
+                  ' break from the field. ' +
+                  Math.round(
+                    partyMaxHp > 0
+                      ? (partyHp / partyMaxHp) * 100
+                      : 0
+                  ) +
+                  '% army HP remains.'
+                : 'The formation is forced to withdraw. Adjust the formation, equipment or readiness before another attempt.'}
+            </Text>
+          </GameCard>
+        </Animated.View>
+      ) : null}
+
       <GameCard
         style={compactLayout ? styles.logCardCompact : undefined}
         accent={
@@ -1228,9 +1419,27 @@ export function BattleScreen({
               : lastAction}
         </Text>
         {activeEffect ? (
-          <Text style={[styles.effectLine, { color: theme.colors.gold }]}>
-            {activeEffect.type.replace('_', ' ')} · {activeEffect.remaining} exchanges remaining
-          </Text>
+          <View
+            style={[
+              styles.statusEffect,
+              {
+                backgroundColor: theme.colors.gold + '12',
+                borderColor: theme.colors.gold + '55'
+              }
+            ]}
+          >
+            <View style={styles.statusEffectHeader}>
+              <Text style={[styles.statusEffectTitle, { color: theme.colors.gold }]}>
+                {activeEffectCopy(activeEffect).title}
+              </Text>
+              <Text style={[styles.statusEffectTurns, { color: theme.colors.textMuted }]}>
+                {activeEffect.remaining} LEFT
+              </Text>
+            </View>
+            <Text style={[styles.statusEffectBody, { color: theme.colors.text }]}>
+              {activeEffectCopy(activeEffect).detail}
+            </Text>
+          </View>
         ) : null}
       </GameCard>
 
@@ -1317,6 +1526,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2
   },
   slotCompact: { height: 33, borderRadius: 8 },
+  roleCue: {
+    position: 'absolute',
+    top: 1,
+    right: 3,
+    fontSize: 8,
+    fontWeight: '900'
+  },
+  healCue: {
+    position: 'absolute',
+    top: 1,
+    left: 3,
+    fontSize: 7,
+    fontWeight: '900'
+  },
   bossSlotMark: { fontSize: 15, lineHeight: 16, fontWeight: '900' },
   bossStage: {
     minHeight: 62,
@@ -1398,8 +1621,34 @@ const styles = StyleSheet.create({
   skillMetricText: { fontSize: 7.5, fontWeight: '900', textAlign: 'center' },
   commanderLine: { fontSize: 8.5, fontWeight: '900', textAlign: 'center' },
   versus: { fontSize: 10, fontWeight: '900', textAlign: 'center', marginVertical: 1 },
+  outcomeWrap: { width: '100%' },
+  outcomeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10
+  },
+  outcomeTitle: { fontSize: 14, fontWeight: '900', letterSpacing: 1.1 },
+  outcomeMeta: { fontSize: 9, fontWeight: '800' },
+  outcomeBody: { fontSize: 11, lineHeight: 16, fontWeight: '700', marginTop: 5 },
   logLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1.1 },
   logLine: { fontSize: 11, lineHeight: 16, fontWeight: '700', marginTop: 3 },
+  statusEffect: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 9,
+    paddingVertical: 7,
+    marginTop: 7
+  },
+  statusEffectHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8
+  },
+  statusEffectTitle: { fontSize: 8.5, fontWeight: '900', letterSpacing: 0.7 },
+  statusEffectTurns: { fontSize: 7.5, fontWeight: '900' },
+  statusEffectBody: { fontSize: 9, lineHeight: 13, fontWeight: '700', marginTop: 3 },
   effectLine: { fontSize: 9, fontWeight: '900', marginTop: 5, textTransform: 'uppercase' },
   logCardCompact: { paddingVertical: 9 }
 });
