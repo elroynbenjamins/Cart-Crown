@@ -4,6 +4,7 @@ import type {
   FactionId,
   FormationPreset,
   FormationShapeId,
+  GuidanceMode,
   ResourceWallet,
   UnitDefinition,
   UnitEquipmentLoadout,
@@ -68,6 +69,7 @@ export type SharedProgress = {
   cosmetics: string[];
   metaCampaignStep: number;
   metaCampaignComplete: boolean;
+  guidanceMode?: GuidanceMode;
 };
 
 export type GameSnapshot = {
