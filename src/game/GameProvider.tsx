@@ -135,6 +135,7 @@ import {
   getExpeditionRewardMultiplier,
   getExpeditionTicketsAfterChapterTransition,
   getKingdomDefenseRewardMultiplier,
+  getSiegeRewardMultiplier,
   getWarTableBoardRewardMultiplier,
   scaleResourceReward
 } from './sideModeBalance';
@@ -146,6 +147,13 @@ import {
   resolveExpeditionChoice
 } from './expeditions';
 import type { ExpeditionRunState } from './expeditions';
+import {
+  createSiegeRun,
+  getSiegePreparation,
+  getSiegeReward,
+  resolveSiegeChoice
+} from './sieges';
+import type { SiegeRunState } from './sieges';
 import {
   evaluateKingdomTrial,
   isKingdomTrialUnlocked,
@@ -379,6 +387,11 @@ type GameContextValue = {
   kingdomDefenseRewardChapter: number;
   kingdomDefenseRewardedRunsThisChapter: number;
   kingdomDefenseNextRewardMultiplier: 0 | 0.5 | 1;
+  siegeRunsCompleted: number;
+  activeSiegeRun: SiegeRunState | null;
+  siegeRewardChapter: number;
+  siegeRewardedRunsThisChapter: number;
+  siegeNextRewardMultiplier: 0 | 0.5 | 1;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions: KingdomTrialId[];
   rewardedAdClaims: RewardedAdClaimState;
@@ -481,6 +494,12 @@ type GameContextValue = {
   ) => boolean;
   abandonExpeditionRun: () => void;
   finishExpedition: () => boolean;
+  startSiegeRun: () => boolean;
+  resolveSiegeStageChoice: (
+    choiceId: string
+  ) => boolean;
+  abandonSiegeRun: () => void;
+  finishSiegeRun: () => boolean;
   completeFormationTrial: () => boolean;
   completeKingdomTrial: (
     trialId: KingdomTrialId
@@ -814,6 +833,23 @@ export function GameProvider({
   const [kingdomDefenseRewardedRunsThisChapter, setKingdomDefenseRewardedRunsThisChapter] = useState(
     initialFaction.kingdomDefenseRewardedRunsThisChapter
   );
+  const [siegeRunsCompleted, setSiegeRunsCompleted] = useState(
+    initialFaction.siegeRunsCompleted
+  );
+  const [activeSiegeRun, setActiveSiegeRun] = useState<SiegeRunState | null>(
+    () => initialFaction.activeSiegeRun
+      ? {
+          ...initialFaction.activeSiegeRun,
+          path: [...initialFaction.activeSiegeRun.path]
+        }
+      : null
+  );
+  const [siegeRewardChapter, setSiegeRewardChapter] = useState(
+    initialFaction.siegeRewardChapter
+  );
+  const [siegeRewardedRunsThisChapter, setSiegeRewardedRunsThisChapter] = useState(
+    initialFaction.siegeRewardedRunsThisChapter
+  );
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
   const [kingdomTrialCompletions, setKingdomTrialCompletions] = useState<KingdomTrialId[]>(
     () => {
@@ -859,6 +895,14 @@ export function GameProvider({
     getWarTableBoardRewardMultiplier(
       warTableBoardsClearedThisChapter
     );
+  const siegeNextRewardMultiplier =
+    getSiegeRewardMultiplier({
+      currentChapter: chapterNumber,
+      rewardChapter: siegeRewardChapter,
+      rewardedRunsThisChapter:
+        siegeRewardedRunsThisChapter
+    });
+
   const kingdomDefenseNextRewardMultiplier =
     getKingdomDefenseRewardMultiplier({
       firstClear:
@@ -1285,6 +1329,7 @@ export function GameProvider({
     ]
   );
 
+
   const expeditionBasePower = useMemo(
     () => {
       const activeUnits = formation
@@ -1328,6 +1373,32 @@ export function GameProvider({
       formation,
       formationAnalysis,
       units
+    ]
+  );
+
+  const siegePreparation = useMemo(
+    () =>
+      getSiegePreparation({
+        buildingLevels,
+        buildingIds: {
+          army: factionBuildingIds.army,
+          forge: factionBuildingIds.forge,
+          logistics: factionBuildingIds.logistics,
+          supply: factionBuildingIds.supply,
+          command: factionBuildingIds.command,
+          scout: factionBuildingIds.scout
+        },
+        wagonItems
+      }),
+    [
+      buildingLevels,
+      factionBuildingIds.army,
+      factionBuildingIds.forge,
+      factionBuildingIds.logistics,
+      factionBuildingIds.supply,
+      factionBuildingIds.command,
+      factionBuildingIds.scout,
+      wagonItems
     ]
   );
 
@@ -1688,6 +1759,10 @@ export function GameProvider({
       warTableBoardsClearedThisChapter,
       kingdomDefenseRewardChapter,
       kingdomDefenseRewardedRunsThisChapter,
+      siegeRunsCompleted,
+      activeSiegeRun,
+      siegeRewardChapter,
+      siegeRewardedRunsThisChapter,
       formationTrialCompleted,
       kingdomTrialCompletions,
       completedStoryGates,
@@ -5957,6 +6032,10 @@ export function GameProvider({
       return chapterNumber >= 3;
     }
 
+    if (id === 'sieges') {
+      return chapterNumber >= 3;
+    }
+
     // Relic Hunts remain deliberately hidden until their full late-game
     // progression and reward loop is implemented.
     return false;
@@ -6117,6 +6196,118 @@ export function GameProvider({
       )
     );
     setActiveExpeditionRun(null);
+    return true;
+  };
+
+  const startSiegeRun = () => {
+    if (
+      !isSideModeUnlocked('sieges') ||
+      activeSiegeRun
+    ) {
+      return false;
+    }
+
+    const rewardMultiplier =
+      getSiegeRewardMultiplier({
+        currentChapter: chapterNumber,
+        rewardChapter: siegeRewardChapter,
+        rewardedRunsThisChapter:
+          siegeRewardedRunsThisChapter
+      });
+
+    setActiveSiegeRun(
+      createSiegeRun({
+        readiness: armyReadiness,
+        supplies:
+          siegePreparation.initialSupplies,
+        basePower: expeditionBasePower,
+        preparationMultiplier:
+          siegePreparation.powerMultiplier,
+        playerShapeId: formationShapeId,
+        wagonStageId: currentWagonStage.id,
+        engineering:
+          siegePreparation.engineering,
+        permanentIntel:
+          siegePreparation.permanentIntel,
+        hasRations:
+          siegePreparation.hasRations,
+        hasMedicine:
+          siegePreparation.hasMedicine,
+        rewardMultiplier
+      })
+    );
+
+    return true;
+  };
+
+  const resolveSiegeStageChoice = (
+    choiceId: string
+  ) => {
+    if (!activeSiegeRun) return false;
+
+    const result =
+      resolveSiegeChoice({
+        run: activeSiegeRun,
+        choiceId
+      });
+
+    if (!result.ok) return false;
+
+    setActiveSiegeRun(result.state);
+    setArmyReadiness(
+      clampArmyReadiness(
+        result.state.readiness
+      )
+    );
+    return true;
+  };
+
+  const abandonSiegeRun = () => {
+    setActiveSiegeRun(null);
+  };
+
+  const finishSiegeRun = () => {
+    if (
+      !activeSiegeRun ||
+      !activeSiegeRun.completed ||
+      activeSiegeRun.failed
+    ) {
+      return false;
+    }
+
+    const reward =
+      getSiegeReward(
+        activeSiegeRun.rewardMultiplier
+      );
+
+    setSiegeRunsCompleted(
+      previous => previous + 1
+    );
+
+    if (
+      activeSiegeRun.rewardMultiplier > 0
+    ) {
+      setSiegeRewardChapter(
+        chapterNumber
+      );
+      setSiegeRewardedRunsThisChapter(
+        previous =>
+          siegeRewardChapter === chapterNumber
+            ? previous + 1
+            : 1
+      );
+      accrueRegionalProduction();
+      setResources(previous =>
+        addResources(previous, reward)
+      );
+    }
+
+    setArmyReadiness(
+      clampArmyReadiness(
+        activeSiegeRun.readiness
+      )
+    );
+    setActiveSiegeRun(null);
     return true;
   };
 
@@ -6664,6 +6855,11 @@ export function GameProvider({
       kingdomDefenseRewardChapter,
       kingdomDefenseRewardedRunsThisChapter,
       kingdomDefenseNextRewardMultiplier,
+      siegeRunsCompleted,
+      activeSiegeRun,
+      siegeRewardChapter,
+      siegeRewardedRunsThisChapter,
+      siegeNextRewardMultiplier,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,
@@ -6742,6 +6938,10 @@ export function GameProvider({
       resolveExpeditionRouteChoice,
       abandonExpeditionRun,
       finishExpedition,
+      startSiegeRun,
+      resolveSiegeStageChoice,
+      abandonSiegeRun,
+      finishSiegeRun,
       completeFormationTrial,
       completeKingdomTrial,
       claimRewardedAd,
@@ -6872,6 +7072,11 @@ export function GameProvider({
       kingdomDefenseRewardChapter,
       kingdomDefenseRewardedRunsThisChapter,
       kingdomDefenseNextRewardMultiplier,
+      siegeRunsCompleted,
+      activeSiegeRun,
+      siegeRewardChapter,
+      siegeRewardedRunsThisChapter,
+      siegeNextRewardMultiplier,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,
