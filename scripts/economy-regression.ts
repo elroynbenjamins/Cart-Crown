@@ -125,6 +125,8 @@ type EconomyState = {
   formationSwitches: number;
   lastFormationShapeId: FormationShapeId | null;
   weakestWinHpPercent: number;
+  weakestWinEncounter: EncounterId | null;
+  weakestWinShapeId: FormationShapeId | null;
   equipmentSpent: ResourceWallet;
 };
 
@@ -1040,7 +1042,10 @@ function bestPreparedLoadout(
 function simulateEncounter(
   state: EconomyState,
   id: EncounterId
-): SimulationResult {
+): {
+  result: SimulationResult;
+  shapeId: FormationShapeId;
+} {
   const chapter = chapterForEncounter(
     state.faction,
     id
@@ -1056,7 +1061,7 @@ function simulateEncounter(
     id
   );
 
-  return simulate({
+  const result = simulate({
     faction: state.faction,
     units,
     doctrineId: loadout.doctrineId,
@@ -1080,6 +1085,11 @@ function simulateEncounter(
       'unbound_beacon'
     ].includes(id)
   });
+
+  return {
+    result,
+    shapeId: loadout.shapeId
+  };
 }
 
 function hpPercent(result: SimulationResult) {
@@ -1099,7 +1109,8 @@ function addEncounter(
     state.faction + ' pre-battle ' + encounter.name
   );
 
-  let result = simulateEncounter(state, id);
+  let simulated = simulateEncounter(state, id);
+  let result = simulated.result;
 
   if (!result.victory) {
     state.battleDefeats += 1;
@@ -1119,7 +1130,8 @@ function addEncounter(
         ' regroup before retrying ' +
         encounter.name
     );
-    result = simulateEncounter(state, id);
+    simulated = simulateEncounter(state, id);
+    result = simulated.result;
   }
 
   invariant(
@@ -1132,10 +1144,11 @@ function addEncounter(
 
   const remaining = hpPercent(result);
   state.battlesWon += 1;
-  state.weakestWinHpPercent = Math.min(
-    state.weakestWinHpPercent,
-    remaining
-  );
+  if (remaining < state.weakestWinHpPercent) {
+    state.weakestWinHpPercent = remaining;
+    state.weakestWinEncounter = id;
+    state.weakestWinShapeId = simulated.shapeId;
+  }
 
   state.resources = add(
     state.resources,
@@ -1709,6 +1722,8 @@ function newHumanState(): EconomyState {
     formationSwitches: 0,
     lastFormationShapeId: null,
     weakestWinHpPercent: 100,
+    weakestWinEncounter: null,
+    weakestWinShapeId: null,
     equipmentSpent: { ...ZERO }
   };
 }
@@ -1750,6 +1765,8 @@ function newFactionState(
     formationSwitches: 0,
     lastFormationShapeId: null,
     weakestWinHpPercent: 100,
+    weakestWinEncounter: null,
+    weakestWinShapeId: null,
     equipmentSpent: { ...ZERO }
   };
 }
@@ -2290,7 +2307,11 @@ function main() {
         state.battleDefeats +
         ' defeats · weakest win ' +
         state.weakestWinHpPercent +
-        '% HP · ' +
+        '% HP (' +
+        String(state.weakestWinEncounter) +
+        ' / ' +
+        String(state.weakestWinShapeId) +
+        ') · ' +
         state.formationSwitches +
         ' formation switches'
     );
