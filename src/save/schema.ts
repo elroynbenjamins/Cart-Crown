@@ -568,6 +568,35 @@ export function sanitizeFactionGameState(
       Boolean(stored.commanderPathId)
     );
 
+  const requestedKingdomTrialCompletions =
+    new Set(
+      sanitizeStringArray(
+        stored.kingdomTrialCompletions
+      ).filter(id =>
+        ['bronze', 'silver', 'gold'].includes(id)
+      )
+    );
+  const kingdomTrialCompletions: string[] = [];
+
+  if (
+    Boolean(stored.formationTrialCompleted) ||
+    requestedKingdomTrialCompletions.has('bronze')
+  ) {
+    kingdomTrialCompletions.push('bronze');
+  }
+  if (
+    kingdomTrialCompletions.includes('bronze') &&
+    requestedKingdomTrialCompletions.has('silver')
+  ) {
+    kingdomTrialCompletions.push('silver');
+  }
+  if (
+    kingdomTrialCompletions.includes('silver') &&
+    requestedKingdomTrialCompletions.has('gold')
+  ) {
+    kingdomTrialCompletions.push('gold');
+  }
+
   const tutorialSeen = progressedLegacySave
     ? [
         ...new Set([
@@ -660,6 +689,10 @@ export function sanitizeFactionGameState(
       stored.expeditionRunsCompleted,
       defaults.expeditionRunsCompleted
     ),
+    kingdomTrialCompletions,
+    formationTrialCompleted:
+      Boolean(stored.formationTrialCompleted) ||
+      kingdomTrialCompletions.includes('bronze'),
     completedStoryGates: sanitizeStringArray(
       stored.completedStoryGates
     ),
@@ -834,6 +867,7 @@ export function createHumanFactionState(): FactionGameState {
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
     formationTrialCompleted: false,
+    kingdomTrialCompletions: [],
     completedStoryGates: [],
     researchProgress: {},
     unlockedFantasyClasses: [],

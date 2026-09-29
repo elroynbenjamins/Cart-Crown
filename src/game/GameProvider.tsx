@@ -103,8 +103,6 @@ import {
 } from './commanders';
 import {
   analyzeFormation,
-  areFormationSlotsAdjacent,
-  areFormationSlotsVerticallyAligned,
   formationCells,
   formationShapes,
   getFactionDoctrines,
@@ -125,6 +123,12 @@ import {
   isSettlementPlotUnlocked
 } from './settlement';
 import { sideModes } from './sideModes';
+import {
+  evaluateKingdomTrial,
+  isKingdomTrialUnlocked,
+  kingdomTrialOrder
+} from './kingdomTrials';
+import type { KingdomTrialId } from './kingdomTrials';
 import {
   canStartResearch,
   getArmyDeploymentCapacity,
@@ -334,6 +338,7 @@ type GameContextValue = {
   expeditionTickets: number;
   expeditionRunsCompleted: number;
   formationTrialCompleted: boolean;
+  kingdomTrialCompletions: KingdomTrialId[];
   rewardedAdClaims: RewardedAdClaimState;
   rewardedAdMessage: string | null;
   finishEncounter: (encounterId: EncounterId) => void;
@@ -395,6 +400,9 @@ type GameContextValue = {
   unlockTimberCamp: () => boolean;
   claimProduction: () => boolean;
   completeKingdomDefense: () => boolean;
+  commitKingdomDefenseReadiness: (
+    readiness: number
+  ) => void;
   completeBrokenSignalTower: () => boolean;
   upgradeToTown: () => boolean;
   upgradeToStronghold: () => boolean;
@@ -423,6 +431,9 @@ type GameContextValue = {
   consumeExpeditionTicket: () => boolean;
   finishExpedition: () => void;
   completeFormationTrial: () => boolean;
+  completeKingdomTrial: (
+    trialId: KingdomTrialId
+  ) => boolean;
   claimRewardedAd: (placementId: RewardedAdPlacementId) => Promise<RewardedAdResult>;
   startFantasyResearch: (researchId: string) => boolean;
   claimFantasyResearch: (researchId: string) => boolean;
@@ -710,6 +721,21 @@ export function GameProvider({
   const [expeditionTickets, setExpeditionTickets] = useState(initialFaction.expeditionTickets);
   const [expeditionRunsCompleted, setExpeditionRunsCompleted] = useState(initialFaction.expeditionRunsCompleted);
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
+  const [kingdomTrialCompletions, setKingdomTrialCompletions] = useState<KingdomTrialId[]>(
+    () => {
+      const stored = (initialFaction.kingdomTrialCompletions ?? [])
+        .filter((id): id is KingdomTrialId =>
+          kingdomTrialOrder.includes(id as KingdomTrialId)
+        );
+      if (
+        initialFaction.formationTrialCompleted &&
+        !stored.includes('bronze')
+      ) {
+        return ['bronze', ...stored];
+      }
+      return stored;
+    }
+  );
   const [completedStoryGates, setCompletedStoryGates] = useState<string[]>(
     () => [...(initialFaction.completedStoryGates ?? [])]
   );
@@ -1381,6 +1407,7 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
+      kingdomTrialCompletions,
       completedStoryGates,
       researchProgress,
       unlockedFantasyClasses,
@@ -1434,6 +1461,7 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
+      kingdomTrialCompletions,
       completedStoryGates,
       researchProgress,
       unlockedFantasyClasses,
@@ -4722,7 +4750,6 @@ export function GameProvider({
       provisions: previous.provisions + (firstClear ? 6 : 5)
     }));
     accrueRegionalProduction();
-    recordBattleWear(65, 100, 'Elite', true);
 
     if (storyDefenseActive) {
       setChapterNodes(previous =>
@@ -4735,6 +4762,14 @@ export function GameProvider({
     }
 
     return true;
+  };
+
+  const commitKingdomDefenseReadiness = (
+    readiness: number
+  ) => {
+    setArmyReadiness(
+      clampArmyReadiness(readiness)
+    );
   };
 
   const completeBrokenSignalTower = () => {
@@ -5457,59 +5492,56 @@ export function GameProvider({
     recordBattleWear(70, 100, 'Elite', true);
   };
 
-  const completeFormationTrial = () => {
-    if (!isSideModeUnlocked('formation_trials') || formationTrialCompleted) return false;
-
-    const occupiedSlots = formation
-      .map((unitId, index) => (unitId ? index : -1))
-      .filter(index => index >= 0);
-
-    let trialReady = false;
-
-    if (activeFaction === 'human') {
-      const harlan = formation.indexOf('hum_militia');
-      const mira = formation.indexOf('hum_recruit');
-      const harlanFront =
-        harlan >= 0 && activeFormationShape.rows.front.includes(harlan);
-      const miraBehind =
-        mira >= 0 &&
-        (
-          activeFormationShape.rows.middle.includes(mira) ||
-          activeFormationShape.rows.rear.includes(mira)
-        );
-      const protectedLane =
-        harlan >= 0 &&
-        mira >= 0 &&
-        areFormationSlotsVerticallyAligned(formationShapeId, harlan, mira);
-      trialReady = harlanFront && miraBehind && protectedLane;
-    } else if (activeFaction === 'elf') {
-      trialReady =
-        occupiedSlots.length >= 2 &&
-        occupiedSlots.every((slot, index) =>
-          occupiedSlots
-            .slice(index + 1)
-            .every(other => !areFormationSlotsAdjacent(formationShapeId, slot, other))
-        );
-    } else {
-      trialReady =
-        occupiedSlots.length >= 2 &&
-        occupiedSlots.some((slot, index) =>
-          occupiedSlots
-            .slice(index + 1)
-            .some(other => areFormationSlotsAdjacent(formationShapeId, slot, other))
-        );
+  const completeKingdomTrial = (
+    trialId: KingdomTrialId
+  ) => {
+    if (!isSideModeUnlocked('formation_trials')) {
+      return false;
     }
 
-    if (!trialReady) return false;
+    if (
+      kingdomTrialCompletions.includes(trialId) ||
+      !isKingdomTrialUnlocked(
+        trialId,
+        kingdomTrialCompletions
+      )
+    ) {
+      return false;
+    }
 
-    setFormationTrialCompleted(true);
-    setResources(previous => ({
+    const evaluation = evaluateKingdomTrial(
+      trialId,
+      {
+        faction: activeFaction,
+        formation,
+        formationShapeId,
+        formationDoctrineId
+      }
+    );
+
+    if (!evaluation.passed) return false;
+
+    setKingdomTrialCompletions(previous => [
       ...previous,
-      gold: previous.gold + 25,
-      iron: previous.iron + 4
-    }));
+      trialId
+    ]);
+
+    if (trialId === 'bronze') {
+      setFormationTrialCompleted(true);
+    }
+
+    setResources(previous =>
+      addResources(
+        previous,
+        evaluation.reward
+      )
+    );
+
     return true;
   };
+
+  const completeFormationTrial = () =>
+    completeKingdomTrial('bronze');
 
   const claimRewardedAd = async (
     placementId: RewardedAdPlacementId
@@ -5972,6 +6004,7 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
+      kingdomTrialCompletions,
       rewardedAdClaims,
       rewardedAdMessage,
       finishEncounter,
@@ -6016,6 +6049,7 @@ export function GameProvider({
       unlockTimberCamp,
       claimProduction,
       completeKingdomDefense,
+      commitKingdomDefenseReadiness,
       completeBrokenSignalTower,
       upgradeToTown,
       upgradeToStronghold,
@@ -6044,6 +6078,7 @@ export function GameProvider({
       consumeExpeditionTicket,
       finishExpedition,
       completeFormationTrial,
+      completeKingdomTrial,
       claimRewardedAd,
       startFantasyResearch,
       claimFantasyResearch,
@@ -6154,6 +6189,7 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
+      kingdomTrialCompletions,
       rewardedAdClaims,
       rewardedAdMessage,
       recruitOptions
