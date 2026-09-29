@@ -12,6 +12,7 @@ import {
   getFantasyRecruitTemplates,
   getFlyingCombatEdge,
   getLargeCombatEdge,
+  getHybridCombatEdge,
   getFantasyStoryRewardUnit,
   getResearchGemFinishCost,
   getResearchRemainingHours,
@@ -743,6 +744,116 @@ function runPlayableLargeCoverage() {
   );
 }
 
+function runPlayableHybridCoverage() {
+  const hybridTemplates = fantasyRecruitTemplates.filter(
+    template => template.family === 'hybrid'
+  );
+
+  expect(
+    hybridTemplates.length === 3,
+    'Chapter 8 needs exactly one repeatable legendary hybrid branch per faction.'
+  );
+
+  for (const faction of ['human', 'elf', 'orc'] as const) {
+    const templates = getFantasyRecruitTemplates(
+      faction,
+      'hybrid'
+    );
+
+    expect(
+      templates.length === 1,
+      faction + ' must expose one repeatable legendary hybrid branch.'
+    );
+
+    const template = templates[0];
+    if (!template) continue;
+
+    expect(
+      template.battleTags.includes('magic') &&
+        template.battleTags.includes('flying'),
+      template.id + ' must retain both Magic and Flying tags.'
+    );
+    expect(
+      template.deploymentCapacity === 2,
+      template.id + ' must consume two deployment capacity.'
+    );
+    expect(
+      researchDefinitions.some(
+        research =>
+          research.id === template.researchId &&
+          research.faction === faction &&
+          research.family === 'hybrid'
+      ),
+      template.id + ' is not linked to valid legendary research.'
+    );
+  }
+
+  const template = hybridTemplates.find(
+    candidate => candidate.id === 'human_arcane_griffin_rider'
+  );
+  expect(Boolean(template), 'Arcane Griffin Rider training template is missing.');
+  if (!template) return;
+
+  const hybrid = {
+    id: 'test_hybrid',
+    name: 'Test Arcane Griffin',
+    className: template.className,
+    faction: template.faction,
+    role: template.role,
+    tier: template.tier,
+    level: template.level,
+    hp: template.hp,
+    attack: template.attack,
+    armor: template.armor,
+    speed: template.speed,
+    battleTags: template.battleTags,
+    deploymentCapacity: 2 as const
+  };
+
+  expect(
+    getArmyDeploymentCapacity([hybrid]) === 2,
+    'Legendary hybrids must consume two deployment capacity.'
+  );
+
+  const breakthrough = getHybridCombatEdge(
+    [hybrid],
+    'elite_command'
+  );
+  const antiAir = getHybridCombatEdge(
+    [hybrid],
+    'missile_company'
+  );
+  const warded = getHybridCombatEdge(
+    [hybrid],
+    'warded_host'
+  );
+
+  expect(
+    Boolean(
+      breakthrough &&
+      breakthrough.attackMultiplier > 1 &&
+      breakthrough.favorable
+    ),
+    'Legendary hybrids should pressure protected command formations.'
+  );
+  expect(
+    Boolean(
+      antiAir &&
+      antiAir.incomingDamageMultiplier > 1 &&
+      !antiAir.favorable
+    ),
+    'Missile Companies must still counter legendary flying hybrids.'
+  );
+  expect(
+    Boolean(
+      warded &&
+      warded.attackMultiplier <= 1 &&
+      !warded.favorable
+    ),
+    'Warded Hosts must blunt the magic half of legendary hybrids.'
+  );
+}
+
 function main() {
   runCampaignCurveCoverage();
   runChapterTwoCoverage();
@@ -752,6 +863,7 @@ function main() {
   runPlayableMagicCoverage();
   runPlayableFlyingCoverage();
   runPlayableLargeCoverage();
+  runPlayableHybridCoverage();
 
   if (failures.length > 0) {
     console.error('\nFantasy progression regression failures:');
@@ -761,7 +873,7 @@ function main() {
   }
 
   console.log(
-    'PASS: campaign growth, fantasy gates, research rules, playable magic, flying and Large branches, counterplay, battle tags and deployment capacity remain inside the intended guardrails.'
+    'PASS: campaign growth, fantasy gates, research rules, playable magic, flying, Large and legendary hybrid branches, counterplay, battle tags and deployment capacity remain inside the intended guardrails.'
   );
 }
 

@@ -43,6 +43,7 @@ import { FactionFifthRecruitmentScreen } from './screens/FactionFifthRecruitment
 import { FantasyResearchScreen } from './screens/FantasyResearchScreen';
 import { FlyingResearchScreen } from './screens/FlyingResearchScreen';
 import { LargeResearchScreen } from './screens/LargeResearchScreen';
+import { HybridResearchScreen } from './screens/HybridResearchScreen';
 import { FactionKingdomScreen } from './screens/FactionKingdomScreen';
 import { FactionRecruitmentScreen } from './screens/FactionRecruitmentScreen';
 import { FactionChapterOneEventScreen } from './screens/FactionChapterOneEventScreen';
@@ -91,6 +92,7 @@ type FlowScreen =
   | 'fantasyResearch'
   | 'flyingResearch'
   | 'largeResearch'
+  | 'hybridResearch'
   | 'promotion'
   | 'equipment'
   | 'commanderChoice'
@@ -163,6 +165,7 @@ const flowTitles: Record<FlowScreen, string> = {
   fantasyResearch: 'Arcane Research',
   flyingResearch: 'Aerial Training',
   largeResearch: 'Large Unit Mastery',
+  hybridResearch: 'Legendary Orders',
   promotion: 'Promotion',
   equipment: 'Equipment',
   commanderChoice: 'Commander Path',
@@ -687,6 +690,17 @@ export function AppShell({
         <LargeResearchScreen
           tutorialFocus={tutorialFocus}
           onTutorialFocusComplete={completeTutorialFocus}
+          onExit={() => {
+            setFlow(null);
+            setActive('army');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'hybridResearch') {
+      return (
+        <HybridResearchScreen
           onExit={() => {
             setFlow(null);
             setActive('army');
@@ -1572,6 +1586,7 @@ export function AppShell({
             onOpenFantasyResearch={() => setFlow('fantasyResearch')}
             onOpenFlyingResearch={() => setFlow('flyingResearch')}
             onOpenLargeResearch={() => setFlow('largeResearch')}
+            onOpenHybridResearch={() => setFlow('hybridResearch')}
             onOpenEquipment={(unitId) => {
               setEquipmentUnitId(unitId);
               setFlow('equipment');
@@ -1646,6 +1661,7 @@ export function AppShell({
     flow === 'fantasyResearch' ||
     flow === 'flyingResearch' ||
     flow === 'largeResearch' ||
+    flow === 'hybridResearch' ||
     flow === 'promotion' ||
     flow === 'equipment' ||
     flow === 'commanderChoice' ||

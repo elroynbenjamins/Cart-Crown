@@ -20,7 +20,8 @@ import {
 import {
   getFantasyCombatEdge,
   getFlyingCombatEdge,
-  getLargeCombatEdge
+  getLargeCombatEdge,
+  getHybridCombatEdge
 } from '../game/progression';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
@@ -292,6 +293,14 @@ export function BattleScreen({
       ),
     [activeUnits, enemyArmyProfile.id]
   );
+  const hybridCombatEdge = useMemo(
+    () =>
+      getHybridCombatEdge(
+        activeUnits,
+        enemyArmyProfile.id
+      ),
+    [activeUnits, enemyArmyProfile.id]
+  );
 
   const activeFormationSlots = useMemo(
     () =>
@@ -450,6 +459,19 @@ export function BattleScreen({
           ? ' · breakthrough'
           : ' · countered'),
       color: largeCombatEdge.favorable
+        ? theme.colors.gold
+        : theme.colors.danger
+    });
+  }
+  if (hybridCombatEdge) {
+    battleEffects.push({
+      key: 'hybrid-edge',
+      label:
+        hybridCombatEdge.title +
+        (hybridCombatEdge.favorable
+          ? ' · legendary edge'
+          : ' · countered'),
+      color: hybridCombatEdge.favorable
         ? theme.colors.gold
         : theme.colors.danger
     });
@@ -712,6 +734,7 @@ export function BattleScreen({
             (fantasyCombatEdge?.attackMultiplier ?? 1) *
             (flyingCombatEdge?.attackMultiplier ?? 1) *
             (largeCombatEdge?.attackMultiplier ?? 1) *
+            (hybridCombatEdge?.attackMultiplier ?? 1) *
             momentum *
             attackFactor *
             tacticalSpeedDamageMultiplier
@@ -749,6 +772,7 @@ export function BattleScreen({
             (fantasyCombatEdge?.incomingDamageMultiplier ?? 1) *
             (flyingCombatEdge?.incomingDamageMultiplier ?? 1) *
             (largeCombatEdge?.incomingDamageMultiplier ?? 1) *
+            (hybridCombatEdge?.incomingDamageMultiplier ?? 1) *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -823,6 +847,9 @@ export function BattleScreen({
                   : '') +
                 (largeCombatEdge
                   ? ' ' + largeCombatEdge.detail
+                  : '') +
+                (hybridCombatEdge
+                  ? ' ' + hybridCombatEdge.detail
                   : '')
               : action)
       );
