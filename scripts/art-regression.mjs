@@ -1,15 +1,43 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { deflateSync } from 'node:zlib';
+import { crc32, validateSpritePng } from './png-integrity.mjs';
+
+// Exercise the checker itself; a corrupted payload must never pass on its header.
+function chunk(type, payload) {
+  const data = Buffer.concat([Buffer.from(type), payload]);
+  const size = Buffer.alloc(4); size.writeUInt32BE(payload.length);
+  const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(data));
+  return Buffer.concat([size, data, crc]);
+}
+function fixture({ opaque = false, blank = false, filter = 0, short = false } = {}) {
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(256, 0); ihdr.writeUInt32BE(256, 4); ihdr[8] = 8; ihdr[9] = 6;
+  const raw = Buffer.alloc(256 * 1025);
+  for (let y = 0; y < 256; y++) {
+    raw[y * 1025] = filter;
+    if (opaque) for (let x = 0; x < 256; x++) raw[y * 1025 + 4 + x * 4] = 255;
+  }
+  if (!blank && !opaque) raw[4] = 255;
+  return Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), chunk('IHDR', ihdr),
+    chunk('IDAT', deflateSync(short ? raw.subarray(0, raw.length - 1) : raw)), chunk('IEND', Buffer.alloc(0))]);
+}
+const validFixture = fixture();
+assert.equal(validateSpritePng(validFixture).visible, 1);
+assert.equal(crc32(Buffer.from('123456789')), 0xcbf43926);
+const corruptFixture = Buffer.from(validFixture); corruptFixture[45] ^= 1;
+assert.throws(() => validateSpritePng(corruptFixture), /CRC mismatch/);
+assert.throws(() => validateSpritePng(validFixture.subarray(0, -1)), /Truncated/);
+assert.throws(() => validateSpritePng(Buffer.concat([validFixture, Buffer.from([0])])), /trailing/);
+assert.throws(() => validateSpritePng(fixture({ opaque: true })), /all pixels are opaque/);
+assert.throws(() => validateSpritePng(fixture({ blank: true })), /no visible pixels/);
+assert.throws(() => validateSpritePng(fixture({ short: true })), /scanline size/);
+assert.throws(() => validateSpritePng(fixture({ filter: 5 })), /row filter/);
 
 const root = process.cwd();
-const spriteRoots = [
-  path.join(root, 'assets/game/units'),
-  path.join(root, 'assets/game/enemies')
-];
-const registryPath = path.join(root, 'src/ui/productionAssets.ts');
 const failures = [];
-
 function walk(dir) {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
@@ -17,93 +45,37 @@ function walk(dir) {
     return entry.isDirectory() ? walk(full) : [full];
   });
 }
-
-function relative(file) {
-  return path.relative(root, file).split(path.sep).join('/');
-}
-
-function pngInfo(file) {
-  const bytes = fs.readFileSync(file);
-  const signature = bytes.subarray(0, 8).toString('hex');
-  if (signature !== '89504e470d0a1a0a') {
-    return { valid: false, bytes };
-  }
-  return {
-    valid: true,
-    bytes,
-    width: bytes.readUInt32BE(16),
-    height: bytes.readUInt32BE(20),
-    colorType: bytes[25]
-  };
-}
-
-const sprites = spriteRoots
-  .flatMap(walk)
-  .filter(file => file.toLowerCase().endsWith('.png'))
-  .sort();
-
+function relative(file) { return path.relative(root, file).split(path.sep).join('/'); }
+const sprites = ['assets/game/units', 'assets/game/enemies']
+  .flatMap(dir => walk(path.join(root, dir))).filter(file => file.endsWith('.png')).sort();
+assert.ok(sprites.length > 0, 'No production sprites found');
 const hashes = new Map();
-
 for (const file of sprites) {
-  const rel = relative(file);
-  const info = pngInfo(file);
-  if (!info.valid) {
-    failures.push(rel + ' is not a valid PNG.');
-    continue;
+  const rel = relative(file), bytes = fs.readFileSync(file);
+  try {
+    validateSpritePng(bytes);
+  } catch (error) {
+    failures.push(rel + ': ' + error.message);
   }
-  if (info.width !== 256 || info.height !== 256) {
-    failures.push(rel + ' must be 256x256, got ' + info.width + 'x' + info.height + '.');
-  }
-  if (![4, 6].includes(info.colorType)) {
-    failures.push(rel + ' must preserve transparency (PNG color type 4 or 6).');
-  }
-  if (info.bytes.length < 180) {
-    failures.push(rel + ' is suspiciously small (' + info.bytes.length + ' bytes).');
-  }
-  if (info.bytes.length > 200000) {
-    failures.push(rel + ' is too large for a combat sprite (' + info.bytes.length + ' bytes).');
-  }
-
-  const hash = crypto.createHash('sha256').update(info.bytes).digest('hex');
+  const hash = crypto.createHash('sha256').update(bytes).digest('hex');
   const matches = hashes.get(hash) ?? [];
-  matches.push(rel);
-  hashes.set(hash, matches);
+  matches.push(rel); hashes.set(hash, matches);
 }
-
 for (const matches of hashes.values()) {
-  if (matches.length > 1) {
-    failures.push('Exact duplicate production sprites: ' + matches.join(' | '));
-  }
+  if (matches.length > 1) failures.push('Exact duplicate production sprites: ' + matches.join(' | '));
 }
-
-const registry = fs.readFileSync(registryPath, 'utf8');
-const registered = new Set(
-  [...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/(?:units|enemies)\/[^']+\.png)'\)/g)]
-    .map(match => match[1])
-);
-
+const registry = fs.readFileSync(path.join(root, 'src/ui/productionAssets.ts'), 'utf8');
+const registered = new Set([...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/(?:units|enemies)\/[^']+\.png)'\)/g)].map(match => match[1]));
 const spritePaths = new Set(sprites.map(relative));
-
 for (const sprite of spritePaths) {
-  if (!registered.has(sprite)) {
-    failures.push(sprite + ' exists but is not registered in productionAssetSources.');
-  }
+  if (!registered.has(sprite)) failures.push(sprite + ' exists but is not registered in productionAssetSources.');
 }
-
 for (const sprite of registered) {
-  if (!spritePaths.has(sprite)) {
-    failures.push(sprite + ' is registered but the file does not exist.');
-  }
+  if (!spritePaths.has(sprite)) failures.push(sprite + ' is registered but the file does not exist.');
 }
-
-if (failures.length > 0) {
+if (failures.length) {
   console.error('\nART REGRESSION FAILED');
   failures.forEach(failure => console.error('- ' + failure));
   process.exit(1);
 }
-
-console.log(
-  'PASS: ' +
-    sprites.length +
-    ' production unit/enemy sprites are 256x256 transparent PNGs, uniquely rendered, size-safe and registered.'
-);
+console.log('PASS: ' + sprites.length + ' sprites fully decoded: CRCs, zlib payload, scanline/filter integrity, real alpha, size, registration and exact duplicates.');
