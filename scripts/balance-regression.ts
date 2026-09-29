@@ -17,6 +17,10 @@ import {
 import { getCommanderPaths } from '../src/game/commanders';
 import { humanRecruitOptions, starterUnits } from '../src/game/data';
 import {
+  getChapterOneFifthReinforcement,
+  getChapterTwoSeventhReinforcement
+} from '../src/game/earlyReinforcements';
+import {
   advancedPromotions,
   canUnitEquipEquipment,
   equipmentDefinitions,
@@ -133,12 +137,12 @@ const bossByFaction: Record<FactionId, EncounterId[]> = {
 };
 
 const squadCaps: Record<FactionId, number[]> = {
-  human: [3, 4, 5, 6, 6, 6],
-  elf: [2, 3, 4, 5, 6, 6],
-  orc: [2, 3, 4, 5, 6, 6]
+  human: [5, 7, 7, 7, 7, 7],
+  elf: [5, 7, 7, 7, 7, 7],
+  orc: [5, 7, 7, 7, 7, 7]
 };
 
-const gearTierByChapter = [1, 1, 2, 2, 3, 3];
+const gearTierByChapter = [1, 2, 2, 2, 3, 3];
 
 const doctrineByFaction: Record<FactionId, string> = {
   human: 'human_balanced',
@@ -257,6 +261,7 @@ function buildHumanArmy(chapter: number): UnitDefinition[] {
   units.push(
     optionUnit(humanRecruitOptions, 'hum_archer_reinforcement')
   );
+  units.push(getChapterOneFifthReinforcement('human'));
 
   if (chapter >= 2) {
     units.push(
@@ -265,6 +270,7 @@ function buildHumanArmy(chapter: number): UnitDefinition[] {
         'hum_man_at_arms_reinforcement'
       )
     );
+    units.push(getChapterTwoSeventhReinforcement('human'));
   }
 
   if (chapter >= 3) {
@@ -294,6 +300,14 @@ function buildHumanArmy(chapter: number): UnitDefinition[] {
 function buildElfArmy(chapter: number): UnitDefinition[] {
   const units = elfStarterUnits.map(cloneUnit);
 
+  units.push(
+    optionUnit(
+      elfThirdRecruitOptions,
+      'elf_bow_warden'
+    )
+  );
+  units.push(getChapterOneFifthReinforcement('elf'));
+
   if (chapter >= 2) {
     units.push(
       optionUnit(
@@ -301,6 +315,7 @@ function buildElfArmy(chapter: number): UnitDefinition[] {
         'elf_grove_acolyte'
       )
     );
+    units.push(getChapterTwoSeventhReinforcement('elf'));
   }
 
   if (chapter >= 3) {
@@ -334,6 +349,14 @@ function buildElfArmy(chapter: number): UnitDefinition[] {
 function buildOrcArmy(chapter: number): UnitDefinition[] {
   const units = orcStarterUnits.map(cloneUnit);
 
+  units.push(
+    optionUnit(
+      orcThirdRecruitOptions,
+      'orc_clan_warrior'
+    )
+  );
+  units.push(getChapterOneFifthReinforcement('orc'));
+
   if (chapter >= 2) {
     units.push(
       optionUnit(
@@ -341,6 +364,7 @@ function buildOrcArmy(chapter: number): UnitDefinition[] {
         'orc_war_drummer'
       )
     );
+    units.push(getChapterTwoSeventhReinforcement('orc'));
   }
 
   if (chapter >= 3) {
@@ -1136,13 +1160,13 @@ function runChapterMatrix() {
           ' changed between 100 and 70 Readiness despite the no-penalty threshold'
       );
 
-      if (chapter >= 4) {
+      if (chapter <= 2) {
         expect(
           !underprepared.victory,
           faction +
             ' chapter ' +
             chapter +
-            ' remains too forgiving: a fatigued army missing two squads still clears ' +
+            ' remains too forgiving: a fatigued incomplete army still clears ' +
             encounterId
         );
       }
@@ -1173,50 +1197,101 @@ function runChapterMatrix() {
   return rows;
 }
 
-function runTrueOpeningBossCoverage() {
-  const openings: Array<{
-    faction: 'elf' | 'orc';
-    units: UnitDefinition[];
-    encounterId: EncounterId;
-    minimumHpRatio: number;
-  }> = [
-    {
-      faction: 'elf',
-      units: elfStarterUnits.map(cloneUnit),
-      encounterId: 'elf_hollow_warden',
-      minimumHpRatio: 0.08
-    },
-    {
-      faction: 'orc',
-      units: orcStarterUnits.map(cloneUnit),
-      encounterId: 'orc_blamecaller',
-      minimumHpRatio: 0.08
-    }
-  ];
+function runEarlyDifficultyCoverage() {
+  const firstBattles: Record<FactionId, EncounterId> = {
+    human: 'hold_the_road',
+    elf: 'elf_wardbreakers',
+    orc: 'orc_red_road'
+  };
 
-  for (const opening of openings) {
-    const result = simulate({
-      faction: opening.faction,
-      units: opening.units,
-      doctrineId:
-        doctrineByFaction[opening.faction],
+  for (const faction of ['human', 'elf', 'orc'] as const) {
+    const freshUnits =
+      faction === 'human'
+        ? starterUnits.map(cloneUnit)
+        : faction === 'elf'
+          ? elfStarterUnits.map(cloneUnit)
+          : orcStarterUnits.map(cloneUnit);
+
+    const opening = simulate({
+      faction,
+      units: freshUnits,
+      doctrineId: doctrineByFaction[faction],
       shapeId: 'balanced_333',
       commander: null,
-      encounterId: opening.encounterId,
-      squadCap: 2,
+      encounterId: firstBattles[faction],
+      squadCap: 3,
       readiness: 100
     });
 
     expect(
-      result.victory,
-      opening.faction +
-        ' true ungeared Chapter 1 starter army can no longer clear ' +
-        opening.encounterId
+      opening.victory,
+      faction + ' fresh three-squad army can no longer clear the first normal battle.'
     );
     expect(
-      ratio(result) >= opening.minimumHpRatio,
-      opening.faction +
-        ' true ungeared Chapter 1 boss has fallen back to a near-zero-HP edge.'
+      ratio(opening) >= 0.12,
+      faction + ' first normal battle has become an accidental near-wipe.'
+    );
+
+    const chapterOnePrepared = simulate({
+      faction,
+      units: normalArmy(faction, 1),
+      doctrineId: doctrineByFaction[faction],
+      shapeId: shapeFor(faction, 1),
+      commander: defaultCommander(faction),
+      encounterId: bossByFaction[faction][0]!,
+      squadCap: 5,
+      readiness: 100
+    });
+
+    const chapterOneUnderprepared = simulate({
+      faction,
+      units: freshUnits,
+      doctrineId: doctrineByFaction[faction],
+      shapeId: 'balanced_333',
+      commander: null,
+      encounterId: bossByFaction[faction][0]!,
+      squadCap: 3,
+      readiness: 45
+    });
+
+    expect(
+      chapterOnePrepared.victory,
+      faction + ' properly prepared five-squad Chapter 1 army cannot clear its boss.'
+    );
+    expect(
+      !chapterOneUnderprepared.victory,
+      faction + ' Chapter 1 boss is too easy: the fatigued opening three squads still clear it.'
+    );
+
+    const chapterTwoPrepared = simulate({
+      faction,
+      units: normalArmy(faction, 2),
+      doctrineId: doctrineByFaction[faction],
+      shapeId: shapeFor(faction, 2),
+      commander: defaultCommander(faction),
+      encounterId: bossByFaction[faction][1]!,
+      squadCap: 7,
+      readiness: 100
+    });
+
+    const chapterTwoUnderprepared = simulate({
+      faction,
+      units: buildArmy(faction, 2).slice(0, 5),
+      doctrineId: doctrineByFaction[faction],
+      shapeId: shapeFor(faction, 2),
+      commander: defaultCommander(faction),
+      encounterId: bossByFaction[faction][1]!,
+      squadCap: 5,
+      readiness: 45
+    });
+
+    expect(
+      chapterTwoPrepared.victory,
+      faction + ' properly prepared seven-squad Chapter 2 army cannot clear its boss.'
+    );
+    expect(
+      !chapterTwoUnderprepared.victory,
+      faction + ' Chapter 2 boss is too easy: five fatigued ungeared squads still clear it.'
     );
   }
 }
@@ -2494,7 +2569,7 @@ function main() {
   runBattlePreparationCoverage();
   runReadinessCoverage();
   const rows = runChapterMatrix();
-  runTrueOpeningBossCoverage();
+  runEarlyDifficultyCoverage();
   runCommanderCoverage();
   runHumanStoryChoiceCoverage();
   runLatePolicyCoverage();
@@ -2528,7 +2603,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, pre-battle preparation states, scouted loadout recommendations, tactical adjustment advice, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
+    '\nPASS: early prepared-vs-underprepared difficulty, chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, pre-battle preparation states, scouted loadout recommendations, tactical adjustment advice, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
   );
 }
 
