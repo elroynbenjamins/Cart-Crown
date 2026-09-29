@@ -88,6 +88,7 @@ export function BattlePrepScreen({
   ] = React.useState(false);
   const {
     activeFaction,
+    chapterNumber,
     resources,
     armyReadiness,
     armyResupplyCost,
