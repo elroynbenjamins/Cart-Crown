@@ -834,10 +834,10 @@ export function sanitizeFactionGameState(
     warTableBoardChapter: Math.max(
       1,
       Math.min(
-        3,
+        6,
         nonNegativeInteger(
           stored.warTableBoardChapter,
-          Math.min(chapterNumber, 3)
+          Math.min(chapterNumber, 6)
         )
       )
     ),
