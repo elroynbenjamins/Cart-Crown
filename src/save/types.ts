@@ -12,6 +12,12 @@ import type {
 
 export type SaveSlotId = 1 | 2;
 
+export type ResearchProgressState = {
+  startedAt: number | null;
+  rewardedAdsWatched: number;
+  completed: boolean;
+};
+
 export type FactionGameState = {
   faction: FactionId;
   chapterNumber: number;
@@ -59,6 +65,10 @@ export type FactionGameState = {
   expeditionTickets: number;
   expeditionRunsCompleted: number;
   formationTrialCompleted: boolean;
+  completedStoryGates?: string[];
+  researchProgress?: Record<string, ResearchProgressState>;
+  unlockedFantasyClasses?: string[];
+  fantasyRecruitSerial?: number;
   tutorialSeen?: string[];
 };
 
@@ -69,6 +79,7 @@ export type SharedProgress = {
   cosmetics: string[];
   metaCampaignStep: number;
   metaCampaignComplete: boolean;
+  gems?: number;
   reviewPromptShown?: boolean;
 };
 
