@@ -77,12 +77,16 @@ function runFreshRoundTrip() {
     'Fresh save unexpectedly created presets.'
   );
   expect(
-    human.formation.filter(Boolean).length === 2,
-    'Fresh save changed starter active squad count.'
+    human.formation.filter(Boolean).length === 3,
+    'Fresh save must open with three deployed squads.'
   );
   expect(
-    normalized.metadata.activeSquads === 2,
-    'Fresh metadata active squad count drifted.'
+    human.units.length === 3,
+    'Fresh Human roster must contain three opening squads.'
+  );
+  expect(
+    normalized.metadata.activeSquads === 3,
+    'Fresh metadata must report three opening squads.'
   );
   expect(
     normalized.metadata.chapterLabel.includes(
@@ -313,7 +317,7 @@ function runCorruptionRepair() {
       new Set(activeIds).size === 2 &&
       activeIds.includes('hum_militia') &&
       activeIds.includes('hum_recruit'),
-    'Formation did not remove duplicate/stale units or respect Camp cap.'
+    'Formation did not remove duplicate/stale units or respect the campaign deployment cap.'
   );
   expect(
     repaired.formationShapeId ===

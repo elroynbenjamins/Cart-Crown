@@ -131,6 +131,11 @@ import {
   getBattleReadinessWear,
   getExpansionCost
 } from './balance';
+import { getCampaignCapacity } from './campaignCapacity';
+import {
+  getChapterOneFifthReinforcement,
+  getChapterTwoSeventhReinforcement
+} from './earlyReinforcements';
 import type {
   AdvancedPromotionDefinition,
   BattleResult,
@@ -211,6 +216,7 @@ type GameContextValue = {
   formationBonuses: FormationBonus[];
   formationAnalysis: ReturnType<typeof analyzeFormation>;
   activeSquadCap: number;
+  rosterCap: number;
   formationCells: number[];
   holdTheRoadWon: boolean;
   settlementUpgraded: boolean;
@@ -778,7 +784,16 @@ export function GameProvider({
   );
 
   const formationBonuses = formationAnalysis.bonuses;
-  const activeSquadCap = currentWagonStage.formationSlots;
+  const campaignCapacity = useMemo(
+    () => getCampaignCapacity(
+      activeFaction,
+      chapterNumber,
+      chapterNodes
+    ),
+    [activeFaction, chapterNumber, chapterNodes]
+  );
+  const activeSquadCap = campaignCapacity.deploymentCap;
+  const rosterCap = campaignCapacity.rosterCap;
   const hasPackedRations = wagonItems.some(item => item.id === 'rations');
   const hasPackedMedicine = wagonItems.some(item => item.id === 'medicine');
   const armyResupplyCost = getArmyResupplyCost(
@@ -794,12 +809,45 @@ export function GameProvider({
       'hum_banner_captain_reinforcement'
     ].includes(unit.id)
   );
-  const recruitOptions =
+  const baseRecruitOptions =
     activeFaction === 'elf'
       ? elfThirdRecruitOptions
       : activeFaction === 'orc'
         ? orcThirdRecruitOptions
         : humanRecruitOptions;
+  const recruitOptions = baseRecruitOptions.filter(
+    option => !units.some(unit => unit.id === option.unit.id)
+  );
+
+  const addUnitToRoster = (unit: UnitDefinition) => {
+    if (units.some(candidate => candidate.id === unit.id)) {
+      return true;
+    }
+    if (units.length >= rosterCap) return false;
+
+    setUnits(previous =>
+      previous.some(candidate => candidate.id === unit.id)
+        ? previous
+        : [...previous, { ...unit }]
+    );
+    setFormation(previous => {
+      const next = [...previous];
+      if (
+        next.includes(unit.id) ||
+        next.filter(Boolean).length >= activeSquadCap
+      ) {
+        return next;
+      }
+      const preferredSlots = getPreferredFormationSlots(
+        formationShapeId,
+        unit.role
+      );
+      const empty = preferredSlots.find(slot => next[slot] === null);
+      if (empty !== undefined) next[empty] = unit.id;
+      return next;
+    });
+    return true;
+  };
 
   const factionFourthRecruitOptions =
     activeFaction === 'elf'
@@ -2959,6 +3007,12 @@ export function GameProvider({
               provisions: previous.provisions + 14
             }
       );
+      if (stage === 'investigation') {
+        setRecruitChoiceAvailable(true);
+        setRecruitChosen(false);
+      } else {
+        addUnitToRoster(getChapterOneFifthReinforcement('elf'));
+      }
       setChapterNodes(previous =>
         previous.map(node => {
           if (node.id === nodeId) {
@@ -2997,6 +3051,12 @@ export function GameProvider({
               provisions: previous.provisions + 16
             }
       );
+      if (stage === 'investigation') {
+        setRecruitChoiceAvailable(true);
+        setRecruitChosen(false);
+      } else {
+        addUnitToRoster(getChapterOneFifthReinforcement('orc'));
+      }
       setChapterNodes(previous =>
         previous.map(node => {
           if (node.id === nodeId) {
@@ -3044,6 +3104,7 @@ export function GameProvider({
           gold: previous.gold + 20,
           stone: previous.stone + 6
         }));
+        addUnitToRoster(getChapterTwoSeventhReinforcement('elf'));
       }
 
       setChapterNodes(previous =>
@@ -3087,6 +3148,7 @@ export function GameProvider({
           gold: previous.gold + 18,
           wood: previous.wood + 10
         }));
+        addUnitToRoster(getChapterTwoSeventhReinforcement('orc'));
       }
 
       setChapterNodes(previous =>
@@ -3530,6 +3592,7 @@ export function GameProvider({
     if (!mercenaryPatrolWon || !commanderPathId || refugeeCampSecured) return false;
 
     setRefugeeCampSecured(true);
+    addUnitToRoster(getChapterOneFifthReinforcement('human'));
     setResources(previous => ({
       ...previous,
       wood: previous.wood + 45,
@@ -3865,7 +3928,7 @@ export function GameProvider({
   };
 
   const chooseRecruit = (choiceId: string) => {
-    if (!recruitChoiceAvailable || recruitChosen) return false;
+    if (!recruitChoiceAvailable || recruitChosen || units.length >= rosterCap) return false;
 
     const choice = recruitOptions.find(option => option.id === choiceId);
     if (!choice) return false;
@@ -3884,7 +3947,10 @@ export function GameProvider({
     setRecruitChosen(true);
     setRecruitChoiceAvailable(false);
 
-    if (activeFaction === 'elf' || activeFaction === 'orc') {
+    if (
+      chapterNumber === 2 &&
+      (activeFaction === 'elf' || activeFaction === 'orc')
+    ) {
       const musterId =
         activeFaction === 'elf'
           ? 'elf2_node_1'
@@ -3914,7 +3980,8 @@ export function GameProvider({
       activeFaction === 'human' ||
       !fourthRecruitChoiceAvailable ||
       fourthRecruitChosen ||
-      chapterNumber !== 3
+      chapterNumber !== 3 ||
+      units.length >= rosterCap
     ) {
       return false;
     }
@@ -3960,7 +4027,8 @@ export function GameProvider({
       chapterNumber !== 4 ||
       !chapterNodes.find(node =>
         node.id === (activeFaction === 'elf' ? 'elf4_node_1' : 'orc4_node_1')
-      )?.current
+      )?.current ||
+      units.length >= rosterCap
     ) {
       return false;
     }
@@ -3997,7 +4065,7 @@ export function GameProvider({
   };
 
   const chooseFortRecruit = (choiceId: string) => {
-    if (!fourthRecruitChoiceAvailable || fourthRecruitChosen) return false;
+    if (!fourthRecruitChoiceAvailable || fourthRecruitChosen || units.length >= rosterCap) return false;
 
     const choice = fortMusterOptions.find(option => option.id === choiceId);
     if (!choice) return false;
@@ -4028,7 +4096,8 @@ export function GameProvider({
     if (
       chapterNumber !== 3 ||
       !chapterNodes.find(node => node.id === 'ch3_node_1')?.current ||
-      units.some(unit => unit.id.startsWith('hum_marcher_'))
+      units.some(unit => unit.id.startsWith('hum_marcher_')) ||
+      units.length >= rosterCap
     ) {
       return false;
     }
@@ -4072,7 +4141,8 @@ export function GameProvider({
     if (
       chapterNumber !== 4 ||
       sixthRecruitChosen ||
-      !chapterNodes.find(node => node.id === 'ch4_node_1')?.current
+      !chapterNodes.find(node => node.id === 'ch4_node_1')?.current ||
+      units.length >= rosterCap
     ) {
       return false;
     }
@@ -4441,6 +4511,7 @@ export function GameProvider({
     }
 
     setSignalTowerUnlocked(true);
+    addUnitToRoster(getChapterTwoSeventhReinforcement('human'));
     setUnlockedResourceSites(previous =>
       previous.includes('old_quarry')
         ? previous
@@ -5264,6 +5335,7 @@ export function GameProvider({
       formationBonuses,
       formationAnalysis,
       activeSquadCap,
+      rosterCap,
       formationCells,
       holdTheRoadWon,
       settlementUpgraded,
@@ -5450,6 +5522,7 @@ export function GameProvider({
       formationBonuses,
       formationAnalysis,
       activeSquadCap,
+      rosterCap,
       holdTheRoadWon,
       settlementUpgraded,
       recruitChoiceAvailable,

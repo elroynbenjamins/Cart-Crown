@@ -84,7 +84,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'A contracted warband is sweeping the road before Greenkeep can trace its employer.',
     enemyName: 'Green Banner Company',
     enemyCount: 4,
-    enemyHp: 220,
+    enemyHp: 340,
     difficulty: 'Elite'
   },
   toll_captain: {
@@ -93,7 +93,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'The mercenary captain holding the old Greenkeep toll fort refuses to abandon the road.',
     enemyName: 'Toll Captain Host',
     enemyCount: 5,
-    enemyHp: 340,
+    enemyHp: 900,
     difficulty: 'Boss'
   },
   ch2_defend_camp: {
@@ -102,7 +102,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'A probing force strikes the permanent camp before Greenkeep can secure the surrounding roads.',
     enemyName: 'Roadside Probe',
     enemyCount: 5,
-    enemyHp: 310,
+    enemyHp: 430,
     difficulty: 'Normal'
   },
   ch2_beyond_fires: {
@@ -111,7 +111,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'Greenkeep pushes past the camp perimeter and meets a disciplined patrol controlling the first approaches.',
     enemyName: 'Approach Patrol',
     enemyCount: 6,
-    enemyHp: 370,
+    enemyHp: 540,
     difficulty: 'Normal'
   },
   ch2_brace: {
@@ -120,7 +120,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'Mounted raiders try to shatter Greenkeep before its newly trained cavalry doctrine can stabilize.',
     enemyName: 'Road Lancers',
     enemyCount: 6,
-    enemyHp: 455,
+    enemyHp: 720,
     difficulty: 'Elite'
   },
   ch2_take_watch: {
@@ -129,7 +129,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'A fortified watch post controls the roads around Greenkeep and must be taken before the Outpost can expand.',
     enemyName: 'Watch Garrison',
     enemyCount: 7,
-    enemyHp: 565,
+    enemyHp: 900,
     difficulty: 'Elite'
   },
   ch2_riders_banner: {
@@ -138,7 +138,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'The mounted commander behind the regional probes gathers a full field force to break Greenkeep before the Outpost can hold.',
     enemyName: "Rider's Banner Host",
     enemyCount: 7,
-    enemyHp: 760,
+    enemyHp: 1700,
     difficulty: 'Boss'
   },
   iron_road_skirmish: {
@@ -147,7 +147,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'Greenkeep’s first Fort patrol runs into mercenaries guarding an abandoned roadside mine.',
     enemyName: 'Iron Road Mercenaries',
     enemyCount: 5,
-    enemyHp: 285,
+    enemyHp: 500,
     difficulty: 'Elite'
   },
   iron_provost: {
@@ -155,8 +155,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     name: 'The Iron Provost',
     subtitle: 'The Crown-trained officer controlling the Iron Road has fortified the old mine headquarters.',
     enemyName: 'Iron Provost Guard',
-    enemyCount: 6,
-    enemyHp: 470,
+    enemyCount: 7,
+    enemyHp: 1600,
     difficulty: 'Boss'
   },
   border_fort: {
@@ -282,7 +282,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'The Wardens follow ash-marked bootprints into a grove where the outer wards have been deliberately weakened.',
     enemyName: 'Ashen Trackers',
     enemyCount: 4,
-    enemyHp: 245,
+    enemyHp: 350,
     difficulty: 'Elite'
   },
   elf_hollow_warden: {
@@ -291,7 +291,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'A corrupted guardian blocks the rootway while hidden agents continue damaging the Heartgrove wards.',
     enemyName: 'Hollow Warden',
     enemyCount: 5,
-    enemyHp: 280,
+    enemyHp: 850,
     difficulty: 'Boss'
   },
   orc_red_road: {
@@ -309,7 +309,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'Emberclan catches a foreign scouting party carrying copied clan symbols and maps of rival Orc camps.',
     enemyName: 'Foreign Scouts',
     enemyCount: 4,
-    enemyHp: 255,
+    enemyHp: 370,
     difficulty: 'Elite'
   },
   orc_blamecaller: {
@@ -318,7 +318,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'A mercenary agitator is paying raiders to attack under stolen clan marks and spread calls for retaliation.',
     enemyName: 'Blamecaller Warband',
     enemyCount: 5,
-    enemyHp: 385,
+    enemyHp: 1000,
     difficulty: 'Boss'
   },
   elf_last_heartgrove: {
@@ -326,8 +326,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     name: 'The Last Heartgrove',
     subtitle: 'Wardens defend the surviving inner grove while ash-marked raiders test every weak point in the ward line.',
     enemyName: 'Ash-Marked Raiders',
-    enemyCount: 4,
-    enemyHp: 315,
+    enemyCount: 5,
+    enemyHp: 480,
     difficulty: 'Normal'
   },
   elf_ward_hunters: {
@@ -335,8 +335,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     name: 'Ward Hunters',
     subtitle: 'Specialists carrying ward-cutting tools move through the moonwell paths toward the sanctuary.',
     enemyName: 'Ward Hunter Cell',
-    enemyCount: 5,
-    enemyHp: 445,
+    enemyCount: 6,
+    enemyHp: 720,
     difficulty: 'Elite'
   },
   elf_ashroot_stalker: {
@@ -344,8 +344,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     name: 'Ashroot Stalker',
     subtitle: 'A corrupted stalker feeds on broken ward lines and guards the road toward Moonlit Pass.',
     enemyName: 'Ashroot Stalker',
-    enemyCount: 5,
-    enemyHp: 640,
+    enemyCount: 7,
+    enemyHp: 1500,
     difficulty: 'Boss'
   },
   orc_gather_clans: {
@@ -353,8 +353,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     name: 'Gather the Clans',
     subtitle: 'Emberclan escorts envoys across the Red Plains while false-marked raiders try to prevent the clans from meeting.',
     enemyName: 'Red Plains Raiders',
-    enemyCount: 4,
-    enemyHp: 325,
+    enemyCount: 5,
+    enemyHp: 500,
     difficulty: 'Normal'
   },
   orc_stonejaw_challengers: {
@@ -362,8 +362,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     name: 'Stonejaw Challengers',
     subtitle: 'A rival warband tests Emberclan strength before allowing passage toward the Stonejaw Range.',
     enemyName: 'Stonejaw Challengers',
-    enemyCount: 5,
-    enemyHp: 465,
+    enemyCount: 6,
+    enemyHp: 760,
     difficulty: 'Elite'
   },
   orc_clanbreaker: {
@@ -371,8 +371,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     name: 'Clanbreaker',
     subtitle: 'A paid agitator and his veterans are trying to turn the gathered clans against one another before the council can bind them.',
     enemyName: 'Clanbreaker Host',
-    enemyCount: 5,
-    enemyHp: 665,
+    enemyCount: 7,
+    enemyHp: 1700,
     difficulty: 'Boss'
   },
   elf_moonlit_pass: {
@@ -984,18 +984,21 @@ const enemyArmyProfileByFormation: Record<FormationShapeId, EnemyArmyProfileId> 
 
 const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>> = {
   mercenary_patrol: 'mercenary_line',
+  toll_captain: 'elite_command',
   ch2_defend_camp: 'raider_pack',
   ch2_beyond_fires: 'mercenary_line',
   ch2_brace: 'mounted_hunters',
   ch2_take_watch: 'shield_host',
   ch2_riders_banner: 'mounted_hunters',
   iron_road_skirmish: 'mercenary_line',
+  iron_provost: 'shield_host',
   lord_marshal_veyr: 'elite_command',
   pretender_general: 'elite_command',
   ashen_envoy: 'missile_company',
   return_to_crownspire: 'elite_command',
 
   elf_hollow_warden: 'warded_host',
+  elf_ashroot_stalker: 'mounted_hunters',
   elf_last_heartgrove: 'warded_host',
   elf_pale_ranger: 'mounted_hunters',
   elf_ashen_druid: 'warded_host',
@@ -1005,6 +1008,8 @@ const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>
   elf_return_through_roots: 'warded_host',
 
   orc_invader_scouts: 'mounted_hunters',
+  orc_blamecaller: 'shock_warband',
+  orc_clanbreaker: 'shock_warband',
   orc_broken_steppe: 'mounted_hunters',
   orc_broken_steppe_war: 'mounted_hunters',
   orc_stonejaw_champion: 'shock_warband',

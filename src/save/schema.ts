@@ -6,6 +6,7 @@ import {
   wagonStages
 } from '../game/data';
 import { clampArmyReadiness } from '../game/balance';
+import { getCampaignCapacity } from '../game/campaignCapacity';
 import {
   formationShapes,
   getFactionDoctrines
@@ -282,23 +283,16 @@ function sanitizeNodes(
   });
 }
 
-function formationStageCap(stageId: string) {
-  return (
-    wagonStages.find(stage => stage.id === stageId)
-      ?.formationSlots ?? 2
-  );
-}
-
 function sanitizeFormation(
   value: unknown,
   units: UnitDefinition[],
-  stageId: string
+  deploymentCap: number
 ): Array<string | null> {
   const validUnitIds = new Set(
     units.map(unit => unit.id)
   );
   const seen = new Set<string>();
-  const cap = formationStageCap(stageId);
+  const cap = Math.max(1, Math.min(9, deploymentCap));
   let active = 0;
 
   return Array.from({ length: 9 }, (_, index) => {
@@ -366,7 +360,8 @@ function sanitizePresets(
   value: unknown,
   units: UnitDefinition[],
   faction: FactionId,
-  stageId: string
+  stageId: string,
+  deploymentCap: number
 ): FormationPreset[] {
   if (!Array.isArray(value)) return [];
 
@@ -374,7 +369,7 @@ function sanitizePresets(
   const validUnitIds = new Set(
     units.map(unit => unit.id)
   );
-  const cap = formationStageCap(stageId);
+  const cap = Math.max(1, Math.min(9, deploymentCap));
   const doctrines = getFactionDoctrines(faction);
   const bySlot = new Map<number, FormationPreset>();
 
@@ -492,10 +487,19 @@ export function sanitizeFactionGameState(
     faction,
     defaults.units
   );
+  const chapterNodes = sanitizeNodes(
+    stored.chapterNodes,
+    chapterDefaults
+  );
+  const campaignCapacity = getCampaignCapacity(
+    faction,
+    chapterNumber,
+    chapterNodes
+  );
   const formation = sanitizeFormation(
     stored.formation,
     units,
-    stageId
+    campaignCapacity.deploymentCap
   );
   const formationShapeId = validShapeForStage(
     stored.formationShapeId,
@@ -558,7 +562,8 @@ export function sanitizeFactionGameState(
       stored.formationPresets,
       units,
       faction,
-      stageId
+      stageId,
+      campaignCapacity.deploymentCap
     ),
     wagonItems: Array.isArray(stored.wagonItems)
       ? stored.wagonItems.map(item => ({ ...item }))
@@ -569,10 +574,7 @@ export function sanitizeFactionGameState(
         ? stored.armyReadiness
         : defaults.armyReadiness ?? 100
     ),
-    chapterNodes: sanitizeNodes(
-      stored.chapterNodes,
-      chapterDefaults
-    ),
+    chapterNodes,
     formationDoctrineId,
     equipmentInventory: sanitizeStringArray(
       stored.equipmentInventory
@@ -712,15 +714,15 @@ export function createHumanFactionState(): FactionGameState {
     resources: { ...starterResources },
     units: starterUnits.map(unit => ({ ...unit })),
     formation: [
-      null,
+      'hum_recruit',
       'hum_militia',
       null,
       null,
       null,
       null,
       null,
-      null,
-      'hum_recruit'
+      'hum_hunter',
+      null
     ],
     formationShapeId: 'balanced_333',
     formationPresets: [],
@@ -786,15 +788,15 @@ export function createElfFactionState(): FactionGameState {
     resources: { ...elfStarterResources },
     units: elfStarterUnits.map(unit => ({ ...unit })),
     formation: [
+      null,
       'elf_warden',
       null,
       null,
+      'elf_forest_scout',
       null,
       null,
-      null,
-      null,
-      null,
-      'elf_forest_scout'
+      'elf_young_archer',
+      null
     ],
     wagonItems: factionStarterWagonItems(),
     chapterNumber: 1,
@@ -834,10 +836,10 @@ export function createOrcFactionState(): FactionGameState {
     units: orcStarterUnits.map(unit => ({ ...unit })),
     formation: [
       'orc_youngblood',
+      null,
+      'orc_spearhand',
+      null,
       'orc_hunter',
-      null,
-      null,
-      null,
       null,
       null,
       null,
