@@ -600,6 +600,7 @@ export function BattlePrepScreen({
             <EnemySprite
               enemyName={encounter.enemyName}
               armyProfileId={enemyArmyProfile.id}
+              fantasyThreat={encounter.fantasyThreat}
               size={48}
             />
           </View>
