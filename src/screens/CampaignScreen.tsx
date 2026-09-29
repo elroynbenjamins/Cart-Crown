@@ -19,6 +19,8 @@ export function CampaignScreen({
   onStartMercenary,
   onOpenRefugeeCamp,
   onStartTollCaptain,
+  onStartHumanChapterTwoEncounter,
+  onOpenHumanChapterTwoEvent,
   onOpenFortMuster,
   onStartIronRoad,
   onOpenTimberClaim,
@@ -93,6 +95,22 @@ export function CampaignScreen({
   onStartMercenary: () => void;
   onOpenRefugeeCamp: () => void;
   onStartTollCaptain: () => void;
+  onStartHumanChapterTwoEncounter: (
+    encounterId:
+      | 'ch2_defend_camp'
+      | 'ch2_beyond_fires'
+      | 'ch2_brace'
+      | 'ch2_take_watch'
+      | 'ch2_riders_banner'
+  ) => void;
+  onOpenHumanChapterTwoEvent: (
+    eventId:
+      | 'three_roads'
+      | 'horse_rider'
+      | 'long_haul'
+      | 'those_remain'
+      | 'build_outpost'
+  ) => void;
   onOpenFortMuster: () => void;
   onStartIronRoad: () => void;
   onOpenTimberClaim: () => void;
@@ -260,7 +278,7 @@ export function CampaignScreen({
               {chapterNumber === 1
                 ? 'The Last Wagon'
                 : chapterNumber === 2
-                  ? 'The Iron Road'
+                  ? 'Claim the Road'
                   : chapterNumber === 3
                     ? 'Border Kingdoms'
                     : chapterNumber === 4
@@ -273,7 +291,7 @@ export function CampaignScreen({
               {chapterNumber === 1
                 ? 'Reach ruined Greenkeep with the surviving squads.'
                 : chapterNumber === 2
-                  ? 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'
+                  ? 'Hold the land around Greenkeep, secure the roads and turn the permanent camp into an Outpost.'
                   : chapterNumber === 3
                     ? 'Carry Greenkeep’s authority into the divided Border Marches.'
                     : chapterNumber === 4
@@ -283,7 +301,10 @@ export function CampaignScreen({
                         : 'Lead the Grand Campaign into Crownspire and confront the Ashen Court around the Concord Beacon.'}
             </Text>
           </View>
-          <Pill label={String(completed) + ' / 6'} color={theme.colors.surface2} />
+          <Pill
+            label={String(completed) + ' / ' + String(chapterNodes.length)}
+            color={theme.colors.surface2}
+          />
         </View>
       </GameCard>
 
@@ -361,7 +382,7 @@ export function CampaignScreen({
           chapterNumber === 1
             ? 'Greenkeep Outskirts'
             : chapterNumber === 2
-              ? 'Iron Hills Approach'
+              ? 'Greenkeep Roads'
               : chapterNumber === 3
                 ? 'Border Marches'
                 : chapterNumber === 4
@@ -403,37 +424,46 @@ export function CampaignScreen({
             node.id === 'node_6' &&
             refugeeCampSecured;
 
-          const fortMusterPlayable =
+          const chapterTwoDefendPlayable =
             chapterNumber === 2 &&
             node.current &&
-            node.id === 'ch2_node_1' &&
-            !fourthRecruitChosen;
-          const ironRoadPlayable =
+            node.id === 'ch2_node_1';
+          const chapterTwoBeyondPlayable =
             chapterNumber === 2 &&
             node.current &&
-            node.id === 'ch2_node_2' &&
-            fourthRecruitChosen;
-          const timberPlayable =
+            node.id === 'ch2_node_2';
+          const chapterTwoRoadsPlayable =
             chapterNumber === 2 &&
             node.current &&
-            node.id === 'ch2_node_3' &&
-            unlockedResourceSites.includes('iron_hills_mine');
-          const defensePlayable =
+            node.id === 'ch2_node_3';
+          const chapterTwoHorsePlayable =
             chapterNumber === 2 &&
             node.current &&
             node.id === 'ch2_node_4';
-          const signalPlayable =
+          const chapterTwoBracePlayable =
             chapterNumber === 2 &&
             node.current &&
-            node.id === 'ch2_node_5' &&
-            kingdomDefenseCompleted &&
-            !signalTowerUnlocked;
-          const provostPlayable =
+            node.id === 'ch2_node_5';
+          const chapterTwoLongHaulPlayable =
             chapterNumber === 2 &&
             node.current &&
-            node.id === 'ch2_node_6' &&
-            signalTowerUnlocked &&
-            !ironProvostWon;
+            node.id === 'ch2_node_6';
+          const chapterTwoRemainPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_7';
+          const chapterTwoWatchPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_8';
+          const chapterTwoOutpostPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_9';
+          const chapterTwoBossPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_10';
 
           const marcherEnvoyPlayable =
             chapterNumber === 3 &&
@@ -553,12 +583,16 @@ export function CampaignScreen({
             mercenaryPlayable ||
             refugeePlayable ||
             bossPlayable ||
-            fortMusterPlayable ||
-            ironRoadPlayable ||
-            timberPlayable ||
-            defensePlayable ||
-            signalPlayable ||
-            provostPlayable ||
+            chapterTwoDefendPlayable ||
+            chapterTwoBeyondPlayable ||
+            chapterTwoRoadsPlayable ||
+            chapterTwoHorsePlayable ||
+            chapterTwoBracePlayable ||
+            chapterTwoLongHaulPlayable ||
+            chapterTwoRemainPlayable ||
+            chapterTwoWatchPlayable ||
+            chapterTwoOutpostPlayable ||
+            chapterTwoBossPlayable ||
             marcherEnvoyPlayable ||
             borderFortPlayable ||
             warningsPlayable ||
@@ -592,18 +626,26 @@ export function CampaignScreen({
                 ? 'CHOOSE COMMANDER'
                 : refugeePlayable
                   ? 'WELCOME REFUGEES'
-                  : fortMusterPlayable
-                    ? 'CHOOSE SQUAD'
-                    : ironRoadPlayable
-                      ? 'PLAY'
-                      : timberPlayable
-                        ? 'SECURE SITE'
-                        : defensePlayable
-                          ? 'DEFEND'
-                          : signalPlayable
-                            ? 'RESTORE'
-                            : provostPlayable
-                              ? 'BOSS'
+                  : chapterTwoDefendPlayable
+                    ? 'DEFEND'
+                    : chapterTwoBeyondPlayable
+                      ? 'PUSH OUT'
+                      : chapterTwoRoadsPlayable
+                        ? 'CHOOSE ROAD'
+                        : chapterTwoHorsePlayable
+                          ? 'PREPARE MOUNT'
+                          : chapterTwoBracePlayable
+                            ? 'BRACE'
+                            : chapterTwoLongHaulPlayable
+                              ? 'BUILD HANDCART'
+                              : chapterTwoRemainPlayable
+                                ? 'CHOOSE APPROACH'
+                                : chapterTwoWatchPlayable
+                                  ? 'ASSAULT'
+                                  : chapterTwoOutpostPlayable
+                                    ? 'BUILD OUTPOST'
+                                    : chapterTwoBossPlayable
+                                      ? 'BOSS'
                               : marcherEnvoyPlayable
                                 ? 'CHOOSE AUXILIARY'
                                 : borderFortPlayable
@@ -670,18 +712,26 @@ export function CampaignScreen({
                   ? onOpenRefugeeCamp
                   : bossPlayable
                     ? onStartTollCaptain
-                    : fortMusterPlayable
-                      ? onOpenFortMuster
-                      : ironRoadPlayable
-                        ? onStartIronRoad
-                        : timberPlayable
-                          ? onOpenTimberClaim
-                          : defensePlayable
-                            ? onOpenKingdomDefense
-                            : signalPlayable
-                              ? onOpenBrokenSignalTower
-                              : provostPlayable
-                                ? onStartIronProvost
+                    : chapterTwoDefendPlayable
+                      ? () => onStartHumanChapterTwoEncounter('ch2_defend_camp')
+                      : chapterTwoBeyondPlayable
+                        ? () => onStartHumanChapterTwoEncounter('ch2_beyond_fires')
+                        : chapterTwoRoadsPlayable
+                          ? () => onOpenHumanChapterTwoEvent('three_roads')
+                          : chapterTwoHorsePlayable
+                            ? () => onOpenHumanChapterTwoEvent('horse_rider')
+                            : chapterTwoBracePlayable
+                              ? () => onStartHumanChapterTwoEncounter('ch2_brace')
+                              : chapterTwoLongHaulPlayable
+                                ? () => onOpenHumanChapterTwoEvent('long_haul')
+                                : chapterTwoRemainPlayable
+                                  ? () => onOpenHumanChapterTwoEvent('those_remain')
+                                  : chapterTwoWatchPlayable
+                                    ? () => onStartHumanChapterTwoEncounter('ch2_take_watch')
+                                    : chapterTwoOutpostPlayable
+                                      ? () => onOpenHumanChapterTwoEvent('build_outpost')
+                                      : chapterTwoBossPlayable
+                                        ? () => onStartHumanChapterTwoEncounter('ch2_riders_banner')
                                 : marcherEnvoyPlayable
                                   ? onOpenMarcherEnvoy
                                   : borderFortPlayable
