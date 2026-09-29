@@ -20,6 +20,10 @@ import {
   getWarTableTierLabel,
   isWarTableBoardCleared
 } from '../game/warTable';
+import {
+  getSideModeRewardLabel,
+  scaleResourceReward
+} from '../game/sideModeBalance';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -48,6 +52,7 @@ export function WarTableScreen({
     warTableBonusContractIds,
     warTableContractsCompleted,
     warTableBonusObjectivesCompleted,
+    warTableBoardRewardMultiplier,
     refreshWarTableBoard
   } = useGame();
 
@@ -192,6 +197,28 @@ export function WarTableScreen({
               }
             </Text>
           </View>
+        </View>
+
+        <View style={styles.rewardBandRow}>
+          <StatusPill
+            label={getSideModeRewardLabel(
+              warTableBoardRewardMultiplier
+            )}
+            tone={
+              warTableBoardRewardMultiplier === 1
+                ? 'ready'
+                : warTableBoardRewardMultiplier === 0.5
+                  ? 'current'
+                  : 'neutral'
+            }
+          />
+          <Text style={[styles.rewardBandText, { color: theme.colors.textMuted }]}>
+            {warTableBoardRewardMultiplier === 1
+              ? 'First board this chapter · full resources + one regional production cycle.'
+              : warTableBoardRewardMultiplier === 0.5
+                ? 'Second board this chapter · half resources and no production tick.'
+                : 'Further boards are tactical practice only until the next chapter.'}
+          </Text>
         </View>
 
         {tierUpgradePending ? (
@@ -389,7 +416,9 @@ export function WarTableScreen({
                   { color: theme.colors.text }
                 ]}
               >
-                Base reward
+                {warTableBoardRewardMultiplier > 0
+                  ? 'Current reward'
+                  : 'Practice contract'}
               </Text>
               <Text
                 style={[
@@ -397,7 +426,11 @@ export function WarTableScreen({
                   { color: theme.colors.gold }
                 ]}
               >
-                {contract.rewardLabel}
+                {warTableBoardRewardMultiplier === 1
+                  ? contract.rewardLabel
+                  : warTableBoardRewardMultiplier === 0.5
+                    ? '50% of ' + contract.rewardLabel
+                    : 'No resource payout'}
               </Text>
             </View>
 
@@ -464,7 +497,10 @@ export function WarTableScreen({
                 <ResourceAmountRow
                   prefix="+"
                   values={
-                    contract.bonusReward
+                    scaleResourceReward(
+                      contract.bonusReward,
+                      warTableBoardRewardMultiplier
+                    )
                   }
                 />
               </View>
@@ -608,6 +644,14 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontWeight: '900',
     marginTop: 2
+  },
+  rewardBandRow: {
+    marginTop: 12,
+    gap: 6
+  },
+  rewardBandText: {
+    fontSize: 10.5,
+    lineHeight: 16
   },
   unlockNotice: {
     borderWidth: 1,
