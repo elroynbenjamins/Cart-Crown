@@ -288,14 +288,6 @@ function sanitizeExpeditionRun(
       source.basePower,
       0
     ),
-    preparationMultiplier:
-      typeof source.preparationMultiplier === 'number' &&
-      Number.isFinite(source.preparationMultiplier)
-        ? Math.max(
-            1,
-            Math.min(1.25, source.preparationMultiplier)
-          )
-        : 1,
     playerShapeId:
       formationShapes.some(
         shape =>
@@ -408,6 +400,14 @@ function sanitizeSiegeRun(
       source.basePower,
       0
     ),
+    preparationMultiplier:
+      typeof source.preparationMultiplier === 'number' &&
+      Number.isFinite(source.preparationMultiplier)
+        ? Math.max(
+            1,
+            Math.min(1.25, source.preparationMultiplier)
+          )
+        : 1,
     playerShapeId:
       formationShapes.some(
         shape =>
