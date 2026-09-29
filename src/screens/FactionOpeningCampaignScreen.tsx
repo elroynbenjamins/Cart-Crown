@@ -58,6 +58,7 @@ export function FactionOpeningCampaignScreen({
   onOpenWarTable,
   onOpenExpedition,
   onOpenSiege,
+  onOpenRelicHunt,
   onOpenFormationTrial,
   onOpenKingdomDefense,
   tutorialFocus,
@@ -102,6 +103,7 @@ export function FactionOpeningCampaignScreen({
   onOpenWarTable: () => void;
   onOpenExpedition: () => void;
   onOpenSiege: () => void;
+  onOpenRelicHunt: () => void;
   onOpenFormationTrial: () => void;
   onOpenKingdomDefense: () => void;
   tutorialFocus?: TutorialFocusTarget | null;
@@ -123,6 +125,9 @@ export function FactionOpeningCampaignScreen({
     activeExpeditionRun,
     siegeRunsCompleted,
     activeSiegeRun,
+    relicHuntRunsCompleted,
+    activeRelicHuntRun,
+    relicHuntRewardClaimed,
     warTableCycle,
     warTableCompletedContractIds,
     kingdomTrialCompletions,
@@ -137,7 +142,8 @@ export function FactionOpeningCampaignScreen({
         'formation_trials',
         'kingdom_defense',
         'expeditions',
-        'sieges'
+        'sieges',
+        'relic_hunts'
       ].includes(mode.id) &&
       isSideModeUnlocked(mode.id)
   );
@@ -146,6 +152,7 @@ export function FactionOpeningCampaignScreen({
     if (id === 'war_table') onOpenWarTable();
     if (id === 'expeditions') onOpenExpedition();
     if (id === 'sieges') onOpenSiege();
+    if (id === 'relic_hunts') onOpenRelicHunt();
     if (id === 'formation_trials') onOpenFormationTrial();
     if (id === 'kingdom_defense') onOpenKingdomDefense();
   };
@@ -677,6 +684,19 @@ export function FactionOpeningCampaignScreen({
                           (siegeRunsCompleted === 1
                             ? ' clear'
                             : ' clears')
+                    : mode.id === 'relic_hunts'
+                      ? activeRelicHuntRun
+                        ? activeRelicHuntRun.completed
+                          ? 'Relic secured · reward ready'
+                          : activeRelicHuntRun.failed
+                            ? 'Chain broken'
+                            : 'Hunt active · Guardian ' +
+                              (activeRelicHuntRun.stageIndex + 1) +
+                              '/3'
+                        : relicHuntRewardClaimed
+                          ? relicHuntRunsCompleted +
+                            ' clears · relic claimed'
+                          : 'Unique relic reward'
                     : mode.id === 'formation_trials'
                       ? kingdomTrialCompletions.length +
                         '/3 medals'
@@ -731,7 +751,10 @@ export function FactionOpeningCampaignScreen({
                             : mode.id === 'sieges' &&
                                 activeSiegeRun
                               ? 'Resume Siege'
-                              : 'Open ' + mode.name
+                              : mode.id === 'relic_hunts' &&
+                                  activeRelicHuntRun
+                                ? 'Resume Relic Hunt'
+                                : 'Open ' + mode.name
                         }
                         onPress={() => {
                           if (tutorialActivityFocused) {
