@@ -366,6 +366,14 @@ export function KingdomScreen({
                   }
                 }}
               />
+              {tutorialFocus?.kind === 'kingdom-production' ? (
+                <View style={styles.guidanceLaterButton}>
+                  <SecondaryButton
+                    label={productionTotal > 0 ? 'Claim later' : 'Got it'}
+                    onPress={onTutorialFocusComplete}
+                  />
+                </View>
+              ) : null}
             </View>
           </GameCard>
           </TutorialFocus>
@@ -582,5 +590,6 @@ const styles = StyleSheet.create({
   supplyBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
   supplyReward: { fontSize: 11, fontWeight: '900', marginTop: 7 },
   supplyButton: { marginTop: 11 },
+  guidanceLaterButton: { marginTop: 8 },
   adMessage: { fontSize: 10, textAlign: 'center', marginTop: 7 }
 });
