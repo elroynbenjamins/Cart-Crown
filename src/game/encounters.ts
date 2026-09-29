@@ -1,4 +1,4 @@
-import type { EncounterDefinition, FormationShapeId, ResourceWallet } from './types';
+import type { EncounterDefinition, FormationShapeId, ResourceWallet, UnitRole } from './types';
 
 export type EncounterId =
   | 'hold_the_road'
@@ -714,6 +714,330 @@ export function getEnemyFormationTactic(id: EncounterId): EnemyFormationTactic {
     formationShapeId,
     ...enemyFormationProfiles[formationShapeId]
   };
+}
+
+
+export type EnemyArmyProfileId =
+  | 'raider_pack'
+  | 'mercenary_line'
+  | 'shield_host'
+  | 'missile_company'
+  | 'mounted_hunters'
+  | 'shock_warband'
+  | 'warded_host'
+  | 'elite_command';
+
+export type EnemyArmyProfile = {
+  id: EnemyArmyProfileId;
+  name: string;
+  summary: string;
+  pressureSummary: string;
+  rolePlan: {
+    front: UnitRole[];
+    middle: UnitRole[];
+    rear: UnitRole[];
+  };
+  roleLabels: Partial<Record<UnitRole, string>>;
+  openingPressureMultiplier: number;
+  sustainedPressureMultiplier: number;
+  armorMultiplier: number;
+};
+
+export type EnemyRoleAssignment = {
+  slot: number;
+  row: 'front' | 'middle' | 'rear';
+  role: UnitRole;
+  label: string;
+};
+
+const enemyArmyProfiles: Record<EnemyArmyProfileId, EnemyArmyProfile> = {
+  raider_pack: {
+    id: 'raider_pack',
+    name: 'Raider Pack',
+    summary: 'Loose skirmishers and bruisers try to win the opening exchanges before discipline matters.',
+    pressureSummary: 'Fast opening · weaker staying power',
+    rolePlan: {
+      front: ['skirmish', 'melee'],
+      middle: ['skirmish', 'melee', 'cavalry'],
+      rear: ['ranged', 'skirmish']
+    },
+    roleLabels: {
+      skirmish: 'Raider',
+      melee: 'Bruiser',
+      cavalry: 'Rider',
+      ranged: 'Bow Raider'
+    },
+    openingPressureMultiplier: 1.03,
+    sustainedPressureMultiplier: 0.99,
+    armorMultiplier: 0.99
+  },
+  mercenary_line: {
+    id: 'mercenary_line',
+    name: 'Mercenary Company',
+    summary: 'A disciplined combined-arms company mixes infantry, missiles and field support.',
+    pressureSummary: 'Balanced pressure · no major role weakness',
+    rolePlan: {
+      front: ['frontline', 'melee'],
+      middle: ['melee', 'ranged'],
+      rear: ['ranged', 'support']
+    },
+    roleLabels: {
+      frontline: 'Shield',
+      melee: 'Sword',
+      ranged: 'Crossbow',
+      support: 'Sergeant'
+    },
+    openingPressureMultiplier: 1,
+    sustainedPressureMultiplier: 1,
+    armorMultiplier: 1
+  },
+  shield_host: {
+    id: 'shield_host',
+    name: 'Shield Host',
+    summary: 'Dense infantry absorbs pressure while a smaller second line protects the approach.',
+    pressureSummary: 'Durable front · slower damage pressure',
+    rolePlan: {
+      front: ['frontline', 'frontline', 'melee'],
+      middle: ['frontline', 'melee'],
+      rear: ['ranged', 'support']
+    },
+    roleLabels: {
+      frontline: 'Shield',
+      melee: 'Guard',
+      ranged: 'Archer',
+      support: 'Standard'
+    },
+    openingPressureMultiplier: 0.99,
+    sustainedPressureMultiplier: 0.99,
+    armorMultiplier: 1.02
+  },
+  missile_company: {
+    id: 'missile_company',
+    name: 'Missile Company',
+    summary: 'A light screen protects a dangerous concentration of ranged troops in the deeper ranks.',
+    pressureSummary: 'Pressure grows after the opening · fragile if reached',
+    rolePlan: {
+      front: ['frontline', 'skirmish'],
+      middle: ['ranged', 'melee'],
+      rear: ['ranged', 'support', 'ranged']
+    },
+    roleLabels: {
+      frontline: 'Screen',
+      skirmish: 'Scout',
+      melee: 'Guard',
+      ranged: 'Marksman',
+      support: 'Spotter'
+    },
+    openingPressureMultiplier: 0.99,
+    sustainedPressureMultiplier: 1.02,
+    armorMultiplier: 0.99
+  },
+  mounted_hunters: {
+    id: 'mounted_hunters',
+    name: 'Mounted Hunters',
+    summary: 'Fast riders and scouts try to create an early breakthrough before a longer melee develops.',
+    pressureSummary: 'Strong opening charge · fades in long fights',
+    rolePlan: {
+      front: ['cavalry', 'skirmish'],
+      middle: ['cavalry', 'melee'],
+      rear: ['ranged', 'skirmish']
+    },
+    roleLabels: {
+      cavalry: 'Rider',
+      skirmish: 'Scout',
+      melee: 'Hunter',
+      ranged: 'Horse Bow'
+    },
+    openingPressureMultiplier: 1.04,
+    sustainedPressureMultiplier: 0.98,
+    armorMultiplier: 0.98
+  },
+  shock_warband: {
+    id: 'shock_warband',
+    name: 'Shock Warband',
+    summary: 'Aggressive melee fighters pile into the front and middle ranks to keep pressure high.',
+    pressureSummary: 'Heavy opening pressure · lighter protection',
+    rolePlan: {
+      front: ['melee', 'frontline', 'melee'],
+      middle: ['melee', 'cavalry'],
+      rear: ['skirmish', 'melee']
+    },
+    roleLabels: {
+      frontline: 'Breaker',
+      melee: 'Crusher',
+      cavalry: 'Rider',
+      skirmish: 'Flanker'
+    },
+    openingPressureMultiplier: 1.04,
+    sustainedPressureMultiplier: 1.01,
+    armorMultiplier: 0.98
+  },
+  warded_host: {
+    id: 'warded_host',
+    name: 'Warded Host',
+    summary: 'Protective support and ranged specialists stabilize a smaller frontline instead of racing for damage.',
+    pressureSummary: 'Protected specialists · steady later pressure',
+    rolePlan: {
+      front: ['frontline', 'melee'],
+      middle: ['support', 'melee'],
+      rear: ['support', 'ranged', 'ranged']
+    },
+    roleLabels: {
+      frontline: 'Warden',
+      melee: 'Keeper',
+      ranged: 'Watcher',
+      support: 'Ward'
+    },
+    openingPressureMultiplier: 0.98,
+    sustainedPressureMultiplier: 1.01,
+    armorMultiplier: 1.02
+  },
+  elite_command: {
+    id: 'elite_command',
+    name: 'Elite Command',
+    summary: 'Veteran guards, specialists and command support cover one another with few obvious role gaps.',
+    pressureSummary: 'Small all-round elite bonus',
+    rolePlan: {
+      front: ['frontline', 'melee'],
+      middle: ['melee', 'support', 'cavalry'],
+      rear: ['ranged', 'support']
+    },
+    roleLabels: {
+      frontline: 'Vanguard',
+      melee: 'Veteran',
+      ranged: 'Marksman',
+      support: 'Officer',
+      cavalry: 'Lancer'
+    },
+    openingPressureMultiplier: 1.02,
+    sustainedPressureMultiplier: 1.02,
+    armorMultiplier: 1.01
+  }
+};
+
+const enemyArmyProfileByFormation: Record<FormationShapeId, EnemyArmyProfileId> = {
+  balanced_333: 'mercenary_line',
+  assault_432: 'shock_warband',
+  deep_234: 'warded_host',
+  wide_vanguard_522: 'shield_host',
+  protected_rear_225: 'missile_company',
+  reinforced_center_252: 'elite_command',
+  heavy_front_441: 'shock_warband',
+  spear_wall_531: 'shield_host',
+  skirmish_screen_243: 'raider_pack'
+};
+
+const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>> = {
+  mercenary_patrol: 'mercenary_line',
+  iron_road_skirmish: 'mercenary_line',
+  lord_marshal_veyr: 'elite_command',
+  pretender_general: 'elite_command',
+  ashen_envoy: 'missile_company',
+  return_to_crownspire: 'elite_command',
+
+  elf_hollow_warden: 'warded_host',
+  elf_last_heartgrove: 'warded_host',
+  elf_pale_ranger: 'mounted_hunters',
+  elf_ashen_druid: 'warded_host',
+  elf_ashen_rootkeepers: 'warded_host',
+  elf_worldroot_guardian: 'elite_command',
+  elf_stars_over_crownspire: 'mounted_hunters',
+  elf_return_through_roots: 'warded_host',
+
+  orc_invader_scouts: 'mounted_hunters',
+  orc_broken_steppe: 'mounted_hunters',
+  orc_broken_steppe_war: 'mounted_hunters',
+  orc_stonejaw_champion: 'shock_warband',
+  orc_split_chieftain: 'shock_warband',
+  orc_crownspire_warmaster: 'elite_command',
+
+  three_seals_convergence: 'elite_command',
+  ashen_triumvirate: 'elite_command',
+  unbound_beacon: 'elite_command'
+};
+
+export function getEnemyArmyProfile(id: EncounterId): EnemyArmyProfile {
+  const tactic = getEnemyFormationTactic(id);
+  const profileId =
+    enemyArmyProfileOverrides[id] ??
+    enemyArmyProfileByFormation[tactic.formationShapeId];
+
+  return enemyArmyProfiles[profileId];
+}
+
+function centerFirstEnemySlots(slots: number[]) {
+  const middle = (slots.length - 1) / 2;
+  return [...slots].sort(
+    (a, b) =>
+      Math.abs(slots.indexOf(a) - middle) -
+      Math.abs(slots.indexOf(b) - middle)
+  );
+}
+
+export function getEnemyRoleAssignments(
+  id: EncounterId,
+  rows: {
+    front: number[];
+    middle: number[];
+    rear: number[];
+  },
+  enemyCount: number
+): EnemyRoleAssignment[] {
+  const profile = getEnemyArmyProfile(id);
+  const rowEntries = [
+    ['front', rows.front],
+    ['middle', rows.middle],
+    ['rear', rows.rear]
+  ] as const;
+  const cappedCount = Math.max(0, Math.min(9, enemyCount));
+  const capacities = rowEntries.map(([, slots]) => slots.length);
+  const ideals = capacities.map(capacity => (cappedCount * capacity) / 9);
+  const counts = ideals.map(value => Math.floor(value));
+  let remaining =
+    cappedCount -
+    counts.reduce((sum, value) => sum + value, 0);
+
+  while (remaining > 0) {
+    let bestRow = -1;
+    let bestNeed = -Infinity;
+
+    counts.forEach((count, index) => {
+      if (count >= capacities[index]!) return;
+      const need = ideals[index]! - count;
+      if (need > bestNeed) {
+        bestNeed = need;
+        bestRow = index;
+      }
+    });
+
+    if (bestRow < 0) break;
+    counts[bestRow] = counts[bestRow]! + 1;
+    remaining -= 1;
+  }
+
+  const assignments: EnemyRoleAssignment[] = [];
+
+  rowEntries.forEach(([row, slots], rowIndex) => {
+    const rolePlan = profile.rolePlan[row];
+    centerFirstEnemySlots(slots)
+      .slice(0, counts[rowIndex] ?? 0)
+      .forEach((slot, index) => {
+        const role =
+          rolePlan[index % rolePlan.length] ??
+          'melee';
+        assignments.push({
+          slot,
+          row,
+          role,
+          label:
+            profile.roleLabels[role] ??
+            role.charAt(0).toUpperCase() +
+              role.slice(1)
+        });
+      });
+  });
+
+  return assignments;
 }
 
 export const encounterRewards: Record<EncounterId, EncounterReward> = {

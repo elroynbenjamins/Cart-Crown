@@ -295,7 +295,7 @@ export const equipmentDefinitions: EquipmentDefinition[] = [
     tags: ['shield', 'tower', 'human'],
     attackBonus: 0,
     armorBonus: 11,
-    speedBonus: -2,
+    speedBonus: -1,
     craftCost: { gold: 80, wood: 8, iron: 12 },
     requiredForgeLevel: 3,
     upgradeFromId: 'hum_kite_shield',

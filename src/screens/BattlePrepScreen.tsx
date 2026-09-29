@@ -1,6 +1,11 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { getEncounter, getEnemyFormationTactic } from '../game/encounters';
+import {
+  getEncounter,
+  getEnemyArmyProfile,
+  getEnemyFormationTactic,
+  getEnemyRoleAssignments
+} from '../game/encounters';
 import {
   getFormationCounters,
   getFormationMatchup,
@@ -65,6 +70,23 @@ export function BattlePrepScreen({
   const encounter = getEncounter(encounterId);
   const enemyTactic = getEnemyFormationTactic(encounterId);
   const enemyShape = getFormationShape(enemyTactic.formationShapeId);
+  const enemyArmyProfile = getEnemyArmyProfile(encounterId);
+  const enemyAssignments = getEnemyRoleAssignments(
+    encounterId,
+    enemyShape.rows,
+    encounter.enemyCount
+  );
+  const enemyComposition = Array.from(
+    enemyAssignments.reduce((counts, assignment) => {
+      counts.set(
+        assignment.label,
+        (counts.get(assignment.label) ?? 0) + 1
+      );
+      return counts;
+    }, new Map<string, number>())
+  )
+    .map(([label, count]) => String(count) + ' ' + label)
+    .join(' · ');
   const formationMatchup = getFormationMatchup(
     activeFormationShape.id,
     enemyShape.id
@@ -211,11 +233,21 @@ export function BattlePrepScreen({
             <Text style={[styles.enemyFormation, { color: theme.colors.danger }]}>
               {enemyShape.layout} · {enemyTactic.name}
             </Text>
+            <Text style={[styles.enemyArmy, { color: theme.colors.gold }]}>
+              {scoutReport
+                ? enemyArmyProfile.name + ' · ' + enemyArmyProfile.pressureSummary
+                : 'Army composition concealed'}
+            </Text>
             <Text style={[styles.enemyTactic, { color: theme.colors.textMuted }]}>
               {scoutReport
                 ? enemyTactic.summary + ' ATK ×' + enemyTactic.attackMultiplier.toFixed(2) + ' · ARM ×' + enemyTactic.armorMultiplier.toFixed(2) + ' · SPD ×' + enemyTactic.speedMultiplier.toFixed(2)
-                : 'Formation identified. Scout intel reveals its exact combat modifiers.'}
+                : 'Formation identified. Scout intel reveals role mix, timing and exact modifiers.'}
             </Text>
+            {scoutReport ? (
+              <Text style={[styles.enemyComposition, { color: theme.colors.text }]}>
+                {enemyComposition}
+              </Text>
+            ) : null}
           </View>
         </View>
 
@@ -532,7 +564,9 @@ const styles = StyleSheet.create({
   enemyName: { fontSize: 16, fontWeight: '900' },
   enemyMeta: { fontSize: 12, lineHeight: 17, marginTop: 4 },
   enemyFormation: { fontSize: 11, fontWeight: '900', marginTop: 7 },
+  enemyArmy: { fontSize: 10.5, fontWeight: '900', marginTop: 4 },
   enemyTactic: { fontSize: 9.5, lineHeight: 14, marginTop: 3 },
+  enemyComposition: { fontSize: 9.5, lineHeight: 14, marginTop: 5, fontWeight: '800' },
   scoutButton: { marginTop: 12 },
   unitList: { gap: 8 },
   unitRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },

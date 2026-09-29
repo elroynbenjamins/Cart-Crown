@@ -22,8 +22,11 @@ import {
   recruitPromotions
 } from '../src/game/equipment';
 import {
+  encounters,
   getEncounter,
-  getEnemyFormationTactic
+  getEnemyArmyProfile,
+  getEnemyFormationTactic,
+  getEnemyRoleAssignments
 } from '../src/game/encounters';
 import type { EncounterId } from '../src/game/encounters';
 import {
@@ -45,6 +48,7 @@ import { elfStarterUnits, orcStarterUnits } from '../src/game/factionStarts';
 import {
   analyzeFormation,
   formationShapes,
+  getFormationMatchup,
   getFormationShape
 } from '../src/game/formation';
 import type {
@@ -581,6 +585,9 @@ function simulate(
   const enemyTactic = getEnemyFormationTactic(
     input.encounterId
   );
+  const enemyArmyProfile = getEnemyArmyProfile(
+    input.encounterId
+  );
   const formation = buildFormation(
     input.units,
     input.faction,
@@ -660,6 +667,11 @@ function simulate(
   const supportRecovery = Math.round(
     profile.supportRecovery *
       formationAnalysis.healingMultiplier
+  );
+
+  const formationMatchup = getFormationMatchup(
+    input.shapeId,
+    enemyTactic.formationShapeId
   );
 
   const enemyPressureMultiplier =
@@ -778,12 +790,21 @@ function simulate(
     const playerDamage = Math.max(
       1,
       Math.round(
-        (rawPlayerStrike +
+        ((rawPlayerStrike +
           skillDamage +
           ongoingDamage) /
-          enemyTactic.armorMultiplier
+          (
+            enemyTactic.armorMultiplier *
+            enemyArmyProfile.armorMultiplier
+          )) *
+          formationMatchup.outgoingDamageMultiplier
       )
     );
+
+    const enemyTimingMultiplier =
+      turn === 0
+        ? enemyArmyProfile.openingPressureMultiplier
+        : enemyArmyProfile.sustainedPressureMultiplier;
 
     const rawEnemyStrike = getEnemyStrikePressure(
       encounter,
@@ -795,6 +816,8 @@ function simulate(
       Math.round(
         (rawEnemyStrike *
           enemyPressureMultiplier *
+          enemyTimingMultiplier *
+          formationMatchup.incomingDamageMultiplier *
           retaliationFactor *
           (modifier.retaliationMultiplier ?? 1)) /
           Math.max(
@@ -1539,6 +1562,88 @@ function runFormationCoverage() {
   }
 }
 
+function runFormationMatchupCoverage() {
+  const specialized = formationShapes.filter(
+    shape => shape.id !== 'balanced_333'
+  );
+
+  for (const shape of formationShapes) {
+    const mirror = getFormationMatchup(
+      shape.id,
+      shape.id
+    );
+    expect(
+      mirror.result === 'even' &&
+        mirror.outgoingDamageMultiplier === 1 &&
+        mirror.incomingDamageMultiplier === 1,
+      shape.name +
+        ' mirror matchup is no longer neutral.'
+    );
+  }
+
+  for (const enemy of formationShapes) {
+    const balanced = getFormationMatchup(
+      'balanced_333',
+      enemy.id
+    );
+    expect(
+      balanced.result === 'even',
+      'Balanced Line should remain the neutral baseline against ' +
+        enemy.name +
+        '.'
+    );
+  }
+
+  for (const shape of specialized) {
+    let advantages = 0;
+    let disadvantages = 0;
+
+    for (const enemy of formationShapes) {
+      if (enemy.id === shape.id) continue;
+      const forward = getFormationMatchup(
+        shape.id,
+        enemy.id
+      );
+      const reverse = getFormationMatchup(
+        enemy.id,
+        shape.id
+      );
+
+      if (forward.result === 'advantage') {
+        advantages += 1;
+        expect(
+          reverse.result === 'disadvantage',
+          shape.name +
+            ' advantage against ' +
+            enemy.name +
+            ' is not symmetric.'
+        );
+      } else if (
+        forward.result === 'disadvantage'
+      ) {
+        disadvantages += 1;
+        expect(
+          reverse.result === 'advantage',
+          shape.name +
+            ' disadvantage against ' +
+            enemy.name +
+            ' is not symmetric.'
+        );
+      }
+    }
+
+    expect(
+      advantages >= 2 && disadvantages >= 2,
+      shape.name +
+        ' no longer has enough meaningful counters and weaknesses (' +
+        advantages +
+        ' advantages / ' +
+        disadvantages +
+        ' disadvantages).'
+    );
+  }
+}
+
 function runEnemyFormationCoverage() {
   const ids = [
     ...bossByFaction.human,
@@ -1574,6 +1679,69 @@ function runEnemyFormationCoverage() {
     nonNeutral.length >= 12,
     'Enemy formations are no longer materially affecting enough boss encounters.'
   );
+}
+
+function runEnemyArmyIdentityCoverage() {
+  const ids = Object.keys(encounters) as EncounterId[];
+  const profileIds = new Set(
+    ids.map(id => getEnemyArmyProfile(id).id)
+  );
+
+  expect(
+    profileIds.size >= 7,
+    'Enemy encounters no longer expose enough distinct army identities.'
+  );
+
+  for (const id of ids) {
+    const encounter = getEncounter(id);
+    const tactic = getEnemyFormationTactic(id);
+    const shape = getFormationShape(
+      tactic.formationShapeId
+    );
+    const profile = getEnemyArmyProfile(id);
+    const assignments =
+      getEnemyRoleAssignments(
+        id,
+        shape.rows,
+        encounter.enemyCount
+      );
+
+    expect(
+      assignments.length ===
+        Math.min(9, encounter.enemyCount),
+      id +
+        ' enemy role assignment count no longer matches encounter size.'
+    );
+
+    expect(
+      new Set(
+        assignments.map(assignment => assignment.slot)
+      ).size === assignments.length,
+      id +
+        ' assigns multiple enemy roles to the same formation slot.'
+    );
+
+    if (encounter.enemyCount >= 4) {
+      expect(
+        new Set(
+          assignments.map(assignment => assignment.role)
+        ).size >= 2,
+        id +
+          ' no longer presents a readable mixed enemy composition.'
+      );
+    }
+
+    expect(
+      profile.openingPressureMultiplier >= 0.96 &&
+        profile.openingPressureMultiplier <= 1.05 &&
+        profile.sustainedPressureMultiplier >= 0.96 &&
+        profile.sustainedPressureMultiplier <= 1.05 &&
+        profile.armorMultiplier >= 0.96 &&
+        profile.armorMultiplier <= 1.05,
+      id +
+        ' army identity modifiers escaped the intended soft tactical range.'
+    );
+  }
 }
 
 function runMetaCoverage() {
@@ -1753,7 +1921,9 @@ function main() {
   runLatePolicyCoverage();
   runMountedBranchCoverage();
   runFormationCoverage();
+  runFormationMatchupCoverage();
   runEnemyFormationCoverage();
+  runEnemyArmyIdentityCoverage();
   runMetaCoverage();
 
   printRows(rows);
@@ -1778,7 +1948,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, enemy formations, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
+    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
   );
 }
 
