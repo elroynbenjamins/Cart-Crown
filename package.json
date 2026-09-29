@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "balance:check": "tsx scripts/balance-regression.ts",
+    "balance:check": "tsx scripts/balance-regression.ts && tsx scripts/progression-regression.ts",
     "economy:check": "tsx scripts/economy-regression.ts",
     "save:check": "tsx scripts/save-regression.ts"
   },
@@ -24,4 +24,4 @@
     "typescript": "^5.9.2",
     "tsx": "4.23.15"
   }
-}
+}\n
