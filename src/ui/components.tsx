@@ -283,6 +283,23 @@ export function ScreenAtmosphere({
   );
 }
 
+function useGuardedPress(
+  onPress: (() => void) | undefined,
+  disabled: boolean | undefined
+) {
+  const lastPressAtRef = React.useRef(0);
+
+  return React.useCallback(() => {
+    if (disabled || !onPress) return;
+
+    const now = Date.now();
+    if (now - lastPressAtRef.current < 450) return;
+
+    lastPressAtRef.current = now;
+    onPress();
+  }, [disabled, onPress]);
+}
+
 export function PrimaryButton({
   label,
   onPress,
@@ -293,12 +310,13 @@ export function PrimaryButton({
   disabled?: boolean;
 }) {
   const { theme } = useGameTheme();
+  const guardedPress = useGuardedPress(onPress, disabled);
 
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
-      onPress={onPress}
+      onPress={guardedPress}
       style={({ pressed }) => [
         styles.primaryButton,
         {
@@ -329,12 +347,13 @@ export function SecondaryButton({
   disabled?: boolean;
 }) {
   const { theme } = useGameTheme();
+  const guardedPress = useGuardedPress(onPress, disabled);
 
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
-      onPress={onPress}
+      onPress={guardedPress}
       style={({ pressed }) => [
         styles.secondaryButton,
         {
