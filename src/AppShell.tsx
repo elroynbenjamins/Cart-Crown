@@ -11,7 +11,10 @@ import {
 } from 'react-native';
 import type { NavId } from './game/types';
 import { resolveHardwareBackAction } from './game/mobileSession';
-import { getNextTutorialMoment } from './game/tutorial';
+import {
+  getNextTutorialMoment,
+  shouldRequestChapterOneReview
+} from './game/tutorial';
 import type { EncounterId } from './game/encounters';
 import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
@@ -334,14 +337,15 @@ export function AppShell({
 
   useEffect(() => {
     if (
-      activeFaction !== 'human' ||
-      flow !== null ||
-      active !== 'kingdom' ||
-      reviewPromptShown ||
-      tutorialMoment ||
-      lastBattleResult?.id !==
-        'toll_captain_result' ||
-      reviewAttemptedRef.current
+      reviewAttemptedRef.current ||
+      !shouldRequestChapterOneReview({
+        activeFaction,
+        activeView: tutorialView,
+        lastBattleResultId:
+          lastBattleResult?.id ?? null,
+        reviewPromptShown,
+        tutorialActive: Boolean(tutorialMoment)
+      })
     ) {
       return;
     }
