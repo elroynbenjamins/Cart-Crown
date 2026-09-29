@@ -1161,7 +1161,13 @@ const stageRanks: Record<WagonStage['id'], number> = {
   town: 3,
   stronghold: 4,
   capital: 5,
-  grand: 6
+  grand: 6,
+  worn_pack: 0,
+  pack_gear: 1,
+  handcart: 2,
+  supply_cart: 3,
+  wagon: 4,
+  kingdom_caravan: 6
 };
 
 export function SettlementStageSprite({
