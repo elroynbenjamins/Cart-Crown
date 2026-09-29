@@ -241,6 +241,12 @@ export function AppShell({
     armyReadiness,
     unlockedResourceSites,
     currentWagonStage,
+    completedStoryGates,
+    researchProgress,
+    magicFamilyUnlock,
+    magicResearchDefinitions,
+    flyingFamilyUnlock,
+    flyingResearchDefinitions,
     tutorialSeen,
     markTutorialSeen,
     reviewPromptShown,
@@ -251,7 +257,9 @@ export function AppShell({
     flow === 'battlePrep' ||
     flow === 'battle' ||
     flow === 'results' ||
-    flow === 'settlement'
+    flow === 'settlement' ||
+    flow === 'fantasyResearch' ||
+    flow === 'flyingResearch'
       ? flow
       : flow
         ? 'other'
@@ -276,7 +284,27 @@ export function AppShell({
     armyReadiness,
     unlockedResourceSites:
       unlockedResourceSites.length,
-    wagonStageId: currentWagonStage.id
+    wagonStageId: currentWagonStage.id,
+    magicStoryUnlocked: Boolean(
+      magicFamilyUnlock &&
+      completedStoryGates.includes(
+        magicFamilyUnlock.storyGateId
+      )
+    ),
+    flyingStoryUnlocked: Boolean(
+      flyingFamilyUnlock &&
+      completedStoryGates.includes(
+        flyingFamilyUnlock.storyGateId
+      )
+    ),
+    completedMagicResearch:
+      magicResearchDefinitions.filter(
+        research => researchProgress[research.id]?.completed
+      ).length,
+    completedFlyingResearch:
+      flyingResearchDefinitions.filter(
+        research => researchProgress[research.id]?.completed
+      ).length
   });
 
   const tutorialMoment =
@@ -589,6 +617,8 @@ export function AppShell({
     if (flow === 'fantasyResearch') {
       return (
         <FantasyResearchScreen
+          tutorialFocus={tutorialFocus}
+          onTutorialFocusComplete={completeTutorialFocus}
           onExit={() => {
             setFlow(null);
             setActive('army');
@@ -600,6 +630,8 @@ export function AppShell({
     if (flow === 'flyingResearch') {
       return (
         <FlyingResearchScreen
+          tutorialFocus={tutorialFocus}
+          onTutorialFocusComplete={completeTutorialFocus}
           onExit={() => {
             setFlow(null);
             setActive('army');
