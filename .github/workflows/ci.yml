@@ -29,3 +29,6 @@ jobs:
 
       - name: Economy regression
         run: npm run economy:check
+
+      - name: Save integrity regression
+        run: npm run save:check
