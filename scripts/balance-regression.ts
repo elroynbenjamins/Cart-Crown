@@ -1,4 +1,7 @@
-import { assessBattlePreparation } from '../src/game/battlePreparation';
+import {
+  assessBattlePreparation,
+  getPreparationEquipmentUnitId
+} from '../src/game/battlePreparation';
 import {
   getArmyReadinessProfile,
   getArmyResupplyCost,
@@ -2320,6 +2323,24 @@ function runBattlePreparationCoverage() {
     'Preparation coverage could not find Human Tier 2 equipment.'
   );
   if (!tierTwo) return;
+
+  const equipmentTarget = getPreparationEquipmentUnitId(
+    army.slice(0, 3),
+    {
+      [army[0]!.id]: {
+        [tierTwo.slot]: tierTwo.id
+      },
+      [army[1]!.id]: {
+        [tierTwo.slot]: tierTwo.id
+      }
+    },
+    equipmentDefinitions
+  );
+
+  expect(
+    equipmentTarget === army[2]!.id,
+    'Preparation gear guidance no longer prioritizes the least-equipped active squad.'
+  );
 
   const gearedLoadouts = Object.fromEntries(
     army.map(unit => [
