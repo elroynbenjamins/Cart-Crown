@@ -575,6 +575,15 @@ export function SettlementScreen({
                         }}
                       />
                     </View>
+                    {tutorialBuildingFocused &&
+                    !canAfford(building.constructionCost) ? (
+                      <View style={styles.button}>
+                        <SecondaryButton
+                          label="Got it — build when funded"
+                          onPress={onTutorialFocusComplete}
+                        />
+                      </View>
+                    ) : null}
                   </GameCard>
                   </TutorialFocus>
                 );
