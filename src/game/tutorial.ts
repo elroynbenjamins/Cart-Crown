@@ -82,6 +82,7 @@ export type TutorialContext = {
   flyingStoryUnlocked: boolean;
   largeStoryUnlocked: boolean;
   hybridStoryUnlocked: boolean;
+  hybridResearchPrerequisitesMet: boolean;
   completedMagicResearch: number;
   completedFlyingResearch: number;
   completedLargeResearch: number;
@@ -847,6 +848,7 @@ function systemMoment(
 
   if (
     context.hybridStoryUnlocked &&
+    context.hybridResearchPrerequisitesMet &&
     context.view === 'hybridResearch' &&
     !seen(context, 'system:hybrid-research')
   ) {
