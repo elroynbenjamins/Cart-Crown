@@ -80,6 +80,53 @@ function runTierCoverage() {
   );
 }
 
+function runFantasyThreatTierCoverage() {
+  const familiesByChapter = [
+    [4, 'magic'],
+    [5, 'flying'],
+    [6, 'large']
+  ] as const;
+
+  for (const [chapter, family] of familiesByChapter) {
+    const surfaced = new Set<string>();
+
+    for (let cycle = 0; cycle < 12; cycle += 1) {
+      getWarTablePostedContracts({
+        cycle,
+        boardChapter: chapter
+      }).forEach(contract => {
+        const threat =
+          getEncounter(contract.encounterId)
+            .fantasyThreat;
+        if (threat) surfaced.add(threat);
+      });
+    }
+
+    check(
+      surfaced.has(family),
+      'War Table Chapter ' +
+        chapter +
+        ' never surfaces its ' +
+        family +
+        ' fantasy threat.'
+    );
+  }
+
+  const fantasyContracts =
+    warTableContracts.filter(
+      contract =>
+        Boolean(
+          getEncounter(contract.encounterId)
+            .fantasyThreat
+        )
+    );
+
+  check(
+    fantasyContracts.length >= 3,
+    'War Table needs authored Magic, Flying and Large threat contracts.'
+  );
+}
+
 function runRotationCoverage() {
   const first =
     getWarTablePostedContracts({
@@ -406,6 +453,7 @@ function runSaveCoverage() {
 }
 
 runTierCoverage();
+runFantasyThreatTierCoverage();
 runRotationCoverage();
 runContractCatalogCoverage();
 runBonusCoverage();
@@ -413,5 +461,5 @@ runBoardClearCoverage();
 runSaveCoverage();
 
 console.log(
-  'PASS: War Table tiers, rotation, categories, objectives, rewards, board clearing and save sanitization remain valid.'
+  'PASS: War Table tiers, fantasy threat staging, rotation, categories, objectives, rewards, board clearing and save sanitization remain valid.'
 );
