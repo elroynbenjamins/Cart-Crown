@@ -11,6 +11,29 @@ import {
   getFactionDoctrines
 } from '../game/formation';
 import { initialHumanPlacements } from '../game/settlement';
+import { chapterTwoNodes } from '../game/chapter2';
+import { chapterThreeNodes } from '../game/chapter3';
+import { chapterFourNodes } from '../game/chapter4';
+import { chapterFiveNodes } from '../game/chapter5';
+import { chapterSixNodes } from '../game/chapter6';
+import {
+  elfChapterTwoNodes,
+  elfChapterThreeNodes,
+  orcChapterTwoNodes,
+  orcChapterThreeNodes
+} from '../game/factionChapter2';
+import {
+  elfChapterFourNodes,
+  orcChapterFourNodes
+} from '../game/factionChapter3';
+import {
+  elfChapterFiveNodes,
+  orcChapterFiveNodes
+} from '../game/factionChapter4';
+import {
+  elfChapterSixNodes,
+  orcChapterSixNodes
+} from '../game/factionChapter5';
 import {
   elfChapterOneNodes,
   elfStarterResources,
@@ -57,6 +80,98 @@ const formationUnlockRank = {
   Town: 3,
   Stronghold: 4
 } as const;
+
+function validStageForFaction(
+  faction: FactionId,
+  value: unknown,
+  fallback: string
+) {
+  const validIds =
+    faction === 'human'
+      ? new Set([
+          'camp',
+          'settlement',
+          'fort',
+          'town',
+          'stronghold',
+          'capital',
+          'grand'
+        ])
+      : new Set([
+          'camp',
+          'settlement',
+          'fort',
+          'town',
+          'stronghold',
+          'capital'
+        ]);
+
+  return typeof value === 'string' &&
+    validIds.has(value)
+    ? value
+    : fallback;
+}
+
+function expectedChapterForStage(
+  faction: FactionId,
+  stageId: string
+) {
+  if (faction === 'human') {
+    return stageId === 'grand'
+      ? 6
+      : stageId === 'capital'
+        ? 5
+        : stageId === 'stronghold'
+          ? 4
+          : stageId === 'town'
+            ? 3
+            : stageId === 'fort'
+              ? 2
+              : 1;
+  }
+
+  return stageId === 'capital'
+    ? 6
+    : stageId === 'stronghold'
+      ? 5
+      : stageId === 'town'
+        ? 4
+        : stageId === 'fort'
+          ? 3
+          : stageId === 'settlement'
+            ? 2
+            : 1;
+}
+
+function nodesForChapter(
+  faction: FactionId,
+  chapter: number
+): ChapterNode[] {
+  if (faction === 'human') {
+    if (chapter === 2) return chapterTwoNodes;
+    if (chapter === 3) return chapterThreeNodes;
+    if (chapter === 4) return chapterFourNodes;
+    if (chapter === 5) return chapterFiveNodes;
+    if (chapter >= 6) return chapterSixNodes;
+    return chapterOneNodes;
+  }
+
+  if (faction === 'elf') {
+    if (chapter === 2) return elfChapterTwoNodes;
+    if (chapter === 3) return elfChapterThreeNodes;
+    if (chapter === 4) return elfChapterFourNodes;
+    if (chapter === 5) return elfChapterFiveNodes;
+    if (chapter >= 6) return elfChapterSixNodes;
+    return elfChapterOneNodes;
+  }
+
+  if (chapter === 2) return orcChapterTwoNodes;
+  if (chapter === 3) return orcChapterThreeNodes;
+  if (chapter === 4) return orcChapterFourNodes;
+  if (chapter === 5) return orcChapterFiveNodes;
+  if (chapter >= 6) return orcChapterSixNodes;
+  return orcChapterOneNodes;
+}
 
 function nonNegativeInteger(value: unknown, fallback: number) {
   return typeof value === 'number' && Number.isFinite(value)
@@ -124,29 +239,41 @@ function sanitizeNodes(
     return fallback.map(node => ({ ...node }));
   }
 
+  const allowedIds = new Set(
+    fallback.map(node => node.id)
+  );
+  const nodes = value.filter(
+    (node): node is ChapterNode =>
+      Boolean(
+        node &&
+          typeof node === 'object' &&
+          typeof node.id === 'string' &&
+          typeof node.name === 'string' &&
+          allowedIds.has(node.id)
+      )
+  );
+
+  if (
+    nodes.length !== fallback.length ||
+    new Set(nodes.map(node => node.id)).size !==
+      fallback.length
+  ) {
+    return fallback.map(node => ({ ...node }));
+  }
+
   let currentKept = false;
-  return value
-    .filter(
-      (node): node is ChapterNode =>
-        Boolean(
-          node &&
-            typeof node === 'object' &&
-            typeof node.id === 'string' &&
-            typeof node.name === 'string'
-        )
-    )
-    .map(node => {
-      if (!node.current) {
-        return { ...node };
-      }
+  return nodes.map(node => {
+    if (!node.current) {
+      return { ...node };
+    }
 
-      if (!currentKept) {
-        currentKept = true;
-        return { ...node, current: true };
-      }
+    if (!currentKept) {
+      currentKept = true;
+      return { ...node, current: true };
+    }
 
-      return { ...node, current: false };
-    });
+    return { ...node, current: false };
+  });
 }
 
 function formationStageCap(stageId: string) {
@@ -340,11 +467,19 @@ export function sanitizeFactionGameState(
     )
   ) as Partial<FactionGameState>;
 
-  const stageId = wagonStages.some(
-    stage => stage.id === stored.wagonStageId
-  )
-    ? stored.wagonStageId!
-    : defaults.wagonStageId;
+  const stageId = validStageForFaction(
+    faction,
+    stored.wagonStageId,
+    defaults.wagonStageId
+  );
+  const chapterNumber = expectedChapterForStage(
+    faction,
+    stageId
+  );
+  const chapterDefaults = nodesForChapter(
+    faction,
+    chapterNumber
+  );
 
   const units = sanitizeUnits(
     stored.units,
@@ -371,16 +506,7 @@ export function sanitizeFactionGameState(
     ...defaults,
     ...definedStored,
     faction,
-    chapterNumber: Math.min(
-      6,
-      Math.max(
-        1,
-        nonNegativeInteger(
-          stored.chapterNumber,
-          defaults.chapterNumber
-        )
-      )
-    ),
+    chapterNumber,
     resources: sanitizeWallet(
       stored.resources,
       defaults.resources
@@ -405,7 +531,7 @@ export function sanitizeFactionGameState(
     ),
     chapterNodes: sanitizeNodes(
       stored.chapterNodes,
-      defaults.chapterNodes
+      chapterDefaults
     ),
     formationDoctrineId,
     equipmentInventory: sanitizeStringArray(
