@@ -441,11 +441,41 @@ function systemMoment(
 export function getNextTutorialMoment(
   context: TutorialContext
 ): TutorialMoment | null {
+  const core = coreMoment(context);
+  if (core) return core;
+
+  const system = systemMoment(context);
+  if (system?.key === 'system:settlement') {
+    return system;
+  }
+
   return (
-    coreMoment(context) ??
     unitMoment(context) ??
     buildingMoment(context) ??
-    systemMoment(context)
+    system
+  );
+}
+
+export function shouldRequestChapterOneReview({
+  activeFaction,
+  activeView,
+  lastBattleResultId,
+  reviewPromptShown,
+  tutorialActive
+}: {
+  activeFaction: FactionId;
+  activeView: TutorialView;
+  lastBattleResultId: string | null;
+  reviewPromptShown: boolean;
+  tutorialActive: boolean;
+}) {
+  return (
+    activeFaction === 'human' &&
+    activeView === 'kingdom' &&
+    lastBattleResultId ===
+      'toll_captain_result' &&
+    !reviewPromptShown &&
+    !tutorialActive
   );
 }
 
