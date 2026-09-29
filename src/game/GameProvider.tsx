@@ -124,6 +124,13 @@ import {
 } from './settlement';
 import { sideModes } from './sideModes';
 import {
+  evaluateWarTableBonus,
+  getWarTableContractByEncounter,
+  getWarTablePostedContracts,
+  isWarTableBoardCleared
+} from './warTable';
+import type { WarTableBattleSummary } from './warTable';
+import {
   createExpeditionRun,
   getExpeditionBaseReward,
   getExpeditionCompletionReward,
@@ -346,11 +353,20 @@ type GameContextValue = {
   expeditionTickets: number;
   expeditionRunsCompleted: number;
   activeExpeditionRun: ExpeditionRunState | null;
+  warTableCycle: number;
+  warTableBoardChapter: number;
+  warTableCompletedContractIds: string[];
+  warTableBonusContractIds: string[];
+  warTableContractsCompleted: number;
+  warTableBonusObjectivesCompleted: number;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions: KingdomTrialId[];
   rewardedAdClaims: RewardedAdClaimState;
   rewardedAdMessage: string | null;
-  finishEncounter: (encounterId: EncounterId) => void;
+  finishEncounter: (
+    encounterId: EncounterId,
+    battleSummary?: WarTableBattleSummary
+  ) => void;
   recordBattleWear: (
     remainingHp: number,
     maxHp: number,
@@ -437,6 +453,7 @@ type GameContextValue = {
   applyFormationPreset: (slotId: FormationPresetSlotId) => boolean;
   clearFormationPreset: (slotId: FormationPresetSlotId) => boolean;
   isSideModeUnlocked: (id: SideModeId) => boolean;
+  refreshWarTableBoard: () => boolean;
   consumeExpeditionTicket: () => boolean;
   startExpeditionRun: () => boolean;
   resolveExpeditionRouteChoice: (
@@ -743,6 +760,24 @@ export function GameProvider({
           path: [...initialFaction.activeExpeditionRun.path]
         }
       : null
+  );
+  const [warTableCycle, setWarTableCycle] = useState(
+    initialFaction.warTableCycle
+  );
+  const [warTableBoardChapter, setWarTableBoardChapter] = useState(
+    initialFaction.warTableBoardChapter
+  );
+  const [warTableCompletedContractIds, setWarTableCompletedContractIds] = useState<string[]>(
+    () => [...initialFaction.warTableCompletedContractIds]
+  );
+  const [warTableBonusContractIds, setWarTableBonusContractIds] = useState<string[]>(
+    () => [...initialFaction.warTableBonusContractIds]
+  );
+  const [warTableContractsCompleted, setWarTableContractsCompleted] = useState(
+    initialFaction.warTableContractsCompleted
+  );
+  const [warTableBonusObjectivesCompleted, setWarTableBonusObjectivesCompleted] = useState(
+    initialFaction.warTableBonusObjectivesCompleted
   );
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
   const [kingdomTrialCompletions, setKingdomTrialCompletions] = useState<KingdomTrialId[]>(
@@ -1509,6 +1544,12 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       activeExpeditionRun,
+      warTableCycle,
+      warTableBoardChapter,
+      warTableCompletedContractIds,
+      warTableBonusContractIds,
+      warTableContractsCompleted,
+      warTableBonusObjectivesCompleted,
       formationTrialCompleted,
       kingdomTrialCompletions,
       completedStoryGates,
@@ -1564,6 +1605,12 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       activeExpeditionRun,
+      warTableCycle,
+      warTableBoardChapter,
+      warTableCompletedContractIds,
+      warTableBonusContractIds,
+      warTableContractsCompleted,
+      warTableBonusObjectivesCompleted,
       formationTrialCompleted,
       kingdomTrialCompletions,
       completedStoryGates,
@@ -1765,22 +1812,98 @@ export function GameProvider({
     return true;
   };
 
-  const finishEncounter = (encounterId: EncounterId) => {
+  const finishEncounter = (
+    encounterId: EncounterId,
+    battleSummary?: WarTableBattleSummary
+  ) => {
     const reward = encounterRewards[encounterId];
 
     if (encounterId.startsWith('war_table_')) {
       if (!isSideModeUnlocked('war_table')) return;
 
-      setResources(previous =>
-        addResources(previous, reward.resources)
+      const contract =
+        getWarTableContractByEncounter(encounterId);
+      const postedContracts =
+        getWarTablePostedContracts({
+          cycle: warTableCycle,
+          boardChapter: warTableBoardChapter
+        });
+
+      if (
+        !contract ||
+        !postedContracts.some(
+          posted => posted.id === contract.id
+        ) ||
+        warTableCompletedContractIds.includes(
+          contract.id
+        )
+      ) {
+        return;
+      }
+
+      const bonusAchieved =
+        Boolean(
+          battleSummary &&
+          evaluateWarTableBonus(
+            contract,
+            battleSummary
+          )
+        );
+      const baseReward = addResources(
+        {
+          gold: 0,
+          wood: 0,
+          stone: 0,
+          iron: 0,
+          provisions: 0
+        },
+        reward.resources
       );
+      const totalReward = bonusAchieved
+        ? addResources(
+            baseReward,
+            contract.bonusReward
+          )
+        : baseReward;
+
+      setResources(previous =>
+        addResources(previous, totalReward)
+      );
+      setWarTableCompletedContractIds(
+        previous => [
+          ...previous,
+          contract.id
+        ]
+      );
+      setWarTableContractsCompleted(
+        previous => previous + 1
+      );
+
+      if (bonusAchieved) {
+        setWarTableBonusContractIds(
+          previous => [
+            ...previous,
+            contract.id
+          ]
+        );
+        setWarTableBonusObjectivesCompleted(
+          previous => previous + 1
+        );
+      }
+
       accrueRegionalProduction();
       setLastBattleResult({
         id: encounterId + '_result',
         title: 'War Table Contract Complete',
         victory: true,
-        summary: reward.storySummary,
-        rewards: { ...reward.resources },
+        summary:
+          reward.storySummary +
+          (bonusAchieved
+            ? ' Bonus objective achieved: ' +
+              contract.bonusObjective.label +
+              '.'
+            : ' The bonus objective was not completed this time.'),
+        rewards: totalReward,
         casualties: 0
       });
       return;
@@ -5565,6 +5688,35 @@ export function GameProvider({
     return false;
   };
 
+  const refreshWarTableBoard = () => {
+    const postedContracts =
+      getWarTablePostedContracts({
+        cycle: warTableCycle,
+        boardChapter: warTableBoardChapter
+      });
+
+    if (
+      !isSideModeUnlocked('war_table') ||
+      !isWarTableBoardCleared({
+        postedContracts,
+        completedContractIds:
+          warTableCompletedContractIds
+      })
+    ) {
+      return false;
+    }
+
+    setWarTableCycle(
+      previous => previous + 1
+    );
+    setWarTableBoardChapter(
+      Math.min(3, chapterNumber)
+    );
+    setWarTableCompletedContractIds([]);
+    setWarTableBonusContractIds([]);
+    return true;
+  };
+
   const consumeExpeditionTicket = () => {
     if (
       activeExpeditionRun ||
@@ -6171,6 +6323,12 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       activeExpeditionRun,
+      warTableCycle,
+      warTableBoardChapter,
+      warTableCompletedContractIds,
+      warTableBonusContractIds,
+      warTableContractsCompleted,
+      warTableBonusObjectivesCompleted,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,
@@ -6243,6 +6401,7 @@ export function GameProvider({
       applyFormationPreset,
       clearFormationPreset,
       isSideModeUnlocked,
+      refreshWarTableBoard,
       consumeExpeditionTicket,
       startExpeditionRun,
       resolveExpeditionRouteChoice,

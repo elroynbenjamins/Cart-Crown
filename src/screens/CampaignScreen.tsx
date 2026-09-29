@@ -210,6 +210,8 @@ export function CampaignScreen({
     expeditionTickets,
     expeditionRunsCompleted,
     activeExpeditionRun,
+    warTableCycle,
+    warTableCompletedContractIds,
     kingdomTrialCompletions,
     claimRewardedAd,
     rewardedAdClaims,
@@ -894,6 +896,12 @@ export function CampaignScreen({
           <Text style={[styles.modeBody, { color: theme.colors.textMuted }]}>{mode.description}</Text>
           <Text style={[styles.modeExample, { color: theme.colors.text }]}>Example: {mode.example}</Text>
           <Text style={[styles.modeReward, { color: theme.colors.gold }]}>Rewards: {mode.rewardFocus}</Text>
+
+          {mode.id === 'war_table' ? (
+            <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
+              Board {warTableCycle + 1} · {warTableCompletedContractIds.length}/3 cleared
+            </Text>
+          ) : null}
 
           {mode.id === 'expeditions' ? (
             <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>

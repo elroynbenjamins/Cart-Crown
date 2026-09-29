@@ -48,6 +48,9 @@ jobs:
       - name: Expedition regression
         run: npm run expedition:check
 
+      - name: War Table regression
+        run: npm run war-table:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 

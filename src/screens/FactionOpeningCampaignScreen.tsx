@@ -119,6 +119,8 @@ export function FactionOpeningCampaignScreen({
     expeditionTickets,
     expeditionRunsCompleted,
     activeExpeditionRun,
+    warTableCycle,
+    warTableCompletedContractIds,
     kingdomTrialCompletions,
     kingdomDefenseCompleted,
     kingdomDefenseRuns
@@ -641,7 +643,11 @@ export function FactionOpeningCampaignScreen({
             {availableSideModes.map(mode => {
               const status =
                 mode.id === 'war_table'
-                  ? 'Scout contracts'
+                  ? 'Board ' +
+                    (warTableCycle + 1) +
+                    ' · ' +
+                    warTableCompletedContractIds.length +
+                    '/3 cleared'
                   : mode.id === 'expeditions'
                     ? activeExpeditionRun
                       ? activeExpeditionRun.completed
