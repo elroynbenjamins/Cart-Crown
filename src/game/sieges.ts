@@ -24,6 +24,7 @@ export type SiegeChoice = {
   supplyCost?: number;
   readinessDelta?: number;
   powerBonusDelta?: number;
+  defenderAlertDelta?: number;
   minimumEngineering?: number;
 };
 
@@ -45,6 +46,7 @@ export type SiegeRunState = {
   readiness: number;
   supplies: number;
   powerBonus: number;
+  defenderAlert: number;
   rewardMultiplier: 0 | 0.5 | 1;
   basePower: number;
   preparationMultiplier: number;
@@ -107,7 +109,8 @@ const choices: SiegeChoice[] = [
       'Advance methodically behind cover. Safer, but gives the defenders more time to prepare the inner line.',
     formationShapeId: 'wide_vanguard_522',
     baseThreat: 146,
-    wear: 6
+    wear: 6,
+    defenderAlertDelta: 0.06
   },
   {
     id: 'approach_flank',
@@ -120,7 +123,21 @@ const choices: SiegeChoice[] = [
     baseThreat: 158,
     wear: 7,
     supplyCost: 1,
-    powerBonusDelta: 0.04
+    powerBonusDelta: 0.04,
+    defenderAlertDelta: -0.03
+  },
+  {
+    id: 'breach_ladders',
+    stageIndex: 1,
+    stageId: 'breach',
+    name: 'Improvised Ladders',
+    description:
+      'A desperate fallback when proper siege engineering is unavailable. No Engineering is required, but the defenders retain the wall advantage and the assault is costly.',
+    formationShapeId: 'heavy_front_441',
+    baseThreat: 198,
+    wear: 11,
+    supplyCost: 1,
+    defenderAlertDelta: 0.08
   },
   {
     id: 'breach_ram',
@@ -132,7 +149,8 @@ const choices: SiegeChoice[] = [
     formationShapeId: 'spear_wall_531',
     baseThreat: 176,
     wear: 8,
-    minimumEngineering: 1
+    minimumEngineering: 1,
+    defenderAlertDelta: 0.03
   },
   {
     id: 'breach_sappers',
@@ -146,7 +164,8 @@ const choices: SiegeChoice[] = [
     wear: 6,
     supplyCost: 2,
     minimumEngineering: 2,
-    powerBonusDelta: 0.05
+    powerBonusDelta: 0.05,
+    defenderAlertDelta: -0.04
   },
   {
     id: 'courtyard_center',
@@ -157,7 +176,8 @@ const choices: SiegeChoice[] = [
       'Attack the reserve-heavy center before the garrison can rotate defenders between lanes.',
     formationShapeId: 'reinforced_center_252',
     baseThreat: 194,
-    wear: 9
+    wear: 9,
+    defenderAlertDelta: 0.03
   },
   {
     id: 'courtyard_towers',
@@ -169,7 +189,8 @@ const choices: SiegeChoice[] = [
     formationShapeId: 'protected_rear_225',
     baseThreat: 201,
     wear: 8,
-    powerBonusDelta: 0.04
+    powerBonusDelta: 0.04,
+    defenderAlertDelta: -0.03
   },
   {
     id: 'commander_keep',
@@ -311,11 +332,20 @@ export function getSiegePreparation({
 
 export function getSiegeThreat(
   choice: SiegeChoice,
-  wagonStageId: string
+  wagonStageId: string,
+  defenderAlert = 0
 ) {
+  const alertMultiplier =
+    1 +
+    Math.max(
+      -0.12,
+      Math.min(0.2, defenderAlert)
+    );
+
   return Math.round(
     choice.baseThreat *
-      (stageThreatMultiplier[wagonStageId] ?? 1)
+      (stageThreatMultiplier[wagonStageId] ?? 1) *
+      alertMultiplier
   );
 }
 
@@ -435,6 +465,7 @@ export function createSiegeRun({
       Math.min(8, Math.floor(supplies))
     ),
     powerBonus: 0,
+    defenderAlert: 0,
     rewardMultiplier,
     basePower: Math.max(0, Math.round(basePower)),
     preparationMultiplier: Math.max(
@@ -529,7 +560,8 @@ export function resolveSiegeChoice({
   const threat =
     getSiegeThreat(
       choice,
-      run.wagonStageId
+      run.wagonStageId,
+      run.defenderAlert
     );
   const effective =
     getSiegeEffectivePower({
@@ -555,6 +587,14 @@ export function resolveSiegeChoice({
     25,
     preFightReadiness - wear
   );
+  const defenderAlert = Math.max(
+    -0.12,
+    Math.min(
+      0.2,
+      run.defenderAlert +
+        (choice.defenderAlertDelta ?? 0)
+    )
+  );
 
   if (!success) {
     const failed: SiegeRunState = {
@@ -562,6 +602,7 @@ export function resolveSiegeChoice({
       readiness,
       supplies,
       powerBonus,
+      defenderAlert,
       path: [...run.path, choice.id],
       failed: true,
       completed: false,
@@ -592,6 +633,7 @@ export function resolveSiegeChoice({
     readiness,
     supplies,
     powerBonus,
+    defenderAlert,
     path: [...run.path, choice.id],
     failed: false,
     completed,
