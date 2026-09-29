@@ -104,7 +104,9 @@ export function FormationTrialScreen({
           kingdomTrialCompletions.includes(id) ||
           id === currentTrialId
       )
-    : [...kingdomTrialOrder];
+    : kingdomTrialOrder.filter(id =>
+        kingdomTrialCompletions.includes(id)
+      );
 
   const checkCurrent = () => {
     if (!currentTrialId) return;
@@ -116,7 +118,7 @@ export function FormationTrialScreen({
         evaluations[currentTrialId].medal;
       setMessage(
         medal +
-          ' Trial complete. The next challenge is now available.'
+          ' Trial complete. Later medals unlock as the campaign advances.'
       );
       return;
     }
