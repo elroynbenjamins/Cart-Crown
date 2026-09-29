@@ -276,7 +276,11 @@ export function getEnemyStrikePressure(
     difficultyPressure +
     progressionPressure;
   const escalation = 1 + Math.min(0.18, turn * 0.012);
-  return Math.round(base * escalation);
+  return Math.round(
+    base *
+      escalation *
+      (encounter.pressureMultiplier ?? 1)
+  );
 }
 
 export function getTacticalSpeedDamageMultiplier(
