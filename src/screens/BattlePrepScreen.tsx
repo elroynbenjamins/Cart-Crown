@@ -51,9 +51,11 @@ export function BattlePrepScreen({
     formationAnalysis,
     formationShapes,
     activeFormationShape,
+    formationPresets,
     activeSquadCap,
     currentWagonStage,
     setFormationShape,
+    applyFormationPreset,
     formationDoctrineId,
     formationDoctrines,
     activeCommanderPath,
@@ -128,6 +130,50 @@ export function BattlePrepScreen({
         rank[getFormationMatchup(a.id, enemyShape.id).result] -
         rank[getFormationMatchup(b.id, enemyShape.id).result]
       );
+    }
+  );
+  const presetMatchesCurrent = (slotId: 1 | 2 | 3) => {
+    const preset = formationPresets.find(
+      candidate => candidate.slotId === slotId
+    );
+    if (!preset) return false;
+
+    return (
+      preset.formationShapeId === activeFormationShape.id &&
+      preset.formationDoctrineId === formationDoctrineId &&
+      Array.from({ length: 9 }).every(
+        (_, index) =>
+          (preset.formation[index] ?? null) ===
+          (formation[index] ?? null)
+      )
+    );
+  };
+
+  const formationPresetOptions = [...formationPresets].sort(
+    (a, b) => {
+      const aActive = presetMatchesCurrent(a.slotId);
+      const bActive = presetMatchesCurrent(b.slotId);
+      if (aActive && !bActive) return -1;
+      if (bActive && !aActive) return 1;
+
+      const rank = {
+        advantage: 0,
+        even: 1,
+        disadvantage: 2
+      };
+      const aResult = getFormationMatchup(
+        a.formationShapeId,
+        enemyShape.id
+      ).result;
+      const bResult = getFormationMatchup(
+        b.formationShapeId,
+        enemyShape.id
+      ).result;
+
+      if (rank[aResult] !== rank[bResult]) {
+        return rank[aResult] - rank[bResult];
+      }
+      return a.slotId - b.slotId;
     }
   );
   const unlockedCounters = getFormationCounters(enemyShape.id)
@@ -327,6 +373,146 @@ export function BattlePrepScreen({
           </Text>
         ) : null}
       </GameCard>
+
+      {formationPresetOptions.length > 0 ? (
+        <>
+          <SectionTitle
+            title="Tactical loadouts"
+            trailing="Shape · doctrine · positions"
+          />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.presetSwitchStrip}
+          >
+            {formationPresetOptions.map(preset => {
+              const presetShape = formationShapes.find(
+                shape => shape.id === preset.formationShapeId
+              );
+              const presetDoctrine = formationDoctrines.find(
+                candidate =>
+                  candidate.id === preset.formationDoctrineId
+              );
+              const preview = getFormationMatchup(
+                preset.formationShapeId,
+                enemyShape.id
+              );
+              const active = presetMatchesCurrent(
+                preset.slotId
+              );
+              const previewColor =
+                preview.result === 'advantage'
+                  ? theme.colors.primary
+                  : preview.result === 'disadvantage'
+                    ? theme.colors.danger
+                    : theme.colors.textMuted;
+              const validSquads = preset.formation.filter(
+                unitId =>
+                  Boolean(
+                    unitId &&
+                      units.some(unit => unit.id === unitId)
+                  )
+              ).length;
+
+              return (
+                <Pressable
+                  key={preset.slotId}
+                  disabled={active}
+                  onPress={() =>
+                    applyFormationPreset(preset.slotId)
+                  }
+                  style={({ pressed }) => [
+                    styles.presetSwitchCard,
+                    {
+                      borderColor: active
+                        ? theme.colors.gold
+                        : previewColor,
+                      backgroundColor: active
+                        ? theme.colors.surface1
+                        : theme.colors.surface2,
+                      opacity: pressed ? 0.8 : 1
+                    }
+                  ]}
+                >
+                  <View style={styles.presetSwitchHeader}>
+                    <Text
+                      style={[
+                        styles.presetSwitchTitle,
+                        {
+                          color: active
+                            ? theme.colors.gold
+                            : theme.colors.text
+                        }
+                      ]}
+                    >
+                      Loadout {preset.slotId}
+                    </Text>
+                    <Pill
+                      label={
+                        active
+                          ? 'ACTIVE'
+                          : preview.result === 'advantage'
+                            ? 'EDGE'
+                            : preview.result === 'disadvantage'
+                              ? 'EXPOSED'
+                              : 'NEUTRAL'
+                      }
+                      color={
+                        active
+                          ? theme.colors.gold + '45'
+                          : preview.result === 'advantage'
+                            ? theme.colors.primary + '35'
+                            : preview.result === 'disadvantage'
+                              ? theme.colors.danger + '35'
+                              : undefined
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.presetSwitchName,
+                      { color: factionAccent }
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {(presetShape?.layout ?? 'Formation') +
+                      ' · ' +
+                      (presetShape?.name ?? 'Saved shape')}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.presetSwitchMeta,
+                      { color: theme.colors.textMuted }
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {(presetDoctrine?.name ?? 'Saved doctrine') +
+                      ' · ' +
+                      validSquads +
+                      ' squads'}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.presetSwitchEffect,
+                      { color: previewColor }
+                    ]}
+                  >
+                    dealt ×{preview.outgoingDamageMultiplier.toFixed(2)} · received ×{preview.incomingDamageMultiplier.toFixed(2)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          <Text
+            style={[
+              styles.presetSwitchHint,
+              { color: theme.colors.textMuted }
+            ]}
+          >
+            One tap restores the saved shape, doctrine and squad positions.
+          </Text>
+        </>
+      ) : null}
 
       <SectionTitle
         title="Quick formation switch"
@@ -700,6 +886,30 @@ const styles = StyleSheet.create({
   matchupSummary: { fontSize: 11, lineHeight: 16, marginTop: 8, fontWeight: '700' },
   matchupEffect: { fontSize: 10, lineHeight: 15, marginTop: 7, fontWeight: '900' },
   matchupHint: { fontSize: 9.5, lineHeight: 14, marginTop: 7 },
+  presetSwitchStrip: { gap: 8, paddingRight: 4 },
+  presetSwitchCard: {
+    width: 184,
+    minHeight: 112,
+    borderRadius: 15,
+    borderWidth: 1.5,
+    padding: 10
+  },
+  presetSwitchHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 7
+  },
+  presetSwitchTitle: { fontSize: 12.5, fontWeight: '900' },
+  presetSwitchName: { fontSize: 10.5, fontWeight: '900', marginTop: 8 },
+  presetSwitchMeta: { fontSize: 8.8, lineHeight: 13, marginTop: 4 },
+  presetSwitchEffect: { fontSize: 8.8, fontWeight: '900', marginTop: 7 },
+  presetSwitchHint: {
+    fontSize: 9.5,
+    lineHeight: 14,
+    textAlign: 'center',
+    paddingHorizontal: 10
+  },
   formationSwitchStrip: { gap: 8, paddingRight: 4 },
   formationSwitchCard: {
     width: 154,
