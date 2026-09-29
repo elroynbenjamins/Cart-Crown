@@ -51,10 +51,12 @@ import {
   getFormationMatchup,
   getFormationShape
 } from '../src/game/formation';
+import { evaluateFormationPreset } from '../src/game/loadoutAnalysis';
 import type {
   CommanderPathDefinition,
   EquipmentDefinition,
   FactionId,
+  FormationPreset,
   FormationShapeId,
   UnitDefinition
 } from '../src/game/types';
@@ -1644,6 +1646,198 @@ function runFormationMatchupCoverage() {
   }
 }
 
+function runLoadoutRecommendationCoverage() {
+  const unit = (
+    id: string,
+    role: UnitDefinition['role']
+  ): UnitDefinition => ({
+    id,
+    name: id,
+    className: id,
+    faction: 'human',
+    role,
+    tier: 3,
+    level: 10,
+    hp: 100,
+    attack: 25,
+    armor: 20,
+    speed: 20
+  });
+
+  const roster = [
+    unit('front_1', 'frontline'),
+    unit('front_2', 'frontline'),
+    unit('melee_1', 'melee'),
+    unit('support_1', 'support'),
+    unit('cav_1', 'cavalry'),
+    unit('cav_2', 'cavalry'),
+    unit('skirm_1', 'skirmish'),
+    unit('skirm_2', 'skirmish'),
+    unit('range_1', 'ranged'),
+    unit('range_2', 'ranged'),
+    unit('range_3', 'ranged'),
+    unit('range_4', 'ranged')
+  ];
+
+  const mobile: FormationPreset = {
+    slotId: 1,
+    formationShapeId: 'balanced_333',
+    formationDoctrineId: 'human_balanced',
+    formation: [
+      'front_1',
+      'cav_1',
+      'cav_2',
+      'skirm_1',
+      'skirm_2',
+      'support_1',
+      null,
+      null,
+      null
+    ]
+  };
+
+  const ranged: FormationPreset = {
+    slotId: 2,
+    formationShapeId: 'balanced_333',
+    formationDoctrineId: 'human_balanced',
+    formation: [
+      'front_1',
+      null,
+      null,
+      'support_1',
+      null,
+      null,
+      'range_1',
+      'range_2',
+      'range_3'
+    ]
+  };
+
+  const holding: FormationPreset = {
+    slotId: 3,
+    formationShapeId: 'balanced_333',
+    formationDoctrineId: 'human_hold',
+    formation: [
+      'front_1',
+      'front_2',
+      'melee_1',
+      null,
+      'support_1',
+      null,
+      'range_1',
+      null,
+      null
+    ]
+  };
+
+  const versusMissilesMobile =
+    evaluateFormationPreset({
+      preset: mobile,
+      units: roster,
+      faction: 'human',
+      enemyShapeId: 'protected_rear_225',
+      enemyArmyProfileId: 'missile_company',
+      squadCap: 6
+    });
+  const versusMissilesRanged =
+    evaluateFormationPreset({
+      preset: ranged,
+      units: roster,
+      faction: 'human',
+      enemyShapeId: 'protected_rear_225',
+      enemyArmyProfileId: 'missile_company',
+      squadCap: 6
+    });
+
+  expect(
+    versusMissilesMobile.score >
+      versusMissilesRanged.score,
+    'Scouted loadout analysis no longer prefers mobile pressure against a Missile Company.'
+  );
+
+  const versusShieldsMobile =
+    evaluateFormationPreset({
+      preset: mobile,
+      units: roster,
+      faction: 'human',
+      enemyShapeId: 'wide_vanguard_522',
+      enemyArmyProfileId: 'shield_host',
+      squadCap: 6
+    });
+  const versusShieldsRanged =
+    evaluateFormationPreset({
+      preset: ranged,
+      units: roster,
+      faction: 'human',
+      enemyShapeId: 'wide_vanguard_522',
+      enemyArmyProfileId: 'shield_host',
+      squadCap: 6
+    });
+
+  expect(
+    versusShieldsRanged.score >
+      versusShieldsMobile.score,
+    'Loadout recommendations became universal instead of preferring ranged pressure against a Shield Host.'
+  );
+
+  const versusMountedHolding =
+    evaluateFormationPreset({
+      preset: holding,
+      units: roster,
+      faction: 'human',
+      enemyShapeId: 'skirmish_screen_243',
+      enemyArmyProfileId: 'mounted_hunters',
+      squadCap: 6
+    });
+  const versusMountedRanged =
+    evaluateFormationPreset({
+      preset: ranged,
+      units: roster,
+      faction: 'human',
+      enemyShapeId: 'skirmish_screen_243',
+      enemyArmyProfileId: 'mounted_hunters',
+      squadCap: 6
+    });
+
+  expect(
+    versusMountedHolding.score >
+      versusMountedRanged.score,
+    'Scouted loadout analysis no longer values holding power against Mounted Hunters.'
+  );
+
+  const stale = evaluateFormationPreset({
+    preset: mobile,
+    units: roster.filter(
+      candidate => candidate.id !== 'cav_1'
+    ),
+    faction: 'human',
+    enemyShapeId: 'protected_rear_225',
+    enemyArmyProfileId: 'missile_company',
+    squadCap: 6
+  });
+
+  expect(
+    stale.score < versusMissilesMobile.score &&
+      stale.missingSquads > 0,
+    'Stale loadouts no longer lose recommendation value when saved squads are unavailable.'
+  );
+
+  [
+    versusMissilesMobile,
+    versusMissilesRanged,
+    versusShieldsMobile,
+    versusShieldsRanged,
+    versusMountedHolding,
+    versusMountedRanged,
+    stale
+  ].forEach(result => {
+    expect(
+      result.score >= 0 && result.score <= 100,
+      'Loadout recommendation score escaped the 0–100 UI range.'
+    );
+  });
+}
+
 function runEnemyFormationCoverage() {
   const ids = [
     ...bossByFaction.human,
@@ -1922,6 +2116,7 @@ function main() {
   runMountedBranchCoverage();
   runFormationCoverage();
   runFormationMatchupCoverage();
+  runLoadoutRecommendationCoverage();
   runEnemyFormationCoverage();
   runEnemyArmyIdentityCoverage();
   runMetaCoverage();
@@ -1948,7 +2143,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
+    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, scouted loadout recommendations, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
   );
 }
 
