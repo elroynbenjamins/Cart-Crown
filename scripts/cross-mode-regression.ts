@@ -1,6 +1,7 @@
 import {
   MAX_EXPEDITION_TICKETS,
   getExpeditionRewardMultiplier,
+  getExpeditionTicketsAfterChapterTransition,
   getKingdomDefenseRewardMultiplier,
   getWarTableBoardRewardMultiplier,
   scaleResourceReward
@@ -111,6 +112,13 @@ function runRewardBands() {
   check(
     MAX_EXPEDITION_TICKETS === 3,
     'Expedition ticket storage cap drifted.'
+  );
+  check(
+    getExpeditionTicketsAfterChapterTransition(0, 3) === 1 &&
+      getExpeditionTicketsAfterChapterTransition(2, 4) === 3 &&
+      getExpeditionTicketsAfterChapterTransition(3, 5) === 3 &&
+      getExpeditionTicketsAfterChapterTransition(1, 2) === 1,
+    'Chapter transitions no longer provide one earned Expedition ticket from Chapter 3 onward or violate the storage cap.'
   );
 
   const half = scaleResourceReward(
