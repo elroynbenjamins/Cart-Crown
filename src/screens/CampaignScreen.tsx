@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import { rewardedAdPlacements } from '../ads/rewardedAds';
@@ -203,7 +203,34 @@ export function CampaignScreen({
     rewardedAdMessage
   } = useGame();
   const [view, setView] = useState<CampaignView>('story');
+  const tutorialScrollRef = useRef<ScrollView>(null);
   const completed = chapterNodes.filter(node => node.completed).length;
+
+  useEffect(() => {
+    if (!tutorialFocus) return;
+
+    const timer = setTimeout(() => {
+      if (tutorialFocus.kind === 'campaign-current') {
+        const currentIndex = Math.max(
+          0,
+          chapterNodes.findIndex(node => node.current)
+        );
+        tutorialScrollRef.current?.scrollTo({
+          y: 480 + currentIndex * 84,
+          animated: true
+        });
+      } else if (
+        tutorialFocus.kind === 'campaign-activities'
+      ) {
+        tutorialScrollRef.current?.scrollTo({
+          y: 0,
+          animated: true
+        });
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [chapterNodes, tutorialFocus]);
 
   if (activeFaction !== 'human') {
     return (
@@ -1041,7 +1068,11 @@ export function CampaignScreen({
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={[styles.segment, { backgroundColor: theme.colors.surface1 }]}>
         {(['story', 'activities', 'factions'] as CampaignView[]).map(option => {
           const focused =
