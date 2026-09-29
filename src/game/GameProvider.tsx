@@ -215,6 +215,7 @@ type GameContextValue = {
   formationAnalysis: ReturnType<typeof analyzeFormation>;
   activeSquadCap: number;
   middleRowUnlocked: boolean;
+  formationPresetsUnlocked: boolean;
   formationCells: number[];
   holdTheRoadWon: boolean;
   settlementUpgraded: boolean;
@@ -824,6 +825,15 @@ export function GameProvider({
   const isFormationSlotUnlocked = (slot: number) =>
     middleRowUnlocked ||
     !activeFormationShape.rows.middle.includes(slot);
+  const formationPresetsUnlocked =
+    activeFaction !== 'human' ||
+    chapterNumber >= 3 ||
+    (
+      chapterNumber === 2 &&
+      Boolean(
+        chapterNodes.find(node => node.id === 'ch2_node_8')?.completed
+      )
+    );
   const hasPackedRations = wagonItems.some(item => item.id === 'rations');
   const hasPackedMedicine = wagonItems.some(item => item.id === 'medicine');
   const armyResupplyCost = getArmyResupplyCost(
@@ -5370,6 +5380,7 @@ export function GameProvider({
   };
 
   const saveFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!formationPresetsUnlocked) return false;
     if (![1, 2, 3].includes(slotId)) return false;
     if (!formation.some(Boolean)) return false;
 
@@ -5393,6 +5404,7 @@ export function GameProvider({
   };
 
   const applyFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!formationPresetsUnlocked) return false;
     const preset = formationPresets.find(
       candidate => candidate.slotId === slotId
     );
@@ -5447,6 +5459,7 @@ export function GameProvider({
   };
 
   const clearFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!formationPresetsUnlocked) return false;
     if (!formationPresets.some(candidate => candidate.slotId === slotId)) {
       return false;
     }
@@ -5647,6 +5660,7 @@ export function GameProvider({
       formationAnalysis,
       activeSquadCap,
       middleRowUnlocked,
+      formationPresetsUnlocked,
       formationCells,
       holdTheRoadWon,
       settlementUpgraded,
@@ -5839,6 +5853,7 @@ export function GameProvider({
       formationAnalysis,
       activeSquadCap,
       middleRowUnlocked,
+      formationPresetsUnlocked,
       holdTheRoadWon,
       settlementUpgraded,
       recruitChoiceAvailable,
