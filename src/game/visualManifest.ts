@@ -283,11 +283,27 @@ export function getUnitVisualKind(className: string): UnitVisualKind {
   const key = className.trim().toLowerCase();
   const exact = unitClassVisuals[key];
   if (exact) return exact;
+  const fantasyFlying =
+    key.includes('griffin') ||
+    key.includes('eagle') ||
+    key.includes('wyvern') ||
+    key.includes('moonwing') ||
+    key.includes('spellwing');
+  if (
+    fantasyFlying &&
+    (
+      key.includes('archer') ||
+      key.includes('marksman')
+    )
+  ) {
+    return 'mounted_archer';
+  }
+  if (fantasyFlying) return 'scout_rider';
   if (key.includes('mounted') && key.includes('archer')) return 'mounted_archer';
   if (key.includes('rider')) return 'scout_rider';
   if (key.includes('lance')) return 'lancer';
   if (key.includes('caval')) return 'cavalryman';
-  if (key.includes('arch') || key.includes('bow')) return 'archer';
+  if (key.includes('arch') || key.includes('bow') || key.includes('marksman')) return 'archer';
   if (key.includes('scout') || key.includes('ranger')) return 'scout';
   return 'infantry';
 }
