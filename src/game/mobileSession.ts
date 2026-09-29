@@ -46,3 +46,18 @@ export function appStateAllowsBattleProgress(
 ) {
   return state === 'active';
 }
+
+
+export function createSerialTaskQueue() {
+  let chain = Promise.resolve();
+
+  return {
+    enqueue(task: () => Promise<void>) {
+      chain = chain.then(task, task);
+      return chain;
+    },
+    wait() {
+      return chain;
+    }
+  };
+}
