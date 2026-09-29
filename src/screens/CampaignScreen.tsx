@@ -904,7 +904,7 @@ export function CampaignScreen({
 
             {unlocked && functional ? (
               <View style={styles.modeButton}>
-                <PrimaryButton label={'Open ' + mode.name} onPress={() => openMode(mode.id)} />
+                <SecondaryButton label={'Open ' + mode.name} onPress={() => openMode(mode.id)} />
               </View>
             ) : null}
           </GameCard>
@@ -1030,7 +1030,7 @@ export function CampaignScreen({
 
             {availability?.unlocked && id !== activeFaction ? (
               <View style={styles.modeButton}>
-                <PrimaryButton
+                <SecondaryButton
                   label={
                     hasFactionState(id)
                       ? 'Switch to ' + faction.name
