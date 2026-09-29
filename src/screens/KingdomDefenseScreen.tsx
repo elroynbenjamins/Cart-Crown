@@ -701,7 +701,7 @@ export function KingdomDefenseScreen({
                   ? 'available'
                   : power.matchup.result ===
                       'disadvantage'
-                    ? 'danger'
+                    ? 'elite'
                     : 'current'
               }
             />
