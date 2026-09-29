@@ -15,6 +15,7 @@ export type TutorialView =
   | 'fantasyResearch'
   | 'flyingResearch'
   | 'largeResearch'
+  | 'hybridResearch'
   | 'other';
 
 export type TutorialTarget =
@@ -42,9 +43,9 @@ export type TutorialFocusTarget =
   | { kind: 'forge-craft'; label: string }
   | { kind: 'army-equipment'; label: string }
   | { kind: 'kingdom-production'; label: string }
-  | { kind: 'army-fantasy'; family: 'magic' | 'flying' | 'large'; label: string }
-  | { kind: 'research-start'; family: 'magic' | 'flying' | 'large'; label: string }
-  | { kind: 'research-train'; family: 'magic' | 'flying' | 'large'; label: string };
+  | { kind: 'army-fantasy'; family: 'magic' | 'flying' | 'large' | 'hybrid'; label: string }
+  | { kind: 'research-start'; family: 'magic' | 'flying' | 'large' | 'hybrid'; label: string }
+  | { kind: 'research-train'; family: 'magic' | 'flying' | 'large' | 'hybrid'; label: string };
 
 export type TutorialMoment = {
   key: string;
@@ -85,9 +86,12 @@ export type TutorialContext = {
   magicStoryUnlocked: boolean;
   flyingStoryUnlocked: boolean;
   largeStoryUnlocked: boolean;
+  hybridStoryUnlocked: boolean;
+  hybridPrerequisitesMet: boolean;
   completedMagicResearch: number;
   completedFlyingResearch: number;
   completedLargeResearch: number;
+  completedHybridResearch: number;
 };
 
 export const CORE_TUTORIAL_KEYS = [
@@ -119,7 +123,10 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:flying-training',
   'system:large-discovery',
   'system:large-research',
-  'system:large-training'
+  'system:large-training',
+  'system:hybrid-discovery',
+  'system:hybrid-research',
+  'system:hybrid-training'
 ] as const;
 
 export const FACTION_TUTORIAL_KEYS = [
@@ -818,6 +825,87 @@ function systemMoment(
   }
 
   if (
+    context.hybridStoryUnlocked &&
+    context.view === 'army' &&
+    !seen(context, 'system:hybrid-discovery')
+  ) {
+    const name =
+      context.faction === 'human'
+        ? 'High Arcane Aerie'
+        : context.faction === 'elf'
+          ? 'Moonwing Sanctuary'
+          : 'Elder Wyvern Shrine';
+
+    return {
+      key: 'system:hybrid-discovery',
+      kind: 'system',
+      eyebrow: 'LEGENDARY TROOP FAMILY',
+      title: 'Magic and flight can now be combined',
+      body:
+        name +
+        ' is now operational. Your first legendary hybrid is a story reward, but repeatable training is intentionally gated behind completed Magic and Flying research. Hybrids consume 2 deployment capacity and still face warded and anti-air counters.',
+      primaryLabel: 'Show Legendary Orders',
+      target: 'army',
+      focusAfterPrimary: {
+        kind: 'army-fantasy',
+        family: 'hybrid',
+        label: 'OPEN LEGENDARY ORDERS'
+      }
+    };
+  }
+
+  if (
+    context.hybridStoryUnlocked &&
+    context.view === 'hybridResearch' &&
+    !seen(context, 'system:hybrid-research')
+  ) {
+    return {
+      key: 'system:hybrid-research',
+      kind: 'system',
+      eyebrow: 'LEGENDARY DOCTRINE',
+      title: context.hybridPrerequisitesMet
+        ? 'Legendary research is now available'
+        : 'Finish the earlier fantasy branches first',
+      body: context.hybridPrerequisitesMet
+        ? 'The legendary doctrine uses the same optional timer model as earlier fantasy research. Let it finish naturally, or shorten it with rewarded ads or Gems. Completing it unlocks repeatable hybrid training.'
+        : 'The story reward is yours immediately, but repeatable legendary training remains locked until this faction’s Magic and Flying research are complete. Finish those branches first; this prevents Chapter 8 from skipping earlier progression.',
+      primaryLabel: context.hybridPrerequisitesMet
+        ? 'Show legendary research'
+        : 'Review prerequisites',
+      target: 'none',
+      focusAfterPrimary: context.hybridPrerequisitesMet
+        ? {
+            kind: 'research-start',
+            family: 'hybrid',
+            label: 'START LEGENDARY RESEARCH'
+          }
+        : undefined
+    };
+  }
+
+  if (
+    context.completedHybridResearch > 0 &&
+    context.view === 'hybridResearch' &&
+    !seen(context, 'system:hybrid-training')
+  ) {
+    return {
+      key: 'system:hybrid-training',
+      kind: 'system',
+      eyebrow: 'LEGENDARY TRAINING',
+      title: 'Legendary does not mean universal',
+      body:
+        'Repeatable hybrids are now available, but each costs significant resources and 2 deployment capacity. Use them to crack protected formations or combine arcane pressure with backline access; switch away when wards or concentrated anti-air make their premium inefficient.',
+      primaryLabel: 'Show trainable hybrid',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-train',
+        family: 'hybrid',
+        label: 'TRAIN THIS HYBRID'
+      }
+    };
+  }
+
+  if (
     (stageRank[context.wagonStageId] ?? 0) >= 2 &&
     context.view === 'formation' &&
     !seen(context, 'system:advanced-formations')
@@ -943,7 +1031,8 @@ export function getNextTutorialMoment(
     system?.key === 'system:settlement' ||
     system?.key === 'system:magic-discovery' ||
     system?.key === 'system:flying-discovery' ||
-    system?.key === 'system:large-discovery'
+    system?.key === 'system:large-discovery' ||
+    system?.key === 'system:hybrid-discovery'
   ) {
     return system;
   }
