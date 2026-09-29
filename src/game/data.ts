@@ -56,6 +56,20 @@ export const starterUnits: UnitDefinition[] = [
     armor: 3,
     speed: 10,
     promotionReady: false
+  },
+  {
+    id: 'hum_hunter',
+    name: 'Rowan',
+    className: 'Hunter',
+    faction: 'human',
+    role: 'ranged',
+    tier: 1,
+    level: 1,
+    hp: 82,
+    attack: 12,
+    armor: 3,
+    speed: 11,
+    battleTags: ['ground', 'ranged']
   }
 ];
 
@@ -179,7 +193,7 @@ export const humanRegions: RegionDefinition[] = [
 ];
 
 export const chapterOneNodes: ChapterNode[] = [
-  { id: 'node_1', name: 'The Last Two', type: 'story', completed: true },
+  { id: 'node_1', name: 'The Last Three', type: 'story', completed: true },
   { id: 'node_2', name: 'Hold the Road', type: 'battle', completed: false, current: true },
   { id: 'node_3', name: 'Marked Raiders', type: 'event', completed: false },
   { id: 'node_4', name: 'Mercenary Patrol', type: 'elite', completed: false },
