@@ -21,7 +21,10 @@ import {
   getLargeCombatEdge,
   getHybridCombatEdge
 } from '../game/progression';
-import { getEnemyFantasyThreatAssessment } from '../game/enemyFantasy';
+import {
+  getEnemyFantasyPatternSummary,
+  getEnemyFantasyThreatAssessment
+} from '../game/enemyFantasy';
 import {
   assessBattlePreparation,
   getPreparationEquipmentUnitId
@@ -255,6 +258,8 @@ export function BattlePrepScreen({
       encounter,
       activeUnits
     );
+  const enemyFantasyPattern =
+    getEnemyFantasyPatternSummary(encounter);
   const readinessProfile = getArmyReadinessProfile(armyReadiness);
   const effectiveMaxHp = Math.round(
     combatProfile.maxHp * readinessProfile.hpMultiplier
@@ -671,6 +676,11 @@ export function BattlePrepScreen({
           <Text style={[styles.planMatchup, { color: theme.colors.textMuted }]}>
             {enemyFantasyThreat.detail}
           </Text>
+          {enemyFantasyPattern ? (
+            <Text style={[styles.matchupEffect, { color: theme.colors.info }]}>
+              PATTERN · {enemyFantasyPattern}
+            </Text>
+          ) : null}
           <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
             {enemyFantasyThreat.counterLabel} · coverage {enemyFantasyThreat.counterScore.toFixed(1)}/{enemyFantasyThreat.requiredCounterScore.toFixed(1)} · dealt ×{enemyFantasyThreat.outgoingDamageMultiplier.toFixed(2)} · received ×{enemyFantasyThreat.incomingDamageMultiplier.toFixed(2)}
           </Text>
