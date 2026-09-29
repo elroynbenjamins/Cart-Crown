@@ -87,6 +87,28 @@ export function scaleResourceReward(
   return scaled;
 }
 
+export function getExpeditionTicketsAfterChapterTransition(
+  currentTickets: number,
+  chapterNumber: number
+) {
+  const tickets = Math.max(
+    0,
+    Math.floor(currentTickets)
+  );
+
+  if (chapterNumber < 3) {
+    return Math.min(
+      MAX_EXPEDITION_TICKETS,
+      tickets
+    );
+  }
+
+  return Math.min(
+    MAX_EXPEDITION_TICKETS,
+    tickets + 1
+  );
+}
+
 export function getSideModeRewardLabel(
   multiplier: SideModeRewardMultiplier
 ) {
