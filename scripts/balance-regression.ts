@@ -22,8 +22,11 @@ import {
   recruitPromotions
 } from '../src/game/equipment';
 import {
+  encounters,
   getEncounter,
-  getEnemyFormationTactic
+  getEnemyArmyProfile,
+  getEnemyFormationTactic,
+  getEnemyRoleAssignments
 } from '../src/game/encounters';
 import type { EncounterId } from '../src/game/encounters';
 import {
@@ -582,6 +585,9 @@ function simulate(
   const enemyTactic = getEnemyFormationTactic(
     input.encounterId
   );
+  const enemyArmyProfile = getEnemyArmyProfile(
+    input.encounterId
+  );
   const formation = buildFormation(
     input.units,
     input.faction,
@@ -787,10 +793,18 @@ function simulate(
         ((rawPlayerStrike +
           skillDamage +
           ongoingDamage) /
-          enemyTactic.armorMultiplier) *
+          (
+            enemyTactic.armorMultiplier *
+            enemyArmyProfile.armorMultiplier
+          )) *
           formationMatchup.outgoingDamageMultiplier
       )
     );
+
+    const enemyTimingMultiplier =
+      turn === 0
+        ? enemyArmyProfile.openingPressureMultiplier
+        : enemyArmyProfile.sustainedPressureMultiplier;
 
     const rawEnemyStrike = getEnemyStrikePressure(
       encounter,
@@ -802,6 +816,7 @@ function simulate(
       Math.round(
         (rawEnemyStrike *
           enemyPressureMultiplier *
+          enemyTimingMultiplier *
           formationMatchup.incomingDamageMultiplier *
           retaliationFactor *
           (modifier.retaliationMultiplier ?? 1)) /
@@ -1666,6 +1681,69 @@ function runEnemyFormationCoverage() {
   );
 }
 
+function runEnemyArmyIdentityCoverage() {
+  const ids = Object.keys(encounters) as EncounterId[];
+  const profileIds = new Set(
+    ids.map(id => getEnemyArmyProfile(id).id)
+  );
+
+  expect(
+    profileIds.size >= 7,
+    'Enemy encounters no longer expose enough distinct army identities.'
+  );
+
+  for (const id of ids) {
+    const encounter = getEncounter(id);
+    const tactic = getEnemyFormationTactic(id);
+    const shape = getFormationShape(
+      tactic.formationShapeId
+    );
+    const profile = getEnemyArmyProfile(id);
+    const assignments =
+      getEnemyRoleAssignments(
+        id,
+        shape.rows,
+        encounter.enemyCount
+      );
+
+    expect(
+      assignments.length ===
+        Math.min(9, encounter.enemyCount),
+      id +
+        ' enemy role assignment count no longer matches encounter size.'
+    );
+
+    expect(
+      new Set(
+        assignments.map(assignment => assignment.slot)
+      ).size === assignments.length,
+      id +
+        ' assigns multiple enemy roles to the same formation slot.'
+    );
+
+    if (encounter.enemyCount >= 3) {
+      expect(
+        new Set(
+          assignments.map(assignment => assignment.role)
+        ).size >= 2,
+        id +
+          ' no longer presents a readable mixed enemy composition.'
+      );
+    }
+
+    expect(
+      profile.openingPressureMultiplier >= 0.96 &&
+        profile.openingPressureMultiplier <= 1.05 &&
+        profile.sustainedPressureMultiplier >= 0.96 &&
+        profile.sustainedPressureMultiplier <= 1.05 &&
+        profile.armorMultiplier >= 0.96 &&
+        profile.armorMultiplier <= 1.05,
+      id +
+        ' army identity modifiers escaped the intended soft tactical range.'
+    );
+  }
+}
+
 function runMetaCoverage() {
   for (const faction of [
     'human',
@@ -1845,6 +1923,7 @@ function main() {
   runFormationCoverage();
   runFormationMatchupCoverage();
   runEnemyFormationCoverage();
+  runEnemyArmyIdentityCoverage();
   runMetaCoverage();
 
   printRows(rows);
@@ -1869,7 +1948,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, enemy formations, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
+    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
   );
 }
 
