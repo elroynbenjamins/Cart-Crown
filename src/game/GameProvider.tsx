@@ -126,6 +126,20 @@ import {
 } from './settlement';
 import { sideModes } from './sideModes';
 import {
+  canStartResearch,
+  getFamilyUnlock,
+  getFantasyRecruitTemplates,
+  getFantasyStoryRewardUnit,
+  getResearchGemFinishCost,
+  getResearchRemainingHours,
+  researchDefinitions
+} from './progression';
+import type {
+  FamilyUnlockDefinition,
+  FantasyRecruitTemplate,
+  ResearchDefinition
+} from './progression';
+import {
   clampArmyReadiness,
   getArmyResupplyCost,
   getBattleReadinessWear,
@@ -171,6 +185,7 @@ import type {
 import type {
   FactionGameState,
   GameSnapshot,
+  ResearchProgressState,
   SharedProgress
 } from '../save/types';
 import { buildFactionSwitchSnapshot } from '../save/schema';
@@ -202,6 +217,13 @@ type GameContextValue = {
   resetTutorialGuidance: () => void;
   reviewPromptShown: boolean;
   markReviewPromptShown: () => void;
+  gems: number;
+  completedStoryGates: string[];
+  researchProgress: Record<string, ResearchProgressState>;
+  unlockedFantasyClasses: string[];
+  magicFamilyUnlock: FamilyUnlockDefinition | null;
+  magicResearchDefinitions: ResearchDefinition[];
+  fantasyRecruitOptions: FantasyRecruitTemplate[];
   formationShapeId: FormationShapeId;
   formationShapes: FormationShapeDefinition[];
   activeFormationShape: FormationShapeDefinition;
@@ -393,6 +415,11 @@ type GameContextValue = {
   finishExpedition: () => void;
   completeFormationTrial: () => boolean;
   claimRewardedAd: (placementId: RewardedAdPlacementId) => Promise<RewardedAdResult>;
+  startFantasyResearch: (researchId: string) => boolean;
+  claimFantasyResearch: (researchId: string) => boolean;
+  watchFantasyResearchAd: (researchId: string) => Promise<RewardedAdResult>;
+  finishFantasyResearchWithGems: (researchId: string) => boolean;
+  recruitFantasyUnit: (templateId: string) => boolean;
   completeCampaign: (faction: FactionId) => void;
   recruitOptions: RecruitOption[];
 };
@@ -425,6 +452,23 @@ function cloneLoadouts(
 ): Record<string, UnitEquipmentLoadout> {
   return Object.fromEntries(
     Object.entries(loadouts).map(([unitId, loadout]) => [unitId, { ...loadout }])
+  );
+}
+
+function cloneResearchProgress(
+  progress: Record<string, ResearchProgressState> | undefined
+): Record<string, ResearchProgressState> {
+  if (!progress) return {};
+
+  return Object.fromEntries(
+    Object.entries(progress).map(([id, entry]) => [
+      id,
+      {
+        startedAt: entry.startedAt,
+        rewardedAdsWatched: entry.rewardedAdsWatched,
+        completed: entry.completed
+      }
+    ])
   );
 }
 
@@ -586,6 +630,10 @@ export function GameProvider({
     cosmetics: [...initialSnapshot.shared.cosmetics],
     metaCampaignStep: initialSnapshot.shared.metaCampaignStep,
     metaCampaignComplete: initialSnapshot.shared.metaCampaignComplete,
+    gems: Math.max(
+      0,
+      Math.floor(initialSnapshot.shared.gems ?? 0)
+    ),
     reviewPromptShown: Boolean(
       initialSnapshot.shared.reviewPromptShown
     )
@@ -659,11 +707,92 @@ export function GameProvider({
   const [expeditionTickets, setExpeditionTickets] = useState(initialFaction.expeditionTickets);
   const [expeditionRunsCompleted, setExpeditionRunsCompleted] = useState(initialFaction.expeditionRunsCompleted);
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
+  const [completedStoryGates, setCompletedStoryGates] = useState<string[]>(
+    () => [...(initialFaction.completedStoryGates ?? [])]
+  );
+  const [researchProgress, setResearchProgress] = useState<Record<string, ResearchProgressState>>(
+    () => cloneResearchProgress(initialFaction.researchProgress)
+  );
+  const [unlockedFantasyClasses, setUnlockedFantasyClasses] = useState<string[]>(
+    () => [...(initialFaction.unlockedFantasyClasses ?? [])]
+  );
+  const [fantasyRecruitSerial, setFantasyRecruitSerial] = useState(
+    initialFaction.fantasyRecruitSerial ?? 0
+  );
   const [tutorialSeen, setTutorialSeen] = useState<string[]>(
     () => [...(initialFaction.tutorialSeen ?? [])]
   );
   const [rewardedAdClaims, setRewardedAdClaims] = useState<RewardedAdClaimState>({});
   const [rewardedAdMessage, setRewardedAdMessage] = useState<string | null>(null);
+
+  const gems = sharedProgress.gems ?? 0;
+  const magicFamilyUnlock = useMemo(
+    () => getFamilyUnlock(activeFaction, 'magic'),
+    [activeFaction]
+  );
+  const magicResearchDefinitions = useMemo(
+    () =>
+      researchDefinitions.filter(
+        research =>
+          research.faction === activeFaction &&
+          research.family === 'magic'
+      ),
+    [activeFaction]
+  );
+  const fantasyRecruitOptions = useMemo(
+    () => getFantasyRecruitTemplates(activeFaction, 'magic'),
+    [activeFaction]
+  );
+
+  useEffect(() => {
+    if (!magicFamilyUnlock || chapterNumber < 4) return;
+
+    const discoveryNodeId =
+      activeFaction === 'human'
+        ? 'ch4_node_3'
+        : activeFaction === 'elf'
+          ? 'elf4_node_3'
+          : 'orc4_node_3';
+    const discoveryComplete =
+      chapterNumber > 4 ||
+      Boolean(
+        chapterNodes.find(
+          node => node.id === discoveryNodeId
+        )?.completed
+      );
+
+    if (
+      !discoveryComplete ||
+      completedStoryGates.includes(
+        magicFamilyUnlock.storyGateId
+      )
+    ) {
+      return;
+    }
+
+    setCompletedStoryGates(previous =>
+      previous.includes(magicFamilyUnlock.storyGateId)
+        ? previous
+        : [...previous, magicFamilyUnlock.storyGateId]
+    );
+
+    const reward = getFantasyStoryRewardUnit(
+      magicFamilyUnlock.firstStoryRewardUnitId
+    );
+    if (reward) {
+      setUnits(previous =>
+        previous.some(unit => unit.id === reward.id)
+          ? previous
+          : [...previous, { ...reward }]
+      );
+    }
+  }, [
+    activeFaction,
+    chapterNodes,
+    chapterNumber,
+    completedStoryGates,
+    magicFamilyUnlock
+  ]);
 
   const currentWagonStage = useMemo(
     () => wagonStages.find(stage => stage.id === wagonStageId) ?? wagonStages[0]!,
@@ -1101,6 +1230,10 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
+      completedStoryGates,
+      researchProgress,
+      unlockedFantasyClasses,
+      fantasyRecruitSerial,
       tutorialSeen
     }),
     [
@@ -1150,6 +1283,10 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
+      completedStoryGates,
+      researchProgress,
+      unlockedFantasyClasses,
+      fantasyRecruitSerial,
       tutorialSeen
     ]
   );
