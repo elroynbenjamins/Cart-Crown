@@ -194,6 +194,7 @@ export function AppShell({
   const {
     activeFaction,
     finishEncounter,
+    flushSnapshot,
     lastBattleResult,
     commanderPathId,
     firstPromotionComplete,
@@ -201,6 +202,11 @@ export function AppShell({
   } = useGame();
 
   const openRecruitment = () => setFlow('recruitment');
+
+  const exitToSaveSlots = async () => {
+    await flushSnapshot();
+    onExitToSaves();
+  };
 
   const handleResultsContinue = () => {
     if (
@@ -1236,7 +1242,10 @@ export function AppShell({
           return true;
         }
 
-        return false;
+        void flushSnapshot().finally(() => {
+          BackHandler.exitApp();
+        });
+        return true;
       }
     );
 
@@ -1246,6 +1255,7 @@ export function AppShell({
     canGoBack,
     commanderPathId,
     flow,
+    flushSnapshot,
     lastBattleResult?.id
   ]);
 
@@ -1291,7 +1301,9 @@ export function AppShell({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Return to save slots"
-              onPress={onExitToSaves}
+              onPress={() => {
+                void exitToSaveSlots();
+              }}
               style={[
                 styles.slotButton,
                 {
