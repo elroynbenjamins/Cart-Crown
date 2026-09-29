@@ -9,6 +9,7 @@ import {
   View
 } from 'react-native';
 import type { NavId } from './game/types';
+import { resolveHardwareBackAction } from './game/mobileSession';
 import type { EncounterId } from './game/encounters';
 import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
@@ -1223,21 +1224,27 @@ export function AppShell({
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        if (flow === 'battle') {
+        const action = resolveHardwareBackAction({
+          flow,
+          canGoBack,
+          active
+        });
+
+        if (action === 'block_battle') {
           return true;
         }
 
-        if (flow === 'results') {
+        if (action === 'continue_results') {
           handleResultsContinue();
           return true;
         }
 
-        if (canGoBack) {
+        if (action === 'close_flow') {
           setFlow(null);
           return true;
         }
 
-        if (active !== 'kingdom') {
+        if (action === 'go_kingdom') {
           setActive('kingdom');
           return true;
         }
