@@ -420,12 +420,8 @@ function systemMoment(
       title: 'Promotion paths can branch',
       body:
         'Your first promotion is complete. Future upgrades can depend on class, buildings and equipped gear. A mounted weapon can create a very different squad from the same base unit, so upgrades are choices rather than a single ladder.',
-      primaryLabel: 'Show Readiness',
-      target: 'none',
-      focusAfterPrimary: {
-        kind: 'battle-readiness',
-        label: 'ARMY READINESS'
-      }
+      primaryLabel: 'Got it',
+      target: 'none'
     };
   }
 
@@ -441,12 +437,8 @@ function systemMoment(
       title: 'Build around your commander',
       body:
         'Commander paths favor specific battlefield roles and add an active combat skill. You do not need a perfect meta composition, but matching several squads to the commander creates a noticeable edge.',
-      primaryLabel: 'Show regional stock',
-      target: 'kingdom',
-      focusAfterPrimary: {
-        kind: 'kingdom-production',
-        label: 'REGIONAL PRODUCTION'
-      }
+      primaryLabel: 'Understood',
+      target: 'none'
     };
   }
 
@@ -462,11 +454,11 @@ function systemMoment(
       title: 'Readiness carries between battles',
       body:
         'Damage creates campaign wear. At 70–100% Readiness there is no combat penalty, so you should not resupply after every normal win. Below 70%, fatigue starts reducing effective HP, attack and speed. Rest & Resupply uses provisions to restore the army.',
-      primaryLabel: 'Show Activities',
+      primaryLabel: 'Show Readiness',
       target: 'none',
       focusAfterPrimary: {
-        kind: 'campaign-activities',
-        label: 'TAP ACTIVITIES'
+        kind: 'battle-readiness',
+        label: 'ARMY READINESS'
       }
     };
   }
@@ -483,8 +475,12 @@ function systemMoment(
       title: 'Secured regions now work for you',
       body:
         'Some campaign victories unlock farms, mines, camps or depots. Meaningful activities add their output to regional stock. Claim that stock from Kingdom when you need it; it is part of normal progression, not an ad reward.',
-      primaryLabel: 'Understood',
-      target: 'none'
+      primaryLabel: 'Show regional stock',
+      target: 'kingdom',
+      focusAfterPrimary: {
+        kind: 'kingdom-production',
+        label: 'REGIONAL PRODUCTION'
+      }
     };
   }
 
@@ -521,8 +517,12 @@ function systemMoment(
       title: 'Recovery content is now available',
       body:
         'Expeditions, Formation Trials and Kingdom Defense provide extra resources or tactical practice when you want them. They are useful recovery tools, but normal campaign progress is balanced so they should not become mandatory farming.',
-      primaryLabel: 'Got it',
-      target: 'none'
+      primaryLabel: 'Show Activities',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'campaign-activities',
+        label: 'TAP ACTIVITIES'
+      }
     };
   }
 
