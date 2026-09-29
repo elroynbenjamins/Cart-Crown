@@ -41,3 +41,6 @@ jobs:
 
       - name: Production art regression
         run: npm run art:check
+
+      - name: Boss presentation regression
+        run: npm run boss:check
