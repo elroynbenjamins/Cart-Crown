@@ -4,6 +4,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } fr
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton } from './components';
 import { getDecisionFooterLayout } from './decisionPresentation';
+import { EmphasisText, SemanticText, StatValue } from './SemanticUI';
+import { semanticColor } from './semanticColors';
+import type { SemanticTone, StatPresentation } from './semanticColors';
 
 /** Uses real available content height, not the full device height. AppShell owns safe areas. */
 export function DecisionLayout({ children, footer }: PropsWithChildren<{ footer: ReactNode }>) {
@@ -70,9 +73,10 @@ export function DecisionIntro({ eyebrow, title, body, accent }: {
 }
 
 /** Selects a draft only. No spending, promotion or recruitment belongs in this component. */
-export function DecisionOption({ title, subtitle, selected, disabled = false, art, accessibilitySummary, onSelect, children }: PropsWithChildren<{
+export function DecisionOption({ title, subtitle, titleTone, selected, disabled = false, art, accessibilitySummary, onSelect, children }: PropsWithChildren<{
   title: string;
   subtitle: string;
+  titleTone?: SemanticTone;
   selected: boolean;
   disabled?: boolean;
   art?: ReactNode;
@@ -94,7 +98,7 @@ export function DecisionOption({ title, subtitle, selected, disabled = false, ar
         <View style={styles.optionHeader}>
           {art ? <View style={styles.art}>{art}</View> : null}
           <View style={styles.optionCopy}>
-            <Text style={[styles.optionTitle, { color: theme.colors.text }]}>{title}</Text>
+            <Text style={[styles.optionTitle, { color: titleTone ? semanticColor(theme, titleTone) : theme.colors.text }]}>{title}</Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{subtitle}</Text>
           </View>
           <View
@@ -107,7 +111,7 @@ export function DecisionOption({ title, subtitle, selected, disabled = false, ar
             {selected ? <View style={[styles.radioFill, { backgroundColor: theme.colors.gold }]} /> : null}
           </View>
         </View>
-        <Text style={[styles.selection, { color: selected ? theme.colors.gold : theme.colors.textMuted }]}>
+        <Text style={[styles.selection, { color: selected ? semanticColor(theme, 'currency') : theme.colors.textMuted }]}>
           {selected ? 'Selected' : 'Tap to select'}
         </Text>
         <View style={styles.optionContent}>{children}</View>
@@ -116,8 +120,9 @@ export function DecisionOption({ title, subtitle, selected, disabled = false, ar
   );
 }
 
-export function DecisionStats({ items }: {
-  items: ReadonlyArray<{ label: string; value: string | number }>;
+export function DecisionStats({ items, presentation = 'absolute' }: {
+  items: ReadonlyArray<{ label: string; value: string | number; lowerIsBetter?: boolean }>;
+  presentation?: StatPresentation;
 }) {
   const { theme } = useGameTheme();
   return (
@@ -125,7 +130,7 @@ export function DecisionStats({ items }: {
       {items.map(item => (
         <View key={item.label} style={[styles.stat, { backgroundColor: theme.colors.surface2 }]}>
           <Text style={[styles.statLabel, { color: theme.colors.textMuted }]}>{item.label}</Text>
-          <Text style={[styles.statValue, { color: theme.colors.text }]}>{item.value}</Text>
+          <StatValue value={item.value} presentation={presentation} lowerIsBetter={item.lowerIsBetter} style={styles.statValue} />
         </View>
       ))}
     </View>
@@ -145,8 +150,8 @@ export function DecisionCommit({ title, detail, warning, message, label, disable
   return (
     <View style={styles.commit}>
       <Text style={[styles.optionTitle, { color: theme.colors.text }]}>{title}</Text>
-      {detail ? <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>{detail}</Text> : null}
-      {warning ? <Text style={[styles.subtitle, { color: theme.colors.gold }]}>{warning}</Text> : null}
+      {detail ? <EmphasisText text={detail} mode="resources" style={[styles.subtitle, { color: theme.colors.textMuted }]} /> : null}
+      {warning ? <SemanticText tone="warning" style={styles.subtitle}>{warning}</SemanticText> : null}
       {message ? (
         <Text accessibilityLiveRegion="polite" style={[styles.subtitle, { color: theme.colors.text }]}>{message}</Text>
       ) : null}
