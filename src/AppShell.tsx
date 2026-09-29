@@ -1347,6 +1347,8 @@ export function AppShell({
       case 'army':
         return (
           <ArmyScreen
+            tutorialFocus={tutorialFocus}
+            onTutorialFocusComplete={completeTutorialFocus}
             onOpenRecruitment={openRecruitment}
             onOpenForge={() => setFlow('forge')}
             onOpenPromotion={() => setFlow('promotion')}
