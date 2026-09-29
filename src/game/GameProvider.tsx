@@ -133,6 +133,7 @@ import type { WarTableBattleSummary } from './warTable';
 import {
   MAX_EXPEDITION_TICKETS,
   getExpeditionRewardMultiplier,
+  getExpeditionTicketsAfterChapterTransition,
   getKingdomDefenseRewardMultiplier,
   getWarTableBoardRewardMultiplier,
   scaleResourceReward
@@ -4296,6 +4297,12 @@ export function GameProvider({
       [factionBuildingIds.hall]: 3
     }));
     setChapterNumber(3);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        3
+      )
+    );
     setChapterNodes(
       cloneNodes(
         activeFaction === 'elf'
@@ -4320,6 +4327,12 @@ export function GameProvider({
       [factionBuildingIds.hall]: 4
     }));
     setChapterNumber(4);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        4
+      )
+    );
     setChapterNodes(
       cloneNodes(
         activeFaction === 'elf'
@@ -4342,6 +4355,12 @@ export function GameProvider({
       [factionBuildingIds.hall]: 5
     }));
     setChapterNumber(5);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        5
+      )
+    );
     setChapterNodes(
       cloneNodes(
         activeFaction === 'elf'
@@ -4364,6 +4383,12 @@ export function GameProvider({
       [factionBuildingIds.hall]: 6
     }));
     setChapterNumber(6);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        6
+      )
+    );
     setChapterNodes(
       cloneNodes(
         activeFaction === 'elf'
@@ -5198,6 +5223,12 @@ export function GameProvider({
       hall: 4
     }));
     setChapterNumber(3);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        3
+      )
+    );
     setChapterNodes(cloneNodes(chapterThreeNodes));
     return true;
   };
@@ -5214,6 +5245,12 @@ export function GameProvider({
       hall: 5
     }));
     setChapterNumber(4);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        4
+      )
+    );
     setChapterNodes(cloneNodes(chapterFourNodes));
     setMarcherWarningChoiceId(null);
     return true;
@@ -5231,6 +5268,12 @@ export function GameProvider({
       hall: 6
     }));
     setChapterNumber(5);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        5
+      )
+    );
     setChapterNodes(cloneNodes(chapterFiveNodes));
     setLastLoyalistsChoiceId(null);
     return true;
@@ -5336,6 +5379,12 @@ export function GameProvider({
     );
     setWagonStageId('grand');
     setChapterNumber(6);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        6
+      )
+    );
     setChapterNodes(cloneNodes(chapterSixNodes));
     return true;
   };
