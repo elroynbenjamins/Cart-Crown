@@ -1053,6 +1053,7 @@ export function CampaignScreen({
               key={option}
               active={focused}
               label={focused ? tutorialFocus.label : undefined}
+              style={styles.tutorialSegmentFocus}
             >
               <Pressable
                 onPress={() => {
@@ -1088,6 +1089,7 @@ export function CampaignScreen({
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 32, gap: 14 },
   segment: { flexDirection: 'row', borderRadius: 16, padding: 4, gap: 4 },
+  tutorialSegmentFocus: { flex: 1 },
   segmentButton: { flex: 1, minHeight: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   segmentText: { fontSize: 11, fontWeight: '900' },
   chapterHeader: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
