@@ -5,6 +5,13 @@ import type {
   UnitDefinition
 } from './types';
 
+export type EnemyFantasyExchangeBehavior = {
+  label: string;
+  detail: string;
+  damageMultiplier: number;
+  isSpecial: boolean;
+};
+
 export type EnemyFantasyThreatAssessment = {
   family: EnemyFantasyThreatFamily;
   label: string;
@@ -133,3 +140,119 @@ export function getEnemyFantasyThreatAssessment(
       : 'Legendary enemy pressure combines magic and flight. Counter both halves: ward the spell pressure and contest the air.'
   };
 }
+
+export function getEnemyFantasyPatternSummary(
+  encounter: EncounterDefinition
+) {
+  if (encounter.fantasyThreat === 'magic') {
+    return 'Hexcasters build power for a stronger surge every third exchange.';
+  }
+  if (encounter.fantasyThreat === 'flying') {
+    return 'Flyers strike hard on the first exchange of each three-exchange pass, then circle.';
+  }
+  if (encounter.fantasyThreat === 'large') {
+    return 'Large units spend one exchange winding up before a heavier Ground Slam.';
+  }
+  if (encounter.fantasyThreat === 'hybrid') {
+    return 'Legendary hybrids alternate a sharp combined-arms strike with two lighter recovery exchanges.';
+  }
+  return null;
+}
+
+export function getEnemyFantasyExchangeBehavior(
+  encounter: EncounterDefinition,
+  activeUnits: UnitDefinition[],
+  exchangeIndex: number
+): EnemyFantasyExchangeBehavior | null {
+  const assessment =
+    getEnemyFantasyThreatAssessment(
+      encounter,
+      activeUnits
+    );
+  if (!assessment) return null;
+
+  const phase =
+    ((Math.floor(exchangeIndex) % 3) + 3) % 3;
+  const countered = assessment.countered;
+
+  if (assessment.family === 'magic') {
+    const isSpecial = phase === 2;
+    return {
+      label: isSpecial ? 'Hex Surge' : 'Gathering Hex',
+      detail: isSpecial
+        ? countered
+          ? 'Your wards blunt the completed hex before it fully lands.'
+          : 'The caster line completes its ritual and releases a concentrated spell surge.'
+        : 'The caster line is gathering power behind its screen.',
+      damageMultiplier: isSpecial
+        ? countered
+          ? 1.02
+          : 1.08
+        : countered
+          ? 0.99
+          : 0.96,
+      isSpecial
+    };
+  }
+
+  if (assessment.family === 'flying') {
+    const isSpecial = phase === 0;
+    return {
+      label: isSpecial ? 'Aerial Dive' : 'Circling Pass',
+      detail: isSpecial
+        ? countered
+          ? 'Your ranged screen disrupts the dive before the flyers can fully commit.'
+          : 'The aerial wing dives through exposed lanes before climbing away.'
+        : 'The flyers circle and reset for another attack pass.',
+      damageMultiplier: isSpecial
+        ? countered
+          ? 1.02
+          : 1.06
+        : countered
+          ? 0.99
+          : 0.97,
+      isSpecial
+    };
+  }
+
+  if (assessment.family === 'large') {
+    const isSpecial = phase === 1;
+    return {
+      label: isSpecial ? 'Ground Slam' : 'Heavy Wind-up',
+      detail: isSpecial
+        ? countered
+          ? 'Focused anti-large pressure disrupts the impact before the line fully buckles.'
+          : 'The oversized front crashes into the line with its full weight.'
+        : 'The heavy units reset their footing for another committed impact.',
+      damageMultiplier: isSpecial
+        ? countered
+          ? 1.04
+          : 1.14
+        : countered
+          ? 0.98
+          : 0.93,
+      isSpecial
+    };
+  }
+
+  const isSpecial = phase === 0;
+  return {
+    label: isSpecial
+      ? 'Legendary Assault'
+      : 'Hybrid Recovery',
+    detail: isSpecial
+      ? countered
+        ? 'Wards and anti-air pressure break up the combined assault before it peaks.'
+        : 'Magic and flight converge into one short, high-pressure strike.'
+      : 'The hybrid wing resets after its combined assault.',
+    damageMultiplier: isSpecial
+      ? countered
+        ? 1.04
+        : 1.08
+      : countered
+        ? 0.98
+        : 0.96,
+    isSpecial
+  };
+}
+
