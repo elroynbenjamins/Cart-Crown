@@ -3,6 +3,8 @@ import { StyleSheet, Text } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionOption, DecisionStats } from '../ui/DecisionUI';
+import { SemanticText, UnitBadges } from '../ui/SemanticUI';
+import { rolePresentation } from '../ui/semanticColors';
 import { UnitSprite } from '../ui/gameArt';
 
 export function RecruitmentScreen({ onComplete }: { onComplete: () => void }) {
@@ -47,17 +49,23 @@ export function RecruitmentScreen({ onComplete }: { onComplete: () => void }) {
         <DecisionOption
           key={option.id}
           title={option.unit.className}
+          titleTone={rolePresentation[option.unit.role]?.tone}
           subtitle={option.unit.name + ' · ' + option.archetype}
           selected={option.id === selectedId}
           art={<UnitSprite className={option.unit.className} faction={option.unit.faction} size={44} />}
-          accessibilitySummary={option.pitch + '. Tradeoff: ' + option.tradeoff + '. HP ' + option.unit.hp + ', attack ' + option.unit.attack + ', armor ' + option.unit.armor + ', speed ' + option.unit.speed}
+          accessibilitySummary={option.pitch + '. Tradeoff: ' + option.tradeoff + '. Role: ' + (rolePresentation[option.unit.role]?.label ?? option.unit.role) + '. Traits: ' + (option.unit.battleTags?.join(', ') || 'none listed') + '. HP ' + option.unit.hp + ', attack ' + option.unit.attack + ', armor ' + option.unit.armor + ', speed ' + option.unit.speed}
           onSelect={() => {
             setSelectedId(option.id);
             setMessage(null);
           }}
         >
-          <Text style={[styles.body, { color: theme.colors.text }]}>{option.pitch}</Text>
-          <Text style={[styles.body, { color: theme.colors.textMuted }]}>Tradeoff: {option.tradeoff}</Text>
+          <UnitBadges role={option.unit.role} tier={option.unit.tier} battleTags={option.unit.battleTags} />
+          <Text style={[styles.body, { color: theme.colors.text }]}>
+            <SemanticText tone="positive" style={styles.label}>Strength: </SemanticText>{option.pitch}
+          </Text>
+          <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+            <SemanticText tone="negative" style={styles.label}>Tradeoff: </SemanticText>{option.tradeoff}
+          </Text>
           <DecisionStats items={[
             { label: 'HP', value: option.unit.hp },
             { label: 'Attack', value: option.unit.attack },
@@ -71,5 +79,6 @@ export function RecruitmentScreen({ onComplete }: { onComplete: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  body: { fontSize: 13, lineHeight: 19 }
+  body: { fontSize: 13, lineHeight: 19 },
+  label: { fontWeight: '900' }
 });
