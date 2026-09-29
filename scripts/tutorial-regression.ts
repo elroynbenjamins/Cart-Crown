@@ -52,6 +52,10 @@ function baseContext(
     armyReadiness: 100,
     unlockedResourceSites: 0,
     wagonStageId: 'camp',
+    magicStoryUnlocked: false,
+    flyingStoryUnlocked: false,
+    completedMagicResearch: 0,
+    completedFlyingResearch: 0,
     ...overrides
   };
 }
@@ -527,6 +531,160 @@ function runSystemCoverage() {
   );
 }
 
+function runFantasyFamilyCoverage() {
+  const core = [...CORE_TUTORIAL_KEYS];
+
+  const magicDiscovery = getNextTutorialMoment(
+    baseContext({
+      view: 'army',
+      tutorialSeen: core,
+      magicStoryUnlocked: true,
+      wagonStageId: 'stronghold'
+    })
+  );
+
+  expect(
+    magicDiscovery?.key ===
+      'system:magic-discovery',
+    'Magic family discovery is not introduced when the story gate opens.'
+  );
+  expect(
+    magicDiscovery?.focusAfterPrimary?.kind ===
+      'army-fantasy' &&
+      magicDiscovery.focusAfterPrimary.family ===
+        'magic',
+    'Magic discovery does not route to the Arcane Research Army card.'
+  );
+
+  const magicResearch = getNextTutorialMoment(
+    baseContext({
+      view: 'fantasyResearch',
+      tutorialSeen: [
+        ...core,
+        'system:magic-discovery'
+      ],
+      magicStoryUnlocked: true
+    })
+  );
+
+  expect(
+    magicResearch?.key ===
+      'system:magic-research',
+    'Arcane Research screen does not teach the research timer/optional acceleration model.'
+  );
+  expect(
+    magicResearch?.focusAfterPrimary?.kind ===
+      'research-start' &&
+      magicResearch.focusAfterPrimary.family ===
+        'magic',
+    'Arcane Research lesson does not spotlight a valid Start Research action.'
+  );
+
+  const magicTraining = getNextTutorialMoment(
+    baseContext({
+      view: 'fantasyResearch',
+      tutorialSeen: [
+        ...core,
+        'system:magic-discovery',
+        'system:magic-research'
+      ],
+      magicStoryUnlocked: true,
+      completedMagicResearch: 1
+    })
+  );
+
+  expect(
+    magicTraining?.key ===
+      'system:magic-training',
+    'First completed magic doctrine does not introduce repeatable training.'
+  );
+  expect(
+    magicTraining?.focusAfterPrimary?.kind ===
+      'research-train' &&
+      magicTraining.focusAfterPrimary.family ===
+        'magic',
+    'Magic training lesson does not spotlight the newly trainable class.'
+  );
+
+  const flyingDiscovery = getNextTutorialMoment(
+    baseContext({
+      view: 'army',
+      tutorialSeen: [
+        ...core,
+        'system:magic-discovery',
+        'system:magic-research',
+        'system:magic-training'
+      ],
+      magicStoryUnlocked: true,
+      flyingStoryUnlocked: true,
+      wagonStageId: 'capital'
+    })
+  );
+
+  expect(
+    flyingDiscovery?.key ===
+      'system:flying-discovery',
+    'Flying family discovery is not introduced when the Chapter 5 story gate opens.'
+  );
+  expect(
+    flyingDiscovery?.focusAfterPrimary?.kind ===
+      'army-fantasy' &&
+      flyingDiscovery.focusAfterPrimary.family ===
+        'flying',
+    'Flying discovery does not route to the Aerial Training Army card.'
+  );
+
+  const flyingResearch = getNextTutorialMoment(
+    baseContext({
+      view: 'flyingResearch',
+      tutorialSeen: [
+        ...core,
+        'system:flying-discovery'
+      ],
+      flyingStoryUnlocked: true
+    })
+  );
+
+  expect(
+    flyingResearch?.key ===
+      'system:flying-research',
+    'Aerial Training screen does not explain handling research.'
+  );
+  expect(
+    flyingResearch?.focusAfterPrimary?.kind ===
+      'research-start' &&
+      flyingResearch.focusAfterPrimary.family ===
+        'flying',
+    'Aerial research lesson does not spotlight Start Research.'
+  );
+
+  const flyingTraining = getNextTutorialMoment(
+    baseContext({
+      view: 'flyingResearch',
+      tutorialSeen: [
+        ...core,
+        'system:flying-discovery',
+        'system:flying-research'
+      ],
+      flyingStoryUnlocked: true,
+      completedFlyingResearch: 1
+    })
+  );
+
+  expect(
+    flyingTraining?.key ===
+      'system:flying-training',
+    'First completed flying doctrine does not introduce aerial recruitment.'
+  );
+  expect(
+    flyingTraining?.focusAfterPrimary?.kind ===
+      'research-train' &&
+      flyingTraining.focusAfterPrimary.family ===
+        'flying',
+    'Flying training lesson does not spotlight the newly trainable aerial class.'
+  );
+}
+
 function runReviewTimingCoverage() {
   const eligible = {
     activeFaction: 'human' as const,
@@ -674,6 +832,7 @@ function main() {
   runUnitUnlockCoverage();
   runBuildingUnlockCoverage();
   runSystemCoverage();
+  runFantasyFamilyCoverage();
   runReviewTimingCoverage();
   runLegacySaveCoverage();
   runAppIdentityCoverage();
