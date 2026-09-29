@@ -405,6 +405,8 @@ export function ScreenAtmosphere({
   section: 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army' | 'flow';
 }) {
   const { theme } = useGameTheme();
+  // Dark UI stays black/charcoal; faction color belongs to content, not a full-screen wash.
+  if (theme.dark) return null;
   const accent = factionAccentFor(faction, theme) ?? theme.colors.primary;
   const secondary =
     faction === 'elf'
@@ -493,7 +495,7 @@ export function PrimaryButton({
       <Text
         style={[
           styles.primaryButtonText,
-          { color: disabled ? theme.colors.textMuted : '#FFFFFF' }
+          { color: disabled ? theme.colors.textMuted : theme.colors.onPrimary }
         ]}
       >
         {label}

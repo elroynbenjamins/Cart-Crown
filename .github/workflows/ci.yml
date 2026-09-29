@@ -71,3 +71,6 @@ jobs:
 
       - name: Exchange VFX regression
         run: npm run battle-visuals:check
+
+      - name: Neutral dark theme regression
+        run: npx --no-install tsx scripts/dark-theme-regression.ts
