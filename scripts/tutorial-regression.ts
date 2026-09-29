@@ -59,9 +59,12 @@ function baseContext(
     magicStoryUnlocked: false,
     flyingStoryUnlocked: false,
     largeStoryUnlocked: false,
+    hybridStoryUnlocked: false,
+    hybridPrerequisitesMet: false,
     completedMagicResearch: 0,
     completedFlyingResearch: 0,
     completedLargeResearch: 0,
+    completedHybridResearch: 0,
     ...overrides
   };
 }
@@ -828,6 +831,120 @@ function runFantasyFamilyCoverage() {
       largeTraining.focusAfterPrimary.family ===
         'large',
     'Large training lesson does not spotlight the newly trainable Large class.'
+  );
+
+  const priorFantasySeen = [
+    ...core,
+    'system:magic-discovery',
+    'system:magic-research',
+    'system:magic-training',
+    'system:flying-discovery',
+    'system:flying-research',
+    'system:flying-training',
+    'system:large-discovery',
+    'system:large-research',
+    'system:large-training'
+  ];
+
+  const hybridDiscovery = getNextTutorialMoment(
+    baseContext({
+      view: 'army',
+      tutorialSeen: priorFantasySeen,
+      magicStoryUnlocked: true,
+      flyingStoryUnlocked: true,
+      largeStoryUnlocked: true,
+      hybridStoryUnlocked: true,
+      wagonStageId: 'grand'
+    })
+  );
+
+  expect(
+    hybridDiscovery?.key ===
+      'system:hybrid-discovery',
+    'Legendary hybrid family is not introduced after the Chapter 8 story gate opens.'
+  );
+  expect(
+    hybridDiscovery?.focusAfterPrimary?.kind ===
+      'army-fantasy' &&
+      hybridDiscovery.focusAfterPrimary.family ===
+        'hybrid',
+    'Legendary discovery does not route to the Legendary Orders Army card.'
+  );
+
+  const hybridPrerequisites = getNextTutorialMoment(
+    baseContext({
+      view: 'hybridResearch',
+      tutorialSeen: [
+        ...priorFantasySeen,
+        'system:hybrid-discovery'
+      ],
+      hybridStoryUnlocked: true,
+      hybridPrerequisitesMet: false
+    })
+  );
+
+  expect(
+    hybridPrerequisites?.key ===
+      'system:hybrid-prerequisites',
+    'Legendary Orders does not explain why Magic and Flying research are prerequisites.'
+  );
+  expect(
+    !hybridPrerequisites?.focusAfterPrimary,
+    'Locked legendary prerequisites should not spotlight a disabled research button.'
+  );
+
+  const hybridResearch = getNextTutorialMoment(
+    baseContext({
+      view: 'hybridResearch',
+      tutorialSeen: [
+        ...priorFantasySeen,
+        'system:hybrid-discovery',
+        'system:hybrid-prerequisites'
+      ],
+      hybridStoryUnlocked: true,
+      hybridPrerequisitesMet: true
+    })
+  );
+
+  expect(
+    hybridResearch?.key ===
+      'system:hybrid-research',
+    'Legendary doctrine research is not introduced after prerequisites are complete.'
+  );
+  expect(
+    hybridResearch?.focusAfterPrimary?.kind ===
+      'research-start' &&
+      hybridResearch.focusAfterPrimary.family ===
+        'hybrid',
+    'Legendary doctrine lesson does not spotlight Start Research.'
+  );
+
+  const hybridTraining = getNextTutorialMoment(
+    baseContext({
+      view: 'hybridResearch',
+      tutorialSeen: [
+        ...priorFantasySeen,
+        'system:hybrid-discovery',
+        'system:hybrid-prerequisites',
+        'system:hybrid-research'
+      ],
+      hybridStoryUnlocked: true,
+      hybridPrerequisitesMet: true,
+      completedHybridResearch: 1
+    })
+  );
+
+  expect(
+    hybridTraining?.key ===
+      'system:hybrid-training',
+    'Completed legendary doctrine does not introduce repeatable hybrid training.'
+  );
+  expect(
+    hybridTraining?.focusAfterPrimary?.kind ===
+      'research-train' &&
+      hybridTraining.focusAfterPrimary.family ===
+        'hybrid',
+    'Legendary training lesson does not spotlight the trainable hybrid.'
   );
 }
 
