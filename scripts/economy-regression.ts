@@ -7,40 +7,60 @@ import {
   payResourceCost
 } from '../src/game/balance';
 import {
+  fortMusterOptions,
   humanResourceSites
 } from '../src/game/chapter2';
 import {
-  marcherResourceSites
+  marcherAuxiliaryOptions,
+  marcherResourceSites,
+  marcherWarningChoices
 } from '../src/game/chapter3';
 import {
-  crownroadResourceSites
+  crownroadResourceSites,
+  lastLoyalistChoices,
+  strongholdMusterOptions
 } from '../src/game/chapter4';
 import {
   capitalResourceSites
 } from '../src/game/chapter5';
 import {
   encounterRewards,
-  getEncounter
+  getEncounter,
+  getEnemyArmyProfile,
+  getEnemyFormationTactic
 } from '../src/game/encounters';
 import type { EncounterId } from '../src/game/encounters';
 import {
-  equipmentDefinitions
+  advancedPromotions,
+  canUnitEquipEquipment,
+  equipmentDefinitions,
+  recruitPromotions
 } from '../src/game/equipment';
 import {
-  factionChapterTwoResourceSites
+  elfThirdRecruitOptions,
+  factionChapterTwoResourceSites,
+  orcThirdRecruitOptions
 } from '../src/game/factionChapter2';
 import {
-  factionChapterThreeResourceSites
+  elfFourthRecruitOptions,
+  factionChapterThreeResourceSites,
+  orcFourthRecruitOptions
 } from '../src/game/factionChapter3';
 import {
-  factionChapterFourResourceSites
+  elfChapterFiveReinforcement,
+  elfFifthRecruitOptions,
+  factionChapterFourResourceSites,
+  orcChapterFiveReinforcement,
+  orcFifthRecruitOptions
 } from '../src/game/factionChapter4';
 import {
   factionChapterFiveResourceSites
 } from '../src/game/factionChapter5';
 import {
   elfStarterResources,
-  orcStarterResources
+  elfStarterUnits,
+  orcStarterResources,
+  orcStarterUnits
 } from '../src/game/factionStarts';
 import {
   getBuildingLevelDefinition,
@@ -48,12 +68,30 @@ import {
   getFactionBuildingIds
 } from '../src/game/kingdom';
 import {
-  starterResources
+  humanRecruitOptions,
+  starterResources,
+  starterUnits
 } from '../src/game/data';
+import { getCommanderPaths } from '../src/game/commanders';
+import {
+  formationShapes,
+  getFactionDoctrines
+} from '../src/game/formation';
+import { evaluateFormationPreset } from '../src/game/loadoutAnalysis';
+import {
+  buildFormation,
+  simulate
+} from './balance-regression';
+import type {
+  SimulationResult
+} from './balance-regression';
 import type {
   FactionId,
+  FormationPreset,
+  FormationShapeId,
   ResourceSiteDefinition,
-  ResourceWallet
+  ResourceWallet,
+  UnitDefinition
 } from '../src/game/types';
 
 type EconomyState = {
@@ -76,6 +114,12 @@ type EconomyState = {
   armyReadiness: number;
   resupplyCount: number;
   resupplyProvisions: number;
+  purchasedGearIds: string[];
+  battlesWon: number;
+  battleDefeats: number;
+  formationSwitches: number;
+  lastFormationShapeId: FormationShapeId | null;
+  weakestWinHpPercent: number;
   equipmentSpent: ResourceWallet;
 };
 
@@ -134,15 +178,6 @@ const squadCapByStage: Record<EconomyState['stage'], number> = {
   stronghold: 6,
   capital: 6,
   grand: 6
-};
-
-const representativeRemainingHp: Record<
-  'Normal' | 'Elite' | 'Boss',
-  number
-> = {
-  Normal: 80,
-  Elite: 65,
-  Boss: 50
 };
 
 const chapterEncounters: Record<
@@ -254,6 +289,44 @@ const gearPackages: Record<
     4: ['orc_trained_warg', 'orc_raider_axe'],
     5: ['orc_veteran_warg', 'orc_bloodaxe']
   }
+};
+
+const doctrineUnlockRank: Record<string, number> = {
+  Start: 0,
+  Settlement: 1,
+  Fort: 2,
+  Town: 3,
+  Stronghold: 4
+};
+
+const gearTargetUnit: Record<string, string> = {
+  hum_iron_sword: 'hum_recruit',
+  hum_padded_armor: 'hum_militia',
+  hum_wood_shield: 'hum_militia',
+  hum_steel_sword: 'hum_recruit',
+  hum_hunting_bow: 'hum_archer_reinforcement',
+  hum_chainmail: 'hum_militia',
+  hum_longbow: 'hum_archer_reinforcement',
+  hum_tempered_sword: 'hum_recruit',
+  hum_heavy_plate: 'hum_militia',
+
+  elf_spiritwood_spear: 'elf_warden',
+  elf_leafweave: 'elf_warden',
+  elf_moonsilver_spear: 'elf_warden',
+  elf_moonweave: 'elf_warden',
+  elf_trained_stag: 'elf_stag_scout',
+  elf_rider_bow: 'elf_stag_scout',
+  elf_veteran_stag: 'elf_stag_scout',
+  elf_starbow: 'elf_stag_scout',
+
+  orc_iron_axe: 'orc_youngblood',
+  orc_warhide: 'orc_youngblood',
+  orc_blackiron_axe: 'orc_youngblood',
+  orc_reinforced_warhide: 'orc_youngblood',
+  orc_trained_warg: 'orc_warg_scout',
+  orc_raider_axe: 'orc_warg_scout',
+  orc_veteran_warg: 'orc_warg_scout',
+  orc_bloodaxe: 'orc_warg_scout'
 };
 
 function invariant(
@@ -730,6 +803,8 @@ function spendGearPackage(
     gearPackages[state.faction][chapter] ?? [];
 
   for (const id of packageIds) {
+    if (state.purchasedGearIds.includes(id)) continue;
+
     const equipment =
       equipmentDefinitions.find(
         item => item.id === id
@@ -738,6 +813,24 @@ function spendGearPackage(
       equipment,
       'Missing equipment: ' + id
     );
+
+    const buildingIds = getFactionBuildingIds(state.faction);
+    if (equipment.requiredForgeLevel > 0) {
+      ensureBuildingLevel(
+        state,
+        buildingIds.forge,
+        equipment.requiredForgeLevel,
+        state.faction + ' equipment forge requirement'
+      );
+    }
+    if ((equipment.requiredStableLevel ?? 0) > 0) {
+      ensureBuildingLevel(
+        state,
+        buildingIds.mount,
+        equipment.requiredStableLevel ?? 0,
+        state.faction + ' equipment mount requirement'
+      );
+    }
 
     spend(
       state,
@@ -753,6 +846,7 @@ function spendGearPackage(
       state.equipmentSpent,
       equipment.craftCost
     );
+    state.purchasedGearIds.push(id);
   }
 }
 
@@ -897,8 +991,6 @@ function prepareTransition(
     );
   }
 
-  spendGearPackage(state, chapter);
-
   spend(
     state,
     getExpansionCost(
@@ -963,6 +1055,12 @@ function newHumanState(): EconomyState {
     armyReadiness: 100,
     resupplyCount: 0,
     resupplyProvisions: 0,
+    purchasedGearIds: [],
+    battlesWon: 0,
+    battleDefeats: 0,
+    formationSwitches: 0,
+    lastFormationShapeId: null,
+    weakestWinHpPercent: 100,
     equipmentSpent: { ...ZERO }
   };
 }
@@ -998,6 +1096,12 @@ function newFactionState(
     armyReadiness: 100,
     resupplyCount: 0,
     resupplyProvisions: 0,
+    purchasedGearIds: [],
+    battlesWon: 0,
+    battleDefeats: 0,
+    formationSwitches: 0,
+    lastFormationShapeId: null,
+    weakestWinHpPercent: 100,
     equipmentSpent: { ...ZERO }
   };
 }
@@ -1122,6 +1226,7 @@ function playHumanChapter(
   state: EconomyState,
   chapter: number
 ) {
+  spendGearPackage(state, chapter);
   const ids = chapterEncounters.human[chapter];
   invariant(
     ids,
@@ -1201,6 +1306,8 @@ function playFactionChapter(
     state.faction !== 'human',
     'Faction helper is Elf/Orc only.'
   );
+
+  spendGearPackage(state, chapter);
 
   const ids =
     chapterEncounters[state.faction][chapter];
