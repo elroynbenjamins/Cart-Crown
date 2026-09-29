@@ -271,6 +271,35 @@ function sanitizeExpeditionRun(
       )
     ),
     powerBonus,
+    basePower: nonNegativeInteger(
+      source.basePower,
+      0
+    ),
+    playerShapeId:
+      formationShapes.some(
+        shape =>
+          shape.id === source.playerShapeId
+      )
+        ? source.playerShapeId as FormationShapeId
+        : 'balanced_333',
+    wagonStageId:
+      typeof source.wagonStageId === 'string'
+        ? source.wagonStageId
+        : 'fort',
+    hasRations:
+      Boolean(source.hasRations),
+    hasMedicine:
+      Boolean(source.hasMedicine),
+    baseReward: sanitizeWallet(
+      source.baseReward,
+      {
+        gold: 40,
+        wood: 8,
+        stone: 2,
+        iron: 1,
+        provisions: 4
+      }
+    ),
     loot: sanitizeWallet(
       source.loot,
       {
