@@ -3,14 +3,20 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { getResearchGemFinishCost, getResearchRemainingHours } from '../game/progression';
 import type { FantasyRecruitTemplate } from '../game/progression';
+import type { TutorialFocusTarget } from '../game/tutorial';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, MetricTile, PrimaryButton, ScreenHero, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
 import { UnitBadges } from '../ui/SemanticUI';
 import { semanticColor } from '../ui/semanticColors';
 import { ResearchGemCost, ResearchRecruitCard, ResearchStateChip, ResearchUnlocks } from '../ui/ResearchUI';
+import { TutorialFocus } from '../ui/TutorialFocus';
 
-export function FlyingResearchScreen({ onExit }: { onExit: () => void }) {
+export function FlyingResearchScreen({ onExit, tutorialFocus, onTutorialFocusComplete }: {
+  onExit: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
+}) {
   const { theme } = useGameTheme();
   const {
     activeFaction, chapterNumber, units, resources, gems, completedStoryGates,
@@ -28,9 +34,7 @@ export function FlyingResearchScreen({ onExit }: { onExit: () => void }) {
 
   const accent = semanticColor(theme, 'cyan');
   const storyUnlocked = Boolean(flyingFamilyUnlock && completedStoryGates.includes(flyingFamilyUnlock.storyGateId));
-  const firstStoryUnit = flyingFamilyUnlock
-    ? units.find(unit => unit.id === flyingFamilyUnlock.firstStoryRewardUnitId) ?? null
-    : null;
+  const firstStoryUnit = flyingFamilyUnlock ? units.find(unit => unit.id === flyingFamilyUnlock.firstStoryRewardUnitId) ?? null : null;
   const research = flyingResearchDefinitions[0] ?? null;
   const progress = research ? researchProgress[research.id] : null;
   const elapsedHours = progress?.startedAt ? Math.max(0, (now - progress.startedAt) / (60 * 60 * 1000)) : 0;
@@ -39,12 +43,14 @@ export function FlyingResearchScreen({ onExit }: { onExit: () => void }) {
     : research?.durationHours ?? 0;
   const gemCost = research ? getResearchGemFinishCost(research, remainingHours) : 0;
   const readyToClaim = Boolean(progress?.startedAt) && !progress?.completed && remainingHours <= 0;
+  const tutorialResearchFocused = tutorialFocus?.kind === 'research-start' && tutorialFocus.family === 'flying' && Boolean(research) && !progress && storyUnlocked;
 
   const startResearch = () => {
     if (!research) return;
     const ok = startFantasyResearch(research.id);
     setMessage(ok ? research.name + ' started.' : 'Finish any active fantasy research and meet the Chapter 5 story gate first.');
     setNow(Date.now());
+    if (ok && tutorialResearchFocused) onTutorialFocusComplete?.();
   };
   const watchAd = async () => {
     if (!research) return;
@@ -67,6 +73,7 @@ export function FlyingResearchScreen({ onExit }: { onExit: () => void }) {
   const recruit = (template: FantasyRecruitTemplate) => {
     const ok = recruitFantasyUnit(template.id);
     setMessage(ok ? template.className + ' recruited to the roster.' : 'Requirements or resources are missing for this recruitment.');
+    return ok;
   };
 
   return (
@@ -114,41 +121,43 @@ export function FlyingResearchScreen({ onExit }: { onExit: () => void }) {
 
       <SectionTitle title="Handling research" trailing="Max 24h" />
       {research ? (
-        <GameCard accent={progress ? accent : undefined} faction={activeFaction} state={progress?.completed ? 'ready' : progress ? 'selected' : 'default'}>
-          <Text style={[styles.title, { color: accent }]}>{research.name}</Text>
-          <View style={styles.badges}>
-            <ResearchStateChip
-              state={progress?.completed ? 'complete' : readyToClaim ? 'claimable' : progress ? 'active' : storyUnlocked ? 'available' : 'locked'}
-              remainingHours={remainingHours}
-            />
-          </View>
-          <ResearchUnlocks classes={research.unlocksClasses} templates={flyingRecruitOptions} />
-          <Text style={[styles.body, { color: theme.colors.textMuted }]}>{research.description}</Text>
-          {progress && !progress.completed && !readyToClaim ? (
-            <View style={styles.progressRow}>
-              <Text style={[styles.progressText, { color: theme.colors.textMuted }]}>Ads {progress.rewardedAdsWatched}/{research.rewardedAdsToComplete}</Text>
-              <ResearchGemCost cost={gemCost} balance={gems} />
+        <TutorialFocus active={tutorialResearchFocused} label={tutorialResearchFocused ? tutorialFocus.label : undefined}>
+          <GameCard accent={progress ? accent : undefined} faction={activeFaction} state={progress?.completed ? 'ready' : progress ? 'selected' : 'default'}>
+            <Text style={[styles.title, { color: accent }]}>{research.name}</Text>
+            <View style={styles.badges}>
+              <ResearchStateChip
+                state={progress?.completed ? 'complete' : readyToClaim ? 'claimable' : progress ? 'active' : storyUnlocked ? 'available' : 'locked'}
+                remainingHours={remainingHours}
+              />
             </View>
-          ) : null}
-          <View style={styles.actions}>
-            {!progress ? (
-              <PrimaryButton label={'Start · ' + research.durationHours + 'h'} disabled={!storyUnlocked} onPress={startResearch} />
-            ) : progress.completed ? (
-              <SecondaryButton label="Research Complete" disabled onPress={() => undefined} />
-            ) : readyToClaim ? (
-              <PrimaryButton label="Complete Research" onPress={claim} />
-            ) : (
-              <>
-                <PrimaryButton
-                  label={'Watch Ad · ' + progress.rewardedAdsWatched + '/' + research.rewardedAdsToComplete}
-                  disabled={progress.rewardedAdsWatched >= research.rewardedAdsToComplete}
-                  onPress={() => void watchAd()}
-                />
-                <SecondaryButton label={'Finish · ' + gemCost + ' Gems'} disabled={gems < gemCost} onPress={finishWithGems} />
-              </>
-            )}
-          </View>
-        </GameCard>
+            <ResearchUnlocks classes={research.unlocksClasses} templates={flyingRecruitOptions} />
+            <Text style={[styles.body, { color: theme.colors.textMuted }]}>{research.description}</Text>
+            {progress && !progress.completed && !readyToClaim ? (
+              <View style={styles.progressRow}>
+                <Text style={[styles.progressText, { color: theme.colors.textMuted }]}>Ads {progress.rewardedAdsWatched}/{research.rewardedAdsToComplete}</Text>
+                <ResearchGemCost cost={gemCost} balance={gems} />
+              </View>
+            ) : null}
+            <View style={styles.actions}>
+              {!progress ? (
+                <PrimaryButton label={'Start · ' + research.durationHours + 'h'} disabled={!storyUnlocked} onPress={startResearch} />
+              ) : progress.completed ? (
+                <SecondaryButton label="Research Complete" disabled onPress={() => undefined} />
+              ) : readyToClaim ? (
+                <PrimaryButton label="Complete Research" onPress={claim} />
+              ) : (
+                <>
+                  <PrimaryButton
+                    label={'Watch Ad · ' + progress.rewardedAdsWatched + '/' + research.rewardedAdsToComplete}
+                    disabled={progress.rewardedAdsWatched >= research.rewardedAdsToComplete}
+                    onPress={() => void watchAd()}
+                  />
+                  <SecondaryButton label={'Finish · ' + gemCost + ' Gems'} disabled={gems < gemCost} onPress={finishWithGems} />
+                </>
+              )}
+            </View>
+          </GameCard>
+        </TutorialFocus>
       ) : null}
 
       <SectionTitle
@@ -159,7 +168,15 @@ export function FlyingResearchScreen({ onExit }: { onExit: () => void }) {
         {flyingRecruitOptions.map(template => {
           const unlocked = unlockedFantasyClasses.includes(template.className);
           const affordable = Object.entries(template.cost).every(([resource, amount]) => resources[resource as keyof typeof resources] >= (amount ?? 0));
-          return <ResearchRecruitCard key={template.id} template={template} unlocked={unlocked} affordable={affordable} wallet={resources} onTrain={() => recruit(template)} />;
+          const tutorialTrainingFocused = tutorialFocus?.kind === 'research-train' && tutorialFocus.family === 'flying' && unlocked;
+          return (
+            <TutorialFocus key={template.id} active={tutorialTrainingFocused} label={tutorialTrainingFocused ? tutorialFocus.label : undefined}>
+              <ResearchRecruitCard template={template} unlocked={unlocked} affordable={affordable} wallet={resources} onTrain={() => {
+                const ok = recruit(template);
+                if (ok && tutorialTrainingFocused) onTutorialFocusComplete?.();
+              }} />
+            </TutorialFocus>
+          );
         })}
       </View>
       {message ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.text }]}>{message}</Text> : null}
