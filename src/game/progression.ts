@@ -895,7 +895,7 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
 ];
 
 export type FantasyCombatEdge = {
-  magicUnits: number;
+  unitCount: number;
   attackMultiplier: number;
   incomingDamageMultiplier: number;
   title: string;
@@ -948,7 +948,7 @@ export function getFlyingCombatEdge(
   }
 
   return {
-    magicUnits: flyingUnits,
+    unitCount: flyingUnits,
     attackMultiplier,
     incomingDamageMultiplier,
     title,
@@ -1009,7 +1009,7 @@ export function getFantasyCombatEdge(
     );
 
   return {
-    magicUnits,
+    unitCount: magicUnits,
     attackMultiplier,
     incomingDamageMultiplier: exposedCasters ? 1.06 : 1,
     title,
