@@ -6,15 +6,18 @@ import {
   View
 } from 'react-native';
 import type { PropsWithChildren } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { useGameTheme } from '../theme/ThemeProvider';
 
 export function TutorialFocus({
   active,
   label,
+  style,
   children
 }: PropsWithChildren<{
   active: boolean;
   label?: string;
+  style?: StyleProp<ViewStyle>;
 }>) {
   const { theme } = useGameTheme();
   const pulse = useRef(new Animated.Value(0)).current;
@@ -48,7 +51,9 @@ export function TutorialFocus({
     };
   }, [active, pulse]);
 
-  if (!active) return <>{children}</>;
+  if (!active) {
+    return <View style={style}>{children}</View>;
+  }
 
   const scale = pulse.interpolate({
     inputRange: [0, 1],
@@ -60,7 +65,7 @@ export function TutorialFocus({
   });
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, style]}>
       <Animated.View
         pointerEvents="none"
         style={[
