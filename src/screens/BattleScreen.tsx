@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, AppState, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import {
-  getEncounter,
+  getEncounterForChapter,
   getEnemyArmyProfile,
   getEnemyFormationTactic,
   getEnemyRoleAssignments
@@ -158,6 +158,7 @@ export function BattleScreen({
     formationAnalysis,
     activeSquadCap,
     activeFaction,
+    chapterNumber,
     armyReadiness,
     recordBattleWear,
     activeCommanderPath,
@@ -168,7 +169,11 @@ export function BattleScreen({
     settlementEffects
   } = useGame();
 
-  const encounter = getEncounter(encounterId);
+  const encounter =
+    getEncounterForChapter(
+      encounterId,
+      chapterNumber
+    );
   const enemyTactic = useMemo(
     () => getEnemyFormationTactic(encounterId),
     [encounterId]
