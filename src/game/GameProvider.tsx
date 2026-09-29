@@ -148,6 +148,7 @@ import type {
   FormationPresetSlotId,
   FormationShapeDefinition,
   FormationShapeId,
+  GuidanceMode,
   PromotionDefinition,
   RecruitOption,
   ResourceSiteDefinition,
@@ -194,6 +195,8 @@ type GameContextValue = {
   metaCampaignStep: number;
   metaCampaignComplete: boolean;
   metaCampaignUnlocked: boolean;
+  guidanceMode: GuidanceMode;
+  setGuidanceMode: (mode: GuidanceMode) => void;
   hasFactionState: (faction: FactionId) => boolean;
   switchFaction: (faction: FactionId) => Promise<boolean>;
   flushSnapshot: () => Promise<void>;
@@ -580,7 +583,8 @@ export function GameProvider({
     lore: [...initialSnapshot.shared.lore],
     cosmetics: [...initialSnapshot.shared.cosmetics],
     metaCampaignStep: initialSnapshot.shared.metaCampaignStep,
-    metaCampaignComplete: initialSnapshot.shared.metaCampaignComplete
+    metaCampaignComplete: initialSnapshot.shared.metaCampaignComplete,
+    guidanceMode: initialSnapshot.shared.guidanceMode ?? 'full'
   }));
   const [formationShapeId, setFormationShapeIdState] = useState<FormationShapeId>(
     initialFaction.formationShapeId ?? 'balanced_333'
@@ -5194,6 +5198,16 @@ export function GameProvider({
     }));
   };
 
+  const guidanceMode: GuidanceMode =
+    sharedProgress.guidanceMode ?? 'full';
+
+  const setGuidanceMode = (mode: GuidanceMode) => {
+    setSharedProgress(previous => ({
+      ...previous,
+      guidanceMode: mode
+    }));
+  };
+
   const value = useMemo<GameContextValue>(
     () => ({
       resources,
@@ -5211,6 +5225,8 @@ export function GameProvider({
       metaCampaignStep,
       metaCampaignComplete,
       metaCampaignUnlocked,
+      guidanceMode,
+      setGuidanceMode,
       hasFactionState,
       switchFaction,
       flushSnapshot,
@@ -5398,6 +5414,7 @@ export function GameProvider({
       metaCampaignStep,
       metaCampaignComplete,
       metaCampaignUnlocked,
+      guidanceMode,
       flushSnapshot,
       formationShapeId,
       activeFormationShape,
