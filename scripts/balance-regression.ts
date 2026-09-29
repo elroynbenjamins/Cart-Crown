@@ -1,3 +1,4 @@
+import { assessBattlePreparation } from '../src/game/battlePreparation';
 import {
   getArmyReadinessProfile,
   getArmyResupplyCost,
@@ -2191,6 +2192,191 @@ function runMetaCoverage() {
   }
 }
 
+function runBattlePreparationCoverage() {
+  const makeUnit = (
+    id: string,
+    role: UnitDefinition['role']
+  ): UnitDefinition => ({
+    id,
+    name: id,
+    className: id,
+    faction: 'human',
+    role,
+    tier: 2,
+    level: 8,
+    hp: 100,
+    attack: 22,
+    armor: 18,
+    speed: 16
+  });
+
+  const army = [
+    makeUnit('prep_front_1', 'frontline'),
+    makeUnit('prep_front_2', 'frontline'),
+    makeUnit('prep_melee', 'melee'),
+    makeUnit('prep_range', 'ranged'),
+    makeUnit('prep_support', 'support'),
+    makeUnit('prep_cav', 'cavalry')
+  ];
+
+  const opening = assessBattlePreparation({
+    activeUnits: starterUnits.slice(0, 2),
+    squadCap: 2,
+    armyReadiness: 100,
+    hasRations: true,
+    difficulty: 'Normal',
+    formationMatchupResult: 'even',
+    wagonStageId: 'camp',
+    unitEquipment: {},
+    equipmentDefinitions
+  });
+
+  expect(
+    opening.status === 'ready',
+    'A fresh Chapter 1 starter army is no longer assessed as Ready without issued equipment.'
+  );
+
+  const formationOnly = assessBattlePreparation({
+    activeUnits: starterUnits.slice(0, 2),
+    squadCap: 2,
+    armyReadiness: 100,
+    hasRations: true,
+    difficulty: 'Normal',
+    formationMatchupResult: 'disadvantage',
+    wagonStageId: 'camp',
+    unitEquipment: {},
+    equipmentDefinitions
+  });
+
+  expect(
+    formationOnly.status === 'ready',
+    'A formation disadvantage alone should not label an otherwise fresh opening army Risky or Severe.'
+  );
+
+  const oneSquadShort = assessBattlePreparation({
+    activeUnits: army.slice(0, 2),
+    squadCap: 3,
+    armyReadiness: 100,
+    hasRations: true,
+    difficulty: 'Normal',
+    formationMatchupResult: 'advantage',
+    wagonStageId: 'settlement',
+    unitEquipment: {},
+    equipmentDefinitions
+  });
+
+  expect(
+    oneSquadShort.status === 'risky',
+    'One missing squad should produce a Risky preparation state rather than Ready or Severe.'
+  );
+
+  const exhausted = assessBattlePreparation({
+    activeUnits: army,
+    squadCap: 6,
+    armyReadiness: 35,
+    hasRations: true,
+    difficulty: 'Elite',
+    formationMatchupResult: 'advantage',
+    wagonStageId: 'stronghold',
+    unitEquipment: {},
+    equipmentDefinitions
+  });
+
+  expect(
+    exhausted.status === 'severely_underprepared',
+    'An exhausted late-game army should be assessed as Severely Underprepared.'
+  );
+
+  const stackedBossRisk = assessBattlePreparation({
+    activeUnits: army.slice(0, 5),
+    squadCap: 6,
+    armyReadiness: 50,
+    hasRations: false,
+    difficulty: 'Boss',
+    formationMatchupResult: 'even',
+    wagonStageId: 'stronghold',
+    unitEquipment: {},
+    equipmentDefinitions
+  });
+
+  expect(
+    stackedBossRisk.status === 'severely_underprepared',
+    'A Boss attempt with a missing squad, heavy fatigue and no rations should be Severely Underprepared.'
+  );
+
+  const tierTwo =
+    equipmentDefinitions.find(
+      item =>
+        item.faction === 'human' &&
+        item.tier === 2
+    ) ??
+    equipmentDefinitions.find(
+      item =>
+        item.faction === 'human' &&
+        item.tier >= 2
+    );
+  check(
+    tierTwo,
+    'Preparation coverage could not find Human Tier 2 equipment.'
+  );
+
+  const gearedLoadouts = Object.fromEntries(
+    army.map(unit => [
+      unit.id,
+      { [tierTwo.slot]: tierTwo.id }
+    ])
+  );
+
+  const preparedBoss = assessBattlePreparation({
+    activeUnits: army,
+    squadCap: 6,
+    armyReadiness: 100,
+    hasRations: true,
+    difficulty: 'Boss',
+    formationMatchupResult: 'advantage',
+    wagonStageId: 'stronghold',
+    unitEquipment: gearedLoadouts,
+    equipmentDefinitions
+  });
+
+  expect(
+    preparedBoss.status === 'ready',
+    'A full, fresh, supplied and appropriately geared Boss army should be assessed as Ready.'
+  );
+
+  const gearOnlyConcern = assessBattlePreparation({
+    activeUnits: army,
+    squadCap: 6,
+    armyReadiness: 100,
+    hasRations: true,
+    difficulty: 'Boss',
+    formationMatchupResult: 'even',
+    wagonStageId: 'capital',
+    unitEquipment: {},
+    equipmentDefinitions
+  });
+
+  expect(
+    gearOnlyConcern.status !== 'severely_underprepared',
+    'Equipment quality alone should never turn an otherwise fresh full army into Severely Underprepared.'
+  );
+
+  [
+    opening,
+    formationOnly,
+    oneSquadShort,
+    exhausted,
+    stackedBossRisk,
+    preparedBoss,
+    gearOnlyConcern
+  ].forEach(result => {
+    expect(
+      result.factors.length === 5,
+      'Preparation assessment no longer reports the complete five-factor mechanical breakdown.'
+    );
+  });
+}
+
 function runReadinessCoverage() {
   const fresh =
     getArmyReadinessProfile(100);
@@ -2304,6 +2490,7 @@ function printRows(rows: ScenarioRow[]) {
 }
 
 function main() {
+  runBattlePreparationCoverage();
   runReadinessCoverage();
   const rows = runChapterMatrix();
   runTrueOpeningBossCoverage();
@@ -2340,7 +2527,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, scouted loadout recommendations, tactical adjustment advice, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
+    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, pre-battle preparation states, scouted loadout recommendations, tactical adjustment advice, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
   );
 }
 
