@@ -5,6 +5,12 @@ export type EncounterId =
   | 'war_table_broken_spear'
   | 'war_table_blackwood_ambush'
   | 'war_table_red_banner'
+  | 'war_table_dusk_riders'
+  | 'war_table_stonegate_pikes'
+  | 'war_table_ashen_reserves'
+  | 'war_table_hollow_guard'
+  | 'war_table_ironclad_push'
+  | 'war_table_crownroad_lancers'
   | 'mercenary_patrol'
   | 'toll_captain'
   | 'ch2_defend_camp'
@@ -102,10 +108,64 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   war_table_red_banner: {
     id: 'war_table_red_banner',
     name: 'Red Banner Raiders',
-    subtitle: 'An aggressive raiding host is probing Greenkeep for a quick fight before reinforcements arrive.',
+    subtitle: 'An aggressive raiding host is probing the frontier for a quick fight before reinforcements arrive.',
     enemyName: 'Red Banner Raiders',
     enemyCount: 6,
     enemyHp: 255,
+    difficulty: 'Elite'
+  },
+  war_table_dusk_riders: {
+    id: 'war_table_dusk_riders',
+    name: 'Dusk Riders',
+    subtitle: 'Mounted hunters are cutting messengers off from the outer roads and refusing a direct stand.',
+    enemyName: 'Dusk Riders',
+    enemyCount: 4,
+    enemyHp: 180,
+    difficulty: 'Normal'
+  },
+  war_table_stonegate_pikes: {
+    id: 'war_table_stonegate_pikes',
+    name: 'Stonegate Pikes',
+    subtitle: 'A hired spear wall has braced across a narrow crossing and is charging tolls to every caravan.',
+    enemyName: 'Stonegate Pikes',
+    enemyCount: 5,
+    enemyHp: 205,
+    difficulty: 'Normal'
+  },
+  war_table_ashen_reserves: {
+    id: 'war_table_ashen_reserves',
+    name: 'Ashen Reserve Company',
+    subtitle: 'Veteran reserves are drilling a reinforced center and reacting quickly to every threatened lane.',
+    enemyName: 'Ashen Reserve Company',
+    enemyCount: 6,
+    enemyHp: 235,
+    difficulty: 'Elite'
+  },
+  war_table_hollow_guard: {
+    id: 'war_table_hollow_guard',
+    name: 'Hollow Guard',
+    subtitle: 'A patient deep formation is escorting seized supplies through the frontier under layered protection.',
+    enemyName: 'Hollow Guard',
+    enemyCount: 6,
+    enemyHp: 245,
+    difficulty: 'Elite'
+  },
+  war_table_ironclad_push: {
+    id: 'war_table_ironclad_push',
+    name: 'Ironclad Push',
+    subtitle: 'Two dense combat ranks are advancing with almost no rear protection and daring anyone to meet them head-on.',
+    enemyName: 'Ironclad Company',
+    enemyCount: 7,
+    enemyHp: 280,
+    difficulty: 'Elite'
+  },
+  war_table_crownroad_lancers: {
+    id: 'war_table_crownroad_lancers',
+    name: 'Crownroad Lancers',
+    subtitle: 'Veteran riders are using speed and repeated lane changes to keep local patrols off balance.',
+    enemyName: 'Crownroad Lancers',
+    enemyCount: 6,
+    enemyHp: 270,
     difficulty: 'Elite'
   },
   mercenary_patrol: {
@@ -731,6 +791,12 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   war_table_broken_spear: 'wide_vanguard_522',
   war_table_blackwood_ambush: 'protected_rear_225',
   war_table_red_banner: 'assault_432',
+  war_table_dusk_riders: 'skirmish_screen_243',
+  war_table_stonegate_pikes: 'spear_wall_531',
+  war_table_ashen_reserves: 'reinforced_center_252',
+  war_table_hollow_guard: 'deep_234',
+  war_table_ironclad_push: 'heavy_front_441',
+  war_table_crownroad_lancers: 'skirmish_screen_243',
   mercenary_patrol: 'assault_432',
   toll_captain: 'wide_vanguard_522',
   ch2_defend_camp: 'assault_432',
@@ -1019,6 +1085,12 @@ const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>
   war_table_broken_spear: 'shield_host',
   war_table_blackwood_ambush: 'missile_company',
   war_table_red_banner: 'shock_warband',
+  war_table_dusk_riders: 'mounted_hunters',
+  war_table_stonegate_pikes: 'shield_host',
+  war_table_ashen_reserves: 'elite_command',
+  war_table_hollow_guard: 'warded_host',
+  war_table_ironclad_push: 'shock_warband',
+  war_table_crownroad_lancers: 'mounted_hunters',
   mercenary_patrol: 'mercenary_line',
   ch2_defend_camp: 'raider_pack',
   ch2_beyond_fires: 'mercenary_line',
@@ -1151,7 +1223,31 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   },
   war_table_red_banner: {
     resources: { gold: 48, iron: 4, provisions: 3 },
-    storySummary: 'The Red Banner assault collapses under disciplined resistance. Greenkeep gains supplies and practical formation experience.'
+    storySummary: 'The Red Banner assault collapses under disciplined resistance. The contract pays out without changing the campaign front.'
+  },
+  war_table_dusk_riders: {
+    resources: { gold: 28, provisions: 4 },
+    storySummary: 'The Dusk Riders scatter from the road network. Scouts recover a modest contract payment and fresh provisions.'
+  },
+  war_table_stonegate_pikes: {
+    resources: { gold: 30, stone: 5 },
+    storySummary: 'The Stonegate wall breaks formation and abandons the crossing. Nearby caravans pay a small clearing bounty.'
+  },
+  war_table_ashen_reserves: {
+    resources: { gold: 42, stone: 4, iron: 2 },
+    storySummary: 'The reserve company withdraws after its central rotation is disrupted. The War Table records the tactical lesson.'
+  },
+  war_table_hollow_guard: {
+    resources: { gold: 40, wood: 6, provisions: 3 },
+    storySummary: 'The Hollow Guard gives up its seized stores rather than continue the layered retreat.'
+  },
+  war_table_ironclad_push: {
+    resources: { gold: 52, iron: 5, stone: 3 },
+    storySummary: 'The Ironclad Company finally loses momentum. Salvaged fittings and contract coin make up the reward.'
+  },
+  war_table_crownroad_lancers: {
+    resources: { gold: 50, iron: 2, provisions: 5 },
+    storySummary: 'The veteran riders are forced off the route after their maneuver lanes close. Patrol traffic resumes.'
   },
   mercenary_patrol: {
     resources: { gold: 65, wood: 8, iron: 5, provisions: 3 },
