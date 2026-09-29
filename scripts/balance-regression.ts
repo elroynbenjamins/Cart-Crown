@@ -1890,12 +1890,14 @@ function runLoadoutRecommendationCoverage() {
   expect(
     missileAdjustments.some(
       adjustment =>
-        adjustment.kind === 'role_swap' &&
+        ['fill_slot', 'role_swap'].includes(
+          adjustment.kind
+        ) &&
         ['cav_1', 'cav_2', 'skirm_1', 'skirm_2'].includes(
           adjustment.suggestedUnitId ?? ''
         )
     ),
-    'Missile Company advice no longer suggests an available mobile bench swap.'
+    'Missile Company advice no longer suggests an available mobile bench squad.'
   );
 
   const exposed: FormationPreset = {
