@@ -14,6 +14,7 @@ import type { BattlePreparationFixTarget } from './game/battlePreparation';
 import { resolveHardwareBackAction } from './game/mobileSession';
 import {
   getNextTutorialMoment,
+  getTutorialCompletionKeys,
   shouldRequestChapterOneReview
 } from './game/tutorial';
 import type { TutorialFocusTarget } from './game/tutorial';
@@ -321,11 +322,10 @@ export function AppShell({
 
   const completeTutorialFocus = () => {
     if (tutorialFocusKey) {
-      markTutorialSeen(tutorialFocusKey);
-
-      if (tutorialFocus?.kind === 'formation-unit') {
-        markTutorialSeen('system:formation');
-      }
+      getTutorialCompletionKeys(
+        tutorialFocusKey,
+        tutorialFocus
+      ).forEach(markTutorialSeen);
     }
 
     setTutorialFocus(null);
