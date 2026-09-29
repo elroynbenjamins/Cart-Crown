@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs';
 import {
   CORE_TUTORIAL_KEYS,
+  FACTION_TUTORIAL_KEYS,
   SYSTEM_TUTORIAL_KEYS,
   getNextTutorialMoment,
+  getTutorialCompletionKeys,
   isCoreTutorialComplete,
   shouldRequestChapterOneReview,
   tutorialBuildingKey,
@@ -13,6 +15,11 @@ import {
   humanRecruitOptions,
   starterUnits
 } from '../src/game/data';
+import {
+  elfStarterUnits,
+  orcStarterUnits
+} from '../src/game/factionStarts';
+import { elfThirdRecruitOptions } from '../src/game/factionChapter2';
 import { getBuildings } from '../src/game/kingdom';
 import {
   createNewSaveRecord,
@@ -121,6 +128,166 @@ function runCoreSequence() {
   expect(
     isCoreTutorialComplete(seen),
     'Core tutorial did not report completion after all five lessons.'
+  );
+}
+
+function runFactionIntroCoverage() {
+  const elfIntro = getNextTutorialMoment(
+    baseContext({
+      faction: 'elf',
+      view: 'campaign',
+      tutorialSeen: [],
+      units: elfStarterUnits.map(unit => ({ ...unit }))
+    })
+  );
+
+  expect(
+    elfIntro?.key === 'faction:intro',
+    'Fresh Elf campaign does not receive a faction-mechanic introduction.'
+  );
+  expect(
+    elfIntro?.focusAfterPrimary?.kind ===
+      'campaign-current',
+    'Elf introduction does not hand off to the first campaign objective.'
+  );
+
+  const orcIntro = getNextTutorialMoment(
+    baseContext({
+      faction: 'orc',
+      view: 'kingdom',
+      tutorialSeen: [],
+      units: orcStarterUnits.map(unit => ({ ...unit }))
+    })
+  );
+
+  expect(
+    orcIntro?.key === 'faction:intro',
+    'Fresh Orc campaign does not receive a faction-mechanic introduction.'
+  );
+
+  const elfThird =
+    elfThirdRecruitOptions[0]?.unit;
+  if (!elfThird) {
+    failures.push(
+      'Elf third-unit tutorial fixture is missing.'
+    );
+    return;
+  }
+
+  const elfUnitLesson =
+    getNextTutorialMoment(
+      baseContext({
+        faction: 'elf',
+        view: 'formation',
+        tutorialSeen: ['faction:intro'],
+        units: [
+          ...elfStarterUnits.map(unit => ({
+            ...unit
+          })),
+          { ...elfThird }
+        ]
+      })
+    );
+
+  expect(
+    elfUnitLesson?.key ===
+      tutorialUnitKey(elfThird.id),
+    'Elf unlock guidance remains blocked after faction introduction.'
+  );
+}
+
+function runPacingCoverage() {
+  const core = [...CORE_TUTORIAL_KEYS];
+
+  const healthyReadiness =
+    getNextTutorialMoment(
+      baseContext({
+        view: 'battlePrep',
+        tutorialSeen: core,
+        armyReadiness: 65
+      })
+    );
+
+  expect(
+    healthyReadiness?.key !==
+      'system:readiness',
+    'Readiness is being re-taught before fatigue creates a combat penalty.'
+  );
+
+  const fatiguedReadiness =
+    getNextTutorialMoment(
+      baseContext({
+        view: 'battlePrep',
+        tutorialSeen: core,
+        armyReadiness: 65
+      })
+    );
+
+  expect(
+    fatiguedReadiness?.key ===
+      'system:readiness',
+    'Readiness warning does not appear once fatigue is actually active.'
+  );
+
+  const advancedDuringPrep =
+    getNextTutorialMoment(
+      baseContext({
+        view: 'battlePrep',
+        tutorialSeen: core,
+        wagonStageId: 'fort'
+      })
+    );
+
+  expect(
+    advancedDuringPrep?.key !==
+      'system:advanced-formations',
+    'Advanced formation tutorial interrupts an active Battle Prep flow.'
+  );
+
+  const advancedInFormation =
+    getNextTutorialMoment(
+      baseContext({
+        view: 'formation',
+        tutorialSeen: core,
+        wagonStageId: 'fort'
+      })
+    );
+
+  expect(
+    advancedInFormation?.key ===
+      'system:advanced-formations',
+    'Advanced formation tutorial no longer waits for the Formation screen.'
+  );
+}
+
+function runCompletionCoverage() {
+  const keys = getTutorialCompletionKeys(
+    'unit:example',
+    {
+      kind: 'formation-unit',
+      unitId: 'example',
+      label: 'SELECT NEW SQUAD'
+    }
+  );
+
+  expect(
+    keys.includes('unit:example') &&
+      keys.includes('system:formation'),
+    'Completing the hands-on new-squad lesson does not also satisfy basic Formation teaching.'
+  );
+
+  const simple = getTutorialCompletionKeys(
+    'core:campaign',
+    {
+      kind: 'campaign-current',
+      label: 'TAP CURRENT OBJECTIVE'
+    }
+  );
+
+  expect(
+    simple.length === 1 &&
+      simple[0] === 'core:campaign',
+    'Ordinary tutorial focus completion marks unrelated lessons.'
   );
 }
 
@@ -297,7 +464,7 @@ function runSystemCoverage() {
       baseContext({
         view: 'kingdom',
         tutorialSeen: core,
-        armyReadiness: 84
+        armyReadiness: 65
       })
     );
   expect(
@@ -458,6 +625,12 @@ function runLegacySaveCoverage() {
     'Progressed older-v13 save did not suppress retroactive beginner tutorial.'
   );
   expect(
+    FACTION_TUTORIAL_KEYS.every(key =>
+      seeded.includes(key)
+    ),
+    'Progressed older-v13 save did not suppress retroactive faction-intro backlog.'
+  );
+  expect(
     SYSTEM_TUTORIAL_KEYS.every(key =>
       seeded.includes(key)
     ),
@@ -495,6 +668,9 @@ function runAppIdentityCoverage() {
 
 function main() {
   runCoreSequence();
+  runFactionIntroCoverage();
+  runPacingCoverage();
+  runCompletionCoverage();
   runUnitUnlockCoverage();
   runBuildingUnlockCoverage();
   runSystemCoverage();
@@ -520,7 +696,7 @@ function main() {
   }
 
   console.log(
-    'PASS: staged onboarding, visual spotlight handoffs, first-unit/building guidance, system unlock lessons, legacy-save behavior, post-Chapter-1 review timing and Android app identity remain protected.'
+    'PASS: staged onboarding, faction-specific intros, non-repetitive pacing, transactional spotlight completion, first-unit/building guidance, system unlock lessons, legacy-save behavior, post-Chapter-1 review timing and Android app identity remain protected.'
   );
 }
 
