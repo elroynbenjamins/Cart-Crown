@@ -5,6 +5,8 @@ import type { ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, ResourceAmountRow, ResourceChip, SecondaryButton } from '../ui/components';
 import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionOption, DecisionStats } from '../ui/DecisionUI';
+import { SemanticChip, SemanticText, TierChip } from '../ui/SemanticUI';
+import { tierTone } from '../ui/semanticColors';
 import { signedStat } from '../ui/decisionPresentation';
 import { EquipmentSprite, ResourceSprite } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
@@ -98,28 +100,36 @@ export function ForgeScreen({ onOpenPromotion, onExit, tutorialFocus, onTutorial
       </View>
       {settlementAdjacencyBonuses.some(bonus => bonus.id === 'arsenal_district') ? (
         <GameCard accent={theme.colors.primary} ornament={false}>
-          <Text style={[styles.body, { color: theme.colors.text }]}>Arsenal District · Equipment costs reduced by 10%. The prices below include the active reduction.</Text>
+          <Text style={[styles.body, { color: theme.colors.text }]}>
+            Arsenal District · Equipment costs <SemanticText tone="positive" style={styles.emphasis}>reduced by 10%</SemanticText>. The prices below include the active reduction.
+          </Text>
         </GameCard>
       ) : null}
       {humanWeapons.map(item => {
         const cost = getEquipmentCraftCost(item);
         const inStock = equipmentInventory.filter(id => id === item.id).length;
         const focusSelection = item.id === tutorialCraftItemId && selected?.id !== item.id;
+        const materialsReady = Object.entries(cost).every(([key, amount]) => resources[key as keyof ResourceWallet] >= (amount ?? 0));
         return (
           <TutorialFocus key={item.id} active={focusSelection} label={focusSelection ? 'SELECT RECIPE' : undefined}>
             <DecisionOption
               title={item.name}
+              titleTone={tierTone(item.tier)}
               subtitle={'Tier ' + item.tier + ' · Unassigned: ' + inStock}
               selected={selected?.id === item.id}
               art={<EquipmentSprite equipmentId={item.id} faction={item.faction} size={44} />}
-              accessibilitySummary={item.description + '. Attack ' + signedStat(item.attackBonus) + ', armor ' + signedStat(item.armorBonus) + ', speed ' + signedStat(item.speedBonus) + '. Cost: ' + Object.entries(cost).map(([key, amount]) => amount + ' ' + key).join(', ')}
+              accessibilitySummary={item.description + '. Attack ' + signedStat(item.attackBonus) + ', armor ' + signedStat(item.armorBonus) + ', speed ' + signedStat(item.speedBonus) + '. Cost: ' + Object.entries(cost).map(([key, amount]) => amount + ' ' + key).join(', ') + (materialsReady ? '. Materials ready.' : '. Materials short.')}
               onSelect={() => {
                 setSelectedId(item.id);
                 setMessage(null);
               }}
             >
+              <View style={styles.badges}>
+                <TierChip tier={item.tier} />
+                <SemanticChip label={materialsReady ? 'Materials ready' : 'Materials short'} tone={materialsReady ? 'positive' : 'warning'} />
+              </View>
               <Text style={[styles.body, { color: theme.colors.textMuted }]}>{item.description}</Text>
-              <DecisionStats items={[
+              <DecisionStats presentation="delta" items={[
                 { label: 'Attack', value: signedStat(item.attackBonus) },
                 { label: 'Armor', value: signedStat(item.armorBonus) },
                 { label: 'Speed', value: signedStat(item.speedBonus) }
@@ -136,5 +146,7 @@ export function ForgeScreen({ onOpenPromotion, onExit, tutorialFocus, onTutorial
 
 const styles = StyleSheet.create({
   resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  emphasis: { fontWeight: '900' },
   body: { fontSize: 13, lineHeight: 19 }
 });

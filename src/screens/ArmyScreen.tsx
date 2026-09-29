@@ -14,6 +14,8 @@ import {
   StatusPill,
   UnitPortrait
 } from '../ui/components';
+import { EmphasisText, SemanticText, UnitBadges } from '../ui/SemanticUI';
+import { rolePresentation, semanticColor, tierTone } from '../ui/semanticColors';
 import { UnitSprite } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
@@ -156,7 +158,7 @@ export function ArmyScreen({
               <UnitPortrait
                 name={unit.name}
                 className={unit.className + ' · Lv. ' + unit.level}
-                accent={factionAccent}
+                accent={semanticColor(theme, rolePresentation[unit.role]?.tone ?? 'neutral')}
                 faction={unit.faction}
               />
               <View style={styles.stats}>
@@ -166,6 +168,9 @@ export function ArmyScreen({
                 <Text style={[styles.stat, { color: theme.colors.text }]}>SPD {unit.speed}</Text>
               </View>
             </View>
+            <View style={styles.unitBadges}>
+              <UnitBadges role={unit.role} tier={unit.tier} battleTags={unit.battleTags} />
+            </View>
 
             {activeFaction === 'human' && unit.id === 'hum_recruit' ? (
               <View style={[styles.promotionPreview, { backgroundColor: theme.colors.surface2 }]}>
@@ -174,7 +179,7 @@ export function ArmyScreen({
                 </Text>
                 <Text style={[styles.previewBody, { color: theme.colors.textMuted }]}>
                   {firstPromotionComplete
-                    ? (miraWeapon?.name ?? 'Weapon') + ' is assigned permanently to this squad.'
+                    ? <><SemanticText tone={miraWeapon ? tierTone(miraWeapon.tier) : 'neutral'}>{miraWeapon?.name ?? 'Weapon'}</SemanticText>{' is assigned permanently to this squad.'}</>
                     : forgeUnlocked && (buildingLevels.forge ?? 0) > 0
                       ? 'Craft a weapon, then choose whether Mira becomes Swordsman, Spearman or Archer.'
                       : forgeUnlocked
@@ -222,11 +227,12 @@ export function ArmyScreen({
             <Text style={[styles.commanderSubtitle, { color: factionAccent }]}>
               {activeCommanderPath ? activeCommanderPath.title : 'Choose how your leadership shapes the army'}
             </Text>
-            <Text style={[styles.commanderBody, { color: theme.colors.textMuted }]}>
-              {activeCommanderPath
+            <EmphasisText
+              text={activeCommanderPath
                 ? activeCommanderPath.passiveDescription + ' Command skill: ' + activeCommanderPath.skill.name + '.'
                 : 'Choose one of three ' + faction.name + ' commander paths.'}
-            </Text>
+              style={[styles.commanderBody, { color: theme.colors.textMuted }]}
+            />
             <View style={styles.recruitButton}>
               {activeCommanderPath ? (
                 <SecondaryButton
@@ -337,12 +343,13 @@ export function ArmyScreen({
             <View style={styles.choiceList}>
               {recruitOptions.map(choice => (
                 <View key={choice.id} style={[styles.choice, { backgroundColor: theme.colors.surface2 }]}>
-                  <View style={[styles.choiceIcon, { borderColor: factionAccent }]}>
+                  <View style={[styles.choiceIcon, { borderColor: semanticColor(theme, rolePresentation[choice.unit.role]?.tone ?? 'neutral') }]}>
                     <UnitSprite className={choice.unit.className} faction={choice.unit.faction} size={36} />
                   </View>
                   <View style={styles.choiceCopy}>
-                    <Text style={[styles.choiceName, { color: theme.colors.text }]}>{choice.unit.className}</Text>
+                    <Text style={[styles.choiceName, { color: semanticColor(theme, rolePresentation[choice.unit.role]?.tone ?? 'neutral') }]}>{choice.unit.className}</Text>
                     <Text style={[styles.choiceRole, { color: factionAccent }]}>{choice.archetype}</Text>
+                    <View style={styles.unitBadges}><UnitBadges role={choice.unit.role} battleTags={choice.unit.battleTags} compact /></View>
                     <Text style={[styles.choicePitch, { color: theme.colors.textMuted }]}>{choice.pitch}</Text>
                   </View>
                 </View>
@@ -367,7 +374,13 @@ export function ArmyScreen({
           <GameCard>
             <Text style={[styles.inventoryText, { color: theme.colors.textMuted }]}>
               {equipmentInventory.length > 0
-                ? equipmentInventory.map(id => getEquipment(id)?.name ?? id).join(' · ')
+                ? equipmentInventory.map((id, index) => {
+                    const item = getEquipment(id);
+                    return <React.Fragment key={id + ':' + index}>
+                      {index > 0 ? ' · ' : ''}
+                      <SemanticText tone={item ? tierTone(item.tier) : 'neutral'}>{item?.name ?? id}</SemanticText>
+                    </React.Fragment>;
+                  })
                 : 'No unassigned equipment. Crafted gear appears here until equipped or used for a promotion.'}
             </Text>
             <View style={styles.recruitButton}>
@@ -403,6 +416,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8
   },
+  unitBadges: { marginTop: 8 },
   unitList: { gap: 10 },
   unitRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   stats: { alignItems: 'flex-end', gap: 2 },
