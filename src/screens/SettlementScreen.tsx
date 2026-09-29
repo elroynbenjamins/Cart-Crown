@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -60,6 +60,32 @@ export function SettlementScreen({
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const tutorialScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (!tutorialFocus) return;
+
+    const timer = setTimeout(() => {
+      if (
+        tutorialFocus.kind === 'settlement-building' &&
+        selectedPlotId
+      ) {
+        tutorialScrollRef.current?.scrollToEnd({
+          animated: true
+        });
+      } else if (
+        tutorialFocus.kind === 'settlement-building' ||
+        tutorialFocus.kind === 'settlement-first-plot'
+      ) {
+        tutorialScrollRef.current?.scrollTo({
+          y: 120,
+          animated: true
+        });
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [selectedPlotId, tutorialFocus]);
 
   const settlementPlots = getSettlementPlots(activeFaction);
   const adjacencyRecipes = getSettlementAdjacencyBonuses(activeFaction);
@@ -177,6 +203,7 @@ export function SettlementScreen({
 
   return (
     <ScrollView
+      ref={tutorialScrollRef}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
