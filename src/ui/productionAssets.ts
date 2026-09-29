@@ -240,6 +240,8 @@ export function uiProductionAsset(id: string) {
 // Militia, Forest Scout and Youngblood currently use the existing code-rendered
 // fallback: their source PNGs were corrupt and no intact original was available.
 // Restore their registrations only after the replacement files pass art:check.
+// Spiritwood Spear likewise uses its existing Elven spear renderer after the
+// all-category native audit found an unrecoverable compressed PNG payload.
 export const productionAssetSources: Partial<Record<string, ImageSourcePropType>> = {
   'unit.human.recruit': require('../../assets/game/units/human/recruit.png'),
   'unit.elf.warden': require('../../assets/game/units/elf/warden.png'),
@@ -311,7 +313,6 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'equipment.hum_hunting_bow': require('../../assets/game/equipment/human/hum_hunting_bow.png'),
   'equipment.hum_padded_armor': require('../../assets/game/equipment/human/hum_padded_armor.png'),
   'equipment.hum_wood_shield': require('../../assets/game/equipment/human/hum_wood_shield.png'),
-  'equipment.elf_spiritwood_spear': require('../../assets/game/equipment/elf/elf_spiritwood_spear.png'),
   'equipment.elf_moonbow': require('../../assets/game/equipment/elf/elf_moonbow.png'),
   'equipment.elf_leafweave': require('../../assets/game/equipment/elf/elf_leafweave.png'),
   'equipment.orc_iron_axe': require('../../assets/game/equipment/orc/orc_iron_axe.png'),
