@@ -125,6 +125,7 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:large-research',
   'system:large-training',
   'system:hybrid-discovery',
+  'system:hybrid-prerequisites',
   'system:hybrid-research',
   'system:hybrid-training'
 ] as const;
@@ -857,29 +858,41 @@ function systemMoment(
   if (
     context.hybridStoryUnlocked &&
     context.view === 'hybridResearch' &&
+    !context.hybridPrerequisitesMet &&
+    !seen(context, 'system:hybrid-prerequisites')
+  ) {
+    return {
+      key: 'system:hybrid-prerequisites',
+      kind: 'system',
+      eyebrow: 'LEGENDARY PREREQUISITES',
+      title: 'Finish the earlier fantasy branches first',
+      body:
+        'The story reward is yours immediately, but repeatable legendary training remains locked until this faction’s Magic and Flying research are complete. This keeps Chapter 8 as a culmination of earlier fantasy progression rather than a shortcut around it.',
+      primaryLabel: 'Got it',
+      target: 'none'
+    };
+  }
+
+  if (
+    context.hybridStoryUnlocked &&
+    context.hybridPrerequisitesMet &&
+    context.view === 'hybridResearch' &&
     !seen(context, 'system:hybrid-research')
   ) {
     return {
       key: 'system:hybrid-research',
       kind: 'system',
       eyebrow: 'LEGENDARY DOCTRINE',
-      title: context.hybridPrerequisitesMet
-        ? 'Legendary research is now available'
-        : 'Finish the earlier fantasy branches first',
-      body: context.hybridPrerequisitesMet
-        ? 'The legendary doctrine uses the same optional timer model as earlier fantasy research. Let it finish naturally, or shorten it with rewarded ads or Gems. Completing it unlocks repeatable hybrid training.'
-        : 'The story reward is yours immediately, but repeatable legendary training remains locked until this faction’s Magic and Flying research are complete. Finish those branches first; this prevents Chapter 8 from skipping earlier progression.',
-      primaryLabel: context.hybridPrerequisitesMet
-        ? 'Show legendary research'
-        : 'Review prerequisites',
+      title: 'Legendary research is now available',
+      body:
+        'The legendary doctrine uses the same optional timer model as earlier fantasy research. Let it finish naturally, or shorten it with rewarded ads or Gems. Completing it unlocks repeatable hybrid training.',
+      primaryLabel: 'Show legendary research',
       target: 'none',
-      focusAfterPrimary: context.hybridPrerequisitesMet
-        ? {
-            kind: 'research-start',
-            family: 'hybrid',
-            label: 'START LEGENDARY RESEARCH'
-          }
-        : undefined
+      focusAfterPrimary: {
+        kind: 'research-start',
+        family: 'hybrid',
+        label: 'START LEGENDARY RESEARCH'
+      }
     };
   }
 
