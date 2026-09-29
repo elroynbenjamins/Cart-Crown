@@ -4516,7 +4516,12 @@ export function GameProvider({
     }));
 
     if (buildingId === factionBuildingIds.supply && targetLevel === 2) {
-      setExpeditionTickets(previous => previous + 1);
+      setExpeditionTickets(previous =>
+        Math.min(
+          MAX_EXPEDITION_TICKETS,
+          previous + 1
+        )
+      );
     }
 
     return true;
@@ -5869,7 +5874,27 @@ export function GameProvider({
   };
 
   const startExpeditionRun = () => {
-    if (!consumeExpeditionTicket()) return false;
+    if (
+      !isSideModeUnlocked('expeditions') ||
+      activeExpeditionRun
+    ) {
+      return false;
+    }
+
+    const rewardMultiplier =
+      getExpeditionRewardMultiplier({
+        currentChapter: chapterNumber,
+        rewardChapter: expeditionRewardChapter,
+        rewardedRunsThisChapter:
+          expeditionRewardedRunsThisChapter
+      });
+
+    if (
+      rewardMultiplier > 0 &&
+      !consumeExpeditionTicket()
+    ) {
+      return false;
+    }
 
     setActiveExpeditionRun(
       createExpeditionRun({
@@ -5883,7 +5908,8 @@ export function GameProvider({
           expeditionPreparation.hasRations,
         hasMedicine:
           expeditionPreparation.hasMedicine,
-        baseReward: expeditionBaseReward
+        baseReward: expeditionBaseReward,
+        rewardMultiplier
       })
     );
     return true;
@@ -5936,10 +5962,23 @@ export function GameProvider({
     setExpeditionRunsCompleted(
       previous => previous + 1
     );
-    accrueRegionalProduction();
-    setResources(previous =>
-      addResources(previous, reward)
-    );
+
+    if (activeExpeditionRun.rewardMultiplier > 0) {
+      setExpeditionRewardChapter(
+        chapterNumber
+      );
+      setExpeditionRewardedRunsThisChapter(
+        previous =>
+          expeditionRewardChapter === chapterNumber
+            ? previous + 1
+            : 1
+      );
+      accrueRegionalProduction();
+      setResources(previous =>
+        addResources(previous, reward)
+      );
+    }
+
     setArmyReadiness(
       clampArmyReadiness(
         activeExpeditionRun.readiness
@@ -5960,7 +5999,8 @@ export function GameProvider({
       kingdomTrialCompletions.includes(trialId) ||
       !isKingdomTrialUnlocked(
         trialId,
-        kingdomTrialCompletions
+        kingdomTrialCompletions,
+        chapterNumber
       )
     ) {
       return false;
@@ -6043,7 +6083,12 @@ export function GameProvider({
           settlementEffects.dailyProvisionBonus
       }));
     } else if (placementId === 'expedition_ticket') {
-      setExpeditionTickets(previous => previous + 1);
+      setExpeditionTickets(previous =>
+        Math.min(
+          MAX_EXPEDITION_TICKETS,
+          previous + 1
+        )
+      );
     } else if (placementId === 'salvage_boost') {
       setResources(previous => ({
         ...previous,
