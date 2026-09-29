@@ -778,17 +778,184 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     speed: 9,
     battleTags: ['ground', 'magic', 'support', 'armored'],
     cost: { gold: 175, iron: 18, provisions: 8 }
-  }
+  },
+
+  {
+    id: 'human_griffin_rider',
+    researchId: 'human_griffin_handling',
+    faction: 'human',
+    family: 'flying',
+    className: 'Griffin Rider',
+    role: 'cavalry',
+    tier: 5,
+    level: 9,
+    hp: 138,
+    attack: 25,
+    armor: 10,
+    speed: 18,
+    battleTags: ['flying', 'mounted', 'beast', 'charge'],
+    cost: { gold: 240, iron: 24, provisions: 10 }
+  },
+  {
+    id: 'human_griffin_lancer',
+    researchId: 'human_griffin_handling',
+    faction: 'human',
+    family: 'flying',
+    className: 'Griffin Lancer',
+    role: 'cavalry',
+    tier: 5,
+    level: 9,
+    hp: 145,
+    attack: 28,
+    armor: 11,
+    speed: 17,
+    battleTags: ['flying', 'mounted', 'beast', 'charge', 'armored'],
+    cost: { gold: 280, iron: 32, provisions: 12 }
+  },
+  {
+    id: 'human_griffin_archer',
+    researchId: 'human_griffin_handling',
+    faction: 'human',
+    family: 'flying',
+    className: 'Griffin Archer',
+    role: 'ranged',
+    tier: 5,
+    level: 9,
+    hp: 125,
+    attack: 27,
+    armor: 8,
+    speed: 18,
+    battleTags: ['flying', 'mounted', 'beast', 'ranged'],
+    cost: { gold: 270, wood: 18, iron: 22, provisions: 12 }
+  },
+  {
+    id: 'elf_eagle_rider',
+    researchId: 'elf_eagle_handling',
+    faction: 'elf',
+    family: 'flying',
+    className: 'Eagle Rider',
+    role: 'skirmish',
+    tier: 5,
+    level: 9,
+    hp: 120,
+    attack: 24,
+    armor: 7,
+    speed: 21,
+    battleTags: ['flying', 'mounted', 'beast', 'ranged'],
+    cost: { gold: 230, wood: 20, iron: 10, provisions: 10 }
+  },
+  {
+    id: 'elf_eagle_archer',
+    researchId: 'elf_eagle_handling',
+    faction: 'elf',
+    family: 'flying',
+    className: 'Eagle Archer',
+    role: 'ranged',
+    tier: 5,
+    level: 9,
+    hp: 112,
+    attack: 27,
+    armor: 6,
+    speed: 22,
+    battleTags: ['flying', 'mounted', 'beast', 'ranged'],
+    cost: { gold: 265, wood: 25, iron: 12, provisions: 12 }
+  },
+  {
+    id: 'orc_wyvern_rider',
+    researchId: 'orc_wyvern_handling',
+    faction: 'orc',
+    family: 'flying',
+    className: 'Wyvern Rider',
+    role: 'cavalry',
+    tier: 5,
+    level: 9,
+    hp: 150,
+    attack: 28,
+    armor: 9,
+    speed: 17,
+    battleTags: ['flying', 'mounted', 'beast', 'charge'],
+    cost: { gold: 245, iron: 22, provisions: 12 }
+  },
+  {
+    id: 'orc_wyvern_lancer',
+    researchId: 'orc_wyvern_handling',
+    faction: 'orc',
+    family: 'flying',
+    className: 'Wyvern Lancer',
+    role: 'cavalry',
+    tier: 5,
+    level: 9,
+    hp: 158,
+    attack: 31,
+    armor: 10,
+    speed: 16,
+    battleTags: ['flying', 'mounted', 'beast', 'charge', 'armored'],
+    cost: { gold: 285, iron: 30, provisions: 14 }
+  },
 ];
 
 export type FantasyCombatEdge = {
-  magicUnits: number;
+  unitCount: number;
   attackMultiplier: number;
   incomingDamageMultiplier: number;
   title: string;
   detail: string;
   favorable: boolean;
 };
+
+export function getFlyingCombatEdge(
+  activeUnits: UnitDefinition[],
+  enemyProfileId: EnemyArmyProfileId
+): FantasyCombatEdge | null {
+  const flyingUnits = activeUnits.filter(unit =>
+    unitHasBattleTag(unit, 'flying')
+  ).length;
+
+  if (flyingUnits === 0) return null;
+
+  let attackMultiplier =
+    1 + Math.min(0.08, flyingUnits * 0.025);
+  let incomingDamageMultiplier = 1;
+  let title = 'Aerial pressure';
+  let detail =
+    'Flying squads bypass parts of the frontline and pressure protected rear positions.';
+  let favorable = true;
+
+  if (
+    enemyProfileId === 'shield_host' ||
+    enemyProfileId === 'elite_command'
+  ) {
+    attackMultiplier =
+      1 + Math.min(0.12, flyingUnits * 0.04);
+    title = 'Backline access';
+    detail =
+      'Flying squads can reach protected specialists behind a dense ground screen.';
+  } else if (enemyProfileId === 'missile_company') {
+    attackMultiplier =
+      Math.max(0.94, 1 - flyingUnits * 0.02);
+    incomingDamageMultiplier =
+      1 + Math.min(0.12, flyingUnits * 0.04);
+    title = 'Anti-air fire';
+    detail =
+      'Concentrated missile troops punish exposed aerial squads. Use ground pressure or a tougher screen to split their fire.';
+    favorable = false;
+  } else if (enemyProfileId === 'mounted_hunters') {
+    attackMultiplier =
+      1 + Math.min(0.09, flyingUnits * 0.03);
+    title = 'Air superiority';
+    detail =
+      'Flying squads ignore much of the enemy mounted screen and can choose favorable engagements.';
+  }
+
+  return {
+    unitCount: flyingUnits,
+    attackMultiplier,
+    incomingDamageMultiplier,
+    title,
+    detail,
+    favorable
+  };
+}
 
 export function getFantasyCombatEdge(
   activeUnits: UnitDefinition[],
@@ -842,7 +1009,7 @@ export function getFantasyCombatEdge(
     );
 
   return {
-    magicUnits,
+    unitCount: magicUnits,
     attackMultiplier,
     incomingDamageMultiplier: exposedCasters ? 1.06 : 1,
     title,

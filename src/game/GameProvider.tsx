@@ -224,6 +224,9 @@ type GameContextValue = {
   magicFamilyUnlock: FamilyUnlockDefinition | null;
   magicResearchDefinitions: ResearchDefinition[];
   fantasyRecruitOptions: FantasyRecruitTemplate[];
+  flyingFamilyUnlock: FamilyUnlockDefinition | null;
+  flyingResearchDefinitions: ResearchDefinition[];
+  flyingRecruitOptions: FantasyRecruitTemplate[];
   formationShapeId: FormationShapeId;
   formationShapes: FormationShapeDefinition[];
   activeFormationShape: FormationShapeDefinition;
@@ -743,6 +746,30 @@ export function GameProvider({
     () => getFantasyRecruitTemplates(activeFaction, 'magic'),
     [activeFaction]
   );
+  const flyingFamilyUnlock = useMemo(
+    () => getFamilyUnlock(activeFaction, 'flying'),
+    [activeFaction]
+  );
+  const flyingResearchDefinitions = useMemo(
+    () =>
+      researchDefinitions.filter(
+        research =>
+          research.faction === activeFaction &&
+          research.family === 'flying'
+      ),
+    [activeFaction]
+  );
+  const flyingRecruitOptions = useMemo(
+    () => getFantasyRecruitTemplates(activeFaction, 'flying'),
+    [activeFaction]
+  );
+  const factionFantasyResearchDefinitions = useMemo(
+    () =>
+      researchDefinitions.filter(
+        research => research.faction === activeFaction
+      ),
+    [activeFaction]
+  );
 
   useEffect(() => {
     if (!magicFamilyUnlock || chapterNumber < 4) return;
@@ -792,6 +819,56 @@ export function GameProvider({
     chapterNumber,
     completedStoryGates,
     magicFamilyUnlock
+  ]);
+
+  useEffect(() => {
+    if (!flyingFamilyUnlock || chapterNumber < 5) return;
+
+    const discoveryNodeId =
+      activeFaction === 'human'
+        ? 'ch5_node_3'
+        : activeFaction === 'elf'
+          ? 'elf5_node_3'
+          : 'orc5_node_3';
+    const discoveryComplete =
+      chapterNumber > 5 ||
+      Boolean(
+        chapterNodes.find(
+          node => node.id === discoveryNodeId
+        )?.completed
+      );
+
+    if (
+      !discoveryComplete ||
+      completedStoryGates.includes(
+        flyingFamilyUnlock.storyGateId
+      )
+    ) {
+      return;
+    }
+
+    setCompletedStoryGates(previous =>
+      previous.includes(flyingFamilyUnlock.storyGateId)
+        ? previous
+        : [...previous, flyingFamilyUnlock.storyGateId]
+    );
+
+    const reward = getFantasyStoryRewardUnit(
+      flyingFamilyUnlock.firstStoryRewardUnitId
+    );
+    if (reward) {
+      setUnits(previous =>
+        previous.some(unit => unit.id === reward.id)
+          ? previous
+          : [...previous, { ...reward }]
+      );
+    }
+  }, [
+    activeFaction,
+    chapterNodes,
+    chapterNumber,
+    completedStoryGates,
+    flyingFamilyUnlock
   ]);
 
   const currentWagonStage = useMemo(
@@ -5405,7 +5482,7 @@ export function GameProvider({
   };
 
   const startFantasyResearch = (researchId: string) => {
-    const research = magicResearchDefinitions.find(
+    const research = factionFantasyResearchDefinitions.find(
       candidate => candidate.id === researchId
     );
     if (!research) return false;
@@ -5426,7 +5503,7 @@ export function GameProvider({
     }
 
     const anotherResearchActive =
-      magicResearchDefinitions.some(candidate => {
+      factionFantasyResearchDefinitions.some(candidate => {
         if (candidate.id === research.id) return false;
         const progress = researchProgress[candidate.id];
         if (
@@ -5456,7 +5533,7 @@ export function GameProvider({
   };
 
   const claimFantasyResearch = (researchId: string) => {
-    const research = magicResearchDefinitions.find(
+    const research = factionFantasyResearchDefinitions.find(
       candidate => candidate.id === researchId
     );
     const progress = research
@@ -5477,7 +5554,7 @@ export function GameProvider({
   const watchFantasyResearchAd = async (
     researchId: string
   ): Promise<RewardedAdResult> => {
-    const research = magicResearchDefinitions.find(
+    const research = factionFantasyResearchDefinitions.find(
       candidate => candidate.id === researchId
     );
     const progress = research
@@ -5530,7 +5607,7 @@ export function GameProvider({
   const finishFantasyResearchWithGems = (
     researchId: string
   ) => {
-    const research = magicResearchDefinitions.find(
+    const research = factionFantasyResearchDefinitions.find(
       candidate => candidate.id === researchId
     );
     const progress = research
@@ -5563,7 +5640,10 @@ export function GameProvider({
   };
 
   const recruitFantasyUnit = (templateId: string) => {
-    const template = fantasyRecruitOptions.find(
+    const template = [
+      ...fantasyRecruitOptions,
+      ...flyingRecruitOptions
+    ].find(
       candidate => candidate.id === templateId
     );
     if (!template) return false;
@@ -5656,6 +5736,9 @@ export function GameProvider({
       magicFamilyUnlock,
       magicResearchDefinitions,
       fantasyRecruitOptions,
+      flyingFamilyUnlock,
+      flyingResearchDefinitions,
+      flyingRecruitOptions,
       formationShapeId,
       formationShapes,
       activeFormationShape,
@@ -5855,6 +5938,10 @@ export function GameProvider({
       magicFamilyUnlock,
       magicResearchDefinitions,
       fantasyRecruitOptions,
+      flyingFamilyUnlock,
+      flyingResearchDefinitions,
+      flyingRecruitOptions,
+      factionFantasyResearchDefinitions,
       fantasyRecruitSerial,
       formationShapeId,
       activeFormationShape,

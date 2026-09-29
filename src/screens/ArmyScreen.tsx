@@ -24,6 +24,7 @@ export function ArmyScreen({
   onOpenPromotion,
   onOpenCommander,
   onOpenFantasyResearch,
+  onOpenFlyingResearch,
   onOpenEquipment,
   tutorialFocus,
   onTutorialFocusComplete
@@ -33,6 +34,7 @@ export function ArmyScreen({
   onOpenPromotion: () => void;
   onOpenCommander: () => void;
   onOpenFantasyResearch: () => void;
+  onOpenFlyingResearch: () => void;
   onOpenEquipment: (unitId: string) => void;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
@@ -57,6 +59,8 @@ export function ArmyScreen({
     completedStoryGates,
     magicFamilyUnlock,
     magicResearchDefinitions,
+    flyingFamilyUnlock,
+    flyingResearchDefinitions,
     researchProgress,
     buildingLevels,
     factionBuildingIds
@@ -87,6 +91,16 @@ export function ArmyScreen({
   );
   const completedMagicResearch =
     magicResearchDefinitions.filter(
+      research => researchProgress[research.id]?.completed
+    ).length;
+  const flyingUnlocked = Boolean(
+    flyingFamilyUnlock &&
+    completedStoryGates.includes(
+      flyingFamilyUnlock.storyGateId
+    )
+  );
+  const completedFlyingResearch =
+    flyingResearchDefinitions.filter(
       research => researchProgress[research.id]?.completed
     ).length;
   const mira = units.find(unit => unit.id === 'hum_recruit');
@@ -264,6 +278,46 @@ export function ArmyScreen({
                     : 'View Magic Progress'
                 }
                 onPress={onOpenFantasyResearch}
+              />
+            </View>
+          </GameCard>
+        </>
+      ) : null}
+
+      {chapterNumber >= 5 ? (
+        <>
+          <SectionTitle
+            title="Aerial training"
+            trailing={
+              flyingUnlocked
+                ? completedFlyingResearch +
+                  '/' +
+                  flyingResearchDefinitions.length +
+                  ' researched'
+                : 'Story gate'
+            }
+          />
+          <GameCard
+            accent={flyingUnlocked ? factionAccent : undefined}
+            faction={activeFaction}
+            state={flyingUnlocked ? 'ready' : 'default'}
+          >
+            <Text style={[styles.lockedTitle, { color: theme.colors.text }]}>
+              {flyingFamilyUnlock?.buildingName ?? 'Aerial Institution'}
+            </Text>
+            <Text style={[styles.lockedBody, { color: theme.colors.textMuted }]}>
+              {flyingUnlocked
+                ? 'Your first aerial squad has joined. Complete handling research to train specialized flying branches and learn when anti-air pressure makes a ground plan safer.'
+                : 'Chapter 5 opens faction-specific aerial warfare. Complete the current discovery to establish the handling grounds and receive the first flying squad.'}
+            </Text>
+            <View style={styles.recruitButton}>
+              <PrimaryButton
+                label={
+                  flyingUnlocked
+                    ? 'Open Aerial Training'
+                    : 'View Flying Progress'
+                }
+                onPress={onOpenFlyingResearch}
               />
             </View>
           </GameCard>
