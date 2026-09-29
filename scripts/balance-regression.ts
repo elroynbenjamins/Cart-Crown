@@ -1169,6 +1169,54 @@ function runChapterMatrix() {
   return rows;
 }
 
+function runTrueOpeningBossCoverage() {
+  const openings: Array<{
+    faction: 'elf' | 'orc';
+    units: UnitDefinition[];
+    encounterId: EncounterId;
+    minimumHpRatio: number;
+  }> = [
+    {
+      faction: 'elf',
+      units: elfStarterUnits.map(cloneUnit),
+      encounterId: 'elf_hollow_warden',
+      minimumHpRatio: 0.08
+    },
+    {
+      faction: 'orc',
+      units: orcStarterUnits.map(cloneUnit),
+      encounterId: 'orc_blamecaller',
+      minimumHpRatio: 0.08
+    }
+  ];
+
+  for (const opening of openings) {
+    const result = simulate({
+      faction: opening.faction,
+      units: opening.units,
+      doctrineId:
+        doctrineByFaction[opening.faction],
+      shapeId: 'balanced_333',
+      commander: null,
+      encounterId: opening.encounterId,
+      squadCap: 2,
+      readiness: 100
+    });
+
+    expect(
+      result.victory,
+      opening.faction +
+        ' true ungeared Chapter 1 starter army can no longer clear ' +
+        opening.encounterId
+    );
+    expect(
+      ratio(result) >= opening.minimumHpRatio,
+      opening.faction +
+        ' true ungeared Chapter 1 boss has fallen back to a near-zero-HP edge.'
+    );
+  }
+}
+
 function runCommanderCoverage() {
   for (const faction of [
     'human',
@@ -2110,6 +2158,7 @@ function printRows(rows: ScenarioRow[]) {
 function main() {
   runReadinessCoverage();
   const rows = runChapterMatrix();
+  runTrueOpeningBossCoverage();
   runCommanderCoverage();
   runHumanStoryChoiceCoverage();
   runLatePolicyCoverage();
