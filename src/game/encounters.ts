@@ -241,7 +241,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'A corrupted guardian blocks the rootway while hidden agents continue damaging the Heartgrove wards.',
     enemyName: 'Hollow Warden',
     enemyCount: 5,
-    enemyHp: 340,
+    enemyHp: 280,
     difficulty: 'Boss'
   },
   orc_red_road: {

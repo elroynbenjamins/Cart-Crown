@@ -7,40 +7,65 @@ import {
   payResourceCost
 } from '../src/game/balance';
 import {
+  fortMusterOptions,
   humanResourceSites
 } from '../src/game/chapter2';
 import {
-  marcherResourceSites
+  marcherAuxiliaryOptions,
+  marcherResourceSites,
+  marcherWarningChoices
 } from '../src/game/chapter3';
 import {
-  crownroadResourceSites
+  crownroadResourceSites,
+  lastLoyalistChoices,
+  strongholdMusterOptions
 } from '../src/game/chapter4';
 import {
   capitalResourceSites
 } from '../src/game/chapter5';
 import {
+  crownspireResourceSites
+} from '../src/game/chapter6';
+import { royalDecrees } from '../src/game/capital';
+import {
   encounterRewards,
-  getEncounter
+  getEncounter,
+  getEnemyArmyProfile,
+  getEnemyFormationTactic
 } from '../src/game/encounters';
 import type { EncounterId } from '../src/game/encounters';
 import {
-  equipmentDefinitions
+  advancedPromotions,
+  canUnitEquipEquipment,
+  equipmentDefinitions,
+  recruitPromotions
 } from '../src/game/equipment';
 import {
-  factionChapterTwoResourceSites
+  elfThirdRecruitOptions,
+  factionChapterTwoResourceSites,
+  orcThirdRecruitOptions
 } from '../src/game/factionChapter2';
 import {
-  factionChapterThreeResourceSites
+  elfFourthRecruitOptions,
+  factionChapterThreeResourceSites,
+  orcFourthRecruitOptions
 } from '../src/game/factionChapter3';
 import {
-  factionChapterFourResourceSites
+  elfChapterFiveReinforcement,
+  elfFifthRecruitOptions,
+  factionChapterFourResourceSites,
+  orcChapterFiveReinforcement,
+  orcFifthRecruitOptions
 } from '../src/game/factionChapter4';
 import {
-  factionChapterFiveResourceSites
+  factionChapterFiveResourceSites,
+  factionMandates
 } from '../src/game/factionChapter5';
 import {
   elfStarterResources,
-  orcStarterResources
+  elfStarterUnits,
+  orcStarterResources,
+  orcStarterUnits
 } from '../src/game/factionStarts';
 import {
   getBuildingLevelDefinition,
@@ -48,12 +73,30 @@ import {
   getFactionBuildingIds
 } from '../src/game/kingdom';
 import {
-  starterResources
+  humanRecruitOptions,
+  starterResources,
+  starterUnits
 } from '../src/game/data';
+import { getCommanderPaths } from '../src/game/commanders';
+import {
+  formationShapes,
+  getFactionDoctrines
+} from '../src/game/formation';
+import { evaluateFormationPreset } from '../src/game/loadoutAnalysis';
+import {
+  buildFormation,
+  simulate
+} from './balance-regression';
+import type {
+  SimulationResult
+} from './balance-regression';
 import type {
   FactionId,
+  FormationPreset,
+  FormationShapeId,
   ResourceSiteDefinition,
-  ResourceWallet
+  ResourceWallet,
+  UnitDefinition
 } from '../src/game/types';
 
 type EconomyState = {
@@ -76,6 +119,14 @@ type EconomyState = {
   armyReadiness: number;
   resupplyCount: number;
   resupplyProvisions: number;
+  purchasedGearIds: string[];
+  battlesWon: number;
+  battleDefeats: number;
+  formationSwitches: number;
+  lastFormationShapeId: FormationShapeId | null;
+  weakestWinHpPercent: number;
+  weakestWinEncounter: EncounterId | null;
+  weakestWinShapeId: FormationShapeId | null;
   equipmentSpent: ResourceWallet;
 };
 
@@ -106,6 +157,7 @@ const allSites: ResourceSiteDefinition[] = [
   ...marcherResourceSites,
   ...crownroadResourceSites,
   ...capitalResourceSites,
+  ...crownspireResourceSites,
   ...factionChapterTwoResourceSites,
   ...factionChapterThreeResourceSites,
   ...factionChapterFourResourceSites,
@@ -136,15 +188,6 @@ const squadCapByStage: Record<EconomyState['stage'], number> = {
   grand: 6
 };
 
-const representativeRemainingHp: Record<
-  'Normal' | 'Elite' | 'Boss',
-  number
-> = {
-  Normal: 80,
-  Elite: 65,
-  Boss: 50
-};
-
 const chapterEncounters: Record<
   FactionId,
   Record<number, EncounterId[]>
@@ -173,6 +216,11 @@ const chapterEncounters: Record<
       'old_royal_lands',
       'ashen_envoy',
       'gate_of_crownspire'
+    ],
+    6: [
+      'sundered_fields',
+      'ashen_court',
+      'return_to_crownspire'
     ]
   },
   elf: {
@@ -200,6 +248,11 @@ const chapterEncounters: Record<
       'elf_wounded_worldroot',
       'elf_ashen_rootkeepers',
       'elf_worldroot_guardian'
+    ],
+    6: [
+      'elf_stars_over_crownspire',
+      'elf_ashen_starwatch',
+      'elf_return_through_roots'
     ]
   },
   orc: {
@@ -227,6 +280,11 @@ const chapterEncounters: Record<
       'orc_no_clan_left_behind',
       'orc_ashen_clanbreakers',
       'orc_last_clanbreaker'
+    ],
+    6: [
+      'orc_truth_at_crownspire',
+      'orc_ashen_warfires',
+      'orc_crownspire_warmaster'
     ]
   }
 };
@@ -254,6 +312,44 @@ const gearPackages: Record<
     4: ['orc_trained_warg', 'orc_raider_axe'],
     5: ['orc_veteran_warg', 'orc_bloodaxe']
   }
+};
+
+const doctrineUnlockRank: Record<string, number> = {
+  Start: 0,
+  Settlement: 1,
+  Fort: 2,
+  Town: 3,
+  Stronghold: 4
+};
+
+const gearTargetUnit: Record<string, string> = {
+  hum_iron_sword: 'hum_recruit',
+  hum_padded_armor: 'hum_militia',
+  hum_wood_shield: 'hum_militia',
+  hum_steel_sword: 'hum_recruit',
+  hum_hunting_bow: 'hum_archer_reinforcement',
+  hum_chainmail: 'hum_militia',
+  hum_longbow: 'hum_archer_reinforcement',
+  hum_tempered_sword: 'hum_recruit',
+  hum_heavy_plate: 'hum_militia',
+
+  elf_spiritwood_spear: 'elf_warden',
+  elf_leafweave: 'elf_warden',
+  elf_moonsilver_spear: 'elf_warden',
+  elf_moonweave: 'elf_warden',
+  elf_trained_stag: 'elf_stag_scout',
+  elf_rider_bow: 'elf_stag_scout',
+  elf_veteran_stag: 'elf_stag_scout',
+  elf_starbow: 'elf_stag_scout',
+
+  orc_iron_axe: 'orc_youngblood',
+  orc_warhide: 'orc_youngblood',
+  orc_blackiron_axe: 'orc_youngblood',
+  orc_reinforced_warhide: 'orc_youngblood',
+  orc_trained_warg: 'orc_warg_scout',
+  orc_raider_axe: 'orc_warg_scout',
+  orc_veteran_warg: 'orc_warg_scout',
+  orc_bloodaxe: 'orc_warg_scout'
 };
 
 function invariant(
@@ -394,13 +490,14 @@ function applyBattleWear(
   state: EconomyState,
   difficulty: 'Normal' | 'Elite' | 'Boss',
   remainingHp: number,
-  context: string
+  context: string,
+  victory = true
 ) {
   const wear = getBattleReadinessWear(
     remainingHp,
     100,
     difficulty,
-    true,
+    victory,
     true,
     true
   );
@@ -411,21 +508,658 @@ function applyBattleWear(
   resupplyIfFatigued(state, context);
 }
 
+function cloneUnit(unit: UnitDefinition): UnitDefinition {
+  return { ...unit };
+}
+
+function optionUnit(
+  options: Array<{ unit: UnitDefinition }>,
+  id: string
+) {
+  const option = options.find(
+    candidate => candidate.unit.id === id
+  );
+  invariant(option, 'Missing campaign recruit: ' + id);
+  return cloneUnit(option.unit);
+}
+
+function promoteUnit(
+  unit: UnitDefinition,
+  promotionId: string
+): UnitDefinition {
+  const promotion = advancedPromotions.find(
+    candidate => candidate.id === promotionId
+  );
+  invariant(
+    promotion,
+    'Missing campaign promotion: ' + promotionId
+  );
+  invariant(
+    unit.className === promotion.fromClass,
+    promotionId +
+      ' expected ' +
+      promotion.fromClass +
+      ', got ' +
+      unit.className
+  );
+
+  return {
+    ...unit,
+    className: promotion.toClass,
+    role: promotion.role,
+    tier: unit.tier + 1,
+    attack: unit.attack + promotion.attackBonus,
+    armor: unit.armor + promotion.armorBonus,
+    speed: unit.speed + promotion.speedBonus
+  };
+}
+
+function buildCampaignArmy(
+  state: EconomyState,
+  chapter: number,
+  encounterId: EncounterId
+): UnitDefinition[] {
+  if (
+    state.faction === 'human' &&
+    encounterId === 'hold_the_road'
+  ) {
+    return starterUnits.map(cloneUnit);
+  }
+
+  if (state.faction === 'human') {
+    const units = starterUnits.map(cloneUnit);
+    const recruitIndex = units.findIndex(
+      unit => unit.id === 'hum_recruit'
+    );
+    const recruit = units[recruitIndex];
+    invariant(recruit, 'Human recruit missing.');
+
+    if (
+      state.purchasedGearIds.includes(
+        'hum_iron_sword'
+      )
+    ) {
+      const promotion = recruitPromotions.find(
+        candidate =>
+          candidate.id ===
+          'promote_recruit_swordsman'
+      );
+      invariant(
+        promotion,
+        'Human Swordsman promotion missing.'
+      );
+      units[recruitIndex] = {
+        ...recruit,
+        className: promotion.toClass,
+        role: promotion.role,
+        tier: 2,
+        attack:
+          recruit.attack +
+          promotion.attackBonus,
+        armor:
+          recruit.armor +
+          promotion.armorBonus,
+        speed:
+          recruit.speed +
+          promotion.speedBonus,
+        promotionReady: false
+      };
+    }
+
+    units.push(
+      optionUnit(
+        humanRecruitOptions,
+        'hum_archer_reinforcement'
+      )
+    );
+
+    if (chapter >= 2) {
+      units.push(
+        optionUnit(
+          fortMusterOptions,
+          'hum_man_at_arms_reinforcement'
+        )
+      );
+    }
+    if (chapter >= 3) {
+      units.push(
+        optionUnit(
+          marcherAuxiliaryOptions,
+          'hum_marcher_ranger'
+        )
+      );
+    }
+    if (chapter >= 4) {
+      units.push(
+        optionUnit(
+          strongholdMusterOptions,
+          'hum_banner_captain_reinforcement'
+        )
+      );
+    }
+
+    return applyPurchasedGear(state, units);
+  }
+
+  if (state.faction === 'elf') {
+    const units = elfStarterUnits.map(cloneUnit);
+
+    if (chapter >= 2) {
+      units.push(
+        optionUnit(
+          elfThirdRecruitOptions,
+          'elf_stag_scout'
+        )
+      );
+    }
+    if (chapter >= 3) {
+      units.push(
+        optionUnit(
+          elfFourthRecruitOptions,
+          'elf_spiritkeeper'
+        )
+      );
+    }
+    if (chapter >= 4) {
+      units.push(
+        optionUnit(
+          elfFifthRecruitOptions,
+          'elf_moon_ranger'
+        )
+      );
+    }
+    if (chapter >= 5) {
+      units.push(
+        cloneUnit(elfChapterFiveReinforcement)
+      );
+    }
+
+    const stagIndex = units.findIndex(
+      unit => unit.id === 'elf_stag_scout'
+    );
+    if (
+      stagIndex >= 0 &&
+      state.purchasedGearIds.includes(
+        'elf_trained_stag'
+      )
+    ) {
+      const unit = units[stagIndex];
+      invariant(unit, 'Stag Scout missing.');
+      units[stagIndex] = promoteUnit(
+        unit,
+        'stag_scout_stag_rider'
+      );
+
+      if (
+        state.purchasedGearIds.includes(
+          'elf_rider_bow'
+        )
+      ) {
+        const rider = units[stagIndex];
+        invariant(rider, 'Stag Rider missing.');
+        units[stagIndex] = promoteUnit(
+          rider,
+          'stag_rider_mounted_ranger'
+        );
+      }
+    }
+
+    return applyPurchasedGear(state, units);
+  }
+
+  const units = orcStarterUnits.map(cloneUnit);
+
+  if (chapter >= 2) {
+    units.push(
+      optionUnit(
+        orcThirdRecruitOptions,
+        'orc_warg_scout'
+      )
+    );
+  }
+  if (chapter >= 3) {
+    units.push(
+      optionUnit(
+        orcFourthRecruitOptions,
+        'orc_warbringer'
+      )
+    );
+  }
+  if (chapter >= 4) {
+    units.push(
+      optionUnit(
+        orcFifthRecruitOptions,
+        'orc_ironhide'
+      )
+    );
+  }
+  if (chapter >= 5) {
+    units.push(
+      cloneUnit(orcChapterFiveReinforcement)
+    );
+  }
+
+  const wargIndex = units.findIndex(
+    unit => unit.id === 'orc_warg_scout'
+  );
+  if (
+    wargIndex >= 0 &&
+    state.purchasedGearIds.includes(
+      'orc_trained_warg'
+    )
+  ) {
+    const unit = units[wargIndex];
+    invariant(unit, 'Warg Scout missing.');
+    units[wargIndex] = promoteUnit(
+      unit,
+      'warg_scout_warg_rider'
+    );
+
+    if (
+      state.purchasedGearIds.includes(
+        'orc_raider_axe'
+      )
+    ) {
+      const rider = units[wargIndex];
+      invariant(rider, 'Warg Rider missing.');
+      units[wargIndex] = promoteUnit(
+        rider,
+        'warg_rider_warg_raider'
+      );
+    }
+  }
+
+  return applyPurchasedGear(state, units);
+}
+
+function applyPurchasedGear(
+  state: EconomyState,
+  units: UnitDefinition[]
+) {
+  const unitById = new Map(
+    units.map(unit => [unit.id, { ...unit }])
+  );
+  const equipped = new Map<
+    string,
+    Map<string, (typeof equipmentDefinitions)[number]>
+  >();
+
+  for (const equipmentId of state.purchasedGearIds) {
+    const item = equipmentDefinitions.find(
+      candidate => candidate.id === equipmentId
+    );
+    const targetId = gearTargetUnit[equipmentId];
+    if (!item || !targetId) continue;
+
+    const target = unitById.get(targetId);
+    if (
+      !target ||
+      !canUnitEquipEquipment(target, item)
+    ) {
+      continue;
+    }
+
+    const loadout =
+      equipped.get(targetId) ??
+      new Map<string, (typeof equipmentDefinitions)[number]>();
+    loadout.set(item.slot, item);
+    equipped.set(targetId, loadout);
+  }
+
+  for (const [unitId, loadout] of equipped) {
+    const unit = unitById.get(unitId);
+    if (!unit) continue;
+
+    let next = { ...unit };
+    for (const item of loadout.values()) {
+      next = {
+        ...next,
+        attack: next.attack + item.attackBonus,
+        armor: next.armor + item.armorBonus,
+        speed: next.speed + item.speedBonus
+      };
+    }
+    unitById.set(unitId, next);
+  }
+
+  return units
+    .map(unit => unitById.get(unit.id))
+    .filter(
+      (unit): unit is UnitDefinition =>
+        Boolean(unit)
+    );
+}
+
+function chapterForEncounter(
+  faction: FactionId,
+  id: EncounterId
+) {
+  for (const [chapter, ids] of Object.entries(
+    chapterEncounters[faction]
+  )) {
+    if (ids.includes(id)) {
+      return Number(chapter);
+    }
+  }
+  return 6;
+}
+
+function commanderForEncounter(
+  faction: FactionId,
+  chapter: number,
+  id: EncounterId
+) {
+  if (
+    faction === 'human' &&
+    ['hold_the_road', 'mercenary_patrol'].includes(
+      id
+    )
+  ) {
+    return null;
+  }
+  if (faction !== 'human' && chapter === 1) {
+    return null;
+  }
+  return getCommanderPaths(faction)[0] ?? null;
+}
+
+function combatModifierForEncounter(
+  faction: FactionId,
+  chapter: number,
+  id: EncounterId
+) {
+  if (
+    faction === 'human' &&
+    ['siege_road', 'lord_marshal_veyr'].includes(
+      id
+    )
+  ) {
+    const choice = marcherWarningChoices.find(
+      candidate =>
+        candidate.id === 'verify_beacons'
+    );
+    invariant(choice, 'Verify Beacons choice missing.');
+    return {
+      attackMultiplier: choice.attackMultiplier,
+      armorMultiplier: choice.armorMultiplier,
+      speedMultiplier: choice.speedMultiplier,
+      commanderSkillPowerMultiplier: 1
+    };
+  }
+
+  if (
+    faction === 'human' &&
+    id === 'pretender_general'
+  ) {
+    const choice = lastLoyalistChoices.find(
+      candidate =>
+        candidate.id === 'publish_the_seals'
+    );
+    invariant(
+      choice,
+      'Publish the Seals choice missing.'
+    );
+    return {
+      attackMultiplier: choice.attackMultiplier,
+      armorMultiplier: choice.armorMultiplier,
+      speedMultiplier: 1,
+      retaliationMultiplier:
+        choice.retaliationMultiplier,
+      commanderSkillPowerMultiplier: 1
+    };
+  }
+
+  if (chapter >= 6 && faction === 'human') {
+    const decree = royalDecrees.find(
+      candidate => candidate.id === 'royal_muster'
+    );
+    invariant(decree, 'Royal Muster missing.');
+    return {
+      attackMultiplier: decree.attackMultiplier,
+      armorMultiplier: decree.armorMultiplier,
+      speedMultiplier: 1,
+      commanderSkillPowerMultiplier: 1
+    };
+  }
+
+  if (chapter >= 6 && faction !== 'human') {
+    const policy = factionMandates.find(
+      candidate =>
+        candidate.faction === faction &&
+        candidate.id ===
+          (faction === 'elf'
+            ? 'living_canopy'
+            : 'blood_hunt')
+    );
+    invariant(
+      policy,
+      faction + ' final campaign policy missing.'
+    );
+    return {
+      attackMultiplier: policy.attackMultiplier,
+      armorMultiplier: policy.armorMultiplier,
+      speedMultiplier: policy.speedMultiplier,
+      commanderSkillPowerMultiplier:
+        policy.commanderSkillPowerMultiplier
+    };
+  }
+
+  return {
+    attackMultiplier: 1,
+    armorMultiplier: 1,
+    speedMultiplier: 1,
+    commanderSkillPowerMultiplier: 1
+  };
+}
+
+function bestPreparedLoadout(
+  state: EconomyState,
+  units: UnitDefinition[],
+  encounterId: EncounterId
+) {
+  const tactic = getEnemyFormationTactic(
+    encounterId
+  );
+  const enemyProfile = getEnemyArmyProfile(
+    encounterId
+  );
+  const squadCap =
+    squadCapByStage[state.stage];
+
+  const shapes = formationShapes.filter(
+    shape =>
+      (doctrineUnlockRank[shape.unlock] ?? 99) <=
+      stageRank[state.stage]
+  );
+  const doctrines = getFactionDoctrines(
+    state.faction
+  ).filter(
+    doctrine =>
+      (doctrineUnlockRank[doctrine.unlock] ??
+        99) <= stageRank[state.stage]
+  );
+
+  let best:
+    | {
+        shapeId: FormationShapeId;
+        doctrineId: string;
+        score: number;
+      }
+    | null = null;
+
+  for (const shape of shapes) {
+    for (const doctrine of doctrines) {
+      const formation = buildFormation(
+        units,
+        state.faction,
+        shape.id
+      );
+      const preset: FormationPreset = {
+        slotId: 1,
+        formationShapeId: shape.id,
+        formationDoctrineId: doctrine.id,
+        formation
+      };
+      const evaluation = evaluateFormationPreset({
+        preset,
+        units,
+        faction: state.faction,
+        enemyShapeId: tactic.formationShapeId,
+        enemyArmyProfileId: enemyProfile.id,
+        squadCap
+      });
+
+      if (
+        !best ||
+        evaluation.score > best.score
+      ) {
+        best = {
+          shapeId: shape.id,
+          doctrineId: doctrine.id,
+          score: evaluation.score
+        };
+      }
+    }
+  }
+
+  invariant(
+    best,
+    state.faction +
+      ' has no unlocked formation loadout.'
+  );
+
+  if (
+    state.lastFormationShapeId &&
+    state.lastFormationShapeId !== best.shapeId
+  ) {
+    state.formationSwitches += 1;
+  }
+  state.lastFormationShapeId = best.shapeId;
+
+  return best;
+}
+
+function simulateEncounter(
+  state: EconomyState,
+  id: EncounterId
+): {
+  result: SimulationResult;
+  shapeId: FormationShapeId;
+} {
+  const chapter = chapterForEncounter(
+    state.faction,
+    id
+  );
+  const units = buildCampaignArmy(
+    state,
+    chapter,
+    id
+  );
+  const loadout = bestPreparedLoadout(
+    state,
+    units,
+    id
+  );
+
+  const result = simulate({
+    faction: state.faction,
+    units,
+    doctrineId: loadout.doctrineId,
+    shapeId: loadout.shapeId,
+    commander: commanderForEncounter(
+      state.faction,
+      chapter,
+      id
+    ),
+    encounterId: id,
+    squadCap: squadCapByStage[state.stage],
+    readiness: state.armyReadiness,
+    modifier: combatModifierForEncounter(
+      state.faction,
+      chapter,
+      id
+    ),
+    alliance: [
+      'three_seals_convergence',
+      'ashen_triumvirate',
+      'unbound_beacon'
+    ].includes(id)
+  });
+
+  return {
+    result,
+    shapeId: loadout.shapeId
+  };
+}
+
+function hpPercent(result: SimulationResult) {
+  if (result.maxHp <= 0) return 0;
+  return Math.round(
+    (result.remainingHp / result.maxHp) * 100
+  );
+}
+
 function addEncounter(
   state: EconomyState,
   id: EncounterId
 ) {
+  const encounter = getEncounter(id);
+  resupplyIfFatigued(
+    state,
+    state.faction + ' pre-battle ' + encounter.name
+  );
+
+  let simulated = simulateEncounter(state, id);
+  let result = simulated.result;
+
+  if (!result.victory) {
+    state.battleDefeats += 1;
+    applyBattleWear(
+      state,
+      encounter.difficulty,
+      0,
+      state.faction +
+        ' defeat at ' +
+        encounter.name,
+      false
+    );
+
+    resupplyIfFatigued(
+      state,
+      state.faction +
+        ' regroup before retrying ' +
+        encounter.name
+    );
+    simulated = simulateEncounter(state, id);
+    result = simulated.result;
+  }
+
+  invariant(
+    result.victory,
+    state.faction +
+      ' prepared campaign cannot clear ' +
+      encounter.name +
+      ' after one regroup.'
+  );
+
+  const remaining = hpPercent(result);
+  state.battlesWon += 1;
+  if (remaining < state.weakestWinHpPercent) {
+    state.weakestWinHpPercent = remaining;
+    state.weakestWinEncounter = id;
+    state.weakestWinShapeId = simulated.shapeId;
+  }
+
   state.resources = add(
     state.resources,
     encounterRewards[id].resources
   );
   accrueProduction(state);
 
-  const encounter = getEncounter(id);
   applyBattleWear(
     state,
     encounter.difficulty,
-    representativeRemainingHp[encounter.difficulty],
+    remaining,
     state.faction + ' ' + encounter.name
   );
 }
@@ -730,6 +1464,8 @@ function spendGearPackage(
     gearPackages[state.faction][chapter] ?? [];
 
   for (const id of packageIds) {
+    if (state.purchasedGearIds.includes(id)) continue;
+
     const equipment =
       equipmentDefinitions.find(
         item => item.id === id
@@ -738,6 +1474,24 @@ function spendGearPackage(
       equipment,
       'Missing equipment: ' + id
     );
+
+    const buildingIds = getFactionBuildingIds(state.faction);
+    if (equipment.requiredForgeLevel > 0) {
+      ensureBuildingLevel(
+        state,
+        buildingIds.forge,
+        equipment.requiredForgeLevel,
+        state.faction + ' equipment forge requirement'
+      );
+    }
+    if ((equipment.requiredStableLevel ?? 0) > 0) {
+      ensureBuildingLevel(
+        state,
+        buildingIds.mount,
+        equipment.requiredStableLevel ?? 0,
+        state.faction + ' equipment mount requirement'
+      );
+    }
 
     spend(
       state,
@@ -753,6 +1507,7 @@ function spendGearPackage(
       state.equipmentSpent,
       equipment.craftCost
     );
+    state.purchasedGearIds.push(id);
   }
 }
 
@@ -897,8 +1652,6 @@ function prepareTransition(
     );
   }
 
-  spendGearPackage(state, chapter);
-
   spend(
     state,
     getExpansionCost(
@@ -963,6 +1716,14 @@ function newHumanState(): EconomyState {
     armyReadiness: 100,
     resupplyCount: 0,
     resupplyProvisions: 0,
+    purchasedGearIds: [],
+    battlesWon: 0,
+    battleDefeats: 0,
+    formationSwitches: 0,
+    lastFormationShapeId: null,
+    weakestWinHpPercent: 100,
+    weakestWinEncounter: null,
+    weakestWinShapeId: null,
     equipmentSpent: { ...ZERO }
   };
 }
@@ -998,6 +1759,14 @@ function newFactionState(
     armyReadiness: 100,
     resupplyCount: 0,
     resupplyProvisions: 0,
+    purchasedGearIds: [],
+    battlesWon: 0,
+    battleDefeats: 0,
+    formationSwitches: 0,
+    lastFormationShapeId: null,
+    weakestWinHpPercent: 100,
+    weakestWinEncounter: null,
+    weakestWinShapeId: null,
     equipmentSpent: { ...ZERO }
   };
 }
@@ -1122,6 +1891,7 @@ function playHumanChapter(
   state: EconomyState,
   chapter: number
 ) {
+  spendGearPackage(state, chapter);
   const ids = chapterEncounters.human[chapter];
   invariant(
     ids,
@@ -1186,6 +1956,22 @@ function playHumanChapter(
     return;
   }
 
+  if (chapter === 6) {
+    addEvent(state, {
+      gold: 50,
+      provisions: 30
+    });
+    addEncounter(state, ids[0]!);
+    addEvent(
+      state,
+      {},
+      'concord_cache'
+    );
+    addEncounter(state, ids[1]!);
+    addEncounter(state, ids[2]!);
+    return;
+  }
+
   invariant(
     false,
     'Unsupported Human economy chapter ' +
@@ -1201,6 +1987,8 @@ function playFactionChapter(
     state.faction !== 'human',
     'Faction helper is Elf/Orc only.'
   );
+
+  spendGearPackage(state, chapter);
 
   const ids =
     chapterEncounters[state.faction][chapter];
@@ -1348,6 +2136,7 @@ function runHumanPath() {
 
   playHumanChapter(state, 5);
   prepareTransition(state, 5, 'grand');
+  playHumanChapter(state, 6);
 
   expect(
     state.recoveryActivities <= 8,
@@ -1385,6 +2174,7 @@ function runFactionPath(
     5,
     'capital'
   );
+  playFactionChapter(state, 6);
 
   expect(
     state.recoveryActivities <= 8,
@@ -1395,6 +2185,18 @@ function runFactionPath(
   );
 
   return state;
+}
+
+function runThreeSeals(
+  state: EconomyState
+) {
+  for (const id of [
+    'three_seals_convergence',
+    'ashen_triumvirate',
+    'unbound_beacon'
+  ] as EncounterId[]) {
+    addEncounter(state, id);
+  }
 }
 
 function formatWallet(wallet: ResourceWallet) {
@@ -1448,6 +2250,7 @@ function main() {
   const human = runHumanPath();
   const elf = runFactionPath('elf');
   const orc = runFactionPath('orc');
+  runThreeSeals(human);
 
   printRows();
 
@@ -1492,37 +2295,87 @@ function main() {
       ' provisions'
   );
 
+  console.log(
+    '\nJoined campaign combat'
+  );
+  for (const state of [human, elf, orc]) {
+    console.log(
+      state.faction.padEnd(6) +
+        ' ' +
+        state.battlesWon +
+        ' wins · ' +
+        state.battleDefeats +
+        ' defeats · weakest win ' +
+        state.weakestWinHpPercent +
+        '% HP (' +
+        String(state.weakestWinEncounter) +
+        ' / ' +
+        String(state.weakestWinShapeId) +
+        ') · ' +
+        state.formationSwitches +
+        ' formation switches'
+    );
+  }
+
   expect(
-    human.resupplyCount <= 6,
-    'Human prepared campaign now requires ' +
-      human.resupplyCount +
-      ' field resupplies before Chapter 6; expected at most 6.'
+    human.battleDefeats <= 1,
+    'Prepared Human route now needs more than one defeat/regroup: ' +
+      human.battleDefeats
   );
   expect(
-    elf.resupplyCount <= 6,
-    'Elf prepared campaign now requires ' +
-      elf.resupplyCount +
-      ' field resupplies before Chapter 6; expected at most 6.'
+    elf.battleDefeats <= 1,
+    'Prepared Elf route now needs more than one defeat/regroup: ' +
+      elf.battleDefeats
   );
   expect(
-    orc.resupplyCount <= 6,
-    'Orc prepared campaign now requires ' +
-      orc.resupplyCount +
-      ' field resupplies before Chapter 6; expected at most 6.'
+    orc.battleDefeats <= 1,
+    'Prepared Orc route now needs more than one defeat/regroup: ' +
+      orc.battleDefeats
+  );
+  expect(
+    human.weakestWinHpPercent >= 8 &&
+      elf.weakestWinHpPercent >= 8 &&
+      orc.weakestWinHpPercent >= 8,
+    'A prepared route now depends on a near-zero-HP deterministic tie edge.'
+  );
+  expect(
+    human.formationSwitches >= 2 &&
+      elf.formationSwitches >= 2 &&
+      orc.formationSwitches >= 2,
+    'Scout-driven formation adaptation is no longer meaningfully used across all three campaigns.'
   );
 
   expect(
-    human.resupplyProvisions <= 70,
+    human.resupplyCount <= 9,
+    'Human prepared campaign now requires ' +
+      human.resupplyCount +
+      ' field resupplies before Chapter 6; expected at most 9.'
+  );
+  expect(
+    elf.resupplyCount <= 9,
+    'Elf prepared campaign now requires ' +
+      elf.resupplyCount +
+      ' field resupplies before Chapter 6; expected at most 9.'
+  );
+  expect(
+    orc.resupplyCount <= 9,
+    'Orc prepared campaign now requires ' +
+      orc.resupplyCount +
+      ' field resupplies before Chapter 6; expected at most 9.'
+  );
+
+  expect(
+    human.resupplyProvisions <= 110,
     'Human prepared campaign spends too many provisions on field recovery: ' +
       human.resupplyProvisions
   );
   expect(
-    elf.resupplyProvisions <= 70,
+    elf.resupplyProvisions <= 110,
     'Elf prepared campaign spends too many provisions on field recovery: ' +
       elf.resupplyProvisions
   );
   expect(
-    orc.resupplyProvisions <= 70,
+    orc.resupplyProvisions <= 110,
     'Orc prepared campaign spends too many provisions on field recovery: ' +
       orc.resupplyProvisions
   );
@@ -1547,7 +2400,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: every faction reaches its final campaign tier without ads while paying required buildings, expansion costs, representative equipment and realistic Readiness resupply costs, with recovery activity remaining inside the anti-grind guardrails.'
+    '\nPASS: every faction completes its full campaign and the shared Three Seals chain remains viable without ads while real combat outcomes, adaptive loadouts, Readiness, resupply, equipment, buildings and expansion costs stay inside the joined anti-grind guardrails.'
   );
 }
 
