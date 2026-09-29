@@ -307,9 +307,6 @@ export function KingdomDefenseScreen({
     setRunReadiness(
       choiceResult.readiness
     );
-    commitKingdomDefenseReadiness(
-      choiceResult.readiness
-    );
     setNextWavePowerBonus(
       choiceResult.nextWavePowerBonus
     );
@@ -352,10 +349,7 @@ export function KingdomDefenseScreen({
     {
       id: 'scout',
       title: 'Scout Approaches',
-      cost:
-        fortification.permanentIntel
-          ? 0
-          : 1,
+      cost: 1,
       body:
         'Reveal the next formation and gain a small counter-plan bonus.'
     },
