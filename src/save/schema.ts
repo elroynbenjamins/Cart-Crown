@@ -568,18 +568,34 @@ export function sanitizeFactionGameState(
       Boolean(stored.commanderPathId)
     );
 
-  const storedKingdomTrialCompletions =
-    sanitizeStringArray(
-      stored.kingdomTrialCompletions
-    ).filter(id =>
-      ['bronze', 'silver', 'gold'].includes(id)
+  const requestedKingdomTrialCompletions =
+    new Set(
+      sanitizeStringArray(
+        stored.kingdomTrialCompletions
+      ).filter(id =>
+        ['bronze', 'silver', 'gold'].includes(id)
+      )
     );
-  const kingdomTrialCompletions =
-    storedKingdomTrialCompletions.length > 0
-      ? storedKingdomTrialCompletions
-      : stored.formationTrialCompleted
-        ? ['bronze']
-        : [];
+  const kingdomTrialCompletions: string[] = [];
+
+  if (
+    Boolean(stored.formationTrialCompleted) ||
+    requestedKingdomTrialCompletions.has('bronze')
+  ) {
+    kingdomTrialCompletions.push('bronze');
+  }
+  if (
+    kingdomTrialCompletions.includes('bronze') &&
+    requestedKingdomTrialCompletions.has('silver')
+  ) {
+    kingdomTrialCompletions.push('silver');
+  }
+  if (
+    kingdomTrialCompletions.includes('silver') &&
+    requestedKingdomTrialCompletions.has('gold')
+  ) {
+    kingdomTrialCompletions.push('gold');
+  }
 
   const tutorialSeen = progressedLegacySave
     ? [
