@@ -390,6 +390,14 @@ function sanitizeSiegeRun(
             Math.min(0.2, source.powerBonus)
           )
         : 0,
+    defenderAlert:
+      typeof source.defenderAlert === 'number' &&
+      Number.isFinite(source.defenderAlert)
+        ? Math.max(
+            -0.12,
+            Math.min(0.2, source.defenderAlert)
+          )
+        : 0,
     rewardMultiplier:
       source.rewardMultiplier === 0 ||
       source.rewardMultiplier === 0.5 ||
