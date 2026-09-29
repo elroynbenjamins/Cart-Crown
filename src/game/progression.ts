@@ -1060,6 +1060,13 @@ export type FantasyCombatEdge = {
   favorable: boolean;
 };
 
+function isLegendaryHybridUnit(unit: UnitDefinition) {
+  return (
+    unitHasBattleTag(unit, 'magic') &&
+    unitHasBattleTag(unit, 'flying')
+  );
+}
+
 export function getHybridCombatEdge(
   activeUnits: UnitDefinition[],
   enemyProfileId: EnemyArmyProfileId
@@ -1176,8 +1183,10 @@ export function getFlyingCombatEdge(
   activeUnits: UnitDefinition[],
   enemyProfileId: EnemyArmyProfileId
 ): FantasyCombatEdge | null {
-  const flyingUnits = activeUnits.filter(unit =>
-    unitHasBattleTag(unit, 'flying')
+  const flyingUnits = activeUnits.filter(
+    unit =>
+      unitHasBattleTag(unit, 'flying') &&
+      !isLegendaryHybridUnit(unit)
   ).length;
 
   if (flyingUnits === 0) return null;
@@ -1230,8 +1239,10 @@ export function getFantasyCombatEdge(
   activeUnits: UnitDefinition[],
   enemyProfileId: EnemyArmyProfileId
 ): FantasyCombatEdge | null {
-  const magicUnits = activeUnits.filter(unit =>
-    unitHasBattleTag(unit, 'magic')
+  const magicUnits = activeUnits.filter(
+    unit =>
+      unitHasBattleTag(unit, 'magic') &&
+      !isLegendaryHybridUnit(unit)
   ).length;
 
   if (magicUnits === 0) return null;
