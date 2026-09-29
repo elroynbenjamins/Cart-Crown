@@ -3,6 +3,7 @@ import {
   CORE_TUTORIAL_KEYS,
   SYSTEM_TUTORIAL_KEYS,
   getNextTutorialMoment,
+  getTutorialFocusResumeSurface,
   isCoreTutorialComplete,
   shouldRequestChapterOneReview,
   tutorialBuildingKey,
@@ -248,6 +249,37 @@ function runBuildingUnlockCoverage() {
         'forge',
     'Building unlock guidance does not carry the Forge blueprint into Settlement focus.'
   );
+
+  const humanBuildings = getBuildings('human').filter(
+    building =>
+      ['forge', 'quartermaster'].includes(
+        building.id
+      )
+  );
+
+  const grouped = getNextTutorialMoment(
+    baseContext({
+      view: 'kingdom',
+      tutorialSeen: [
+        ...CORE_TUTORIAL_KEYS,
+        'system:settlement'
+      ],
+      settlementUpgraded: true,
+      buildings: humanBuildings.map(
+        definition => ({
+          definition,
+          level: 0,
+          unlocked: true
+        })
+      )
+    })
+  );
+
+  expect(
+    grouped?.seenKeys?.length ===
+      humanBuildings.length,
+    'Simultaneous building unlocks are no longer batched into one briefing.'
+  );
 }
 
 function runSystemCoverage() {
@@ -473,6 +505,142 @@ function runLegacySaveCoverage() {
   );
 }
 
+function runPendingFocusCoverage() {
+  const record = createNewSaveRecord(1);
+  const human =
+    record.snapshot.factionStates.human;
+
+  if (!human) {
+    failures.push(
+      'Pending-focus Human save fixture missing.'
+    );
+    return;
+  }
+
+  human.tutorialSeen = ['core:kingdom'];
+  human.tutorialFocus = {
+    kind: 'nav',
+    nav: 'campaign',
+    label: 'TAP CAMPAIGN'
+  };
+
+  const normalized = normalizeSaveRecord(
+    1,
+    JSON.parse(JSON.stringify(record))
+  );
+
+  expect(
+    normalized?.snapshot.factionStates.human
+      ?.tutorialFocus?.kind === 'nav',
+    'Pending tutorial spotlight did not survive save normalization.'
+  );
+
+  const surfaces: Array<{
+    focus: NonNullable<
+      typeof human.tutorialFocus
+    >;
+    expected:
+      | 'stay'
+      | 'campaign'
+      | 'formation'
+      | 'settlement'
+      | 'forge'
+      | 'kingdom'
+      | 'results'
+      | 'battlePrep';
+  }> = [
+    {
+      focus: {
+        kind: 'campaign-current',
+        label: 'CURRENT'
+      },
+      expected: 'campaign'
+    },
+    {
+      focus: {
+        kind: 'formation-unit',
+        unitId: 'hum_recruit',
+        label: 'SQUAD'
+      },
+      expected: 'formation'
+    },
+    {
+      focus: {
+        kind: 'settlement-building',
+        buildingId: 'forge',
+        label: 'FORGE'
+      },
+      expected: 'settlement'
+    },
+    {
+      focus: {
+        kind: 'forge-craft',
+        label: 'CRAFT'
+      },
+      expected: 'forge'
+    },
+    {
+      focus: {
+        kind: 'kingdom-production',
+        label: 'PRODUCTION'
+      },
+      expected: 'kingdom'
+    },
+    {
+      focus: {
+        kind: 'results-continue',
+        label: 'CONTINUE'
+      },
+      expected: 'results'
+    },
+    {
+      focus: {
+        kind: 'battle-begin',
+        label: 'BEGIN'
+      },
+      expected: 'battlePrep'
+    },
+    {
+      focus: {
+        kind: 'battle-readiness',
+        label: 'READINESS'
+      },
+      expected: 'stay'
+    }
+  ];
+
+  surfaces.forEach(({ focus, expected }) => {
+    expect(
+      getTutorialFocusResumeSurface(focus) ===
+        expected,
+      focus.kind +
+        ' resumes on the wrong tutorial surface.'
+    );
+  });
+
+  const malformed = createNewSaveRecord(1);
+  const malformedHuman =
+    malformed.snapshot.factionStates.human;
+  if (malformedHuman) {
+    malformedHuman.tutorialFocus = {
+      kind: 'formation-unit',
+      unitId: 42 as never,
+      label: 'BROKEN'
+    };
+
+    const repaired = normalizeSaveRecord(
+      1,
+      JSON.parse(JSON.stringify(malformed))
+    );
+
+    expect(
+      repaired?.snapshot.factionStates.human
+        ?.tutorialFocus === null,
+      'Malformed pending tutorial spotlight was not discarded during save normalization.'
+    );
+  }
+}
+
 function runAppIdentityCoverage() {
   const app = JSON.parse(
     readFileSync('app.json', 'utf8')
@@ -500,6 +668,7 @@ function main() {
   runSystemCoverage();
   runReviewTimingCoverage();
   runLegacySaveCoverage();
+  runPendingFocusCoverage();
   runAppIdentityCoverage();
 
   if (failures.length > 0) {
@@ -520,7 +689,7 @@ function main() {
   }
 
   console.log(
-    'PASS: staged onboarding, visual spotlight handoffs, first-unit/building guidance, system unlock lessons, legacy-save behavior, post-Chapter-1 review timing and Android app identity remain protected.'
+    'PASS: staged onboarding, persistent visual spotlights, batched unlock guidance, resume routing, legacy-save behavior, post-Chapter-1 review timing and Android app identity remain protected.'
   );
 }
 
