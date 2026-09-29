@@ -204,7 +204,7 @@ function runPacingCoverage() {
       baseContext({
         view: 'battlePrep',
         tutorialSeen: core,
-        armyReadiness: 65
+        armyReadiness: 84
       })
     );
 
@@ -446,7 +446,7 @@ function runSystemCoverage() {
     baseContext({
       view: 'battlePrep',
       tutorialSeen: core,
-      armyReadiness: 84
+      armyReadiness: 65
     })
   );
   expect(
