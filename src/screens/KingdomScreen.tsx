@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getBuildingLevelDefinition } from '../game/kingdom';
 import { useGame } from '../game/GameProvider';
@@ -78,6 +78,22 @@ export function KingdomScreen({
   } = useGame();
 
   const [buildingMessage, setBuildingMessage] = useState<string | null>(null);
+  const tutorialScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (tutorialFocus?.kind !== 'kingdom-production') {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      tutorialScrollRef.current?.scrollTo({
+        y: 520,
+        animated: true
+      });
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [tutorialFocus]);
 
   const settlementName =
     currentWagonStage.id === 'grand'
@@ -221,7 +237,11 @@ export function KingdomScreen({
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <GameCard accent={theme.colors.human} style={styles.hero}>
         <View style={styles.heroTop}>
           <View style={styles.heroCopy}>
