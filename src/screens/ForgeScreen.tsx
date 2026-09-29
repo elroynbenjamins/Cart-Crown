@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import type { ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, PrimaryButton, ResourceAmountRow, ResourceChip, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
+import { GameCard, ResourceAmountRow, ResourceChip, SecondaryButton } from '../ui/components';
+import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionOption, DecisionStats } from '../ui/DecisionUI';
+import { signedStat } from '../ui/decisionPresentation';
 import { EquipmentSprite, ResourceSprite } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
-export function ForgeScreen({
-  onOpenPromotion,
-  onExit,
-  tutorialFocus,
-  onTutorialFocusComplete
-}: {
+export function ForgeScreen({ onOpenPromotion, onExit, tutorialFocus, onTutorialFocusComplete }: {
   onOpenPromotion: () => void;
   onExit: () => void;
   tutorialFocus?: TutorialFocusTarget | null;
@@ -21,182 +18,123 @@ export function ForgeScreen({
 }) {
   const { theme } = useGameTheme();
   const {
-    resources,
-    equipmentDefinitions,
-    equipmentInventory,
-    buildingLevels,
-    settlementAdjacencyBonuses,
-    getEquipmentCraftCost,
-    craftEquipment,
-    firstPromotionComplete
+    resources, equipmentDefinitions, equipmentInventory, buildingLevels,
+    settlementAdjacencyBonuses, getEquipmentCraftCost, craftEquipment, firstPromotionComplete
   } = useGame();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const lastCraftState = useRef<{ resources: typeof resources; inventory: typeof equipmentInventory } | null>(null);
 
-  const humanWeapons = equipmentDefinitions.filter(
-    item =>
-      item.faction === 'human' &&
-      item.slot === 'weapon' &&
-      !item.upgradeFromId &&
-      item.requiredForgeLevel <= (buildingLevels.forge ?? 0)
+  const humanWeapons = equipmentDefinitions.filter(item =>
+    item.faction === 'human' && item.slot === 'weapon' && !item.upgradeFromId &&
+    item.requiredForgeLevel <= (buildingLevels.forge ?? 0)
   );
+  const tutorialCraftItemId = tutorialFocus?.kind === 'forge-craft'
+    ? humanWeapons.find(item => !equipmentInventory.includes(item.id))?.id ?? humanWeapons[0]?.id ?? null
+    : null;
+  const selected = humanWeapons.find(item => item.id === selectedId) ??
+    humanWeapons.find(item => item.id === tutorialCraftItemId) ?? humanWeapons[0] ?? null;
+  const effectiveCost = selected ? getEquipmentCraftCost(selected) : {};
+  const deficits = Object.entries(effectiveCost).filter(([key, amount]) =>
+    resources[key as keyof ResourceWallet] < (amount ?? 0)
+  );
+  const affordable = Boolean(selected) && deficits.length === 0;
+  const resourceName = (key: string) => key.charAt(0).toUpperCase() + key.slice(1);
+  const costLabel = Object.entries(effectiveCost)
+    .filter(([, amount]) => (amount ?? 0) > 0)
+    .map(([key, amount]) => String(amount) + ' ' + resourceName(key)).join(' · ') || 'No resources';
+  const owned = selected ? equipmentInventory.filter(id => id === selected.id).length : 0;
+  const tutorialCraftFocused = Boolean(selected && selected.id === tutorialCraftItemId);
 
-  const tutorialCraftItemId =
-    tutorialFocus?.kind === 'forge-craft'
-      ? humanWeapons.find(
-          item =>
-            !equipmentInventory.includes(item.id)
-        )?.id ?? humanWeapons[0]?.id ?? null
-      : null;
-
-  const craft = (id: string, name: string) => {
-    const ok = craftEquipment(id);
-    setMessage(ok ? name + ' crafted.' : 'Not enough resources for that item.');
-    return ok;
+  const craft = () => {
+    if (!selected || !affordable) return;
+    // Block a second tap from the same rendered resource/inventory snapshot.
+    if (lastCraftState.current?.resources === resources && lastCraftState.current.inventory === equipmentInventory) return;
+    lastCraftState.current = { resources, inventory: equipmentInventory };
+    const ok = craftEquipment(selected.id);
+    if (!ok) lastCraftState.current = null;
+    setSelectedId(selected.id);
+    setMessage(ok ? selected.name + ' crafted.' : 'Crafting could not be completed. Check current resources and Forge requirements.');
+    if (ok && tutorialCraftFocused) onTutorialFocusComplete?.();
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.gold} faction="human">
-        <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>FIELD FORGE</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>First Equipment</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          Equipment is permanent troop progression. The weapon you craft for Mira determines her first class branch.
-        </Text>
-      </GameCard>
-
+    <DecisionLayout
+      footer={
+        <TutorialFocus active={tutorialCraftFocused} label={tutorialCraftFocused ? tutorialFocus?.label : undefined}>
+          <DecisionCommit
+            title={selected?.name ?? 'No recipe selected'}
+            detail={selected ? 'Cost: ' + costLabel + '. Unassigned in inventory: ' + owned + '.' : 'Unlock a weapon recipe through the Forge.'}
+            warning={deficits.length ? 'Need ' + deficits.map(([key, amount]) =>
+              Math.max(0, (amount ?? 0) - resources[key as keyof ResourceWallet]) + ' more ' + resourceName(key)
+            ).join(' · ') : null}
+            message={message}
+            label={selected ? owned > 0 ? 'Craft another ' + selected.name : 'Craft ' + selected.name : 'No recipe available'}
+            disabled={!affordable}
+            onConfirm={craft}
+          >
+            {tutorialCraftFocused ? (
+              <SecondaryButton label="Craft later" onPress={() => {
+                onTutorialFocusComplete?.();
+                setMessage('Forge lesson learned. Return when you want to invest resources.');
+              }} />
+            ) : null}
+            {!firstPromotionComplete && equipmentInventory.length > 0 ? <SecondaryButton label="Promote Mira" onPress={onOpenPromotion} /> : null}
+            <SecondaryButton label="Return" onPress={onExit} />
+          </DecisionCommit>
+        </TutorialFocus>
+      }
+    >
+      <DecisionIntro
+        eyebrow={'FIELD FORGE · LEVEL ' + (buildingLevels.forge ?? 0)}
+        title={firstPromotionComplete ? 'Craft equipment' : 'First equipment'}
+        body="Select a recipe to compare stats and costs. Crafting spends resources only when you confirm."
+        accent={theme.colors.gold}
+      />
       <View style={styles.resources}>
         <ResourceChip art={<ResourceSprite resource="wood" size={28} />} value={resources.wood} label="Wood" />
         <ResourceChip art={<ResourceSprite resource="iron" size={28} />} value={resources.iron} label="Iron" />
         <ResourceChip art={<ResourceSprite resource="gold" size={28} />} value={resources.gold} label="Gold" />
       </View>
-
       {settlementAdjacencyBonuses.some(bonus => bonus.id === 'arsenal_district') ? (
-        <GameCard accent={theme.colors.primary}>
-          <Text style={[styles.recipeName, { color: theme.colors.text }]}>Arsenal District</Text>
-          <Text style={[styles.recipeDesc, { color: theme.colors.textMuted }]}>
-            Barracks adjacent to the Field Forge reduces equipment costs by 10%.
-          </Text>
+        <GameCard accent={theme.colors.primary} ornament={false}>
+          <Text style={[styles.body, { color: theme.colors.text }]}>Arsenal District · Equipment costs reduced by 10%. The prices below include the active reduction.</Text>
         </GameCard>
       ) : null}
-
-      <SectionTitle title="Available recipes" trailing="Choose carefully" />
-
-      <View style={styles.recipeList}>
-        {humanWeapons.map(item => {
-          const owned = equipmentInventory.filter(id => id === item.id).length;
-          const effectiveCost = getEquipmentCraftCost(item);
-          const affordable = Object.entries(effectiveCost).every(([key, amount]) => {
-            const resourceKey = key as keyof ResourceWallet;
-            return resources[resourceKey] >= (amount ?? 0);
-          });
-
-          const tutorialCraftFocused =
-            tutorialCraftItemId === item.id;
-
-          return (
-            <TutorialFocus
-              key={item.id}
-              active={tutorialCraftFocused}
-              label={
-                tutorialCraftFocused
-                  ? tutorialFocus?.label
-                  : undefined
-              }
+      {humanWeapons.map(item => {
+        const cost = getEquipmentCraftCost(item);
+        const inStock = equipmentInventory.filter(id => id === item.id).length;
+        const focusSelection = item.id === tutorialCraftItemId && selected?.id !== item.id;
+        return (
+          <TutorialFocus key={item.id} active={focusSelection} label={focusSelection ? 'SELECT RECIPE' : undefined}>
+            <DecisionOption
+              title={item.name}
+              subtitle={'Tier ' + item.tier + ' · Unassigned: ' + inStock}
+              selected={selected?.id === item.id}
+              art={<EquipmentSprite equipmentId={item.id} faction={item.faction} size={44} />}
+              accessibilitySummary={item.description + '. Attack ' + signedStat(item.attackBonus) + ', armor ' + signedStat(item.armorBonus) + ', speed ' + signedStat(item.speedBonus) + '. Cost: ' + Object.entries(cost).map(([key, amount]) => amount + ' ' + key).join(', ')}
+              onSelect={() => {
+                setSelectedId(item.id);
+                setMessage(null);
+              }}
             >
-            <GameCard
-              faction="human"
-              state={owned > 0 ? 'ready' : affordable ? 'default' : 'locked'}
-              accent={owned > 0 ? theme.colors.primary : undefined}
-            >
-              <View style={styles.recipeHeader}>
-                <View style={styles.recipeIcon}>
-                  <EquipmentSprite equipmentId={item.id} faction={item.faction} size={44} />
-                </View>
-                <View style={styles.recipeCopy}>
-                  <Text style={[styles.recipeName, { color: theme.colors.text }]}>{item.name}</Text>
-                  <Text style={[styles.recipeDesc, { color: theme.colors.textMuted }]}>
-                    {item.description}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.stats}>
-                <Text style={[styles.stat, { color: theme.colors.text }]}>ATK +{item.attackBonus}</Text>
-                {item.armorBonus > 0 ? (
-                  <Text style={[styles.stat, { color: theme.colors.text }]}>ARM +{item.armorBonus}</Text>
-                ) : null}
-                {item.speedBonus > 0 ? (
-                  <Text style={[styles.stat, { color: theme.colors.text }]}>SPD +{item.speedBonus}</Text>
-                ) : null}
-              </View>
-
-              <View style={styles.costRow}>
-                <ResourceAmountRow values={effectiveCost} compact />
-                {owned > 0 ? (
-                  <StatusPill label={'OWNED ×' + owned} tone="done" />
-                ) : !affordable ? (
-                  <StatusPill label="MISSING RESOURCES" tone="locked" />
-                ) : null}
-              </View>
-
-              <View style={styles.button}>
-                <PrimaryButton
-                  label={owned > 0 ? 'Craft another' : 'Craft ' + item.name}
-                  disabled={!affordable}
-                  onPress={() => {
-                    const ok = craft(item.id, item.name);
-                    if (ok && tutorialCraftFocused) {
-                      onTutorialFocusComplete?.();
-                    }
-                  }}
-                />
-                {tutorialCraftFocused ? (
-                  <View style={styles.guidanceLaterButton}>
-                    <SecondaryButton
-                      label="Craft later"
-                      onPress={() => {
-                        onTutorialFocusComplete?.();
-                        setMessage(
-                          'Forge lesson learned. Return when you want to invest resources.'
-                        );
-                      }}
-                    />
-                  </View>
-                ) : null}
-              </View>
-            </GameCard>
-            </TutorialFocus>
-          );
-        })}
-      </View>
-
-      {message ? <Text style={[styles.message, { color: theme.colors.textMuted }]}>{message}</Text> : null}
-
-      {!firstPromotionComplete && equipmentInventory.length > 0 ? (
-        <PrimaryButton label="Promote Mira" onPress={onOpenPromotion} />
-      ) : null}
-
-      <PrimaryButton label="Return" onPress={onExit} />
-    </ScrollView>
+              <Text style={[styles.body, { color: theme.colors.textMuted }]}>{item.description}</Text>
+              <DecisionStats items={[
+                { label: 'Attack', value: signedStat(item.attackBonus) },
+                { label: 'Armor', value: signedStat(item.armorBonus) },
+                { label: 'Speed', value: signedStat(item.speedBonus) }
+              ]} />
+              <ResourceAmountRow values={cost} />
+            </DecisionOption>
+          </TutorialFocus>
+        );
+      })}
+      {!humanWeapons.length ? <Text style={[styles.body, { color: theme.colors.textMuted }]}>No weapon recipes are available at the current Forge level.</Text> : null}
+    </DecisionLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 30, gap: 13 },
-  eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
-  title: { fontSize: 27, fontWeight: '900', marginTop: 4 },
-  body: { fontSize: 12, lineHeight: 18, marginTop: 6 },
   resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  recipeList: { gap: 10 },
-  recipeHeader: { flexDirection: 'row', gap: 11 },
-  recipeIcon: { width: 50, height: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  recipeCopy: { flex: 1 },
-  recipeName: { fontSize: 16, fontWeight: '900' },
-  recipeDesc: { fontSize: 10.5, lineHeight: 15, marginTop: 4 },
-  stats: { flexDirection: 'row', gap: 12, marginTop: 10 },
-  stat: { fontSize: 10, fontWeight: '900' },
-  costRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 9, alignItems: 'center', justifyContent: 'space-between' },
-  button: { marginTop: 12 },
-  guidanceLaterButton: { marginTop: 8 },
-  message: { textAlign: 'center', fontSize: 10.5, fontWeight: '700' }
+  body: { fontSize: 13, lineHeight: 19 }
 });
