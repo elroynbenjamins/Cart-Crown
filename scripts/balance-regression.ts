@@ -7,14 +7,18 @@ import {
   getUnitCombatProfile
 } from '../src/game/balance';
 import { royalDecrees } from '../src/game/capital';
-import { fortMusterOptions } from '../src/game/chapter2';
+import { chapterTwoDiplomacyUnits } from '../src/game/chapter2';
 import { marcherAuxiliaryOptions } from '../src/game/chapter3';
 import {
   lastLoyalistChoices,
   strongholdMusterOptions
 } from '../src/game/chapter4';
 import { getCommanderPaths } from '../src/game/commanders';
-import { humanRecruitOptions, starterUnits } from '../src/game/data';
+import {
+  humanRecruitOptions,
+  humanRefugeeReinforcements,
+  starterUnits
+} from '../src/game/data';
 import {
   advancedPromotions,
   canUnitEquipEquipment,
@@ -107,7 +111,7 @@ const failures: string[] = [];
 const bossByFaction: Record<FactionId, EncounterId[]> = {
   human: [
     'toll_captain',
-    'iron_provost',
+    'ch2_riders_banner',
     'lord_marshal_veyr',
     'pretender_general',
     'gate_of_crownspire',
@@ -132,7 +136,7 @@ const bossByFaction: Record<FactionId, EncounterId[]> = {
 };
 
 const squadCaps: Record<FactionId, number[]> = {
-  human: [3, 4, 5, 6, 6, 6],
+  human: [5, 7, 9, 9, 9, 9],
   elf: [2, 3, 4, 5, 6, 6],
   orc: [2, 3, 4, 5, 6, 6]
 };
@@ -256,17 +260,20 @@ function buildHumanArmy(chapter: number): UnitDefinition[] {
   units.push(
     optionUnit(humanRecruitOptions, 'hum_archer_reinforcement')
   );
+  units.push(
+    ...humanRefugeeReinforcements.map(cloneUnit)
+  );
 
   if (chapter >= 2) {
     units.push(
-      optionUnit(
-        fortMusterOptions,
-        'hum_man_at_arms_reinforcement'
-      )
+      cloneUnit(chapterTwoDiplomacyUnits.protect)
     );
   }
 
-  if (chapter >= 3) {
+  if (chapter === 3) {
+    units.push(
+      optionUnit(humanRecruitOptions, 'hum_scout_reinforcement')
+    );
     units.push(
       optionUnit(
         marcherAuxiliaryOptions,
@@ -278,6 +285,12 @@ function buildHumanArmy(chapter: number): UnitDefinition[] {
   if (chapter >= 4) {
     units.push(
       optionUnit(
+        marcherAuxiliaryOptions,
+        'hum_marcher_ranger'
+      )
+    );
+    units.push(
+      optionUnit(
         strongholdMusterOptions,
         'hum_banner_captain_reinforcement'
       )
@@ -286,7 +299,7 @@ function buildHumanArmy(chapter: number): UnitDefinition[] {
 
   return units.slice(
     0,
-    squadCaps.human[chapter - 1] ?? 6
+    squadCaps.human[chapter - 1] ?? 9
   );
 }
 
