@@ -72,6 +72,35 @@ export const starterUnits: UnitDefinition[] = [
   }
 ];
 
+export const humanRefugeeReinforcements: UnitDefinition[] = [
+  {
+    id: 'hum_refugee_scout',
+    name: 'Caleb',
+    className: 'Scout',
+    faction: 'human',
+    role: 'skirmish',
+    tier: 1,
+    level: 2,
+    hp: 90,
+    attack: 11,
+    armor: 3,
+    speed: 14
+  },
+  {
+    id: 'hum_refugee_spear',
+    name: 'Bren',
+    className: 'Spearman',
+    faction: 'human',
+    role: 'frontline',
+    tier: 1,
+    level: 2,
+    hp: 96,
+    attack: 11,
+    armor: 5,
+    speed: 9
+  }
+];
+
 export const humanRecruitOptions: RecruitOption[] = [
   {
     id: 'archer',
