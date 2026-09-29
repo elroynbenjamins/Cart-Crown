@@ -6,19 +6,25 @@ import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SectionTitle, UnitPortrait } from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function ArmyScreen({
   onOpenRecruitment,
   onOpenForge,
   onOpenPromotion,
   onOpenCommander,
-  onOpenEquipment
+  onOpenEquipment,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onOpenRecruitment: () => void;
   onOpenForge: () => void;
   onOpenPromotion: () => void;
   onOpenCommander: () => void;
   onOpenEquipment: (unitId: string) => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -206,6 +212,10 @@ export function ArmyScreen({
       {forgeAvailable ? (
         <>
           <SectionTitle title="Equipment inventory" trailing={String(equipmentInventory.length)} />
+          <TutorialFocus
+            active={tutorialFocus?.kind === 'army-equipment'}
+            label={tutorialFocus?.kind === 'army-equipment' ? tutorialFocus.label : undefined}
+          >
           <GameCard>
             <Text style={[styles.inventoryText, { color: theme.colors.textMuted }]}>
               {equipmentInventory.length > 0
@@ -220,12 +230,18 @@ export function ArmyScreen({
                     ? onOpenForge
                     : () => {
                         const firstUnit = units[0];
-                        if (firstUnit) onOpenEquipment(firstUnit.id);
+                        if (firstUnit) {
+                          if (tutorialFocus?.kind === 'army-equipment') {
+                            onTutorialFocusComplete?.();
+                          }
+                          onOpenEquipment(firstUnit.id);
+                        }
                       }
                 }
               />
             </View>
           </GameCard>
+          </TutorialFocus>
         </>
       ) : null}
     </ScrollView>
