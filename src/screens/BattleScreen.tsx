@@ -23,6 +23,7 @@ import {
   getLargeCombatEdge,
   getHybridCombatEdge
 } from '../game/progression';
+import { getEnemyFantasyThreatAssessment } from '../game/enemyFantasy';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import {
@@ -306,6 +307,14 @@ export function BattleScreen({
       ),
     [activeUnits, enemyArmyProfile.id]
   );
+  const enemyFantasyThreat = useMemo(
+    () =>
+      getEnemyFantasyThreatAssessment(
+        encounter,
+        activeUnits
+      ),
+    [activeUnits, encounter]
+  );
 
   const activeFormationSlots = useMemo(
     () =>
@@ -429,6 +438,19 @@ export function BattleScreen({
     label: string;
     color: string;
   }> = [];
+  if (enemyFantasyThreat) {
+    battleEffects.push({
+      key: 'enemy-fantasy-threat',
+      label:
+        enemyFantasyThreat.label +
+        (enemyFantasyThreat.countered
+          ? ' · countered'
+          : ' · exposed'),
+      color: enemyFantasyThreat.countered
+        ? theme.colors.primary
+        : theme.colors.danger
+    });
+  }
   if (fantasyCombatEdge) {
     battleEffects.push({
       key: 'fantasy-edge',
@@ -740,6 +762,7 @@ export function BattleScreen({
             (flyingCombatEdge?.attackMultiplier ?? 1) *
             (largeCombatEdge?.attackMultiplier ?? 1) *
             (hybridCombatEdge?.attackMultiplier ?? 1) *
+            (enemyFantasyThreat?.outgoingDamageMultiplier ?? 1) *
             momentum *
             attackFactor *
             tacticalSpeedDamageMultiplier
@@ -778,6 +801,7 @@ export function BattleScreen({
             (flyingCombatEdge?.incomingDamageMultiplier ?? 1) *
             (largeCombatEdge?.incomingDamageMultiplier ?? 1) *
             (hybridCombatEdge?.incomingDamageMultiplier ?? 1) *
+            (enemyFantasyThreat?.incomingDamageMultiplier ?? 1) *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -855,6 +879,9 @@ export function BattleScreen({
                   : '') +
                 (hybridCombatEdge
                   ? ' ' + hybridCombatEdge.detail
+                  : '') +
+                (enemyFantasyThreat
+                  ? ' ' + enemyFantasyThreat.detail
                   : '')
               : action)
       );
@@ -897,6 +924,7 @@ export function BattleScreen({
     enemyPressureMultiplier,
     enemyTactic,
     enemyArmyProfile,
+    enemyFantasyThreat,
     formation,
     units,
     formationAnalysis,
