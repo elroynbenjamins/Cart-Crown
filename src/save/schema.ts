@@ -572,6 +572,9 @@ export function sanitizeFactionGameState(
     expeditionRunsCompleted: nonNegativeInteger(
       stored.expeditionRunsCompleted,
       defaults.expeditionRunsCompleted
+    ),
+    tutorialSeen: sanitizeStringArray(
+      stored.tutorialSeen
     )
   };
 }
@@ -612,7 +615,9 @@ function sanitizeSharedProgress(
     ),
     metaCampaignComplete:
       Boolean(source.metaCampaignComplete) &&
-      completedCampaigns.length === 3
+      completedCampaigns.length === 3,
+    reviewPromptShown:
+      Boolean(source.reviewPromptShown)
   };
 }
 
@@ -729,7 +734,8 @@ export function createHumanFactionState(): FactionGameState {
     lastBattleResult: null,
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
-    formationTrialCompleted: false
+    formationTrialCompleted: false,
+    tutorialSeen: []
   };
 }
 
@@ -845,7 +851,8 @@ export function createInitialGameSnapshot(): GameSnapshot {
       lore: [],
       cosmetics: [],
       metaCampaignStep: 0,
-      metaCampaignComplete: false
+      metaCampaignComplete: false,
+      reviewPromptShown: false
     },
     factionStates: {
       human: createHumanFactionState(),
