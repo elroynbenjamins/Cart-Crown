@@ -17,6 +17,7 @@ import {
   tutorialBuildingKey,
   tutorialUnitKey
 } from '../game/tutorial';
+import type { TutorialFocusTarget } from '../game/tutorial';
 import { chapterTwoNodes } from '../game/chapter2';
 import { chapterThreeNodes } from '../game/chapter3';
 import { chapterFourNodes } from '../game/chapter4';
@@ -53,6 +54,7 @@ import type {
   ChapterNode,
   FactionId,
   FormationPreset,
+  NavId,
   FormationShapeId,
   ResourceWallet,
   UnitDefinition
@@ -441,6 +443,89 @@ function sanitizePresets(
   );
 }
 
+function sanitizeTutorialFocus(
+  value: unknown
+): TutorialFocusTarget | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const source = value as Record<string, unknown>;
+  const label =
+    typeof source.label === 'string'
+      ? source.label.slice(0, 80)
+      : '';
+
+  if (!label) return null;
+
+  if (
+    source.kind === 'nav' &&
+    ['kingdom', 'campaign', 'formation', 'wagon', 'army'].includes(
+      String(source.nav)
+    )
+  ) {
+    return {
+      kind: 'nav',
+      nav: source.nav as NavId,
+      label
+    };
+  }
+
+  if (
+    [
+      'campaign-current',
+      'campaign-activities',
+      'battle-begin',
+      'battle-readiness',
+      'results-continue',
+      'formation-basics',
+      'formation-shape',
+      'settlement-first-plot',
+      'forge-craft',
+      'kingdom-production'
+    ].includes(String(source.kind))
+  ) {
+    return {
+      kind: source.kind as
+        | 'campaign-current'
+        | 'campaign-activities'
+        | 'battle-begin'
+        | 'battle-readiness'
+        | 'results-continue'
+        | 'formation-basics'
+        | 'formation-shape'
+        | 'settlement-first-plot'
+        | 'forge-craft'
+        | 'kingdom-production',
+      label
+    };
+  }
+
+  if (
+    source.kind === 'formation-unit' &&
+    typeof source.unitId === 'string'
+  ) {
+    return {
+      kind: 'formation-unit',
+      unitId: source.unitId,
+      label
+    };
+  }
+
+  if (
+    source.kind === 'settlement-building' &&
+    typeof source.buildingId === 'string'
+  ) {
+    return {
+      kind: 'settlement-building',
+      buildingId: source.buildingId,
+      label
+    };
+  }
+
+  return null;
+}
+
 function sanitizeStringArray(value: unknown) {
   if (!Array.isArray(value)) return [];
   return [
@@ -613,7 +698,10 @@ export function sanitizeFactionGameState(
       stored.expeditionRunsCompleted,
       defaults.expeditionRunsCompleted
     ),
-    tutorialSeen
+    tutorialSeen,
+    tutorialFocus: sanitizeTutorialFocus(
+      stored.tutorialFocus
+    )
   };
 }
 
@@ -773,7 +861,8 @@ export function createHumanFactionState(): FactionGameState {
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
     formationTrialCompleted: false,
-    tutorialSeen: []
+    tutorialSeen: [],
+    tutorialFocus: null
   };
 }
 
