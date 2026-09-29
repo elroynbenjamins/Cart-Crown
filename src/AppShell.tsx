@@ -263,6 +263,9 @@ export function AppShell({
     flyingResearchDefinitions,
     largeFamilyUnlock,
     largeResearchDefinitions,
+    hybridFamilyUnlock,
+    hybridResearchDefinitions,
+    hybridPrerequisitesMet,
     tutorialSeen,
     markTutorialSeen,
     reviewPromptShown,
@@ -276,7 +279,8 @@ export function AppShell({
     flow === 'settlement' ||
     flow === 'fantasyResearch' ||
     flow === 'flyingResearch' ||
-    flow === 'largeResearch'
+    flow === 'largeResearch' ||
+    flow === 'hybridResearch'
       ? flow
       : flow
         ? 'other'
@@ -327,6 +331,13 @@ export function AppShell({
         largeFamilyUnlock.storyGateId
       )
     ),
+    hybridStoryUnlocked: Boolean(
+      hybridFamilyUnlock &&
+      completedStoryGates.includes(
+        hybridFamilyUnlock.storyGateId
+      )
+    ),
+    hybridPrerequisitesMet,
     completedMagicResearch:
       magicResearchDefinitions.filter(
         research => researchProgress[research.id]?.completed
@@ -337,6 +348,10 @@ export function AppShell({
       ).length,
     completedLargeResearch:
       largeResearchDefinitions.filter(
+        research => researchProgress[research.id]?.completed
+      ).length,
+    completedHybridResearch:
+      hybridResearchDefinitions.filter(
         research => researchProgress[research.id]?.completed
       ).length
   });
@@ -701,6 +716,8 @@ export function AppShell({
     if (flow === 'hybridResearch') {
       return (
         <HybridResearchScreen
+          tutorialFocus={tutorialFocus}
+          onTutorialFocusComplete={completeTutorialFocus}
           onExit={() => {
             setFlow(null);
             setActive('army');
