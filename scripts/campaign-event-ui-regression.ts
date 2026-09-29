@@ -108,7 +108,7 @@ function gameFixture(chapter: number, nodeId: string) {
     resources: { gold: 100, provisions: 20, wood: 10, iron: 5, stone: 5 },
     units: [], formation: Array.from({ length: 9 }, () => null), formationShapeId: 'balanced_333', activeSquadCap: 5,
     buildingLevels: { signal_tower: 0 }, kingdomDefenseCompleted: true, signalTowerUnlocked: false,
-    dividedMarchResolved: false, unlockedResourceSites: [],
+    dividedMarchResolved: false, unlockedResourceSites: [], sharedProgress: { lore: [] },
     marcherWarningChoices: chapter3.marcherWarningChoices, marcherWarningChoiceId: null,
     lastLoyalistChoices: chapter4.lastLoyalistChoices, lastLoyalistsChoiceId: null,
     marcherAuxiliaryOptions: chapter3.marcherAuxiliaryOptions,
@@ -117,7 +117,8 @@ function gameFixture(chapter: number, nodeId: string) {
   for (const [setter, field] of Object.entries({
     setResources: 'resources', setUnits: 'units', setFormation: 'formation', setChapterNodes: 'chapterNodes',
     setMarcherWarningChoiceId: 'marcherWarningChoiceId', setLastLoyalistsChoiceId: 'lastLoyalistsChoiceId',
-    setSignalTowerUnlocked: 'signalTowerUnlocked', setUnlockedResourceSites: 'unlockedResourceSites', setDividedMarchResolved: 'dividedMarchResolved'
+    setSignalTowerUnlocked: 'signalTowerUnlocked', setUnlockedResourceSites: 'unlockedResourceSites', setDividedMarchResolved: 'dividedMarchResolved',
+    setSharedProgress: 'sharedProgress'
   })) game[setter] = (value: any) => { game[field] = typeof value === 'function' ? value(game[field]) : value; };
   for (const action of ['chooseMarcherWarning', 'chooseLastLoyalistsApproach', 'chooseMarcherAuxiliary', 'completeDividedMarch', 'completeBrokenSignalTower']) {
     game[action] = (...args: any[]) => { calls.push(action); return actionFromProvider(action, game)(...args); };
@@ -207,6 +208,10 @@ function testTacticalChoices() {
   allow = true;
   one(h.render(), 'DecisionCommit').onConfirm();
   check(attempts === 2 && one(h.render(), 'DecisionCommit').label === 'Continue', 'A rejected action must be retryable.');
+  const unknown = harness('src/ui/CampaignEventUI.tsx', 'ChapterDecision', {}, { ...props, recordedId: 'legacy-unknown-choice' });
+  const unknownTree = unknown.render();
+  check(nodes(unknownTree, 'DecisionOption').every(node => node.props.disabled), 'An unknown persisted ID must not unlock replacement choices.');
+  check(one(unknownTree, 'DecisionCommit').label === 'Continue' && attempts === 2, 'An unknown saved choice must remain recorded without running the provider.');
 }
 
 function testAuxiliaries() {
@@ -250,7 +255,7 @@ function testRewards() {
     const shared = harness('src/ui/CampaignEventUI.tsx', 'EventResolution', {}, { ...one(tree, 'EventResolution') });
     const action = one(shared.render(), 'DecisionCommit').onConfirm;
     action(); action();
-    check(calls.length === 1 && game[spec.completedField], 'Reward event must resolve exactly once using the real provider.');
+    check(calls.length === 1 && game[spec.completedField], spec.file + ': reward event must resolve exactly once using the real provider.');
     if (spec.file === 'DividedMarchScreen') {
       const preview = rewardPanels.find(panel => panel.kind === 'immediate')!;
       for (const key of Object.keys(before)) check(game.resources[key] - before[key] === (preview.values[key] ?? 0), 'One-time reward preview drifted from GameProvider: ' + key);
@@ -261,6 +266,7 @@ function testRewards() {
       check(JSON.stringify(game.resources) === JSON.stringify(before), 'Signal Tower must not invent an immediate Stone payout.');
       check(game.buildingLevels.signal_tower === 0, 'Blueprint unlock must not construct a tower.');
       check(game.unlockedResourceSites.includes('old_quarry'), 'Quarry must still unlock.');
+      check(game.sharedProgress.lore.includes('signal_network_restored'), 'Signal Tower completion must record its existing lore.');
       const production = rewardPanels.find(panel => panel.kind === 'production')!;
       assert.deepEqual(production.values, chapter2.humanResourceSites.find(site => site.id === 'old_quarry')!.productionPerActivity);
     }
