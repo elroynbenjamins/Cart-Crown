@@ -4,7 +4,15 @@ import { getEquipment } from '../game/equipment';
 import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, PrimaryButton, SectionTitle, UnitPortrait } from '../ui/components';
+import {
+  GameCard,
+  MetricTile,
+  PrimaryButton,
+  ScreenHero,
+  SectionTitle,
+  StatusPill,
+  UnitPortrait
+} from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
@@ -47,6 +55,9 @@ export function ArmyScreen({
   } = useGame();
 
   const activeCount = formation.filter(Boolean).length;
+  const equippedCount = units.filter(unit =>
+    Object.values(unitEquipment[unit.id] ?? {}).some(Boolean)
+  ).length;
   const faction = factions[activeFaction];
   const factionAccent =
     activeFaction === 'elf'
@@ -67,20 +78,42 @@ export function ArmyScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={factionAccent}>
-        <View style={styles.header}>
-          <View>
-            <Text style={[styles.eyebrow, { color: factionAccent }]}>
-              {faction.name.toUpperCase()} ARMY
-            </Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>Army</Text>
-          </View>
-          <Pill label={String(activeCount) + ' / ' + String(currentWagonStage.formationSlots) + ' active'} />
+      <ScreenHero
+        eyebrow={faction.name.toUpperCase() + ' ARMY'}
+        title="Army"
+        body="Squads keep their experience and assigned equipment. Promotions branch from what you train and give them."
+        accent={factionAccent}
+        status={
+          <StatusPill
+            label={
+              activeCount +
+              '/' +
+              currentWagonStage.formationSlots +
+              ' ACTIVE'
+            }
+            tone={
+              activeCount >= currentWagonStage.formationSlots
+                ? 'ready'
+                : 'available'
+            }
+          />
+        }
+      >
+        <View style={styles.heroMetrics}>
+          <MetricTile
+            label="ROSTER"
+            value={units.length}
+            caption="owned squads"
+            tone="info"
+          />
+          <MetricTile
+            label="EQUIPPED"
+            value={equippedCount + '/' + units.length}
+            caption="squads with gear"
+            tone={equippedCount > 0 ? 'positive' : 'neutral'}
+          />
         </View>
-        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-          Squads keep their experience and assigned equipment. Promotions branch from what you train and give them.
-        </Text>
-      </GameCard>
+      </ScreenHero>
 
       <SectionTitle title="Squads" />
 
@@ -249,11 +282,12 @@ export function ArmyScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 14 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' },
-  eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
-  title: { fontSize: 26, fontWeight: '900', marginTop: 4 },
-  subtitle: { fontSize: 13, lineHeight: 18, marginTop: 8 },
+  content: { padding: 16, paddingBottom: 32, gap: 12 },
+  heroMetrics: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8
+  },
   unitList: { gap: 10 },
   unitRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   stats: { alignItems: 'flex-end', gap: 2 },
