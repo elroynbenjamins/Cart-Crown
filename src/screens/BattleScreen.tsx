@@ -26,6 +26,11 @@ import { useGameTheme } from '../theme/ThemeProvider';
 import type { CommanderSkillEffectType, UnitRole } from '../game/types';
 import { GameCard, PrimaryButton, ProgressBar } from '../ui/components';
 import { EnemySprite, UnitSprite } from '../ui/gameArt';
+import {
+  BattlefieldBackdrop,
+  BattleStatusMarker,
+  BattleVfxStrip
+} from '../ui/battleVisuals';
 
 type ActiveEffect = {
   type: CommanderSkillEffectType;
@@ -42,6 +47,7 @@ type ExchangeFeedback = {
   activeSlot: number | null;
   enemySlot: number | null;
   supportSlots: number[];
+  activeRole: UnitRole | null;
   commanderSkillName: string | null;
   ongoingDamage: number;
 };
@@ -703,6 +709,7 @@ export function BattleScreen({
         activeSlot,
         enemySlot: targetAssignment?.slot ?? null,
         supportSlots,
+        activeRole: attackingUnit?.role ?? null,
         commanderSkillName,
         ongoingDamage
       });
@@ -1118,6 +1125,13 @@ export function BattleScreen({
           compactLayout && styles.arenaCompact
         ]}
       >
+        <BattlefieldBackdrop
+          encounterId={encounterId}
+          faction={activeFaction}
+          difficulty={encounter.difficulty}
+          compact={compactLayout}
+        />
+
         <Text style={[styles.sideLabel, { color: factionAccent }]}>
           YOUR {activeFormationShape.layout} · {activeFormationShape.name.toUpperCase()}
         </Text>
@@ -1184,6 +1198,12 @@ export function BattleScreen({
         ) : null}
 
         <Text style={[styles.versus, { color: theme.colors.textMuted }]}>VS</Text>
+
+        <BattleVfxStrip
+          role={exchangeFeedback?.activeRole ?? null}
+          healed={exchangeFeedback?.healed ?? 0}
+          progress={attackPulse}
+        />
 
         {encounter.difficulty === 'Boss' ? (
           <View
@@ -1288,6 +1308,10 @@ export function BattleScreen({
           {enemyHp} / {encounter.enemyHp} HP
         </Text>
         <ProgressBar value={enemyHp / encounter.enemyHp} color={theme.colors.danger} />
+        <BattleStatusMarker
+          effectType={activeEffect?.type ?? null}
+          remaining={activeEffect?.remaining ?? 0}
+        />
 
         {exchangeFeedback ? (
           <Animated.View
@@ -1542,7 +1566,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9
   },
   speedButtonText: { fontSize: 10, fontWeight: '900' },
-  arena: { flexGrow: 1, justifyContent: 'center', gap: 5 },
+  arena: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    gap: 5,
+    overflow: 'hidden',
+    position: 'relative'
+  },
   arenaCompact: { gap: 3 },
   sideLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8, textAlign: 'center' },
   formationBoard: { alignSelf: 'center', gap: 3, minWidth: 220 },
