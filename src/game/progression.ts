@@ -998,6 +998,57 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     deploymentCapacity: 2,
     cost: { gold: 520, iron: 35, provisions: 34 }
   },
+  {
+    id: 'human_arcane_griffin_rider',
+    researchId: 'human_legendary_hybrid_doctrine',
+    faction: 'human',
+    family: 'hybrid',
+    className: 'Arcane Griffin Rider',
+    role: 'cavalry',
+    tier: 8,
+    level: 14,
+    hp: 168,
+    attack: 36,
+    armor: 13,
+    speed: 19,
+    battleTags: ['flying', 'mounted', 'beast', 'magic', 'charge'],
+    deploymentCapacity: 2,
+    cost: { gold: 620, iron: 48, provisions: 28 }
+  },
+  {
+    id: 'elf_moonwing_spellweaver',
+    researchId: 'elf_legendary_hybrid_doctrine',
+    faction: 'elf',
+    family: 'hybrid',
+    className: 'Moonwing Spellweaver',
+    role: 'support',
+    tier: 8,
+    level: 14,
+    hp: 142,
+    attack: 34,
+    armor: 10,
+    speed: 22,
+    battleTags: ['flying', 'mounted', 'magic', 'support'],
+    deploymentCapacity: 2,
+    cost: { gold: 600, wood: 42, provisions: 30 }
+  },
+  {
+    id: 'orc_wyvern_war_shaman',
+    researchId: 'orc_legendary_hybrid_doctrine',
+    faction: 'orc',
+    family: 'hybrid',
+    className: 'Wyvern War Shaman',
+    role: 'support',
+    tier: 8,
+    level: 14,
+    hp: 178,
+    attack: 35,
+    armor: 12,
+    speed: 18,
+    battleTags: ['flying', 'mounted', 'beast', 'magic', 'support'],
+    deploymentCapacity: 2,
+    cost: { gold: 630, iron: 40, provisions: 32 }
+  },
 ];
 
 export type FantasyCombatEdge = {
@@ -1008,6 +1059,63 @@ export type FantasyCombatEdge = {
   detail: string;
   favorable: boolean;
 };
+
+export function getHybridCombatEdge(
+  activeUnits: UnitDefinition[],
+  enemyProfileId: EnemyArmyProfileId
+): FantasyCombatEdge | null {
+  const hybridUnits = activeUnits.filter(
+    unit =>
+      unitHasBattleTag(unit, 'magic') &&
+      unitHasBattleTag(unit, 'flying')
+  ).length;
+
+  if (hybridUnits === 0) return null;
+
+  let attackMultiplier =
+    1 + Math.min(0.11, hybridUnits * 0.055);
+  let incomingDamageMultiplier = 1;
+  let title = 'Legendary combined arms';
+  let detail =
+    'Magic and flight combine backline access with arcane pressure, but each hybrid consumes two deployment capacity.';
+  let favorable = true;
+
+  if (
+    enemyProfileId === 'shield_host' ||
+    enemyProfileId === 'elite_command'
+  ) {
+    attackMultiplier =
+      1 + Math.min(0.16, hybridUnits * 0.08);
+    title = 'Legendary breakthrough';
+    detail =
+      'Hybrid squads can bypass the ground screen and disrupt protected command elements.';
+  } else if (enemyProfileId === 'missile_company') {
+    incomingDamageMultiplier =
+      1 + Math.min(0.14, hybridUnits * 0.07);
+    attackMultiplier =
+      1 + Math.min(0.04, hybridUnits * 0.02);
+    title = 'Heavy anti-air fire';
+    detail =
+      'Massed missiles remain dangerous even to legendary flyers. Ground pressure is still needed to suppress anti-air.';
+    favorable = false;
+  } else if (enemyProfileId === 'warded_host') {
+    attackMultiplier =
+      Math.max(0.95, 1 - hybridUnits * 0.025);
+    title = 'Warded airspace';
+    detail =
+      'Enemy wards blunt the arcane half of the hybrid advantage, preventing legendary squads from becoming universal counters.';
+    favorable = false;
+  }
+
+  return {
+    unitCount: hybridUnits,
+    attackMultiplier,
+    incomingDamageMultiplier,
+    title,
+    detail,
+    favorable
+  };
+}
 
 export function getLargeCombatEdge(
   activeUnits: UnitDefinition[],
