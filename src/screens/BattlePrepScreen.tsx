@@ -42,15 +42,21 @@ import {
   UnitPortrait
 } from '../ui/components';
 import { EnemySprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function BattlePrepScreen({
   encounterId,
   onBegin,
   onOpenAdjustment,
-  onOpenPreparationFix
+  onOpenPreparationFix,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   encounterId: EncounterId;
   onBegin: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
   onOpenAdjustment?: (
     adjustment: TacticalAdjustmentAdvice,
     presetSlotId: FormationPresetSlotId
@@ -1446,6 +1452,10 @@ export function BattlePrepScreen({
       ) : null}
 
       <SectionTitle title="Army readiness" trailing={String(armyReadiness) + '%'} />
+      <TutorialFocus
+        active={tutorialFocus?.kind === 'battle-readiness'}
+        label={tutorialFocus?.kind === 'battle-readiness' ? tutorialFocus.label : undefined}
+      >
       <GameCard
         faction={activeFaction}
         state={
@@ -1496,6 +1506,7 @@ export function BattlePrepScreen({
           </View>
         ) : null}
       </GameCard>
+      </TutorialFocus>
 
       <SectionTitle title="Readiness" />
       <GameCard
@@ -1539,7 +1550,20 @@ export function BattlePrepScreen({
         <Text style={[styles.adMessage, { color: theme.colors.textMuted }]}>{rewardedAdMessage}</Text>
       ) : null}
 
-      <PrimaryButton label="Begin Battle" onPress={onBegin} />
+      <TutorialFocus
+        active={tutorialFocus?.kind === 'battle-begin'}
+        label={tutorialFocus?.kind === 'battle-begin' ? tutorialFocus.label : undefined}
+      >
+        <PrimaryButton
+          label="Begin Battle"
+          onPress={() => {
+            if (tutorialFocus?.kind === 'battle-begin') {
+              onTutorialFocusComplete?.();
+            }
+            onBegin();
+          }}
+        />
+      </TutorialFocus>
     </ScrollView>
   );
 }
