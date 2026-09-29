@@ -52,6 +52,7 @@ export function FormationScreen({
     formation,
     activeFaction,
     activeSquadCap,
+    activeDeploymentCapacity,
     formationShapeId,
     formationShapes,
     activeFormationShape,
@@ -83,6 +84,14 @@ export function FormationScreen({
   ]);
 
   const activeCount = formation.filter(Boolean).length;
+  const deploymentCapacityForFormation = (
+    formationIds: Array<string | null>
+  ) =>
+    formationIds.reduce((total, unitId) => {
+      if (!unitId) return total;
+      const unit = units.find(candidate => candidate.id === unitId);
+      return total + (unit?.deploymentCapacity ?? 1);
+    }, 0);
   const faction = factions[activeFaction];
   const factionAccent =
     activeFaction === 'elf'
@@ -407,8 +416,20 @@ export function FormationScreen({
         accent={factionAccent}
         status={
           <StatusPill
-            label={activeCount + '/' + activeSquadCap + ' SQUADS'}
-            tone={activeCount >= activeSquadCap ? 'ready' : 'available'}
+            label={
+              'CAP ' +
+              activeDeploymentCapacity +
+              '/' +
+              activeSquadCap +
+              ' · ' +
+              activeCount +
+              ' SQUADS'
+            }
+            tone={
+              activeDeploymentCapacity >= activeSquadCap
+                ? 'ready'
+                : 'available'
+            }
           />
         }
       >
@@ -452,6 +473,9 @@ export function FormationScreen({
           const squadCount = preset
             ? preset.formation.filter(Boolean).length
             : 0;
+          const presetCapacity = preset
+            ? deploymentCapacityForFormation(preset.formation)
+            : 0;
 
           return (
             <GameCard
@@ -489,6 +513,10 @@ export function FormationScreen({
                         ' · ' +
                         (presetDoctrine?.name ?? 'Saved doctrine') +
                         ' · ' +
+                        presetCapacity +
+                        '/' +
+                        activeSquadCap +
+                        ' cap · ' +
                         squadCount +
                         ' squads'
                       : 'Empty preset'}
@@ -882,6 +910,11 @@ export function FormationScreen({
                     <Text style={[styles.stat, { color: theme.colors.text }]}>HP {unit.hp}</Text>
                     <Text style={[styles.stat, { color: theme.colors.text }]}>ATK {unit.attack}</Text>
                     <Text style={[styles.stat, { color: theme.colors.text }]}>ARM {unit.armor}</Text>
+                    {(unit.deploymentCapacity ?? 1) > 1 ? (
+                      <Text style={[styles.stat, { color: theme.colors.gold }]}>
+                        CAP {unit.deploymentCapacity}
+                      </Text>
+                    ) : null}
                   </View>
                 </View>
                 <View style={styles.unitBadges}><UnitBadges role={unit.role} tier={unit.tier} battleTags={unit.battleTags} compact /></View>

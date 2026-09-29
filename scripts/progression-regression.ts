@@ -11,6 +11,7 @@ import {
   getFantasyCombatEdge,
   getFantasyRecruitTemplates,
   getFlyingCombatEdge,
+  getLargeCombatEdge,
   getFantasyStoryRewardUnit,
   getResearchGemFinishCost,
   getResearchRemainingHours,
@@ -624,6 +625,124 @@ function runPlayableFlyingCoverage() {
   );
 }
 
+function runPlayableLargeCoverage() {
+  const largeTemplates = fantasyRecruitTemplates.filter(
+    template => template.family === 'large'
+  );
+
+  expect(
+    largeTemplates.length === 6,
+    'Chapter 7 needs exactly two repeatable Large branches per faction.'
+  );
+
+  for (const faction of ['human', 'elf', 'orc'] as const) {
+    const templates = getFantasyRecruitTemplates(
+      faction,
+      'large'
+    );
+
+    expect(
+      templates.length === 2,
+      faction + ' must expose two repeatable Large-unit branches.'
+    );
+
+    for (const template of templates) {
+      expect(
+        template.battleTags.includes('large'),
+        template.id + ' is missing the large battle tag.'
+      );
+      expect(
+        template.deploymentCapacity === 2,
+        template.id + ' must consume exactly two deployment capacity.'
+      );
+      expect(
+        researchDefinitions.some(
+          research =>
+            research.id === template.researchId &&
+            research.faction === faction &&
+            research.family === 'large'
+        ),
+        template.id + ' is not linked to valid Large-unit research.'
+      );
+    }
+  }
+
+  const golemTemplate = largeTemplates.find(
+    template => template.id === 'human_stone_golem'
+  );
+  expect(Boolean(golemTemplate), 'Human Stone Golem training template is missing.');
+  if (!golemTemplate) return;
+
+  const golem = {
+    id: 'test_large_golem',
+    name: 'Test Stone Golem',
+    className: golemTemplate.className,
+    faction: golemTemplate.faction,
+    role: golemTemplate.role,
+    tier: golemTemplate.tier,
+    level: golemTemplate.level,
+    hp: golemTemplate.hp,
+    attack: golemTemplate.attack,
+    armor: golemTemplate.armor,
+    speed: golemTemplate.speed,
+    battleTags: golemTemplate.battleTags,
+    deploymentCapacity: 2 as const
+  };
+
+  expect(
+    getArmyDeploymentCapacity([golem]) === 2,
+    'A single Large unit no longer consumes two army capacity.'
+  );
+  expect(
+    getArmyDeploymentCapacity([
+      golem,
+      {
+        ...golem,
+        id: 'test_large_golem_2'
+      }
+    ]) === 4,
+    'Multiple Large units are no longer additive in deployment capacity.'
+  );
+
+  const breakthrough = getLargeCombatEdge(
+    [golem],
+    'shield_host'
+  );
+  const volleyCounter = getLargeCombatEdge(
+    [golem],
+    'missile_company'
+  );
+  const disciplinedCounter = getLargeCombatEdge(
+    [golem],
+    'elite_command'
+  );
+
+  expect(
+    Boolean(
+      breakthrough &&
+      breakthrough.attackMultiplier > 1 &&
+      breakthrough.favorable
+    ),
+    'Large units must break dense Shield Hosts.'
+  );
+  expect(
+    Boolean(
+      volleyCounter &&
+      volleyCounter.incomingDamageMultiplier > 1 &&
+      !volleyCounter.favorable
+    ),
+    'Missile Companies must remain a Large-unit counter.'
+  );
+  expect(
+    Boolean(
+      disciplinedCounter &&
+      disciplinedCounter.incomingDamageMultiplier > 1 &&
+      !disciplinedCounter.favorable
+    ),
+    'Elite Command must retain disciplined anti-large counterplay.'
+  );
+}
+
 function main() {
   runCampaignCurveCoverage();
   runChapterTwoCoverage();
@@ -632,6 +751,7 @@ function main() {
   runBattleTagAndCapacityCoverage();
   runPlayableMagicCoverage();
   runPlayableFlyingCoverage();
+  runPlayableLargeCoverage();
 
   if (failures.length > 0) {
     console.error('\nFantasy progression regression failures:');
@@ -641,7 +761,7 @@ function main() {
   }
 
   console.log(
-    'PASS: campaign growth, fantasy gates, research rules, playable magic and flying branches, counterplay, battle tags and deployment capacity remain inside the intended guardrails.'
+    'PASS: campaign growth, fantasy gates, research rules, playable magic, flying and Large branches, counterplay, battle tags and deployment capacity remain inside the intended guardrails.'
   );
 }
 

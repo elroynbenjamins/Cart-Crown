@@ -13,6 +13,7 @@ export type TutorialView =
   | 'settlement'
   | 'fantasyResearch'
   | 'flyingResearch'
+  | 'largeResearch'
   | 'other';
 
 export type TutorialTarget =
@@ -40,9 +41,9 @@ export type TutorialFocusTarget =
   | { kind: 'forge-craft'; label: string }
   | { kind: 'army-equipment'; label: string }
   | { kind: 'kingdom-production'; label: string }
-  | { kind: 'army-fantasy'; family: 'magic' | 'flying'; label: string }
-  | { kind: 'research-start'; family: 'magic' | 'flying'; label: string }
-  | { kind: 'research-train'; family: 'magic' | 'flying'; label: string };
+  | { kind: 'army-fantasy'; family: 'magic' | 'flying' | 'large'; label: string }
+  | { kind: 'research-start'; family: 'magic' | 'flying' | 'large'; label: string }
+  | { kind: 'research-train'; family: 'magic' | 'flying' | 'large'; label: string };
 
 export type TutorialMoment = {
   key: string;
@@ -78,8 +79,10 @@ export type TutorialContext = {
   wagonStageId: string;
   magicStoryUnlocked: boolean;
   flyingStoryUnlocked: boolean;
+  largeStoryUnlocked: boolean;
   completedMagicResearch: number;
   completedFlyingResearch: number;
+  completedLargeResearch: number;
 };
 
 export const CORE_TUTORIAL_KEYS = [
@@ -105,7 +108,10 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:magic-training',
   'system:flying-discovery',
   'system:flying-research',
-  'system:flying-training'
+  'system:flying-training',
+  'system:large-discovery',
+  'system:large-research',
+  'system:large-training'
 ] as const;
 
 export const FACTION_TUTORIAL_KEYS = [
@@ -730,6 +736,80 @@ function systemMoment(
   }
 
   if (
+    context.largeStoryUnlocked &&
+    context.view === 'army' &&
+    !seen(context, 'system:large-discovery')
+  ) {
+    const name =
+      context.faction === 'human'
+        ? 'Construct Foundry'
+        : context.faction === 'elf'
+          ? 'Ancient Grove'
+          : 'Great Beast Pens';
+
+    return {
+      key: 'system:large-discovery',
+      kind: 'system',
+      eyebrow: 'CHAPTER 7 MASTERY',
+      title: 'Large units change army capacity',
+      body:
+        name +
+        ' is now operational. Large units are powerful formation breakers, but each consumes 2 deployment capacity while occupying one formation cell. Concentrated missiles and disciplined anti-large troops can punish them, so a Large unit is a composition choice rather than a free upgrade.',
+      primaryLabel: 'Show Large Unit Mastery',
+      target: 'army',
+      focusAfterPrimary: {
+        kind: 'army-fantasy',
+        family: 'large',
+        label: 'OPEN LARGE UNIT MASTERY'
+      }
+    };
+  }
+
+  if (
+    context.largeStoryUnlocked &&
+    context.view === 'largeResearch' &&
+    !seen(context, 'system:large-research')
+  ) {
+    return {
+      key: 'system:large-research',
+      kind: 'system',
+      eyebrow: 'MASTERY RESEARCH',
+      title: 'Master the first Large discovery',
+      body:
+        'Large-unit mastery uses the same optional research model as other fantasy families: the timer finishes naturally, while rewarded ads or Gems only shorten the wait. Completing mastery unlocks repeatable Large-unit training.',
+      primaryLabel: 'Show mastery research',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-start',
+        family: 'large',
+        label: 'START MASTERY'
+      }
+    };
+  }
+
+  if (
+    context.completedLargeResearch > 0 &&
+    context.view === 'largeResearch' &&
+    !seen(context, 'system:large-training')
+  ) {
+    return {
+      key: 'system:large-training',
+      kind: 'system',
+      eyebrow: 'LARGE TRAINING',
+      title: 'Power costs deployment space',
+      body:
+        'Your mastered Large classes can now be trained repeatedly. Every Large squad costs normal resources and 2 deployment capacity, so adding one usually means benching or replacing conventional squads. Use them when breakthrough power is worth that trade.',
+      primaryLabel: 'Show trainable Large unit',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-train',
+        family: 'large',
+        label: 'TRAIN THIS LARGE UNIT'
+      }
+    };
+  }
+
+  if (
     (stageRank[context.wagonStageId] ?? 0) >= 2 &&
     context.view === 'formation' &&
     !seen(context, 'system:advanced-formations')
@@ -787,7 +867,8 @@ export function getNextTutorialMoment(
   if (
     system?.key === 'system:settlement' ||
     system?.key === 'system:magic-discovery' ||
-    system?.key === 'system:flying-discovery'
+    system?.key === 'system:flying-discovery' ||
+    system?.key === 'system:large-discovery'
   ) {
     return system;
   }

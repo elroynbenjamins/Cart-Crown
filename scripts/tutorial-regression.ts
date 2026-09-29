@@ -54,8 +54,10 @@ function baseContext(
     wagonStageId: 'camp',
     magicStoryUnlocked: false,
     flyingStoryUnlocked: false,
+    largeStoryUnlocked: false,
     completedMagicResearch: 0,
     completedFlyingResearch: 0,
+    completedLargeResearch: 0,
     ...overrides
   };
 }
@@ -682,6 +684,87 @@ function runFantasyFamilyCoverage() {
       flyingTraining.focusAfterPrimary.family ===
         'flying',
     'Flying training lesson does not spotlight the newly trainable aerial class.'
+  );
+  const largeDiscovery = getNextTutorialMoment(
+    baseContext({
+      view: 'army',
+      tutorialSeen: [
+        ...core,
+        'system:magic-discovery',
+        'system:magic-research',
+        'system:magic-training',
+        'system:flying-discovery',
+        'system:flying-research',
+        'system:flying-training'
+      ],
+      magicStoryUnlocked: true,
+      flyingStoryUnlocked: true,
+      largeStoryUnlocked: true,
+      wagonStageId: 'grand'
+    })
+  );
+
+  expect(
+    largeDiscovery?.key ===
+      'system:large-discovery',
+    'Large-unit mastery is not introduced after the Chapter 7 gate opens.'
+  );
+  expect(
+    largeDiscovery?.focusAfterPrimary?.kind ===
+      'army-fantasy' &&
+      largeDiscovery.focusAfterPrimary.family ===
+        'large',
+    'Large discovery does not route to the Large Unit Mastery Army card.'
+  );
+
+  const largeResearch = getNextTutorialMoment(
+    baseContext({
+      view: 'largeResearch',
+      tutorialSeen: [
+        ...core,
+        'system:large-discovery'
+      ],
+      largeStoryUnlocked: true
+    })
+  );
+
+  expect(
+    largeResearch?.key ===
+      'system:large-research',
+    'Large Unit Mastery screen does not explain mastery research.'
+  );
+  expect(
+    largeResearch?.focusAfterPrimary?.kind ===
+      'research-start' &&
+      largeResearch.focusAfterPrimary.family ===
+        'large',
+    'Large mastery lesson does not spotlight Start Mastery.'
+  );
+
+  const largeTraining = getNextTutorialMoment(
+    baseContext({
+      view: 'largeResearch',
+      tutorialSeen: [
+        ...core,
+        'system:large-discovery',
+        'system:large-research'
+      ],
+      largeStoryUnlocked: true,
+      completedLargeResearch: 1
+    })
+  );
+
+  expect(
+    largeTraining?.key ===
+      'system:large-training',
+    'First completed Large mastery does not introduce repeatable Large training.'
+  );
+  expect(
+    largeTraining?.focusAfterPrimary?.kind ===
+      'research-train' &&
+      largeTraining.focusAfterPrimary.family ===
+        'large',
+    'Large training lesson does not spotlight the newly trainable Large class.'
   );
 }
 

@@ -27,6 +27,7 @@ export function ArmyScreen({
   onOpenCommander,
   onOpenFantasyResearch,
   onOpenFlyingResearch,
+  onOpenLargeResearch,
   onOpenEquipment,
   tutorialFocus,
   onTutorialFocusComplete
@@ -37,6 +38,7 @@ export function ArmyScreen({
   onOpenCommander: () => void;
   onOpenFantasyResearch: () => void;
   onOpenFlyingResearch: () => void;
+  onOpenLargeResearch: () => void;
   onOpenEquipment: (unitId: string) => void;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
@@ -45,9 +47,11 @@ export function ArmyScreen({
   const {
     activeFaction,
     chapterNumber,
+    fantasyProgressionChapter,
     units,
     formation,
     currentWagonStage,
+    activeDeploymentCapacity,
     settlementUpgraded,
     recruitChosen,
     recruitOptions,
@@ -63,6 +67,8 @@ export function ArmyScreen({
     magicResearchDefinitions,
     flyingFamilyUnlock,
     flyingResearchDefinitions,
+    largeFamilyUnlock,
+    largeResearchDefinitions,
     researchProgress,
     buildingLevels,
     factionBuildingIds
@@ -105,6 +111,16 @@ export function ArmyScreen({
     flyingResearchDefinitions.filter(
       research => researchProgress[research.id]?.completed
     ).length;
+  const largeUnlocked = Boolean(
+    largeFamilyUnlock &&
+    completedStoryGates.includes(
+      largeFamilyUnlock.storyGateId
+    )
+  );
+  const completedLargeResearch =
+    largeResearchDefinitions.filter(
+      research => researchProgress[research.id]?.completed
+    ).length;
   const mira = units.find(unit => unit.id === 'hum_recruit');
   const miraWeapon = unitEquipment.hum_recruit?.weapon
     ? getEquipment(unitEquipment.hum_recruit.weapon)
@@ -120,13 +136,13 @@ export function ArmyScreen({
         status={
           <StatusPill
             label={
-              activeCount +
+              activeDeploymentCapacity +
               '/' +
               currentWagonStage.formationSlots +
-              ' ACTIVE'
+              ' CAPACITY'
             }
             tone={
-              activeCount >= currentWagonStage.formationSlots
+              activeDeploymentCapacity >= currentWagonStage.formationSlots
                 ? 'ready'
                 : 'available'
             }
@@ -166,6 +182,11 @@ export function ArmyScreen({
                 <Text style={[styles.stat, { color: theme.colors.text }]}>ATK {unit.attack}</Text>
                 <Text style={[styles.stat, { color: theme.colors.text }]}>ARM {unit.armor}</Text>
                 <Text style={[styles.stat, { color: theme.colors.text }]}>SPD {unit.speed}</Text>
+                {(unit.deploymentCapacity ?? 1) > 1 ? (
+                  <Text style={[styles.stat, { color: theme.colors.gold }]}>
+                    CAP {unit.deploymentCapacity}
+                  </Text>
+                ) : null}
               </View>
             </View>
             <View style={styles.unitBadges}>
@@ -368,6 +389,67 @@ export function ArmyScreen({
               />
             </View>
           </GameCard>
+          </TutorialFocus>
+        </>
+      ) : null}
+
+      {fantasyProgressionChapter >= 7 ? (
+        <>
+          <SectionTitle
+            title="Large-unit mastery"
+            trailing={
+              largeUnlocked
+                ? completedLargeResearch +
+                  '/' +
+                  largeResearchDefinitions.length +
+                  ' researched'
+                : 'Chapter 7'
+            }
+          />
+          <TutorialFocus
+            active={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'large'
+            }
+            label={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'large'
+                ? tutorialFocus.label
+                : undefined
+            }
+          >
+            <GameCard
+              accent={largeUnlocked ? factionAccent : undefined}
+              faction={activeFaction}
+              state={largeUnlocked ? 'ready' : 'default'}
+            >
+              <Text style={[styles.lockedTitle, { color: theme.colors.text }]}>
+                {largeFamilyUnlock?.buildingName ?? 'Large-unit Institution'}
+              </Text>
+              <Text style={[styles.lockedBody, { color: theme.colors.textMuted }]}>
+                {largeUnlocked
+                  ? 'Your first Large unit has joined. Large squads consume 2 deployment capacity each, so their extra power always costs room elsewhere in the army.'
+                  : 'Finish this faction’s Chapter 6 campaign to enter the Monsters & Constructs mastery phase and unlock its first Large unit.'}
+              </Text>
+              <View style={styles.recruitButton}>
+                <PrimaryButton
+                  label={
+                    largeUnlocked
+                      ? 'Open Large Unit Mastery'
+                      : 'View Chapter 7 Progress'
+                  }
+                  onPress={() => {
+                    if (
+                      tutorialFocus?.kind === 'army-fantasy' &&
+                      tutorialFocus.family === 'large'
+                    ) {
+                      onTutorialFocusComplete?.();
+                    }
+                    onOpenLargeResearch();
+                  }}
+                />
+              </View>
+            </GameCard>
           </TutorialFocus>
         </>
       ) : null}

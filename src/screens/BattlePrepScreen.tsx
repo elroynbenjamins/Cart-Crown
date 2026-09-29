@@ -17,7 +17,8 @@ import {
 } from '../game/balance';
 import {
   getFantasyCombatEdge,
-  getFlyingCombatEdge
+  getFlyingCombatEdge,
+  getLargeCombatEdge
 } from '../game/progression';
 import {
   assessBattlePreparation,
@@ -101,6 +102,7 @@ export function BattlePrepScreen({
     activeFormationShape,
     formationPresets,
     activeSquadCap,
+    activeDeploymentCapacity,
     currentWagonStage,
     setFormationShape,
     applyFormationPreset,
@@ -233,6 +235,10 @@ export function BattlePrepScreen({
     activeUnits,
     enemyArmyProfile.id
   );
+  const largeCombatEdge = getLargeCombatEdge(
+    activeUnits,
+    enemyArmyProfile.id
+  );
   const readinessProfile = getArmyReadinessProfile(armyReadiness);
   const effectiveMaxHp = Math.round(
     combatProfile.maxHp * readinessProfile.hpMultiplier
@@ -240,12 +246,14 @@ export function BattlePrepScreen({
   const effectiveAttack = Math.round(
     combatProfile.totalAttack * readinessProfile.attackMultiplier
   );
-  const formationFull = activeUnits.length >= activeSquadCap;
+  const formationFull =
+    activeDeploymentCapacity >= activeSquadCap;
   const hasFood = wagonItems.some(item => item.id === 'rations');
   const hasMedicine = wagonItems.some(item => item.id === 'medicine');
   const preparation = assessBattlePreparation({
     activeUnits,
     squadCap: activeSquadCap,
+    activeDeploymentCapacity,
     armyReadiness,
     hasRations: hasFood,
     difficulty: encounter.difficulty,
@@ -847,11 +855,11 @@ export function BattlePrepScreen({
           {formationFull ? 'Full field strength' : 'Underfilled formation'}
         </Text>
         <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
-          {effectiveMaxHp} HP · {effectiveAttack} ATK · Avg ARM {combatProfile.averageArmor.toFixed(1)} · Avg SPD {(combatProfile.averageSpeed * readinessProfile.speedMultiplier).toFixed(1)}
+          {effectiveMaxHp} HP · {effectiveAttack} ATK · Avg ARM {combatProfile.averageArmor.toFixed(1)} · Avg SPD {(combatProfile.averageSpeed * readinessProfile.speedMultiplier).toFixed(1)} · CAP {activeDeploymentCapacity}/{activeSquadCap}
         </Text>
         {!formationFull ? (
           <Text style={[styles.skillName, { color: theme.colors.danger }]}>
-            Enemy pressure is tuned for {activeSquadCap} squads at this campaign tier. Fill the open slot or improve gear before committing.
+            Enemy pressure is tuned for {activeSquadCap} deployment capacity at this campaign tier. Fill the remaining capacity or improve gear before committing.
           </Text>
         ) : null}
       </GameCard>
@@ -1507,6 +1515,47 @@ export function BattlePrepScreen({
           </Text>
           <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
             Flying squads {flyingCombatEdge.unitCount} · Damage dealt ×{flyingCombatEdge.attackMultiplier.toFixed(2)} · Damage received ×{flyingCombatEdge.incomingDamageMultiplier.toFixed(2)}
+          </Text>
+        </GameCard>
+      ) : null}
+
+      {largeCombatEdge ? (
+        <GameCard
+          accent={
+            largeCombatEdge.favorable
+              ? theme.colors.gold
+              : theme.colors.danger
+          }
+          faction={activeFaction}
+          state={largeCombatEdge.favorable ? 'ready' : 'danger'}
+        >
+          <View style={styles.planHeader}>
+            <View style={styles.planCopy}>
+              <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+                LARGE-UNIT MATCHUP
+              </Text>
+              <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+                {largeCombatEdge.title}
+              </Text>
+            </View>
+            <StatusPill
+              label={
+                largeCombatEdge.favorable
+                  ? 'BREAKTHROUGH'
+                  : 'ANTI-LARGE'
+              }
+              tone={
+                largeCombatEdge.favorable
+                  ? 'ready'
+                  : 'elite'
+              }
+            />
+          </View>
+          <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+            {largeCombatEdge.detail}
+          </Text>
+          <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
+            Large units {largeCombatEdge.unitCount} · Damage dealt ×{largeCombatEdge.attackMultiplier.toFixed(2)} · Damage received ×{largeCombatEdge.incomingDamageMultiplier.toFixed(2)}
           </Text>
         </GameCard>
       ) : null}
