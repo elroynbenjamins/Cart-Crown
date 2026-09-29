@@ -573,7 +573,7 @@ export function FormationScreen({
                 ) {
                   onTutorialFocusComplete?.();
                 }
-              }
+              }}
               style={({ pressed }) => [
                 styles.shapeCard,
                 {
