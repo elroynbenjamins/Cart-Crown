@@ -19,6 +19,8 @@ import {
   evaluateFormationPreset,
   getTacticalAdjustmentAdvice
 } from '../game/loadoutAnalysis';
+import type { TacticalAdjustmentAdvice } from '../game/loadoutAnalysis';
+import type { FormationPresetSlotId } from '../game/types';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -36,10 +38,15 @@ import { EnemySprite } from '../ui/gameArt';
 
 export function BattlePrepScreen({
   encounterId,
-  onBegin
+  onBegin,
+  onOpenAdjustment
 }: {
   encounterId: EncounterId;
   onBegin: () => void;
+  onOpenAdjustment?: (
+    adjustment: TacticalAdjustmentAdvice,
+    presetSlotId: FormationPresetSlotId
+  ) => void;
 }) {
   const { theme } = useGameTheme();
   const [showBattleDetails, setShowBattleDetails] = React.useState(false);
@@ -591,7 +598,7 @@ export function BattlePrepScreen({
                     Improve before committing
                   </Text>
                   {tacticalAdjustments.map((adjustment, index) => (
-                    <View
+                    <Pressable
                       key={
                         adjustment.kind +
                         ':' +
@@ -599,9 +606,19 @@ export function BattlePrepScreen({
                         ':' +
                         adjustment.title
                       }
-                      style={[
+                      disabled={!onOpenAdjustment}
+                      onPress={() =>
+                        onOpenAdjustment?.(
+                          adjustment,
+                          recommendedPreset.slotId
+                        )
+                      }
+                      style={({ pressed }) => [
                         styles.adjustmentRow,
-                        { borderTopColor: theme.colors.border }
+                        {
+                          borderTopColor: theme.colors.border,
+                          opacity: pressed ? 0.72 : 1
+                        }
                       ]}
                     >
                       <View
@@ -647,7 +664,17 @@ export function BattlePrepScreen({
                           {adjustment.detail}
                         </Text>
                       </View>
-                    </View>
+                      {onOpenAdjustment ? (
+                        <Text
+                          style={[
+                            styles.adjustmentOpen,
+                            { color: theme.colors.gold }
+                          ]}
+                        >
+                          OPEN
+                        </Text>
+                      ) : null}
+                    </Pressable>
                   ))}
                 </View>
               ) : null}
@@ -1331,6 +1358,12 @@ const styles = StyleSheet.create({
     fontWeight: '900'
   },
   adjustmentCopy: { flex: 1 },
+  adjustmentOpen: {
+    fontSize: 8.5,
+    fontWeight: '900',
+    letterSpacing: 0.6,
+    marginTop: 3
+  },
   adjustmentTitle: {
     fontSize: 10.5,
     fontWeight: '900'
