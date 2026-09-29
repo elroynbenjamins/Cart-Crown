@@ -52,7 +52,11 @@ export function TutorialFocus({
   }, [active, pulse]);
 
   if (!active) {
-    return <View style={style}>{children}</View>;
+    return style ? (
+      <View style={style}>{children}</View>
+    ) : (
+      <>{children}</>
+    );
   }
 
   const scale = pulse.interpolate({
