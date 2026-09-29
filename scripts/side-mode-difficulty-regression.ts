@@ -259,6 +259,7 @@ function runWarTableMatrix() {
                 squadCaps[faction][chapter - 1] ??
                 6,
               readiness,
+              encounterChapter: chapter,
               modifier:
                 defaultModifierForFaction(
                   faction,
