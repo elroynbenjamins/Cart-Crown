@@ -1,0 +1,113 @@
+name: Android native QA
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/android-native-qa.yml'
+      - 'scripts/android/**'
+      - 'app.json'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-native-qa.yml'
+      - 'scripts/android/**'
+      - 'app.json'
+      - 'package.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-native-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      QA_PACKAGE: com.elroybenjamins.cartcrown.qa
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: android-qa-${{ runner.os }}-${{ hashFiles('package.json', 'app.json') }}
+          restore-keys: android-qa-${{ runner.os }}-
+      - name: Record source and isolate test installation
+        run: |
+          mkdir -p qa-artifacts
+          git rev-parse HEAD | tee qa-artifacts/source-commit.txt
+          cp app.json qa-artifacts/source-app.json
+          node - <<'JS'
+          const fs = require('node:fs');
+          const config = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+          if (config.expo.android.package !== 'com.elroybenjamins.cartcrown') throw new Error('Unexpected production package');
+          config.expo.name = 'Cart & Crown QA';
+          config.expo.android.package = process.env.QA_PACKAGE;
+          fs.writeFileSync('app.json', JSON.stringify(config, null, 2) + '\n');
+          JS
+          cp app.json qa-artifacts/qa-app.json
+      - name: Install exact declared application dependencies
+        run: |
+          set -o pipefail
+          npm install --include=dev --no-audit --no-fund 2>&1 | tee qa-artifacts/npm-install.log
+          npm ls --depth=0 > qa-artifacts/dependency-versions.txt
+          cp package-lock.json qa-artifacts/resolved-package-lock.json
+      - name: Generate native Android project
+        run: |
+          set -o pipefail
+          npx expo prebuild --platform android --no-install 2>&1 | tee qa-artifacts/prebuild.log
+      - name: Build standalone release-mode APK for emulator
+        env:
+          NODE_ENV: production
+        run: |
+          set -o pipefail
+          cd android
+          ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86_64 --max-workers=2 --no-daemon --stacktrace 2>&1 | tee ../qa-artifacts/gradle-build.log
+          cp app/build/outputs/apk/release/app-release.apk ../qa-artifacts/Cart-Crown-QA-x86_64.apk
+          cd ..
+          sha256sum qa-artifacts/Cart-Crown-QA-x86_64.apk | tee qa-artifacts/apk-sha256.txt
+          APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          "$APK_SIGNER" verify --verbose qa-artifacts/Cart-Crown-QA-x86_64.apk > qa-artifacts/apk-signing.txt
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and exercise real APK on Android 15
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          cores: 2
+          ram-size: 2048M
+          heap-size: 512M
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: python3 scripts/android/native_smoke.py --apk qa-artifacts/Cart-Crown-QA-x86_64.apk --package com.elroybenjamins.cartcrown.qa --output qa-artifacts
+      - name: Upload native evidence even when a checkpoint fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-native-qa-${{ github.run_id }}
+          path: qa-artifacts/
+          if-no-files-found: error
+          retention-days: 7
