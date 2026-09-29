@@ -1,3 +1,4 @@
+// Guards the visible identity of authored enemy fantasy threat families.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
