@@ -159,6 +159,45 @@ function runScalingCoverage() {
   );
 }
 
+function runFallbackBreachCoverage() {
+  let run = createSiegeRun({
+    readiness: 100,
+    supplies: 5,
+    basePower: 420,
+    preparationMultiplier: 1.1,
+    playerShapeId: 'assault_432',
+    wagonStageId: 'fort',
+    engineering: 0,
+    permanentIntel: false,
+    hasRations: true,
+    hasMedicine: false,
+    rewardMultiplier: 1
+  });
+
+  const approach = resolveSiegeChoice({
+    run,
+    choiceId: 'approach_flank'
+  });
+  check(
+    approach.ok && approach.success,
+    'Engineering-0 fixture could not reach the breach.'
+  );
+  run = approach.state;
+
+  const ladders = resolveSiegeChoice({
+    run,
+    choiceId: 'breach_ladders'
+  });
+  check(
+    ladders.ok,
+    'Engineering 0 can soft-lock the Siege because Improvised Ladders are unavailable.'
+  );
+  check(
+    getSiegeChoice('breach_ladders')?.minimumEngineering === undefined,
+    'Improvised Ladders unexpectedly require Engineering.'
+  );
+}
+
 function runEngineeringGateCoverage() {
   const run = createSiegeRun({
     readiness: 100,
@@ -190,6 +229,68 @@ function runEngineeringGateCoverage() {
   check(
     !blocked.ok,
     'Sapper breach can be used without Engineering 2.'
+  );
+}
+
+function runAlertCoverage() {
+  const boss = getSiegeChoice('commander_keep');
+  check(boss, 'Commander fixture missing for alert coverage.');
+
+  const calm = getSiegeThreat(
+    boss,
+    'town',
+    -0.08
+  );
+  const neutral = getSiegeThreat(
+    boss,
+    'town',
+    0
+  );
+  const alerted = getSiegeThreat(
+    boss,
+    'town',
+    0.12
+  );
+
+  check(
+    calm < neutral && neutral < alerted,
+    'Defender Alert no longer changes later Siege threat.'
+  );
+
+  const base = createSiegeRun({
+    readiness: 100,
+    supplies: 8,
+    basePower: 500,
+    preparationMultiplier: 1.15,
+    playerShapeId: 'assault_432',
+    wagonStageId: 'fort',
+    engineering: 3,
+    permanentIntel: true,
+    hasRations: true,
+    hasMedicine: true,
+    rewardMultiplier: 1
+  });
+
+  const shielded = resolveSiegeChoice({
+    run: base,
+    choiceId: 'approach_shielded'
+  });
+  const flank = resolveSiegeChoice({
+    run: base,
+    choiceId: 'approach_flank'
+  });
+
+  check(
+    shielded.ok &&
+      flank.ok &&
+      shielded.success &&
+      flank.success,
+    'Alert route fixtures could not clear the approach.'
+  );
+  check(
+    shielded.state.defenderAlert >
+      flank.state.defenderAlert,
+    'Slow frontal approach no longer raises later defender readiness relative to the flanking plan.'
   );
 }
 
@@ -351,6 +452,10 @@ function runSaveResumeCoverage() {
     'Frozen Siege preparation multiplier was not preserved.'
   );
   check(
+    typeof restored?.activeSiegeRun?.defenderAlert === 'number',
+    'Siege defender alert was not preserved/sanitized across save normalization.'
+  );
+  check(
     restored?.siegeRunsCompleted === 4 &&
       restored.siegeRewardedRunsThisChapter === 1,
     'Siege lifetime/chapter counters were not preserved.'
@@ -360,7 +465,9 @@ function runSaveResumeCoverage() {
 runStructureCoverage();
 runPreparationCoverage();
 runScalingCoverage();
+runFallbackBreachCoverage();
 runEngineeringGateCoverage();
+runAlertCoverage();
 runSuccessAndFailureCoverage();
 runRewardCoverage();
 runSaveResumeCoverage();
