@@ -250,6 +250,10 @@ type GameContextValue = {
   largeFamilyUnlock: FamilyUnlockDefinition | null;
   largeResearchDefinitions: ResearchDefinition[];
   largeRecruitOptions: FantasyRecruitTemplate[];
+  hybridFamilyUnlock: FamilyUnlockDefinition | null;
+  hybridResearchDefinitions: ResearchDefinition[];
+  hybridRecruitOptions: FantasyRecruitTemplate[];
+  hybridPrerequisitesMet: boolean;
   fantasyProgressionChapter: number;
   formationShapeId: FormationShapeId;
   formationShapes: FormationShapeDefinition[];
@@ -865,6 +869,36 @@ export function GameProvider({
     () => getFantasyRecruitTemplates(activeFaction, 'large'),
     [activeFaction]
   );
+  const hybridFamilyUnlock = useMemo(
+    () => getFamilyUnlock(activeFaction, 'hybrid'),
+    [activeFaction]
+  );
+  const hybridResearchDefinitions = useMemo(
+    () =>
+      researchDefinitions.filter(
+        research =>
+          research.faction === activeFaction &&
+          research.family === 'hybrid'
+      ),
+    [activeFaction]
+  );
+  const hybridRecruitOptions = useMemo(
+    () => getFantasyRecruitTemplates(activeFaction, 'hybrid'),
+    [activeFaction]
+  );
+  const hybridPrerequisitesMet = useMemo(() => {
+    const magicComplete = magicResearchDefinitions.every(
+      research => Boolean(researchProgress[research.id]?.completed)
+    );
+    const flyingComplete = flyingResearchDefinitions.every(
+      research => Boolean(researchProgress[research.id]?.completed)
+    );
+    return magicComplete && flyingComplete;
+  }, [
+    flyingResearchDefinitions,
+    magicResearchDefinitions,
+    researchProgress
+  ]);
   const fantasyProgressionChapter =
     sharedProgress.metaCampaignComplete
       ? 8
@@ -1018,6 +1052,46 @@ export function GameProvider({
     fantasyProgressionChapter,
     largeFamilyUnlock,
     sharedProgress.completedCampaigns
+  ]);
+
+  useEffect(() => {
+    if (
+      !hybridFamilyUnlock ||
+      fantasyProgressionChapter < 8 ||
+      !sharedProgress.metaCampaignComplete
+    ) {
+      return;
+    }
+
+    if (
+      completedStoryGates.includes(
+        hybridFamilyUnlock.storyGateId
+      )
+    ) {
+      return;
+    }
+
+    setCompletedStoryGates(previous =>
+      previous.includes(hybridFamilyUnlock.storyGateId)
+        ? previous
+        : [...previous, hybridFamilyUnlock.storyGateId]
+    );
+
+    const reward = getFantasyStoryRewardUnit(
+      hybridFamilyUnlock.firstStoryRewardUnitId
+    );
+    if (reward) {
+      setUnits(previous =>
+        previous.some(unit => unit.id === reward.id)
+          ? previous
+          : [...previous, { ...reward }]
+      );
+    }
+  }, [
+    completedStoryGates,
+    fantasyProgressionChapter,
+    hybridFamilyUnlock,
+    sharedProgress.metaCampaignComplete
   ]);
 
   const currentWagonStage = useMemo(
@@ -5988,6 +6062,13 @@ export function GameProvider({
       return false;
     }
 
+    if (
+      research.family === 'hybrid' &&
+      !hybridPrerequisitesMet
+    ) {
+      return false;
+    }
+
     const anotherResearchActive =
       factionFantasyResearchDefinitions.some(candidate => {
         if (candidate.id === research.id) return false;
@@ -6129,7 +6210,8 @@ export function GameProvider({
     const template = [
       ...fantasyRecruitOptions,
       ...flyingRecruitOptions,
-      ...largeRecruitOptions
+      ...largeRecruitOptions,
+      ...hybridRecruitOptions
     ].find(
       candidate => candidate.id === templateId
     );
@@ -6229,6 +6311,10 @@ export function GameProvider({
       largeFamilyUnlock,
       largeResearchDefinitions,
       largeRecruitOptions,
+      hybridFamilyUnlock,
+      hybridResearchDefinitions,
+      hybridRecruitOptions,
+      hybridPrerequisitesMet,
       fantasyProgressionChapter,
       formationShapeId,
       formationShapes,
@@ -6450,6 +6536,10 @@ export function GameProvider({
       largeFamilyUnlock,
       largeResearchDefinitions,
       largeRecruitOptions,
+      hybridFamilyUnlock,
+      hybridResearchDefinitions,
+      hybridRecruitOptions,
+      hybridPrerequisitesMet,
       fantasyProgressionChapter,
       factionFantasyResearchDefinitions,
       fantasyRecruitSerial,
