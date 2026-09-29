@@ -30,7 +30,7 @@ function harness(file: string, exported: string, game: Record<string, any>, prop
   const hooks: any[] = [];
   const jsx = (type: Element['type'], supplied: any, ...children: any[]): Element => ({ type, props: { ...(supplied ?? {}), ...(children.length ? { children: children.length === 1 ? children[0] : children } : {}) } });
   const react: any = {
-    __esModule: true, createElement: jsx,
+    __esModule: true, createElement: jsx, Fragment: 'Fragment',
     useState(initial: any) {
       const index = cursor++;
       if (!(index in hooks)) hooks[index] = typeof initial === 'function' ? initial() : initial;
