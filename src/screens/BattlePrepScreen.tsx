@@ -482,9 +482,100 @@ export function BattlePrepScreen({
 
       {formationPresetOptions.length > 0 ? (
         <>
+          {scoutReport && recommendedPreset && recommendedEvaluation ? (
+            <GameCard
+              accent={
+                recommendedEvaluation.rating === 'risky'
+                  ? theme.colors.danger
+                  : theme.colors.primary
+              }
+              state={
+                recommendedEvaluation.rating === 'risky'
+                  ? 'danger'
+                  : 'default'
+              }
+            >
+              <View style={styles.recommendationHeader}>
+                <View style={styles.recommendationCopy}>
+                  <Text
+                    style={[
+                      styles.doctrineLabel,
+                      { color: theme.colors.textMuted }
+                    ]}
+                  >
+                    SCOUTED LOADOUT READ
+                  </Text>
+                  <Text
+                    style={[
+                      styles.recommendationTitle,
+                      { color: theme.colors.text }
+                    ]}
+                  >
+                    {recommendedEvaluation.score >= 58
+                      ? 'Loadout ' +
+                        recommendedPreset.slotId +
+                        ' fits this enemy best'
+                      : 'Loadout ' +
+                        recommendedPreset.slotId +
+                        ' is the least risky saved option'}
+                  </Text>
+                </View>
+                <Pill
+                  label={'FIT ' + recommendedEvaluation.score}
+                  color={
+                    recommendedEvaluation.score >= 58
+                      ? theme.colors.primary + '35'
+                      : theme.colors.danger + '35'
+                  }
+                />
+              </View>
+              {recommendedEvaluation.strengths[0] ? (
+                <Text
+                  style={[
+                    styles.recommendationStrength,
+                    { color: theme.colors.primary }
+                  ]}
+                >
+                  + {recommendedEvaluation.strengths[0]}
+                </Text>
+              ) : null}
+              {recommendedEvaluation.risks[0] ? (
+                <Text
+                  style={[
+                    styles.recommendationRisk,
+                    { color: theme.colors.danger }
+                  ]}
+                >
+                  ! {recommendedEvaluation.risks[0]}
+                </Text>
+              ) : null}
+              <Text
+                style={[
+                  styles.recommendationHint,
+                  { color: theme.colors.textMuted }
+                ]}
+              >
+                This is a situational recommendation based on the scouted army, saved squad roles and positioning—not a universal best formation.
+              </Text>
+            </GameCard>
+          ) : (
+            <Text
+              style={[
+                styles.recommendationHint,
+                { color: theme.colors.textMuted }
+              ]}
+            >
+              Scout Report unlocks full saved-loadout analysis using enemy troop composition.
+            </Text>
+          )}
+
           <SectionTitle
             title="Tactical loadouts"
-            trailing="Shape · doctrine · positions"
+            trailing={
+              scoutReport
+                ? 'Scouted fit · shape · roles'
+                : 'Shape · doctrine · positions'
+            }
           />
           <ScrollView
             horizontal
@@ -503,6 +594,11 @@ export function BattlePrepScreen({
                 preset.formationShapeId,
                 enemyShape.id
               );
+              const evaluation =
+                presetEvaluations.get(preset.slotId) ?? null;
+              const recommended =
+                scoutReport &&
+                recommendedPreset?.slotId === preset.slotId;
               const active = presetMatchesCurrent(
                 preset.slotId
               );
@@ -532,10 +628,13 @@ export function BattlePrepScreen({
                     {
                       borderColor: active
                         ? theme.colors.gold
-                        : previewColor,
-                      backgroundColor: active
-                        ? theme.colors.surface1
-                        : theme.colors.surface2,
+                        : recommended
+                          ? theme.colors.primary
+                          : previewColor,
+                      backgroundColor:
+                        active || recommended
+                          ? theme.colors.surface1
+                          : theme.colors.surface2,
                       opacity: pressed ? 0.8 : 1
                     }
                   ]}
@@ -557,20 +656,28 @@ export function BattlePrepScreen({
                       label={
                         active
                           ? 'ACTIVE'
-                          : preview.result === 'advantage'
-                            ? 'EDGE'
-                            : preview.result === 'disadvantage'
-                              ? 'EXPOSED'
-                              : 'NEUTRAL'
+                          : recommended
+                            ? evaluation && evaluation.score >= 58
+                              ? 'RECOMMENDED'
+                              : 'BEST SAVED'
+                            : preview.result === 'advantage'
+                              ? 'EDGE'
+                              : preview.result === 'disadvantage'
+                                ? 'EXPOSED'
+                                : 'NEUTRAL'
                       }
                       color={
                         active
                           ? theme.colors.gold + '45'
-                          : preview.result === 'advantage'
-                            ? theme.colors.primary + '35'
-                            : preview.result === 'disadvantage'
-                              ? theme.colors.danger + '35'
-                              : undefined
+                          : recommended
+                            ? evaluation && evaluation.score >= 58
+                              ? theme.colors.primary + '35'
+                              : theme.colors.danger + '35'
+                            : preview.result === 'advantage'
+                              ? theme.colors.primary + '35'
+                              : preview.result === 'disadvantage'
+                                ? theme.colors.danger + '35'
+                                : undefined
                       }
                     />
                   </View>
@@ -600,11 +707,44 @@ export function BattlePrepScreen({
                   <Text
                     style={[
                       styles.presetSwitchEffect,
-                      { color: previewColor }
+                      {
+                        color:
+                          scoutReport && evaluation
+                            ? evaluation.score >= 58
+                              ? theme.colors.primary
+                              : evaluation.score < 45
+                                ? theme.colors.danger
+                                : previewColor
+                            : previewColor
+                      }
                     ]}
                   >
-                    dealt ×{preview.outgoingDamageMultiplier.toFixed(2)} · received ×{preview.incomingDamageMultiplier.toFixed(2)}
+                    {scoutReport && evaluation
+                      ? 'Fit ' +
+                        evaluation.score +
+                        ' · ' +
+                        evaluation.validSquads +
+                        '/' +
+                        activeSquadCap +
+                        ' squads'
+                      : 'dealt ×' +
+                        preview.outgoingDamageMultiplier.toFixed(2) +
+                        ' · received ×' +
+                        preview.incomingDamageMultiplier.toFixed(2)}
                   </Text>
+                  {scoutReport && evaluation ? (
+                    <Text
+                      style={[
+                        styles.presetSwitchRead,
+                        { color: theme.colors.textMuted }
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {evaluation.strengths[0] ??
+                        evaluation.risks[0] ??
+                        'Balanced role mix with no major composition edge.'}
+                    </Text>
+                  ) : null}
                 </Pressable>
               );
             })}
@@ -1038,6 +1178,38 @@ const styles = StyleSheet.create({
   matchupSummary: { fontSize: 11, lineHeight: 16, marginTop: 8, fontWeight: '700' },
   matchupEffect: { fontSize: 10, lineHeight: 15, marginTop: 7, fontWeight: '900' },
   matchupHint: { fontSize: 9.5, lineHeight: 14, marginTop: 7 },
+  recommendationHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10
+  },
+  recommendationCopy: { flex: 1 },
+  recommendationTitle: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '900',
+    marginTop: 4
+  },
+  recommendationStrength: {
+    fontSize: 10,
+    lineHeight: 15,
+    fontWeight: '800',
+    marginTop: 9
+  },
+  recommendationRisk: {
+    fontSize: 10,
+    lineHeight: 15,
+    fontWeight: '800',
+    marginTop: 5
+  },
+  recommendationHint: {
+    fontSize: 9.5,
+    lineHeight: 14,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+    marginTop: 7
+  },
   presetSwitchStrip: { gap: 8, paddingRight: 4 },
   presetSwitchCard: {
     width: 184,
@@ -1056,6 +1228,7 @@ const styles = StyleSheet.create({
   presetSwitchName: { fontSize: 10.5, fontWeight: '900', marginTop: 8 },
   presetSwitchMeta: { fontSize: 8.8, lineHeight: 13, marginTop: 4 },
   presetSwitchEffect: { fontSize: 8.8, fontWeight: '900', marginTop: 7 },
+  presetSwitchRead: { fontSize: 8.5, lineHeight: 12, marginTop: 5 },
   presetSwitchHint: {
     fontSize: 9.5,
     lineHeight: 14,
