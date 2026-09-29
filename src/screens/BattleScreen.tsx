@@ -247,6 +247,7 @@ export function BattleScreen({
     damageTaken: 0,
     healing: 0
   });
+  const battleScrollRef = useRef<ScrollView>(null);
   const attackPulse = useRef(new Animated.Value(0)).current;
   const impactPulse = useRef(new Animated.Value(0)).current;
   const feedbackPulse = useRef(new Animated.Value(0)).current;
@@ -359,6 +360,16 @@ export function BattleScreen({
     0,
     battleEffects.length - visibleBattleEffects.length
   );
+
+  useEffect(() => {
+    if (!battleEnded || !compactLayout) return;
+
+    const timer = setTimeout(() => {
+      battleScrollRef.current?.scrollToEnd({ animated: true });
+    }, 160);
+
+    return () => clearTimeout(timer);
+  }, [battleEnded, compactLayout]);
 
   useEffect(() => {
     if (!exchangeFeedback) return;
@@ -891,6 +902,7 @@ export function BattleScreen({
 
   return (
     <ScrollView
+      ref={battleScrollRef}
       style={styles.scroll}
       contentContainerStyle={[
         styles.screen,
