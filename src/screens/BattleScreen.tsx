@@ -119,10 +119,12 @@ function activeEffectCopy(effect: ActiveEffect) {
 
 export function BattleScreen({
   encounterId,
+  pausedForTutorial = false,
   onFinished,
   onDefeated
 }: {
   encounterId: EncounterId;
+  pausedForTutorial?: boolean;
   onFinished: (summary: BattleCombatSummary) => void;
   onDefeated: () => void;
 }) {
@@ -510,7 +512,13 @@ export function BattleScreen({
   }, []);
 
   useEffect(() => {
-    if (battleEnded || !appIsActive) return;
+    if (
+      battleEnded ||
+      !appIsActive ||
+      pausedForTutorial
+    ) {
+      return;
+    }
 
     const timer = setTimeout(() => {
       let effect = activeEffect;
@@ -742,6 +750,7 @@ export function BattleScreen({
     activeCommanderPath,
     activeEffect,
     appIsActive,
+    pausedForTutorial,
     activeFaction,
     activeFormationSlots,
     battleSpeed,
