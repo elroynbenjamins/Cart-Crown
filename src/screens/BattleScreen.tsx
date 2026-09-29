@@ -37,7 +37,8 @@ import { EnemySprite, UnitSprite } from '../ui/gameArt';
 import {
   BattlefieldBackdrop,
   BattleStatusMarker,
-  BattleVfxStrip
+  BattleVfxStrip,
+  EnemyFantasyThreatAura
 } from '../ui/battleVisuals';
 
 type ActiveEffect = {
@@ -1179,6 +1180,8 @@ export function BattleScreen({
                     <EnemySprite
                       enemyName={encounter.enemyName}
                       armyProfileId={enemyArmyProfile.id}
+                      fantasyThreat={encounter.fantasyThreat}
+                      role={assignment?.role}
                       size={
                         dense
                           ? compactLayout
@@ -1285,6 +1288,10 @@ export function BattleScreen({
           difficulty={encounter.difficulty}
           compact={compactLayout}
         />
+        <EnemyFantasyThreatAura
+          fantasyThreat={encounter.fantasyThreat}
+          compact={compactLayout}
+        />
 
         <Text style={[styles.sideLabel, { color: factionAccent }]}>
           YOUR {activeFormationShape.layout} · {activeFormationShape.name.toUpperCase()}
@@ -1382,6 +1389,7 @@ export function BattleScreen({
               <EnemySprite
                 enemyName={encounter.enemyName}
                 armyProfileId={enemyArmyProfile.id}
+                fantasyThreat={encounter.fantasyThreat}
                 size={compactLayout ? 40 : 48}
               />
             </View>
