@@ -400,6 +400,9 @@ type GameContextValue = {
   unlockTimberCamp: () => boolean;
   claimProduction: () => boolean;
   completeKingdomDefense: () => boolean;
+  commitKingdomDefenseReadiness: (
+    readiness: number
+  ) => void;
   completeBrokenSignalTower: () => boolean;
   upgradeToTown: () => boolean;
   upgradeToStronghold: () => boolean;
@@ -4747,7 +4750,6 @@ export function GameProvider({
       provisions: previous.provisions + (firstClear ? 6 : 5)
     }));
     accrueRegionalProduction();
-    recordBattleWear(65, 100, 'Elite', true);
 
     if (storyDefenseActive) {
       setChapterNodes(previous =>
@@ -4760,6 +4762,14 @@ export function GameProvider({
     }
 
     return true;
+  };
+
+  const commitKingdomDefenseReadiness = (
+    readiness: number
+  ) => {
+    setArmyReadiness(
+      clampArmyReadiness(readiness)
+    );
   };
 
   const completeBrokenSignalTower = () => {
@@ -6039,6 +6049,7 @@ export function GameProvider({
       unlockTimberCamp,
       claimProduction,
       completeKingdomDefense,
+      commitKingdomDefenseReadiness,
       completeBrokenSignalTower,
       upgradeToTown,
       upgradeToStronghold,
