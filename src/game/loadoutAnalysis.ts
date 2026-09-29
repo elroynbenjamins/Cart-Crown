@@ -46,6 +46,7 @@ export type TacticalAdjustmentAdvice = {
   suggestedUnitId?: string;
   replaceUnitId?: string;
   suggestedShapeId?: FormationShapeId;
+  targetSlot?: number;
 };
 
 type GetTacticalAdjustmentAdviceInput = {
@@ -533,6 +534,18 @@ export function getTacticalAdjustmentAdvice({
       )[0] ?? null;
     const candidate = usefulBench ?? fallbackBench;
 
+    const openSlots = preset.formation
+      .map((unitId, index) => (unitId ? -1 : index))
+      .filter(index => index >= 0);
+    const preferredOpenSlot = candidate
+      ? getPreferredFormationSlots(
+          preset.formationShapeId,
+          candidate.role
+        ).find(slot => openSlots.includes(slot))
+      : undefined;
+    const targetSlot =
+      preferredOpenSlot ?? openSlots[0];
+
     advice.push({
       kind: 'fill_slot',
       title: candidate
@@ -546,7 +559,8 @@ export function getTacticalAdjustmentAdvice({
             : 'more field strength before committing.')
         : 'This preset is below the current squad cap, so the enemy gets full-tier pressure against a smaller force.',
       priority: 92,
-      suggestedUnitId: candidate?.id
+      suggestedUnitId: candidate?.id,
+      targetSlot
     });
   }
 
@@ -638,7 +652,8 @@ export function getTacticalAdjustmentAdvice({
           '.',
         priority: 80,
         suggestedUnitId: usefulBench.id,
-        replaceUnitId: replaceCandidate.unit.id
+        replaceUnitId: replaceCandidate.unit.id,
+        targetSlot: replaceCandidate.slot
       });
     }
   }
@@ -701,7 +716,8 @@ export function getTacticalAdjustmentAdvice({
           rowName +
           ' row before saving this setup again.',
         priority: 52,
-        suggestedUnitId: misplaced.unit.id
+        suggestedUnitId: misplaced.unit.id,
+        targetSlot
       });
     }
   }
