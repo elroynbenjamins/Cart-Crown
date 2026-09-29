@@ -586,8 +586,7 @@ export function applyKingdomDefenseChoice({
     };
   }
 
-  const cost =
-    fortification.permanentIntel ? 0 : 1;
+  const cost = 1;
   if (reserve < cost) return null;
 
   return {
