@@ -6,6 +6,9 @@ on:
     paths:
       - '.github/workflows/android-native.yml'
       - 'scripts/android-native-*'
+      - 'scripts/*png*'
+      - 'scripts/art-regression.mjs'
+      - 'assets/game/**'
       - 'package*.json'
       - 'app.json'
       - 'app.config.*'
@@ -14,6 +17,9 @@ on:
     paths:
       - '.github/workflows/android-native.yml'
       - 'scripts/android-native-*'
+      - 'scripts/*png*'
+      - 'scripts/art-regression.mjs'
+      - 'assets/game/**'
       - 'package*.json'
       - 'app.json'
       - 'app.config.*'
@@ -54,6 +60,11 @@ jobs:
           npm ls --depth=0 > artifacts/android/dependencies.txt
           cp package-lock.json artifacts/android/resolved-package-lock.json
           npx --no-install expo config --type public --json > artifacts/android/expo-config.json
+          tar -czf artifacts/android/game-assets-snapshot.tar.gz assets/game scripts/art-regression.mjs scripts/png-integrity.mjs src/ui/productionAssets.ts
+      - name: Decode every bundled game PNG before invoking Android tools
+        run: |
+          set -o pipefail
+          npm run art:check 2>&1 | tee artifacts/android/png-preflight.log
       - name: Generate native Android project
         run: |
           set -o pipefail
