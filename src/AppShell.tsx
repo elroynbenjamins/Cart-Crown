@@ -316,6 +316,8 @@ export function AppShell({
       isSideModeUnlocked('kingdom_defense'),
     expeditionsUnlocked:
       isSideModeUnlocked('expeditions'),
+    siegesUnlocked:
+      isSideModeUnlocked('sieges'),
     magicStoryUnlocked: Boolean(
       magicFamilyUnlock &&
       completedStoryGates.includes(
