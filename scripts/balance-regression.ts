@@ -1895,7 +1895,8 @@ function runLoadoutRecommendationCoverage() {
         ) &&
         ['cav_1', 'cav_2', 'skirm_1', 'skirm_2'].includes(
           adjustment.suggestedUnitId ?? ''
-        )
+        ) &&
+        adjustment.targetSlot !== undefined
     ),
     'Missile Company advice no longer suggests an available mobile bench squad.'
   );
@@ -1998,7 +1999,8 @@ function runLoadoutRecommendationCoverage() {
     underfilledAdjustments.some(
       adjustment =>
         adjustment.kind === 'fill_slot' &&
-        Boolean(adjustment.suggestedUnitId)
+        Boolean(adjustment.suggestedUnitId) &&
+        adjustment.targetSlot !== undefined
     ),
     'Underfilled loadout advice no longer identifies a concrete bench squad for the open slot.'
   );
