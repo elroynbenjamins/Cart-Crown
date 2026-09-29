@@ -6,8 +6,11 @@ import type { FactionId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
+  MetricTile,
   Pill,
   PrimaryButton,
+  ScreenHero,
+  SecondaryButton,
   SectionTitle,
   StatusPill
 } from '../ui/components';
@@ -244,44 +247,59 @@ export function FactionOpeningCampaignScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={accent} faction={activeFaction}>
-        <View style={styles.chapterHero}>
-          <View style={styles.chapterCopy}>
-            <Text style={[styles.eyebrow, { color: accent }]}>
-              CHAPTER {chapterNumber}
-            </Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
-              {activeFaction === 'elf'
-                ? chapterSix
-                  ? 'Stars over Crownspire'
-                  : chapterFive
-                    ? 'The Wounded Worldroot'
-                    : chapterFour
-                    ? 'Roots in Ash'
+      <ScreenHero
+        eyebrow={'CHAPTER ' + chapterNumber}
+        title={
+          activeFaction === 'elf'
+            ? chapterSix
+              ? 'Stars over Crownspire'
+              : chapterFive
+                ? 'The Wounded Worldroot'
+                : chapterFour
+                  ? 'Roots in Ash'
                   : chapterThree
                     ? 'Moonlit Pass'
                     : chapterTwo
                       ? 'The Last Heartgrove'
                       : 'Fading Wards'
-                : chapterSix
-                  ? 'The Truth at Crownspire'
-                  : chapterFive
-                    ? 'No Clan Left Behind'
-                    : chapterFour
-                    ? 'War on Two Fronts'
+            : chapterSix
+              ? 'The Truth at Crownspire'
+              : chapterFive
+                ? 'No Clan Left Behind'
+                : chapterFour
+                  ? 'War on Two Fronts'
                   : chapterThree
                     ? 'The Stonejaw Trial'
                     : chapterTwo
                       ? 'Gather the Clans'
-                      : 'Blamed Blood'}
-            </Text>
-            <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-              {faction.campaignSubtitle}
-            </Text>
+                      : 'Blamed Blood'
+        }
+        body={faction.campaignSubtitle}
+        accent={accent}
+        status={
+          <View style={styles.heroCrest}>
+            <FactionCrest faction={activeFaction} size={42} />
           </View>
-          <FactionCrest faction={activeFaction} size={52} />
+        }
+      >
+        <View style={styles.chapterMetrics}>
+          <MetricTile
+            label="OBJECTIVES"
+            value={
+              chapterNodes.filter(node => node.completed).length +
+              '/6'
+            }
+            caption="completed this chapter"
+            tone="positive"
+          />
+          <MetricTile
+            label="UNIQUE SYSTEM"
+            value={faction.mechanicName}
+            caption="active faction mechanic"
+            tone="gold"
+          />
         </View>
-      </GameCard>
+      </ScreenHero>
 
       {completedCampaigns.includes(activeFaction) ? (
         <GameCard accent={theme.colors.gold} state="ready">
@@ -296,11 +314,11 @@ export function FactionOpeningCampaignScreen({
         </GameCard>
       ) : null}
 
-      <GameCard accent={accent} faction={activeFaction}>
-        <Text style={[styles.mechanicLabel, { color: theme.colors.textMuted }]}>
-          UNIQUE MECHANIC · {faction.mechanicName.toUpperCase()}
+      <GameCard accent={accent} ornament={false}>
+        <Text style={[styles.mechanicLabel, { color: accent }]}>
+          {faction.mechanicName.toUpperCase()}
         </Text>
-        <Text style={[styles.mechanicBody, { color: theme.colors.text }]}>
+        <Text style={[styles.mechanicBody, { color: theme.colors.textMuted }]}>
           {faction.mechanicSummary}
         </Text>
       </GameCard>
@@ -663,7 +681,7 @@ export function FactionOpeningCampaignScreen({
                 ) : null}
                 {unlocked ? (
                   <View style={styles.switchButton}>
-                    <PrimaryButton
+                    <SecondaryButton
                       label={'Open ' + mode.name}
                       onPress={() => {
                         if (tutorialActivityFocused) {
@@ -741,7 +759,7 @@ export function FactionOpeningCampaignScreen({
 
               {availability?.unlocked && !current ? (
                 <View style={styles.switchButton}>
-                  <PrimaryButton
+                  <SecondaryButton
                     label={
                       stateExists
                         ? 'Switch to ' + definition.name
@@ -785,12 +803,19 @@ export function FactionOpeningCampaignScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 14 },
-  chapterHero: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  chapterCopy: { flex: 1 },
-  eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
-  title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
-  body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
+  content: { padding: 16, paddingBottom: 32, gap: 12 },
+  heroCrest: {
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  chapterMetrics: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8
+  },
+  body: { fontSize: 12, lineHeight: 18, marginTop: 6 },
   mechanicLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   mechanicBody: { fontSize: 12, lineHeight: 18, fontWeight: '800', marginTop: 5 },
   regionPreview: { height: 150, borderWidth: 1, borderRadius: 20, overflow: 'hidden', position: 'relative' },
