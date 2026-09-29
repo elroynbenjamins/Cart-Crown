@@ -47,6 +47,7 @@ export type TutorialMoment = {
   primaryLabel: string;
   target: TutorialTarget;
   focusAfterPrimary?: TutorialFocusTarget;
+  seenKeys?: string[];
   stepLabel?: string;
 };
 
@@ -306,7 +307,7 @@ function buildingMoment(
     return null;
   }
 
-  const building = context.buildings.find(
+  const newBuildings = context.buildings.filter(
     entry =>
       entry.unlocked &&
       entry.level <= 0 &&
@@ -316,19 +317,37 @@ function buildingMoment(
       )
   );
 
+  const building = newBuildings[0];
   if (!building) return null;
+
+  const names = newBuildings
+    .map(entry => entry.definition.name)
+    .join(' · ');
 
   return {
     key: tutorialBuildingKey(
       building.definition.id
     ),
+    seenKeys: newBuildings.map(entry =>
+      tutorialBuildingKey(entry.definition.id)
+    ),
     kind: 'building',
-    eyebrow: 'NEW BUILDING UNLOCKED',
-    title: building.definition.name,
+    eyebrow:
+      newBuildings.length > 1
+        ? 'NEW BUILDINGS UNLOCKED'
+        : 'NEW BUILDING UNLOCKED',
+    title:
+      newBuildings.length > 1
+        ? String(newBuildings.length) +
+          ' new blueprints'
+        : building.definition.name,
     body:
-      building.definition.description +
-      ' The blueprint is now available, but it still needs a free Settlement plot and its construction resources.',
-    primaryLabel: 'Show me where to build it',
+      newBuildings.length > 1
+        ? names +
+          '. These blueprints are now available. You do not need to build everything immediately; start with the structure that supports your next campaign goal.'
+        : building.definition.description +
+          ' The blueprint is now available, but it still needs a free Settlement plot and its construction resources.',
+    primaryLabel: 'Show me where to build',
     target: 'settlement',
     focusAfterPrimary: {
       kind: 'settlement-building',
@@ -575,6 +594,60 @@ export function shouldRequestChapterOneReview({
     !reviewPromptShown &&
     !tutorialActive
   );
+}
+
+export type TutorialResumeSurface =
+  | 'stay'
+  | 'campaign'
+  | 'formation'
+  | 'settlement'
+  | 'forge'
+  | 'kingdom'
+  | 'results'
+  | 'battlePrep';
+
+export function getTutorialFocusResumeSurface(
+  focus: TutorialFocusTarget
+): TutorialResumeSurface {
+  if (
+    focus.kind === 'campaign-current' ||
+    focus.kind === 'campaign-activities'
+  ) {
+    return 'campaign';
+  }
+
+  if (
+    focus.kind === 'formation-unit' ||
+    focus.kind === 'formation-basics' ||
+    focus.kind === 'formation-shape'
+  ) {
+    return 'formation';
+  }
+
+  if (
+    focus.kind === 'settlement-first-plot' ||
+    focus.kind === 'settlement-building'
+  ) {
+    return 'settlement';
+  }
+
+  if (focus.kind === 'forge-craft') {
+    return 'forge';
+  }
+
+  if (focus.kind === 'kingdom-production') {
+    return 'kingdom';
+  }
+
+  if (focus.kind === 'results-continue') {
+    return 'results';
+  }
+
+  if (focus.kind === 'battle-begin') {
+    return 'battlePrep';
+  }
+
+  return 'stay';
 }
 
 export function isCoreTutorialComplete(
