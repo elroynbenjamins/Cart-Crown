@@ -5061,18 +5061,59 @@ export function GameProvider({
       chapterNodes.find(node => node.id === 'ch2_node_4')?.current
     );
     const firstClear = !kingdomDefenseCompleted;
+    const rewardMultiplier =
+      getKingdomDefenseRewardMultiplier({
+        firstClear,
+        currentChapter: chapterNumber,
+        rewardChapter:
+          kingdomDefenseRewardChapter,
+        rewardedRunsThisChapter:
+          kingdomDefenseRewardedRunsThisChapter
+      });
+    const reward = firstClear
+      ? {
+          gold: 85,
+          wood: 10,
+          stone: 10,
+          iron: 4,
+          provisions: 6
+        }
+      : scaleResourceReward(
+          {
+            gold: 60,
+            wood: 8,
+            stone: 6,
+            iron: 2,
+            provisions: 5
+          },
+          rewardMultiplier
+        );
 
     setKingdomDefenseCompleted(true);
     setKingdomDefenseRuns(previous => previous + 1);
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold + (firstClear ? 85 : 60),
-      wood: previous.wood + (firstClear ? 10 : 8),
-      stone: previous.stone + (firstClear ? 10 : 6),
-      iron: previous.iron + (firstClear ? 4 : 2),
-      provisions: previous.provisions + (firstClear ? 6 : 5)
-    }));
-    accrueRegionalProduction();
+
+    if (Object.keys(reward).length > 0) {
+      setResources(previous =>
+        addResources(previous, reward)
+      );
+    }
+
+    if (!firstClear && rewardMultiplier > 0) {
+      setKingdomDefenseRewardChapter(
+        chapterNumber
+      );
+      setKingdomDefenseRewardedRunsThisChapter(
+        previous =>
+          kingdomDefenseRewardChapter ===
+          chapterNumber
+            ? previous + 1
+            : 1
+      );
+    }
+
+    if (firstClear || rewardMultiplier > 0) {
+      accrueRegionalProduction();
+    }
 
     if (storyDefenseActive) {
       setChapterNodes(previous =>
@@ -5805,9 +5846,10 @@ export function GameProvider({
     setWarTableCycle(
       previous => previous + 1
     );
-    setWarTableBoardChapter(
-      Math.min(3, chapterNumber)
-    );
+    if (chapterNumber !== warTableBoardChapter) {
+      setWarTableBoardsClearedThisChapter(0);
+    }
+    setWarTableBoardChapter(chapterNumber);
     setWarTableCompletedContractIds([]);
     setWarTableBonusContractIds([]);
     return true;
