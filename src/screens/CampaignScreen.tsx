@@ -756,11 +756,11 @@ export function CampaignScreen({
               style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
             >
               <TutorialFocus
-                active={
+                active={Boolean(
                   tutorialFocus?.kind === 'campaign-current' &&
-                  Boolean(node.current) &&
+                  node.current &&
                   playable
-                }
+                )}
                 label={
                   tutorialFocus?.kind === 'campaign-current' &&
                   node.current
