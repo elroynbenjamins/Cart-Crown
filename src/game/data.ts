@@ -4,6 +4,7 @@ import type {
   RecruitOption,
   RegionDefinition,
   ResourceWallet,
+  TransportStage,
   UnitDefinition,
   WagonItemDefinition,
   WagonStage
@@ -25,6 +26,15 @@ export const wagonStages: WagonStage[] = [
   { id: 'stronghold', name: 'Campaign Wagon', width: 6, height: 7, formationSlots: 9 },
   { id: 'capital', name: 'Royal Wagon', width: 7, height: 8, formationSlots: 9 },
   { id: 'grand', name: 'Kingdom Caravan', width: 7, height: 9, formationSlots: 9 }
+];
+
+export const transportStages: TransportStage[] = [
+  { id: 'worn_pack', name: 'Worn Backpack', width: 4, height: 4 },
+  { id: 'pack_gear', name: 'Pack Gear', width: 4, height: 5 },
+  { id: 'handcart', name: 'Handcart', width: 5, height: 5 },
+  { id: 'supply_cart', name: 'Supply Cart', width: 5, height: 6 },
+  { id: 'wagon', name: 'Campaign Wagon', width: 6, height: 7 },
+  { id: 'kingdom_caravan', name: 'Kingdom Caravan', width: 7, height: 9 }
 ];
 
 export const formationUnlockOrder = [1, 4, 0, 3, 2, 5];
