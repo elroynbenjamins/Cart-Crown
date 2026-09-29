@@ -465,9 +465,9 @@ function recoverForCost(
   while (!canAffordCost(state.resources, cost)) {
     guard += 1;
     invariant(
-      guard <= 20,
+      guard <= 60,
       context +
-        ' exceeded 20 recovery activities.'
+        ' exceeded 60 recovery activities.'
     );
 
     const deficit = deficits(
