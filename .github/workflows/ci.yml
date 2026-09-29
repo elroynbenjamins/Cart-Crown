@@ -44,3 +44,6 @@ jobs:
 
       - name: Boss presentation regression
         run: npm run boss:check
+
+      - name: Exchange VFX regression
+        run: npm run battle-visuals:check

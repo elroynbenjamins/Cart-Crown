@@ -4,8 +4,9 @@ import { BattlefieldBackdrop as BaseBattlefieldBackdrop } from './battleVisualsB
 import { BossBattlefieldDetails } from './BossBattlefieldDetails';
 import { getBossPresentation } from './bossPresentation';
 
-// Preserve the battle screen's API and all existing exchange/status rendering.
-export { BattleStatusMarker, BattleVfxStrip, getBattlefieldScene } from './battleVisualsBase';
+// Preserve the battle screen's API and the merged signature boss presentation.
+export { BattleStatusMarker, getBattlefieldScene } from './battleVisualsBase';
+export { BattleVfxStrip } from './BattleExchangeVfx';
 
 type Props = React.ComponentProps<typeof BaseBattlefieldBackdrop>;
 
