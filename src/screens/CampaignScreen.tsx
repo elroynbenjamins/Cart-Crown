@@ -96,6 +96,7 @@ export function CampaignScreen({
   onOpenFactionChapterSixSeal,
   onStartFactionChapterSixBoss,
   onOpenMetaCampaign,
+  onOpenWarTable,
   onOpenExpedition,
   onOpenFormationTrial,
   tutorialFocus,
@@ -172,6 +173,7 @@ export function CampaignScreen({
   onOpenFactionChapterSixSeal: () => void;
   onStartFactionChapterSixBoss: () => void;
   onOpenMetaCampaign: () => void;
+  onOpenWarTable: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
   tutorialFocus?: TutorialFocusTarget | null;
@@ -253,6 +255,7 @@ export function CampaignScreen({
         onOpenChapterSixSeal={onOpenFactionChapterSixSeal}
         onStartChapterSixBoss={onStartFactionChapterSixBoss}
         onOpenMetaCampaign={onOpenMetaCampaign}
+        onOpenWarTable={onOpenWarTable}
         onOpenExpedition={onOpenExpedition}
         onOpenFormationTrial={onOpenFormationTrial}
         onOpenKingdomDefense={onOpenKingdomDefense}
@@ -843,7 +846,21 @@ export function CampaignScreen({
     </>
   );
 
+  const availableSideModes = sideModeDefinitions.filter(
+    mode =>
+      [
+        'war_table',
+        'formation_trials',
+        'kingdom_defense',
+        'expeditions'
+      ].includes(mode.id) &&
+      isSideModeUnlocked(mode.id)
+  );
+  const activitiesUnlocked =
+    availableSideModes.length > 0;
+
   const openMode = (id: SideModeId) => {
+    if (id === 'war_table') onOpenWarTable();
     if (id === 'expeditions') onOpenExpedition();
     if (id === 'formation_trials') onOpenFormationTrial();
     if (id === 'kingdom_defense') onOpenKingdomDefense();
@@ -859,82 +876,78 @@ export function CampaignScreen({
         status={<StatusPill label="REPEATABLE" tone="available" />}
       />
 
-      {sideModeDefinitions.map(mode => {
-        const unlocked = isSideModeUnlocked(mode.id);
-        const defenseIntroduced =
-          kingdomDefenseCompleted ||
-          Boolean(chapterNodes.find(node => node.id === 'ch2_node_4')?.current);
-        const functional =
-          mode.id === 'expeditions' ||
-          mode.id === 'formation_trials' ||
-          (mode.id === 'kingdom_defense' && defenseIntroduced);
+      {availableSideModes.map(mode => (
+        <GameCard
+          key={mode.id}
+          faction="human"
+          accent={theme.colors.primary}
+        >
+          <View style={styles.modeHeader}>
+            <View style={styles.modeCopy}>
+              <Text style={[styles.modeName, { color: theme.colors.text }]}>{mode.name}</Text>
+              <Text style={[styles.modeSubtitle, { color: theme.colors.primary }]}>{mode.subtitle}</Text>
+            </View>
+            <StatusPill label="UNLOCKED" tone="available" />
+          </View>
+          <Text style={[styles.modeBody, { color: theme.colors.textMuted }]}>{mode.description}</Text>
+          <Text style={[styles.modeExample, { color: theme.colors.text }]}>Example: {mode.example}</Text>
+          <Text style={[styles.modeReward, { color: theme.colors.gold }]}>Rewards: {mode.rewardFocus}</Text>
 
-        return (
-          <GameCard
-            key={mode.id}
-            faction="human"
-            state={unlocked ? 'default' : 'locked'}
-            accent={unlocked ? theme.colors.primary : undefined}
-          >
-            <View style={styles.modeHeader}>
-              <View style={styles.modeCopy}>
-                <Text style={[styles.modeName, { color: theme.colors.text }]}>{mode.name}</Text>
-                <Text style={[styles.modeSubtitle, { color: theme.colors.primary }]}>{mode.subtitle}</Text>
-              </View>
-              <StatusPill
-                label={unlocked ? 'UNLOCKED' : mode.unlockStage.toUpperCase()}
-                tone={unlocked ? 'available' : 'locked'}
+          {mode.id === 'expeditions' ? (
+            <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
+              Tickets: {expeditionTickets} · Completed runs: {expeditionRunsCompleted}
+            </Text>
+          ) : null}
+
+          {mode.id === 'formation_trials' && formationTrialCompleted ? (
+            <View style={styles.modeStatusRow}>
+              <StatusPill label="FIRST TRIAL COMPLETE" tone="done" />
+            </View>
+          ) : null}
+
+          {mode.id === 'kingdom_defense' && kingdomDefenseCompleted ? (
+            <View style={styles.modeStatusRow}>
+              <StatusPill label="STORY DEFENSE CLEARED" tone="done" />
+            </View>
+          ) : null}
+
+          <View style={styles.modeButton}>
+            <SecondaryButton
+              label={'Open ' + mode.name}
+              onPress={() => openMode(mode.id)}
+            />
+          </View>
+        </GameCard>
+      ))}
+
+      {isSideModeUnlocked('expeditions') ? (
+        <>
+          <SectionTitle title="Optional rewarded ads" trailing="No forced ads" />
+          <GameCard>
+            <Text style={[styles.adTitle, { color: theme.colors.text }]}>Extra Expedition Ticket</Text>
+            <Text style={[styles.adBody, { color: theme.colors.textMuted }]}>
+              Rewarded only. Skipping it never removes a normal reward or blocks progression.
+            </Text>
+            <Text style={[styles.adReward, { color: theme.colors.gold }]}>
+              {rewardedAdPlacements.find(p => p.id === 'expedition_ticket')?.rewardSummary}
+            </Text>
+            <View style={styles.modeButton}>
+              <SecondaryButton
+                label={
+                  (rewardedAdClaims.expedition_ticket ?? 0) >= 1
+                    ? 'Reward claimed'
+                    : 'Watch optional ad'
+                }
+                disabled={(rewardedAdClaims.expedition_ticket ?? 0) >= 1}
+                onPress={() => void claimRewardedAd('expedition_ticket')}
               />
             </View>
-            <Text style={[styles.modeBody, { color: theme.colors.textMuted }]}>{mode.description}</Text>
-            <Text style={[styles.modeExample, { color: theme.colors.text }]}>Example: {mode.example}</Text>
-            <Text style={[styles.modeReward, { color: theme.colors.gold }]}>Rewards: {mode.rewardFocus}</Text>
-
-            {mode.id === 'expeditions' ? (
-              <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
-                Tickets: {expeditionTickets} · Completed runs: {expeditionRunsCompleted}
-              </Text>
-            ) : null}
-
-            {mode.id === 'formation_trials' && formationTrialCompleted ? (
-              <View style={styles.modeStatusRow}>
-                <StatusPill label="FIRST TRIAL COMPLETE" tone="done" />
-              </View>
-            ) : null}
-
-            {unlocked && functional ? (
-              <View style={styles.modeButton}>
-                <SecondaryButton label={'Open ' + mode.name} onPress={() => openMode(mode.id)} />
-              </View>
+            {rewardedAdMessage ? (
+              <Text style={[styles.adMessage, { color: theme.colors.textMuted }]}>{rewardedAdMessage}</Text>
             ) : null}
           </GameCard>
-        );
-      })}
-
-      <SectionTitle title="Optional rewarded ads" trailing="No forced ads" />
-      <GameCard>
-        <Text style={[styles.adTitle, { color: theme.colors.text }]}>Extra Expedition Ticket</Text>
-        <Text style={[styles.adBody, { color: theme.colors.textMuted }]}>
-          Rewarded only. Skipping it never removes a normal reward or blocks progression.
-        </Text>
-        <Text style={[styles.adReward, { color: theme.colors.gold }]}>
-          {rewardedAdPlacements.find(p => p.id === 'expedition_ticket')?.rewardSummary}
-        </Text>
-        <View style={styles.modeButton}>
-          <SecondaryButton
-            label={
-              (rewardedAdClaims.expedition_ticket ?? 0) >= 1
-                ? 'Reward claimed'
-                : 'Watch optional ad'
-            }
-            disabled={(rewardedAdClaims.expedition_ticket ?? 0) >= 1}
-            onPress={() => void claimRewardedAd('expedition_ticket')}
-          />
-        </View>
-        {rewardedAdMessage ? (
-          <Text style={[styles.adMessage, { color: theme.colors.textMuted }]}>{rewardedAdMessage}</Text>
-        ) : null}
-      </GameCard>
+        </>
+      ) : null}
     </>
   );
 
@@ -1073,7 +1086,10 @@ export function CampaignScreen({
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={[styles.segment, { backgroundColor: theme.colors.surface1 }]}>
-        {(['story', 'activities', 'factions'] as CampaignView[]).map(option => {
+        {(activitiesUnlocked
+          ? (['story', 'activities', 'factions'] as CampaignView[])
+          : (['story', 'factions'] as CampaignView[])
+        ).map(option => {
           const focused =
             tutorialFocus?.kind === 'campaign-activities' &&
             option === 'activities';

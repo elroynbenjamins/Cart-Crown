@@ -42,6 +42,7 @@ import { FactionFourthRecruitmentScreen } from './screens/FactionFourthRecruitme
 import { FactionFifthRecruitmentScreen } from './screens/FactionFifthRecruitmentScreen';
 import { FantasyResearchScreen } from './screens/FantasyResearchScreen';
 import { FlyingResearchScreen } from './screens/FlyingResearchScreen';
+import { LargeResearchScreen } from './screens/LargeResearchScreen';
 import { FactionKingdomScreen } from './screens/FactionKingdomScreen';
 import { FactionRecruitmentScreen } from './screens/FactionRecruitmentScreen';
 import { FactionChapterOneEventScreen } from './screens/FactionChapterOneEventScreen';
@@ -72,6 +73,7 @@ import { SettlementScreen } from './screens/SettlementScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
+import { WarTableScreen } from './screens/WarTableScreen';
 import { useGameTheme } from './theme/ThemeProvider';
 import { FlowProgress, ScreenAtmosphere } from './ui/components';
 import { TutorialCoach } from './ui/TutorialCoach';
@@ -88,6 +90,7 @@ type FlowScreen =
   | 'forge'
   | 'fantasyResearch'
   | 'flyingResearch'
+  | 'largeResearch'
   | 'promotion'
   | 'equipment'
   | 'commanderChoice'
@@ -127,6 +130,7 @@ type FlowScreen =
   | 'factionChapterSixSeal'
   | 'metaCampaign'
   | 'settlement'
+  | 'warTable'
   | 'expedition'
   | 'formationTrial'
   | 'settings'
@@ -158,6 +162,7 @@ const flowTitles: Record<FlowScreen, string> = {
   forge: 'Field Forge',
   fantasyResearch: 'Arcane Research',
   flyingResearch: 'Aerial Training',
+  largeResearch: 'Large Unit Mastery',
   promotion: 'Promotion',
   equipment: 'Equipment',
   commanderChoice: 'Commander Path',
@@ -197,8 +202,9 @@ const flowTitles: Record<FlowScreen, string> = {
   factionChapterSixSeal: 'The Seal',
   metaCampaign: 'Three Seals',
   settlement: 'Settlement',
+  warTable: 'War Table',
   expedition: 'Expedition',
-  formationTrial: 'Formation Trial',
+  formationTrial: 'Kingdom Trial',
   settings: 'Settings',
   preparationFix: 'Preparation Fix'
 };
@@ -241,12 +247,15 @@ export function AppShell({
     armyReadiness,
     unlockedResourceSites,
     currentWagonStage,
+    isSideModeUnlocked,
     completedStoryGates,
     researchProgress,
     magicFamilyUnlock,
     magicResearchDefinitions,
     flyingFamilyUnlock,
     flyingResearchDefinitions,
+    largeFamilyUnlock,
+    largeResearchDefinitions,
     tutorialSeen,
     markTutorialSeen,
     reviewPromptShown,
@@ -259,7 +268,8 @@ export function AppShell({
     flow === 'results' ||
     flow === 'settlement' ||
     flow === 'fantasyResearch' ||
-    flow === 'flyingResearch'
+    flow === 'flyingResearch' ||
+    flow === 'largeResearch'
       ? flow
       : flow
         ? 'other'
@@ -285,6 +295,13 @@ export function AppShell({
     unlockedResourceSites:
       unlockedResourceSites.length,
     wagonStageId: currentWagonStage.id,
+    warTableUnlocked: isSideModeUnlocked('war_table'),
+    kingdomTrialsUnlocked:
+      isSideModeUnlocked('formation_trials'),
+    kingdomDefenseModeUnlocked:
+      isSideModeUnlocked('kingdom_defense'),
+    expeditionsUnlocked:
+      isSideModeUnlocked('expeditions'),
     magicStoryUnlocked: Boolean(
       magicFamilyUnlock &&
       completedStoryGates.includes(
@@ -297,12 +314,22 @@ export function AppShell({
         flyingFamilyUnlock.storyGateId
       )
     ),
+    largeStoryUnlocked: Boolean(
+      largeFamilyUnlock &&
+      completedStoryGates.includes(
+        largeFamilyUnlock.storyGateId
+      )
+    ),
     completedMagicResearch:
       magicResearchDefinitions.filter(
         research => researchProgress[research.id]?.completed
       ).length,
     completedFlyingResearch:
       flyingResearchDefinitions.filter(
+        research => researchProgress[research.id]?.completed
+      ).length,
+    completedLargeResearch:
+      largeResearchDefinitions.filter(
         research => researchProgress[research.id]?.completed
       ).length
   });
@@ -337,6 +364,14 @@ export function AppShell({
       ].includes(lastBattleResult?.id ?? '')
     ) {
       setFlow(null);
+      setActive('campaign');
+      return;
+    }
+
+    if (
+      activeEncounterId.startsWith('war_table_')
+    ) {
+      setFlow('warTable');
       setActive('campaign');
       return;
     }
@@ -630,6 +665,19 @@ export function AppShell({
     if (flow === 'flyingResearch') {
       return (
         <FlyingResearchScreen
+          tutorialFocus={tutorialFocus}
+          onTutorialFocusComplete={completeTutorialFocus}
+          onExit={() => {
+            setFlow(null);
+            setActive('army');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'largeResearch') {
+      return (
+        <LargeResearchScreen
           tutorialFocus={tutorialFocus}
           onTutorialFocusComplete={completeTutorialFocus}
           onExit={() => {
@@ -1104,6 +1152,17 @@ export function AppShell({
       );
     }
 
+    if (flow === 'warTable') {
+      return (
+        <WarTableScreen
+          onStartBattle={encounterId => {
+            setActiveEncounterId(encounterId);
+            setFlow('battlePrep');
+          }}
+        />
+      );
+    }
+
     if (flow === 'expedition') {
       return (
         <ExpeditionScreen
@@ -1414,6 +1473,7 @@ export function AppShell({
               setFlow('battlePrep');
             }}
             onOpenMetaCampaign={() => setFlow('metaCampaign')}
+            onOpenWarTable={() => setFlow('warTable')}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -1448,6 +1508,7 @@ export function AppShell({
             onOpenCommander={() => setFlow('commanderChoice')}
             onOpenFantasyResearch={() => setFlow('fantasyResearch')}
             onOpenFlyingResearch={() => setFlow('flyingResearch')}
+            onOpenLargeResearch={() => setFlow('largeResearch')}
             onOpenEquipment={(unitId) => {
               setEquipmentUnitId(unitId);
               setFlow('equipment');
@@ -1521,6 +1582,7 @@ export function AppShell({
     flow === 'forge' ||
     flow === 'fantasyResearch' ||
     flow === 'flyingResearch' ||
+    flow === 'largeResearch' ||
     flow === 'promotion' ||
     flow === 'equipment' ||
     flow === 'commanderChoice' ||
@@ -1560,6 +1622,7 @@ export function AppShell({
     flow === 'factionChapterSixSeal' ||
     flow === 'metaCampaign' ||
     flow === 'settlement' ||
+    flow === 'warTable' ||
     flow === 'expedition' ||
     flow === 'formationTrial' ||
     flow === 'settings' ||

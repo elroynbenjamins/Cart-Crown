@@ -127,6 +127,7 @@ import {
 import { sideModes } from './sideModes';
 import {
   canStartResearch,
+  getArmyDeploymentCapacity,
   getFamilyUnlock,
   getFantasyRecruitTemplates,
   getFantasyStoryRewardUnit,
@@ -227,6 +228,10 @@ type GameContextValue = {
   flyingFamilyUnlock: FamilyUnlockDefinition | null;
   flyingResearchDefinitions: ResearchDefinition[];
   flyingRecruitOptions: FantasyRecruitTemplate[];
+  largeFamilyUnlock: FamilyUnlockDefinition | null;
+  largeResearchDefinitions: ResearchDefinition[];
+  largeRecruitOptions: FantasyRecruitTemplate[];
+  fantasyProgressionChapter: number;
   formationShapeId: FormationShapeId;
   formationShapes: FormationShapeDefinition[];
   activeFormationShape: FormationShapeDefinition;
@@ -236,6 +241,7 @@ type GameContextValue = {
   formationBonuses: FormationBonus[];
   formationAnalysis: ReturnType<typeof analyzeFormation>;
   activeSquadCap: number;
+  activeDeploymentCapacity: number;
   formationCells: number[];
   holdTheRoadWon: boolean;
   settlementUpgraded: boolean;
@@ -588,12 +594,6 @@ const stageRank: Record<string, number> = {
   grand: 6
 };
 
-const sideModeUnlockRank: Record<SideModeDefinition['unlockStage'], number> = {
-  settlement: 1,
-  fort: 2,
-  stronghold: 4
-};
-
 const formationShapeUnlockRank: Record<FormationShapeDefinition['unlock'], number> = {
   Start: 0,
   Settlement: 1,
@@ -763,6 +763,29 @@ export function GameProvider({
     () => getFantasyRecruitTemplates(activeFaction, 'flying'),
     [activeFaction]
   );
+  const largeFamilyUnlock = useMemo(
+    () => getFamilyUnlock(activeFaction, 'large'),
+    [activeFaction]
+  );
+  const largeResearchDefinitions = useMemo(
+    () =>
+      researchDefinitions.filter(
+        research =>
+          research.faction === activeFaction &&
+          research.family === 'large'
+      ),
+    [activeFaction]
+  );
+  const largeRecruitOptions = useMemo(
+    () => getFantasyRecruitTemplates(activeFaction, 'large'),
+    [activeFaction]
+  );
+  const fantasyProgressionChapter =
+    sharedProgress.metaCampaignComplete
+      ? 8
+      : sharedProgress.completedCampaigns.includes(activeFaction)
+        ? 7
+        : chapterNumber;
   const factionFantasyResearchDefinitions = useMemo(
     () =>
       researchDefinitions.filter(
@@ -869,6 +892,47 @@ export function GameProvider({
     chapterNumber,
     completedStoryGates,
     flyingFamilyUnlock
+  ]);
+
+  useEffect(() => {
+    if (
+      !largeFamilyUnlock ||
+      fantasyProgressionChapter < 7 ||
+      !sharedProgress.completedCampaigns.includes(activeFaction)
+    ) {
+      return;
+    }
+
+    if (
+      completedStoryGates.includes(
+        largeFamilyUnlock.storyGateId
+      )
+    ) {
+      return;
+    }
+
+    setCompletedStoryGates(previous =>
+      previous.includes(largeFamilyUnlock.storyGateId)
+        ? previous
+        : [...previous, largeFamilyUnlock.storyGateId]
+    );
+
+    const reward = getFantasyStoryRewardUnit(
+      largeFamilyUnlock.firstStoryRewardUnitId
+    );
+    if (reward) {
+      setUnits(previous =>
+        previous.some(unit => unit.id === reward.id)
+          ? previous
+          : [...previous, { ...reward }]
+      );
+    }
+  }, [
+    activeFaction,
+    completedStoryGates,
+    fantasyProgressionChapter,
+    largeFamilyUnlock,
+    sharedProgress.completedCampaigns
   ]);
 
   const currentWagonStage = useMemo(
@@ -985,6 +1049,16 @@ export function GameProvider({
 
   const formationBonuses = formationAnalysis.bonuses;
   const activeSquadCap = currentWagonStage.formationSlots;
+  const activeDeploymentCapacity = useMemo(
+    () =>
+      getArmyDeploymentCapacity(
+        formation
+          .filter((unitId): unitId is string => Boolean(unitId))
+          .map(unitId => units.find(unit => unit.id === unitId))
+          .filter((unit): unit is UnitDefinition => Boolean(unit))
+      ),
+    [formation, units]
+  );
   const hasPackedRations = wagonItems.some(item => item.id === 'rations');
   const hasPackedMedicine = wagonItems.some(item => item.id === 'medicine');
   const armyResupplyCost = getArmyResupplyCost(
@@ -1561,6 +1635,24 @@ export function GameProvider({
 
   const finishEncounter = (encounterId: EncounterId) => {
     const reward = encounterRewards[encounterId];
+
+    if (encounterId.startsWith('war_table_')) {
+      if (!isSideModeUnlocked('war_table')) return;
+
+      setResources(previous =>
+        addResources(previous, reward.resources)
+      );
+      accrueRegionalProduction();
+      setLastBattleResult({
+        id: encounterId + '_result',
+        title: 'War Table Contract Complete',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
 
     if (encounterId === 'elf_wardbreakers') {
       if (
@@ -5119,19 +5211,30 @@ export function GameProvider({
 
   const placeFormationUnit = (unitId: string, targetSlot: number) => {
     if (!formationCells.includes(targetSlot)) return false;
-    if (!units.some(unit => unit.id === unitId)) return false;
+    const incomingUnit = units.find(unit => unit.id === unitId);
+    if (!incomingUnit) return false;
 
     const sourceSlot = formation.indexOf(unitId);
-    const targetUnit = formation[targetSlot] ?? null;
-    const activeCount = formation.filter(Boolean).length;
+    const targetUnitId = formation[targetSlot] ?? null;
+    const targetUnit = targetUnitId
+      ? units.find(unit => unit.id === targetUnitId) ?? null
+      : null;
 
     if (sourceSlot === targetSlot) return false;
-    if (
-      sourceSlot < 0 &&
-      !targetUnit &&
-      activeCount >= activeSquadCap
-    ) {
-      return false;
+
+    if (sourceSlot < 0) {
+      const incomingCapacity =
+        incomingUnit.deploymentCapacity ?? 1;
+      const replacedCapacity =
+        targetUnit?.deploymentCapacity ?? 0;
+      const nextCapacity =
+        activeDeploymentCapacity -
+        replacedCapacity +
+        incomingCapacity;
+
+      if (nextCapacity > activeSquadCap) {
+        return false;
+      }
     }
 
     setFormation(previous => {
@@ -5244,29 +5347,37 @@ export function GameProvider({
       return false;
     }
 
-    const validUnitIds = new Set(units.map(unit => unit.id));
+    const unitById = new Map(
+      units.map(unit => [unit.id, unit])
+    );
     const seenUnitIds = new Set<string>();
-    let activeCount = 0;
+    let usedCapacity = 0;
     const nextFormation = Array.from(
       { length: 9 },
       (_, index) => {
         const unitId = preset.formation[index] ?? null;
+        const unit = unitId
+          ? unitById.get(unitId) ?? null
+          : null;
+        const unitCapacity =
+          unit?.deploymentCapacity ?? 1;
+
         if (
           !unitId ||
-          !validUnitIds.has(unitId) ||
+          !unit ||
           seenUnitIds.has(unitId) ||
-          activeCount >= activeSquadCap
+          usedCapacity + unitCapacity > activeSquadCap
         ) {
           return null;
         }
 
         seenUnitIds.add(unitId);
-        activeCount += 1;
+        usedCapacity += unitCapacity;
         return unitId;
       }
     );
 
-    if (activeCount === 0) return false;
+    if (usedCapacity === 0) return false;
 
     setFormationShapeIdState(shape.id);
     setFormationDoctrineId(doctrine.id);
@@ -5286,9 +5397,33 @@ export function GameProvider({
   };
 
   const isSideModeUnlocked = (id: SideModeId) => {
-    const mode = sideModes.find(candidate => candidate.id === id);
-    if (!mode) return false;
-    return (stageRank[currentWagonStage.id] ?? 0) >= sideModeUnlockRank[mode.unlockStage];
+    const completedNodes =
+      chapterNodes.filter(node => node.completed).length;
+
+    if (id === 'war_table') {
+      if (chapterNumber > 1) return true;
+      return activeFaction === 'human'
+        ? mercenaryPatrolWon
+        : completedNodes >= 3;
+    }
+
+    if (id === 'formation_trials') {
+      return chapterNumber >= 2;
+    }
+
+    if (id === 'kingdom_defense') {
+      return activeFaction === 'human'
+        ? kingdomDefenseCompleted
+        : chapterNumber >= 3;
+    }
+
+    if (id === 'expeditions') {
+      return chapterNumber >= 3;
+    }
+
+    // Relic Hunts remain deliberately hidden until their full late-game
+    // progression and reward loop is implemented.
+    return false;
   };
 
   const consumeExpeditionTicket = () => {
@@ -5495,7 +5630,7 @@ export function GameProvider({
     if (
       !canStartResearch(
         research,
-        chapterNumber,
+        fantasyProgressionChapter,
         completedStoryGates
       )
     ) {
@@ -5642,7 +5777,8 @@ export function GameProvider({
   const recruitFantasyUnit = (templateId: string) => {
     const template = [
       ...fantasyRecruitOptions,
-      ...flyingRecruitOptions
+      ...flyingRecruitOptions,
+      ...largeRecruitOptions
     ].find(
       candidate => candidate.id === templateId
     );
@@ -5684,7 +5820,7 @@ export function GameProvider({
       armor: template.armor,
       speed: template.speed,
       battleTags: [...template.battleTags],
-      deploymentCapacity: 1
+      deploymentCapacity: template.deploymentCapacity ?? 1
     };
 
     setResources(previous =>
@@ -5739,6 +5875,10 @@ export function GameProvider({
       flyingFamilyUnlock,
       flyingResearchDefinitions,
       flyingRecruitOptions,
+      largeFamilyUnlock,
+      largeResearchDefinitions,
+      largeRecruitOptions,
+      fantasyProgressionChapter,
       formationShapeId,
       formationShapes,
       activeFormationShape,
@@ -5748,6 +5888,7 @@ export function GameProvider({
       formationBonuses,
       formationAnalysis,
       activeSquadCap,
+      activeDeploymentCapacity,
       formationCells,
       holdTheRoadWon,
       settlementUpgraded,
@@ -5941,6 +6082,10 @@ export function GameProvider({
       flyingFamilyUnlock,
       flyingResearchDefinitions,
       flyingRecruitOptions,
+      largeFamilyUnlock,
+      largeResearchDefinitions,
+      largeRecruitOptions,
+      fantasyProgressionChapter,
       factionFantasyResearchDefinitions,
       fantasyRecruitSerial,
       formationShapeId,
@@ -5951,6 +6096,7 @@ export function GameProvider({
       formationBonuses,
       formationAnalysis,
       activeSquadCap,
+      activeDeploymentCapacity,
       holdTheRoadWon,
       settlementUpgraded,
       recruitChoiceAvailable,

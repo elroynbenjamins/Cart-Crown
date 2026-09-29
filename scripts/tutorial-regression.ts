@@ -52,10 +52,16 @@ function baseContext(
     armyReadiness: 100,
     unlockedResourceSites: 0,
     wagonStageId: 'camp',
+    warTableUnlocked: false,
+    kingdomTrialsUnlocked: false,
+    kingdomDefenseModeUnlocked: false,
+    expeditionsUnlocked: false,
     magicStoryUnlocked: false,
     flyingStoryUnlocked: false,
+    largeStoryUnlocked: false,
     completedMagicResearch: 0,
     completedFlyingResearch: 0,
+    completedLargeResearch: 0,
     ...overrides
   };
 }
@@ -513,21 +519,80 @@ function runSystemCoverage() {
     'Advanced formation lesson does not spotlight formation shapes.'
   );
 
-  const sideModes = getNextTutorialMoment(
+  const warTable = getNextTutorialMoment(
     baseContext({
       view: 'campaign',
       tutorialSeen: core,
-      wagonStageId: 'fort'
+      warTableUnlocked: true
     })
   );
   expect(
-    sideModes?.key === 'system:side-modes',
-    'Side-mode lesson did not trigger at Fort tier.'
+    warTable?.key === 'system:war-table',
+    'War Table lesson did not trigger when the first optional mode unlocked.'
   );
   expect(
-    sideModes?.focusAfterPrimary?.kind ===
-      'campaign-activities',
-    'Side-mode lesson does not spotlight Activities.'
+    warTable?.focusAfterPrimary?.kind ===
+      'campaign-activities' &&
+      warTable.focusAfterPrimary.modeId ===
+        'war_table',
+    'War Table lesson does not route to the newly visible activity.'
+  );
+
+  const kingdomTrials = getNextTutorialMoment(
+    baseContext({
+      view: 'campaign',
+      tutorialSeen: [
+        ...core,
+        'system:war-table'
+      ],
+      warTableUnlocked: true,
+      kingdomTrialsUnlocked: true
+    })
+  );
+  expect(
+    kingdomTrials?.key ===
+      'system:kingdom-trials',
+    'Kingdom Trials lesson did not wait for its own progression gate.'
+  );
+
+  const kingdomDefense =
+    getNextTutorialMoment(
+      baseContext({
+        view: 'campaign',
+        tutorialSeen: [
+          ...core,
+          'system:war-table',
+          'system:kingdom-trials'
+        ],
+        warTableUnlocked: true,
+        kingdomTrialsUnlocked: true,
+        kingdomDefenseModeUnlocked: true
+      })
+    );
+  expect(
+    kingdomDefense?.key ===
+      'system:kingdom-defense-repeatable',
+    'Repeatable Kingdom Defense lesson did not wait for the story defense clear.'
+  );
+
+  const expeditions = getNextTutorialMoment(
+    baseContext({
+      view: 'campaign',
+      tutorialSeen: [
+        ...core,
+        'system:war-table',
+        'system:kingdom-trials',
+        'system:kingdom-defense-repeatable'
+      ],
+      warTableUnlocked: true,
+      kingdomTrialsUnlocked: true,
+      kingdomDefenseModeUnlocked: true,
+      expeditionsUnlocked: true
+    })
+  );
+  expect(
+    expeditions?.key === 'system:expeditions',
+    'Expedition lesson did not wait until the later campaign gate.'
   );
 }
 
@@ -682,6 +747,87 @@ function runFantasyFamilyCoverage() {
       flyingTraining.focusAfterPrimary.family ===
         'flying',
     'Flying training lesson does not spotlight the newly trainable aerial class.'
+  );
+  const largeDiscovery = getNextTutorialMoment(
+    baseContext({
+      view: 'army',
+      tutorialSeen: [
+        ...core,
+        'system:magic-discovery',
+        'system:magic-research',
+        'system:magic-training',
+        'system:flying-discovery',
+        'system:flying-research',
+        'system:flying-training'
+      ],
+      magicStoryUnlocked: true,
+      flyingStoryUnlocked: true,
+      largeStoryUnlocked: true,
+      wagonStageId: 'grand'
+    })
+  );
+
+  expect(
+    largeDiscovery?.key ===
+      'system:large-discovery',
+    'Large-unit mastery is not introduced after the Chapter 7 gate opens.'
+  );
+  expect(
+    largeDiscovery?.focusAfterPrimary?.kind ===
+      'army-fantasy' &&
+      largeDiscovery.focusAfterPrimary.family ===
+        'large',
+    'Large discovery does not route to the Large Unit Mastery Army card.'
+  );
+
+  const largeResearch = getNextTutorialMoment(
+    baseContext({
+      view: 'largeResearch',
+      tutorialSeen: [
+        ...core,
+        'system:large-discovery'
+      ],
+      largeStoryUnlocked: true
+    })
+  );
+
+  expect(
+    largeResearch?.key ===
+      'system:large-research',
+    'Large Unit Mastery screen does not explain mastery research.'
+  );
+  expect(
+    largeResearch?.focusAfterPrimary?.kind ===
+      'research-start' &&
+      largeResearch.focusAfterPrimary.family ===
+        'large',
+    'Large mastery lesson does not spotlight Start Mastery.'
+  );
+
+  const largeTraining = getNextTutorialMoment(
+    baseContext({
+      view: 'largeResearch',
+      tutorialSeen: [
+        ...core,
+        'system:large-discovery',
+        'system:large-research'
+      ],
+      largeStoryUnlocked: true,
+      completedLargeResearch: 1
+    })
+  );
+
+  expect(
+    largeTraining?.key ===
+      'system:large-training',
+    'First completed Large mastery does not introduce repeatable Large training.'
+  );
+  expect(
+    largeTraining?.focusAfterPrimary?.kind ===
+      'research-train' &&
+      largeTraining.focusAfterPrimary.family ===
+        'large',
+    'Large training lesson does not spotlight the newly trainable Large class.'
   );
 }
 

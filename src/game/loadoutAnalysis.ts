@@ -183,20 +183,23 @@ function getValidPresetUnits(
     unit: UnitDefinition;
     slot: number;
   }> = [];
+  let usedCapacity = 0;
 
   preset.formation.forEach((unitId, slot) => {
-    if (
-      !unitId ||
-      seen.has(unitId) ||
-      entries.length >= squadCap
-    ) {
+    if (!unitId || seen.has(unitId)) {
       return;
     }
 
     const unit = unitById.get(unitId);
     if (!unit) return;
 
+    const unitCapacity = unit.deploymentCapacity ?? 1;
+    if (usedCapacity + unitCapacity > squadCap) {
+      return;
+    }
+
     seen.add(unitId);
+    usedCapacity += unitCapacity;
     entries.push({ unit, slot });
   });
 
@@ -322,43 +325,44 @@ export function evaluateFormationPreset({
   squadCap
 }: EvaluateFormationPresetInput): LoadoutFitEvaluation {
   const unitById = new Map(units.map(unit => [unit.id, unit]));
-  const seen = new Set<string>();
+  const validEntries = getValidPresetUnits(
+    preset,
+    units,
+    squadCap
+  );
+  const validUnits = validEntries.map(entry => entry.unit);
+  const validIds = new Set(validUnits.map(unit => unit.id));
   const validFormation = Array.from(
     { length: 9 },
     (_, index) => {
       const unitId = preset.formation[index] ?? null;
-      if (
-        !unitId ||
-        seen.has(unitId) ||
-        !unitById.has(unitId)
-      ) {
-        return null;
-      }
-      seen.add(unitId);
-      return unitId;
+      return unitId && validIds.has(unitId)
+        ? unitId
+        : null;
     }
   );
+  const cappedFormation = validFormation;
 
   const savedSquads = preset.formation.filter(Boolean).length;
-  const validUnits = validFormation
-    .filter((unitId): unitId is string => Boolean(unitId))
-    .map(unitId => unitById.get(unitId))
-    .filter((unit): unit is UnitDefinition => Boolean(unit))
-    .slice(0, Math.max(1, squadCap));
-
-  const validIds = new Set(validUnits.map(unit => unit.id));
-  const cappedFormation = validFormation.map(unitId =>
-    unitId && validIds.has(unitId) ? unitId : null
-  );
-
   const validSquads = validUnits.length;
+  const availableSavedIds = new Set(
+    preset.formation.filter(
+      (unitId): unitId is string =>
+        Boolean(unitId && unitById.has(unitId))
+    )
+  );
   const missingSquads = Math.max(
     0,
-    savedSquads - validSquads
+    savedSquads - availableSavedIds.size
+  );
+  const usedCapacity = validUnits.reduce(
+    (total, unit) =>
+      total + (unit.deploymentCapacity ?? 1),
+    0
   );
   const openSquadSlots = Math.max(
     0,
-    squadCap - validSquads
+    squadCap - usedCapacity
   );
 
   const matchup = getFormationMatchup(
@@ -444,9 +448,9 @@ export function evaluateFormationPreset({
     score -= openSquadSlots * 4;
     risks.push(
       String(openSquadSlots) +
-        ' active squad slot' +
-        (openSquadSlots === 1 ? ' would' : 's would') +
-        ' remain empty.'
+        ' deployment capacity' +
+        (openSquadSlots === 1 ? ' would' : ' would') +
+        ' remain unused.'
     );
   }
 
@@ -495,6 +499,11 @@ export function getTacticalAdjustmentAdvice({
   const benchedUnits = units.filter(
     unit => !activeUnitIds.has(unit.id)
   );
+  const fittingBenchedUnits = benchedUnits.filter(
+    unit =>
+      (unit.deploymentCapacity ?? 1) <=
+      evaluation.openSquadSlots
+  );
 
   if (evaluation.missingSquads > 0) {
     advice.push({
@@ -519,7 +528,7 @@ export function getTacticalAdjustmentAdvice({
     roleNeed && activeRoleCount < roleNeed.minimum;
 
   const usefulBench = roleNeed
-    ? benchedUnits
+    ? fittingBenchedUnits
         .filter(unit => roleNeed.roles.includes(unit.role))
         .sort(
           (a, b) =>
@@ -529,7 +538,7 @@ export function getTacticalAdjustmentAdvice({
 
   if (evaluation.openSquadSlots > 0) {
     const fallbackBench =
-      [...benchedUnits].sort(
+      [...fittingBenchedUnits].sort(
         (a, b) => unitUtility(b) - unitUtility(a)
       )[0] ?? null;
     const candidate = usefulBench ?? fallbackBench;
@@ -549,15 +558,15 @@ export function getTacticalAdjustmentAdvice({
     advice.push({
       kind: 'fill_slot',
       title: candidate
-        ? 'Fill the open squad slot with ' + candidate.name
-        : 'Fill the open squad slot',
+        ? 'Fill open deployment capacity with ' + candidate.name
+        : 'Fill open deployment capacity',
       detail: candidate
         ? candidate.className +
           ' adds ' +
           (needsRole && roleNeed
             ? roleNeed.label + ' to ' + roleNeed.purpose + '.'
             : 'more field strength before committing.')
-        : 'This preset is below the current squad cap, so the enemy gets full-tier pressure against a smaller force.',
+        : 'This preset is below the current deployment cap, so the enemy gets full-tier pressure against a smaller force.',
       priority: 92,
       suggestedUnitId: candidate?.id,
       targetSlot

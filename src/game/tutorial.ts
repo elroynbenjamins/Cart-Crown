@@ -2,6 +2,7 @@ import type {
   BuildingDefinition,
   FactionId,
   NavId,
+  SideModeId,
   UnitDefinition
 } from './types';
 
@@ -13,6 +14,7 @@ export type TutorialView =
   | 'settlement'
   | 'fantasyResearch'
   | 'flyingResearch'
+  | 'largeResearch'
   | 'other';
 
 export type TutorialTarget =
@@ -28,7 +30,7 @@ export type TutorialTarget =
 export type TutorialFocusTarget =
   | { kind: 'nav'; nav: NavId; label: string }
   | { kind: 'campaign-current'; label: string }
-  | { kind: 'campaign-activities'; label: string }
+  | { kind: 'campaign-activities'; label: string; modeId?: SideModeId }
   | { kind: 'battle-begin'; label: string }
   | { kind: 'battle-readiness'; label: string }
   | { kind: 'results-continue'; label: string }
@@ -40,9 +42,9 @@ export type TutorialFocusTarget =
   | { kind: 'forge-craft'; label: string }
   | { kind: 'army-equipment'; label: string }
   | { kind: 'kingdom-production'; label: string }
-  | { kind: 'army-fantasy'; family: 'magic' | 'flying'; label: string }
-  | { kind: 'research-start'; family: 'magic' | 'flying'; label: string }
-  | { kind: 'research-train'; family: 'magic' | 'flying'; label: string };
+  | { kind: 'army-fantasy'; family: 'magic' | 'flying' | 'large'; label: string }
+  | { kind: 'research-start'; family: 'magic' | 'flying' | 'large'; label: string }
+  | { kind: 'research-train'; family: 'magic' | 'flying' | 'large'; label: string };
 
 export type TutorialMoment = {
   key: string;
@@ -76,10 +78,16 @@ export type TutorialContext = {
   armyReadiness: number;
   unlockedResourceSites: number;
   wagonStageId: string;
+  warTableUnlocked: boolean;
+  kingdomTrialsUnlocked: boolean;
+  kingdomDefenseModeUnlocked: boolean;
+  expeditionsUnlocked: boolean;
   magicStoryUnlocked: boolean;
   flyingStoryUnlocked: boolean;
+  largeStoryUnlocked: boolean;
   completedMagicResearch: number;
   completedFlyingResearch: number;
+  completedLargeResearch: number;
 };
 
 export const CORE_TUTORIAL_KEYS = [
@@ -99,13 +107,19 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:readiness',
   'system:production',
   'system:advanced-formations',
-  'system:side-modes',
+  'system:war-table',
+  'system:kingdom-trials',
+  'system:kingdom-defense-repeatable',
+  'system:expeditions',
   'system:magic-discovery',
   'system:magic-research',
   'system:magic-training',
   'system:flying-discovery',
   'system:flying-research',
-  'system:flying-training'
+  'system:flying-training',
+  'system:large-discovery',
+  'system:large-research',
+  'system:large-training'
 ] as const;
 
 export const FACTION_TUTORIAL_KEYS = [
@@ -730,6 +744,80 @@ function systemMoment(
   }
 
   if (
+    context.largeStoryUnlocked &&
+    context.view === 'army' &&
+    !seen(context, 'system:large-discovery')
+  ) {
+    const name =
+      context.faction === 'human'
+        ? 'Construct Foundry'
+        : context.faction === 'elf'
+          ? 'Ancient Grove'
+          : 'Great Beast Pens';
+
+    return {
+      key: 'system:large-discovery',
+      kind: 'system',
+      eyebrow: 'CHAPTER 7 MASTERY',
+      title: 'Large units change army capacity',
+      body:
+        name +
+        ' is now operational. Large units are powerful formation breakers, but each consumes 2 deployment capacity while occupying one formation cell. Concentrated missiles and disciplined anti-large troops can punish them, so a Large unit is a composition choice rather than a free upgrade.',
+      primaryLabel: 'Show Large Unit Mastery',
+      target: 'army',
+      focusAfterPrimary: {
+        kind: 'army-fantasy',
+        family: 'large',
+        label: 'OPEN LARGE UNIT MASTERY'
+      }
+    };
+  }
+
+  if (
+    context.largeStoryUnlocked &&
+    context.view === 'largeResearch' &&
+    !seen(context, 'system:large-research')
+  ) {
+    return {
+      key: 'system:large-research',
+      kind: 'system',
+      eyebrow: 'MASTERY RESEARCH',
+      title: 'Master the first Large discovery',
+      body:
+        'Large-unit mastery uses the same optional research model as other fantasy families: the timer finishes naturally, while rewarded ads or Gems only shorten the wait. Completing mastery unlocks repeatable Large-unit training.',
+      primaryLabel: 'Show mastery research',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-start',
+        family: 'large',
+        label: 'START MASTERY'
+      }
+    };
+  }
+
+  if (
+    context.completedLargeResearch > 0 &&
+    context.view === 'largeResearch' &&
+    !seen(context, 'system:large-training')
+  ) {
+    return {
+      key: 'system:large-training',
+      kind: 'system',
+      eyebrow: 'LARGE TRAINING',
+      title: 'Power costs deployment space',
+      body:
+        'Your mastered Large classes can now be trained repeatedly. Every Large squad costs normal resources and 2 deployment capacity, so adding one usually means benching or replacing conventional squads. Use them when breakthrough power is worth that trade.',
+      primaryLabel: 'Show trainable Large unit',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-train',
+        family: 'large',
+        label: 'TRAIN THIS LARGE UNIT'
+      }
+    };
+  }
+
+  if (
     (stageRank[context.wagonStageId] ?? 0) >= 2 &&
     context.view === 'formation' &&
     !seen(context, 'system:advanced-formations')
@@ -751,21 +839,88 @@ function systemMoment(
   }
 
   if (
-    (stageRank[context.wagonStageId] ?? 0) >= 2 &&
+    context.warTableUnlocked &&
     context.view === 'campaign' &&
-    !seen(context, 'system:side-modes')
+    !seen(context, 'system:war-table')
   ) {
     return {
-      key: 'system:side-modes',
+      key: 'system:war-table',
       kind: 'system',
-      eyebrow: 'OPTIONAL ACTIVITIES',
-      title: 'Recovery content is now available',
+      eyebrow: 'NEW ACTIVITY',
+      title: 'War Table unlocked',
       body:
-        'Expeditions, Formation Trials and Kingdom Defense provide extra resources or tactical practice when you want them. They are useful recovery tools, but normal campaign progress is balanced so they should not become mandatory farming.',
-      primaryLabel: 'Show Activities',
+        'Your scouts now post optional contracts away from the main campaign route. Use the War Table to practice formation counters and recover modest resources. Campaign progress never requires farming these battles.',
+      primaryLabel: 'Show War Table',
       target: 'none',
       focusAfterPrimary: {
         kind: 'campaign-activities',
+        modeId: 'war_table',
+        label: 'TAP ACTIVITIES'
+      }
+    };
+  }
+
+  if (
+    context.kingdomTrialsUnlocked &&
+    context.view === 'campaign' &&
+    !seen(context, 'system:kingdom-trials')
+  ) {
+    return {
+      key: 'system:kingdom-trials',
+      kind: 'system',
+      eyebrow: 'NEW ACTIVITY',
+      title: 'Kingdom Trials unlocked',
+      body:
+        'Trials are tactical challenges rather than normal power checks. Their rules ask you to use rows, protection and counters deliberately, so a better formation can matter more than a larger army.',
+      primaryLabel: 'Show Kingdom Trials',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'campaign-activities',
+        modeId: 'formation_trials',
+        label: 'TAP ACTIVITIES'
+      }
+    };
+  }
+
+  if (
+    context.kingdomDefenseModeUnlocked &&
+    context.view === 'campaign' &&
+    !seen(context, 'system:kingdom-defense-repeatable')
+  ) {
+    return {
+      key: 'system:kingdom-defense-repeatable',
+      kind: 'system',
+      eyebrow: 'ACTIVITY EXPANDED',
+      title: 'Kingdom Defense is now repeatable',
+      body:
+        'You survived the story defense. From now on, Kingdom Defense also works as optional endurance content for settlement materials. Readiness and supplies carry real weight across the waves.',
+      primaryLabel: 'Show Kingdom Defense',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'campaign-activities',
+        modeId: 'kingdom_defense',
+        label: 'TAP ACTIVITIES'
+      }
+    };
+  }
+
+  if (
+    context.expeditionsUnlocked &&
+    context.view === 'campaign' &&
+    !seen(context, 'system:expeditions')
+  ) {
+    return {
+      key: 'system:expeditions',
+      kind: 'system',
+      eyebrow: 'NEW ACTIVITY',
+      title: 'Expeditions unlocked',
+      body:
+        'Your growing kingdom can now support longer branching runs. One formation and wagon loadout must last through the route, so preparation and resource management matter more than in a single skirmish.',
+      primaryLabel: 'Show Expeditions',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'campaign-activities',
+        modeId: 'expeditions',
         label: 'TAP ACTIVITIES'
       }
     };
@@ -787,7 +942,8 @@ export function getNextTutorialMoment(
   if (
     system?.key === 'system:settlement' ||
     system?.key === 'system:magic-discovery' ||
-    system?.key === 'system:flying-discovery'
+    system?.key === 'system:flying-discovery' ||
+    system?.key === 'system:large-discovery'
   ) {
     return system;
   }
