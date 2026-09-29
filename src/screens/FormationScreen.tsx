@@ -262,7 +262,7 @@ export function FormationScreen() {
         Each loadout saves the formation shape, faction doctrine and exact squad positions.
       </Text>
 
-      <SectionTitle title="Formation shape" trailing="9 positions · max 6 squads" />
+      <SectionTitle title="Formation shape" trailing={"9 positions · max " + String(activeSquadCap) + " squads"} />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
