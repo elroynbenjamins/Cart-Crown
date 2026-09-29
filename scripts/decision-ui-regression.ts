@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import ts from 'typescript';
 import { getDecisionFooterLayout, signedStat } from '../src/ui/decisionPresentation';
+import * as semantic from '../src/ui/semanticColors';
+import { themes } from '../src/theme/themes';
 
 // These are interaction/model tests of the real TSX, not native rendering or screenshot tests.
 // Native hosts and the provider are isolated so this runs with the existing CI dependencies.
@@ -33,6 +35,7 @@ function harness(file: string, exportName: string, game: Record<string, any>, pr
   let cursor = 0;
   const hooks: any[] = [];
   const dimensions = { width: 360, height: 800, fontScale: 1, scale: 1 };
+  const appearance = { theme: themes.dark };
   const jsx = (type: Element['type'], supplied: any, ...children: any[]): Element => ({
     type,
     props: {
@@ -43,6 +46,8 @@ function harness(file: string, exportName: string, game: Record<string, any>, pr
   const react: any = {
     __esModule: true,
     createElement: jsx,
+    Fragment: 'Fragment',
+    useEffect() {},
     useState(initial: any) {
       const index = cursor++;
       if (!(index in hooks)) hooks[index] = typeof initial === 'function' ? initial() : initial;
@@ -61,14 +66,12 @@ function harness(file: string, exportName: string, game: Record<string, any>, pr
     return component;
   };
   const components = Object.fromEntries([
-    'GameCard', 'PrimaryButton', 'SecondaryButton', 'ResourceAmountRow', 'ResourceChip'
+    'GameCard', 'PrimaryButton', 'SecondaryButton', 'ResourceAmountRow', 'ResourceChip',
+    'UnitPortrait', 'MetricTile', 'ScreenHero', 'SectionTitle', 'StatusPill', 'Pill'
   ].map(name => [name, host(name)]));
   const art = Object.fromEntries([
     'UnitSprite', 'EquipmentSprite', 'CommanderPortrait', 'ResourceSprite'
   ].map(name => [name, host(name)]));
-  const colors = Object.fromEntries([
-    'text', 'textMuted', 'primary', 'gold', 'human', 'elf', 'orc', 'surface1', 'surface2', 'border'
-  ].map(name => [name, '#' + (name === 'text' ? 'ffffff' : '333333')]));
   const cache = new Map<string, any>();
   function load(filename: string): any {
     const absolute = resolve(root, filename);
@@ -90,7 +93,7 @@ function harness(file: string, exportName: string, game: Record<string, any>, pr
         StyleSheet: { create: (styles: any) => styles }, useWindowDimensions: () => dimensions
       };
       if (request.endsWith('/GameProvider')) return { useGame: () => game };
-      if (request.endsWith('/ThemeProvider')) return { useGameTheme: () => ({ theme: { colors } }) };
+      if (request.endsWith('/ThemeProvider')) return { useGameTheme: () => ({ theme: appearance.theme }) };
       if (request.endsWith('/factions')) return { factions: {
         human: { name: 'Human' }, elf: { name: 'Elf' }, orc: { name: 'Orc' }
       } };
@@ -99,7 +102,8 @@ function harness(file: string, exportName: string, game: Record<string, any>, pr
       if (request.endsWith('/gameArt')) return art;
       if (request.endsWith('/TutorialFocus')) return { TutorialFocus: host('TutorialFocus') };
       if (request.endsWith('/decisionPresentation')) return { getDecisionFooterLayout, signedStat };
-      if (request.endsWith('/DecisionUI')) return load(resolve(dirname(absolute), request + '.tsx'));
+      if (request.endsWith('/semanticColors')) return semantic;
+      if (request.endsWith('/DecisionUI') || request.endsWith('/SemanticUI')) return load(resolve(dirname(absolute), request + '.tsx'));
       throw new Error('Unexpected decision-screen dependency: ' + request);
     };
     new Function('require', 'module', 'exports', output.outputText)(localRequire, mod, mod.exports);
@@ -108,12 +112,12 @@ function harness(file: string, exportName: string, game: Record<string, any>, pr
   }
   const component = load(file)[exportName];
   return {
-    game, dimensions,
+    game, dimensions, appearance,
     render() { cursor = 0; return component(props); }
   };
 }
 
-const unit = (id: string) => ({ id, name: id, className: id + ' class', faction: 'human', hp: 100, attack: 20, armor: 10, speed: 8, level: 2 });
+const unit = (id: string) => ({ id, name: id, className: id + ' class', faction: 'human', role: 'frontline', tier: 2, battleTags: ['armored'], hp: 100, attack: 20, armor: 10, speed: 8, level: 2 });
 const equipment = (id: string, overrides: Record<string, any> = {}) => ({
   id, name: id, faction: 'human', slot: 'weapon', tier: 1, description: id + ' description',
   requiredForgeLevel: 1, attackBonus: 5, armorBonus: 0, speedBonus: -1, ...overrides
@@ -129,6 +133,8 @@ function testRecruitment() {
   };
   const h = harness('src/screens/RecruitmentScreen.tsx', 'RecruitmentScreen', game, { onComplete: () => { completed += 1; } });
   let tree = h.render();
+  check(nodes(tree, 'UnitBadges')[0]!.props.role === 'frontline', 'Recruit role must come from the real unit record.');
+  check(nodes(tree, 'DecisionStats')[0]!.props.presentation === undefined, 'Absolute recruit stats must not be styled as bonuses.');
   nodes(tree, 'DecisionOption')[1]!.props.onSelect();
   check(recruited === 0, 'Selecting a recruit must not recruit or spend anything.');
   tree = h.render();
@@ -164,6 +170,7 @@ function testPromotion() {
   tree = h.render();
   const bonuses = nodes(tree, 'DecisionStats')[0]!.props.items;
   check(bonuses.find((item: any) => item.label === 'Class speed').value === '-1', 'Negative class tradeoffs must stay visible.');
+  check(nodes(tree, 'DecisionStats')[0]!.props.presentation === 'delta', 'Class changes must use the signed bonus palette.');
   const action = commit(tree).onConfirm;
   action(); action();
   check(promoted === 1, 'Promotion must not double-commit.');
@@ -189,6 +196,8 @@ function testCommander() {
     };
     const h = harness('src/screens/CommanderChoiceScreen.tsx', 'CommanderChoiceScreen', game, { onComplete: () => { returned += 1; } });
     let tree = h.render();
+    check(nodes(tree, 'RoleChip').length === 4, 'Every favored commander role should have a labelled chip.');
+    check(nodes(tree, 'DecisionStats')[0]!.props.presentation === 'multiplier', 'Commander stats must compare against ×1, not zero.');
     check(commit(tree).detail.includes('Current specialization'), faction + ' current path needs truthful cost wording.');
     commit(tree).onConfirm();
     check(returned === 1 && choices === 0, 'Returning from a current commander must not respec.');
@@ -253,6 +262,8 @@ function testForge() {
   check(nodes(tree, 'TutorialFocus').some(node => node.props.active), 'The Forge lesson must still expose an active tutorial target.');
   const stats = nodes(tree, 'DecisionStats')[0]!.props.items;
   check(stats.find((item: any) => item.label === 'Speed').value === '-1', 'Forge must not hide negative speed tradeoffs.');
+  check(nodes(tree, 'DecisionStats')[0]!.props.presentation === 'delta', 'Forge item stats must be colored as signed bonuses.');
+  check(nodes(tree, 'TierChip').length === 2 && nodes(tree, 'RarityChip').length === 0, 'Forge must label actual tiers without inventing rarity.');
   const action = commit(tree).onConfirm;
   action(); action();
   check(counts().crafts === 1 && counts().tutorialCompletions === 1, 'Craft and tutorial completion must fire exactly once for one committed snapshot.');
@@ -300,9 +311,112 @@ function testSharedPresentation() {
   }
 }
 
+function testColorSemantics() {
+  check(semantic.contrastRatio('#000000', '#FFFFFF') === 21, 'Contrast helper must match the known black/white ratio.');
+  const tones = Object.keys(semantic.semanticPalettes.dark) as semantic.SemanticTone[];
+  let minimum = Infinity;
+  for (const theme of Object.values(themes)) {
+    for (const tone of tones) {
+      const color = semantic.semanticColor(theme, tone);
+      for (const background of [theme.colors.appBg, theme.colors.surface1, theme.colors.surface2, theme.colors.surface3]) {
+        const ratio = semantic.contrastRatio(color, background);
+        minimum = Math.min(minimum, ratio);
+        check(ratio >= 4.5, theme.name + '/' + tone + ' fails text contrast on ' + background + ': ' + ratio);
+      }
+      const chip = semantic.semanticChipColors(theme, tone);
+      const ratio = semantic.contrastRatio(chip.text, chip.background);
+      minimum = Math.min(minimum, ratio);
+      check(ratio >= 4.5, theme.name + '/' + tone + ' chip label fails contrast.');
+    }
+  }
+  console.log('Semantic palette minimum normal-state text contrast: ' + minimum.toFixed(2) + ':1 across Original, Dark and Light surfaces/chips.');
+
+  check(semantic.statTone(100, 'absolute') === 'neutral', 'Absolute health is not a positive bonus.');
+  for (const value of ['+5', 2, '+10%']) check(semantic.statTone(value, 'delta') === 'positive', 'Positive deltas should be green.');
+  for (const value of ['-2', '−1', '-5%']) check(semantic.statTone(value, 'delta') === 'negative', 'Penalties should be red.');
+  for (const value of ['0', '+0', 'not a stat', 'Infinity']) check(semantic.statTone(value, 'delta') === 'neutral', 'Zero/invalid deltas must be neutral.');
+  check(semantic.statTone('×1.10', 'multiplier') === 'positive', 'Beneficial multipliers use the one baseline.');
+  check(semantic.statTone('×1.00', 'multiplier') === 'neutral', 'An unchanged multiplier must not look like a buff.');
+  check(semantic.statTone('×0.97', 'multiplier') === 'negative', 'Lower stat multipliers must read as penalties.');
+  check(semantic.statTone('×0.90', 'multiplier', true) === 'positive', 'Reduced costs are beneficial when explicitly marked lower-is-better.');
+  check(semantic.statTone('×1.10', 'multiplier', true) === 'negative', 'Higher costs are harmful when explicitly marked lower-is-better.');
+
+  for (const [role, presentation] of Object.entries(semantic.rolePresentation)) {
+    const tree = harness('src/ui/SemanticUI.tsx', 'RoleChip', {}, { role }).render();
+    const chip = nodes(tree, 'SemanticChip')[0]!;
+    check(chip.props.label === presentation.label && chip.props.tone === presentation.tone, 'Role mapping must preserve its text and consistent color.');
+  }
+  const traits = harness('src/ui/SemanticUI.tsx', 'UnitBadges', {}, {
+    role: 'support', tier: 3, battleTags: ['ground', 'magic', 'flying', 'armored', 'support', 'magic']
+  }).render();
+  const labels = nodes(traits, 'SemanticChip').map(node => node.props.label);
+  check(labels.join('|') === 'Magic|Flying|Armored', 'Battle badges must use authored tags without inventing or duplicating traits.');
+  const chip = harness('src/ui/SemanticUI.tsx', 'SemanticChip', {}, { label: 'Flying', tone: 'cyan' });
+  chip.appearance.theme = themes.light;
+  const rendered = chip.render();
+  const text = nodes(rendered, 'Text')[0]!;
+  check(text.props.children === 'Flying', 'A badge must communicate its meaning without relying on hue.');
+  check(text.props.numberOfLines === undefined, 'Trait labels must wrap instead of being silently truncated.');
+  const tier = harness('src/ui/SemanticUI.tsx', 'TierChip', {}, { tier: 3 }).render();
+  check(nodes(tier, 'SemanticChip')[0]!.props.label === 'Tier 3', 'A tier is not a rarity label.');
+  for (const rarity of [undefined, null, 3, 'unknown', 'Tier 3', '__proto__']) {
+    check(harness('src/ui/SemanticUI.tsx', 'RarityChip', {}, { rarity }).render() === null, 'Missing or invalid rarity must not create a Common/Rare label.');
+  }
+  for (const [rarity, presentation] of Object.entries(semantic.rarityPresentation)) {
+    const result = harness('src/ui/SemanticUI.tsx', 'RarityChip', {}, { rarity }).render();
+    check(nodes(result, 'SemanticChip')[0]!.props.label === presentation.label, 'Explicit rarity presentation must be retained.');
+  }
+  for (const value of ['+5', '-1', '0']) {
+    const result = harness('src/ui/SemanticUI.tsx', 'StatValue', {}, { value, presentation: 'delta' }).render();
+    check(result.props.children === value, 'Color styling must not replace or remove numeric signs.');
+    const styles = result.props.style.flat(Infinity).filter(Boolean);
+    check(styles[styles.length - 1].color === semantic.semanticColor(themes.dark, semantic.statTone(value, 'delta')), 'Actual StatValue must use the semantic tone.');
+  }
+  const mixed = '+5% attack · -2% speed · Tier 3';
+  const parts = semantic.emphasisParts(mixed, 'bonuses');
+  check(parts.map(part => part.text).join('') === mixed, 'Mixed bonus emphasis must preserve all visible text.');
+  check(parts.filter(part => part.tone).map(part => part.tone).join('|') === 'positive|negative', 'Mixed bonuses must not color penalties green.');
+  const cost = 'Retraining costs 50 Gold. Balance: 120 Gold.';
+  const costParts = semantic.emphasisParts(cost, 'resources');
+  check(costParts.map(part => part.text).join('') === cost && costParts.filter(part => part.tone).length === 2, 'Only resource amounts should pop within ordinary requirement text.');
+}
+
+function testFormationColorPreservation() {
+  const shape = { id: 'balanced_333', layout: '3–3–3', name: 'Balanced Line', summary: 'Even depth', strength: 'Mixed armies', risk: 'No specialization', unlock: 'Start', rows: { front: [0, 1, 2], middle: [3, 4, 5], rear: [6, 7, 8] } };
+  let moved = 0;
+  const game: any = {
+    units: [unit('A'), { ...unit('B'), role: 'ranged' }],
+    formation: ['A', null, null, null, null, null, 'B', null, null],
+    activeFaction: 'human', activeSquadCap: 3, formationShapeId: shape.id,
+    formationShapes: [shape], activeFormationShape: shape, formationDoctrineId: 'human_balanced',
+    formationDoctrines: [{ id: 'human_balanced', name: 'Balanced', description: 'Mixed army', unlock: 'Start' }],
+    formationBonuses: [{ id: 'mixed', name: 'Mixed bonus', value: '+5% attack / -2% speed', description: 'Tradeoff' }],
+    formationPresets: [], currentWagonStage: { id: 'camp' },
+    moveFormationUnit: () => { moved += 1; return true; }, placeFormationUnit: () => true
+  };
+  const h = harness('src/screens/FormationScreen.tsx', 'FormationScreen', game);
+  let tree = h.render();
+  const slots = nodes(tree, 'Pressable').filter(node => node.props.accessibilityRole === 'button');
+  check(slots.length === 9, 'Color pass must retain all nine logical formation positions.');
+  check(slots[0]!.props.accessibilityLabel.includes('Frontline'), 'Formation slots must expose textual role information.');
+  check(nodes(tree, 'UnitBadges').length === 2, 'Formation roster should show real role/trait badges.');
+  check(nodes(tree, 'EmphasisText')[0]!.props.text === '+5% attack / -2% speed', 'Formation synergies must preserve the mixed source values.');
+  slots[0]!.props.onPress();
+  check(moved === 0, 'Colorized slot selection must not automatically move a squad.');
+  tree = h.render();
+  const selectedSlots = nodes(tree, 'Pressable').filter(node => node.props.accessibilityRole === 'button');
+  check(selectedSlots[0]!.props.accessibilityState.selected, 'Role coloring must not erase selected state.');
+  const border = selectedSlots[0]!.props.style.flat(Infinity).filter(Boolean).at(-1).borderColor;
+  check(border === themes.dark.colors.gold, 'Gold outer highlight remains selection, not role color.');
+  selectedSlots[1]!.props.onPress();
+  check(moved === 1, 'Explicit placement after selection must still call the formation action.');
+}
+
 testRecruitment();
 testPromotion();
 testCommander();
 testForge();
 testSharedPresentation();
-console.log('PASS: ' + assertions + ' decision UI interaction/model checks; native rendering still requires device QA.');
+testColorSemantics();
+testFormationColorPreservation();
+console.log('PASS: ' + assertions + ' decision UI and semantic color interaction/model checks; native rendering still requires device QA.');
