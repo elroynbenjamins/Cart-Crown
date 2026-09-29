@@ -11,6 +11,12 @@ import {
   getFactionDoctrines
 } from '../game/formation';
 import { initialHumanPlacements } from '../game/settlement';
+import {
+  CORE_TUTORIAL_KEYS,
+  SYSTEM_TUTORIAL_KEYS,
+  tutorialBuildingKey,
+  tutorialUnitKey
+} from '../game/tutorial';
 import { chapterTwoNodes } from '../game/chapter2';
 import { chapterThreeNodes } from '../game/chapter3';
 import { chapterFourNodes } from '../game/chapter4';
@@ -502,6 +508,40 @@ export function sanitizeFactionGameState(
     defaults.formationDoctrineId
   );
 
+  const storedTutorialSeen = sanitizeStringArray(
+    stored.tutorialSeen
+  );
+  const progressedLegacySave =
+    stored.tutorialSeen === undefined &&
+    (
+      chapterNumber > 1 ||
+      Boolean(stored.holdTheRoadWon) ||
+      Boolean(stored.settlementUpgraded) ||
+      Boolean(stored.recruitChosen) ||
+      Boolean(stored.firstPromotionComplete) ||
+      Boolean(stored.commanderPathId)
+    );
+
+  const tutorialSeen = progressedLegacySave
+    ? [
+        ...new Set([
+          ...CORE_TUTORIAL_KEYS,
+          ...SYSTEM_TUTORIAL_KEYS,
+          ...units
+            .filter(
+              unit =>
+                !defaults.units.some(
+                  starter => starter.id === unit.id
+                )
+            )
+            .map(unit => tutorialUnitKey(unit.id)),
+          ...Object.keys(
+            stored.buildingLevels ?? {}
+          ).map(tutorialBuildingKey)
+        ])
+      ]
+    : storedTutorialSeen;
+
   return {
     ...defaults,
     ...definedStored,
@@ -573,9 +613,7 @@ export function sanitizeFactionGameState(
       stored.expeditionRunsCompleted,
       defaults.expeditionRunsCompleted
     ),
-    tutorialSeen: sanitizeStringArray(
-      stored.tutorialSeen
-    )
+    tutorialSeen
   };
 }
 
