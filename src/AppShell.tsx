@@ -41,6 +41,7 @@ import { FactionMandateScreen } from './screens/FactionMandateScreen';
 import { FactionFourthRecruitmentScreen } from './screens/FactionFourthRecruitmentScreen';
 import { FactionFifthRecruitmentScreen } from './screens/FactionFifthRecruitmentScreen';
 import { FantasyResearchScreen } from './screens/FantasyResearchScreen';
+import { FlyingResearchScreen } from './screens/FlyingResearchScreen';
 import { FactionKingdomScreen } from './screens/FactionKingdomScreen';
 import { FactionRecruitmentScreen } from './screens/FactionRecruitmentScreen';
 import { FactionChapterOneEventScreen } from './screens/FactionChapterOneEventScreen';
@@ -86,6 +87,7 @@ type FlowScreen =
   | 'markedRaiders'
   | 'forge'
   | 'fantasyResearch'
+  | 'flyingResearch'
   | 'promotion'
   | 'equipment'
   | 'commanderChoice'
@@ -155,6 +157,7 @@ const flowTitles: Record<FlowScreen, string> = {
   markedRaiders: 'Marked Raiders',
   forge: 'Field Forge',
   fantasyResearch: 'Arcane Research',
+  flyingResearch: 'Aerial Training',
   promotion: 'Promotion',
   equipment: 'Equipment',
   commanderChoice: 'Commander Path',
@@ -586,6 +589,17 @@ export function AppShell({
     if (flow === 'fantasyResearch') {
       return (
         <FantasyResearchScreen
+          onExit={() => {
+            setFlow(null);
+            setActive('army');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'flyingResearch') {
+      return (
+        <FlyingResearchScreen
           onExit={() => {
             setFlow(null);
             setActive('army');
@@ -1401,6 +1415,7 @@ export function AppShell({
             onOpenPromotion={() => setFlow('promotion')}
             onOpenCommander={() => setFlow('commanderChoice')}
             onOpenFantasyResearch={() => setFlow('fantasyResearch')}
+            onOpenFlyingResearch={() => setFlow('flyingResearch')}
             onOpenEquipment={(unitId) => {
               setEquipmentUnitId(unitId);
               setFlow('equipment');
@@ -1473,6 +1488,7 @@ export function AppShell({
     flow === 'markedRaiders' ||
     flow === 'forge' ||
     flow === 'fantasyResearch' ||
+    flow === 'flyingResearch' ||
     flow === 'promotion' ||
     flow === 'equipment' ||
     flow === 'commanderChoice' ||
