@@ -3,7 +3,8 @@ export type RewardedAdPlacementId =
   | 'expedition_ticket'
   | 'salvage_boost'
   | 'scout_report'
-  | 'field_rally';
+  | 'field_rally'
+  | 'fantasy_research';
 
 export type RewardedAdPlacement = {
   id: RewardedAdPlacementId;
@@ -48,6 +49,13 @@ export const rewardedAdPlacements: RewardedAdPlacement[] = [
     description: 'Retry an expedition without paying its normal provision cost.',
     capPerSession: 1,
     rewardSummary: '+1 Field Rally'
+  },
+  {
+    id: 'fantasy_research',
+    name: 'Accelerate Research',
+    description: 'Optional research acceleration for a fantasy troop doctrine.',
+    capPerSession: 12,
+    rewardSummary: 'Research advanced by one step'
   }
 ];
 

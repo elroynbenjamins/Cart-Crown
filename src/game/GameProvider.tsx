@@ -126,6 +126,20 @@ import {
 } from './settlement';
 import { sideModes } from './sideModes';
 import {
+  canStartResearch,
+  getFamilyUnlock,
+  getFantasyRecruitTemplates,
+  getFantasyStoryRewardUnit,
+  getResearchGemFinishCost,
+  getResearchRemainingHours,
+  researchDefinitions
+} from './progression';
+import type {
+  FamilyUnlockDefinition,
+  FantasyRecruitTemplate,
+  ResearchDefinition
+} from './progression';
+import {
   clampArmyReadiness,
   getArmyResupplyCost,
   getBattleReadinessWear,
@@ -171,6 +185,7 @@ import type {
 import type {
   FactionGameState,
   GameSnapshot,
+  ResearchProgressState,
   SharedProgress
 } from '../save/types';
 import { buildFactionSwitchSnapshot } from '../save/schema';
@@ -202,6 +217,13 @@ type GameContextValue = {
   resetTutorialGuidance: () => void;
   reviewPromptShown: boolean;
   markReviewPromptShown: () => void;
+  gems: number;
+  completedStoryGates: string[];
+  researchProgress: Record<string, ResearchProgressState>;
+  unlockedFantasyClasses: string[];
+  magicFamilyUnlock: FamilyUnlockDefinition | null;
+  magicResearchDefinitions: ResearchDefinition[];
+  fantasyRecruitOptions: FantasyRecruitTemplate[];
   formationShapeId: FormationShapeId;
   formationShapes: FormationShapeDefinition[];
   activeFormationShape: FormationShapeDefinition;
@@ -393,6 +415,11 @@ type GameContextValue = {
   finishExpedition: () => void;
   completeFormationTrial: () => boolean;
   claimRewardedAd: (placementId: RewardedAdPlacementId) => Promise<RewardedAdResult>;
+  startFantasyResearch: (researchId: string) => boolean;
+  claimFantasyResearch: (researchId: string) => boolean;
+  watchFantasyResearchAd: (researchId: string) => Promise<RewardedAdResult>;
+  finishFantasyResearchWithGems: (researchId: string) => boolean;
+  recruitFantasyUnit: (templateId: string) => boolean;
   completeCampaign: (faction: FactionId) => void;
   recruitOptions: RecruitOption[];
 };
@@ -425,6 +452,23 @@ function cloneLoadouts(
 ): Record<string, UnitEquipmentLoadout> {
   return Object.fromEntries(
     Object.entries(loadouts).map(([unitId, loadout]) => [unitId, { ...loadout }])
+  );
+}
+
+function cloneResearchProgress(
+  progress: Record<string, ResearchProgressState> | undefined
+): Record<string, ResearchProgressState> {
+  if (!progress) return {};
+
+  return Object.fromEntries(
+    Object.entries(progress).map(([id, entry]) => [
+      id,
+      {
+        startedAt: entry.startedAt,
+        rewardedAdsWatched: entry.rewardedAdsWatched,
+        completed: entry.completed
+      }
+    ])
   );
 }
 
@@ -586,6 +630,10 @@ export function GameProvider({
     cosmetics: [...initialSnapshot.shared.cosmetics],
     metaCampaignStep: initialSnapshot.shared.metaCampaignStep,
     metaCampaignComplete: initialSnapshot.shared.metaCampaignComplete,
+    gems: Math.max(
+      0,
+      Math.floor(initialSnapshot.shared.gems ?? 0)
+    ),
     reviewPromptShown: Boolean(
       initialSnapshot.shared.reviewPromptShown
     )
@@ -659,11 +707,92 @@ export function GameProvider({
   const [expeditionTickets, setExpeditionTickets] = useState(initialFaction.expeditionTickets);
   const [expeditionRunsCompleted, setExpeditionRunsCompleted] = useState(initialFaction.expeditionRunsCompleted);
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
+  const [completedStoryGates, setCompletedStoryGates] = useState<string[]>(
+    () => [...(initialFaction.completedStoryGates ?? [])]
+  );
+  const [researchProgress, setResearchProgress] = useState<Record<string, ResearchProgressState>>(
+    () => cloneResearchProgress(initialFaction.researchProgress)
+  );
+  const [unlockedFantasyClasses, setUnlockedFantasyClasses] = useState<string[]>(
+    () => [...(initialFaction.unlockedFantasyClasses ?? [])]
+  );
+  const [fantasyRecruitSerial, setFantasyRecruitSerial] = useState(
+    initialFaction.fantasyRecruitSerial ?? 0
+  );
   const [tutorialSeen, setTutorialSeen] = useState<string[]>(
     () => [...(initialFaction.tutorialSeen ?? [])]
   );
   const [rewardedAdClaims, setRewardedAdClaims] = useState<RewardedAdClaimState>({});
   const [rewardedAdMessage, setRewardedAdMessage] = useState<string | null>(null);
+
+  const gems = sharedProgress.gems ?? 0;
+  const magicFamilyUnlock = useMemo(
+    () => getFamilyUnlock(activeFaction, 'magic'),
+    [activeFaction]
+  );
+  const magicResearchDefinitions = useMemo(
+    () =>
+      researchDefinitions.filter(
+        research =>
+          research.faction === activeFaction &&
+          research.family === 'magic'
+      ),
+    [activeFaction]
+  );
+  const fantasyRecruitOptions = useMemo(
+    () => getFantasyRecruitTemplates(activeFaction, 'magic'),
+    [activeFaction]
+  );
+
+  useEffect(() => {
+    if (!magicFamilyUnlock || chapterNumber < 4) return;
+
+    const discoveryNodeId =
+      activeFaction === 'human'
+        ? 'ch4_node_3'
+        : activeFaction === 'elf'
+          ? 'elf4_node_3'
+          : 'orc4_node_3';
+    const discoveryComplete =
+      chapterNumber > 4 ||
+      Boolean(
+        chapterNodes.find(
+          node => node.id === discoveryNodeId
+        )?.completed
+      );
+
+    if (
+      !discoveryComplete ||
+      completedStoryGates.includes(
+        magicFamilyUnlock.storyGateId
+      )
+    ) {
+      return;
+    }
+
+    setCompletedStoryGates(previous =>
+      previous.includes(magicFamilyUnlock.storyGateId)
+        ? previous
+        : [...previous, magicFamilyUnlock.storyGateId]
+    );
+
+    const reward = getFantasyStoryRewardUnit(
+      magicFamilyUnlock.firstStoryRewardUnitId
+    );
+    if (reward) {
+      setUnits(previous =>
+        previous.some(unit => unit.id === reward.id)
+          ? previous
+          : [...previous, { ...reward }]
+      );
+    }
+  }, [
+    activeFaction,
+    chapterNodes,
+    chapterNumber,
+    completedStoryGates,
+    magicFamilyUnlock
+  ]);
 
   const currentWagonStage = useMemo(
     () => wagonStages.find(stage => stage.id === wagonStageId) ?? wagonStages[0]!,
@@ -1101,6 +1230,10 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
+      completedStoryGates,
+      researchProgress,
+      unlockedFantasyClasses,
+      fantasyRecruitSerial,
       tutorialSeen
     }),
     [
@@ -1150,6 +1283,10 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
+      completedStoryGates,
+      researchProgress,
+      unlockedFantasyClasses,
+      fantasyRecruitSerial,
       tutorialSeen
     ]
   );
@@ -5222,6 +5359,262 @@ export function GameProvider({
     return result;
   };
 
+  const getRemainingResearchHours = (
+    research: ResearchDefinition,
+    progress: ResearchProgressState
+  ) => {
+    const elapsedHours =
+      progress.startedAt === null
+        ? 0
+        : Math.max(
+            0,
+            (Date.now() - progress.startedAt) /
+              (60 * 60 * 1000)
+          );
+
+    return getResearchRemainingHours(
+      research,
+      elapsedHours,
+      progress.rewardedAdsWatched
+    );
+  };
+
+  const markFantasyResearchComplete = (
+    research: ResearchDefinition
+  ) => {
+    setResearchProgress(previous => {
+      const existing = previous[research.id] ?? {
+        startedAt: Date.now(),
+        rewardedAdsWatched: 0,
+        completed: false
+      };
+      return {
+        ...previous,
+        [research.id]: {
+          ...existing,
+          completed: true
+        }
+      };
+    });
+    setUnlockedFantasyClasses(previous => [
+      ...new Set([
+        ...previous,
+        ...research.unlocksClasses
+      ])
+    ]);
+  };
+
+  const startFantasyResearch = (researchId: string) => {
+    const research = magicResearchDefinitions.find(
+      candidate => candidate.id === researchId
+    );
+    if (!research) return false;
+
+    const existing = researchProgress[research.id];
+    if (existing?.completed || existing?.startedAt) {
+      return false;
+    }
+
+    if (
+      !canStartResearch(
+        research,
+        chapterNumber,
+        completedStoryGates
+      )
+    ) {
+      return false;
+    }
+
+    const anotherResearchActive =
+      magicResearchDefinitions.some(candidate => {
+        if (candidate.id === research.id) return false;
+        const progress = researchProgress[candidate.id];
+        if (
+          !progress ||
+          progress.completed ||
+          progress.startedAt === null
+        ) {
+          return false;
+        }
+        return getRemainingResearchHours(
+          candidate,
+          progress
+        ) > 0;
+      });
+
+    if (anotherResearchActive) return false;
+
+    setResearchProgress(previous => ({
+      ...previous,
+      [research.id]: {
+        startedAt: Date.now(),
+        rewardedAdsWatched: 0,
+        completed: false
+      }
+    }));
+    return true;
+  };
+
+  const claimFantasyResearch = (researchId: string) => {
+    const research = magicResearchDefinitions.find(
+      candidate => candidate.id === researchId
+    );
+    const progress = research
+      ? researchProgress[research.id]
+      : null;
+
+    if (!research || !progress) return false;
+    if (progress.completed) return true;
+    if (progress.startedAt === null) return false;
+    if (getRemainingResearchHours(research, progress) > 0) {
+      return false;
+    }
+
+    markFantasyResearchComplete(research);
+    return true;
+  };
+
+  const watchFantasyResearchAd = async (
+    researchId: string
+  ): Promise<RewardedAdResult> => {
+    const research = magicResearchDefinitions.find(
+      candidate => candidate.id === researchId
+    );
+    const progress = research
+      ? researchProgress[research.id]
+      : null;
+
+    if (
+      !research ||
+      !progress ||
+      progress.completed ||
+      progress.startedAt === null ||
+      progress.rewardedAdsWatched >=
+        research.rewardedAdsToComplete
+    ) {
+      return { status: 'unavailable', provider: 'none' };
+    }
+
+    const result = await claimRewardedAd(
+      'fantasy_research'
+    );
+    if (result.status !== 'rewarded') return result;
+
+    const nextAds = Math.min(
+      research.rewardedAdsToComplete,
+      progress.rewardedAdsWatched + 1
+    );
+
+    setResearchProgress(previous => ({
+      ...previous,
+      [research.id]: {
+        ...(previous[research.id] ?? progress),
+        rewardedAdsWatched: nextAds,
+        completed:
+          nextAds >= research.rewardedAdsToComplete
+      }
+    }));
+
+    if (nextAds >= research.rewardedAdsToComplete) {
+      setUnlockedFantasyClasses(previous => [
+        ...new Set([
+          ...previous,
+          ...research.unlocksClasses
+        ])
+      ]);
+    }
+
+    return result;
+  };
+
+  const finishFantasyResearchWithGems = (
+    researchId: string
+  ) => {
+    const research = magicResearchDefinitions.find(
+      candidate => candidate.id === researchId
+    );
+    const progress = research
+      ? researchProgress[research.id]
+      : null;
+
+    if (!research || !progress) return false;
+    if (progress.completed) return true;
+    if (progress.startedAt === null) return false;
+
+    const remainingHours = getRemainingResearchHours(
+      research,
+      progress
+    );
+    const cost = getResearchGemFinishCost(
+      research,
+      remainingHours
+    );
+
+    if ((sharedProgress.gems ?? 0) < cost) {
+      return false;
+    }
+
+    setSharedProgress(previous => ({
+      ...previous,
+      gems: Math.max(0, (previous.gems ?? 0) - cost)
+    }));
+    markFantasyResearchComplete(research);
+    return true;
+  };
+
+  const recruitFantasyUnit = (templateId: string) => {
+    const template = fantasyRecruitOptions.find(
+      candidate => candidate.id === templateId
+    );
+    if (!template) return false;
+    if (
+      !unlockedFantasyClasses.includes(
+        template.className
+      )
+    ) {
+      return false;
+    }
+    if (!canAfford(resources, template.cost)) {
+      return false;
+    }
+
+    const nextSerial = fantasyRecruitSerial + 1;
+    const slug = template.className
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+    const unit: UnitDefinition = {
+      id:
+        activeFaction +
+        '_' +
+        slug +
+        '_' +
+        nextSerial,
+      name:
+        template.className +
+        ' Cohort ' +
+        nextSerial,
+      className: template.className,
+      faction: activeFaction,
+      role: template.role,
+      tier: template.tier,
+      level: template.level,
+      hp: template.hp,
+      attack: template.attack,
+      armor: template.armor,
+      speed: template.speed,
+      battleTags: [...template.battleTags],
+      deploymentCapacity: 1
+    };
+
+    setResources(previous =>
+      payCost(previous, template.cost)
+    );
+    setUnits(previous => [...previous, unit]);
+    setFantasyRecruitSerial(nextSerial);
+    return true;
+  };
+
   const completeCampaign = (faction: FactionId) => {
     setSharedProgress(previous => ({
       ...previous,
@@ -5256,6 +5649,13 @@ export function GameProvider({
       resetTutorialGuidance,
       reviewPromptShown,
       markReviewPromptShown,
+      gems,
+      completedStoryGates,
+      researchProgress,
+      unlockedFantasyClasses,
+      magicFamilyUnlock,
+      magicResearchDefinitions,
+      fantasyRecruitOptions,
       formationShapeId,
       formationShapes,
       activeFormationShape,
@@ -5421,6 +5821,11 @@ export function GameProvider({
       finishExpedition,
       completeFormationTrial,
       claimRewardedAd,
+      startFantasyResearch,
+      claimFantasyResearch,
+      watchFantasyResearchAd,
+      finishFantasyResearchWithGems,
+      recruitFantasyUnit,
       completeCampaign,
       recruitOptions
     }),
@@ -5443,6 +5848,14 @@ export function GameProvider({
       flushSnapshot,
       tutorialSeen,
       reviewPromptShown,
+      gems,
+      completedStoryGates,
+      researchProgress,
+      unlockedFantasyClasses,
+      magicFamilyUnlock,
+      magicResearchDefinitions,
+      fantasyRecruitOptions,
+      fantasyRecruitSerial,
       formationShapeId,
       activeFormationShape,
       formationPresets,

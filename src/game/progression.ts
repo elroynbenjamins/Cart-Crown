@@ -1,8 +1,10 @@
 import type {
   FactionId,
+  ResourceWallet,
   UnitBattleTag,
   UnitDefinition
 } from './types';
+import type { EnemyArmyProfileId } from './encounters';
 
 export type TroopFamily =
   | 'conventional'
@@ -54,6 +56,23 @@ export type ResearchDefinition = {
   rewardedAdsToComplete: 3;
   unlocksClasses: string[];
   description: string;
+};
+
+export type FantasyRecruitTemplate = {
+  id: string;
+  researchId: string;
+  faction: FactionId;
+  family: Exclude<TroopFamily, 'conventional'>;
+  className: string;
+  role: UnitDefinition['role'];
+  tier: number;
+  level: number;
+  hp: number;
+  attack: number;
+  armor: number;
+  speed: number;
+  battleTags: UnitBattleTag[];
+  cost: Partial<ResourceWallet>;
 };
 
 export const MAX_STANDARD_RESEARCH_HOURS = 24;
@@ -662,6 +681,188 @@ export const researchDefinitions: ResearchDefinition[] = [
     description: 'Late-game hybrid doctrine requiring both Magic and Flying progression.'
   }
 ];
+
+export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
+  {
+    id: 'human_mage',
+    researchId: 'human_mage_training',
+    faction: 'human',
+    family: 'magic',
+    className: 'Mage',
+    role: 'ranged',
+    tier: 4,
+    level: 7,
+    hp: 104,
+    attack: 24,
+    armor: 5,
+    speed: 10,
+    battleTags: ['ground', 'magic', 'ranged'],
+    cost: { gold: 140, wood: 10, iron: 18, provisions: 4 }
+  },
+  {
+    id: 'human_battlemage',
+    researchId: 'human_battlemage_training',
+    faction: 'human',
+    family: 'magic',
+    className: 'Battlemage',
+    role: 'melee',
+    tier: 4,
+    level: 7,
+    hp: 132,
+    attack: 22,
+    armor: 11,
+    speed: 9,
+    battleTags: ['ground', 'magic', 'armored'],
+    cost: { gold: 175, iron: 25, provisions: 6 }
+  },
+  {
+    id: 'elf_spellweaver',
+    researchId: 'elf_spellweaving',
+    faction: 'elf',
+    family: 'magic',
+    className: 'Spellweaver',
+    role: 'ranged',
+    tier: 4,
+    level: 7,
+    hp: 98,
+    attack: 24,
+    armor: 4,
+    speed: 14,
+    battleTags: ['ground', 'magic', 'ranged'],
+    cost: { gold: 140, wood: 15, provisions: 4 }
+  },
+  {
+    id: 'elf_druid',
+    researchId: 'elf_grove_calling',
+    faction: 'elf',
+    family: 'magic',
+    className: 'Druid',
+    role: 'support',
+    tier: 4,
+    level: 7,
+    hp: 112,
+    attack: 18,
+    armor: 7,
+    speed: 12,
+    battleTags: ['ground', 'magic', 'support'],
+    cost: { gold: 165, wood: 20, provisions: 8 }
+  },
+  {
+    id: 'orc_spiritcaller',
+    researchId: 'orc_spirit_calling',
+    faction: 'orc',
+    family: 'magic',
+    className: 'Spiritcaller',
+    role: 'ranged',
+    tier: 4,
+    level: 7,
+    hp: 116,
+    attack: 23,
+    armor: 6,
+    speed: 10,
+    battleTags: ['ground', 'magic', 'ranged'],
+    cost: { gold: 135, wood: 10, provisions: 6 }
+  },
+  {
+    id: 'orc_war_shaman',
+    researchId: 'orc_war_shaman_training',
+    faction: 'orc',
+    family: 'magic',
+    className: 'War Shaman',
+    role: 'support',
+    tier: 4,
+    level: 7,
+    hp: 140,
+    attack: 22,
+    armor: 10,
+    speed: 9,
+    battleTags: ['ground', 'magic', 'support', 'armored'],
+    cost: { gold: 175, iron: 18, provisions: 8 }
+  }
+];
+
+export type FantasyCombatEdge = {
+  magicUnits: number;
+  attackMultiplier: number;
+  incomingDamageMultiplier: number;
+  title: string;
+  detail: string;
+  favorable: boolean;
+};
+
+export function getFantasyCombatEdge(
+  activeUnits: UnitDefinition[],
+  enemyProfileId: EnemyArmyProfileId
+): FantasyCombatEdge | null {
+  const magicUnits = activeUnits.filter(unit =>
+    unitHasBattleTag(unit, 'magic')
+  ).length;
+
+  if (magicUnits === 0) return null;
+
+  const protectiveUnits = activeUnits.filter(unit =>
+    unit.role === 'frontline' ||
+    unit.role === 'melee' ||
+    unit.role === 'cavalry'
+  ).length;
+
+  let attackMultiplier =
+    1 + Math.min(0.06, magicUnits * 0.02);
+  let title = 'Arcane pressure';
+  let detail =
+    'Magic adds flexible pressure without replacing conventional protection.';
+  let favorable = true;
+
+  if (enemyProfileId === 'shield_host') {
+    attackMultiplier =
+      1 + Math.min(0.12, magicUnits * 0.04);
+    title = 'Arcane breach';
+    detail =
+      'Magic performs especially well into dense shield formations.';
+  } else if (enemyProfileId === 'warded_host') {
+    attackMultiplier =
+      Math.max(0.92, 1 - magicUnits * 0.025);
+    title = 'Enemy wards';
+    detail =
+      'Warded troops blunt direct spell pressure. Conventional damage remains important.';
+    favorable = false;
+  } else if (enemyProfileId === 'elite_command') {
+    attackMultiplier =
+      1 + Math.min(0.08, magicUnits * 0.03);
+    title = 'Disrupt command';
+    detail =
+      'Magic can pressure protected command elements if the casters remain screened.';
+  }
+
+  const exposedCasters =
+    protectiveUnits < 2 &&
+    (
+      enemyProfileId === 'mounted_hunters' ||
+      enemyProfileId === 'shock_warband'
+    );
+
+  return {
+    magicUnits,
+    attackMultiplier,
+    incomingDamageMultiplier: exposedCasters ? 1.06 : 1,
+    title,
+    detail: exposedCasters
+      ? detail + ' Your caster screen is thin, increasing incoming pressure.'
+      : detail,
+    favorable: favorable && !exposedCasters
+  };
+}
+
+export function getFantasyRecruitTemplates(
+  faction: FactionId,
+  family: Exclude<TroopFamily, 'conventional'> = 'magic'
+) {
+  return fantasyRecruitTemplates.filter(
+    template =>
+      template.faction === faction &&
+      template.family === family
+  );
+}
 
 export function getUnitDeploymentCapacity(unit: UnitDefinition) {
   return unit.deploymentCapacity ?? 1;

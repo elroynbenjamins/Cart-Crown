@@ -17,6 +17,7 @@ import {
   getFormationMatchup,
   getFormationShape
 } from '../game/formation';
+import { getFantasyCombatEdge } from '../game/progression';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import {
@@ -261,6 +262,15 @@ export function BattleScreen({
     [formation, units]
   );
 
+  const fantasyCombatEdge = useMemo(
+    () =>
+      getFantasyCombatEdge(
+        activeUnits,
+        enemyArmyProfile.id
+      ),
+    [activeUnits, enemyArmyProfile.id]
+  );
+
   const activeFormationSlots = useMemo(
     () =>
       formation
@@ -383,6 +393,19 @@ export function BattleScreen({
     label: string;
     color: string;
   }> = [];
+  if (fantasyCombatEdge) {
+    battleEffects.push({
+      key: 'fantasy-edge',
+      label:
+        fantasyCombatEdge.title +
+        (fantasyCombatEdge.favorable
+          ? ' · favorable'
+          : ' · countered'),
+      color: fantasyCombatEdge.favorable
+        ? factionAccent
+        : theme.colors.danger
+    });
+  }
   if (metaAllianceActive) {
     battleEffects.push({
       key: 'alliance',
@@ -638,6 +661,7 @@ export function BattleScreen({
             decreeAttackMultiplier *
             mandateAttackMultiplier *
             allianceAttackMultiplier *
+            (fantasyCombatEdge?.attackMultiplier ?? 1) *
             momentum *
             attackFactor *
             tacticalSpeedDamageMultiplier
@@ -672,6 +696,7 @@ export function BattleScreen({
             enemyPressureMultiplier *
             enemyTimingMultiplier *
             formationMatchup.incomingDamageMultiplier *
+            (fantasyCombatEdge?.incomingDamageMultiplier ?? 1) *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -737,7 +762,10 @@ export function BattleScreen({
                 ' ' +
                 enemyArmyProfile.pressureSummary +
                 '. ' +
-                formationMatchup.summary
+                formationMatchup.summary +
+                (fantasyCombatEdge
+                  ? ' ' + fantasyCombatEdge.detail
+                  : '')
               : action)
       );
 

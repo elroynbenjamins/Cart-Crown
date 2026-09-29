@@ -23,6 +23,7 @@ export function ArmyScreen({
   onOpenForge,
   onOpenPromotion,
   onOpenCommander,
+  onOpenFantasyResearch,
   onOpenEquipment,
   tutorialFocus,
   onTutorialFocusComplete
@@ -31,6 +32,7 @@ export function ArmyScreen({
   onOpenForge: () => void;
   onOpenPromotion: () => void;
   onOpenCommander: () => void;
+  onOpenFantasyResearch: () => void;
   onOpenEquipment: (unitId: string) => void;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
@@ -38,6 +40,7 @@ export function ArmyScreen({
   const { theme } = useGameTheme();
   const {
     activeFaction,
+    chapterNumber,
     units,
     formation,
     currentWagonStage,
@@ -51,6 +54,10 @@ export function ArmyScreen({
     commanderChoiceUnlocked,
     activeCommanderPath,
     commanderRespecCost,
+    completedStoryGates,
+    magicFamilyUnlock,
+    magicResearchDefinitions,
+    researchProgress,
     buildingLevels,
     factionBuildingIds
   } = useGame();
@@ -72,6 +79,16 @@ export function ArmyScreen({
     activeFaction === 'human'
       ? forgeUnlocked && activeForgeLevel > 0
       : activeForgeLevel > 0;
+  const magicUnlocked = Boolean(
+    magicFamilyUnlock &&
+    completedStoryGates.includes(
+      magicFamilyUnlock.storyGateId
+    )
+  );
+  const completedMagicResearch =
+    magicResearchDefinitions.filter(
+      research => researchProgress[research.id]?.completed
+    ).length;
   const mira = units.find(unit => unit.id === 'hum_recruit');
   const miraWeapon = unitEquipment.hum_recruit?.weapon
     ? getEquipment(unitEquipment.hum_recruit.weapon)
@@ -208,6 +225,46 @@ export function ArmyScreen({
                   onPress={onOpenCommander}
                 />
               )}
+            </View>
+          </GameCard>
+        </>
+      ) : null}
+
+      {chapterNumber >= 4 ? (
+        <>
+          <SectionTitle
+            title="Fantasy training"
+            trailing={
+              magicUnlocked
+                ? completedMagicResearch +
+                  '/' +
+                  magicResearchDefinitions.length +
+                  ' researched'
+                : 'Story gate'
+            }
+          />
+          <GameCard
+            accent={magicUnlocked ? factionAccent : undefined}
+            faction={activeFaction}
+            state={magicUnlocked ? 'ready' : 'default'}
+          >
+            <Text style={[styles.lockedTitle, { color: theme.colors.text }]}>
+              {magicFamilyUnlock?.buildingName ?? 'Arcane Institution'}
+            </Text>
+            <Text style={[styles.lockedBody, { color: theme.colors.textMuted }]}>
+              {magicUnlocked
+                ? 'Your first magic specialist has joined. Research repeatable branches, then train new squads without replacing your conventional army.'
+                : 'Chapter 4 introduces the faction’s magic story discovery. Complete the current campaign event to establish the institution and receive the first caster.'}
+            </Text>
+            <View style={styles.recruitButton}>
+              <PrimaryButton
+                label={
+                  magicUnlocked
+                    ? 'Open Arcane Research'
+                    : 'View Magic Progress'
+                }
+                onPress={onOpenFantasyResearch}
+              />
             </View>
           </GameCard>
         </>

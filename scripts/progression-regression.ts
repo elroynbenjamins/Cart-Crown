@@ -5,8 +5,11 @@ import {
   campaignProgression,
   canStartResearch,
   familyUnlocks,
+  fantasyRecruitTemplates,
   fantasyStoryRewardUnits,
   getArmyDeploymentCapacity,
+  getFantasyCombatEdge,
+  getFantasyRecruitTemplates,
   getFantasyStoryRewardUnit,
   getResearchGemFinishCost,
   getResearchRemainingHours,
@@ -411,12 +414,127 @@ function runBattleTagAndCapacityCoverage() {
   }
 }
 
+function runPlayableMagicCoverage() {
+  expect(
+    fantasyRecruitTemplates.length === 6,
+    'Chapter 4 needs exactly two repeatable magic branches per faction.'
+  );
+
+  for (const faction of ['human', 'elf', 'orc'] as const) {
+    const templates = getFantasyRecruitTemplates(
+      faction,
+      'magic'
+    );
+    expect(
+      templates.length === 2,
+      faction +
+        ' must expose two repeatable Chapter 4 magic branches.'
+    );
+
+    for (const template of templates) {
+      expect(
+        template.battleTags.includes('magic'),
+        template.id + ' is missing the magic battle tag.'
+      );
+      expect(
+        researchDefinitions.some(
+          research =>
+            research.id === template.researchId &&
+            research.faction === faction &&
+            research.family === 'magic'
+        ),
+        template.id + ' is not linked to valid magic research.'
+      );
+      expect(
+        Object.values(template.cost).some(
+          amount => (amount ?? 0) > 0
+        ),
+        template.id + ' must have a real recruitment cost.'
+      );
+    }
+  }
+
+  const mageTemplate = fantasyRecruitTemplates.find(
+    template => template.id === 'human_mage'
+  );
+  expect(Boolean(mageTemplate), 'Human Mage template is missing.');
+  if (!mageTemplate) return;
+
+  const mage = {
+    id: 'test_mage',
+    name: 'Test Mage',
+    className: mageTemplate.className,
+    faction: mageTemplate.faction,
+    role: mageTemplate.role,
+    tier: mageTemplate.tier,
+    level: mageTemplate.level,
+    hp: mageTemplate.hp,
+    attack: mageTemplate.attack,
+    armor: mageTemplate.armor,
+    speed: mageTemplate.speed,
+    battleTags: mageTemplate.battleTags,
+    deploymentCapacity: 1 as const
+  };
+  const shield = {
+    id: 'test_guard',
+    name: 'Test Guard',
+    className: 'Guard',
+    faction: 'human' as const,
+    role: 'frontline' as const,
+    tier: 4,
+    level: 7,
+    hp: 150,
+    attack: 18,
+    armor: 14,
+    speed: 8
+  };
+
+  const shieldEdge = getFantasyCombatEdge(
+    [mage, shield, { ...shield, id: 'test_guard_2' }],
+    'shield_host'
+  );
+  const wardedEdge = getFantasyCombatEdge(
+    [mage, shield, { ...shield, id: 'test_guard_2' }],
+    'warded_host'
+  );
+  const exposedEdge = getFantasyCombatEdge(
+    [mage],
+    'shock_warband'
+  );
+
+  expect(
+    Boolean(
+      shieldEdge &&
+      shieldEdge.attackMultiplier > 1 &&
+      shieldEdge.favorable
+    ),
+    'Magic must create a modest edge into Shield Hosts.'
+  );
+  expect(
+    Boolean(
+      wardedEdge &&
+      wardedEdge.attackMultiplier < 1 &&
+      !wardedEdge.favorable
+    ),
+    'Warded Hosts must counter direct magic pressure.'
+  );
+  expect(
+    Boolean(
+      exposedEdge &&
+      exposedEdge.incomingDamageMultiplier > 1 &&
+      !exposedEdge.favorable
+    ),
+    'Unprotected casters must be vulnerable to shock pressure.'
+  );
+}
+
 function main() {
   runCampaignCurveCoverage();
   runChapterTwoCoverage();
   runFamilyGateCoverage();
   runResearchCoverage();
   runBattleTagAndCapacityCoverage();
+  runPlayableMagicCoverage();
 
   if (failures.length > 0) {
     console.error('\nFantasy progression regression failures:');
@@ -426,7 +544,7 @@ function main() {
   }
 
   console.log(
-    'PASS: 3→5→7→9 campaign growth, ten-mission authored Chapter 2, fantasy family gates, 24h/30-gem/3-ad research rules, battle tags and deployment capacity remain inside the intended guardrails.'
+    'PASS: campaign growth, fantasy gates, research rules, playable Chapter 4 magic branches, counterplay, battle tags and deployment capacity remain inside the intended guardrails.'
   );
 }
 
