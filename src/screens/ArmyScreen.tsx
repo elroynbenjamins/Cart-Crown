@@ -28,6 +28,7 @@ export function ArmyScreen({
   onOpenFantasyResearch,
   onOpenFlyingResearch,
   onOpenLargeResearch,
+  onOpenHybridResearch,
   onOpenEquipment,
   tutorialFocus,
   onTutorialFocusComplete
@@ -39,6 +40,7 @@ export function ArmyScreen({
   onOpenFantasyResearch: () => void;
   onOpenFlyingResearch: () => void;
   onOpenLargeResearch: () => void;
+  onOpenHybridResearch: () => void;
   onOpenEquipment: (unitId: string) => void;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
@@ -69,6 +71,9 @@ export function ArmyScreen({
     flyingResearchDefinitions,
     largeFamilyUnlock,
     largeResearchDefinitions,
+    hybridFamilyUnlock,
+    hybridResearchDefinitions,
+    hybridPrerequisitesMet,
     researchProgress,
     buildingLevels,
     factionBuildingIds
@@ -119,6 +124,16 @@ export function ArmyScreen({
   );
   const completedLargeResearch =
     largeResearchDefinitions.filter(
+      research => researchProgress[research.id]?.completed
+    ).length;
+  const hybridUnlocked = Boolean(
+    hybridFamilyUnlock &&
+    completedStoryGates.includes(
+      hybridFamilyUnlock.storyGateId
+    )
+  );
+  const completedHybridResearch =
+    hybridResearchDefinitions.filter(
       research => researchProgress[research.id]?.completed
     ).length;
   const mira = units.find(unit => unit.id === 'hum_recruit');
@@ -451,6 +466,48 @@ export function ArmyScreen({
               </View>
             </GameCard>
           </TutorialFocus>
+        </>
+      ) : null}
+
+      {fantasyProgressionChapter >= 8 ? (
+        <>
+          <SectionTitle
+            title="Legendary orders"
+            trailing={
+              hybridUnlocked
+                ? completedHybridResearch +
+                  '/' +
+                  hybridResearchDefinitions.length +
+                  ' researched'
+                : 'Chapter 8'
+            }
+          />
+          <GameCard
+            accent={hybridUnlocked ? theme.colors.gold : undefined}
+            faction={activeFaction}
+            state={hybridUnlocked ? 'ready' : 'default'}
+          >
+            <Text style={[styles.lockedTitle, { color: theme.colors.text }]}>
+              {hybridFamilyUnlock?.buildingName ?? 'Legendary Institution'}
+            </Text>
+            <Text style={[styles.lockedBody, { color: theme.colors.textMuted }]}>
+              {hybridUnlocked
+                ? hybridPrerequisitesMet
+                  ? 'The legendary order is ready for doctrine research. Hybrids combine Magic and Flying strengths but still consume 2 deployment capacity and retain hard counters.'
+                  : 'The first legendary hybrid has joined, but repeatable training stays locked until this faction’s Magic and Flying research are both complete.'
+                : 'Complete the Three Seals meta campaign to establish the legendary order and receive its first hybrid unit.'}
+            </Text>
+            <View style={styles.recruitButton}>
+              <PrimaryButton
+                label={
+                  hybridUnlocked
+                    ? 'Open Legendary Orders'
+                    : 'View Chapter 8 Progress'
+                }
+                onPress={onOpenHybridResearch}
+              />
+            </View>
+          </GameCard>
         </>
       ) : null}
 
