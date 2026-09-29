@@ -80,7 +80,8 @@ export function BattlePrepScreen({
     settlementEffects,
     claimRewardedAd,
     rewardedAdClaims,
-    rewardedAdMessage
+    rewardedAdMessage,
+    guidanceMode
   } = useGame();
 
   const encounter = getEncounter(encounterId);
@@ -107,6 +108,9 @@ export function BattlePrepScreen({
     activeFormationShape.id,
     enemyShape.id
   );
+  const showFormationHints = guidanceMode !== 'off';
+  const showFullGuidance = guidanceMode === 'full';
+  const showHintsOnly = guidanceMode === 'hints';
   const stageRank: Record<string, number> = {
     camp: 0,
     settlement: 1,
@@ -132,6 +136,13 @@ export function BattlePrepScreen({
     (a, b) => {
       if (a.id === activeFormationShape.id) return -1;
       if (b.id === activeFormationShape.id) return 1;
+
+      if (!showFormationHints) {
+        return (
+          unlockedFormationShapes.findIndex(shape => shape.id === a.id) -
+          unlockedFormationShapes.findIndex(shape => shape.id === b.id)
+        );
+      }
 
       const rank = {
         advantage: 0,
@@ -218,6 +229,26 @@ export function BattlePrepScreen({
     mandateIntel ||
     (rewardedAdClaims.scout_report ?? 0) > 0;
 
+  const currentGuidanceEvaluation =
+    showHintsOnly && scoutReport
+      ? evaluateFormationPreset({
+          preset: {
+            slotId: 1,
+            formationShapeId: activeFormationShape.id,
+            formationDoctrineId,
+            formation: Array.from(
+              { length: 9 },
+              (_, index) => formation[index] ?? null
+            )
+          },
+          units,
+          faction: activeFaction,
+          enemyShapeId: enemyShape.id,
+          enemyArmyProfileId: enemyArmyProfile.id,
+          squadCap: activeSquadCap
+        })
+      : null;
+
   const presetEvaluations = new Map(
     formationPresets.map(preset => [
       preset.slotId,
@@ -239,10 +270,14 @@ export function BattlePrepScreen({
       if (aActive && !bActive) return -1;
       if (bActive && !aActive) return 1;
 
-      if (scoutReport) {
+      if (showFullGuidance && scoutReport) {
         const aScore = presetEvaluations.get(a.slotId)?.score ?? 0;
         const bScore = presetEvaluations.get(b.slotId)?.score ?? 0;
         if (aScore !== bScore) return bScore - aScore;
+      }
+
+      if (!showFormationHints) {
+        return a.slotId - b.slotId;
       }
 
       const rank = {
@@ -267,7 +302,9 @@ export function BattlePrepScreen({
   );
 
   const recommendedPreset =
-    scoutReport && formationPresetOptions.length > 0
+    showFullGuidance &&
+    scoutReport &&
+    formationPresetOptions.length > 0
       ? formationPresetOptions.reduce((best, preset) => {
           if (!best) return preset;
           const bestScore =
@@ -283,6 +320,7 @@ export function BattlePrepScreen({
     ? presetEvaluations.get(recommendedPreset.slotId) ?? null
     : null;
   const tacticalAdjustments =
+    showFullGuidance &&
     scoutReport &&
     recommendedPreset &&
     recommendedEvaluation &&
@@ -408,14 +446,20 @@ export function BattlePrepScreen({
 
       <GameCard
         accent={
-          formationMatchup.result === 'advantage'
-            ? theme.colors.primary
-            : formationMatchup.result === 'disadvantage'
-              ? theme.colors.danger
-              : factionAccent
+          showFormationHints
+            ? formationMatchup.result === 'advantage'
+              ? theme.colors.primary
+              : formationMatchup.result === 'disadvantage'
+                ? theme.colors.danger
+                : factionAccent
+            : factionAccent
         }
         faction={activeFaction}
-        state={formationMatchup.result === 'disadvantage' ? 'danger' : 'default'}
+        state={
+          showFormationHints && formationMatchup.result === 'disadvantage'
+            ? 'danger'
+            : 'default'
+        }
       >
         <View style={styles.planHeader}>
           <View style={styles.planCopy}>
@@ -428,18 +472,22 @@ export function BattlePrepScreen({
           </View>
           <StatusPill
             label={
-              formationMatchup.result === 'advantage'
-                ? 'FORMATION EDGE'
-                : formationMatchup.result === 'disadvantage'
-                  ? 'EXPOSED'
-                  : 'NEUTRAL'
+              showFormationHints
+                ? formationMatchup.result === 'advantage'
+                  ? 'FORMATION EDGE'
+                  : formationMatchup.result === 'disadvantage'
+                    ? 'EXPOSED'
+                    : 'NEUTRAL'
+                : 'MANUAL'
             }
             tone={
-              formationMatchup.result === 'advantage'
-                ? 'ready'
-                : formationMatchup.result === 'disadvantage'
-                  ? 'elite'
-                  : 'neutral'
+              showFormationHints
+                ? formationMatchup.result === 'advantage'
+                  ? 'ready'
+                  : formationMatchup.result === 'disadvantage'
+                    ? 'elite'
+                    : 'neutral'
+                : 'neutral'
             }
           />
         </View>
@@ -460,7 +508,9 @@ export function BattlePrepScreen({
             tone={hasFood ? 'done' : 'elite'}
           />
         </View>
-        {formationMatchup.result !== 'advantage' && unlockedCounters.length > 0 ? (
+        {showFormationHints &&
+        formationMatchup.result !== 'advantage' &&
+        unlockedCounters.length > 0 ? (
           <Text style={[styles.planHint, { color: theme.colors.gold }]}>
             Counter available · {unlockedCounters.map(shape => shape.layout + ' ' + shape.name).join(' · ')}
           </Text>
@@ -516,7 +566,10 @@ export function BattlePrepScreen({
 
       {formationPresetOptions.length > 0 ? (
         <>
-          {scoutReport && recommendedPreset && recommendedEvaluation ? (
+          {showFullGuidance &&
+          scoutReport &&
+          recommendedPreset &&
+          recommendedEvaluation ? (
             <GameCard
               accent={
                 recommendedEvaluation.rating === 'risky'
@@ -683,23 +736,78 @@ export function BattlePrepScreen({
                 </View>
               ) : null}
             </GameCard>
-          ) : (
+          ) : showHintsOnly &&
+            scoutReport &&
+            currentGuidanceEvaluation ? (
+            <GameCard
+              accent={
+                currentGuidanceEvaluation.risks.length > 0
+                  ? theme.colors.gold
+                  : theme.colors.primary
+              }
+            >
+              <Text
+                style={[
+                  styles.doctrineLabel,
+                  { color: theme.colors.textMuted }
+                ]}
+              >
+                TACTICAL HINT
+              </Text>
+              <Text
+                style={[
+                  styles.recommendationTitle,
+                  { color: theme.colors.text }
+                ]}
+              >
+                {currentGuidanceEvaluation.risks[0]
+                  ? 'Your current setup has a visible weakness'
+                  : 'Your current setup has no obvious scouting weakness'}
+              </Text>
+              <Text
+                style={[
+                  styles.recommendationHintBody,
+                  {
+                    color: currentGuidanceEvaluation.risks[0]
+                      ? theme.colors.gold
+                      : theme.colors.primary
+                  }
+                ]}
+              >
+                {currentGuidanceEvaluation.risks[0] ??
+                  currentGuidanceEvaluation.strengths[0] ??
+                  'Use the formation and role information above to make your own adjustment.'}
+              </Text>
+              <Text
+                style={[
+                  styles.recommendationHint,
+                  { color: theme.colors.textMuted }
+                ]}
+              >
+                Hints Only explains the tactical issue but does not name a squad swap, target slot or recommended saved loadout.
+              </Text>
+            </GameCard>
+          ) : guidanceMode !== 'off' ? (
             <Text
               style={[
                 styles.recommendationHint,
                 { color: theme.colors.textMuted }
               ]}
             >
-              Scout Report unlocks full saved-loadout analysis using enemy troop composition.
+              Scout Report unlocks additional tactical interpretation.
             </Text>
-          )}
+          ) : null}
 
           <SectionTitle
             title="Tactical loadouts"
             trailing={
-              scoutReport
+              showFullGuidance && scoutReport
                 ? 'Scouted fit · shape · roles'
-                : 'Shape · doctrine · positions'
+                : showHintsOnly
+                  ? 'Formation hints · saved setups'
+                  : guidanceMode === 'off'
+                    ? 'Saved setups'
+                    : 'Shape · doctrine · positions'
             }
           />
           <ScrollView
@@ -722,13 +830,15 @@ export function BattlePrepScreen({
               const evaluation =
                 presetEvaluations.get(preset.slotId) ?? null;
               const recommended =
+                showFullGuidance &&
                 scoutReport &&
                 recommendedPreset?.slotId === preset.slotId;
               const active = presetMatchesCurrent(
                 preset.slotId
               );
-              const previewColor =
-                preview.result === 'advantage'
+              const previewColor = !showFormationHints
+                ? theme.colors.textMuted
+                : preview.result === 'advantage'
                   ? theme.colors.primary
                   : preview.result === 'disadvantage'
                     ? theme.colors.danger
@@ -781,24 +891,28 @@ export function BattlePrepScreen({
                       label={
                         active
                           ? 'ACTIVE'
-                          : recommended
-                            ? evaluation && evaluation.score >= 58
-                              ? 'RECOMMENDED'
-                              : 'BEST SAVED'
-                            : preview.result === 'advantage'
-                              ? 'EDGE'
-                              : preview.result === 'disadvantage'
-                                ? 'EXPOSED'
-                                : 'NEUTRAL'
+                          : !showFormationHints
+                            ? 'SAVED'
+                            : recommended
+                              ? evaluation && evaluation.score >= 58
+                                ? 'RECOMMENDED'
+                                : 'BEST SAVED'
+                              : preview.result === 'advantage'
+                                ? 'EDGE'
+                                : preview.result === 'disadvantage'
+                                  ? 'EXPOSED'
+                                  : 'NEUTRAL'
                       }
                       color={
                         active
                           ? theme.colors.gold + '45'
-                          : recommended
-                            ? evaluation && evaluation.score >= 58
-                              ? theme.colors.primary + '35'
-                              : theme.colors.danger + '35'
-                            : preview.result === 'advantage'
+                          : !showFormationHints
+                            ? undefined
+                            : recommended
+                              ? evaluation && evaluation.score >= 58
+                                ? theme.colors.primary + '35'
+                                : theme.colors.danger + '35'
+                              : preview.result === 'advantage'
                               ? theme.colors.primary + '35'
                               : preview.result === 'disadvantage'
                                 ? theme.colors.danger + '35'
@@ -844,7 +958,7 @@ export function BattlePrepScreen({
                       }
                     ]}
                   >
-                    {scoutReport && evaluation
+                    {showFullGuidance && scoutReport && evaluation
                       ? 'Fit ' +
                         evaluation.score +
                         ' · ' +
@@ -852,12 +966,14 @@ export function BattlePrepScreen({
                         '/' +
                         activeSquadCap +
                         ' squads'
-                      : 'dealt ×' +
-                        preview.outgoingDamageMultiplier.toFixed(2) +
-                        ' · received ×' +
-                        preview.incomingDamageMultiplier.toFixed(2)}
+                      : showFormationHints
+                        ? 'dealt ×' +
+                          preview.outgoingDamageMultiplier.toFixed(2) +
+                          ' · received ×' +
+                          preview.incomingDamageMultiplier.toFixed(2)
+                        : validSquads + ' saved squads'}
                   </Text>
-                  {scoutReport && evaluation ? (
+                  {showFullGuidance && scoutReport && evaluation ? (
                     <Text
                       style={[
                         styles.presetSwitchRead,
@@ -900,8 +1016,9 @@ export function BattlePrepScreen({
             shape.id,
             enemyShape.id
           );
-          const previewColor =
-            preview.result === 'advantage'
+          const previewColor = !showFormationHints
+            ? theme.colors.textMuted
+            : preview.result === 'advantage'
               ? theme.colors.primary
               : preview.result === 'disadvantage'
                 ? theme.colors.danger
@@ -942,17 +1059,21 @@ export function BattlePrepScreen({
                   label={
                     selected
                       ? 'ACTIVE'
-                      : preview.result === 'advantage'
-                        ? 'EDGE'
-                        : preview.result === 'disadvantage'
-                          ? 'EXPOSED'
-                          : 'NEUTRAL'
+                      : !showFormationHints
+                        ? 'SWITCH'
+                        : preview.result === 'advantage'
+                          ? 'EDGE'
+                          : preview.result === 'disadvantage'
+                            ? 'EXPOSED'
+                            : 'NEUTRAL'
                   }
                   color={
                     selected
                       ? theme.colors.gold + '45'
-                      : preview.result === 'advantage'
-                        ? theme.colors.primary + '35'
+                      : !showFormationHints
+                        ? undefined
+                        : preview.result === 'advantage'
+                          ? theme.colors.primary + '35'
                         : preview.result === 'disadvantage'
                           ? theme.colors.danger + '35'
                           : undefined
@@ -974,7 +1095,12 @@ export function BattlePrepScreen({
                   { color: previewColor }
                 ]}
               >
-                dealt ×{preview.outgoingDamageMultiplier.toFixed(2)} · received ×{preview.incomingDamageMultiplier.toFixed(2)}
+                {showFormationHints
+                  ? 'dealt ×' +
+                    preview.outgoingDamageMultiplier.toFixed(2) +
+                    ' · received ×' +
+                    preview.incomingDamageMultiplier.toFixed(2)
+                  : 'Manual formation selection'}
               </Text>
             </Pressable>
           );
@@ -1327,6 +1453,12 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     fontWeight: '800',
     marginTop: 5
+  },
+  recommendationHintBody: {
+    fontSize: 10.5,
+    lineHeight: 16,
+    fontWeight: '800',
+    marginTop: 8
   },
   recommendationHint: {
     fontSize: 9.5,
