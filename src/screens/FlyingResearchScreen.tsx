@@ -18,6 +18,8 @@ import {
   StatusPill
 } from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 function formatHours(hours: number) {
   if (hours <= 0) return 'Ready';
@@ -40,9 +42,13 @@ function formatCost(cost: FantasyRecruitTemplate['cost']) {
 }
 
 export function FlyingResearchScreen({
-  onExit
+  onExit,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onExit: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -357,9 +363,18 @@ export function FlyingResearchScreen({
               resources[resource as keyof typeof resources] >= (amount ?? 0)
           );
 
+          const tutorialTrainingFocused =
+            tutorialFocus?.kind === 'research-train' &&
+            tutorialFocus.family === 'flying' &&
+            unlocked;
+
           return (
-            <GameCard
+            <TutorialFocus
               key={template.id}
+              active={tutorialTrainingFocused}
+              label={tutorialTrainingFocused ? tutorialFocus.label : undefined}
+            >
+            <GameCard
               accent={unlocked ? accent : undefined}
               faction={activeFaction}
               state={unlocked ? 'ready' : 'default'}
@@ -401,6 +416,7 @@ export function FlyingResearchScreen({
                 />
               </View>
             </GameCard>
+            </TutorialFocus>
           );
         })}
       </View>
