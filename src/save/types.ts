@@ -1,3 +1,4 @@
+import type { SiegeRunState } from '../game/sieges';
 import type { ExpeditionRunState } from '../game/expeditions';
 import type {
   BattleResult,
@@ -77,6 +78,10 @@ export type FactionGameState = {
   warTableBoardsClearedThisChapter: number;
   kingdomDefenseRewardChapter: number;
   kingdomDefenseRewardedRunsThisChapter: number;
+  siegeRunsCompleted: number;
+  activeSiegeRun?: SiegeRunState | null;
+  siegeRewardChapter: number;
+  siegeRewardedRunsThisChapter: number;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions?: string[];
   completedStoryGates?: string[];
