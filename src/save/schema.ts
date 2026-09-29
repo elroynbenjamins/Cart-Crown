@@ -16,6 +16,10 @@ import {
   siegeStages
 } from '../game/sieges';
 import type { SiegeRunState } from '../game/sieges';
+import {
+  relicGuardianStages
+} from '../game/relicHunts';
+import type { RelicHuntRunState } from '../game/relicHunts';
 import { warTableContracts } from '../game/warTable';
 import { MAX_EXPEDITION_TICKETS } from '../game/sideModeBalance';
 import {
@@ -443,6 +447,99 @@ function sanitizeSiegeRun(
     path,
     failed,
     completed,
+    lastSummary:
+      typeof source.lastSummary === 'string'
+        ? source.lastSummary
+        : null
+  };
+}
+
+function sanitizeRelicHuntRun(
+  value: unknown
+): RelicHuntRunState | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const source =
+    value as Partial<RelicHuntRunState>;
+  const stageIndex = Math.min(
+    relicGuardianStages.length,
+    nonNegativeInteger(
+      source.stageIndex,
+      0
+    )
+  );
+  const path = Array.isArray(source.path)
+    ? source.path.filter(
+        (id): id is string =>
+          typeof id === 'string' &&
+          relicGuardianStages.some(
+            stage => stage.id === id
+          )
+      )
+    : [];
+  const failed = Boolean(source.failed);
+  const completed =
+    !failed &&
+    Boolean(source.completed) &&
+    stageIndex >=
+      relicGuardianStages.length;
+  const affinities =
+    source.affinities &&
+    typeof source.affinities === 'object'
+      ? source.affinities
+      : {};
+
+  return {
+    stageIndex:
+      completed
+        ? relicGuardianStages.length
+        : Math.min(
+            stageIndex,
+            relicGuardianStages.length - 1
+          ),
+    readiness: clampArmyReadiness(
+      typeof source.readiness === 'number'
+        ? source.readiness
+        : 100
+    ),
+    basePower: nonNegativeInteger(
+      source.basePower,
+      0
+    ),
+    playerShapeId:
+      formationShapes.some(
+        shape =>
+          shape.id === source.playerShapeId
+      )
+        ? source.playerShapeId as FormationShapeId
+        : 'balanced_333',
+    wagonStageId:
+      typeof source.wagonStageId === 'string'
+        ? source.wagonStageId
+        : 'stronghold',
+    affinities: {
+      magic: nonNegativeInteger(
+        (affinities as Partial<RelicHuntRunState['affinities']>).magic,
+        0
+      ),
+      flying: nonNegativeInteger(
+        (affinities as Partial<RelicHuntRunState['affinities']>).flying,
+        0
+      ),
+      large: nonNegativeInteger(
+        (affinities as Partial<RelicHuntRunState['affinities']>).large,
+        0
+      ),
+      hybrid: nonNegativeInteger(
+        (affinities as Partial<RelicHuntRunState['affinities']>).hybrid,
+        0
+      )
+    },
+    failed,
+    completed,
+    path,
     lastSummary:
       typeof source.lastSummary === 'string'
         ? source.lastSummary
@@ -1029,6 +1126,17 @@ export function sanitizeFactionGameState(
         stored.siegeRewardedRunsThisChapter,
         0
       ),
+    relicHuntRunsCompleted:
+      nonNegativeInteger(
+        stored.relicHuntRunsCompleted,
+        0
+      ),
+    activeRelicHuntRun:
+      sanitizeRelicHuntRun(
+        stored.activeRelicHuntRun
+      ),
+    relicHuntRewardClaimed:
+      Boolean(stored.relicHuntRewardClaimed),
     kingdomTrialCompletions,
     formationTrialCompleted:
       Boolean(stored.formationTrialCompleted) ||
@@ -1222,6 +1330,9 @@ export function createHumanFactionState(): FactionGameState {
     activeSiegeRun: null,
     siegeRewardChapter: 1,
     siegeRewardedRunsThisChapter: 0,
+    relicHuntRunsCompleted: 0,
+    activeRelicHuntRun: null,
+    relicHuntRewardClaimed: false,
     formationTrialCompleted: false,
     kingdomTrialCompletions: [],
     completedStoryGates: [],
