@@ -133,6 +133,11 @@ function runCorruptionRepair() {
     record.snapshot.factionStates.human;
   check(human, 'Human state missing.');
 
+  human.tutorialFocus = {
+    kind: 'formation-unit',
+    unitId: 99 as never,
+    label: 'BROKEN'
+  };
   human.armyReadiness = 999;
   human.wagonStageId = 'camp';
   human.chapterNumber = 6;
@@ -281,6 +286,10 @@ function runCorruptionRepair() {
   expect(
     repaired.armyReadiness === 100,
     'Readiness was not clamped to 100.'
+  );
+  expect(
+    repaired.tutorialFocus === null,
+    'Malformed pending tutorial focus was not discarded.'
   );
   expect(
     repaired.chapterNumber === 1,
