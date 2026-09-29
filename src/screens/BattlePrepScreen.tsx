@@ -512,7 +512,12 @@ export function BattlePrepScreen({
         formationMatchup.result !== 'advantage' &&
         unlockedCounters.length > 0 ? (
           <Text style={[styles.planHint, { color: theme.colors.gold }]}>
-            Counter available · {unlockedCounters.map(shape => shape.layout + ' ' + shape.name).join(' · ')}
+            {showFullGuidance
+              ? 'Counter available · ' +
+                unlockedCounters
+                  .map(shape => shape.layout + ' ' + shape.name)
+                  .join(' · ')
+              : 'A counter formation is available if you want to adjust manually.'}
           </Text>
         ) : null}
       </GameCard>
@@ -948,7 +953,9 @@ export function BattlePrepScreen({
                       styles.presetSwitchEffect,
                       {
                         color:
-                          scoutReport && evaluation
+                          showFullGuidance &&
+                          scoutReport &&
+                          evaluation
                             ? evaluation.score >= 58
                               ? theme.colors.primary
                               : evaluation.score < 45
