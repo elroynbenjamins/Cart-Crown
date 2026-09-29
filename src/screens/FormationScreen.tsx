@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
+import type { TacticalAdjustmentAdvice } from '../game/loadoutAnalysis';
+import type { FormationPresetSlotId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, SectionTitle, UnitPortrait } from '../ui/components';
+import {
+  GameCard,
+  Pill,
+  PrimaryButton,
+  SecondaryButton,
+  SectionTitle,
+  UnitPortrait
+} from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
 
 const rowNotes = {
@@ -12,7 +21,20 @@ const rowNotes = {
   rear: 'Ranged / support'
 } as const;
 
-export function FormationScreen() {
+export type FormationGuide = {
+  adjustment: TacticalAdjustmentAdvice;
+  presetSlotId: FormationPresetSlotId;
+};
+
+export function FormationScreen({
+  guide,
+  onClearGuide,
+  onReturnToBattlePrep
+}: {
+  guide?: FormationGuide | null;
+  onClearGuide?: () => void;
+  onReturnToBattlePrep?: () => void;
+} = {}) {
   const { theme } = useGameTheme();
   const {
     units,
@@ -32,9 +54,22 @@ export function FormationScreen() {
     applyFormationPreset,
     clearFormationPreset,
     moveFormationUnit,
+    placeFormationUnit,
     currentWagonStage
   } = useGame();
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [guideStepComplete, setGuideStepComplete] = useState(false);
+  const [guideMessage, setGuideMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setGuideStepComplete(false);
+    setGuideMessage(null);
+    setSelectedUnitId(null);
+  }, [
+    guide?.adjustment.kind,
+    guide?.adjustment.title,
+    guide?.presetSlotId
+  ]);
 
   const activeCount = formation.filter(Boolean).length;
   const faction = factions[activeFaction];
@@ -79,6 +114,107 @@ export function FormationScreen() {
     );
   };
 
+  const guidePresetIsCurrent = guide
+    ? presetMatchesCurrent(guide.presetSlotId)
+    : false;
+
+  const guideShape = guide?.adjustment.suggestedShapeId
+    ? formationShapes.find(
+        shape => shape.id === guide.adjustment.suggestedShapeId
+      )
+    : null;
+  const guideSuggestedUnit = guide?.adjustment.suggestedUnitId
+    ? units.find(unit => unit.id === guide.adjustment.suggestedUnitId)
+    : null;
+  const guideReplaceUnit = guide?.adjustment.replaceUnitId
+    ? units.find(unit => unit.id === guide.adjustment.replaceUnitId)
+    : null;
+
+  const guideNeedsPresetLoad = Boolean(
+    guide &&
+      guide.adjustment.kind !== 'repair_preset' &&
+      !guidePresetIsCurrent
+  );
+
+  const guideActionLabel = !guide
+    ? ''
+    : guideStepComplete
+      ? 'Change applied'
+      : guideNeedsPresetLoad
+        ? 'Load Loadout ' + guide.presetSlotId
+        : guide.adjustment.kind === 'counter_shape'
+          ? 'Use ' + (guideShape?.name ?? 'counter formation')
+          : guide.adjustment.kind === 'fill_slot'
+            ? 'Add ' + (guideSuggestedUnit?.name ?? 'suggested squad')
+            : guide.adjustment.kind === 'role_swap'
+              ? 'Make suggested swap'
+              : guide.adjustment.kind === 'reposition'
+                ? 'Move ' + (guideSuggestedUnit?.name ?? 'squad')
+                : 'Apply safe preset remainder';
+
+  const handleGuideAction = () => {
+    if (!guide || guideStepComplete) return;
+
+    if (guideNeedsPresetLoad) {
+      if (applyFormationPreset(guide.presetSlotId)) {
+        setGuideMessage(
+          'Loadout ' +
+            guide.presetSlotId +
+            ' loaded. The exact recommended change is highlighted below.'
+        );
+      } else {
+        setGuideMessage(
+          'That saved loadout cannot be applied in the current progression state.'
+        );
+      }
+      return;
+    }
+
+    const { adjustment } = guide;
+    let changed = false;
+
+    if (
+      adjustment.kind === 'counter_shape' &&
+      adjustment.suggestedShapeId
+    ) {
+      changed = setFormationShape(adjustment.suggestedShapeId);
+    } else if (
+      (adjustment.kind === 'fill_slot' ||
+        adjustment.kind === 'role_swap') &&
+      adjustment.suggestedUnitId &&
+      adjustment.targetSlot !== undefined
+    ) {
+      changed = placeFormationUnit(
+        adjustment.suggestedUnitId,
+        adjustment.targetSlot
+      );
+    } else if (
+      adjustment.kind === 'reposition' &&
+      adjustment.suggestedUnitId &&
+      adjustment.targetSlot !== undefined
+    ) {
+      changed = moveFormationUnit(
+        adjustment.suggestedUnitId,
+        adjustment.targetSlot
+      );
+    } else if (adjustment.kind === 'repair_preset') {
+      changed = applyFormationPreset(guide.presetSlotId);
+    }
+
+    if (changed) {
+      setGuideStepComplete(true);
+      setGuideMessage(
+        adjustment.kind === 'repair_preset'
+          ? 'Safe parts of the saved loadout were restored. Recheck Battle Prep for the next gap.'
+          : 'Tactical change applied. Return to Battle Prep to recalculate the matchup.'
+      );
+    } else {
+      setGuideMessage(
+        'This change is no longer valid for the current formation. Return to Battle Prep to refresh the recommendation.'
+      );
+    }
+  };
+
   const handleSlot = (slot: number, unitId: string | null) => {
     if (selectedUnitId) {
       if (unitId === selectedUnitId) {
@@ -104,6 +240,92 @@ export function FormationScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      {guide ? (
+        <GameCard
+          accent={guideStepComplete ? theme.colors.primary : theme.colors.gold}
+          faction={activeFaction}
+        >
+          <View style={styles.guideHeader}>
+            <View style={styles.guideCopy}>
+              <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>
+                BATTLE PREP GUIDANCE
+              </Text>
+              <Text style={[styles.guideTitle, { color: theme.colors.text }]}>
+                {guide.adjustment.title}
+              </Text>
+            </View>
+            <Pill
+              label={'LOADOUT ' + guide.presetSlotId}
+              color={theme.colors.gold + '35'}
+            />
+          </View>
+          <Text style={[styles.guideDetail, { color: theme.colors.textMuted }]}>
+            {guide.adjustment.detail}
+          </Text>
+          {guideNeedsPresetLoad ? (
+            <Text style={[styles.guideNote, { color: theme.colors.gold }]}>
+              This recommendation was calculated from Loadout {guide.presetSlotId}. Load it first so the highlighted change applies to the correct setup.
+            </Text>
+          ) : guide.adjustment.kind === 'role_swap' && guideSuggestedUnit && guideReplaceUnit ? (
+            <Text style={[styles.guideNote, { color: theme.colors.gold }]}>
+              Highlighted swap · {guideReplaceUnit.name} → {guideSuggestedUnit.name}
+            </Text>
+          ) : guide.adjustment.targetSlot !== undefined ? (
+            <Text style={[styles.guideNote, { color: theme.colors.gold }]}>
+              Target position · slot {guide.adjustment.targetSlot + 1}
+            </Text>
+          ) : guideShape ? (
+            <Text style={[styles.guideNote, { color: theme.colors.gold }]}>
+              Highlighted formation · {guideShape.layout} {guideShape.name}
+            </Text>
+          ) : null}
+          {guideMessage ? (
+            <Text
+              style={[
+                styles.guideMessage,
+                {
+                  color: guideStepComplete
+                    ? theme.colors.primary
+                    : theme.colors.textMuted
+                }
+              ]}
+            >
+              {guideMessage}
+            </Text>
+          ) : null}
+          <View style={styles.guideActions}>
+            <View style={styles.guidePrimary}>
+              <PrimaryButton
+                label={guideActionLabel}
+                disabled={guideStepComplete}
+                onPress={handleGuideAction}
+              />
+            </View>
+            {onReturnToBattlePrep ? (
+              <View style={styles.guideSecondary}>
+                <SecondaryButton
+                  label="Back to Battle Prep"
+                  onPress={onReturnToBattlePrep}
+                />
+              </View>
+            ) : null}
+          </View>
+          {onClearGuide ? (
+            <Pressable
+              onPress={onClearGuide}
+              style={({ pressed }) => [
+                styles.guideDismiss,
+                { opacity: pressed ? 0.7 : 1 }
+              ]}
+            >
+              <Text style={[styles.guideDismissText, { color: theme.colors.textMuted }]}>
+                Dismiss guidance
+              </Text>
+            </Pressable>
+          ) : null}
+        </GameCard>
+      ) : null}
+
       <GameCard accent={factionAccent} faction={activeFaction}>
         <View style={styles.summaryRow}>
           <View style={styles.summaryCopy}>
@@ -146,11 +368,13 @@ export function FormationScreen() {
             <GameCard
               key={slotId}
               accent={
-                active
+                guide?.presetSlotId === slotId
                   ? theme.colors.gold
-                  : preset
-                    ? factionAccent
-                    : undefined
+                  : active
+                    ? theme.colors.gold
+                    : preset
+                      ? factionAccent
+                      : undefined
               }
             >
               <View style={styles.presetHeader}>
@@ -280,8 +504,18 @@ export function FormationScreen() {
               style={({ pressed }) => [
                 styles.shapeCard,
                 {
-                  borderColor: selected ? theme.colors.gold : theme.colors.border,
-                  backgroundColor: selected ? theme.colors.surface1 : theme.colors.surface2,
+                  borderColor:
+                    guide?.adjustment.suggestedShapeId === shape.id
+                      ? theme.colors.gold
+                      : selected
+                        ? theme.colors.gold
+                        : theme.colors.border,
+                  backgroundColor:
+                    guide?.adjustment.suggestedShapeId === shape.id
+                      ? theme.colors.surface1
+                      : selected
+                        ? theme.colors.surface1
+                        : theme.colors.surface2,
                   opacity: !unlocked ? 0.44 : pressed ? 0.82 : 1
                 }
               ]}
@@ -335,11 +569,14 @@ export function FormationScreen() {
                         dense && styles.slotDense,
                         {
                           backgroundColor: unit ? theme.colors.surface1 : theme.colors.surface2,
-                          borderColor: selected
-                            ? theme.colors.gold
-                            : unit
-                              ? factionAccent
-                              : theme.colors.border
+                          borderColor:
+                            guide?.adjustment.targetSlot === slot
+                              ? theme.colors.gold
+                              : selected
+                                ? theme.colors.gold
+                                : unit
+                                  ? factionAccent
+                                  : theme.colors.border
                         }
                       ]}
                     >
@@ -466,7 +703,19 @@ export function FormationScreen() {
               onPress={() => setSelectedUnitId(selected ? null : unit.id)}
               style={({ pressed }) => ({ opacity: pressed ? 0.82 : active ? 1 : 0.55 })}
             >
-              <GameCard accent={selected ? theme.colors.gold : active ? factionAccent : undefined}>
+              <GameCard
+                accent={
+                  guide?.adjustment.suggestedUnitId === unit.id
+                    ? theme.colors.gold
+                    : guide?.adjustment.replaceUnitId === unit.id
+                      ? theme.colors.danger
+                      : selected
+                        ? theme.colors.gold
+                        : active
+                          ? factionAccent
+                          : undefined
+                }
+              >
                 <View style={styles.unitRow}>
                   <UnitPortrait
                     name={unit.name}
@@ -496,6 +745,22 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 20, lineHeight: 26, fontWeight: '900', marginTop: 4 },
   subtitle: { fontSize: 13, lineHeight: 18, marginTop: 9 },
+  guideHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10
+  },
+  guideCopy: { flex: 1 },
+  guideTitle: { fontSize: 16, lineHeight: 21, fontWeight: '900', marginTop: 4 },
+  guideDetail: { fontSize: 10.5, lineHeight: 16, marginTop: 8 },
+  guideNote: { fontSize: 9.5, lineHeight: 14, fontWeight: '900', marginTop: 8 },
+  guideMessage: { fontSize: 9.5, lineHeight: 14, marginTop: 8 },
+  guideActions: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  guidePrimary: { flex: 1.15 },
+  guideSecondary: { flex: 1 },
+  guideDismiss: { alignSelf: 'center', paddingHorizontal: 10, paddingVertical: 8, marginTop: 4 },
+  guideDismissText: { fontSize: 8.5, fontWeight: '900', letterSpacing: 0.7 },
   presetList: { gap: 8 },
   presetHeader: {
     flexDirection: 'row',
