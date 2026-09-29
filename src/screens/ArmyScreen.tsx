@@ -182,6 +182,11 @@ export function ArmyScreen({
                 <Text style={[styles.stat, { color: theme.colors.text }]}>ATK {unit.attack}</Text>
                 <Text style={[styles.stat, { color: theme.colors.text }]}>ARM {unit.armor}</Text>
                 <Text style={[styles.stat, { color: theme.colors.text }]}>SPD {unit.speed}</Text>
+                {(unit.deploymentCapacity ?? 1) > 1 ? (
+                  <Text style={[styles.stat, { color: theme.colors.gold }]}>
+                    CAP {unit.deploymentCapacity}
+                  </Text>
+                ) : null}
               </View>
             </View>
             <View style={styles.unitBadges}>
