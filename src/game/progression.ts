@@ -1,0 +1,725 @@
+import type {
+  FactionId,
+  UnitBattleTag,
+  UnitDefinition
+} from './types';
+
+export type TroopFamily =
+  | 'conventional'
+  | 'magic'
+  | 'flying'
+  | 'large'
+  | 'hybrid';
+
+export type CampaignProgressionStage = {
+  chapter: number;
+  theme: string;
+  startSquadCap: number;
+  endSquadCap: number;
+  wagon: string;
+  settlementStage:
+    | 'camp'
+    | 'settlement'
+    | 'fort'
+    | 'town'
+    | 'stronghold'
+    | 'capital'
+    | 'grand';
+  newFamily: TroopFamily | null;
+  difficultyLesson: string;
+};
+
+export type FamilyUnlockDefinition = {
+  faction: FactionId;
+  family: Exclude<TroopFamily, 'conventional'>;
+  chapterRequired: number;
+  storyGateId: string;
+  buildingName: string;
+  firstStoryRewardUnitId: string;
+  firstStoryRewardClass: string;
+  campaignGateCanBeBypassed: false;
+};
+
+export type ResearchDefinition = {
+  id: string;
+  faction: FactionId;
+  family: Exclude<TroopFamily, 'conventional'>;
+  name: string;
+  chapterRequired: number;
+  storyGateId: string;
+  durationHours: number;
+  baseGemFinishCost: number;
+  rewardedAdsToComplete: 3;
+  unlocksClasses: string[];
+  description: string;
+};
+
+export const MAX_STANDARD_RESEARCH_HOURS = 24;
+export const MAX_MAJOR_RESEARCH_GEM_COST = 30;
+export const MAJOR_RESEARCH_REWARDED_ADS = 3;
+
+export const campaignProgression: CampaignProgressionStage[] = [
+  {
+    chapter: 1,
+    theme: 'Survive and establish the first settlement',
+    startSquadCap: 2,
+    endSquadCap: 3,
+    wagon: '4x4 → 4x5',
+    settlementStage: 'settlement',
+    newFamily: null,
+    difficultyLesson: 'Formation basics, counters and Readiness'
+  },
+  {
+    chapter: 2,
+    theme: 'Become a real military faction',
+    startSquadCap: 3,
+    endSquadCap: 4,
+    wagon: '4x5 → 5x5',
+    settlementStage: 'fort',
+    newFamily: null,
+    difficultyLesson: 'Specialization, equipment and scouting'
+  },
+  {
+    chapter: 3,
+    theme: 'Peak conventional warfare',
+    startSquadCap: 4,
+    endSquadCap: 5,
+    wagon: '5x5 → 5x6',
+    settlementStage: 'town',
+    newFamily: null,
+    difficultyLesson: 'Terrain, cavalry and adaptation'
+  },
+  {
+    chapter: 4,
+    theme: 'The age of magic',
+    startSquadCap: 5,
+    endSquadCap: 6,
+    wagon: '5x6 → 6x7',
+    settlementStage: 'stronghold',
+    newFamily: 'magic',
+    difficultyLesson: 'Area pressure, caster protection and magic counterplay'
+  },
+  {
+    chapter: 5,
+    theme: 'The sky opens',
+    startSquadCap: 6,
+    endSquadCap: 6,
+    wagon: '6x7 → 7x8',
+    settlementStage: 'capital',
+    newFamily: 'flying',
+    difficultyLesson: 'Backline access, anti-air and aerial pressure'
+  },
+  {
+    chapter: 6,
+    theme: 'Combined arms',
+    startSquadCap: 6,
+    endSquadCap: 6,
+    wagon: '7x8 → 7x9',
+    settlementStage: 'grand',
+    newFamily: null,
+    difficultyLesson: 'Mixed enemy doctrines, reserves and attrition'
+  },
+  {
+    chapter: 7,
+    theme: 'Monsters and constructs',
+    startSquadCap: 6,
+    endSquadCap: 6,
+    wagon: '7x9',
+    settlementStage: 'grand',
+    newFamily: 'large',
+    difficultyLesson: 'Deployment capacity, anti-large and formation breaking'
+  },
+  {
+    chapter: 8,
+    theme: 'Legendary warfare',
+    startSquadCap: 6,
+    endSquadCap: 6,
+    wagon: '7x9',
+    settlementStage: 'grand',
+    newFamily: 'hybrid',
+    difficultyLesson: 'Hybrid threats and authored late-game army compositions'
+  }
+];
+
+export const familyUnlocks: FamilyUnlockDefinition[] = [
+  {
+    faction: 'human',
+    family: 'magic',
+    chapterRequired: 4,
+    storyGateId: 'human_reclaim_arcane_academy',
+    buildingName: 'Arcane Academy',
+    firstStoryRewardUnitId: 'hum_apprentice',
+    firstStoryRewardClass: 'Apprentice',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'elf',
+    family: 'magic',
+    chapterRequired: 4,
+    storyGateId: 'elf_awaken_circle_of_ancients',
+    buildingName: 'Circle of Ancients',
+    firstStoryRewardUnitId: 'elf_initiate',
+    firstStoryRewardClass: 'Initiate',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'orc',
+    family: 'magic',
+    chapterRequired: 4,
+    storyGateId: 'orc_call_the_ancestors',
+    buildingName: 'Spirit Lodge',
+    firstStoryRewardUnitId: 'orc_shaman',
+    firstStoryRewardClass: 'Shaman',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'human',
+    family: 'flying',
+    chapterRequired: 5,
+    storyGateId: 'human_establish_griffin_aerie',
+    buildingName: 'Griffin Aerie',
+    firstStoryRewardUnitId: 'hum_griffin_rider',
+    firstStoryRewardClass: 'Griffin Rider',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'elf',
+    family: 'flying',
+    chapterRequired: 5,
+    storyGateId: 'elf_establish_eagle_sanctuary',
+    buildingName: 'Eagle Sanctuary',
+    firstStoryRewardUnitId: 'elf_eagle_rider',
+    firstStoryRewardClass: 'Eagle Rider',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'orc',
+    family: 'flying',
+    chapterRequired: 5,
+    storyGateId: 'orc_establish_wyvern_roost',
+    buildingName: 'Wyvern Roost',
+    firstStoryRewardUnitId: 'orc_wyvern_rider',
+    firstStoryRewardClass: 'Wyvern Rider',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'human',
+    family: 'large',
+    chapterRequired: 7,
+    storyGateId: 'human_awaken_stone_guardian',
+    buildingName: 'Construct Foundry',
+    firstStoryRewardUnitId: 'hum_stone_golem',
+    firstStoryRewardClass: 'Stone Golem',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'elf',
+    family: 'large',
+    chapterRequired: 7,
+    storyGateId: 'elf_awaken_ancient_ent',
+    buildingName: 'Ancient Grove',
+    firstStoryRewardUnitId: 'elf_ancient_ent',
+    firstStoryRewardClass: 'Ancient Ent',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'orc',
+    family: 'large',
+    chapterRequired: 7,
+    storyGateId: 'orc_bind_war_troll',
+    buildingName: 'Great Beast Pens',
+    firstStoryRewardUnitId: 'orc_war_troll',
+    firstStoryRewardClass: 'War Troll',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'human',
+    family: 'hybrid',
+    chapterRequired: 8,
+    storyGateId: 'human_legendary_orders',
+    buildingName: 'High Arcane Aerie',
+    firstStoryRewardUnitId: 'hum_arcane_griffin_rider',
+    firstStoryRewardClass: 'Arcane Griffin Rider',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'elf',
+    family: 'hybrid',
+    chapterRequired: 8,
+    storyGateId: 'elf_legendary_orders',
+    buildingName: 'Moonwing Sanctuary',
+    firstStoryRewardUnitId: 'elf_moonwing_spellweaver',
+    firstStoryRewardClass: 'Moonwing Spellweaver',
+    campaignGateCanBeBypassed: false
+  },
+  {
+    faction: 'orc',
+    family: 'hybrid',
+    chapterRequired: 8,
+    storyGateId: 'orc_legendary_orders',
+    buildingName: 'Elder Wyvern Shrine',
+    firstStoryRewardUnitId: 'orc_wyvern_war_shaman',
+    firstStoryRewardClass: 'Wyvern War Shaman',
+    campaignGateCanBeBypassed: false
+  }
+];
+
+export const fantasyStoryRewardUnits: UnitDefinition[] = [
+  {
+    id: 'hum_apprentice',
+    name: 'Alden',
+    className: 'Apprentice',
+    faction: 'human',
+    role: 'support',
+    tier: 4,
+    level: 7,
+    hp: 108,
+    attack: 18,
+    armor: 6,
+    speed: 9,
+    battleTags: ['ground', 'magic', 'support'],
+    deploymentCapacity: 1
+  },
+  {
+    id: 'elf_initiate',
+    name: 'Nymira',
+    className: 'Initiate',
+    faction: 'elf',
+    role: 'support',
+    tier: 4,
+    level: 7,
+    hp: 98,
+    attack: 18,
+    armor: 5,
+    speed: 13,
+    battleTags: ['ground', 'magic', 'support'],
+    deploymentCapacity: 1
+  },
+  {
+    id: 'orc_shaman',
+    name: 'Ghorra',
+    className: 'Shaman',
+    faction: 'orc',
+    role: 'support',
+    tier: 4,
+    level: 7,
+    hp: 122,
+    attack: 17,
+    armor: 7,
+    speed: 9,
+    battleTags: ['ground', 'magic', 'support'],
+    deploymentCapacity: 1
+  },
+  {
+    id: 'hum_griffin_rider',
+    name: 'Ser Kael',
+    className: 'Griffin Rider',
+    faction: 'human',
+    role: 'cavalry',
+    tier: 5,
+    level: 9,
+    hp: 138,
+    attack: 25,
+    armor: 10,
+    speed: 18,
+    battleTags: ['flying', 'mounted', 'beast', 'charge'],
+    deploymentCapacity: 1
+  },
+  {
+    id: 'elf_eagle_rider',
+    name: 'Ilyra',
+    className: 'Eagle Rider',
+    faction: 'elf',
+    role: 'skirmish',
+    tier: 5,
+    level: 9,
+    hp: 120,
+    attack: 24,
+    armor: 7,
+    speed: 21,
+    battleTags: ['flying', 'mounted', 'beast', 'ranged'],
+    deploymentCapacity: 1
+  },
+  {
+    id: 'orc_wyvern_rider',
+    name: 'Kragg',
+    className: 'Wyvern Rider',
+    faction: 'orc',
+    role: 'cavalry',
+    tier: 5,
+    level: 9,
+    hp: 150,
+    attack: 28,
+    armor: 9,
+    speed: 17,
+    battleTags: ['flying', 'mounted', 'beast', 'charge'],
+    deploymentCapacity: 1
+  },
+  {
+    id: 'hum_stone_golem',
+    name: 'Bastion IX',
+    className: 'Stone Golem',
+    faction: 'human',
+    role: 'frontline',
+    tier: 7,
+    level: 12,
+    hp: 245,
+    attack: 31,
+    armor: 20,
+    speed: 5,
+    battleTags: ['ground', 'large', 'construct', 'armored'],
+    deploymentCapacity: 2
+  },
+  {
+    id: 'elf_ancient_ent',
+    name: 'Thornwake',
+    className: 'Ancient Ent',
+    faction: 'elf',
+    role: 'frontline',
+    tier: 7,
+    level: 12,
+    hp: 228,
+    attack: 30,
+    armor: 16,
+    speed: 7,
+    battleTags: ['ground', 'large', 'support'],
+    deploymentCapacity: 2
+  },
+  {
+    id: 'orc_war_troll',
+    name: 'Morgash',
+    className: 'War Troll',
+    faction: 'orc',
+    role: 'melee',
+    tier: 7,
+    level: 12,
+    hp: 260,
+    attack: 36,
+    armor: 13,
+    speed: 7,
+    battleTags: ['ground', 'large', 'beast'],
+    deploymentCapacity: 2
+  },
+  {
+    id: 'hum_arcane_griffin_rider',
+    name: 'Valerius',
+    className: 'Arcane Griffin Rider',
+    faction: 'human',
+    role: 'cavalry',
+    tier: 8,
+    level: 14,
+    hp: 168,
+    attack: 36,
+    armor: 13,
+    speed: 19,
+    battleTags: ['flying', 'mounted', 'beast', 'magic', 'charge'],
+    deploymentCapacity: 2
+  },
+  {
+    id: 'elf_moonwing_spellweaver',
+    name: 'Selene',
+    className: 'Moonwing Spellweaver',
+    faction: 'elf',
+    role: 'support',
+    tier: 8,
+    level: 14,
+    hp: 142,
+    attack: 34,
+    armor: 10,
+    speed: 22,
+    battleTags: ['flying', 'mounted', 'magic', 'support'],
+    deploymentCapacity: 2
+  },
+  {
+    id: 'orc_wyvern_war_shaman',
+    name: 'Drazha',
+    className: 'Wyvern War Shaman',
+    faction: 'orc',
+    role: 'support',
+    tier: 8,
+    level: 14,
+    hp: 178,
+    attack: 35,
+    armor: 12,
+    speed: 18,
+    battleTags: ['flying', 'mounted', 'beast', 'magic', 'support'],
+    deploymentCapacity: 2
+  }
+];
+
+export const researchDefinitions: ResearchDefinition[] = [
+  {
+    id: 'human_mage_training',
+    faction: 'human',
+    family: 'magic',
+    name: 'Mage Training',
+    chapterRequired: 4,
+    storyGateId: 'human_reclaim_arcane_academy',
+    durationHours: 8,
+    baseGemFinishCost: 12,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Mage'],
+    description: 'Turns the first Human arcane discovery into a repeatable Mage training recipe.'
+  },
+  {
+    id: 'human_battlemage_training',
+    faction: 'human',
+    family: 'magic',
+    name: 'Battlemage Training',
+    chapterRequired: 4,
+    storyGateId: 'human_reclaim_arcane_academy',
+    durationHours: 12,
+    baseGemFinishCost: 18,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Battlemage'],
+    description: 'Combines arcane training with sword and medium-armor doctrine.'
+  },
+  {
+    id: 'elf_spellweaving',
+    faction: 'elf',
+    family: 'magic',
+    name: 'Spellweaving',
+    chapterRequired: 4,
+    storyGateId: 'elf_awaken_circle_of_ancients',
+    durationHours: 8,
+    baseGemFinishCost: 12,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Spellweaver'],
+    description: 'Formalizes battlefield spellcraft without replacing conventional Elven units.'
+  },
+  {
+    id: 'elf_grove_calling',
+    faction: 'elf',
+    family: 'magic',
+    name: 'Grove Calling',
+    chapterRequired: 4,
+    storyGateId: 'elf_awaken_circle_of_ancients',
+    durationHours: 12,
+    baseGemFinishCost: 18,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Druid'],
+    description: 'Unlocks a control and support branch rooted in terrain and living wards.'
+  },
+  {
+    id: 'orc_spirit_calling',
+    faction: 'orc',
+    family: 'magic',
+    name: 'Spirit Calling',
+    chapterRequired: 4,
+    storyGateId: 'orc_call_the_ancestors',
+    durationHours: 8,
+    baseGemFinishCost: 12,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Spiritcaller'],
+    description: 'Expands the Shaman line into battlefield spirit and curse control.'
+  },
+  {
+    id: 'orc_war_shaman_training',
+    faction: 'orc',
+    family: 'magic',
+    name: 'War Shaman Training',
+    chapterRequired: 4,
+    storyGateId: 'orc_call_the_ancestors',
+    durationHours: 12,
+    baseGemFinishCost: 18,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['War Shaman'],
+    description: 'Combines Shaman rites with aggressive frontline equipment.'
+  },
+  {
+    id: 'human_griffin_handling',
+    faction: 'human',
+    family: 'flying',
+    name: 'Griffin Handling',
+    chapterRequired: 5,
+    storyGateId: 'human_establish_griffin_aerie',
+    durationHours: 24,
+    baseGemFinishCost: 30,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Griffin Rider', 'Griffin Lancer', 'Griffin Archer'],
+    description: 'Major aerial doctrine unlocked only after the Griffin Aerie story gate.'
+  },
+  {
+    id: 'elf_eagle_handling',
+    faction: 'elf',
+    family: 'flying',
+    name: 'Great Eagle Handling',
+    chapterRequired: 5,
+    storyGateId: 'elf_establish_eagle_sanctuary',
+    durationHours: 24,
+    baseGemFinishCost: 30,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Eagle Rider', 'Eagle Archer'],
+    description: 'Major aerial doctrine unlocked only after the Eagle Sanctuary story gate.'
+  },
+  {
+    id: 'orc_wyvern_handling',
+    faction: 'orc',
+    family: 'flying',
+    name: 'Wyvern Handling',
+    chapterRequired: 5,
+    storyGateId: 'orc_establish_wyvern_roost',
+    durationHours: 24,
+    baseGemFinishCost: 30,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Wyvern Rider', 'Wyvern Lancer'],
+    description: 'Major aerial doctrine unlocked only after the Wyvern Roost story gate.'
+  },
+  {
+    id: 'human_construct_mastery',
+    faction: 'human',
+    family: 'large',
+    name: 'Construct Mastery',
+    chapterRequired: 7,
+    storyGateId: 'human_awaken_stone_guardian',
+    durationHours: 24,
+    baseGemFinishCost: 30,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Stone Golem', 'Arcane Golem'],
+    description: 'Advanced construct doctrine; rare materials remain mandatory.'
+  },
+  {
+    id: 'elf_ancient_guardian_mastery',
+    faction: 'elf',
+    family: 'large',
+    name: 'Ancient Guardian Mastery',
+    chapterRequired: 7,
+    storyGateId: 'elf_awaken_ancient_ent',
+    durationHours: 24,
+    baseGemFinishCost: 30,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Ancient Ent', 'Grove Guardian'],
+    description: 'Advanced living-guardian doctrine; story and material requirements cannot be skipped.'
+  },
+  {
+    id: 'orc_great_beast_mastery',
+    faction: 'orc',
+    family: 'large',
+    name: 'Great Beast Mastery',
+    chapterRequired: 7,
+    storyGateId: 'orc_bind_war_troll',
+    durationHours: 24,
+    baseGemFinishCost: 30,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['War Troll', 'War Mammoth'],
+    description: 'Advanced great-beast doctrine; story and material requirements cannot be skipped.'
+  },
+  {
+    id: 'human_legendary_hybrid_doctrine',
+    faction: 'human',
+    family: 'hybrid',
+    name: 'Legendary Arcane Aerial Doctrine',
+    chapterRequired: 8,
+    storyGateId: 'human_legendary_orders',
+    durationHours: 24,
+    baseGemFinishCost: 30,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Arcane Griffin Rider'],
+    description: 'Late-game hybrid doctrine requiring both Magic and Flying progression.'
+  },
+  {
+    id: 'elf_legendary_hybrid_doctrine',
+    faction: 'elf',
+    family: 'hybrid',
+    name: 'Moonwing Spell Doctrine',
+    chapterRequired: 8,
+    storyGateId: 'elf_legendary_orders',
+    durationHours: 24,
+    baseGemFinishCost: 30,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Moonwing Spellweaver'],
+    description: 'Late-game hybrid doctrine requiring both Magic and Flying progression.'
+  },
+  {
+    id: 'orc_legendary_hybrid_doctrine',
+    faction: 'orc',
+    family: 'hybrid',
+    name: 'Wyvern War-Rite Doctrine',
+    chapterRequired: 8,
+    storyGateId: 'orc_legendary_orders',
+    durationHours: 24,
+    baseGemFinishCost: 30,
+    rewardedAdsToComplete: 3,
+    unlocksClasses: ['Wyvern War Shaman'],
+    description: 'Late-game hybrid doctrine requiring both Magic and Flying progression.'
+  }
+];
+
+export function getUnitDeploymentCapacity(unit: UnitDefinition) {
+  return unit.deploymentCapacity ?? 1;
+}
+
+export function unitHasBattleTag(
+  unit: UnitDefinition,
+  tag: UnitBattleTag
+) {
+  return unit.battleTags?.includes(tag) ?? false;
+}
+
+export function getArmyDeploymentCapacity(units: UnitDefinition[]) {
+  return units.reduce(
+    (total, unit) => total + getUnitDeploymentCapacity(unit),
+    0
+  );
+}
+
+export function canStartResearch(
+  research: ResearchDefinition,
+  currentChapter: number,
+  completedStoryGates: string[]
+) {
+  return (
+    currentChapter >= research.chapterRequired &&
+    completedStoryGates.includes(research.storyGateId)
+  );
+}
+
+export function getResearchRemainingHours(
+  research: ResearchDefinition,
+  elapsedHours: number,
+  rewardedAdsWatched: number
+) {
+  const ads = Math.max(
+    0,
+    Math.min(research.rewardedAdsToComplete, Math.floor(rewardedAdsWatched))
+  );
+  const adReduction =
+    research.durationHours *
+    (ads / research.rewardedAdsToComplete);
+  return Math.max(
+    0,
+    research.durationHours - Math.max(0, elapsedHours) - adReduction
+  );
+}
+
+export function getResearchGemFinishCost(
+  research: ResearchDefinition,
+  remainingHours: number
+) {
+  if (remainingHours <= 0) return 0;
+  const fraction = Math.min(
+    1,
+    remainingHours / research.durationHours
+  );
+  return Math.max(
+    1,
+    Math.ceil(research.baseGemFinishCost * fraction)
+  );
+}
+
+export function getFamilyUnlock(
+  faction: FactionId,
+  family: Exclude<TroopFamily, 'conventional'>
+) {
+  return (
+    familyUnlocks.find(
+      unlock =>
+        unlock.faction === faction &&
+        unlock.family === family
+    ) ?? null
+  );
+}
+
+export function getFantasyStoryRewardUnit(id: string) {
+  return fantasyStoryRewardUnits.find(unit => unit.id === id) ?? null;
+}
