@@ -44,6 +44,12 @@ export type ExpeditionRunState = {
   readiness: number;
   supplies: number;
   powerBonus: number;
+  basePower: number;
+  playerShapeId: FormationShapeId;
+  wagonStageId: string;
+  hasRations: boolean;
+  hasMedicine: boolean;
+  baseReward: ResourceWallet;
   loot: ResourceWallet;
   path: string[];
   failed: boolean;
@@ -321,10 +327,22 @@ function addLoot(
 
 export function createExpeditionRun({
   readiness,
-  supplies
+  supplies,
+  basePower,
+  playerShapeId,
+  wagonStageId,
+  hasRations,
+  hasMedicine,
+  baseReward
 }: {
   readiness: number;
   supplies: number;
+  basePower: number;
+  playerShapeId: FormationShapeId;
+  wagonStageId: string;
+  hasRations: boolean;
+  hasMedicine: boolean;
+  baseReward: ResourceWallet;
 }): ExpeditionRunState {
   return {
     stageIndex: 0,
@@ -337,6 +355,15 @@ export function createExpeditionRun({
       Math.floor(supplies)
     ),
     powerBonus: 0,
+    basePower: Math.max(
+      0,
+      Math.round(basePower)
+    ),
+    playerShapeId,
+    wagonStageId,
+    hasRations,
+    hasMedicine,
+    baseReward: { ...baseReward },
     loot: emptyWallet(),
     path: [],
     failed: false,
@@ -562,19 +589,11 @@ export function getExpeditionWear({
 export function resolveExpeditionChoice({
   faction,
   run,
-  choiceId,
-  basePower,
-  playerShapeId,
-  wagonStageId,
-  preparation
+  choiceId
 }: {
   faction: FactionId;
   run: ExpeditionRunState;
   choiceId: string;
-  basePower: number;
-  playerShapeId: FormationShapeId;
-  wagonStageId: string;
-  preparation: ExpeditionPreparation;
 }): ExpeditionResolution {
   if (
     run.failed ||
@@ -660,7 +679,7 @@ export function resolveExpeditionChoice({
     const threat =
       getExpeditionThreat(
         choice,
-        wagonStageId
+        run.wagonStageId
       );
     const enemyShapeId =
       choice.formationShapeId;
@@ -681,8 +700,9 @@ export function resolveExpeditionChoice({
 
     const effective =
       getExpeditionEffectivePower({
-        basePower,
-        playerShapeId,
+        basePower: run.basePower,
+        playerShapeId:
+          run.playerShapeId,
         enemyShapeId,
         readiness,
         powerBonus
@@ -696,9 +716,9 @@ export function resolveExpeditionChoice({
           effective.value,
         threat,
         hasRations:
-          preparation.hasRations,
+          run.hasRations,
         hasMedicine:
-          preparation.hasMedicine
+          run.hasMedicine
       });
 
     readiness = Math.max(
@@ -821,28 +841,32 @@ export function resolveExpeditionChoice({
   };
 }
 
-export function getExpeditionCompletionReward({
-  run,
+export function getExpeditionBaseReward({
   logisticsLevel,
   settlementEffects
 }: {
-  run: ExpeditionRunState;
   logisticsLevel: number;
   settlementEffects: SettlementAdjacencyEffects;
 }): ResourceWallet {
+  return {
+    gold: 40,
+    wood:
+      8 +
+      (logisticsLevel >= 2 ? 1 : 0) +
+      settlementEffects.expeditionWoodBonus,
+    stone: 2,
+    iron: 1,
+    provisions:
+      4 +
+      settlementEffects.expeditionProvisionBonus
+  };
+}
+
+export function getExpeditionCompletionReward(
+  run: ExpeditionRunState
+): ResourceWallet {
   return addLoot(
-    {
-      gold: 40,
-      wood:
-        8 +
-        (logisticsLevel >= 2 ? 1 : 0) +
-        settlementEffects.expeditionWoodBonus,
-      stone: 2,
-      iron: 1,
-      provisions:
-        4 +
-        settlementEffects.expeditionProvisionBonus
-    },
+    run.baseReward,
     run.loot
   );
 }
