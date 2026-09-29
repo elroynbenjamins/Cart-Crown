@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
-  getEncounter,
+  getEncounterForChapter,
   getEnemyArmyProfile,
   getEnemyFormationTactic,
   getEnemyRoleAssignments
@@ -88,6 +88,7 @@ export function BattlePrepScreen({
   ] = React.useState(false);
   const {
     activeFaction,
+    chapterNumber,
     resources,
     armyReadiness,
     armyResupplyCost,
@@ -122,7 +123,11 @@ export function BattlePrepScreen({
     rewardedAdMessage
   } = useGame();
 
-  const encounter = getEncounter(encounterId);
+  const encounter =
+    getEncounterForChapter(
+      encounterId,
+      chapterNumber
+    );
   const enemyTactic = getEnemyFormationTactic(encounterId);
   const enemyShape = getFormationShape(enemyTactic.formationShapeId);
   const enemyArmyProfile = getEnemyArmyProfile(encounterId);
