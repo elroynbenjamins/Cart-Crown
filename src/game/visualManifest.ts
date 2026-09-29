@@ -105,7 +105,7 @@ export type ResourceSiteVisualKind =
   | 'beacon'
   | 'quarry';
 
-export const VISUAL_ASSET_VERSION = 11;
+export const VISUAL_ASSET_VERSION = 12;
 
 export const unitClassVisuals: Record<string, UnitVisualKind> = {
   militia: 'infantry',
@@ -119,6 +119,10 @@ export const unitClassVisuals: Record<string, UnitVisualKind> = {
   'royal guard': 'infantry',
   champion: 'infantry',
   halberdier: 'infantry',
+  crossbowman: 'archer',
+  'man-at-arms': 'infantry',
+  'siege engineer': 'infantry',
+  'banner captain': 'infantry',
   'field medic': 'infantry',
   'field chaplain': 'infantry',
   warden: 'infantry',
