@@ -197,6 +197,11 @@ type GameContextValue = {
   hasFactionState: (faction: FactionId) => boolean;
   switchFaction: (faction: FactionId) => Promise<boolean>;
   flushSnapshot: () => Promise<void>;
+  tutorialSeen: string[];
+  markTutorialSeen: (key: string) => void;
+  resetTutorialGuidance: () => void;
+  reviewPromptShown: boolean;
+  markReviewPromptShown: () => void;
   formationShapeId: FormationShapeId;
   formationShapes: FormationShapeDefinition[];
   activeFormationShape: FormationShapeDefinition;
@@ -580,7 +585,10 @@ export function GameProvider({
     lore: [...initialSnapshot.shared.lore],
     cosmetics: [...initialSnapshot.shared.cosmetics],
     metaCampaignStep: initialSnapshot.shared.metaCampaignStep,
-    metaCampaignComplete: initialSnapshot.shared.metaCampaignComplete
+    metaCampaignComplete: initialSnapshot.shared.metaCampaignComplete,
+    reviewPromptShown: Boolean(
+      initialSnapshot.shared.reviewPromptShown
+    )
   }));
   const [formationShapeId, setFormationShapeIdState] = useState<FormationShapeId>(
     initialFaction.formationShapeId ?? 'balanced_333'
@@ -651,6 +659,9 @@ export function GameProvider({
   const [expeditionTickets, setExpeditionTickets] = useState(initialFaction.expeditionTickets);
   const [expeditionRunsCompleted, setExpeditionRunsCompleted] = useState(initialFaction.expeditionRunsCompleted);
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
+  const [tutorialSeen, setTutorialSeen] = useState<string[]>(
+    () => [...(initialFaction.tutorialSeen ?? [])]
+  );
   const [rewardedAdClaims, setRewardedAdClaims] = useState<RewardedAdClaimState>({});
   const [rewardedAdMessage, setRewardedAdMessage] = useState<string | null>(null);
 
@@ -1089,7 +1100,8 @@ export function GameProvider({
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
-      formationTrialCompleted
+      formationTrialCompleted,
+      tutorialSeen
     }),
     [
       activeFaction,
@@ -1137,7 +1149,8 @@ export function GameProvider({
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
-      formationTrialCompleted
+      formationTrialCompleted,
+      tutorialSeen
     ]
   );
 
@@ -1204,6 +1217,29 @@ export function GameProvider({
     },
     []
   );
+
+  const markTutorialSeen = (key: string) => {
+    setTutorialSeen(previous =>
+      previous.includes(key)
+        ? previous
+        : [...previous, key]
+    );
+  };
+
+  const resetTutorialGuidance = () => {
+    setTutorialSeen([]);
+  };
+
+  const reviewPromptShown = Boolean(
+    sharedProgress.reviewPromptShown
+  );
+
+  const markReviewPromptShown = () => {
+    setSharedProgress(previous => ({
+      ...previous,
+      reviewPromptShown: true
+    }));
+  };
 
   const hasFactionState = (faction: FactionId) =>
     snapshot.factionStates[faction]?.faction === faction;
@@ -5214,6 +5250,11 @@ export function GameProvider({
       hasFactionState,
       switchFaction,
       flushSnapshot,
+      tutorialSeen,
+      markTutorialSeen,
+      resetTutorialGuidance,
+      reviewPromptShown,
+      markReviewPromptShown,
       formationShapeId,
       formationShapes,
       activeFormationShape,
@@ -5399,6 +5440,8 @@ export function GameProvider({
       metaCampaignComplete,
       metaCampaignUnlocked,
       flushSnapshot,
+      tutorialSeen,
+      reviewPromptShown,
       formationShapeId,
       activeFormationShape,
       formationPresets,
