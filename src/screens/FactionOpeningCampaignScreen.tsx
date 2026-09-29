@@ -119,7 +119,8 @@ export function FactionOpeningCampaignScreen({
     expeditionTickets,
     expeditionRunsCompleted,
     kingdomTrialCompletions,
-    kingdomDefenseCompleted
+    kingdomDefenseCompleted,
+    kingdomDefenseRuns
   } = useGame();
 
   const availableSideModes = sideModeDefinitions.filter(
@@ -646,7 +647,10 @@ export function FactionOpeningCampaignScreen({
                       ? kingdomTrialCompletions.length +
                         '/3 medals'
                       : kingdomDefenseCompleted
-                        ? 'Repeatable'
+                        ? kingdomDefenseRuns +
+                          (kingdomDefenseRuns === 1
+                            ? ' clear'
+                            : ' clears')
                         : 'Endurance defense';
 
               const tutorialActivityFocused =
