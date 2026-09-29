@@ -56,6 +56,26 @@ export type TutorialContext = {
   wagonStageId: string;
 };
 
+export const CORE_TUTORIAL_KEYS = [
+  'core:kingdom',
+  'core:campaign',
+  'core:battle-prep',
+  'core:battle',
+  'core:results'
+] as const;
+
+export const SYSTEM_TUTORIAL_KEYS = [
+  'system:settlement',
+  'system:formation',
+  'system:forge',
+  'system:promotion',
+  'system:commander',
+  'system:readiness',
+  'system:production',
+  'system:advanced-formations',
+  'system:side-modes'
+] as const;
+
 const starterUnitIds: Record<FactionId, Set<string>> = {
   human: new Set(['hum_militia', 'hum_recruit']),
   elf: new Set(['elf_warden', 'elf_forest_scout']),
@@ -482,11 +502,7 @@ export function shouldRequestChapterOneReview({
 export function isCoreTutorialComplete(
   tutorialSeen: string[]
 ) {
-  return [
-    'core:kingdom',
-    'core:campaign',
-    'core:battle-prep',
-    'core:battle',
-    'core:results'
-  ].every(key => tutorialSeen.includes(key));
+  return CORE_TUTORIAL_KEYS.every(
+    key => tutorialSeen.includes(key)
+  );
 }
