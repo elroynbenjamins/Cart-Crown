@@ -15,6 +15,12 @@ export const kingdomTrialOrder = [
   'gold'
 ] as const;
 
+export const kingdomTrialRequiredChapter = {
+  bronze: 2,
+  silver: 3,
+  gold: 4
+} as const;
+
 export type KingdomTrialId =
   (typeof kingdomTrialOrder)[number];
 
@@ -476,11 +482,26 @@ export function evaluateKingdomTrial(
   );
 }
 
+export function getKingdomTrialRequiredChapter(
+  id: KingdomTrialId
+) {
+  return kingdomTrialRequiredChapter[id];
+}
+
 export function isKingdomTrialUnlocked(
   id: KingdomTrialId,
-  completed: readonly KingdomTrialId[]
+  completed: readonly KingdomTrialId[],
+  chapterNumber: number
 ) {
-  const index = kingdomTrialOrder.indexOf(id);
+  if (
+    chapterNumber <
+    kingdomTrialRequiredChapter[id]
+  ) {
+    return false;
+  }
+
+  const index =
+    kingdomTrialOrder.indexOf(id);
   if (index <= 0) return true;
 
   return completed.includes(
