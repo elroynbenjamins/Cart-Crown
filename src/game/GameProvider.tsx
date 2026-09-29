@@ -172,7 +172,7 @@ import type {
   GameSnapshot,
   SharedProgress
 } from '../save/types';
-import { createFactionGameState } from '../save/schema';
+import { buildFactionSwitchSnapshot } from '../save/schema';
 
 type RewardedAdClaimState = Partial<Record<RewardedAdPlacementId, number>>;
 
@@ -1182,23 +1182,14 @@ export function GameProvider({
       return false;
     }
 
-    const storedTargetState = snapshot.factionStates[faction];
-    const targetState =
-      storedTargetState?.faction === faction
-        ? storedTargetState
-        : createFactionGameState(faction);
+    const nextSnapshot = buildFactionSwitchSnapshot(
+      snapshot,
+      currentFactionState,
+      faction
+    );
+    if (!nextSnapshot) return false;
 
     switchingFactionRef.current = true;
-
-    const nextSnapshot: GameSnapshot = {
-      ...snapshot,
-      activeFaction: faction,
-      factionStates: {
-        ...snapshot.factionStates,
-        [activeFaction]: currentFactionState,
-        [faction]: targetState
-      }
-    };
 
     try {
       await saveCallbackRef.current(nextSnapshot);
