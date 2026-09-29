@@ -42,6 +42,7 @@ export function FormationScreen({
     activeFaction,
     activeSquadCap,
     middleRowUnlocked,
+    formationPresetsUnlocked,
     formationShapeId,
     formationShapes,
     activeFormationShape,
@@ -354,8 +355,10 @@ export function FormationScreen({
         </Text>
       </GameCard>
 
-      <SectionTitle title="Tactical loadouts" trailing="3 presets" />
-      <View style={styles.presetList}>
+      {formationPresetsUnlocked ? (
+        <>
+          <SectionTitle title="Tactical loadouts" trailing="3 presets" />
+          <View style={styles.presetList}>
         {presetSlots.map(slotId => {
           const preset = formationPresets.find(
             candidate => candidate.slotId === slotId
@@ -492,10 +495,24 @@ export function FormationScreen({
             </GameCard>
           );
         })}
-      </View>
-      <Text style={[styles.presetHint, { color: theme.colors.textMuted }]}>
-        Each loadout saves the formation shape, faction doctrine and exact squad positions.
-      </Text>
+          </View>
+          <Text style={[styles.presetHint, { color: theme.colors.textMuted }]}>
+            Each loadout saves the formation shape, faction doctrine and exact squad positions.
+          </Text>
+        </>
+      ) : (
+        <>
+          <SectionTitle title="Tactical loadouts" trailing="Unlocks in Chapter 2" />
+          <GameCard>
+            <Text style={[styles.lockedFormationTitle, { color: theme.colors.text }]}>
+              Formation presets unlock at Take the Watch
+            </Text>
+            <Text style={[styles.lockedFormationBody, { color: theme.colors.textMuted }]}>
+              Until then, learn the rows by adjusting the current army directly. Capturing the watch post unlocks three saved tactical loadouts.
+            </Text>
+          </GameCard>
+        </>
+      )}
 
       {middleRowUnlocked ? (
         <>
