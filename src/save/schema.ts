@@ -12,6 +12,7 @@ import {
 } from '../game/expeditions';
 import type { ExpeditionRunState } from '../game/expeditions';
 import { warTableContracts } from '../game/warTable';
+import { MAX_EXPEDITION_TICKETS } from '../game/sideModeBalance';
 import {
   formationShapes,
   getFactionDoctrines
@@ -272,6 +273,12 @@ function sanitizeExpeditionRun(
       )
     ),
     powerBonus,
+    rewardMultiplier:
+      source.rewardMultiplier === 0 ||
+      source.rewardMultiplier === 0.5 ||
+      source.rewardMultiplier === 1
+        ? source.rewardMultiplier
+        : 1,
     basePower: nonNegativeInteger(
       source.basePower,
       0
@@ -815,9 +822,12 @@ export function sanitizeFactionGameState(
       stored.kingdomDefenseRuns,
       defaults.kingdomDefenseRuns
     ),
-    expeditionTickets: nonNegativeInteger(
-      stored.expeditionTickets,
-      defaults.expeditionTickets
+    expeditionTickets: Math.min(
+      MAX_EXPEDITION_TICKETS,
+      nonNegativeInteger(
+        stored.expeditionTickets,
+        defaults.expeditionTickets
+      )
     ),
     expeditionRunsCompleted: nonNegativeInteger(
       stored.expeditionRunsCompleted,
@@ -827,6 +837,16 @@ export function sanitizeFactionGameState(
       sanitizeExpeditionRun(
         stored.activeExpeditionRun
       ),
+    expeditionRewardChapter:
+      nonNegativeInteger(
+        stored.expeditionRewardChapter,
+        chapterNumber
+      ),
+    expeditionRewardedRunsThisChapter:
+      nonNegativeInteger(
+        stored.expeditionRewardedRunsThisChapter,
+        0
+      ),
     warTableCycle: nonNegativeInteger(
       stored.warTableCycle,
       0
@@ -834,10 +854,10 @@ export function sanitizeFactionGameState(
     warTableBoardChapter: Math.max(
       1,
       Math.min(
-        3,
+        6,
         nonNegativeInteger(
           stored.warTableBoardChapter,
-          Math.min(chapterNumber, 3)
+          chapterNumber
         )
       )
     ),
@@ -851,6 +871,21 @@ export function sanitizeFactionGameState(
     warTableBonusObjectivesCompleted:
       nonNegativeInteger(
         stored.warTableBonusObjectivesCompleted,
+        0
+      ),
+    warTableBoardsClearedThisChapter:
+      nonNegativeInteger(
+        stored.warTableBoardsClearedThisChapter,
+        0
+      ),
+    kingdomDefenseRewardChapter:
+      nonNegativeInteger(
+        stored.kingdomDefenseRewardChapter,
+        chapterNumber
+      ),
+    kingdomDefenseRewardedRunsThisChapter:
+      nonNegativeInteger(
+        stored.kingdomDefenseRewardedRunsThisChapter,
         0
       ),
     kingdomTrialCompletions,
@@ -1031,12 +1066,17 @@ export function createHumanFactionState(): FactionGameState {
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
     activeExpeditionRun: null,
+    expeditionRewardChapter: 1,
+    expeditionRewardedRunsThisChapter: 0,
     warTableCycle: 0,
     warTableBoardChapter: 1,
     warTableCompletedContractIds: [],
     warTableBonusContractIds: [],
     warTableContractsCompleted: 0,
     warTableBonusObjectivesCompleted: 0,
+    warTableBoardsClearedThisChapter: 0,
+    kingdomDefenseRewardChapter: 1,
+    kingdomDefenseRewardedRunsThisChapter: 0,
     formationTrialCompleted: false,
     kingdomTrialCompletions: [],
     completedStoryGates: [],

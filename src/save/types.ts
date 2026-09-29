@@ -66,12 +66,17 @@ export type FactionGameState = {
   expeditionTickets: number;
   expeditionRunsCompleted: number;
   activeExpeditionRun?: ExpeditionRunState | null;
+  expeditionRewardChapter: number;
+  expeditionRewardedRunsThisChapter: number;
   warTableCycle: number;
   warTableBoardChapter: number;
   warTableCompletedContractIds: string[];
   warTableBonusContractIds: string[];
   warTableContractsCompleted: number;
   warTableBonusObjectivesCompleted: number;
+  warTableBoardsClearedThisChapter: number;
+  kingdomDefenseRewardChapter: number;
+  kingdomDefenseRewardedRunsThisChapter: number;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions?: string[];
   completedStoryGates?: string[];

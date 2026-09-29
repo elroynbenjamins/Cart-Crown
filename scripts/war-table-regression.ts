@@ -367,6 +367,7 @@ function runSaveCoverage() {
   ];
   human.warTableContractsCompleted = 22;
   human.warTableBonusObjectivesCompleted = 11;
+  human.warTableBoardsClearedThisChapter = 2;
 
   const normalized =
     normalizeSaveRecord(1, record);
@@ -378,8 +379,8 @@ function runSaveCoverage() {
     'War Table cycle was not preserved.'
   );
   check(
-    restored?.warTableBoardChapter === 3,
-    'War Table board chapter was not clamped to the highest authored tier.'
+    restored?.warTableBoardChapter === 6,
+    'War Table board chapter was not clamped to the current six-chapter campaign range.'
   );
   check(
     restored?.warTableCompletedContractIds.length ===
@@ -397,6 +398,10 @@ function runSaveCoverage() {
       restored.warTableBonusObjectivesCompleted ===
         11,
     'War Table lifetime counters were not preserved.'
+  );
+  check(
+    restored?.warTableBoardsClearedThisChapter === 2,
+    'War Table per-chapter board reward count was not preserved.'
   );
 }
 

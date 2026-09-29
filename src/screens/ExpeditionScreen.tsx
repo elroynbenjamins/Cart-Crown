@@ -18,6 +18,10 @@ import {
   getFormationShape
 } from '../game/formation';
 import { useGame } from '../game/GameProvider';
+import {
+  MAX_EXPEDITION_TICKETS,
+  getSideModeRewardLabel
+} from '../game/sideModeBalance';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -46,6 +50,7 @@ export function ExpeditionScreen({
     expeditionTickets,
     expeditionRunsCompleted,
     activeExpeditionRun,
+    expeditionNextRewardMultiplier,
     startExpeditionRun,
     resolveExpeditionRouteChoice,
     abandonExpeditionRun,
@@ -184,10 +189,12 @@ export function ExpeditionScreen({
                   : activeExpeditionRun.failed
                     ? 'RUN FAILED'
                     : 'RUN ACTIVE'
-                : String(expeditionTickets) +
-                  (expeditionTickets === 1
-                    ? ' TICKET'
-                    : ' TICKETS')
+                : expeditionNextRewardMultiplier === 0
+                  ? 'PRACTICE READY'
+                  : String(expeditionTickets) +
+                    (expeditionTickets === 1
+                      ? ' TICKET'
+                      : ' TICKETS')
             }
             tone={
               activeExpeditionRun?.completed
@@ -196,9 +203,11 @@ export function ExpeditionScreen({
                   ? 'elite'
                   : activeExpeditionRun
                     ? 'current'
-                    : expeditionTickets > 0
+                    : expeditionNextRewardMultiplier === 0
                       ? 'available'
-                      : 'locked'
+                      : expeditionTickets > 0
+                        ? 'available'
+                        : 'locked'
             }
           />
         }
@@ -220,6 +229,28 @@ export function ExpeditionScreen({
             faction={activeFaction}
             accent={factionAccent}
           >
+            <View style={styles.rewardBand}>
+              <StatusPill
+                label={getSideModeRewardLabel(
+                  expeditionNextRewardMultiplier
+                )}
+                tone={
+                  expeditionNextRewardMultiplier === 1
+                    ? 'ready'
+                    : expeditionNextRewardMultiplier === 0.5
+                      ? 'current'
+                      : 'neutral'
+                }
+              />
+              <Text style={[styles.rewardBandText, { color: theme.colors.textMuted }]}>
+                {expeditionNextRewardMultiplier === 1
+                  ? 'First rewarded clear this chapter uses full payout and consumes a ticket.'
+                  : expeditionNextRewardMultiplier === 0.5
+                    ? 'Second rewarded clear pays 50% and consumes a ticket.'
+                    : 'Further runs are free practice: no ticket consumed and no resources banked.'}
+              </Text>
+            </View>
+
             <View style={styles.metrics}>
               <View style={styles.metric}>
                 <Text
@@ -432,34 +463,44 @@ export function ExpeditionScreen({
 
           <PrimaryButton
             label={
-              expeditionTickets > 0
-                ? 'Depart on Expedition'
-                : 'No tickets available'
-            }
-            disabled={expeditionTickets <= 0}
-            onPress={startExpeditionRun}
-          />
-          <SecondaryButton
-            label={
-              (
-                rewardedAdClaims
-                  .expedition_ticket ?? 0
-              ) >= 1
-                ? 'Extra ticket claimed'
-                : 'Watch optional ad for +1 ticket'
+              expeditionNextRewardMultiplier === 0
+                ? 'Start Practice Expedition'
+                : expeditionTickets > 0
+                  ? 'Depart on Expedition'
+                  : 'No tickets available'
             }
             disabled={
-              (
-                rewardedAdClaims
-                  .expedition_ticket ?? 0
-              ) >= 1
+              expeditionNextRewardMultiplier > 0 &&
+              expeditionTickets <= 0
             }
-            onPress={() =>
-              void claimRewardedAd(
-                'expedition_ticket'
-              )
-            }
+            onPress={startExpeditionRun}
           />
+          {expeditionNextRewardMultiplier > 0 ? (
+            <SecondaryButton
+              label={
+                expeditionTickets >= MAX_EXPEDITION_TICKETS
+                  ? 'Ticket storage full'
+                  : (
+                      rewardedAdClaims
+                        .expedition_ticket ?? 0
+                    ) >= 1
+                    ? 'Extra ticket claimed'
+                    : 'Watch optional ad for +1 ticket'
+              }
+              disabled={
+                expeditionTickets >= MAX_EXPEDITION_TICKETS ||
+                (
+                  rewardedAdClaims
+                    .expedition_ticket ?? 0
+                ) >= 1
+              }
+              onPress={() =>
+                void claimRewardedAd(
+                  'expedition_ticket'
+                )
+              }
+            />
+          ) : null}
         </>
       ) : (
         <>
@@ -777,9 +818,9 @@ export function ExpeditionScreen({
                       }
                     ]}
                   >
-                    The entire haul is now secured.
-                    Claiming it advances regional
-                    production one cycle.
+                    {activeExpeditionRun.rewardMultiplier > 0
+                      ? 'The expedition haul is secured. Claiming it advances regional production one cycle.'
+                      : 'Practice run complete. The route is recorded, but no resources or regional production are awarded.'}
                   </Text>
                 </View>
                 <StatusPill
@@ -1149,6 +1190,14 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 34,
     gap: 12
+  },
+  rewardBand: {
+    gap: 7,
+    marginBottom: 12
+  },
+  rewardBandText: {
+    fontSize: 10.5,
+    lineHeight: 16
   },
   metrics: {
     flexDirection: 'row',

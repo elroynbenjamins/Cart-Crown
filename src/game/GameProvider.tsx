@@ -131,6 +131,14 @@ import {
 } from './warTable';
 import type { WarTableBattleSummary } from './warTable';
 import {
+  MAX_EXPEDITION_TICKETS,
+  getExpeditionRewardMultiplier,
+  getExpeditionTicketsAfterChapterTransition,
+  getKingdomDefenseRewardMultiplier,
+  getWarTableBoardRewardMultiplier,
+  scaleResourceReward
+} from './sideModeBalance';
+import {
   createExpeditionRun,
   getExpeditionBaseReward,
   getExpeditionCompletionReward,
@@ -357,12 +365,20 @@ type GameContextValue = {
   expeditionTickets: number;
   expeditionRunsCompleted: number;
   activeExpeditionRun: ExpeditionRunState | null;
+  expeditionRewardChapter: number;
+  expeditionRewardedRunsThisChapter: number;
+  expeditionNextRewardMultiplier: 0 | 0.5 | 1;
   warTableCycle: number;
   warTableBoardChapter: number;
   warTableCompletedContractIds: string[];
   warTableBonusContractIds: string[];
   warTableContractsCompleted: number;
   warTableBonusObjectivesCompleted: number;
+  warTableBoardsClearedThisChapter: number;
+  warTableBoardRewardMultiplier: 0 | 0.5 | 1;
+  kingdomDefenseRewardChapter: number;
+  kingdomDefenseRewardedRunsThisChapter: number;
+  kingdomDefenseNextRewardMultiplier: 0 | 0.5 | 1;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions: KingdomTrialId[];
   rewardedAdClaims: RewardedAdClaimState;
@@ -765,6 +781,12 @@ export function GameProvider({
         }
       : null
   );
+  const [expeditionRewardChapter, setExpeditionRewardChapter] = useState(
+    initialFaction.expeditionRewardChapter
+  );
+  const [expeditionRewardedRunsThisChapter, setExpeditionRewardedRunsThisChapter] = useState(
+    initialFaction.expeditionRewardedRunsThisChapter
+  );
   const [warTableCycle, setWarTableCycle] = useState(
     initialFaction.warTableCycle
   );
@@ -782,6 +804,15 @@ export function GameProvider({
   );
   const [warTableBonusObjectivesCompleted, setWarTableBonusObjectivesCompleted] = useState(
     initialFaction.warTableBonusObjectivesCompleted
+  );
+  const [warTableBoardsClearedThisChapter, setWarTableBoardsClearedThisChapter] = useState(
+    initialFaction.warTableBoardsClearedThisChapter
+  );
+  const [kingdomDefenseRewardChapter, setKingdomDefenseRewardChapter] = useState(
+    initialFaction.kingdomDefenseRewardChapter
+  );
+  const [kingdomDefenseRewardedRunsThisChapter, setKingdomDefenseRewardedRunsThisChapter] = useState(
+    initialFaction.kingdomDefenseRewardedRunsThisChapter
   );
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
   const [kingdomTrialCompletions, setKingdomTrialCompletions] = useState<KingdomTrialId[]>(
@@ -816,6 +847,34 @@ export function GameProvider({
   );
   const [rewardedAdClaims, setRewardedAdClaims] = useState<RewardedAdClaimState>({});
   const [rewardedAdMessage, setRewardedAdMessage] = useState<string | null>(null);
+
+  const expeditionNextRewardMultiplier =
+    getExpeditionRewardMultiplier({
+      currentChapter: chapterNumber,
+      rewardChapter: expeditionRewardChapter,
+      rewardedRunsThisChapter:
+        expeditionRewardedRunsThisChapter
+    });
+  const warTableBoardRewardMultiplier =
+    getWarTableBoardRewardMultiplier(
+      warTableBoardsClearedThisChapter
+    );
+  const kingdomDefenseNextRewardMultiplier =
+    getKingdomDefenseRewardMultiplier({
+      firstClear:
+        !kingdomDefenseCompleted &&
+        activeFaction === 'human' &&
+        Boolean(
+          chapterNodes.find(
+            node => node.id === 'ch2_node_4'
+          )?.current
+        ),
+      currentChapter: chapterNumber,
+      rewardChapter:
+        kingdomDefenseRewardChapter,
+      rewardedRunsThisChapter:
+        kingdomDefenseRewardedRunsThisChapter
+    });
 
   const gems = sharedProgress.gems ?? 0;
   const magicFamilyUnlock = useMemo(
@@ -1618,12 +1677,17 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       activeExpeditionRun,
+      expeditionRewardChapter,
+      expeditionRewardedRunsThisChapter,
       warTableCycle,
       warTableBoardChapter,
       warTableCompletedContractIds,
       warTableBonusContractIds,
       warTableContractsCompleted,
       warTableBonusObjectivesCompleted,
+      warTableBoardsClearedThisChapter,
+      kingdomDefenseRewardChapter,
+      kingdomDefenseRewardedRunsThisChapter,
       formationTrialCompleted,
       kingdomTrialCompletions,
       completedStoryGates,
@@ -1679,12 +1743,17 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       activeExpeditionRun,
+      expeditionRewardChapter,
+      expeditionRewardedRunsThisChapter,
       warTableCycle,
       warTableBoardChapter,
       warTableCompletedContractIds,
       warTableBonusContractIds,
       warTableContractsCompleted,
       warTableBonusObjectivesCompleted,
+      warTableBoardsClearedThisChapter,
+      kingdomDefenseRewardChapter,
+      kingdomDefenseRewardedRunsThisChapter,
       formationTrialCompleted,
       kingdomTrialCompletions,
       completedStoryGates,
@@ -1923,26 +1992,49 @@ export function GameProvider({
             battleSummary
           )
         );
-      const baseReward = addResources(
-        {
-          gold: 0,
-          wood: 0,
-          stone: 0,
-          iron: 0,
-          provisions: 0
-        },
-        reward.resources
-      );
-      const totalReward = bonusAchieved
-        ? addResources(
-            baseReward,
-            contract.bonusReward
-          )
-        : baseReward;
+      const scaledBaseReward =
+        scaleResourceReward(
+          reward.resources,
+          warTableBoardRewardMultiplier
+        );
+      const scaledBonusReward =
+        bonusAchieved
+          ? scaleResourceReward(
+              contract.bonusReward,
+              warTableBoardRewardMultiplier
+            )
+          : {};
+      const totalReward = {
+        gold:
+          (scaledBaseReward.gold ?? 0) +
+          (scaledBonusReward.gold ?? 0),
+        wood:
+          (scaledBaseReward.wood ?? 0) +
+          (scaledBonusReward.wood ?? 0),
+        stone:
+          (scaledBaseReward.stone ?? 0) +
+          (scaledBonusReward.stone ?? 0),
+        iron:
+          (scaledBaseReward.iron ?? 0) +
+          (scaledBonusReward.iron ?? 0),
+        provisions:
+          (scaledBaseReward.provisions ?? 0) +
+          (scaledBonusReward.provisions ?? 0)
+      };
+      const willClearBoard =
+        postedContracts.every(
+          posted =>
+            posted.id === contract.id ||
+            warTableCompletedContractIds.includes(
+              posted.id
+            )
+        );
 
-      setResources(previous =>
-        addResources(previous, totalReward)
-      );
+      if (warTableBoardRewardMultiplier > 0) {
+        setResources(previous =>
+          addResources(previous, totalReward)
+        );
+      }
       setWarTableCompletedContractIds(
         previous => [
           ...previous,
@@ -1965,7 +2057,16 @@ export function GameProvider({
         );
       }
 
-      accrueRegionalProduction();
+      if (willClearBoard) {
+        setWarTableBoardsClearedThisChapter(
+          previous => previous + 1
+        );
+
+        if (warTableBoardRewardMultiplier === 1) {
+          accrueRegionalProduction();
+        }
+      }
+
       setLastBattleResult({
         id: encounterId + '_result',
         title: 'War Table Contract Complete',
@@ -1977,7 +2078,10 @@ export function GameProvider({
               contract.bonusObjective.label +
               '.'
             : ' The bonus objective was not completed this time.'),
-        rewards: totalReward,
+        rewards:
+          warTableBoardRewardMultiplier > 0
+            ? totalReward
+            : {},
         casualties: 0
       });
       return;
@@ -4267,6 +4371,12 @@ export function GameProvider({
       [factionBuildingIds.hall]: 3
     }));
     setChapterNumber(3);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        3
+      )
+    );
     setChapterNodes(
       cloneNodes(
         activeFaction === 'elf'
@@ -4291,6 +4401,12 @@ export function GameProvider({
       [factionBuildingIds.hall]: 4
     }));
     setChapterNumber(4);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        4
+      )
+    );
     setChapterNodes(
       cloneNodes(
         activeFaction === 'elf'
@@ -4313,6 +4429,12 @@ export function GameProvider({
       [factionBuildingIds.hall]: 5
     }));
     setChapterNumber(5);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        5
+      )
+    );
     setChapterNodes(
       cloneNodes(
         activeFaction === 'elf'
@@ -4335,6 +4457,12 @@ export function GameProvider({
       [factionBuildingIds.hall]: 6
     }));
     setChapterNumber(6);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        6
+      )
+    );
     setChapterNodes(
       cloneNodes(
         activeFaction === 'elf'
@@ -4494,7 +4622,12 @@ export function GameProvider({
     }));
 
     if (buildingId === factionBuildingIds.supply && targetLevel === 2) {
-      setExpeditionTickets(previous => previous + 1);
+      setExpeditionTickets(previous =>
+        Math.min(
+          MAX_EXPEDITION_TICKETS,
+          previous + 1
+        )
+      );
     }
 
     return true;
@@ -5039,18 +5172,61 @@ export function GameProvider({
       chapterNodes.find(node => node.id === 'ch2_node_4')?.current
     );
     const firstClear = !kingdomDefenseCompleted;
+    const fullStoryClear =
+      firstClear && storyDefenseActive;
+    const rewardMultiplier =
+      getKingdomDefenseRewardMultiplier({
+        firstClear: fullStoryClear,
+        currentChapter: chapterNumber,
+        rewardChapter:
+          kingdomDefenseRewardChapter,
+        rewardedRunsThisChapter:
+          kingdomDefenseRewardedRunsThisChapter
+      });
+    const reward = fullStoryClear
+      ? {
+          gold: 85,
+          wood: 10,
+          stone: 10,
+          iron: 4,
+          provisions: 6
+        }
+      : scaleResourceReward(
+          {
+            gold: 60,
+            wood: 8,
+            stone: 6,
+            iron: 2,
+            provisions: 5
+          },
+          rewardMultiplier
+        );
 
     setKingdomDefenseCompleted(true);
     setKingdomDefenseRuns(previous => previous + 1);
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold + (firstClear ? 85 : 60),
-      wood: previous.wood + (firstClear ? 10 : 8),
-      stone: previous.stone + (firstClear ? 10 : 6),
-      iron: previous.iron + (firstClear ? 4 : 2),
-      provisions: previous.provisions + (firstClear ? 6 : 5)
-    }));
-    accrueRegionalProduction();
+
+    if (Object.keys(reward).length > 0) {
+      setResources(previous =>
+        addResources(previous, reward)
+      );
+    }
+
+    if (!fullStoryClear && rewardMultiplier > 0) {
+      setKingdomDefenseRewardChapter(
+        chapterNumber
+      );
+      setKingdomDefenseRewardedRunsThisChapter(
+        previous =>
+          kingdomDefenseRewardChapter ===
+          chapterNumber
+            ? previous + 1
+            : 1
+      );
+    }
+
+    if (fullStoryClear || rewardMultiplier > 0) {
+      accrueRegionalProduction();
+    }
 
     if (storyDefenseActive) {
       setChapterNodes(previous =>
@@ -5121,6 +5297,12 @@ export function GameProvider({
       hall: 4
     }));
     setChapterNumber(3);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        3
+      )
+    );
     setChapterNodes(cloneNodes(chapterThreeNodes));
     return true;
   };
@@ -5137,6 +5319,12 @@ export function GameProvider({
       hall: 5
     }));
     setChapterNumber(4);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        4
+      )
+    );
     setChapterNodes(cloneNodes(chapterFourNodes));
     setMarcherWarningChoiceId(null);
     return true;
@@ -5154,6 +5342,12 @@ export function GameProvider({
       hall: 6
     }));
     setChapterNumber(5);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        5
+      )
+    );
     setChapterNodes(cloneNodes(chapterFiveNodes));
     setLastLoyalistsChoiceId(null);
     return true;
@@ -5259,6 +5453,12 @@ export function GameProvider({
     );
     setWagonStageId('grand');
     setChapterNumber(6);
+    setExpeditionTickets(previous =>
+      getExpeditionTicketsAfterChapterTransition(
+        previous,
+        6
+      )
+    );
     setChapterNodes(cloneNodes(chapterSixNodes));
     return true;
   };
@@ -5783,9 +5983,10 @@ export function GameProvider({
     setWarTableCycle(
       previous => previous + 1
     );
-    setWarTableBoardChapter(
-      Math.min(3, chapterNumber)
-    );
+    if (chapterNumber !== warTableBoardChapter) {
+      setWarTableBoardsClearedThisChapter(0);
+    }
+    setWarTableBoardChapter(chapterNumber);
     setWarTableCompletedContractIds([]);
     setWarTableBonusContractIds([]);
     return true;
@@ -5805,7 +6006,27 @@ export function GameProvider({
   };
 
   const startExpeditionRun = () => {
-    if (!consumeExpeditionTicket()) return false;
+    if (
+      !isSideModeUnlocked('expeditions') ||
+      activeExpeditionRun
+    ) {
+      return false;
+    }
+
+    const rewardMultiplier =
+      getExpeditionRewardMultiplier({
+        currentChapter: chapterNumber,
+        rewardChapter: expeditionRewardChapter,
+        rewardedRunsThisChapter:
+          expeditionRewardedRunsThisChapter
+      });
+
+    if (
+      rewardMultiplier > 0 &&
+      !consumeExpeditionTicket()
+    ) {
+      return false;
+    }
 
     setActiveExpeditionRun(
       createExpeditionRun({
@@ -5819,7 +6040,8 @@ export function GameProvider({
           expeditionPreparation.hasRations,
         hasMedicine:
           expeditionPreparation.hasMedicine,
-        baseReward: expeditionBaseReward
+        baseReward: expeditionBaseReward,
+        rewardMultiplier
       })
     );
     return true;
@@ -5872,10 +6094,23 @@ export function GameProvider({
     setExpeditionRunsCompleted(
       previous => previous + 1
     );
-    accrueRegionalProduction();
-    setResources(previous =>
-      addResources(previous, reward)
-    );
+
+    if (activeExpeditionRun.rewardMultiplier > 0) {
+      setExpeditionRewardChapter(
+        chapterNumber
+      );
+      setExpeditionRewardedRunsThisChapter(
+        previous =>
+          expeditionRewardChapter === chapterNumber
+            ? previous + 1
+            : 1
+      );
+      accrueRegionalProduction();
+      setResources(previous =>
+        addResources(previous, reward)
+      );
+    }
+
     setArmyReadiness(
       clampArmyReadiness(
         activeExpeditionRun.readiness
@@ -5896,7 +6131,8 @@ export function GameProvider({
       kingdomTrialCompletions.includes(trialId) ||
       !isKingdomTrialUnlocked(
         trialId,
-        kingdomTrialCompletions
+        kingdomTrialCompletions,
+        chapterNumber
       )
     ) {
       return false;
@@ -5979,7 +6215,12 @@ export function GameProvider({
           settlementEffects.dailyProvisionBonus
       }));
     } else if (placementId === 'expedition_ticket') {
-      setExpeditionTickets(previous => previous + 1);
+      setExpeditionTickets(previous =>
+        Math.min(
+          MAX_EXPEDITION_TICKETS,
+          previous + 1
+        )
+      );
     } else if (placementId === 'salvage_boost') {
       setResources(previous => ({
         ...previous,
@@ -6409,12 +6650,20 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       activeExpeditionRun,
+      expeditionRewardChapter,
+      expeditionRewardedRunsThisChapter,
+      expeditionNextRewardMultiplier,
       warTableCycle,
       warTableBoardChapter,
       warTableCompletedContractIds,
       warTableBonusContractIds,
       warTableContractsCompleted,
       warTableBonusObjectivesCompleted,
+      warTableBoardsClearedThisChapter,
+      warTableBoardRewardMultiplier,
+      kingdomDefenseRewardChapter,
+      kingdomDefenseRewardedRunsThisChapter,
+      kingdomDefenseNextRewardMultiplier,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,
@@ -6609,6 +6858,20 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       activeExpeditionRun,
+      expeditionRewardChapter,
+      expeditionRewardedRunsThisChapter,
+      expeditionNextRewardMultiplier,
+      warTableCycle,
+      warTableBoardChapter,
+      warTableCompletedContractIds,
+      warTableBonusContractIds,
+      warTableContractsCompleted,
+      warTableBonusObjectivesCompleted,
+      warTableBoardsClearedThisChapter,
+      warTableBoardRewardMultiplier,
+      kingdomDefenseRewardChapter,
+      kingdomDefenseRewardedRunsThisChapter,
+      kingdomDefenseNextRewardMultiplier,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,

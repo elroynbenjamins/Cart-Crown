@@ -7,6 +7,8 @@ import {
 } from 'react-native';
 import {
   evaluateKingdomTrial,
+  getKingdomTrialRequiredChapter,
+  isKingdomTrialUnlocked,
   kingdomTrialOrder
 } from '../game/kingdomTrials';
 import type { KingdomTrialId } from '../game/kingdomTrials';
@@ -32,6 +34,7 @@ export function FormationTrialScreen({
   const { theme } = useGameTheme();
   const {
     activeFaction,
+    chapterNumber,
     formation,
     formationShapeId,
     formationDoctrineId,
@@ -50,11 +53,26 @@ export function FormationTrialScreen({
 
   const completedCount =
     kingdomTrialCompletions.length;
-  const currentTrialId =
+  const nextIncompleteTrialId =
     kingdomTrialOrder.find(
       id =>
         !kingdomTrialCompletions.includes(id)
     ) ?? null;
+  const currentTrialId =
+    nextIncompleteTrialId &&
+    isKingdomTrialUnlocked(
+      nextIncompleteTrialId,
+      kingdomTrialCompletions,
+      chapterNumber
+    )
+      ? nextIncompleteTrialId
+      : null;
+  const nextRequiredChapter =
+    nextIncompleteTrialId
+      ? getKingdomTrialRequiredChapter(
+          nextIncompleteTrialId
+        )
+      : null;
 
   const evaluations = useMemo(
     () =>
@@ -86,7 +104,9 @@ export function FormationTrialScreen({
           kingdomTrialCompletions.includes(id) ||
           id === currentTrialId
       )
-    : [...kingdomTrialOrder];
+    : kingdomTrialOrder.filter(id =>
+        kingdomTrialCompletions.includes(id)
+      );
 
   const checkCurrent = () => {
     if (!currentTrialId) return;
@@ -98,7 +118,7 @@ export function FormationTrialScreen({
         evaluations[currentTrialId].medal;
       setMessage(
         medal +
-          ' Trial complete. The next challenge is now available.'
+          ' Trial complete. Later medals unlock as the campaign advances.'
       );
       return;
     }
@@ -176,10 +196,31 @@ export function FormationTrialScreen({
             { color: theme.colors.textMuted }
           ]}
         >
-          Future trial details stay hidden until
-          the previous medal is earned.
+          Bronze unlocks in Chapter 2, Silver in
+          Chapter 3 and Gold in Chapter 4. Future
+          trial details stay hidden until both the
+          previous medal and chapter gate are met.
         </Text>
       </GameCard>
+
+      {!currentTrialId &&
+      nextIncompleteTrialId &&
+      nextRequiredChapter ? (
+        <GameCard
+          faction={activeFaction}
+          accent={theme.colors.gold}
+        >
+          <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>
+            NEXT TRIAL LOCKED
+          </Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>
+            {nextIncompleteTrialId.toUpperCase()} arrives in Chapter {nextRequiredChapter}
+          </Text>
+          <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+            Keep progressing the campaign. No side-mode grinding is required to unlock the next medal.
+          </Text>
+        </GameCard>
+      ) : null}
 
       {visibleIds.map(id => {
         const evaluation = evaluations[id];
