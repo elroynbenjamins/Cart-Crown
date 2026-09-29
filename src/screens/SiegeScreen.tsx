@@ -340,6 +340,25 @@ export function SiegeScreen({
                   +{Math.round(activeSiegeRun.powerBonus * 100)}%
                 </Text>
               </View>
+              <View style={styles.metric}>
+                <Text style={[styles.label, { color: theme.colors.textMuted }]}>
+                  DEFENDER ALERT
+                </Text>
+                <Text
+                  style={[
+                    styles.value,
+                    {
+                      color:
+                        activeSiegeRun.defenderAlert <= 0
+                          ? theme.colors.primary
+                          : theme.colors.gold
+                    }
+                  ]}
+                >
+                  {activeSiegeRun.defenderAlert > 0 ? '+' : ''}
+                  {Math.round(activeSiegeRun.defenderAlert * 100)}%
+                </Text>
+              </View>
             </View>
             <ProgressBar
               value={progress}
@@ -487,8 +506,12 @@ export function SiegeScreen({
                 const threat =
                   getSiegeThreat(
                     choice,
-                    activeSiegeRun.wagonStageId
+                    activeSiegeRun.wagonStageId,
+                    activeSiegeRun.defenderAlert
                   );
+                const intelVisible =
+                  activeSiegeRun.permanentIntel ||
+                  activeSiegeRun.stageIndex === 0;
                 const effective =
                   getSiegeEffectivePower({
                     basePower:
@@ -544,22 +567,45 @@ export function SiegeScreen({
 
                     <View style={[styles.intel, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}>
                       <Text style={[styles.intelLabel, { color: accent }]}>
-                        DEFENDER FORMATION
+                        {intelVisible
+                          ? 'DEFENDER FORMATION'
+                          : 'DEFENDER INTEL'}
                       </Text>
-                      <Text style={[styles.intelValue, { color: theme.colors.text }]}>
-                        {enemyShape.layout} · {enemyShape.name}
-                      </Text>
-                      <Text style={[styles.intelBody, { color: theme.colors.textMuted }]}>
-                        {effective.matchup.summary}
-                      </Text>
-                      <View style={styles.powerRow}>
-                        <Text style={[styles.power, { color: effective.value >= threat ? theme.colors.primary : theme.colors.gold }]}>
-                          Assault {effective.value}
-                        </Text>
-                        <Text style={[styles.power, { color: theme.colors.danger }]}>
-                          Defense {threat}
-                        </Text>
-                      </View>
+                      {intelVisible ? (
+                        <>
+                          <Text style={[styles.intelValue, { color: theme.colors.text }]}>
+                            {enemyShape.layout} · {enemyShape.name}
+                          </Text>
+                          <Text style={[styles.intelBody, { color: theme.colors.textMuted }]}>
+                            {effective.matchup.summary}
+                          </Text>
+                          <View style={styles.powerRow}>
+                            <Text style={[styles.power, { color: effective.value >= threat ? theme.colors.primary : theme.colors.gold }]}>
+                              Assault {effective.value}
+                            </Text>
+                            <Text style={[styles.power, { color: theme.colors.danger }]}>
+                              Defense {threat}
+                            </Text>
+                          </View>
+                        </>
+                      ) : (
+                        <>
+                          <Text style={[styles.intelValue, { color: theme.colors.text }]}>
+                            Inner defenders unscouted
+                          </Text>
+                          <Text style={[styles.intelBody, { color: theme.colors.textMuted }]}>
+                            Upgrade the Scout structure to Level 2 before departure to reveal inner formation, matchup and exact defense values for the full siege.
+                          </Text>
+                          <View style={styles.powerRow}>
+                            <Text style={[styles.power, { color: theme.colors.text }]}>
+                              Assault {effective.value}
+                            </Text>
+                            <Text style={[styles.power, { color: theme.colors.textMuted }]}>
+                              Defense ???
+                            </Text>
+                          </View>
+                        </>
+                      )}
                     </View>
 
                     <View style={styles.chips}>
@@ -579,6 +625,22 @@ export function SiegeScreen({
                         <StatusPill
                           label={'+' + Math.round((choice.powerBonusDelta ?? 0) * 100) + '% MOMENTUM'}
                           tone="available"
+                        />
+                      ) : null}
+                      {(choice.defenderAlertDelta ?? 0) !== 0 ? (
+                        <StatusPill
+                          label={
+                            ((choice.defenderAlertDelta ?? 0) > 0
+                              ? '+'
+                              : '') +
+                            Math.round((choice.defenderAlertDelta ?? 0) * 100) +
+                            '% ALERT'
+                          }
+                          tone={
+                            (choice.defenderAlertDelta ?? 0) <= 0
+                              ? 'ready'
+                              : 'elite'
+                          }
                         />
                       ) : null}
                     </View>
