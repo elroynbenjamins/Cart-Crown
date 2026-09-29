@@ -58,6 +58,7 @@ import { EmptyThroneScreen } from './screens/EmptyThroneScreen';
 import { ThreeWarningsScreen } from './screens/ThreeWarningsScreen';
 import { DividedMarchScreen } from './screens/DividedMarchScreen';
 import { SettlementScreen } from './screens/SettlementScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
 import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
@@ -111,7 +112,8 @@ type FlowScreen =
   | 'metaCampaign'
   | 'settlement'
   | 'expedition'
-  | 'formationTrial';
+  | 'formationTrial'
+  | 'settings';
 
 const navItems: Array<{ id: NavId; label: string }> = [
   { id: 'kingdom', label: 'Kingdom' },
@@ -176,7 +178,8 @@ const flowTitles: Record<FlowScreen, string> = {
   metaCampaign: 'Three Seals',
   settlement: 'Settlement',
   expedition: 'Expedition',
-  formationTrial: 'Formation Trial'
+  formationTrial: 'Formation Trial',
+  settings: 'Settings'
 };
 
 export function AppShell({
@@ -251,6 +254,10 @@ export function AppShell({
   };
 
   const renderScreen = () => {
+    if (flow === 'settings') {
+      return <SettingsScreen />;
+    }
+
     if (flow === 'battlePrep') {
       return (
         <BattlePrepScreen
@@ -1234,7 +1241,8 @@ export function AppShell({
     flow === 'metaCampaign' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
-    flow === 'formationTrial';
+    flow === 'formationTrial' ||
+    flow === 'settings';
   const title = flow ? flowTitles[flow] : screenTitles[active];
 
   const goBack = () => {
@@ -1344,6 +1352,32 @@ export function AppShell({
             >
               <Text style={[styles.slotButtonText, { color: theme.colors.text }]}>
                 S{saveSlotId}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
+              onPress={() => {
+                setFormationGuide(null);
+                setFlow('settings');
+              }}
+              style={({ pressed }) => [
+                styles.settingsButton,
+                {
+                  backgroundColor: theme.colors.surface1,
+                  borderColor: theme.colors.border,
+                  opacity: pressed ? 0.78 : 1
+                }
+              ]}
+            >
+              <Text
+                style={[
+                  styles.settingsButtonText,
+                  { color: theme.colors.gold }
+                ]}
+              >
+                ⚙
               </Text>
             </Pressable>
 
@@ -1460,6 +1494,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   slotButtonText: { fontSize: 11, fontWeight: '900' },
+  settingsButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  settingsButtonText: {
+    fontSize: 20,
+    lineHeight: 22,
+    fontWeight: '900'
+  },
   themeButton: {
     width: 42,
     height: 42,
