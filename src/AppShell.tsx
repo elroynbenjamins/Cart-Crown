@@ -15,6 +15,7 @@ import { resolveHardwareBackAction } from './game/mobileSession';
 import {
   getNextTutorialMoment,
   getTutorialCompletionKeys,
+  getTutorialFocusResumeSurface,
   shouldRequestChapterOneReview
 } from './game/tutorial';
 import type { TutorialFocusTarget } from './game/tutorial';
@@ -212,10 +213,6 @@ export function AppShell({
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
   const [preparationFixTarget, setPreparationFixTarget] =
     useState<BattlePreparationFixTarget | null>(null);
-  const [tutorialFocus, setTutorialFocus] =
-    useState<TutorialFocusTarget | null>(null);
-  const [tutorialFocusKey, setTutorialFocusKey] =
-    useState<string | null>(null);
   const reviewAttemptedRef = useRef(false);
   const { theme, cycleTheme } = useGameTheme();
   const {
@@ -237,9 +234,17 @@ export function AppShell({
     currentWagonStage,
     tutorialSeen,
     markTutorialSeen,
+    tutorialFocus,
+    tutorialFocusKey,
+    beginTutorialFocus,
+    clearTutorialFocus,
     reviewPromptShown,
     markReviewPromptShown
   } = useGame();
+  const initialTutorialFocusRef = useRef<TutorialFocusTarget | null>(
+    tutorialFocus
+  );
+  const tutorialResumeHandledRef = useRef(false);
 
   const tutorialView =
     flow === 'battlePrep' ||
@@ -331,13 +336,11 @@ export function AppShell({
       ).forEach(markTutorialSeen);
     }
 
-    setTutorialFocus(null);
-    setTutorialFocusKey(null);
+    clearTutorialFocus();
   };
 
   const cancelTutorialFocus = () => {
-    setTutorialFocus(null);
-    setTutorialFocusKey(null);
+    clearTutorialFocus();
   };
 
   const handleTutorialPrimary = () => {
@@ -345,14 +348,22 @@ export function AppShell({
 
     const target = tutorialMoment.target;
     const focus = tutorialMoment.focusAfterPrimary ?? null;
+    const seenKeys =
+      tutorialMoment.seenKeys ?? [
+        tutorialMoment.key
+      ];
 
     if (focus) {
-      setTutorialFocus(focus);
-      setTutorialFocusKey(tutorialMoment.key);
+      seenKeys
+        .filter(key => key !== tutorialMoment.key)
+        .forEach(markTutorialSeen);
+      beginTutorialFocus(
+        tutorialMoment.key,
+        focus
+      );
     } else {
-      markTutorialSeen(tutorialMoment.key);
-      setTutorialFocus(null);
-      setTutorialFocusKey(null);
+      seenKeys.forEach(markTutorialSeen);
+      clearTutorialFocus();
     }
 
     if (target === 'campaign') {
@@ -378,6 +389,48 @@ export function AppShell({
       setFlow('forge');
     }
   };
+
+  useEffect(() => {
+    if (
+      tutorialResumeHandledRef.current ||
+      !initialTutorialFocusRef.current
+    ) {
+      return;
+    }
+
+    tutorialResumeHandledRef.current = true;
+    const focus = initialTutorialFocusRef.current;
+    const surface =
+      getTutorialFocusResumeSurface(focus);
+
+    if (surface === 'campaign') {
+      setFlow(null);
+      setActive('campaign');
+    } else if (surface === 'formation') {
+      setFlow(null);
+      setActive('formation');
+    } else if (surface === 'settlement') {
+      setActive('kingdom');
+      setFlow('settlement');
+    } else if (surface === 'forge') {
+      setActive('kingdom');
+      setFlow('forge');
+    } else if (surface === 'army') {
+      setFlow(null);
+      setActive('army');
+    } else if (surface === 'kingdom') {
+      setFlow(null);
+      setActive('kingdom');
+    } else if (
+      surface === 'results' &&
+      lastBattleResult
+    ) {
+      setFlow('results');
+    } else if (surface === 'battlePrep') {
+      setActive('campaign');
+      setFlow('battlePrep');
+    }
+  }, [lastBattleResult]);
 
   useEffect(() => {
     if (
@@ -1533,13 +1586,17 @@ export function AppShell({
         }
 
         if (action === 'continue_results') {
-          cancelTutorialFocus();
+          if (tutorialFocus?.kind === 'results-continue') {
+            completeTutorialFocus();
+          } else {
+            cancelTutorialFocus();
+          }
           handleResultsContinue();
           return true;
         }
 
         if (action === 'prepare_rematch') {
-          setTutorialFocus(null);
+          cancelTutorialFocus();
           setFlow('battlePrep');
           return true;
         }
