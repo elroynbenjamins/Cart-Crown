@@ -784,7 +784,11 @@ export function getNextTutorialMoment(
   if (factionIntro) return factionIntro;
 
   const system = systemMoment(context);
-  if (system?.key === 'system:settlement') {
+  if (
+    system?.key === 'system:settlement' ||
+    system?.key === 'system:magic-discovery' ||
+    system?.key === 'system:flying-discovery'
+  ) {
     return system;
   }
 
