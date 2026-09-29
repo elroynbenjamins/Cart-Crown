@@ -1053,7 +1053,7 @@ export function normalArmy(
   );
 }
 
-function strongArmy(
+export function strongArmy(
   faction: FactionId,
   chapter: number
 ) {
