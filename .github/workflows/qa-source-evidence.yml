@@ -1,0 +1,25 @@
+name: Native source evidence
+on:
+  pull_request:
+    paths: ['.github/workflows/qa-source-evidence.yml']
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Package only game assets and source needed to diagnose native QA
+        run: |
+          mkdir -p source-evidence
+          git rev-parse HEAD > source-evidence/source-commit.txt
+          zip -qr source-evidence/game-source.zip assets/game src scripts package.json app.json tsconfig.json .github/workflows/android-native-qa.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cart-crown-native-source
+          path: source-evidence/
+          retention-days: 1
+          if-no-files-found: error
