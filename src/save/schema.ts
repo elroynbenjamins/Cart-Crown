@@ -11,6 +11,11 @@ import {
   getExpeditionChoice
 } from '../game/expeditions';
 import type { ExpeditionRunState } from '../game/expeditions';
+import {
+  getSiegeChoice,
+  siegeStages
+} from '../game/sieges';
+import type { SiegeRunState } from '../game/sieges';
 import { warTableContracts } from '../game/warTable';
 import { MAX_EXPEDITION_TICKETS } from '../game/sideModeBalance';
 import {
@@ -318,6 +323,115 @@ function sanitizeExpeditionRun(
         provisions: 0
       }
     ),
+    path,
+    failed,
+    completed,
+    lastSummary:
+      typeof source.lastSummary === 'string'
+        ? source.lastSummary
+        : null
+  };
+}
+
+function sanitizeSiegeRun(
+  value: unknown
+): SiegeRunState | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const source =
+    value as Partial<SiegeRunState>;
+  const stageIndex = Math.min(
+    siegeStages.length,
+    nonNegativeInteger(
+      source.stageIndex,
+      0
+    )
+  );
+  const path = Array.isArray(source.path)
+    ? source.path.filter(
+        (id): id is string =>
+          typeof id === 'string' &&
+          Boolean(getSiegeChoice(id))
+      )
+    : [];
+  const failed = Boolean(source.failed);
+  const completed =
+    !failed &&
+    Boolean(source.completed) &&
+    stageIndex >= siegeStages.length;
+
+  return {
+    stageIndex:
+      completed
+        ? siegeStages.length
+        : Math.min(
+            stageIndex,
+            siegeStages.length - 1
+          ),
+    readiness: clampArmyReadiness(
+      typeof source.readiness === 'number'
+        ? source.readiness
+        : 100
+    ),
+    supplies: Math.min(
+      8,
+      nonNegativeInteger(
+        source.supplies,
+        0
+      )
+    ),
+    powerBonus:
+      typeof source.powerBonus === 'number' &&
+      Number.isFinite(source.powerBonus)
+        ? Math.max(
+            0,
+            Math.min(0.2, source.powerBonus)
+          )
+        : 0,
+    rewardMultiplier:
+      source.rewardMultiplier === 0 ||
+      source.rewardMultiplier === 0.5 ||
+      source.rewardMultiplier === 1
+        ? source.rewardMultiplier
+        : 1,
+    basePower: nonNegativeInteger(
+      source.basePower,
+      0
+    ),
+    preparationMultiplier:
+      typeof source.preparationMultiplier === 'number' &&
+      Number.isFinite(source.preparationMultiplier)
+        ? Math.max(
+            1,
+            Math.min(1.25, source.preparationMultiplier)
+          )
+        : 1,
+    playerShapeId:
+      formationShapes.some(
+        shape =>
+          shape.id === source.playerShapeId
+      )
+        ? source.playerShapeId as FormationShapeId
+        : 'balanced_333',
+    wagonStageId:
+      typeof source.wagonStageId === 'string'
+        ? source.wagonStageId
+        : 'fort',
+    engineering: Math.min(
+      3,
+      nonNegativeInteger(
+        source.engineering,
+        0
+      )
+    ),
+    permanentIntel:
+      Boolean(source.permanentIntel),
+    hasRations:
+      Boolean(source.hasRations),
+    hasMedicine:
+      Boolean(source.hasMedicine),
     path,
     failed,
     completed,
@@ -888,6 +1002,25 @@ export function sanitizeFactionGameState(
         stored.kingdomDefenseRewardedRunsThisChapter,
         0
       ),
+    siegeRunsCompleted:
+      nonNegativeInteger(
+        stored.siegeRunsCompleted,
+        0
+      ),
+    activeSiegeRun:
+      sanitizeSiegeRun(
+        stored.activeSiegeRun
+      ),
+    siegeRewardChapter:
+      nonNegativeInteger(
+        stored.siegeRewardChapter,
+        chapterNumber
+      ),
+    siegeRewardedRunsThisChapter:
+      nonNegativeInteger(
+        stored.siegeRewardedRunsThisChapter,
+        0
+      ),
     kingdomTrialCompletions,
     formationTrialCompleted:
       Boolean(stored.formationTrialCompleted) ||
@@ -1077,6 +1210,10 @@ export function createHumanFactionState(): FactionGameState {
     warTableBoardsClearedThisChapter: 0,
     kingdomDefenseRewardChapter: 1,
     kingdomDefenseRewardedRunsThisChapter: 0,
+    siegeRunsCompleted: 0,
+    activeSiegeRun: null,
+    siegeRewardChapter: 1,
+    siegeRewardedRunsThisChapter: 0,
     formationTrialCompleted: false,
     kingdomTrialCompletions: [],
     completedStoryGates: [],

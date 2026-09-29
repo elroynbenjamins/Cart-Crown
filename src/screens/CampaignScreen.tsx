@@ -98,6 +98,7 @@ export function CampaignScreen({
   onOpenMetaCampaign,
   onOpenWarTable,
   onOpenExpedition,
+  onOpenSiege,
   onOpenFormationTrial,
   tutorialFocus,
   onTutorialFocusComplete
@@ -175,6 +176,7 @@ export function CampaignScreen({
   onOpenMetaCampaign: () => void;
   onOpenWarTable: () => void;
   onOpenExpedition: () => void;
+  onOpenSiege: () => void;
   onOpenFormationTrial: () => void;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
@@ -210,6 +212,8 @@ export function CampaignScreen({
     expeditionTickets,
     expeditionRunsCompleted,
     activeExpeditionRun,
+    siegeRunsCompleted,
+    activeSiegeRun,
     warTableCycle,
     warTableCompletedContractIds,
     kingdomTrialCompletions,
@@ -261,6 +265,7 @@ export function CampaignScreen({
         onOpenMetaCampaign={onOpenMetaCampaign}
         onOpenWarTable={onOpenWarTable}
         onOpenExpedition={onOpenExpedition}
+        onOpenSiege={onOpenSiege}
         onOpenFormationTrial={onOpenFormationTrial}
         onOpenKingdomDefense={onOpenKingdomDefense}
         tutorialFocus={tutorialFocus}
@@ -856,7 +861,8 @@ export function CampaignScreen({
         'war_table',
         'formation_trials',
         'kingdom_defense',
-        'expeditions'
+        'expeditions',
+        'sieges'
       ].includes(mode.id) &&
       isSideModeUnlocked(mode.id)
   );
@@ -866,6 +872,7 @@ export function CampaignScreen({
   const openMode = (id: SideModeId) => {
     if (id === 'war_table') onOpenWarTable();
     if (id === 'expeditions') onOpenExpedition();
+    if (id === 'sieges') onOpenSiege();
     if (id === 'formation_trials') onOpenFormationTrial();
     if (id === 'kingdom_defense') onOpenKingdomDefense();
   };
@@ -920,6 +927,21 @@ export function CampaignScreen({
             </Text>
           ) : null}
 
+          {mode.id === 'sieges' ? (
+            <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
+              {activeSiegeRun
+                ? activeSiegeRun.completed
+                  ? 'Fortress captured · reward ready'
+                  : activeSiegeRun.failed
+                    ? 'Assault failed · return to close it'
+                    : 'Siege active · Stage ' +
+                      (activeSiegeRun.stageIndex + 1) +
+                      '/4'
+                : 'Completed sieges: ' +
+                  siegeRunsCompleted}
+            </Text>
+          ) : null}
+
           {mode.id === 'formation_trials' ? (
             <View style={styles.modeStatusRow}>
               <StatusPill
@@ -956,7 +978,10 @@ export function CampaignScreen({
                 mode.id === 'expeditions' &&
                 activeExpeditionRun
                   ? 'Resume Expedition'
-                  : 'Open ' + mode.name
+                  : mode.id === 'sieges' &&
+                      activeSiegeRun
+                    ? 'Resume Siege'
+                    : 'Open ' + mode.name
               }
               onPress={() => openMode(mode.id)}
             />

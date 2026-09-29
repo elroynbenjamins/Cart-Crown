@@ -51,7 +51,7 @@ export type FormationPreset = {
   formationDoctrineId: string;
   formation: Array<string | null>;
 };
-export type SideModeId = 'war_table' | 'expeditions' | 'formation_trials' | 'kingdom_defense' | 'relic_hunts';
+export type SideModeId = 'war_table' | 'expeditions' | 'formation_trials' | 'kingdom_defense' | 'sieges' | 'relic_hunts';
 export type EquipmentSlot = 'weapon' | 'armor' | 'shield' | 'mount' | 'artifact';
 export type CommanderSkillEffectType =
   | 'single_damage'

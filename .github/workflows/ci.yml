@@ -57,6 +57,9 @@ jobs:
       - name: Side-mode difficulty regression
         run: npm run side-mode-difficulty:check
 
+      - name: Offensive Siege regression
+        run: npm run siege:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 

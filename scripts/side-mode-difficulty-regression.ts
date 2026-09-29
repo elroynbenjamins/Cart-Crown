@@ -25,6 +25,10 @@ import {
 import {
   getWarTablePostedContracts
 } from '../src/game/warTable';
+import {
+  createSiegeRun,
+  resolveSiegeChoice
+} from '../src/game/sieges';
 import type {
   CommanderPathDefinition,
   FactionId,
@@ -744,9 +748,234 @@ function runExpeditionMatrix() {
   }
 }
 
+function siegeRun({
+  faction,
+  chapter,
+  profile,
+  route
+}: {
+  faction: FactionId;
+  chapter: number;
+  profile: Profile;
+  route: 'safe' | 'tactical';
+}) {
+  const units =
+    armyFor(
+      faction,
+      chapter,
+      profile
+    );
+  const shapeId =
+    shapeFor(
+      faction,
+      chapter
+    );
+  const commander =
+    commanderFor(
+      faction,
+      profile
+    );
+  const basePower =
+    sideModeBasePower({
+      faction,
+      chapter,
+      units,
+      shapeId,
+      commander
+    });
+
+  let run = createSiegeRun({
+    readiness:
+      readinessFor(profile),
+    supplies:
+      profile === 'under'
+        ? 3
+        : profile === 'normal'
+          ? 5
+          : 7,
+    basePower,
+    preparationMultiplier:
+      profile === 'under'
+        ? 1.03
+        : profile === 'normal'
+          ? 1.1
+          : 1.18,
+    playerShapeId: shapeId,
+    wagonStageId:
+      stageFor(
+        faction,
+        chapter
+      ),
+    engineering:
+      profile === 'under'
+        ? 1
+        : profile === 'normal'
+          ? 2
+          : 3,
+    permanentIntel:
+      profile !== 'under',
+    hasRations:
+      profile !== 'under',
+    hasMedicine:
+      profile === 'optimized',
+    rewardMultiplier: 1
+  });
+
+  const choices =
+    route === 'safe'
+      ? [
+          'approach_shielded',
+          'breach_ram',
+          'courtyard_center',
+          'commander_keep'
+        ]
+      : [
+          'approach_flank',
+          'breach_sappers',
+          'courtyard_towers',
+          'commander_keep'
+        ];
+
+  for (const choiceId of choices) {
+    const result =
+      resolveSiegeChoice({
+        run,
+        choiceId
+      });
+
+    if (!result.ok) {
+      return {
+        completed: false,
+        failed: true,
+        readiness: run.readiness
+      };
+    }
+
+    run = result.state;
+    if (
+      run.failed ||
+      run.completed
+    ) {
+      break;
+    }
+  }
+
+  return {
+    completed: run.completed,
+    failed: run.failed,
+    readiness: run.readiness
+  };
+}
+
+function runSiegeMatrix() {
+  console.log('\nOffensive Siege side-mode matrix');
+  console.log(
+    'Faction Ch Profile    Safe       Tactical'
+  );
+
+  for (const faction of [
+    'human',
+    'elf',
+    'orc'
+  ] as const) {
+    for (const chapter of [3, 4, 5, 6]) {
+      for (const profile of [
+        'under',
+        'normal',
+        'optimized'
+      ] as const) {
+        const safe = siegeRun({
+          faction,
+          chapter,
+          profile,
+          route: 'safe'
+        });
+        const tactical = siegeRun({
+          faction,
+          chapter,
+          profile,
+          route: 'tactical'
+        });
+
+        const flag = (
+          value: typeof safe
+        ) =>
+          value.completed
+            ? 'WIN ' +
+              value.readiness +
+              '%'
+            : 'LOSS ' +
+              value.readiness +
+              '%';
+
+        console.log(
+          faction.padEnd(6) +
+            ' ' +
+            String(chapter).padStart(2) +
+            ' ' +
+            profile.padEnd(10) +
+            ' ' +
+            flag(safe).padEnd(10) +
+            ' ' +
+            flag(tactical)
+        );
+
+        if (profile === 'normal') {
+          expect(
+            safe.completed,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' normal army cannot clear the safer Offensive Siege plan.'
+          );
+          expect(
+            safe.readiness <= 92,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' Offensive Siege leaves a normal army almost untouched (' +
+              safe.readiness +
+              '%).'
+          );
+        }
+
+        if (profile === 'under') {
+          expect(
+            !tactical.completed,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' underprepared army clears the tactical Offensive Siege plan.'
+          );
+        }
+
+        if (profile === 'optimized') {
+          expect(
+            tactical.completed,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' optimized army cannot clear the tactical Offensive Siege plan.'
+          );
+          expect(
+            tactical.readiness <= 96,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' tactical Siege is almost wear-free for optimized army (' +
+              tactical.readiness +
+              '%).'
+          );
+        }
+      }
+    }
+  }
+}
+
 runWarTableMatrix();
 runDefenseMatrix();
 runExpeditionMatrix();
+runSiegeMatrix();
 
 if (failures.length > 0) {
   console.error(

@@ -57,6 +57,7 @@ export function FactionOpeningCampaignScreen({
   onOpenMetaCampaign,
   onOpenWarTable,
   onOpenExpedition,
+  onOpenSiege,
   onOpenFormationTrial,
   onOpenKingdomDefense,
   tutorialFocus,
@@ -100,6 +101,7 @@ export function FactionOpeningCampaignScreen({
   onOpenMetaCampaign: () => void;
   onOpenWarTable: () => void;
   onOpenExpedition: () => void;
+  onOpenSiege: () => void;
   onOpenFormationTrial: () => void;
   onOpenKingdomDefense: () => void;
   tutorialFocus?: TutorialFocusTarget | null;
@@ -119,6 +121,8 @@ export function FactionOpeningCampaignScreen({
     expeditionTickets,
     expeditionRunsCompleted,
     activeExpeditionRun,
+    siegeRunsCompleted,
+    activeSiegeRun,
     warTableCycle,
     warTableCompletedContractIds,
     kingdomTrialCompletions,
@@ -132,7 +136,8 @@ export function FactionOpeningCampaignScreen({
         'war_table',
         'formation_trials',
         'kingdom_defense',
-        'expeditions'
+        'expeditions',
+        'sieges'
       ].includes(mode.id) &&
       isSideModeUnlocked(mode.id)
   );
@@ -140,6 +145,7 @@ export function FactionOpeningCampaignScreen({
   const openSideMode = (id: SideModeId) => {
     if (id === 'war_table') onOpenWarTable();
     if (id === 'expeditions') onOpenExpedition();
+    if (id === 'sieges') onOpenSiege();
     if (id === 'formation_trials') onOpenFormationTrial();
     if (id === 'kingdom_defense') onOpenKingdomDefense();
   };
@@ -658,6 +664,19 @@ export function FactionOpeningCampaignScreen({
                             (activeExpeditionRun.stageIndex + 1) +
                             '/5'
                       : expeditionTickets + ' ticket' + (expeditionTickets === 1 ? '' : 's')
+                    : mode.id === 'sieges'
+                      ? activeSiegeRun
+                        ? activeSiegeRun.completed
+                          ? 'Fortress captured · reward ready'
+                          : activeSiegeRun.failed
+                            ? 'Assault failed'
+                            : 'Siege active · Stage ' +
+                              (activeSiegeRun.stageIndex + 1) +
+                              '/4'
+                        : siegeRunsCompleted +
+                          (siegeRunsCompleted === 1
+                            ? ' clear'
+                            : ' clears')
                     : mode.id === 'formation_trials'
                       ? kingdomTrialCompletions.length +
                         '/3 medals'
@@ -709,7 +728,10 @@ export function FactionOpeningCampaignScreen({
                           mode.id === 'expeditions' &&
                           activeExpeditionRun
                             ? 'Resume Expedition'
-                            : 'Open ' + mode.name
+                            : mode.id === 'sieges' &&
+                                activeSiegeRun
+                              ? 'Resume Siege'
+                              : 'Open ' + mode.name
                         }
                         onPress={() => {
                           if (tutorialActivityFocused) {

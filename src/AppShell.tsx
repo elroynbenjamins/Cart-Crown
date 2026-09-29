@@ -31,6 +31,7 @@ import { CommanderChoiceScreen } from './screens/CommanderChoiceScreen';
 import { ConcordVaultScreen } from './screens/ConcordVaultScreen';
 import { EquipmentManageScreen } from './screens/EquipmentManageScreen';
 import { ExpeditionScreen } from './screens/ExpeditionScreen';
+import { SiegeScreen } from './screens/SiegeScreen';
 import { FactionCampScreen } from './screens/FactionCampScreen';
 import { FactionChapterTwoEventScreen } from './screens/FactionChapterTwoEventScreen';
 import { FactionChapterThreeEventScreen } from './screens/FactionChapterThreeEventScreen';
@@ -134,6 +135,7 @@ type FlowScreen =
   | 'settlement'
   | 'warTable'
   | 'expedition'
+  | 'siege'
   | 'formationTrial'
   | 'settings'
   | 'preparationFix';
@@ -207,6 +209,7 @@ const flowTitles: Record<FlowScreen, string> = {
   settlement: 'Settlement',
   warTable: 'War Table',
   expedition: 'Expedition',
+  siege: 'Offensive Siege',
   formationTrial: 'Kingdom Trial',
   settings: 'Settings',
   preparationFix: 'Preparation Fix'
@@ -226,9 +229,9 @@ export function AppShell({
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
   const [formationReturnFlow, setFormationReturnFlow] =
-    useState<'formationTrial' | 'kingdomDefense' | 'expedition' | null>(null);
+    useState<'formationTrial' | 'kingdomDefense' | 'expedition' | 'siege' | null>(null);
   const [wagonReturnFlow, setWagonReturnFlow] =
-    useState<'kingdomDefense' | 'expedition' | null>(null);
+    useState<'kingdomDefense' | 'expedition' | 'siege' | null>(null);
   const [preparationFixTarget, setPreparationFixTarget] =
     useState<BattlePreparationFixTarget | null>(null);
   const [tutorialFocus, setTutorialFocus] =
@@ -313,6 +316,8 @@ export function AppShell({
       isSideModeUnlocked('kingdom_defense'),
     expeditionsUnlocked:
       isSideModeUnlocked('expeditions'),
+    siegesUnlocked:
+      isSideModeUnlocked('sieges'),
     magicStoryUnlocked: Boolean(
       magicFamilyUnlock &&
       completedStoryGates.includes(
@@ -1228,6 +1233,27 @@ export function AppShell({
       );
     }
 
+    if (flow === 'siege') {
+      return (
+        <SiegeScreen
+          onEditFormation={() => {
+            setFormationReturnFlow('siege');
+            setFlow(null);
+            setActive('formation');
+          }}
+          onEditWagon={() => {
+            setWagonReturnFlow('siege');
+            setFlow(null);
+            setActive('wagon');
+          }}
+          onExit={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
+    }
+
     if (flow === 'formationTrial') {
       return (
         <FormationTrialScreen
@@ -1530,6 +1556,7 @@ export function AppShell({
             onOpenMetaCampaign={() => setFlow('metaCampaign')}
             onOpenWarTable={() => setFlow('warTable')}
             onOpenExpedition={() => setFlow('expedition')}
+            onOpenSiege={() => setFlow('siege')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
         );
@@ -1557,7 +1584,9 @@ export function AppShell({
                   ? 'Back to Kingdom Defense'
                   : formationReturnFlow === 'expedition'
                     ? 'Back to Expedition'
-                    : undefined
+                    : formationReturnFlow === 'siege'
+                      ? 'Back to Offensive Siege'
+                      : undefined
             }
             onReturnToBattlePrep={
               formationGuide
@@ -1587,7 +1616,9 @@ export function AppShell({
                 ? 'Back to Kingdom Defense'
                 : wagonReturnFlow === 'expedition'
                   ? 'Back to Expedition'
-                  : undefined
+                  : wagonReturnFlow === 'siege'
+                    ? 'Back to Offensive Siege'
+                    : undefined
             }
           />
         );
@@ -1720,6 +1751,7 @@ export function AppShell({
     flow === 'settlement' ||
     flow === 'warTable' ||
     flow === 'expedition' ||
+    flow === 'siege' ||
     flow === 'formationTrial' ||
     flow === 'settings' ||
     flow === 'preparationFix';

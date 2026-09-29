@@ -19,6 +19,7 @@
     "expedition:check": "tsx scripts/expedition-regression.ts",
     "war-table:check": "tsx scripts/war-table-regression.ts",
     "side-mode-difficulty:check": "tsx scripts/side-mode-difficulty-regression.ts",
+    "siege:check": "tsx scripts/siege-regression.ts",
     "cross-mode:check": "tsx scripts/cross-mode-regression.ts",
     "art:check": "node scripts/art-regression.mjs",
     "boss:check": "tsx scripts/boss-presentation-regression.ts",
