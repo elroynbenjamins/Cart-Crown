@@ -41,6 +41,15 @@ type ExchangeFeedback = {
   ongoingDamage: number;
 };
 
+export type BattleCombatSummary = {
+  exchanges: number;
+  damageDealt: number;
+  damageTaken: number;
+  healing: number;
+  remainingHp: number;
+  maxHp: number;
+};
+
 const combatLines = [
   'The front line catches the enemy advance.',
   'Your formation turns spacing into a clean counterattack.',
@@ -64,7 +73,7 @@ export function BattleScreen({
   onDefeated
 }: {
   encounterId: EncounterId;
-  onFinished: () => void;
+  onFinished: (summary: BattleCombatSummary) => void;
   onDefeated: () => void;
 }) {
   const { theme } = useGameTheme();
@@ -230,6 +239,11 @@ export function BattleScreen({
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
   const [battleSpeed, setBattleSpeed] = useState<BattleSpeed>(1);
   const [exchangeFeedback, setExchangeFeedback] = useState<ExchangeFeedback | null>(null);
+  const [battleTotals, setBattleTotals] = useState({
+    damageDealt: 0,
+    damageTaken: 0,
+    healing: 0
+  });
   const [lastAction, setLastAction] = useState(
     enemyArmyProfile.name +
       ' in ' +
@@ -511,6 +525,11 @@ export function BattleScreen({
         commanderSkillName,
         ongoingDamage
       });
+      setBattleTotals(previous => ({
+        damageDealt: previous.damageDealt + actualPlayerDamage,
+        damageTaken: previous.damageTaken + actualEnemyDamage,
+        healing: previous.healing + actualHealing
+      }));
       setTurn(previous => previous + 1);
       setLastAction(
         (attackingUnit
@@ -957,7 +976,14 @@ export function BattleScreen({
               encounter.difficulty,
               true
             );
-            onFinished();
+            onFinished({
+              exchanges: turn,
+              damageDealt: battleTotals.damageDealt,
+              damageTaken: battleTotals.damageTaken,
+              healing: battleTotals.healing,
+              remainingHp: partyHp,
+              maxHp: partyMaxHp
+            });
           }}
         />
       ) : null}
