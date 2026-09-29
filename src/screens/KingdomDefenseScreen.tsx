@@ -35,9 +35,11 @@ import {
 
 export function KingdomDefenseScreen({
   onEditFormation,
+  onEditWagon,
   onExit
 }: {
   onEditFormation: () => void;
+  onEditWagon: () => void;
   onExit: () => void;
 }) {
   const { theme } = useGameTheme();
@@ -968,6 +970,10 @@ export function KingdomDefenseScreen({
               <SecondaryButton
                 label="Edit Formation"
                 onPress={onEditFormation}
+              />
+              <SecondaryButton
+                label="Edit Wagon"
+                onPress={onEditWagon}
               />
             </>
           ) : (
