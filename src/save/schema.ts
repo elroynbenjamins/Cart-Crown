@@ -1131,19 +1131,27 @@ export function metadataFromSnapshot(
                 ? 'Chapter 3 · Border Fort'
                 : 'Chapter 3 · Marcher Envoy';
   } else if (current.chapterNumber === 2) {
-    chapterLabel = current.ironProvostWon
-      ? 'Chapter 2 · Raise Greenkeep Town'
-      : current.signalTowerUnlocked
-        ? 'Chapter 2 · The Iron Provost'
-        : current.kingdomDefenseCompleted
-          ? 'Chapter 2 · Broken Signal Tower'
-          : current.unlockedResourceSites.includes('greenwood_camp')
-            ? 'Chapter 2 · Kingdom Defense'
-            : current.unlockedResourceSites.includes('iron_hills_mine')
-              ? 'Chapter 2 · Timber Claim'
-              : current.fourthRecruitChosen
-                ? 'Chapter 2 · Iron Road Skirmish'
-                : 'Chapter 2 · Fort Muster';
+    chapterLabel = current.chapterTwoBossWon
+      ? 'Chapter 2 Complete · Rider\'s Banner'
+      : current.chapterNodes.find(node => node.id === 'ch2_node_10')?.current
+        ? 'Chapter 2 · The Rider\'s Banner'
+        : current.chapterNodes.find(node => node.id === 'ch2_node_9')?.current
+          ? 'Chapter 2 · Build Something Worth Defending'
+          : current.chapterNodes.find(node => node.id === 'ch2_node_8')?.current
+            ? 'Chapter 2 · Take the Watch'
+            : current.chapterNodes.find(node => node.id === 'ch2_node_7')?.current
+              ? 'Chapter 2 · Those Who Remain'
+              : current.chapterNodes.find(node => node.id === 'ch2_node_6')?.current
+                ? 'Chapter 2 · The Long Haul'
+                : current.chapterNodes.find(node => node.id === 'ch2_node_5')?.current
+                  ? 'Chapter 2 · Brace!'
+                  : current.chapterNodes.find(node => node.id === 'ch2_node_4')?.current
+                    ? 'Chapter 2 · Horse and Rider'
+                    : current.chapterNodes.find(node => node.id === 'ch2_node_3')?.current
+                      ? 'Chapter 2 · Three Roads'
+                      : current.chapterNodes.find(node => node.id === 'ch2_node_2')?.current
+                        ? 'Chapter 2 · Beyond the Fires'
+                        : 'Chapter 2 · They Found Us';
   } else if (current.refugeeCampSecured) {
     chapterLabel = 'Chapter 1 · The Toll Captain';
   } else if (current.mercenaryPatrolWon && !current.commanderPathId) {
@@ -1192,10 +1200,10 @@ export function metadataFromSnapshot(
               : current.wagonStageId === 'town'
                 ? 'Greenkeep Town'
                 : current.wagonStageId === 'fort'
-                  ? 'Greenkeep Fort'
+                  ? 'Greenkeep Outpost'
                   : current.settlementUpgraded
-                    ? 'Greenkeep Settlement'
-                    : 'Refugee Camp';
+                    ? 'Greenkeep Permanent Camp'
+                    : 'Temporary Camp';
 
   return {
     slotId,
