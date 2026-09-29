@@ -6033,7 +6033,11 @@ export function GameProvider({
     }
 
     if (id === 'sieges') {
-      return chapterNumber >= 3;
+      if (chapterNumber > 3) return true;
+      return (
+        chapterNumber === 3 &&
+        completedNodes >= 3
+      );
     }
 
     // Relic Hunts remain deliberately hidden until their full late-game
