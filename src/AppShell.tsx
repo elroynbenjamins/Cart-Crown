@@ -14,6 +14,7 @@ import type { BattlePreparationFixTarget } from './game/battlePreparation';
 import { resolveHardwareBackAction } from './game/mobileSession';
 import {
   getNextTutorialMoment,
+  getTutorialFocusResumeSurface,
   shouldRequestChapterOneReview
 } from './game/tutorial';
 import type { TutorialFocusTarget } from './game/tutorial';
@@ -376,38 +377,30 @@ export function AppShell({
 
     tutorialResumeHandledRef.current = true;
     const focus = initialTutorialFocusRef.current;
+    const surface =
+      getTutorialFocusResumeSurface(focus);
 
-    if (
-      focus.kind === 'campaign-current' ||
-      focus.kind === 'campaign-activities'
-    ) {
+    if (surface === 'campaign') {
       setFlow(null);
       setActive('campaign');
-    } else if (
-      focus.kind === 'formation-unit' ||
-      focus.kind === 'formation-basics' ||
-      focus.kind === 'formation-shape'
-    ) {
+    } else if (surface === 'formation') {
       setFlow(null);
       setActive('formation');
-    } else if (
-      focus.kind === 'settlement-first-plot' ||
-      focus.kind === 'settlement-building'
-    ) {
+    } else if (surface === 'settlement') {
       setActive('kingdom');
       setFlow('settlement');
-    } else if (focus.kind === 'forge-craft') {
+    } else if (surface === 'forge') {
       setActive('kingdom');
       setFlow('forge');
-    } else if (focus.kind === 'kingdom-production') {
+    } else if (surface === 'kingdom') {
       setFlow(null);
       setActive('kingdom');
     } else if (
-      focus.kind === 'results-continue' &&
+      surface === 'results' &&
       lastBattleResult
     ) {
       setFlow('results');
-    } else if (focus.kind === 'battle-begin') {
+    } else if (surface === 'battlePrep') {
       setActive('campaign');
       setFlow('battlePrep');
     }
