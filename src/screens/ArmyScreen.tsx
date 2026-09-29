@@ -28,6 +28,7 @@ export function ArmyScreen({
   onOpenFantasyResearch,
   onOpenFlyingResearch,
   onOpenLargeResearch,
+  onOpenHybridResearch,
   onOpenEquipment,
   tutorialFocus,
   onTutorialFocusComplete
@@ -39,6 +40,7 @@ export function ArmyScreen({
   onOpenFantasyResearch: () => void;
   onOpenFlyingResearch: () => void;
   onOpenLargeResearch: () => void;
+  onOpenHybridResearch: () => void;
   onOpenEquipment: (unitId: string) => void;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
@@ -69,6 +71,8 @@ export function ArmyScreen({
     flyingResearchDefinitions,
     largeFamilyUnlock,
     largeResearchDefinitions,
+    hybridFamilyUnlock,
+    hybridResearchDefinitions,
     researchProgress,
     buildingLevels,
     factionBuildingIds
@@ -119,6 +123,16 @@ export function ArmyScreen({
   );
   const completedLargeResearch =
     largeResearchDefinitions.filter(
+      research => researchProgress[research.id]?.completed
+    ).length;
+  const hybridUnlocked = Boolean(
+    hybridFamilyUnlock &&
+    completedStoryGates.includes(
+      hybridFamilyUnlock.storyGateId
+    )
+  );
+  const completedHybridResearch =
+    hybridResearchDefinitions.filter(
       research => researchProgress[research.id]?.completed
     ).length;
   const mira = units.find(unit => unit.id === 'hum_recruit');
@@ -446,6 +460,67 @@ export function ArmyScreen({
                       onTutorialFocusComplete?.();
                     }
                     onOpenLargeResearch();
+                  }}
+                />
+              </View>
+            </GameCard>
+          </TutorialFocus>
+        </>
+      ) : null}
+
+      {fantasyProgressionChapter >= 8 ? (
+        <>
+          <SectionTitle
+            title="Legendary orders"
+            trailing={
+              hybridUnlocked
+                ? completedHybridResearch +
+                  '/' +
+                  hybridResearchDefinitions.length +
+                  ' researched'
+                : 'Chapter 8'
+            }
+          />
+          <TutorialFocus
+            active={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'hybrid'
+            }
+            label={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'hybrid'
+                ? tutorialFocus.label
+                : undefined
+            }
+          >
+            <GameCard
+              accent={hybridUnlocked ? theme.colors.gold : undefined}
+              faction={activeFaction}
+              state={hybridUnlocked ? 'ready' : 'default'}
+            >
+              <Text style={[styles.lockedTitle, { color: theme.colors.text }]}>
+                {hybridFamilyUnlock?.buildingName ?? 'Legendary Order'}
+              </Text>
+              <Text style={[styles.lockedBody, { color: theme.colors.textMuted }]}>
+                {hybridUnlocked
+                  ? 'The Three Seals have unlocked a legendary Magic + Flying order. These units use dedicated hybrid matchup rules and consume 2 deployment capacity each.'
+                  : 'Complete the Three Seals campaign to open the final Legendary Warfare mastery tier.'}
+              </Text>
+              <View style={styles.recruitButton}>
+                <PrimaryButton
+                  label={
+                    hybridUnlocked
+                      ? 'Open Legendary Orders'
+                      : 'View Chapter 8 Progress'
+                  }
+                  onPress={() => {
+                    if (
+                      tutorialFocus?.kind === 'army-fantasy' &&
+                      tutorialFocus.family === 'hybrid'
+                    ) {
+                      onTutorialFocusComplete?.();
+                    }
+                    onOpenHybridResearch();
                   }}
                 />
               </View>
