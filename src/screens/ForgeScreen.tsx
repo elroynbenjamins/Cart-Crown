@@ -197,5 +197,6 @@ const styles = StyleSheet.create({
   stat: { fontSize: 10, fontWeight: '900' },
   costRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 9, alignItems: 'center', justifyContent: 'space-between' },
   button: { marginTop: 12 },
+  guidanceLaterButton: { marginTop: 8 },
   message: { textAlign: 'center', fontSize: 10.5, fontWeight: '700' }
 });
