@@ -12,7 +12,15 @@ import type { WagonItemDefinition } from '../game/types';
 import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, ProgressBar, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
+import {
+  GameCard,
+  MetricTile,
+  ProgressBar,
+  ScreenHero,
+  SecondaryButton,
+  SectionTitle,
+  StatusPill
+} from '../ui/components';
 import { WagonItemSprite, WagonStageSprite } from '../ui/gameArt';
 
 type DraggableItemProps = {
@@ -153,25 +161,69 @@ export function WagonScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={factionAccent} faction={activeFaction}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerCopy}>
-            <Text style={[styles.eyebrow, { color: factionAccent }]}>CAMPAIGN PACK</Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
-              {faction.wagonName} · {currentWagonStage.width}×{currentWagonStage.height}
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-              Your logistics frame grows with the {faction.name} campaign. Early tiers stay deliberately cramped; later settlement tiers add real packing space.
-            </Text>
+      <ScreenHero
+        eyebrow="CAMPAIGN PACK"
+        title={faction.wagonName}
+        body={
+          'Your logistics frame grows with the ' +
+          faction.name +
+          ' campaign. Early tiers stay deliberately cramped; later settlement tiers add real packing space.'
+        }
+        accent={factionAccent}
+        status={
+          <StatusPill
+            label={
+              currentWagonStage.width +
+              '×' +
+              currentWagonStage.height
+            }
+            tone="current"
+          />
+        }
+      >
+        <View style={styles.heroContent}>
+          <View
+            style={[
+              styles.wagonVisual,
+              { backgroundColor: theme.colors.surface2 }
+            ]}
+          >
+            <WagonStageSprite
+              stageId={currentWagonStage.id}
+              faction={activeFaction}
+              size={60}
+            />
           </View>
-          <View style={styles.wagonVisual}>
-            <WagonStageSprite stageId={currentWagonStage.id} faction={activeFaction} size={74} />
-            <Pill
-              label={String(occupied) + ' / ' + String(currentWagonStage.width * currentWagonStage.height)}
+          <View style={styles.heroMetrics}>
+            <MetricTile
+              label="PACKED"
+              value={
+                occupied +
+                '/' +
+                currentWagonStage.width * currentWagonStage.height
+              }
+              caption="occupied cells"
+              tone="gold"
+            />
+            <MetricTile
+              label="READINESS"
+              value={armyReadiness + '%'}
+              caption={
+                armyReadiness >= 70
+                  ? 'full effectiveness'
+                  : 'recovery advised'
+              }
+              tone={
+                armyReadiness >= 70
+                  ? 'positive'
+                  : armyReadiness >= 50
+                    ? 'gold'
+                    : 'danger'
+              }
             />
           </View>
         </View>
-      </GameCard>
+      </ScreenHero>
 
       <View style={styles.boardWrap}>
         <View
@@ -294,13 +346,25 @@ export function WagonScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 14 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' },
-  headerCopy: { flex: 1 },
-  wagonVisual: { alignItems: 'center', gap: 4 },
-  eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
-  title: { fontSize: 21, fontWeight: '900', marginTop: 4 },
-  subtitle: { fontSize: 13, lineHeight: 18, marginTop: 8 },
+  content: { padding: 16, paddingBottom: 32, gap: 12 },
+  heroContent: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 9
+  },
+  heroMetrics: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7
+  },
+  wagonVisual: {
+    width: 72,
+    minHeight: 72,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   boardWrap: { alignItems: 'center', paddingVertical: 4 },
   board: { position: 'relative' },
   cell: { position: 'absolute', borderWidth: 1, borderRadius: 14 },
