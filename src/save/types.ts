@@ -65,6 +65,7 @@ export type FactionGameState = {
   expeditionTickets: number;
   expeditionRunsCompleted: number;
   formationTrialCompleted: boolean;
+  kingdomTrialCompletions?: string[];
   completedStoryGates?: string[];
   researchProgress?: Record<string, ResearchProgressState>;
   unlockedFantasyClasses?: string[];
