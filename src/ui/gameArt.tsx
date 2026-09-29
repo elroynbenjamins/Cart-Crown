@@ -752,6 +752,144 @@ function FactionUnitSilhouette({
   );
 }
 
+function FantasyUnitOverlay({
+  className,
+  faction,
+  size
+}: {
+  className: string;
+  faction: FactionId;
+  size: number;
+}) {
+  const key = className.toLowerCase();
+  const magical =
+    key.includes('mage') ||
+    key.includes('apprentice') ||
+    key.includes('initiate') ||
+    key.includes('spell') ||
+    key.includes('druid') ||
+    key.includes('shaman') ||
+    key.includes('spirit');
+  const flying =
+    key.includes('griffin') ||
+    key.includes('eagle') ||
+    key.includes('wyvern') ||
+    key.includes('moonwing');
+
+  if (!magical && !flying) return null;
+
+  const accent =
+    faction === 'elf'
+      ? palette.elfLight
+      : faction === 'orc'
+        ? palette.orcLight
+        : palette.humanLight;
+  const secondary =
+    faction === 'elf'
+      ? palette.greenLight
+      : faction === 'orc'
+        ? palette.red
+        : palette.gold;
+
+  return (
+    <>
+      {flying ? (
+        <>
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.02,
+              top: size * 0.31,
+              width: size * 0.3,
+              height: size * 0.13,
+              borderRadius: size * 0.08,
+              backgroundColor: accent,
+              opacity: 0.9,
+              transform: [{ rotate: '-27deg' }]
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.02,
+              top: size * 0.31,
+              width: size * 0.3,
+              height: size * 0.13,
+              borderRadius: size * 0.08,
+              backgroundColor: accent,
+              opacity: 0.9,
+              transform: [{ rotate: '27deg' }]
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.09,
+              top: size * 0.24,
+              width: size * 0.2,
+              height: size * 0.065,
+              backgroundColor: secondary,
+              opacity: 0.9,
+              transform: [{ rotate: '-38deg' }]
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.09,
+              top: size * 0.24,
+              width: size * 0.2,
+              height: size * 0.065,
+              backgroundColor: secondary,
+              opacity: 0.9,
+              transform: [{ rotate: '38deg' }]
+            }}
+          />
+        </>
+      ) : null}
+      {magical ? (
+        <>
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.08,
+              top: size * 0.12,
+              width: size * 0.14,
+              height: size * 0.14,
+              borderRadius: size,
+              backgroundColor: secondary,
+              opacity: 0.95
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.135,
+              top: size * 0.23,
+              width: size * 0.035,
+              height: size * 0.46,
+              backgroundColor: accent,
+              transform: [{ rotate: '8deg' }]
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.19,
+              top: size * 0.18,
+              width: size * 0.12,
+              height: size * 0.04,
+              borderRadius: size,
+              backgroundColor: accent,
+              opacity: 0.75
+            }}
+          />
+        </>
+      ) : null}
+    </>
+  );
+}
+
 export function UnitSprite({
   className,
   faction = 'human',
@@ -768,7 +906,20 @@ export function UnitSprite({
     kind === 'cavalryman' ||
     kind === 'lancer' ||
     kind === 'mounted_archer';
-  const productionScale = mounted && size <= 32 ? 1.12 : 1;
+  const classKey = className.toLowerCase();
+  const flying =
+    classKey.includes('griffin') ||
+    classKey.includes('eagle') ||
+    classKey.includes('wyvern') ||
+    classKey.includes('moonwing');
+  const productionScale =
+    flying
+      ? size <= 32
+        ? 1.18
+        : 1.08
+      : mounted && size <= 32
+        ? 1.12
+        : 1;
   const productionSize = size * productionScale;
 
   return (
@@ -789,6 +940,7 @@ export function UnitSprite({
         <View style={{ width: size, height: size, position: 'relative' }}>
           <PixelSprite artKey={unitArtKey(className)} size={size} faction={faction} />
           <FactionUnitSilhouette faction={faction} className={className} size={size} />
+          <FantasyUnitOverlay className={className} faction={faction} size={size} />
         </View>
       </ProductionAssetFrame>
     </View>
