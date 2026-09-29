@@ -1,4 +1,3 @@
-import type { EncounterId } from './encounters';
 import type { SideModeDefinition } from './types';
 
 export const sideModes: SideModeDefinition[] = [
@@ -53,35 +52,3 @@ export const sideModes: SideModeDefinition[] = [
     example: 'Track a relic guardian through three escalating encounters.'
   }
 ];
-
-export type WarTableContract = {
-  id: string;
-  encounterId: EncounterId;
-  tacticalNote: string;
-  rewardLabel: string;
-};
-
-export const warTableContracts: WarTableContract[] = [
-  {
-    id: 'broken_spear_company',
-    encounterId: 'war_table_broken_spear',
-    tacticalNote:
-      'A 5-2-2 shield-heavy front absorbs direct pressure. Look for flanks, ranged focus or a way to punish its thin middle.',
-    rewardLabel: 'Gold + Iron + Provisions'
-  },
-  {
-    id: 'blackwood_ambush',
-    encounterId: 'war_table_blackwood_ambush',
-    tacticalNote:
-      'A 2-2-5 protected rear hides most of its damage behind a light screen. Backline pressure and speed matter more than brute force.',
-    rewardLabel: 'Gold + Wood + Provisions'
-  },
-  {
-    id: 'red_banner_raiders',
-    encounterId: 'war_table_red_banner',
-    tacticalNote:
-      'A 4-3-2 assault shape tries to win the opening exchanges. A stable frontline and disciplined counter-pressure can outlast it.',
-    rewardLabel: 'Gold + Iron + Provisions'
-  }
-];
-
