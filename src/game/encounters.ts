@@ -4,6 +4,11 @@ export type EncounterId =
   | 'hold_the_road'
   | 'mercenary_patrol'
   | 'toll_captain'
+  | 'ch2_defend_camp'
+  | 'ch2_beyond_fires'
+  | 'ch2_brace'
+  | 'ch2_take_watch'
+  | 'ch2_riders_banner'
   | 'iron_road_skirmish'
   | 'iron_provost'
   | 'border_fort'
@@ -89,6 +94,51 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyName: 'Toll Captain Host',
     enemyCount: 5,
     enemyHp: 340,
+    difficulty: 'Boss'
+  },
+  ch2_defend_camp: {
+    id: 'ch2_defend_camp',
+    name: 'They Found Us',
+    subtitle: 'A probing force strikes the permanent camp before Greenkeep can secure the surrounding roads.',
+    enemyName: 'Roadside Probe',
+    enemyCount: 5,
+    enemyHp: 310,
+    difficulty: 'Normal'
+  },
+  ch2_beyond_fires: {
+    id: 'ch2_beyond_fires',
+    name: 'Beyond the Fires',
+    subtitle: 'Greenkeep pushes past the camp perimeter and meets a disciplined patrol controlling the first approaches.',
+    enemyName: 'Approach Patrol',
+    enemyCount: 6,
+    enemyHp: 370,
+    difficulty: 'Normal'
+  },
+  ch2_brace: {
+    id: 'ch2_brace',
+    name: 'Brace!',
+    subtitle: 'Mounted raiders try to shatter Greenkeep before its newly trained cavalry doctrine can stabilize.',
+    enemyName: 'Road Lancers',
+    enemyCount: 6,
+    enemyHp: 455,
+    difficulty: 'Elite'
+  },
+  ch2_take_watch: {
+    id: 'ch2_take_watch',
+    name: 'Take the Watch',
+    subtitle: 'A fortified watch post controls the roads around Greenkeep and must be taken before the Outpost can expand.',
+    enemyName: 'Watch Garrison',
+    enemyCount: 7,
+    enemyHp: 565,
+    difficulty: 'Elite'
+  },
+  ch2_riders_banner: {
+    id: 'ch2_riders_banner',
+    name: "The Rider's Banner",
+    subtitle: 'The mounted commander behind the regional probes gathers a full field force to break Greenkeep before the Outpost can hold.',
+    enemyName: "Rider's Banner Host",
+    enemyCount: 7,
+    enemyHp: 760,
     difficulty: 'Boss'
   },
   iron_road_skirmish: {
@@ -650,6 +700,11 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   hold_the_road: 'skirmish_screen_243',
   mercenary_patrol: 'assault_432',
   toll_captain: 'wide_vanguard_522',
+  ch2_defend_camp: 'assault_432',
+  ch2_beyond_fires: 'balanced_333',
+  ch2_brace: 'skirmish_screen_243',
+  ch2_take_watch: 'wide_vanguard_522',
+  ch2_riders_banner: 'assault_432',
   iron_road_skirmish: 'balanced_333',
   iron_provost: 'spear_wall_531',
   border_fort: 'wide_vanguard_522',
@@ -929,6 +984,11 @@ const enemyArmyProfileByFormation: Record<FormationShapeId, EnemyArmyProfileId> 
 
 const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>> = {
   mercenary_patrol: 'mercenary_line',
+  ch2_defend_camp: 'raider_pack',
+  ch2_beyond_fires: 'mercenary_line',
+  ch2_brace: 'mounted_hunters',
+  ch2_take_watch: 'shield_host',
+  ch2_riders_banner: 'mounted_hunters',
   iron_road_skirmish: 'mercenary_line',
   lord_marshal_veyr: 'elite_command',
   pretender_general: 'elite_command',
@@ -1052,6 +1112,26 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   toll_captain: {
     resources: { gold: 120, wood: 90, stone: 45, iron: 12, provisions: 8 },
     storySummary: 'The old toll fort falls. Greenkeep now controls the western road and has the stone, timber and authority needed to become a true Fort.'
+  },
+  ch2_defend_camp: {
+    resources: { gold: 48, wood: 10, provisions: 5 },
+    storySummary: 'The probing force breaks against the camp. Greenkeep survives, but remaining behind the fires will only invite a larger attack.'
+  },
+  ch2_beyond_fires: {
+    resources: { gold: 55, wood: 8, stone: 5, provisions: 4 },
+    storySummary: 'The outer approach is cleared. Greenkeep can now support a sixth deployed squad and organize Front, Middle and Rear lines.'
+  },
+  ch2_brace: {
+    resources: { gold: 72, iron: 6, provisions: 5 },
+    storySummary: 'The Road Lancers are stopped. Greenkeep proves that mounted shock can be answered by prepared spear lines and disciplined counter-charges.'
+  },
+  ch2_take_watch: {
+    resources: { gold: 92, wood: 14, stone: 12, iron: 8, provisions: 5 },
+    storySummary: 'The watch post falls. Its height opens the surrounding roads to proper scouting and lets Greenkeep field a seventh active squad.'
+  },
+  ch2_riders_banner: {
+    resources: { gold: 190, wood: 90, stone: 72, iron: 24, provisions: 12 },
+    storySummary: 'The Rider’s Banner falls. Captured dispatches prove that several local commanders were supplied and directed from beyond the region.'
   },
   iron_road_skirmish: {
     resources: { gold: 55, iron: 6, provisions: 3 },
