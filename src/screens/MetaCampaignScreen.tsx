@@ -1,19 +1,18 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { factions } from '../game/factions';
-import { getAllianceNames, getMetaCampaignStep } from '../game/metaCampaign';
+import { getAllianceNames } from '../game/metaCampaign';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import type { FactionId } from '../game/types';
-import { GameCard, PrimaryButton, SectionTitle, StatusPill } from '../ui/components';
+import { GameCard, SecondaryButton } from '../ui/components';
+import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionStats } from '../ui/DecisionUI';
+import { CampaignStageList } from '../ui/CampaignStageList';
+import { EventIllustration } from '../ui/CampaignEventUI';
+import { SemanticChip } from '../ui/SemanticUI';
+import { getMetaCampaignView, metaAlliancePreview } from '../ui/metaCampaignPresentation';
 import { FactionCrest, StoryScene } from '../ui/gameArt';
 
-export function MetaCampaignScreen({
-  onStartConvergence,
-  onStartTriumvirate,
-  onStartFinalBoss,
-  onExit
-}: {
+export function MetaCampaignScreen({ onStartConvergence, onStartTriumvirate, onStartFinalBoss, onExit }: {
   onStartConvergence: () => void;
   onStartTriumvirate: () => void;
   onStartFinalBoss: () => void;
@@ -21,166 +20,132 @@ export function MetaCampaignScreen({
 }) {
   const { theme } = useGameTheme();
   const {
-    activeFaction,
-    completedCampaigns,
-    metaCampaignStep,
-    metaCampaignComplete,
-    completeMetaCouncil,
-    completeMetaConcordChamber
+    activeFaction, completedCampaigns, metaCampaignUnlocked, metaCampaignStep,
+    metaCampaignComplete, completeMetaCouncil, completeMetaConcordChamber
   } = useGame();
-
+  const view = getMetaCampaignView({ completedCampaigns, metaCampaignUnlocked, metaCampaignStep, metaCampaignComplete });
   const lead = factions[activeFaction];
   const allies = getAllianceNames(activeFaction);
-  const step = getMetaCampaignStep(metaCampaignStep);
-  const accent =
-    activeFaction === 'elf'
-      ? theme.colors.elf
-      : activeFaction === 'orc'
-        ? theme.colors.orc
-        : theme.colors.human;
+  const accent = activeFaction === 'elf' ? theme.colors.elf : activeFaction === 'orc' ? theme.colors.orc : theme.colors.human;
+  const identity = [activeFaction, metaCampaignStep, metaCampaignComplete, metaCampaignUnlocked, ...view.seals.map(seal => seal.recovered)].join(':');
+  const liveIdentity = useRef(identity);
+  liveIdentity.current = identity;
+  const submitted = useRef<string | null>(null);
+  const [feedback, setFeedback] = useState<{ identity: string; text: string } | null>(null);
 
-  const sealRows: Array<{
-    name: string;
-    faction: string;
-    factionId: FactionId;
-    ready: boolean;
-  }> = [
-    {
-      name: 'Oath Seal',
-      faction: 'Humans',
-      factionId: 'human',
-      ready: completedCampaigns.includes('human')
-    },
-    {
-      name: 'Root Seal',
-      faction: 'Elves',
-      factionId: 'elf',
-      ready: completedCampaigns.includes('elf')
-    },
-    {
-      name: 'Clan Seal',
-      faction: 'Orcs',
-      factionId: 'orc',
-      ready: completedCampaigns.includes('orc')
+  const proceed = () => {
+    // Old event handlers and rapid taps must not bypass a changed faction, gate or stage.
+    if (!view.playable || !view.action || liveIdentity.current !== identity || submitted.current === identity) return;
+    submitted.current = identity;
+    setFeedback(null);
+    try {
+      let accepted = true;
+      switch (view.action) {
+        case 'council': accepted = completeMetaCouncil(); break;
+        case 'chamber': accepted = completeMetaConcordChamber(); break;
+        case 'convergence': onStartConvergence(); break;
+        case 'triumvirate': onStartTriumvirate(); break;
+        case 'finalBoss': onStartFinalBoss(); break;
+      }
+      if (accepted) return;
+    } catch {
+      // Keep failed actions retryable and never report success or advance locally.
     }
-  ];
+    submitted.current = null;
+    setFeedback({ identity, text: 'This objective could not be continued. Check the current campaign state and try again.' });
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.gold} faction={activeFaction} state={metaCampaignComplete ? 'ready' : 'selected'}>
-        <View style={styles.heroTop}>
-          <View style={styles.heroCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>SHARED ENDGAME</Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>Three Seals</Text>
-            <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-              {metaCampaignComplete
-                ? 'The Concord Beacon has been restored under all three Seals.'
-                : 'Choose one completed faction as the lead army. The other two arrive as allied NPC armies and reinforce every meta-campaign battle.'}
-            </Text>
-          </View>
-          <View style={styles.sealCrests}>
-            <FactionCrest faction="human" size={30} />
-            <FactionCrest faction="elf" size={30} />
-            <FactionCrest faction="orc" size={30} />
-          </View>
-        </View>
-        <View style={styles.sceneWrap}>
-          <StoryScene scene="crownspire" faction={activeFaction} size={240} />
-        </View>
-      </GameCard>
-
-      <GameCard accent={accent} faction={activeFaction} state="selected">
-        <View style={styles.leadRow}>
-          <View style={styles.copy}>
-            <Text style={[styles.label, { color: theme.colors.textMuted }]}>LEAD ARMY</Text>
-            <Text style={[styles.leadName, { color: theme.colors.text }]}>{lead.name}</Text>
-            <Text style={[styles.leadBody, { color: theme.colors.textMuted }]}>
-              Allies: {allies.join(' + ')} · +10% alliance attack · +8% alliance armor
-            </Text>
-          </View>
-          <View style={styles.leadState}>
-            <FactionCrest faction={activeFaction} size={38} />
-            <StatusPill label="LEAD" tone="current" />
-          </View>
-        </View>
-        <Text style={[styles.switchHint, { color: theme.colors.textMuted }]}>
-          To lead with another completed faction, exit and switch factions first.
-        </Text>
-      </GameCard>
-
-      <SectionTitle title="The Three Seals" trailing="3 required" />
-      <View style={styles.sealList}>
-        {sealRows.map(row => (
-          <GameCard
-            key={row.name}
-            faction={row.factionId}
-            state={row.ready ? 'ready' : 'locked'}
-          >
-            <View style={styles.sealRow}>
-              <FactionCrest faction={row.factionId} size={38} />
-              <View style={styles.copy}>
-                <Text style={[styles.sealName, { color: theme.colors.text }]}>{row.name}</Text>
-                <Text style={[styles.sealFaction, { color: theme.colors.textMuted }]}>{row.faction}</Text>
-              </View>
-              <StatusPill
-                label={row.ready ? 'RECOVERED' : 'MISSING'}
-                tone={row.ready ? 'done' : 'locked'}
-              />
-            </View>
-          </GameCard>
-        ))}
-      </View>
-
-      <SectionTitle title="Current objective" trailing={'Step ' + Math.min(5, metaCampaignStep + 1) + ' / 5'} />
-      <GameCard
-        accent={metaCampaignComplete ? theme.colors.primary : theme.colors.gold}
-        faction={activeFaction}
-        state={metaCampaignComplete ? 'ready' : 'selected'}
+    <DecisionLayout footer={
+      <DecisionCommit
+        title={view.title}
+        detail={!view.playable
+          ? view.complete ? 'All five stages are complete. No rewards are granted by reopening this report.' : 'Return to Campaign to review the unlock requirements.'
+          : view.isBattle
+            ? 'Opens Battle Prep for this objective. Review your army there before starting the fight.'
+            : 'Records this event only. No resource reward, recovery or battle victory is granted here.'}
+        message={feedback?.identity === identity ? feedback.text : null}
+        label={view.actionLabel}
+        onConfirm={view.playable ? proceed : onExit}
       >
-        <Text style={[styles.stepName, { color: theme.colors.text }]}>{step.name}</Text>
-        <Text style={[styles.stepBody, { color: theme.colors.textMuted }]}>{step.description}</Text>
-
-        <View style={styles.button}>
-          {metaCampaignComplete ? (
-            <PrimaryButton label="Return to Campaigns" onPress={onExit} />
-          ) : metaCampaignStep === 0 ? (
-            <PrimaryButton label="Assemble the Three Seals Council" onPress={() => completeMetaCouncil()} />
-          ) : metaCampaignStep === 1 ? (
-            <PrimaryButton label="Fight the Converging Roads" onPress={onStartConvergence} />
-          ) : metaCampaignStep === 2 ? (
-            <PrimaryButton label="Restore the Seals to the Concord Chamber" onPress={() => completeMetaConcordChamber()} />
-          ) : metaCampaignStep === 3 ? (
-            <PrimaryButton label="Challenge the Ashen Triumvirate" onPress={onStartTriumvirate} />
-          ) : (
-            <PrimaryButton label="Stabilize the Unbound Beacon" onPress={onStartFinalBoss} />
-          )}
+        {view.playable ? <SecondaryButton label="Return without advancing" onPress={onExit} /> : null}
+      </DecisionCommit>
+    }>
+      <View style={styles.badges}>
+        <SemanticChip label={view.complete ? 'Shared campaign completed' : view.playable ? 'Shared campaign available' : view.unlocked ? 'Progress needs review' : 'Shared campaign locked'} tone={view.tone} />
+        <SemanticChip label={view.recovered + '/3 Seals recovered'} tone={view.recovered === 3 ? 'positive' : 'neutral'} />
+      </View>
+      <DecisionIntro
+        eyebrow="SHARED ENDGAME"
+        title="Three Seals"
+        body={view.complete
+          ? 'The Concord Beacon has been restored under all three Seals.'
+          : 'Bring the Human Oath Seal, Elven Root Seal and Orc Clan Seal together. Your selected faction leads the shared campaign; the other two provide alliance support.'}
+        accent={accent}
+      />
+      <GameCard ornament={false}>
+        <View style={styles.badges}>
+          <SemanticChip label={view.complete ? '5/5 stages complete' : view.playable ? view.completedCount + '/5 stages complete' : 'Progression locked'} tone={view.tone} />
+          {view.playable ? <SemanticChip label={view.isBattle ? 'Battle preparation next' : 'Council event'} tone={view.isBattle ? 'blue' : 'violet'} compact /> : null}
         </View>
+        <Text accessibilityRole="header" style={[styles.heading, styles.spaced, { color: theme.colors.text }]}>{view.title}</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>{view.summary}</Text>
       </GameCard>
-    </ScrollView>
+      <CampaignStageList key={identity} rows={view.rows} currentId={view.currentId} />
+
+      <GameCard ornament={false}>
+        <Text accessibilityRole="header" style={[styles.heading, { color: theme.colors.text }]}>Recovered Seals</Text>
+        {view.seals.map(seal => (
+          <View key={seal.faction} style={[styles.sealRow, { borderTopColor: theme.colors.border }]}>
+            <FactionCrest faction={seal.faction} size={34} />
+            <View style={styles.copy}>
+              <Text style={[styles.rowTitle, { color: theme.colors.text }]}>{seal.name}</Text>
+              <Text style={[styles.note, { color: theme.colors.textMuted }]}>{seal.people}</Text>
+              <View style={styles.status}>
+                <SemanticChip label={seal.recovered ? 'Recovered' : 'Not recovered'} tone={seal.recovered ? 'positive' : 'neutral'} compact />
+              </View>
+            </View>
+          </View>
+        ))}
+        <Text style={[styles.note, styles.spaced, { color: theme.colors.textMuted }]}>Each Seal is recorded by completing its faction campaign. Viewing this list does not grant one.</Text>
+      </GameCard>
+
+      <GameCard ornament={false}>
+        <View style={styles.leadRow}>
+          <FactionCrest faction={activeFaction} size={40} />
+          <View style={styles.copy}>
+            <Text accessibilityRole="header" style={[styles.heading, { color: theme.colors.text }]}>{lead.name}</Text>
+            <Text style={[styles.note, { color: theme.colors.textMuted }]}>{view.complete ? 'Currently selected faction' : 'Current lead army'}</Text>
+          </View>
+        </View>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>Allies: {allies.join(' + ')}.</Text>
+        <View style={[styles.badges, styles.spaced]}>
+          <SemanticChip label="Alliance support" tone="cyan" />
+          <SemanticChip label="Three Seals battles only" tone="neutral" compact />
+        </View>
+        <DecisionStats presentation="multiplier" items={[
+          { label: 'Alliance attack', value: '×' + metaAlliancePreview.attackMultiplier.toFixed(2) },
+          { label: 'Alliance armor', value: '×' + metaAlliancePreview.armorMultiplier.toFixed(2) }
+        ]} />
+        <Text style={[styles.note, styles.spaced, { color: theme.colors.textMuted }]}>Applies in Converging Roads, Ashen Triumvirate and The Unbound Beacon. These contributions are not permanent squad upgrades, final army totals or additional roster units.</Text>
+        <Text style={[styles.note, styles.spaced, { color: theme.colors.textMuted }]}>To change the lead army, return to Campaign and switch factions. This report uses the currently selected faction, not a saved record of who led earlier battles.</Text>
+      </GameCard>
+      <EventIllustration>
+        <StoryScene scene="crownspire" faction={activeFaction} size={240} />
+      </EventIllustration>
+    </DecisionLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 13 },
-  heroTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  heroCopy: { flex: 1 },
-  sealCrests: { gap: 3, alignItems: 'center' },
-  sceneWrap: { alignItems: 'center', marginTop: 10 },
-  eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.2 },
-  title: { fontSize: 29, fontWeight: '900', marginTop: 4 },
-  body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  leadRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  leadState: { alignItems: 'center', gap: 4 },
-  copy: { flex: 1 },
-  label: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1 },
-  leadName: { fontSize: 18, fontWeight: '900', marginTop: 3 },
-  leadBody: { fontSize: 10.5, lineHeight: 16, marginTop: 4 },
-  switchHint: { fontSize: 9.5, lineHeight: 14, marginTop: 9 },
-  sealList: { gap: 8 },
-  sealRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sealName: { fontSize: 14, fontWeight: '900' },
-  sealFaction: { fontSize: 9.5, marginTop: 2 },
-  stepName: { fontSize: 18, fontWeight: '900' },
-  stepBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
-  button: { marginTop: 12 }
+  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 7 },
+  heading: { fontSize: 16, lineHeight: 22, fontWeight: '900' },
+  body: { fontSize: 14, lineHeight: 20, marginTop: 8 },
+  note: { fontSize: 12, lineHeight: 18 },
+  spaced: { marginTop: 10 },
+  copy: { flex: 1, minWidth: 0 },
+  rowTitle: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
+  sealRow: { flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 12, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
+  status: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 5 },
+  leadRow: { flexDirection: 'row', alignItems: 'center', gap: 10 }
 });
