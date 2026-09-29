@@ -45,6 +45,9 @@ jobs:
       - name: Equipment emphasis regression
         run: npx --no-install tsx scripts/equipment-emphasis-regression.ts
 
+      - name: Research UI regression
+        run: npx --no-install tsx scripts/research-ui-regression.ts
+
       - name: Production art regression
         run: npm run art:check
 
