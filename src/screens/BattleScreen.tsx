@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Animated, AppState, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import {
   getEncounter,
   getEnemyArmyProfile,
@@ -287,6 +287,9 @@ export function BattleScreen({
   const [skillTriggered, setSkillTriggered] = useState(false);
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
   const [battleSpeed, setBattleSpeed] = useState<BattleSpeed>(1);
+  const [appIsActive, setAppIsActive] = useState(
+    AppState.currentState === 'active'
+  );
   const [exchangeFeedback, setExchangeFeedback] = useState<ExchangeFeedback | null>(null);
   const [battleTotals, setBattleTotals] = useState({
     damageDealt: 0,
@@ -488,7 +491,18 @@ export function BattleScreen({
   ]);
 
   useEffect(() => {
-    if (battleEnded) return;
+    const subscription = AppState.addEventListener(
+      'change',
+      nextState => {
+        setAppIsActive(nextState === 'active');
+      }
+    );
+
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    if (battleEnded || !appIsActive) return;
 
     const timer = setTimeout(() => {
       let effect = activeEffect;
@@ -719,6 +733,7 @@ export function BattleScreen({
   }, [
     activeCommanderPath,
     activeEffect,
+    appIsActive,
     activeFaction,
     activeFormationSlots,
     battleSpeed,
