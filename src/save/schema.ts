@@ -136,13 +136,16 @@ function sanitizeNodes(
         )
     )
     .map(node => {
-      const current =
-        Boolean(node.current) && !currentKept;
-      if (current) currentKept = true;
-      return {
-        ...node,
-        current
-      };
+      if (!node.current) {
+        return { ...node };
+      }
+
+      if (!currentKept) {
+        currentKept = true;
+        return { ...node, current: true };
+      }
+
+      return { ...node, current: false };
     });
 }
 
@@ -448,12 +451,17 @@ export function sanitizeFactionGameState(
 }
 
 function sanitizeSharedProgress(
-  value: GameSnapshot['shared']
+  value: unknown
 ): GameSnapshot['shared'] {
+  const source =
+    value && typeof value === 'object'
+      ? (value as Partial<GameSnapshot['shared']>)
+      : {};
+
   const completedCampaigns = [
     ...new Set(
-      (Array.isArray(value.completedCampaigns)
-        ? value.completedCampaigns
+      (Array.isArray(source.completedCampaigns)
+        ? source.completedCampaigns
         : []
       ).filter(
         (faction): faction is FactionId =>
@@ -465,19 +473,19 @@ function sanitizeSharedProgress(
   return {
     completedCampaigns,
     achievements: sanitizeStringArray(
-      value.achievements
+      source.achievements
     ),
-    lore: sanitizeStringArray(value.lore),
-    cosmetics: sanitizeStringArray(value.cosmetics),
+    lore: sanitizeStringArray(source.lore),
+    cosmetics: sanitizeStringArray(source.cosmetics),
     metaCampaignStep: Math.min(
       5,
       nonNegativeInteger(
-        value.metaCampaignStep,
+        source.metaCampaignStep,
         0
       )
     ),
     metaCampaignComplete:
-      Boolean(value.metaCampaignComplete) &&
+      Boolean(source.metaCampaignComplete) &&
       completedCampaigns.length === 3
   };
 }
