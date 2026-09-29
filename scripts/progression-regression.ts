@@ -15,6 +15,17 @@ import {
   unitHasBattleTag
 } from '../src/game/progression';
 import {
+  chapterOneCampaign,
+  getChapterOneMissionName,
+  getChapterOneRosterCap,
+  getChapterOneSquadCap
+} from '../src/game/chapter1Campaign';
+import {
+  chapterOneFifthReinforcements,
+  chapterTwoSeventhReinforcements
+} from '../src/game/earlyReinforcements';
+import { getCampaignCapacity } from '../src/game/campaignCapacity';
+import {
   chapterTwoCampaign,
   chapterTwoTerritoryRoutes,
   getChapterTwoRosterCap,
@@ -98,6 +109,96 @@ function runCampaignCurveCoverage() {
       'Chapter ' + stage.chapter + ' must keep the nine-squad long-term battlefield cap.'
     );
   });
+}
+
+
+function runChapterOneCoverage() {
+  expect(
+    chapterOneCampaign.length === 10,
+    'Chapter 1 must contain exactly ten authored main missions.'
+  );
+
+  chapterOneCampaign.forEach((mission, index) => {
+    expect(
+      mission.order === index + 1,
+      'Chapter 1 mission order must remain contiguous.'
+    );
+    expect(
+      mission.mandatory === true,
+      mission.id + ' must remain part of the authored Chapter 1 backbone.'
+    );
+    expect(
+      mission.rosterCap >= mission.deploymentCap,
+      mission.id + ' roster capacity fell below deployment capacity.'
+    );
+  });
+
+  expect(
+    getChapterOneSquadCap([]) === 3 &&
+      getChapterOneRosterCap([]) === 5,
+    'Chapter 1 must begin at 3 deployed / 5 roster.'
+  );
+  expect(
+    getChapterOneSquadCap(['ch1_fourth_squad']) === 4 &&
+      getChapterOneRosterCap(['ch1_fourth_squad']) === 7,
+    'The fourth-squad milestone must establish 4 deployed / 7 roster.'
+  );
+  expect(
+    getChapterOneSquadCap(['ch1_forward_camp']) === 5 &&
+      getChapterOneRosterCap(['ch1_forward_camp']) === 9,
+    'The forward-camp milestone must establish 5 deployed / 9 roster.'
+  );
+
+  expect(
+    getChapterOneMissionName('ch1_boss', 'human') === 'The Toll Captain' &&
+      getChapterOneMissionName('ch1_boss', 'elf') === 'The Hollow Warden' &&
+      getChapterOneMissionName('ch1_boss', 'orc') === 'The Blamecaller',
+    'Chapter 1 faction boss identities drifted.'
+  );
+
+  const expectedFactions = ['human', 'elf', 'orc'] as const;
+  for (const faction of expectedFactions) {
+    const fifth = chapterOneFifthReinforcements[faction];
+    const seventh = chapterTwoSeventhReinforcements[faction];
+
+    expect(
+      fifth.faction === faction && fifth.deploymentCapacity === 1,
+      faction + ' Chapter 1 fifth reinforcement is invalid.'
+    );
+    expect(
+      seventh.faction === faction &&
+        seventh.role === 'support' &&
+        seventh.deploymentCapacity === 1,
+      faction + ' Chapter 2 seventh reinforcement must remain a non-magical support squad.'
+    );
+    expect(
+      !seventh.battleTags?.includes('magic'),
+      faction + ' Chapter 2 support may not introduce Magic before Chapter 4.'
+    );
+  }
+
+  const humanOpening = getCampaignCapacity('human', 1, [
+    { id: 'node_1', name: 'The Last Three', type: 'story', completed: true },
+    { id: 'node_2', name: 'Hold the Road', type: 'battle', completed: false, current: true }
+  ]);
+  const humanElite = getCampaignCapacity('human', 1, [
+    { id: 'node_3', name: 'Marked Raiders', type: 'event', completed: true },
+    { id: 'node_4', name: 'Mercenary Patrol', type: 'elite', completed: false, current: true }
+  ]);
+  const humanBoss = getCampaignCapacity('human', 1, [
+    { id: 'node_5', name: 'Refugee Camp', type: 'supply', completed: true },
+    { id: 'node_6', name: 'The Toll Captain', type: 'boss', completed: false, current: true }
+  ]);
+
+  expect(
+    humanOpening.deploymentCap === 3 &&
+      humanOpening.rosterCap === 5 &&
+      humanElite.deploymentCap === 4 &&
+      humanElite.rosterCap === 7 &&
+      humanBoss.deploymentCap === 5 &&
+      humanBoss.rosterCap === 9,
+    'Runtime Chapter 1 capacity derivation no longer matches the authored 3→4→5 curve.'
+  );
 }
 
 function runChapterTwoCoverage() {
@@ -413,6 +514,7 @@ function runBattleTagAndCapacityCoverage() {
 
 function main() {
   runCampaignCurveCoverage();
+  runChapterOneCoverage();
   runChapterTwoCoverage();
   runFamilyGateCoverage();
   runResearchCoverage();
@@ -426,7 +528,7 @@ function main() {
   }
 
   console.log(
-    'PASS: 3→5→7→9 campaign growth, ten-mission authored Chapter 2, fantasy family gates, 24h/30-gem/3-ad research rules, battle tags and deployment capacity remain inside the intended guardrails.'
+    'PASS: authored Chapters 1-2, 3→5→7→9 campaign growth, early reinforcements, fantasy family gates, 24h/30-gem/3-ad research rules, battle tags and deployment capacity remain inside the intended guardrails.'
   );
 }
 
