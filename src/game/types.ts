@@ -283,6 +283,7 @@ export type EncounterDefinition = {
   enemyCount: number;
   enemyHp: number;
   difficulty: 'Normal' | 'Elite' | 'Boss';
+  pressureMultiplier?: number;
 };
 
 export type FormationBonus = {
