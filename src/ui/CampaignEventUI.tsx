@@ -50,7 +50,7 @@ export function ChapterDecision<T extends StoryChoice>({
   eyebrow, title, body, scope, options, recordedId, canChoose, onChoose, continueLabel, onContinue, illustration, portrait
 }: {
   eyebrow: string; title: string; body: string; scope: string;
-  options: readonly T[]; recordedId: T['id'] | null; canChoose: boolean;
+  options: readonly T[]; recordedId: string | null; canChoose: boolean;
   onChoose: (id: T['id']) => boolean; continueLabel: string; onContinue: () => void;
   illustration?: ReactNode; portrait?: ReactNode;
 }) {
@@ -61,7 +61,8 @@ export function ChapterDecision<T extends StoryChoice>({
   const submitted = useRef(false);
   const finalId = recordedId ?? acceptedId;
   const recorded = finalId !== null;
-  // Reloaded saves always win over a stale local draft.
+  // Reloaded saves always win over a stale local draft. An unknown saved ID is still recorded,
+  // not permission to select a replacement; only an authored option ID can reach onChoose.
   const selected = options.find(option => option.id === (recorded ? finalId : draftId)) ?? null;
 
   const confirm = () => {
