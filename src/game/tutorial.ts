@@ -1,5 +1,6 @@
 import type {
   BuildingDefinition,
+  EnemyFantasyThreatFamily,
   FactionId,
   NavId,
   SideModeId,
@@ -92,6 +93,7 @@ export type TutorialContext = {
   completedFlyingResearch: number;
   completedLargeResearch: number;
   completedHybridResearch: number;
+  enemyFantasyThreatFamily: EnemyFantasyThreatFamily | null;
 };
 
 export const CORE_TUTORIAL_KEYS = [
@@ -127,7 +129,8 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:hybrid-discovery',
   'system:hybrid-prerequisites',
   'system:hybrid-research',
-  'system:hybrid-training'
+  'system:hybrid-training',
+  'system:enemy-fantasy-threat'
 ] as const;
 
 export const FACTION_TUTORIAL_KEYS = [
@@ -579,6 +582,49 @@ function systemMoment(
             }
           }
         : {})
+    };
+  }
+
+  if (
+    context.view === 'battlePrep' &&
+    context.enemyFantasyThreatFamily &&
+    !seen(context, 'system:enemy-fantasy-threat')
+  ) {
+    const lesson =
+      context.enemyFantasyThreatFamily === 'magic'
+        ? {
+            title: 'Enemy magic needs a screen and a counter',
+            body:
+              'Some later armies bring real spell pressure. Battle Prep now shows an Enemy Fantasy Threat card with your counter coverage. Support, your own magic specialists and durable frontline protection help stabilize enemy Magic.'
+          }
+        : context.enemyFantasyThreatFamily === 'flying'
+          ? {
+              title: 'Enemy flyers can bypass ordinary screens',
+              body:
+                'Flying enemies can reach protected lanes unless you contest the air. Ranged and skirmish squads provide practical anti-air pressure; Battle Prep shows whether your current army has enough coverage.'
+            }
+          : context.enemyFantasyThreatFamily === 'large'
+            ? {
+                title: 'Large enemies demand focused answers',
+                body:
+                  'Oversized enemies can break ordinary lines. Spears, lancers and concentrated ranged fire are your main anti-large tools. Check the Enemy Fantasy Threat card before committing.'
+              }
+            : {
+                title: 'Legendary enemies combine multiple threats',
+                body:
+                  'Legendary hybrids combine magic and flight. You need both warding/support and enough ranged pressure to contest the air; solving only one half leaves the army exposed.'
+              };
+
+    return {
+      key: 'system:enemy-fantasy-threat',
+      kind: 'system',
+      eyebrow: 'NEW ENEMY THREAT',
+      title: lesson.title,
+      body:
+        lesson.body +
+        ' These counters are tactical advantages, not hard requirements—you can still fight without them, but the battle will be riskier.',
+      primaryLabel: 'Show the counter read',
+      target: 'none'
     };
   }
 
@@ -1045,7 +1091,8 @@ export function getNextTutorialMoment(
     system?.key === 'system:magic-discovery' ||
     system?.key === 'system:flying-discovery' ||
     system?.key === 'system:large-discovery' ||
-    system?.key === 'system:hybrid-discovery'
+    system?.key === 'system:hybrid-discovery' ||
+    system?.key === 'system:enemy-fantasy-threat'
   ) {
     return system;
   }
