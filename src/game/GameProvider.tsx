@@ -5784,7 +5784,7 @@ export function GameProvider({
       previous => previous + 1
     );
     setWarTableBoardChapter(
-      Math.min(3, chapterNumber)
+      Math.min(6, chapterNumber)
     );
     setWarTableCompletedContractIds([]);
     setWarTableBonusContractIds([]);
