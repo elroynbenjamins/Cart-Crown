@@ -5844,6 +5844,8 @@ export function GameProvider({
       kingdomDefenseRuns,
       signalTowerUnlocked,
       ironProvostWon,
+      chapterTwoRouteId,
+      chapterTwoBossWon,
       fortUpgradeAvailable,
       townUpgradeAvailable,
       canUpgradeToTown,
