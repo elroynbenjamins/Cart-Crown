@@ -174,6 +174,7 @@ import type {
   SharedProgress
 } from '../save/types';
 import { buildFactionSwitchSnapshot } from '../save/schema';
+import { createKeyedInFlightGuard } from './mobileSession';
 
 type RewardedAdClaimState = Partial<Record<RewardedAdPlacementId, number>>;
 
@@ -1156,7 +1157,7 @@ export function GameProvider({
   const switchingFactionRef = useRef(false);
   const snapshotRef = useRef(snapshot);
   const rewardedAdInFlightRef = useRef(
-    new Set<RewardedAdPlacementId>()
+    createKeyedInFlightGuard<RewardedAdPlacementId>()
   );
   snapshotRef.current = snapshot;
 
@@ -5104,17 +5105,15 @@ export function GameProvider({
       return { status: 'unavailable', provider: 'none' };
     }
 
-    if (rewardedAdInFlightRef.current.has(placementId)) {
+    if (!rewardedAdInFlightRef.current.tryStart(placementId)) {
       setRewardedAdMessage('Reward request already in progress.');
       return { status: 'unavailable', provider: 'none' };
     }
-
-    rewardedAdInFlightRef.current.add(placementId);
     let result: RewardedAdResult;
     try {
       result = await showRewardedAd(placementId);
     } finally {
-      rewardedAdInFlightRef.current.delete(placementId);
+      rewardedAdInFlightRef.current.finish(placementId);
     }
 
     if (result.status !== 'rewarded') {
