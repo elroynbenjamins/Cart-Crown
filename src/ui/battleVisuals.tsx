@@ -223,13 +223,13 @@ function Motif({
   if (scene.motif === 'forest' || scene.motif === 'moon') {
     return (
       <>
-        {[0.05, 0.2, 0.74, 0.9].map((left, index) => (
+        {['5%', '20%', '74%', '90%'].map((left, index) => (
           <View
             key={'tree-' + index}
             style={[
               styles.tree,
               {
-                left: String(left * 100) + '%',
+                left: left as `${number}%`,
                 opacity,
                 backgroundColor: scene.horizon
               }
@@ -525,13 +525,13 @@ export function BattlefieldBackdrop({
               }
             ]}
           />
-          {[0.22, 0.5, 0.78].map((left, index) => (
+          {['22%', '50%', '78%'].map((left, index) => (
             <View
               key={'ember-' + index}
               style={[
                 styles.ember,
                 {
-                  left: String(left * 100) + '%',
+                  left: left as `${number}%`,
                   top: index % 2 === 0 ? '13%' : '18%',
                   backgroundColor:
                     index === 1
