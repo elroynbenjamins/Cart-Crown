@@ -564,7 +564,10 @@ export function AppShell({
           }
           onFinished={summary => {
             setLastCombatSummary(summary);
-            finishEncounter(activeEncounterId);
+            finishEncounter(
+              activeEncounterId,
+              summary
+            );
             setFlow('results');
           }}
           onDefeated={summary => {
