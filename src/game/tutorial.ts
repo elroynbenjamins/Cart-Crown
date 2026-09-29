@@ -596,6 +596,60 @@ export function shouldRequestChapterOneReview({
   );
 }
 
+export type TutorialResumeSurface =
+  | 'stay'
+  | 'campaign'
+  | 'formation'
+  | 'settlement'
+  | 'forge'
+  | 'kingdom'
+  | 'results'
+  | 'battlePrep';
+
+export function getTutorialFocusResumeSurface(
+  focus: TutorialFocusTarget
+): TutorialResumeSurface {
+  if (
+    focus.kind === 'campaign-current' ||
+    focus.kind === 'campaign-activities'
+  ) {
+    return 'campaign';
+  }
+
+  if (
+    focus.kind === 'formation-unit' ||
+    focus.kind === 'formation-basics' ||
+    focus.kind === 'formation-shape'
+  ) {
+    return 'formation';
+  }
+
+  if (
+    focus.kind === 'settlement-first-plot' ||
+    focus.kind === 'settlement-building'
+  ) {
+    return 'settlement';
+  }
+
+  if (focus.kind === 'forge-craft') {
+    return 'forge';
+  }
+
+  if (focus.kind === 'kingdom-production') {
+    return 'kingdom';
+  }
+
+  if (focus.kind === 'results-continue') {
+    return 'results';
+  }
+
+  if (focus.kind === 'battle-begin') {
+    return 'battlePrep';
+  }
+
+  return 'stay';
+}
+
 export function isCoreTutorialComplete(
   tutorialSeen: string[]
 ) {
