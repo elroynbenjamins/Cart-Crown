@@ -214,6 +214,7 @@ type GameContextValue = {
   formationBonuses: FormationBonus[];
   formationAnalysis: ReturnType<typeof analyzeFormation>;
   activeSquadCap: number;
+  middleRowUnlocked: boolean;
   formationCells: number[];
   holdTheRoadWon: boolean;
   settlementUpgraded: boolean;
@@ -811,6 +812,18 @@ export function GameProvider({
     activeFaction === 'human' && chapterNumber === 2
       ? getChapterTwoSquadCap(chapterTwoCompletedMissionIds)
       : currentWagonStage.formationSlots;
+  const middleRowUnlocked =
+    activeFaction !== 'human' ||
+    chapterNumber >= 3 ||
+    (
+      chapterNumber === 2 &&
+      Boolean(
+        chapterNodes.find(node => node.id === 'ch2_node_2')?.completed
+      )
+    );
+  const isFormationSlotUnlocked = (slot: number) =>
+    middleRowUnlocked ||
+    !activeFormationShape.rows.middle.includes(slot);
   const hasPackedRations = wagonItems.some(item => item.id === 'rations');
   const hasPackedMedicine = wagonItems.some(item => item.id === 'medicine');
   const armyResupplyCost = getArmyResupplyCost(
@@ -3711,7 +3724,7 @@ export function GameProvider({
         const preferred = getPreferredFormationSlots(
           formationShapeId,
           unit.role
-        );
+        ).filter(isFormationSlotUnlocked);
         const target = preferred.find(slot => next[slot] === null);
         if (target === undefined) continue;
         next[target] = unit.id;
@@ -3852,7 +3865,10 @@ export function GameProvider({
       setFormation(previous => {
         const next = [...previous];
         if (next.filter(Boolean).length >= activeSquadCap) return next;
-        const preferred = getPreferredFormationSlots(formationShapeId, supportUnit.role);
+        const preferred = getPreferredFormationSlots(
+          formationShapeId,
+          supportUnit.role
+        ).filter(isFormationSlotUnlocked);
         const target = preferred.find(slot => next[slot] === null);
         if (target !== undefined) next[target] = supportUnit.id;
         return next;
@@ -4237,7 +4253,10 @@ export function GameProvider({
     setUnits(previous => [...previous, { ...choice.unit }]);
     setFormation(previous => {
       const next = [...previous];
-      const preferredSlots = getPreferredFormationSlots(formationShapeId, choice.unit.role);
+      const preferredSlots = getPreferredFormationSlots(
+        formationShapeId,
+        choice.unit.role
+      ).filter(isFormationSlotUnlocked);
       const empty = preferredSlots.find(slot => next[slot] === null);
 
       if (empty !== undefined && next.filter(Boolean).length < activeSquadCap) {
@@ -5252,6 +5271,7 @@ export function GameProvider({
 
   const moveFormationUnit = (unitId: string, targetSlot: number) => {
     if (!formationCells.includes(targetSlot)) return false;
+    if (!isFormationSlotUnlocked(targetSlot)) return false;
 
     const sourceSlot = formation.indexOf(unitId);
     if (sourceSlot < 0) return false;
@@ -5268,6 +5288,7 @@ export function GameProvider({
 
   const placeFormationUnit = (unitId: string, targetSlot: number) => {
     if (!formationCells.includes(targetSlot)) return false;
+    if (!isFormationSlotUnlocked(targetSlot)) return false;
     if (!units.some(unit => unit.id === unitId)) return false;
 
     const sourceSlot = formation.indexOf(unitId);
@@ -5335,6 +5356,7 @@ export function GameProvider({
   const setFormationShape = (shapeId: FormationShapeId) => {
     const shape = formationShapes.find(candidate => candidate.id === shapeId);
     if (!shape) return false;
+    if (!middleRowUnlocked && shapeId !== 'balanced_333') return false;
     const currentRank = stageRank[currentWagonStage.id] ?? 0;
     if (currentRank < formationShapeUnlockRank[shape.unlock]) return false;
     setFormationShapeIdState(shapeId);
@@ -5404,7 +5426,8 @@ export function GameProvider({
           !unitId ||
           !validUnitIds.has(unitId) ||
           seenUnitIds.has(unitId) ||
-          activeCount >= activeSquadCap
+          activeCount >= activeSquadCap ||
+          !isFormationSlotUnlocked(index)
         ) {
           return null;
         }
@@ -5623,6 +5646,7 @@ export function GameProvider({
       formationBonuses,
       formationAnalysis,
       activeSquadCap,
+      middleRowUnlocked,
       formationCells,
       holdTheRoadWon,
       settlementUpgraded,
@@ -5814,6 +5838,7 @@ export function GameProvider({
       formationBonuses,
       formationAnalysis,
       activeSquadCap,
+      middleRowUnlocked,
       holdTheRoadWon,
       settlementUpgraded,
       recruitChoiceAvailable,
