@@ -188,6 +188,7 @@ export function FantasyResearchScreen({
           : 'This research cannot be completed yet.'
     );
     setNow(Date.now());
+    return ok;
   };
 
   const runResearchAd = async (
@@ -211,6 +212,7 @@ export function FantasyResearchScreen({
         ? template.className + ' recruited to the roster.'
         : 'Requirements or resources are missing for this recruitment.'
     );
+    return ok;
   };
 
   return (
@@ -425,11 +427,11 @@ export function FantasyResearchScreen({
                     }
                     disabled={locked || blockedByOther}
                     onPress={() => {
-                      runResearchAction(
+                      const ok = runResearchAction(
                         research,
                         'start'
                       );
-                      if (tutorialResearchFocused) {
+                      if (ok && tutorialResearchFocused) {
                         onTutorialFocusComplete?.();
                       }
                     }}
@@ -568,8 +570,8 @@ export function FantasyResearchScreen({
                   }
                   disabled={!unlocked || !affordable}
                   onPress={() => {
-                    recruit(template);
-                    if (tutorialTrainingFocused && affordable) {
+                    const ok = recruit(template);
+                    if (ok && tutorialTrainingFocused) {
                       onTutorialFocusComplete?.();
                     }
                   }}
