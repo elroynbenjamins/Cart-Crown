@@ -187,7 +187,7 @@ const choices: SiegeChoice[] = [
 const stageThreatMultiplier: Record<string, number> = {
   camp: 0.8,
   settlement: 0.9,
-  fort: 0.92,
+  fort: 0.82,
   town: 1.12,
   stronghold: 1.25,
   capital: 1.4,
