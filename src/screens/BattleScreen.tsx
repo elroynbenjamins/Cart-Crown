@@ -19,7 +19,8 @@ import {
 } from '../game/formation';
 import {
   getFantasyCombatEdge,
-  getFlyingCombatEdge
+  getFlyingCombatEdge,
+  getLargeCombatEdge
 } from '../game/progression';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
@@ -283,6 +284,15 @@ export function BattleScreen({
     [activeUnits, enemyArmyProfile.id]
   );
 
+  const largeCombatEdge = useMemo(
+    () =>
+      getLargeCombatEdge(
+        activeUnits,
+        enemyArmyProfile.id
+      ),
+    [activeUnits, enemyArmyProfile.id]
+  );
+
   const activeFormationSlots = useMemo(
     () =>
       formation
@@ -428,6 +438,19 @@ export function BattleScreen({
           : ' · countered'),
       color: flyingCombatEdge.favorable
         ? theme.colors.primary
+        : theme.colors.danger
+    });
+  }
+  if (largeCombatEdge) {
+    battleEffects.push({
+      key: 'large-edge',
+      label:
+        largeCombatEdge.title +
+        (largeCombatEdge.favorable
+          ? ' · breakthrough'
+          : ' · countered'),
+      color: largeCombatEdge.favorable
+        ? theme.colors.gold
         : theme.colors.danger
     });
   }
@@ -688,6 +711,7 @@ export function BattleScreen({
             allianceAttackMultiplier *
             (fantasyCombatEdge?.attackMultiplier ?? 1) *
             (flyingCombatEdge?.attackMultiplier ?? 1) *
+            (largeCombatEdge?.attackMultiplier ?? 1) *
             momentum *
             attackFactor *
             tacticalSpeedDamageMultiplier
@@ -724,6 +748,7 @@ export function BattleScreen({
             formationMatchup.incomingDamageMultiplier *
             (fantasyCombatEdge?.incomingDamageMultiplier ?? 1) *
             (flyingCombatEdge?.incomingDamageMultiplier ?? 1) *
+            (largeCombatEdge?.incomingDamageMultiplier ?? 1) *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -795,6 +820,9 @@ export function BattleScreen({
                   : '') +
                 (flyingCombatEdge
                   ? ' ' + flyingCombatEdge.detail
+                  : '') +
+                (largeCombatEdge
+                  ? ' ' + largeCombatEdge.detail
                   : '')
               : action)
       );
