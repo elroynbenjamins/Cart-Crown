@@ -28,6 +28,7 @@ import {
 import {
   encounters,
   getEncounter,
+  getEncounterForChapter,
   getEnemyArmyProfile,
   getEnemyFormationTactic,
   getEnemyRoleAssignments
@@ -88,6 +89,7 @@ export type SimulationInput = {
   readiness: number;
   modifier?: CombatModifier;
   alliance?: boolean;
+  encounterChapter?: number;
 };
 
 export type SimulationResult = {
@@ -690,7 +692,13 @@ export function buildFormation(
 export function simulate(
   input: SimulationInput
 ): SimulationResult {
-  const encounter = getEncounter(input.encounterId);
+  const encounter =
+    input.encounterChapter !== undefined
+      ? getEncounterForChapter(
+          input.encounterId,
+          input.encounterChapter
+        )
+      : getEncounter(input.encounterId);
   const enemyTactic = getEnemyFormationTactic(
     input.encounterId
   );
