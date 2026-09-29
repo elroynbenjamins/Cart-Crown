@@ -224,6 +224,8 @@ export function AppShell({
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
   const [formationReturnFlow, setFormationReturnFlow] =
     useState<'formationTrial' | 'kingdomDefense' | null>(null);
+  const [wagonReturnFlow, setWagonReturnFlow] =
+    useState<'kingdomDefense' | null>(null);
   const [preparationFixTarget, setPreparationFixTarget] =
     useState<BattlePreparationFixTarget | null>(null);
   const [tutorialFocus, setTutorialFocus] =
@@ -771,6 +773,11 @@ export function AppShell({
             setFormationReturnFlow('kingdomDefense');
             setFlow(null);
             setActive('formation');
+          }}
+          onEditWagon={() => {
+            setWagonReturnFlow('kingdomDefense');
+            setFlow(null);
+            setActive('wagon');
           }}
         />
       );
@@ -1517,7 +1524,25 @@ export function AppShell({
           />
         );
       case 'wagon':
-        return <WagonScreen />;
+        return (
+          <WagonScreen
+            onReturnToMode={
+              wagonReturnFlow
+                ? () => {
+                    const target = wagonReturnFlow;
+                    setWagonReturnFlow(null);
+                    setActive('campaign');
+                    setFlow(target);
+                  }
+                : undefined
+            }
+            returnToModeLabel={
+              wagonReturnFlow
+                ? 'Back to Kingdom Defense'
+                : undefined
+            }
+          />
+        );
       case 'army':
         return (
           <ArmyScreen
@@ -1868,6 +1893,10 @@ export function AppShell({
                 onPress={() => {
                   if (item.id !== 'formation') {
                     setFormationGuide(null);
+                    setFormationReturnFlow(null);
+                  }
+                  if (item.id !== 'wagon') {
+                    setWagonReturnFlow(null);
                   }
                   if (tutorialNavFocused) {
                     completeTutorialFocus();
