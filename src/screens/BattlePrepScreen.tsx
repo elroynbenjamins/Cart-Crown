@@ -138,6 +138,13 @@ export function BattlePrepScreen({
       if (a.id === activeFormationShape.id) return -1;
       if (b.id === activeFormationShape.id) return 1;
 
+      if (!guidanceFeatures.sortLoadoutsByFit) {
+        return (
+          formationShapes.findIndex(shape => shape.id === a.id) -
+          formationShapes.findIndex(shape => shape.id === b.id)
+        );
+      }
+
       const rank = {
         advantage: 0,
         even: 1,
@@ -251,6 +258,10 @@ export function BattlePrepScreen({
         const aScore = presetEvaluations.get(a.slotId)?.score ?? 0;
         const bScore = presetEvaluations.get(b.slotId)?.score ?? 0;
         if (aScore !== bScore) return bScore - aScore;
+      }
+
+      if (!guidanceFeatures.sortLoadoutsByFit) {
+        return a.slotId - b.slotId;
       }
 
       const rank = {
