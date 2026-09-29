@@ -51,6 +51,11 @@ function runCampaignCurveCoverage() {
       stage.endRosterCap >= stage.startRosterCap,
       'A chapter may not reduce roster capacity.'
     );
+    expect(
+      stage.startRosterCap >= stage.startSquadCap &&
+        stage.endRosterCap >= stage.endSquadCap,
+      'Roster capacity may not fall below deployed squad capacity.'
+    );
   });
 
   const expectedFamilies = new Map([
