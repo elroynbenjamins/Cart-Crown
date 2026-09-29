@@ -8,7 +8,7 @@ import { bossAtmospheres, getBossAtmosphere, getBossDecor, getBossPalette, getEx
 const expected = {
   elf_hollow_warden: 'roots', elf_ashroot_stalker: 'roots', elf_worldroot_guardian: 'roots',
   orc_stonejaw_champion: 'stonejaw', return_to_crownspire: 'ash',
-  ashen_triumvirate: 'ash', unbound_beacon: 'beacon'
+  unbound_beacon: 'beacon'
 };
 assert.deepEqual(bossAtmospheres, expected);
 for (const [id, kind] of Object.entries(bossAtmospheres)) {
@@ -19,7 +19,7 @@ for (const [id, kind] of Object.entries(bossAtmospheres)) {
   assert.equal(getBossAtmosphere(id, 'Normal'), null);
   assert.equal(getBossAtmosphere(id, 'Elite'), null);
 }
-for (const id of ['hold_the_road', 'elf_ashen_tracks', 'orc_stonejaw_trial', 'new_unknown_boss', '__proto__', 'constructor']) {
+for (const id of ['hold_the_road', 'elf_ashen_tracks', 'orc_stonejaw_trial', 'ashen_triumvirate', 'new_unknown_boss', '__proto__', 'constructor']) {
   assert.equal(getBossAtmosphere(id, 'Boss'), null, `Unexpected boss treatment: ${id}`);
 }
 
@@ -84,4 +84,4 @@ assert.ok(source.includes('reduceMotionChanged') && source.includes('subscriptio
 assert.ok(source.includes('if (mounted && !receivedEvent)'), 'Late initial motion lookup may overwrite a live change');
 assert.ok(source.includes('outputRange: [0, .8, 1]'), 'VFX must disappear when exchange progress returns to zero');
 assert.ok(!/Animated\.(loop|timing|spring)|setInterval\(|setTimeout\(/.test(source), 'Presentation must not add animation clocks');
-console.log(`PASS: 7 explicit bosses, 4 distinct treatments, ${geometryChecks} rotated-geometry checks, 3 themes, and independent healing/attack feedback.`);
+console.log(`PASS: 6 explicit bosses, 4 distinct treatments, ${geometryChecks} rotated-geometry checks, 3 themes, and independent healing/attack feedback.`);
