@@ -51,6 +51,9 @@ jobs:
       - name: War Table regression
         run: npm run war-table:check
 
+      - name: Cross-mode progression regression
+        run: npm run cross-mode:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 
