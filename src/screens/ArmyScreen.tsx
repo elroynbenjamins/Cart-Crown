@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getEquipment } from '../game/equipment';
 import { factions } from '../game/factions';
@@ -27,6 +27,21 @@ export function ArmyScreen({
   onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
+  const tutorialScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (tutorialFocus?.kind !== 'army-equipment') {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      tutorialScrollRef.current?.scrollToEnd({
+        animated: true
+      });
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [tutorialFocus]);
   const {
     activeFaction,
     units,
@@ -66,7 +81,11 @@ export function ArmyScreen({
     : null;
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <GameCard accent={factionAccent}>
         <View style={styles.header}>
           <View>
