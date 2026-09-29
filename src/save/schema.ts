@@ -11,6 +11,7 @@ import {
   getExpeditionChoice
 } from '../game/expeditions';
 import type { ExpeditionRunState } from '../game/expeditions';
+import { warTableContracts } from '../game/warTable';
 import {
   formationShapes,
   getFactionDoctrines
@@ -709,6 +710,27 @@ export function sanitizeFactionGameState(
     kingdomTrialCompletions.push('gold');
   }
 
+  const validWarTableContractIds =
+    new Set(
+      warTableContracts.map(
+        contract => contract.id
+      )
+    );
+  const warTableCompletedContractIds =
+    sanitizeStringArray(
+      stored.warTableCompletedContractIds
+    ).filter(id =>
+      validWarTableContractIds.has(id)
+    );
+  const warTableBonusContractIds =
+    sanitizeStringArray(
+      stored.warTableBonusContractIds
+    ).filter(
+      id =>
+        validWarTableContractIds.has(id) &&
+        warTableCompletedContractIds.includes(id)
+    );
+
   const tutorialSeen = progressedLegacySave
     ? [
         ...new Set([
@@ -804,6 +826,32 @@ export function sanitizeFactionGameState(
     activeExpeditionRun:
       sanitizeExpeditionRun(
         stored.activeExpeditionRun
+      ),
+    warTableCycle: nonNegativeInteger(
+      stored.warTableCycle,
+      0
+    ),
+    warTableBoardChapter: Math.max(
+      1,
+      Math.min(
+        3,
+        nonNegativeInteger(
+          stored.warTableBoardChapter,
+          Math.min(chapterNumber, 3)
+        )
+      )
+    ),
+    warTableCompletedContractIds,
+    warTableBonusContractIds,
+    warTableContractsCompleted:
+      nonNegativeInteger(
+        stored.warTableContractsCompleted,
+        0
+      ),
+    warTableBonusObjectivesCompleted:
+      nonNegativeInteger(
+        stored.warTableBonusObjectivesCompleted,
+        0
       ),
     kingdomTrialCompletions,
     formationTrialCompleted:
@@ -983,6 +1031,12 @@ export function createHumanFactionState(): FactionGameState {
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
     activeExpeditionRun: null,
+    warTableCycle: 0,
+    warTableBoardChapter: 1,
+    warTableCompletedContractIds: [],
+    warTableBonusContractIds: [],
+    warTableContractsCompleted: 0,
+    warTableBonusObjectivesCompleted: 0,
     formationTrialCompleted: false,
     kingdomTrialCompletions: [],
     completedStoryGates: [],
