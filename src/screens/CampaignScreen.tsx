@@ -7,7 +7,16 @@ import { humanRegions } from '../game/data';
 import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, PrimaryButton, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
+import {
+  GameCard,
+  MetricTile,
+  Pill,
+  PrimaryButton,
+  ScreenHero,
+  SecondaryButton,
+  SectionTitle,
+  StatusPill
+} from '../ui/components';
 import { CampaignNodeSprite, FactionCrest, LockIcon, RegionMapBackdrop } from '../ui/gameArt';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
@@ -258,42 +267,52 @@ export function CampaignScreen({
 
   const renderStory = () => (
     <>
-      <GameCard accent={theme.colors.human} faction="human">
-        <View style={styles.chapterHeader}>
-          <View style={styles.chapterCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>
-              CHAPTER {chapterNumber}
-            </Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
-              {chapterNumber === 1
-                ? 'The Last Wagon'
-                : chapterNumber === 2
-                  ? 'The Iron Road'
-                  : chapterNumber === 3
-                    ? 'Border Kingdoms'
-                    : chapterNumber === 4
-                      ? 'The Broken Crown'
-                      : chapterNumber === 5
-                        ? 'Old Royal Lands'
-                        : 'Return to Crownspire'}
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-              {chapterNumber === 1
-                ? 'Reach ruined Greenkeep with the surviving squads.'
-                : chapterNumber === 2
-                  ? 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'
-                  : chapterNumber === 3
-                    ? 'Carry Greenkeep’s authority into the divided Border Marches.'
-                    : chapterNumber === 4
-                      ? 'Push beyond the marcher crisis toward the broken western crown.'
-                      : chapterNumber === 5
-                        ? 'Govern the western realm as a Capital and trace the final royal records toward Crownspire.'
-                        : 'Lead the Grand Campaign into Crownspire and confront the Ashen Court around the Concord Beacon.'}
-            </Text>
-          </View>
-          <Pill label={String(completed) + ' / 6'} color={theme.colors.surface2} />
+      <ScreenHero
+        eyebrow={'CHAPTER ' + chapterNumber}
+        title={
+          chapterNumber === 1
+            ? 'The Last Wagon'
+            : chapterNumber === 2
+              ? 'The Iron Road'
+              : chapterNumber === 3
+                ? 'Border Kingdoms'
+                : chapterNumber === 4
+                  ? 'The Broken Crown'
+                  : chapterNumber === 5
+                    ? 'Old Royal Lands'
+                    : 'Return to Crownspire'
+        }
+        body={
+          chapterNumber === 1
+            ? 'Reach ruined Greenkeep with the surviving squads.'
+            : chapterNumber === 2
+              ? 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'
+              : chapterNumber === 3
+                ? 'Carry Greenkeep’s authority into the divided Border Marches.'
+                : chapterNumber === 4
+                  ? 'Push beyond the marcher crisis toward the broken western crown.'
+                  : chapterNumber === 5
+                    ? 'Govern the western realm as a Capital and trace the final royal records toward Crownspire.'
+                    : 'Lead the Grand Campaign into Crownspire and confront the Ashen Court around the Concord Beacon.'
+        }
+        accent={theme.colors.human}
+        status={<StatusPill label="HUMAN" tone="current" />}
+      >
+        <View style={styles.chapterMetrics}>
+          <MetricTile
+            label="OBJECTIVES"
+            value={completed + '/6'}
+            caption="completed this chapter"
+            tone="positive"
+          />
+          <MetricTile
+            label="CAMPAIGN"
+            value={'CH ' + chapterNumber}
+            caption="current story tier"
+            tone="gold"
+          />
         </View>
-      </GameCard>
+      </ScreenHero>
 
       <SectionTitle title="Caelora" trailing="Western frontier" />
 
@@ -832,12 +851,13 @@ export function CampaignScreen({
 
   const renderActivities = () => (
     <>
-      <GameCard accent={theme.colors.primary}>
-        <Text style={[styles.activityHeroTitle, { color: theme.colors.text }]}>Beyond the Campaign</Text>
-        <Text style={[styles.activityHeroBody, { color: theme.colors.textMuted }]}>
-          Repeatable modes test formation and wagon builds without requiring another story chapter.
-        </Text>
-      </GameCard>
+      <ScreenHero
+        eyebrow="OPTIONAL MODES"
+        title="Beyond the Campaign"
+        body="Repeatable modes test formation and wagon builds without requiring another story chapter."
+        accent={theme.colors.primary}
+        status={<StatusPill label="REPEATABLE" tone="available" />}
+      />
 
       {sideModeDefinitions.map(mode => {
         const unlocked = isSideModeUnlocked(mode.id);
@@ -920,12 +940,22 @@ export function CampaignScreen({
 
   const renderFactions = () => (
     <>
-      <GameCard accent={theme.colors.gold}>
-        <Text style={[styles.activityHeroTitle, { color: theme.colors.text }]}>Three Perspectives</Text>
-        <Text style={[styles.activityHeroBody, { color: theme.colors.textMuted }]}>
-          Humans are the required first campaign. Finishing Human Chapter 6 unlocks Elves and Orcs together. Completing all three unlocks the final Three Seals campaign.
-        </Text>
-      </GameCard>
+      <ScreenHero
+        eyebrow="CAMPAIGNS"
+        title="Three Perspectives"
+        body="Humans are the required first campaign. Finishing Human Chapter 6 unlocks Elves and Orcs together. Completing all three unlocks the final Three Seals campaign."
+        accent={theme.colors.gold}
+        status={
+          <StatusPill
+            label={
+              campaignAvailability.filter(
+                campaign => campaign.completed
+              ).length + '/3 COMPLETE'
+            }
+            tone="current"
+          />
+        }
+      />
 
       {factionOrder.map(id => {
         const faction = factions[id];
@@ -1087,16 +1117,27 @@ export function CampaignScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 14 },
-  segment: { flexDirection: 'row', borderRadius: 16, padding: 4, gap: 4 },
+  content: { padding: 16, paddingBottom: 32, gap: 12 },
+  segment: {
+    flexDirection: 'row',
+    borderRadius: 13,
+    padding: 4,
+    gap: 4
+  },
   tutorialSegmentFocus: { flex: 1 },
-  segmentButton: { flex: 1, minHeight: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  segmentText: { fontSize: 11, fontWeight: '900' },
-  chapterHeader: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  chapterCopy: { flex: 1 },
-  eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
-  title: { fontSize: 24, fontWeight: '900', marginTop: 4 },
-  subtitle: { fontSize: 13, lineHeight: 18, marginTop: 5 },
+  segmentButton: {
+    flex: 1,
+    minHeight: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  segmentText: { fontSize: 10, fontWeight: '900' },
+  chapterMetrics: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8
+  },
   map: { height: 330, borderRadius: 22, borderWidth: 1, overflow: 'hidden', position: 'relative' },
   humanTerritory: {
     position: 'absolute', left: '-10%', top: '12%', width: '62%', height: '88%',
