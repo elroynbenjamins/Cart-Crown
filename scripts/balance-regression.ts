@@ -51,7 +51,10 @@ import {
   getFormationMatchup,
   getFormationShape
 } from '../src/game/formation';
-import { evaluateFormationPreset } from '../src/game/loadoutAnalysis';
+import {
+  evaluateFormationPreset,
+  getTacticalAdjustmentAdvice
+} from '../src/game/loadoutAnalysis';
 import type {
   CommanderPathDefinition,
   EquipmentDefinition,
@@ -1870,6 +1873,149 @@ function runLoadoutRecommendationCoverage() {
     'Stale loadouts no longer lose recommendation value when saved squads are unavailable.'
   );
 
+  const missileAdjustments =
+    getTacticalAdjustmentAdvice({
+      preset: ranged,
+      evaluation: versusMissilesRanged,
+      units: roster,
+      enemyShapeId: 'protected_rear_225',
+      enemyArmyProfileId: 'missile_company',
+      squadCap: 6,
+      availableCounterShapeIds: [
+        'assault_432',
+        'skirmish_screen_243'
+      ]
+    });
+
+  expect(
+    missileAdjustments.some(
+      adjustment =>
+        ['fill_slot', 'role_swap'].includes(
+          adjustment.kind
+        ) &&
+        ['cav_1', 'cav_2', 'skirm_1', 'skirm_2'].includes(
+          adjustment.suggestedUnitId ?? ''
+        )
+    ),
+    'Missile Company advice no longer suggests an available mobile bench squad.'
+  );
+
+  const exposed: FormationPreset = {
+    ...ranged,
+    formationShapeId: 'deep_234'
+  };
+  const exposedEvaluation =
+    evaluateFormationPreset({
+      preset: exposed,
+      units: roster,
+      faction: 'human',
+      enemyShapeId: 'skirmish_screen_243',
+      enemyArmyProfileId: 'raider_pack',
+      squadCap: 6
+    });
+  const exposedAdjustments =
+    getTacticalAdjustmentAdvice({
+      preset: exposed,
+      evaluation: exposedEvaluation,
+      units: roster,
+      enemyShapeId: 'skirmish_screen_243',
+      enemyArmyProfileId: 'raider_pack',
+      squadCap: 6,
+      availableCounterShapeIds: [
+        'wide_vanguard_522',
+        'spear_wall_531',
+        'assault_432'
+      ]
+    });
+
+  expect(
+    exposedAdjustments.some(
+      adjustment =>
+        adjustment.kind === 'counter_shape' &&
+        Boolean(adjustment.suggestedShapeId)
+    ),
+    'Formation-exposed loadouts no longer receive an unlocked counter-shape adjustment.'
+  );
+
+  const staleAdjustments =
+    getTacticalAdjustmentAdvice({
+      preset: mobile,
+      evaluation: stale,
+      units: roster.filter(
+        candidate => candidate.id !== 'cav_1'
+      ),
+      enemyShapeId: 'protected_rear_225',
+      enemyArmyProfileId: 'missile_company',
+      squadCap: 6,
+      availableCounterShapeIds: [
+        'assault_432'
+      ]
+    });
+
+  expect(
+    staleAdjustments[0]?.kind ===
+      'repair_preset',
+    'Stale saved-loadout advice no longer prioritizes repairing unavailable squads.'
+  );
+
+  const underfilled: FormationPreset = {
+    ...holding,
+    formation: [
+      'front_1',
+      'front_2',
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  };
+  const underfilledEvaluation =
+    evaluateFormationPreset({
+      preset: underfilled,
+      units: roster,
+      faction: 'human',
+      enemyShapeId: 'protected_rear_225',
+      enemyArmyProfileId: 'missile_company',
+      squadCap: 6
+    });
+  const underfilledAdjustments =
+    getTacticalAdjustmentAdvice({
+      preset: underfilled,
+      evaluation: underfilledEvaluation,
+      units: roster,
+      enemyShapeId: 'protected_rear_225',
+      enemyArmyProfileId: 'missile_company',
+      squadCap: 6,
+      availableCounterShapeIds: [
+        'assault_432'
+      ]
+    });
+
+  expect(
+    underfilledAdjustments.some(
+      adjustment =>
+        adjustment.kind === 'fill_slot' &&
+        Boolean(adjustment.suggestedUnitId)
+    ),
+    'Underfilled loadout advice no longer identifies a concrete bench squad for the open slot.'
+  );
+
+  [
+    ...missileAdjustments,
+    ...exposedAdjustments,
+    ...staleAdjustments,
+    ...underfilledAdjustments
+  ].forEach(adjustment => {
+    expect(
+      adjustment.priority >= 0 &&
+        adjustment.priority <= 100,
+      'Tactical adjustment priority escaped the 0–100 range.'
+    );
+  });
+
   [
     versusMissilesMobile,
     versusMissilesRanged,
@@ -2192,7 +2338,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, scouted loadout recommendations, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
+    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, scouted loadout recommendations, tactical adjustment advice, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
   );
 }
 
