@@ -54,6 +54,9 @@ jobs:
       - name: Cross-mode progression regression
         run: npm run cross-mode:check
 
+      - name: Side-mode difficulty regression
+        run: npm run side-mode-difficulty:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 
