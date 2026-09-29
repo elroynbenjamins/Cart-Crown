@@ -746,7 +746,6 @@ export function FormationScreen({
                 </View>
               </GameCard>
             </Pressable>
-            </TutorialFocus>
           );
         })}
       </View>
@@ -846,6 +845,7 @@ export function FormationScreen({
                 </View>
               </GameCard>
             </Pressable>
+            </TutorialFocus>
           );
         })}
       </View>
