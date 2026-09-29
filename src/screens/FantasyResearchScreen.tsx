@@ -21,6 +21,8 @@ import {
   StatusPill
 } from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 function formatHours(hours: number) {
   if (hours <= 0) return 'Ready';
@@ -47,9 +49,13 @@ function formatCost(cost: FantasyRecruitTemplate['cost']) {
 }
 
 export function FantasyResearchScreen({
-  onExit
+  onExit,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onExit: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -334,9 +340,20 @@ export function FantasyResearchScreen({
             activeResearchId !== research.id &&
             !completed;
 
+          const tutorialResearchFocused =
+            tutorialFocus?.kind === 'research-start' &&
+            tutorialFocus.family === 'magic' &&
+            !progress &&
+            !locked &&
+            !blockedByOther;
+
           return (
-            <GameCard
+            <TutorialFocus
               key={research.id}
+              active={tutorialResearchFocused}
+              label={tutorialResearchFocused ? tutorialFocus.label : undefined}
+            >
+            <GameCard
               accent={
                 completed || started
                   ? accent
@@ -407,12 +424,15 @@ export function FantasyResearchScreen({
                           'h'
                     }
                     disabled={locked || blockedByOther}
-                    onPress={() =>
+                    onPress={() => {
                       runResearchAction(
                         research,
                         'start'
-                      )
-                    }
+                      );
+                      if (tutorialResearchFocused) {
+                        onTutorialFocusComplete?.();
+                      }
+                    }}
                   />
                 ) : completed ? (
                   <SecondaryButton
@@ -465,6 +485,7 @@ export function FantasyResearchScreen({
                 )}
               </View>
             </GameCard>
+            </TutorialFocus>
           );
         })}
       </View>
@@ -492,9 +513,18 @@ export function FantasyResearchScreen({
               ] >= (amount ?? 0)
           );
 
+          const tutorialTrainingFocused =
+            tutorialFocus?.kind === 'research-train' &&
+            tutorialFocus.family === 'magic' &&
+            unlocked;
+
           return (
-            <GameCard
+            <TutorialFocus
               key={template.id}
+              active={tutorialTrainingFocused}
+              label={tutorialTrainingFocused ? tutorialFocus.label : undefined}
+            >
+            <GameCard
               accent={unlocked ? accent : undefined}
               faction={activeFaction}
               state={unlocked ? 'ready' : 'default'}
@@ -537,10 +567,16 @@ export function FantasyResearchScreen({
                       : 'Research Required'
                   }
                   disabled={!unlocked || !affordable}
-                  onPress={() => recruit(template)}
+                  onPress={() => {
+                    recruit(template);
+                    if (tutorialTrainingFocused && affordable) {
+                      onTutorialFocusComplete?.();
+                    }
+                  }}
                 />
               </View>
             </GameCard>
+            </TutorialFocus>
           );
         })}
       </View>
