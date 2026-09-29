@@ -336,36 +336,61 @@ export function FlowProgress({
   const currentIndex = stages.findIndex(item => item.id === stage);
 
   return (
-    <View style={[styles.flowProgress, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+    <View
+      style={[
+        styles.flowProgress,
+        {
+          backgroundColor: theme.colors.surface1,
+          borderColor: theme.colors.border
+        }
+      ]}
+    >
       {stages.map((item, index) => {
-        const reached = index <= currentIndex;
+        const completed = index < currentIndex;
         const current = index === currentIndex;
+
         return (
-          <React.Fragment key={item.id}>
-            {index > 0 ? (
-              <View
-                style={[
-                  styles.flowLine,
-                  { backgroundColor: index <= currentIndex ? accent : theme.colors.border }
-                ]}
-              />
-            ) : null}
-            <View style={styles.flowStep}>
-              <View
-                style={[
-                  styles.flowDot,
-                  {
-                    backgroundColor: reached ? accent : theme.colors.surface3,
-                    borderColor: current ? theme.colors.gold : reached ? accent : theme.colors.border,
-                    borderWidth: current ? 2 : 1
-                  }
-                ]}
-              />
-              <Text style={[styles.flowLabel, { color: current ? theme.colors.text : theme.colors.textMuted }]}>
-                {item.label}
-              </Text>
-            </View>
-          </React.Fragment>
+          <View
+            key={item.id}
+            style={[
+              styles.flowSegment,
+              {
+                backgroundColor: current
+                  ? accent + '26'
+                  : completed
+                    ? theme.colors.surface2
+                    : 'transparent',
+                borderColor: current
+                  ? accent + '66'
+                  : 'transparent'
+              }
+            ]}
+          >
+            <Text
+              style={[
+                styles.flowSegmentMark,
+                {
+                  color: current || completed
+                    ? accent
+                    : theme.colors.textMuted
+                }
+              ]}
+            >
+              {completed ? '✓' : current ? '●' : '○'}
+            </Text>
+            <Text
+              style={[
+                styles.flowLabel,
+                {
+                  color: current
+                    ? theme.colors.text
+                    : theme.colors.textMuted
+                }
+              ]}
+            >
+              {item.label}
+            </Text>
+          </View>
         );
       })}
     </View>
@@ -798,37 +823,36 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3
   },
   flowProgress: {
-    minHeight: 42,
+    minHeight: 40,
     marginHorizontal: 14,
     marginTop: 7,
     marginBottom: 1,
     borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 12,
+    borderRadius: 13,
+    padding: 4,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    gap: 4
   },
-  flowStep: {
+  flowSegment: {
+    flex: 1,
+    minHeight: 30,
+    borderRadius: 9,
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 48
+    gap: 5
   },
-  flowDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5
+  flowSegmentMark: {
+    fontSize: 8,
+    fontWeight: '900'
   },
   flowLabel: {
-    fontSize: 7.5,
+    fontSize: 8,
     fontWeight: '900',
-    letterSpacing: 0.8,
-    marginTop: 3
-  },
-  flowLine: {
-    flex: 1,
-    height: 2,
-    marginBottom: 12,
-    opacity: 0.7
+    letterSpacing: 0.65
   },
   atmosphere: {
     position: 'absolute',
