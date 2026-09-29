@@ -253,6 +253,12 @@ const formationCounterRules: FormationCounterRule[] = [
   },
   {
     winner: 'wide_vanguard_522',
+    loser: 'deep_234',
+    winnerSummary: 'Broad pressure stretches the enemy’s narrow first line before its depth can stabilize the battle.',
+    loserSummary: 'The enemy’s wide frontage can stretch your narrow screen faster than your depth can reinforce it.'
+  },
+  {
+    winner: 'wide_vanguard_522',
     loser: 'reinforced_center_252',
     winnerSummary: 'Broad pressure stretches the enemy’s dense central reserve across too much frontage.',
     loserSummary: 'The enemy’s wide line can pull your central reserve in too many directions at once.'
@@ -268,6 +274,12 @@ const formationCounterRules: FormationCounterRule[] = [
     loser: 'spear_wall_531',
     winnerSummary: 'Ranged depth punishes the slow wall while your small screen avoids a direct charge contest.',
     loserSummary: 'Your wall is difficult to break head-on but vulnerable to sustained rear-line pressure.'
+  },
+  {
+    winner: 'protected_rear_225',
+    loser: 'deep_234',
+    winnerSummary: 'A larger rear line can win the ranged exchange while both armies rely on narrow screens.',
+    loserSummary: 'The enemy commits even more strength to the rear and can out-pressure your deeper but smaller back line.'
   },
   {
     winner: 'reinforced_center_252',
@@ -294,10 +306,22 @@ const formationCounterRules: FormationCounterRule[] = [
     loserSummary: 'The enemy’s broad braced line limits the space your mobile middle rank needs.'
   },
   {
+    winner: 'assault_432',
+    loser: 'skirmish_screen_243',
+    winnerSummary: 'Four-wide pressure pins the light enemy screen before its mobile middle rank can rotate freely.',
+    loserSummary: 'The enemy’s aggressive front can pin your light screen before your mobile middle rank finds open lanes.'
+  },
+  {
     winner: 'skirmish_screen_243',
     loser: 'reinforced_center_252',
     winnerSummary: 'Mobile middle-rank pressure avoids the enemy’s strongest central reserve and attacks its edges.',
     loserSummary: 'The enemy can avoid your dense center and force the fight onto weaker outside lanes.'
+  },
+  {
+    winner: 'skirmish_screen_243',
+    loser: 'deep_234',
+    winnerSummary: 'A mobile middle rank attacks around the narrow screen before the enemy’s deeper reserves can settle.',
+    loserSummary: 'The enemy’s mobile middle rank can work around your narrow screen and disrupt the depth behind it.'
   },
   {
     winner: 'skirmish_screen_243',
