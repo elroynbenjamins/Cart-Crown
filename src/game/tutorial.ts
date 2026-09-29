@@ -14,6 +14,7 @@ export type TutorialView =
   | 'fantasyResearch'
   | 'flyingResearch'
   | 'largeResearch'
+  | 'hybridResearch'
   | 'other';
 
 export type TutorialTarget =
@@ -41,9 +42,9 @@ export type TutorialFocusTarget =
   | { kind: 'forge-craft'; label: string }
   | { kind: 'army-equipment'; label: string }
   | { kind: 'kingdom-production'; label: string }
-  | { kind: 'army-fantasy'; family: 'magic' | 'flying' | 'large'; label: string }
-  | { kind: 'research-start'; family: 'magic' | 'flying' | 'large'; label: string }
-  | { kind: 'research-train'; family: 'magic' | 'flying' | 'large'; label: string };
+  | { kind: 'army-fantasy'; family: 'magic' | 'flying' | 'large' | 'hybrid'; label: string }
+  | { kind: 'research-start'; family: 'magic' | 'flying' | 'large' | 'hybrid'; label: string }
+  | { kind: 'research-train'; family: 'magic' | 'flying' | 'large' | 'hybrid'; label: string };
 
 export type TutorialMoment = {
   key: string;
@@ -80,9 +81,11 @@ export type TutorialContext = {
   magicStoryUnlocked: boolean;
   flyingStoryUnlocked: boolean;
   largeStoryUnlocked: boolean;
+  hybridStoryUnlocked: boolean;
   completedMagicResearch: number;
   completedFlyingResearch: number;
   completedLargeResearch: number;
+  completedHybridResearch: number;
 };
 
 export const CORE_TUTORIAL_KEYS = [
@@ -111,7 +114,10 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:flying-training',
   'system:large-discovery',
   'system:large-research',
-  'system:large-training'
+  'system:large-training',
+  'system:hybrid-discovery',
+  'system:hybrid-research',
+  'system:hybrid-training'
 ] as const;
 
 export const FACTION_TUTORIAL_KEYS = [
@@ -810,6 +816,80 @@ function systemMoment(
   }
 
   if (
+    context.hybridStoryUnlocked &&
+    context.view === 'army' &&
+    !seen(context, 'system:hybrid-discovery')
+  ) {
+    const name =
+      context.faction === 'human'
+        ? 'High Arcane Aerie'
+        : context.faction === 'elf'
+          ? 'Moonwing Sanctuary'
+          : 'Elder Wyvern Shrine';
+
+    return {
+      key: 'system:hybrid-discovery',
+      kind: 'system',
+      eyebrow: 'CHAPTER 8 LEGENDARY ORDER',
+      title: 'Magic and flight become one doctrine',
+      body:
+        name +
+        ' is now operational. Legendary hybrids combine magical pressure with aerial access, but they use one dedicated matchup profile rather than stacking both lower-tier family bonuses. Wards, anti-air and elite command doctrine remain deliberate counters.',
+      primaryLabel: 'Show Legendary Orders',
+      target: 'army',
+      focusAfterPrimary: {
+        kind: 'army-fantasy',
+        family: 'hybrid',
+        label: 'OPEN LEGENDARY ORDERS'
+      }
+    };
+  }
+
+  if (
+    context.hybridStoryUnlocked &&
+    context.view === 'hybridResearch' &&
+    !seen(context, 'system:hybrid-research')
+  ) {
+    return {
+      key: 'system:hybrid-research',
+      kind: 'system',
+      eyebrow: 'LEGENDARY RESEARCH',
+      title: 'Legendary research has prerequisites',
+      body:
+        'The Three Seals story gate is only the first requirement. Before repeatable hybrid training can begin, this faction must also complete Magic and Flying research. The final doctrine still uses the normal timer, with ads or Gems only shortening the wait.',
+      primaryLabel: 'Show legendary doctrine',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-start',
+        family: 'hybrid',
+        label: 'START LEGENDARY RESEARCH'
+      }
+    };
+  }
+
+  if (
+    context.completedHybridResearch > 0 &&
+    context.view === 'hybridResearch' &&
+    !seen(context, 'system:hybrid-training')
+  ) {
+    return {
+      key: 'system:hybrid-training',
+      kind: 'system',
+      eyebrow: 'LEGENDARY TRAINING',
+      title: 'Legendary units stay specialist choices',
+      body:
+        'The legendary doctrine is mastered. Hybrid squads can now be trained repeatedly, but each costs substantial resources and 2 deployment capacity. Use them to solve high-tier matchups rather than filling every available formation cell with legendary units.',
+      primaryLabel: 'Show legendary training',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-train',
+        family: 'hybrid',
+        label: 'TRAIN THIS LEGENDARY UNIT'
+      }
+    };
+  }
+
+  if (
     (stageRank[context.wagonStageId] ?? 0) >= 2 &&
     context.view === 'formation' &&
     !seen(context, 'system:advanced-formations')
@@ -868,7 +948,8 @@ export function getNextTutorialMoment(
     system?.key === 'system:settlement' ||
     system?.key === 'system:magic-discovery' ||
     system?.key === 'system:flying-discovery' ||
-    system?.key === 'system:large-discovery'
+    system?.key === 'system:large-discovery' ||
+    system?.key === 'system:hybrid-discovery'
   ) {
     return system;
   }
