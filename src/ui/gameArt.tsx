@@ -1907,7 +1907,6 @@ export function EnemySprite({
         size={size}
       />
       {!productionSource && kind === 'stalker' ? (
-      {!productionSource && kind === 'stalker' ? (
         <>
           <View style={{ position: 'absolute', left: size * 0.05, top: size * 0.26, width: size * 0.2, height: size * 0.08, backgroundColor: palette.greenLight, transform: [{ rotate: '-28deg' }] }} />
           <View style={{ position: 'absolute', right: size * 0.05, top: size * 0.26, width: size * 0.2, height: size * 0.08, backgroundColor: palette.greenLight, transform: [{ rotate: '28deg' }] }} />
