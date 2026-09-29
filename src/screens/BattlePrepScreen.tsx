@@ -13,6 +13,7 @@ import {
 } from '../game/formation';
 import {
   getArmyReadinessProfile,
+  getArmyRoleCounterProfile,
   getUnitCombatProfile
 } from '../game/balance';
 import {
@@ -194,6 +195,10 @@ export function BattlePrepScreen({
     .filter((unit): unit is NonNullable<typeof unit> => Boolean(unit));
 
   const combatProfile = getUnitCombatProfile(activeUnits);
+  const roleCounter = getArmyRoleCounterProfile(
+    activeUnits,
+    enemyArmyProfile.id
+  );
   const readinessProfile = getArmyReadinessProfile(armyReadiness);
   const effectiveMaxHp = Math.round(
     combatProfile.maxHp * readinessProfile.hpMultiplier
@@ -481,7 +486,30 @@ export function BattlePrepScreen({
             label={hasFood ? 'FOOD PACKED' : 'FOOD MISSING'}
             tone={hasFood ? 'done' : 'elite'}
           />
+          {roleCounter.result !== 'even' ? (
+            <StatusPill
+              label={roleCounter.label}
+              tone={roleCounter.result === 'advantage' ? 'ready' : 'elite'}
+            />
+          ) : null}
         </View>
+        {roleCounter.result !== 'even' ? (
+          <Text
+            style={[
+              styles.planHint,
+              {
+                color:
+                  roleCounter.result === 'advantage'
+                    ? theme.colors.primary
+                    : theme.colors.danger
+              }
+            ]}
+          >
+            {roleCounter.detail} · dealt ×
+            {roleCounter.outgoingDamageMultiplier.toFixed(2)} · received ×
+            {roleCounter.incomingDamageMultiplier.toFixed(2)}
+          </Text>
+        ) : null}
         {guidanceFeatures.showCounterHints &&
         formationMatchup.result !== 'advantage' &&
         unlockedCounters.length > 0 ? (
