@@ -43,6 +43,7 @@ import { FactionFifthRecruitmentScreen } from './screens/FactionFifthRecruitment
 import { FantasyResearchScreen } from './screens/FantasyResearchScreen';
 import { FlyingResearchScreen } from './screens/FlyingResearchScreen';
 import { LargeResearchScreen } from './screens/LargeResearchScreen';
+import { LegendaryResearchScreen } from './screens/LegendaryResearchScreen';
 import { FactionKingdomScreen } from './screens/FactionKingdomScreen';
 import { FactionRecruitmentScreen } from './screens/FactionRecruitmentScreen';
 import { FactionChapterOneEventScreen } from './screens/FactionChapterOneEventScreen';
@@ -90,6 +91,7 @@ type FlowScreen =
   | 'fantasyResearch'
   | 'flyingResearch'
   | 'largeResearch'
+  | 'hybridResearch'
   | 'promotion'
   | 'equipment'
   | 'commanderChoice'
@@ -161,6 +163,7 @@ const flowTitles: Record<FlowScreen, string> = {
   fantasyResearch: 'Arcane Research',
   flyingResearch: 'Aerial Training',
   largeResearch: 'Large Unit Mastery',
+  hybridResearch: 'Legendary Orders',
   promotion: 'Promotion',
   equipment: 'Equipment',
   commanderChoice: 'Commander Path',
@@ -252,6 +255,8 @@ export function AppShell({
     flyingResearchDefinitions,
     largeFamilyUnlock,
     largeResearchDefinitions,
+    hybridFamilyUnlock,
+    hybridResearchDefinitions,
     tutorialSeen,
     markTutorialSeen,
     reviewPromptShown,
@@ -265,7 +270,8 @@ export function AppShell({
     flow === 'settlement' ||
     flow === 'fantasyResearch' ||
     flow === 'flyingResearch' ||
-    flow === 'largeResearch'
+    flow === 'largeResearch' ||
+    flow === 'hybridResearch'
       ? flow
       : flow
         ? 'other'
@@ -309,6 +315,12 @@ export function AppShell({
         largeFamilyUnlock.storyGateId
       )
     ),
+    hybridStoryUnlocked: Boolean(
+      hybridFamilyUnlock &&
+      completedStoryGates.includes(
+        hybridFamilyUnlock.storyGateId
+      )
+    ),
     completedMagicResearch:
       magicResearchDefinitions.filter(
         research => researchProgress[research.id]?.completed
@@ -319,6 +331,10 @@ export function AppShell({
       ).length,
     completedLargeResearch:
       largeResearchDefinitions.filter(
+        research => researchProgress[research.id]?.completed
+      ).length,
+    completedHybridResearch:
+      hybridResearchDefinitions.filter(
         research => researchProgress[research.id]?.completed
       ).length
   });
@@ -659,6 +675,19 @@ export function AppShell({
     if (flow === 'largeResearch') {
       return (
         <LargeResearchScreen
+          tutorialFocus={tutorialFocus}
+          onTutorialFocusComplete={completeTutorialFocus}
+          onExit={() => {
+            setFlow(null);
+            setActive('army');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'hybridResearch') {
+      return (
+        <LegendaryResearchScreen
           tutorialFocus={tutorialFocus}
           onTutorialFocusComplete={completeTutorialFocus}
           onExit={() => {
@@ -1478,6 +1507,7 @@ export function AppShell({
             onOpenFantasyResearch={() => setFlow('fantasyResearch')}
             onOpenFlyingResearch={() => setFlow('flyingResearch')}
             onOpenLargeResearch={() => setFlow('largeResearch')}
+            onOpenHybridResearch={() => setFlow('hybridResearch')}
             onOpenEquipment={(unitId) => {
               setEquipmentUnitId(unitId);
               setFlow('equipment');
@@ -1552,6 +1582,7 @@ export function AppShell({
     flow === 'fantasyResearch' ||
     flow === 'flyingResearch' ||
     flow === 'largeResearch' ||
+    flow === 'hybridResearch' ||
     flow === 'promotion' ||
     flow === 'equipment' ||
     flow === 'commanderChoice' ||
