@@ -7,11 +7,13 @@ import { getExpansionCost } from '../game/balance';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
+  MetricTile,
   Pill,
   PrimaryButton,
   ProgressBar,
   ResourceAmountRow,
   ResourceChip,
+  ScreenHero,
   SecondaryButton,
   SectionTitle,
   StatusPill
@@ -222,44 +224,75 @@ export function KingdomScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.human} style={styles.hero}>
-        <View style={styles.heroTop}>
-          <View style={styles.heroCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.human }]}>HUMAN KINGDOM</Text>
-            <Text style={[styles.heroTitle, { color: theme.colors.text }]}>{settlementName}</Text>
-            <Text style={[styles.heroBody, { color: theme.colors.textMuted }]}>
-              {settlementUpgraded
-                ? 'Campaign milestones bring people and knowledge. You decide which systems receive the kingdom’s resources.'
-                : 'Two squads, one damaged wagon, and the road to Greenkeep.'}
-            </Text>
+      <ScreenHero
+        eyebrow="HUMAN KINGDOM"
+        title={settlementName}
+        body={
+          settlementUpgraded
+            ? 'Campaign milestones bring people and knowledge. You decide which systems receive the kingdom’s resources.'
+            : 'Two squads, one damaged wagon, and the road to Greenkeep.'
+        }
+        accent={theme.colors.human}
+        status={
+          <StatusPill
+            label={
+              currentWagonStage.id === 'grand'
+                ? 'TIER 7'
+                : currentWagonStage.id === 'capital'
+                  ? 'TIER 6'
+                  : currentWagonStage.id === 'stronghold'
+                    ? 'TIER 5'
+                    : currentWagonStage.id === 'town'
+                      ? 'TIER 4'
+                      : currentWagonStage.id === 'fort'
+                        ? 'TIER 3'
+                        : settlementUpgraded
+                          ? 'TIER 2'
+                          : 'CAMP'
+            }
+            tone="current"
+          />
+        }
+      >
+        <View style={styles.heroContent}>
+          <View
+            style={[
+              styles.keepMark,
+              { backgroundColor: theme.colors.surface2 }
+            ]}
+          >
+            <SettlementStageSprite
+              stageId={currentWagonStage.id}
+              size={60}
+            />
           </View>
-          <View style={[styles.keepMark, { backgroundColor: theme.colors.surface2 }]}>
-            <SettlementStageSprite stageId={currentWagonStage.id} size={68} />
+          <View style={styles.heroMetrics}>
+            <MetricTile
+              label="DEVELOPMENT"
+              value={builtCount + '/' + unlockedCount}
+              caption="built / unlocked"
+              tone="gold"
+            />
+            <MetricTile
+              label="ACTIVE SQUADS"
+              value={currentWagonStage.formationSlots}
+              caption={
+                currentWagonStage.width +
+                '×' +
+                currentWagonStage.height +
+                ' wagon'
+              }
+              tone="positive"
+            />
           </View>
         </View>
-
-        <View style={styles.progressCopy}>
-          <Text style={[styles.progressLabel, { color: theme.colors.text }]}>
-            {currentWagonStage.id === 'grand'
-              ? 'Grand Campaign · 7'
-              : currentWagonStage.id === 'capital'
-                ? 'Capital tier · 6'
-                : currentWagonStage.id === 'stronghold'
-                ? 'Stronghold tier · 5'
-                : currentWagonStage.id === 'town'
-                ? 'Town tier · 4'
-                : currentWagonStage.id === 'fort'
-                ? 'Fort tier · 3'
-                : settlementUpgraded
-                  ? 'Settlement tier · 2'
-                  : 'Raise Greenkeep Settlement'}
-          </Text>
-          <Text style={[styles.progressValue, { color: theme.colors.textMuted }]}>
-            {settlementUpgraded ? unlockedCount + ' buildings online' : Math.round(progress * 100) + '%'}
-          </Text>
+        <View style={styles.heroProgress}>
+          <ProgressBar
+            value={settlementUpgraded ? 0.34 : progress}
+            color={theme.colors.human}
+          />
         </View>
-        <ProgressBar value={settlementUpgraded ? 0.34 : progress} color={theme.colors.human} />
-      </GameCard>
+      </ScreenHero>
 
       <View style={styles.resources}>
         <ResourceChip art={<ResourceSprite resource="gold" size={28} />} value={resources.gold} label="Gold" />
@@ -285,24 +318,6 @@ export function KingdomScreen({
         <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>{requirement}</Text>
       </GameCard>
 
-      <View style={styles.summaryRow}>
-        <GameCard style={styles.summaryCard}>
-          <Text style={[styles.summaryLabel, { color: theme.colors.textMuted }]}>SUPPLY WAGON</Text>
-          <Text style={[styles.summaryValue, { color: theme.colors.text }]}>
-            {currentWagonStage.width}×{currentWagonStage.height}
-          </Text>
-          <Text style={[styles.summaryNote, { color: theme.colors.primary }]}>
-            {currentWagonStage.formationSlots} active squads
-          </Text>
-        </GameCard>
-
-        <GameCard style={styles.summaryCard}>
-          <Text style={[styles.summaryLabel, { color: theme.colors.textMuted }]}>DEVELOPMENT</Text>
-          <Text style={[styles.summaryValue, { color: theme.colors.text }]}>{builtCount}/{unlockedCount}</Text>
-          <Text style={[styles.summaryNote, { color: theme.colors.gold }]}>built / unlocked</Text>
-        </GameCard>
-      </View>
-
       <GameCard accent={theme.colors.human}>
         <View style={styles.settlementViewRow}>
           <View style={styles.settlementViewCopy}>
@@ -314,7 +329,7 @@ export function KingdomScreen({
           <SettlementStageSprite stageId={currentWagonStage.id} size={48} />
         </View>
         <View style={styles.supplyButton}>
-          <PrimaryButton label="Open Settlement View" onPress={onOpenSettlement} />
+          <SecondaryButton label="Open Settlement View" onPress={onOpenSettlement} />
         </View>
       </GameCard>
 
@@ -542,17 +557,27 @@ export function KingdomScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 14 },
-  hero: { gap: 16 },
-  heroTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
-  heroCopy: { flex: 1 },
-  eyebrow: { fontSize: 10, letterSpacing: 1.2, fontWeight: '900' },
-  heroTitle: { fontSize: 28, lineHeight: 34, fontWeight: '900', marginTop: 5 },
-  heroBody: { fontSize: 13, lineHeight: 19, marginTop: 6 },
-  keepMark: { width: 74, height: 74, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  progressCopy: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  progressLabel: { fontSize: 13, fontWeight: '800' },
-  progressValue: { fontSize: 11, fontWeight: '800' },
+  content: { padding: 16, paddingBottom: 32, gap: 12 },
+  heroContent: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 9
+  },
+  heroMetrics: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7
+  },
+  heroProgress: { marginTop: 10 },
+  eyebrow: { fontSize: 9.5, letterSpacing: 1.05, fontWeight: '900' },
+  keepMark: {
+    width: 72,
+    minHeight: 72,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   goalRow: { flexDirection: 'row', gap: 14, marginBottom: 14 },
   goalCopy: { flex: 1 },
@@ -561,11 +586,6 @@ const styles = StyleSheet.create({
   goalCost: { alignItems: 'flex-end', justifyContent: 'center', gap: 5 },
   costText: { fontSize: 13, fontWeight: '900' },
   requirement: { textAlign: 'center', marginTop: 9, fontSize: 11 },
-  summaryRow: { flexDirection: 'row', gap: 8 },
-  summaryCard: { flex: 1 },
-  summaryLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1 },
-  summaryValue: { fontSize: 22, fontWeight: '900', marginTop: 4 },
-  summaryNote: { fontSize: 9.5, fontWeight: '800', marginTop: 3 },
   productionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   productionCard: { width: '48%' },
   productionIcon: { height: 46, alignItems: 'center', justifyContent: 'center' },
