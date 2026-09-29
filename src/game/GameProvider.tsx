@@ -1910,26 +1910,49 @@ export function GameProvider({
             battleSummary
           )
         );
-      const baseReward = addResources(
-        {
-          gold: 0,
-          wood: 0,
-          stone: 0,
-          iron: 0,
-          provisions: 0
-        },
-        reward.resources
-      );
-      const totalReward = bonusAchieved
-        ? addResources(
-            baseReward,
-            contract.bonusReward
-          )
-        : baseReward;
+      const scaledBaseReward =
+        scaleResourceReward(
+          reward.resources,
+          warTableBoardRewardMultiplier
+        );
+      const scaledBonusReward =
+        bonusAchieved
+          ? scaleResourceReward(
+              contract.bonusReward,
+              warTableBoardRewardMultiplier
+            )
+          : {};
+      const totalReward = {
+        gold:
+          (scaledBaseReward.gold ?? 0) +
+          (scaledBonusReward.gold ?? 0),
+        wood:
+          (scaledBaseReward.wood ?? 0) +
+          (scaledBonusReward.wood ?? 0),
+        stone:
+          (scaledBaseReward.stone ?? 0) +
+          (scaledBonusReward.stone ?? 0),
+        iron:
+          (scaledBaseReward.iron ?? 0) +
+          (scaledBonusReward.iron ?? 0),
+        provisions:
+          (scaledBaseReward.provisions ?? 0) +
+          (scaledBonusReward.provisions ?? 0)
+      };
+      const willClearBoard =
+        postedContracts.every(
+          posted =>
+            posted.id === contract.id ||
+            warTableCompletedContractIds.includes(
+              posted.id
+            )
+        );
 
-      setResources(previous =>
-        addResources(previous, totalReward)
-      );
+      if (warTableBoardRewardMultiplier > 0) {
+        setResources(previous =>
+          addResources(previous, totalReward)
+        );
+      }
       setWarTableCompletedContractIds(
         previous => [
           ...previous,
@@ -1952,7 +1975,16 @@ export function GameProvider({
         );
       }
 
-      accrueRegionalProduction();
+      if (willClearBoard) {
+        setWarTableBoardsClearedThisChapter(
+          previous => previous + 1
+        );
+
+        if (warTableBoardRewardMultiplier === 1) {
+          accrueRegionalProduction();
+        }
+      }
+
       setLastBattleResult({
         id: encounterId + '_result',
         title: 'War Table Contract Complete',
@@ -1964,7 +1996,10 @@ export function GameProvider({
               contract.bonusObjective.label +
               '.'
             : ' The bonus objective was not completed this time.'),
-        rewards: totalReward,
+        rewards:
+          warTableBoardRewardMultiplier > 0
+            ? totalReward
+            : {},
         casualties: 0
       });
       return;
