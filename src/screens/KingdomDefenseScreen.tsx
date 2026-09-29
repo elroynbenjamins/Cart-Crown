@@ -190,8 +190,8 @@ export function KingdomDefenseScreen({
               prefix="+"
               values={
                 firstClearReward
-                  ? { gold: 75, stone: 10, iron: 4, provisions: 5 }
-                  : { gold: 50, stone: 6, iron: 2, provisions: 5 }
+                  ? { gold: 85, wood: 10, stone: 10, iron: 4, provisions: 6 }
+                  : { gold: 60, wood: 8, stone: 6, iron: 2, provisions: 5 }
               }
             />
           </View>
