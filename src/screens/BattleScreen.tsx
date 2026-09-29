@@ -23,7 +23,10 @@ import {
   getLargeCombatEdge,
   getHybridCombatEdge
 } from '../game/progression';
-import { getEnemyFantasyThreatAssessment } from '../game/enemyFantasy';
+import {
+  getEnemyFantasyExchangeBehavior,
+  getEnemyFantasyThreatAssessment
+} from '../game/enemyFantasy';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import {
@@ -359,6 +362,15 @@ export function BattleScreen({
   const [partyHp, setPartyHp] = useState(partyMaxHp);
   const [enemyHp, setEnemyHp] = useState(encounter.enemyHp);
   const [turn, setTurn] = useState(0);
+  const enemyFantasyExchangeBehavior = useMemo(
+    () =>
+      getEnemyFantasyExchangeBehavior(
+        encounter,
+        activeUnits,
+        turn
+      ),
+    [activeUnits, encounter, turn]
+  );
   const [skillTriggered, setSkillTriggered] = useState(false);
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
   const [battleSpeed, setBattleSpeed] = useState<BattleSpeed>(1);
@@ -803,6 +815,7 @@ export function BattleScreen({
             (largeCombatEdge?.incomingDamageMultiplier ?? 1) *
             (hybridCombatEdge?.incomingDamageMultiplier ?? 1) *
             (enemyFantasyThreat?.incomingDamageMultiplier ?? 1) *
+            (enemyFantasyExchangeBehavior?.damageMultiplier ?? 1) *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -884,7 +897,13 @@ export function BattleScreen({
                 (enemyFantasyThreat
                   ? ' ' + enemyFantasyThreat.detail
                   : '')
-              : action)
+              : action) +
+          (enemyFantasyExchangeBehavior?.isSpecial
+            ? ' ' +
+              enemyFantasyExchangeBehavior.label +
+              ': ' +
+              enemyFantasyExchangeBehavior.detail
+            : '')
       );
 
       if (effect) {
@@ -926,6 +945,7 @@ export function BattleScreen({
     enemyTactic,
     enemyArmyProfile,
     enemyFantasyThreat,
+    enemyFantasyExchangeBehavior,
     formation,
     units,
     formationAnalysis,
@@ -1466,6 +1486,26 @@ export function BattleScreen({
           {' · dealt ×' + formationMatchup.outgoingDamageMultiplier.toFixed(2)}
           {' · received ×' + formationMatchup.incomingDamageMultiplier.toFixed(2)}
         </Text>
+        {enemyFantasyExchangeBehavior?.isSpecial && !battleEnded ? (
+          <View
+            style={[
+              styles.enemyFantasyMove,
+              {
+                backgroundColor: theme.colors.danger + '14',
+                borderColor: theme.colors.danger + '66'
+              }
+            ]}
+          >
+            <Text style={[styles.enemyFantasyMoveLabel, { color: theme.colors.danger }]}>
+              INCOMING · {enemyFantasyExchangeBehavior.label.toUpperCase()}
+            </Text>
+            {!veryCompactLayout ? (
+              <Text style={[styles.enemyFantasyMoveDetail, { color: theme.colors.textMuted }]}>
+                {enemyFantasyExchangeBehavior.detail}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
         <Text style={[styles.hpLabel, { color: theme.colors.text }]}>
           {enemyHp} / {encounter.enemyHp} HP
         </Text>
@@ -1776,6 +1816,26 @@ const styles = StyleSheet.create({
   },
   arenaCompact: { gap: 3 },
   sideLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8, textAlign: 'center' },
+  enemyFantasyMove: {
+    alignSelf: 'stretch',
+    borderWidth: 1,
+    borderRadius: 9,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    marginTop: 2
+  },
+  enemyFantasyMoveLabel: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.65,
+    textAlign: 'center'
+  },
+  enemyFantasyMoveDetail: {
+    fontSize: 9.5,
+    lineHeight: 13,
+    marginTop: 2,
+    textAlign: 'center'
+  },
   formationBoard: { alignSelf: 'center', gap: 3, minWidth: 220 },
   formationBoardCompact: { gap: 2, minWidth: 205 },
   formationRow: { flexDirection: 'row', justifyContent: 'center', gap: 4 },

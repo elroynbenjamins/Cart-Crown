@@ -2,6 +2,8 @@ import {
   getEncounter
 } from '../src/game/encounters';
 import {
+  getEnemyFantasyExchangeBehavior,
+  getEnemyFantasyPatternSummary,
   getEnemyFantasyThreatAssessment
 } from '../src/game/enemyFantasy';
 import type {
@@ -170,11 +172,156 @@ function runLargeCounterCoverage() {
   );
 }
 
+function runExchangePatternCoverage() {
+  const exposed = [
+    unit('sword', 'Swordsman', 'melee')
+  ];
+  const counters = {
+    magic: [
+      unit('ward', 'Dawnkeeper', 'support', ['magic', 'support']),
+      unit('mage', 'Mage', 'ranged', ['magic'])
+    ],
+    flying: [
+      unit('archer', 'Archer', 'ranged', ['ranged']),
+      unit('ranger', 'Ranger', 'skirmish', ['ranged'])
+    ],
+    large: [
+      unit('spear', 'Veteran Spearman', 'frontline'),
+      unit('lancer', 'Royal Lancer', 'cavalry')
+    ],
+    hybrid: [
+      unit('ward', 'Dawnkeeper', 'support', ['magic', 'support']),
+      unit('mage', 'Mage', 'ranged', ['magic']),
+      unit('archer', 'Archer', 'ranged', ['ranged']),
+      unit('ranger', 'Ranger', 'skirmish', ['ranged'])
+    ]
+  } as const;
+
+  const cases = [
+    {
+      family: 'magic' as const,
+      encounter: getEncounter('war_table_ashen_hex_circle'),
+      specialLabel: 'Hex Surge'
+    },
+    {
+      family: 'flying' as const,
+      encounter: getEncounter('war_table_sky_raiders'),
+      specialLabel: 'Aerial Dive'
+    },
+    {
+      family: 'large' as const,
+      encounter: getEncounter('war_table_golem_breach'),
+      specialLabel: 'Ground Slam'
+    },
+    {
+      family: 'hybrid' as const,
+      encounter: {
+        ...getEncounter('war_table_sky_raiders'),
+        id: 'test_hybrid_threat',
+        fantasyThreat: 'hybrid' as const
+      },
+      specialLabel: 'Legendary Assault'
+    }
+  ];
+
+  for (const testCase of cases) {
+    const exposedCycle = [0, 1, 2].map(turn =>
+      getEnemyFantasyExchangeBehavior(
+        testCase.encounter,
+        exposed,
+        turn
+      )
+    );
+    const counteredCycle = [0, 1, 2].map(turn =>
+      getEnemyFantasyExchangeBehavior(
+        testCase.encounter,
+        [...counters[testCase.family]],
+        turn
+      )
+    );
+
+    check(
+      exposedCycle.every(Boolean) &&
+        counteredCycle.every(Boolean),
+      testCase.family +
+        ' exchange behavior disappeared from its fantasy encounter.'
+    );
+
+    const exposedAverage =
+      exposedCycle.reduce(
+        (sum, behavior) =>
+          sum + (behavior?.damageMultiplier ?? 0),
+        0
+      ) / 3;
+    const counteredAverage =
+      counteredCycle.reduce(
+        (sum, behavior) =>
+          sum + (behavior?.damageMultiplier ?? 0),
+        0
+      ) / 3;
+
+    check(
+      Math.abs(exposedAverage - 1) < 0.000001 &&
+        Math.abs(counteredAverage - 1) < 0.000001,
+      testCase.family +
+        ' rhythm changed average damage instead of only redistributing it.'
+    );
+
+    const exposedSpecials =
+      exposedCycle.filter(
+        behavior => behavior?.isSpecial
+      );
+    const counteredSpecials =
+      counteredCycle.filter(
+        behavior => behavior?.isSpecial
+      );
+
+    check(
+      exposedSpecials.length === 1 &&
+        counteredSpecials.length === 1 &&
+        exposedSpecials[0]?.label ===
+          testCase.specialLabel,
+      testCase.family +
+        ' must telegraph exactly one signature move per three exchanges.'
+    );
+
+    check(
+      (counteredSpecials[0]?.damageMultiplier ?? 99) <
+        (exposedSpecials[0]?.damageMultiplier ?? 0),
+      testCase.family +
+        ' counter preparation no longer reduces the signature spike.'
+    );
+
+    check(
+      Boolean(
+        getEnemyFantasyPatternSummary(
+          testCase.encounter
+        )
+      ),
+      testCase.family +
+        ' threat no longer exposes its Battle Prep pattern summary.'
+    );
+  }
+
+  check(
+    getEnemyFantasyExchangeBehavior(
+      getEncounter('hold_the_road'),
+      exposed,
+      0
+    ) === null &&
+      getEnemyFantasyPatternSummary(
+        getEncounter('hold_the_road')
+      ) === null,
+    'Early conventional encounters incorrectly received fantasy attack rhythms.'
+  );
+}
+
 runEncounterCoverage();
 runMagicCounterCoverage();
 runFlyingCounterCoverage();
 runLargeCounterCoverage();
+runExchangePatternCoverage();
 
 console.log(
-  'PASS: authored enemy Magic, Flying and Large threats expose readable counters and leave early battles unchanged.'
+  'PASS: authored enemy fantasy threats expose readable counters, deterministic average-neutral attack rhythms and leave early conventional battles unchanged.'
 );
