@@ -11,6 +11,8 @@ export type TutorialView =
   | 'battle'
   | 'results'
   | 'settlement'
+  | 'fantasyResearch'
+  | 'flyingResearch'
   | 'other';
 
 export type TutorialTarget =
@@ -37,7 +39,10 @@ export type TutorialFocusTarget =
   | { kind: 'settlement-building'; buildingId: string; label: string }
   | { kind: 'forge-craft'; label: string }
   | { kind: 'army-equipment'; label: string }
-  | { kind: 'kingdom-production'; label: string };
+  | { kind: 'kingdom-production'; label: string }
+  | { kind: 'army-fantasy'; family: 'magic' | 'flying'; label: string }
+  | { kind: 'research-start'; family: 'magic' | 'flying'; label: string }
+  | { kind: 'research-train'; family: 'magic' | 'flying'; label: string };
 
 export type TutorialMoment = {
   key: string;
@@ -71,6 +76,10 @@ export type TutorialContext = {
   armyReadiness: number;
   unlockedResourceSites: number;
   wagonStageId: string;
+  magicStoryUnlocked: boolean;
+  flyingStoryUnlocked: boolean;
+  completedMagicResearch: number;
+  completedFlyingResearch: number;
 };
 
 export const CORE_TUTORIAL_KEYS = [
@@ -90,7 +99,13 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:readiness',
   'system:production',
   'system:advanced-formations',
-  'system:side-modes'
+  'system:side-modes',
+  'system:magic-discovery',
+  'system:magic-research',
+  'system:magic-training',
+  'system:flying-discovery',
+  'system:flying-research',
+  'system:flying-training'
 ] as const;
 
 export const FACTION_TUTORIAL_KEYS = [
@@ -562,6 +577,154 @@ function systemMoment(
       focusAfterPrimary: {
         kind: 'kingdom-production',
         label: 'REGIONAL PRODUCTION'
+      }
+    };
+  }
+
+  if (
+    context.magicStoryUnlocked &&
+    context.view === 'army' &&
+    !seen(context, 'system:magic-discovery')
+  ) {
+    const name =
+      context.faction === 'human'
+        ? 'Arcane Academy'
+        : context.faction === 'elf'
+          ? 'Circle of Ancients'
+          : 'Spirit Lodge';
+
+    return {
+      key: 'system:magic-discovery',
+      kind: 'system',
+      eyebrow: 'NEW TROOP FAMILY',
+      title: 'Magic has entered the campaign',
+      body:
+        name +
+        ' is now operational. Magic adds specialist pressure and support, but it does not replace conventional frontline protection. Dense shields are vulnerable to magic; exposed casters are vulnerable to pressure. Research turns the first story discovery into repeatable training.',
+      primaryLabel: 'Show Arcane Research',
+      target: 'army',
+      focusAfterPrimary: {
+        kind: 'army-fantasy',
+        family: 'magic',
+        label: 'OPEN ARCANE RESEARCH'
+      }
+    };
+  }
+
+  if (
+    context.magicStoryUnlocked &&
+    context.view === 'fantasyResearch' &&
+    !seen(context, 'system:magic-research')
+  ) {
+    return {
+      key: 'system:magic-research',
+      kind: 'system',
+      eyebrow: 'RESEARCH',
+      title: 'Research one doctrine at a time',
+      body:
+        'Starting research costs no Gems. The timer progresses normally while you play or leave the app. Rewarded ads and Gems only shorten the wait; neither is required. Complete a doctrine to unlock its repeatable training recipe.',
+      primaryLabel: 'Show available research',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-start',
+        family: 'magic',
+        label: 'START RESEARCH'
+      }
+    };
+  }
+
+  if (
+    context.completedMagicResearch > 0 &&
+    context.view === 'fantasyResearch' &&
+    !seen(context, 'system:magic-training')
+  ) {
+    return {
+      key: 'system:magic-training',
+      kind: 'system',
+      eyebrow: 'TRAINING UNLOCKED',
+      title: 'Research unlocks training—not free troops',
+      body:
+        'The doctrine is complete, so its class can now be trained repeatedly. New magic squads still cost normal resources and use deployment capacity. Build them when they solve a tactical need rather than replacing every conventional unit.',
+      primaryLabel: 'Show trainable class',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-train',
+        family: 'magic',
+        label: 'TRAIN THIS CLASS'
+      }
+    };
+  }
+
+  if (
+    context.flyingStoryUnlocked &&
+    context.view === 'army' &&
+    !seen(context, 'system:flying-discovery')
+  ) {
+    const name =
+      context.faction === 'human'
+        ? 'Griffin Aerie'
+        : context.faction === 'elf'
+          ? 'Eagle Sanctuary'
+          : 'Wyvern Roost';
+
+    return {
+      key: 'system:flying-discovery',
+      kind: 'system',
+      eyebrow: 'NEW TROOP FAMILY',
+      title: 'Aerial warfare is now available',
+      body:
+        name +
+        ' is now operational. Flying squads can reach protected backlines and create charge pressure, but concentrated missile fire and anti-air units punish careless deployment. Treat aerial troops as specialists, not automatic upgrades.',
+      primaryLabel: 'Show Aerial Training',
+      target: 'army',
+      focusAfterPrimary: {
+        kind: 'army-fantasy',
+        family: 'flying',
+        label: 'OPEN AERIAL TRAINING'
+      }
+    };
+  }
+
+  if (
+    context.flyingStoryUnlocked &&
+    context.view === 'flyingResearch' &&
+    !seen(context, 'system:flying-research')
+  ) {
+    return {
+      key: 'system:flying-research',
+      kind: 'system',
+      eyebrow: 'AERIAL RESEARCH',
+      title: 'Handling research unlocks the branch',
+      body:
+        'Only one fantasy research project runs at a time. Let the timer finish normally, or optionally shorten it with rewarded ads or Gems. Completing the handling doctrine unlocks your faction’s repeatable flying branches.',
+      primaryLabel: 'Show available research',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-start',
+        family: 'flying',
+        label: 'START RESEARCH'
+      }
+    };
+  }
+
+  if (
+    context.completedFlyingResearch > 0 &&
+    context.view === 'flyingResearch' &&
+    !seen(context, 'system:flying-training')
+  ) {
+    return {
+      key: 'system:flying-training',
+      kind: 'system',
+      eyebrow: 'AERIAL TRAINING',
+      title: 'Choose aerial troops for the matchup',
+      body:
+        'Your researched flying classes can now be trained repeatedly. They still cost resources and deployment capacity. Use them to pressure backlines or exploit weak anti-air; keep a ground plan when enemy ranged pressure is concentrated.',
+      primaryLabel: 'Show trainable class',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'research-train',
+        family: 'flying',
+        label: 'TRAIN THIS CLASS'
       }
     };
   }
