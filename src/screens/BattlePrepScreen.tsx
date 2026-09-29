@@ -15,6 +15,7 @@ import {
   getArmyReadinessProfile,
   getUnitCombatProfile
 } from '../game/balance';
+import { evaluateFormationPreset } from '../game/loadoutAnalysis';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -150,33 +151,6 @@ export function BattlePrepScreen({
     );
   };
 
-  const formationPresetOptions = [...formationPresets].sort(
-    (a, b) => {
-      const aActive = presetMatchesCurrent(a.slotId);
-      const bActive = presetMatchesCurrent(b.slotId);
-      if (aActive && !bActive) return -1;
-      if (bActive && !aActive) return 1;
-
-      const rank = {
-        advantage: 0,
-        even: 1,
-        disadvantage: 2
-      };
-      const aResult = getFormationMatchup(
-        a.formationShapeId,
-        enemyShape.id
-      ).result;
-      const bResult = getFormationMatchup(
-        b.formationShapeId,
-        enemyShape.id
-      ).result;
-
-      if (rank[aResult] !== rank[bResult]) {
-        return rank[aResult] - rank[bResult];
-      }
-      return a.slotId - b.slotId;
-    }
-  );
   const unlockedCounters = getFormationCounters(enemyShape.id)
     .filter(
       shape =>
@@ -232,6 +206,72 @@ export function BattlePrepScreen({
     loyalistIntel ||
     mandateIntel ||
     (rewardedAdClaims.scout_report ?? 0) > 0;
+
+  const presetEvaluations = new Map(
+    formationPresets.map(preset => [
+      preset.slotId,
+      evaluateFormationPreset({
+        preset,
+        units,
+        faction: activeFaction,
+        enemyShapeId: enemyShape.id,
+        enemyArmyProfileId: enemyArmyProfile.id,
+        squadCap: activeSquadCap
+      })
+    ])
+  );
+
+  const formationPresetOptions = [...formationPresets].sort(
+    (a, b) => {
+      const aActive = presetMatchesCurrent(a.slotId);
+      const bActive = presetMatchesCurrent(b.slotId);
+      if (aActive && !bActive) return -1;
+      if (bActive && !aActive) return 1;
+
+      if (scoutReport) {
+        const aScore = presetEvaluations.get(a.slotId)?.score ?? 0;
+        const bScore = presetEvaluations.get(b.slotId)?.score ?? 0;
+        if (aScore !== bScore) return bScore - aScore;
+      }
+
+      const rank = {
+        advantage: 0,
+        even: 1,
+        disadvantage: 2
+      };
+      const aResult = getFormationMatchup(
+        a.formationShapeId,
+        enemyShape.id
+      ).result;
+      const bResult = getFormationMatchup(
+        b.formationShapeId,
+        enemyShape.id
+      ).result;
+
+      if (rank[aResult] !== rank[bResult]) {
+        return rank[aResult] - rank[bResult];
+      }
+      return a.slotId - b.slotId;
+    }
+  );
+
+  const recommendedPreset =
+    scoutReport && formationPresetOptions.length > 0
+      ? formationPresetOptions.reduce((best, preset) => {
+          if (!best) return preset;
+          const bestScore =
+            presetEvaluations.get(best.slotId)?.score ?? 0;
+          const candidateScore =
+            presetEvaluations.get(preset.slotId)?.score ?? 0;
+          return candidateScore > bestScore
+            ? preset
+            : best;
+        }, formationPresetOptions[0] ?? null)
+      : null;
+  const recommendedEvaluation = recommendedPreset
+    ? presetEvaluations.get(recommendedPreset.slotId) ?? null
+    : null;
+
   const doctrine = formationDoctrines.find(candidate => candidate.id === formationDoctrineId);
 
   return (
