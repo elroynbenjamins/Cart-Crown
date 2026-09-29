@@ -8,6 +8,7 @@ import {
 } from '../game/encounters';
 import {
   getArmyReadinessProfile,
+  getArmyRoleCounterProfile,
   getEnemyStrikePressure,
   getTacticalSpeedDamageMultiplier,
   getUnitCombatProfile
@@ -260,6 +261,14 @@ export function BattleScreen({
     () => getUnitCombatProfile(activeUnits),
     [activeUnits]
   );
+  const roleCounter = useMemo(
+    () =>
+      getArmyRoleCounterProfile(
+        activeUnits,
+        enemyArmyProfile.id
+      ),
+    [activeUnits, enemyArmyProfile.id]
+  );
   const readinessProfile = getArmyReadinessProfile(armyReadiness);
   const partyMaxHp =
     combatProfile.maxHp > 0
@@ -410,6 +419,16 @@ export function BattleScreen({
       key: 'commander',
       label: activeCommanderPath.name + ' · ' + activeCommanderPath.skill.name,
       color: theme.colors.gold
+    });
+  }
+  if (roleCounter.result !== 'even') {
+    battleEffects.push({
+      key: 'role_counter',
+      label: roleCounter.label,
+      color:
+        roleCounter.result === 'advantage'
+          ? theme.colors.primary
+          : theme.colors.danger
     });
   }
   const visibleBattleEffects = compactLayout
@@ -638,7 +657,8 @@ export function BattleScreen({
               enemyTactic.armorMultiplier *
               enemyArmyProfile.armorMultiplier
             )) *
-            formationMatchup.outgoingDamageMultiplier
+            formationMatchup.outgoingDamageMultiplier *
+          roleCounter.outgoingDamageMultiplier
         )
       );
 
@@ -659,6 +679,7 @@ export function BattleScreen({
             enemyPressureMultiplier *
             enemyTimingMultiplier *
             formationMatchup.incomingDamageMultiplier *
+            roleCounter.incomingDamageMultiplier *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -723,7 +744,9 @@ export function BattleScreen({
                 ' ' +
                 enemyArmyProfile.pressureSummary +
                 '. ' +
-                formationMatchup.summary
+                formationMatchup.summary +
+                ' ' +
+                roleCounter.detail
               : action)
       );
 

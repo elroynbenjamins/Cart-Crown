@@ -104,7 +104,7 @@ export function WagonScreen() {
     armyReadiness,
     armyResupplyCost,
     wagonItems,
-    currentWagonStage,
+    currentTransportStage,
     moveWagonItem,
     rotateWagonItem,
     resetWagon
@@ -124,10 +124,10 @@ export function WagonScreen() {
   const boardWidth = Math.min(width - 32, 420);
   const gap = 5;
   const cell = Math.floor(
-    (boardWidth - gap * (currentWagonStage.width - 1)) / currentWagonStage.width
+    (boardWidth - gap * (currentTransportStage.width - 1)) / currentTransportStage.width
   );
   const boardHeight =
-    cell * currentWagonStage.height + gap * (currentWagonStage.height - 1);
+    cell * currentTransportStage.height + gap * (currentTransportStage.height - 1);
   const occupied = wagonItems.reduce((sum, item) => sum + item.width * item.height, 0);
   const selected = wagonItems.find(item => item.id === selectedId) ?? null;
 
@@ -158,16 +158,16 @@ export function WagonScreen() {
           <View style={styles.headerCopy}>
             <Text style={[styles.eyebrow, { color: factionAccent }]}>CAMPAIGN PACK</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>
-              {faction.wagonName} · {currentWagonStage.width}×{currentWagonStage.height}
+              {faction.wagonName} · {currentTransportStage.width}×{currentTransportStage.height}
             </Text>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-              Your logistics frame grows with the {faction.name} campaign. Early tiers stay deliberately cramped; later settlement tiers add real packing space.
+              Transport grows through campaign logistics milestones independently of settlement size. Better transport increases real packing space for supplies and field equipment.
             </Text>
           </View>
           <View style={styles.wagonVisual}>
-            <WagonStageSprite stageId={currentWagonStage.id} faction={activeFaction} size={74} />
+            <WagonStageSprite stageId={currentTransportStage.id} faction={activeFaction} size={74} />
             <Pill
-              label={String(occupied) + ' / ' + String(currentWagonStage.width * currentWagonStage.height)}
+              label={String(occupied) + ' / ' + String(currentTransportStage.width * currentTransportStage.height)}
             />
           </View>
         </View>
@@ -178,14 +178,14 @@ export function WagonScreen() {
           style={[
             styles.board,
             {
-              width: cell * currentWagonStage.width + gap * (currentWagonStage.width - 1),
+              width: cell * currentTransportStage.width + gap * (currentTransportStage.width - 1),
               height: boardHeight
             }
           ]}
         >
-          {Array.from({ length: currentWagonStage.width * currentWagonStage.height }).map((_, index) => {
-            const x = index % currentWagonStage.width;
-            const y = Math.floor(index / currentWagonStage.width);
+          {Array.from({ length: currentTransportStage.width * currentTransportStage.height }).map((_, index) => {
+            const x = index % currentTransportStage.width;
+            const y = Math.floor(index / currentTransportStage.width);
 
             return (
               <View

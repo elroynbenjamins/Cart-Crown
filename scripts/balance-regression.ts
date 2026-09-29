@@ -11,14 +11,18 @@ import {
   getUnitCombatProfile
 } from '../src/game/balance';
 import { royalDecrees } from '../src/game/capital';
-import { fortMusterOptions } from '../src/game/chapter2';
+import { chapterTwoDiplomacyUnits } from '../src/game/chapter2';
 import { marcherAuxiliaryOptions } from '../src/game/chapter3';
 import {
   lastLoyalistChoices,
   strongholdMusterOptions
 } from '../src/game/chapter4';
 import { getCommanderPaths } from '../src/game/commanders';
-import { humanRecruitOptions, starterUnits } from '../src/game/data';
+import {
+  humanRecruitOptions,
+  humanRefugeeReinforcements,
+  starterUnits
+} from '../src/game/data';
 import {
   advancedPromotions,
   canUnitEquipEquipment,
@@ -111,7 +115,7 @@ const failures: string[] = [];
 const bossByFaction: Record<FactionId, EncounterId[]> = {
   human: [
     'toll_captain',
-    'iron_provost',
+    'ch2_riders_banner',
     'lord_marshal_veyr',
     'pretender_general',
     'gate_of_crownspire',
@@ -136,7 +140,7 @@ const bossByFaction: Record<FactionId, EncounterId[]> = {
 };
 
 const squadCaps: Record<FactionId, number[]> = {
-  human: [3, 4, 5, 6, 6, 6],
+  human: [5, 7, 9, 9, 9, 9],
   elf: [2, 3, 4, 5, 6, 6],
   orc: [2, 3, 4, 5, 6, 6]
 };
@@ -260,17 +264,20 @@ function buildHumanArmy(chapter: number): UnitDefinition[] {
   units.push(
     optionUnit(humanRecruitOptions, 'hum_archer_reinforcement')
   );
+  units.push(
+    ...humanRefugeeReinforcements.map(cloneUnit)
+  );
 
   if (chapter >= 2) {
     units.push(
-      optionUnit(
-        fortMusterOptions,
-        'hum_man_at_arms_reinforcement'
-      )
+      cloneUnit(chapterTwoDiplomacyUnits.protect)
     );
   }
 
-  if (chapter >= 3) {
+  if (chapter === 3) {
+    units.push(
+      optionUnit(humanRecruitOptions, 'hum_scout_reinforcement')
+    );
     units.push(
       optionUnit(
         marcherAuxiliaryOptions,
@@ -282,6 +289,12 @@ function buildHumanArmy(chapter: number): UnitDefinition[] {
   if (chapter >= 4) {
     units.push(
       optionUnit(
+        marcherAuxiliaryOptions,
+        'hum_marcher_ranger'
+      )
+    );
+    units.push(
+      optionUnit(
         strongholdMusterOptions,
         'hum_banner_captain_reinforcement'
       )
@@ -290,7 +303,7 @@ function buildHumanArmy(chapter: number): UnitDefinition[] {
 
   return units.slice(
     0,
-    squadCaps.human[chapter - 1] ?? 6
+    squadCaps.human[chapter - 1] ?? 9
   );
 }
 
@@ -610,6 +623,10 @@ export function simulate(
     input.shapeId
   );
   const profile = getUnitCombatProfile(input.units);
+  const roleCounter = getArmyRoleCounterProfile(
+    input.units,
+    enemyArmyProfile.id
+  );
   const readiness = getArmyReadinessProfile(
     input.readiness
   );
@@ -806,7 +823,8 @@ export function simulate(
             enemyTactic.armorMultiplier *
             enemyArmyProfile.armorMultiplier
           )) *
-          formationMatchup.outgoingDamageMultiplier
+          formationMatchup.outgoingDamageMultiplier *
+          roleCounter.outgoingDamageMultiplier
       )
     );
 
@@ -827,6 +845,7 @@ export function simulate(
           enemyPressureMultiplier *
           enemyTimingMultiplier *
           formationMatchup.incomingDamageMultiplier *
+          roleCounter.incomingDamageMultiplier *
           retaliationFactor *
           (modifier.retaliationMultiplier ?? 1)) /
           Math.max(
@@ -1174,6 +1193,105 @@ function runChapterMatrix() {
   }
 
   return rows;
+}
+
+function runHumanChapterTwoMissionCoverage() {
+  const army = normalArmy('human', 2);
+  const commander = defaultCommander('human');
+  const doctrineId = doctrineByFaction.human;
+
+  const missions: Array<{
+    encounterId: EncounterId;
+    squadCap: number;
+    minimumTurns: number;
+  }> = [
+    {
+      encounterId: 'ch2_defend_camp',
+      squadCap: 5,
+      minimumTurns: 2
+    },
+    {
+      encounterId: 'ch2_beyond_fires',
+      squadCap: 5,
+      minimumTurns: 2
+    },
+    {
+      encounterId: 'ch2_brace',
+      squadCap: 6,
+      minimumTurns: 3
+    },
+    {
+      encounterId: 'ch2_take_watch',
+      squadCap: 6,
+      minimumTurns: 3
+    },
+    {
+      encounterId: 'ch2_riders_banner',
+      squadCap: 7,
+      minimumTurns: 4
+    }
+  ];
+
+  for (const mission of missions) {
+    const units = army.slice(0, mission.squadCap);
+    const result = simulate({
+      faction: 'human',
+      units,
+      doctrineId,
+      shapeId: 'balanced_333',
+      commander,
+      encounterId: mission.encounterId,
+      squadCap: mission.squadCap,
+      readiness: 100
+    });
+
+    expect(
+      result.victory,
+      'Prepared Chapter 2 army can no longer clear ' +
+        mission.encounterId
+    );
+    expect(
+      result.turns >= mission.minimumTurns,
+      mission.encounterId +
+        ' has become too short to demonstrate its intended combat lesson.'
+    );
+    expect(
+      ratio(result) >= 0.15,
+      mission.encounterId +
+        ' leaves a prepared army too close to deterministic collapse.'
+    );
+  }
+
+  const spear = humanRefugeeReinforcements.find(
+    unit => /spear/i.test(unit.className)
+  );
+  const hunter = starterUnits.find(
+    unit => unit.id === 'hum_hunter'
+  );
+  invariant(spear, 'Chapter 1 Spearman reinforcement missing.');
+  invariant(hunter, 'Human starter Hunter missing.');
+
+  const braced = getArmyRoleCounterProfile(
+    [cloneUnit(spear), cloneUnit(hunter)],
+    'mounted_hunters'
+  );
+  const unbraced = getArmyRoleCounterProfile(
+    [cloneUnit(hunter)],
+    'mounted_hunters'
+  );
+
+  expect(
+    braced.result === 'advantage' &&
+      braced.outgoingDamageMultiplier > 1 &&
+      braced.incomingDamageMultiplier < 1,
+    'Spearman no longer creates a real anti-cavalry advantage.'
+  );
+  expect(
+    unbraced.result === 'disadvantage' &&
+      unbraced.outgoingDamageMultiplier < 1 &&
+      unbraced.incomingDamageMultiplier > 1,
+    'Mounted armies no longer punish formations with no Brace-capable squad.'
+  );
 }
 
 function runTrueOpeningBossCoverage() {
@@ -2515,6 +2633,7 @@ function main() {
   runBattlePreparationCoverage();
   runReadinessCoverage();
   const rows = runChapterMatrix();
+  runHumanChapterTwoMissionCoverage();
   runTrueOpeningBossCoverage();
   runCommanderCoverage();
   runHumanStoryChoiceCoverage();

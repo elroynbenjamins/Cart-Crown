@@ -65,7 +65,7 @@ import type {
   SaveSlotMetadata
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 13;
+export const SAVE_SCHEMA_VERSION = 14;
 
 const factionOrder: FactionId[] = ['human', 'elf', 'orc'];
 
@@ -292,13 +292,12 @@ function formationStageCap(stageId: string) {
 function sanitizeFormation(
   value: unknown,
   units: UnitDefinition[],
-  stageId: string
+  cap: number
 ): Array<string | null> {
   const validUnitIds = new Set(
     units.map(unit => unit.id)
   );
   const seen = new Set<string>();
-  const cap = formationStageCap(stageId);
   let active = 0;
 
   return Array.from({ length: 9 }, (_, index) => {
@@ -366,7 +365,8 @@ function sanitizePresets(
   value: unknown,
   units: UnitDefinition[],
   faction: FactionId,
-  stageId: string
+  stageId: string,
+  cap: number
 ): FormationPreset[] {
   if (!Array.isArray(value)) return [];
 
@@ -374,7 +374,6 @@ function sanitizePresets(
   const validUnitIds = new Set(
     units.map(unit => unit.id)
   );
-  const cap = formationStageCap(stageId);
   const doctrines = getFactionDoctrines(faction);
   const bySlot = new Map<number, FormationPreset>();
 
@@ -441,6 +440,74 @@ function sanitizePresets(
   );
 }
 
+function validStoredChapter(
+  faction: FactionId,
+  value: unknown,
+  stageId: string,
+  fallback: number
+) {
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value)
+  ) {
+    return fallback;
+  }
+
+  const chapter = Math.max(
+    1,
+    Math.min(6, Math.floor(value))
+  );
+
+  if (faction !== 'human') {
+    return chapter === expectedChapterForStage(faction, stageId)
+      ? chapter
+      : expectedChapterForStage(faction, stageId);
+  }
+
+  const allowedByStage: Record<string, number[]> = {
+    camp: [1],
+    settlement: [1, 2],
+    fort: [2],
+    town: [3],
+    stronghold: [4],
+    capital: [5],
+    grand: [6]
+  };
+
+  return (allowedByStage[stageId] ?? [fallback]).includes(chapter)
+    ? chapter
+    : expectedChapterForStage(faction, stageId);
+}
+
+function formationCapForState(
+  faction: FactionId,
+  chapterNumber: number,
+  stageId: string,
+  chapterNodes: ChapterNode[]
+) {
+  if (faction === 'human' && chapterNumber === 2) {
+    if (
+      chapterNodes.some(
+        node => node.id === 'ch2_node_8' && node.completed
+      )
+    ) {
+      return 7;
+    }
+
+    if (
+      chapterNodes.some(
+        node => node.id === 'ch2_node_2' && node.completed
+      )
+    ) {
+      return 6;
+    }
+
+    return 5;
+  }
+
+  return formationStageCap(stageId);
+}
+
 function sanitizeStringArray(value: unknown) {
   if (!Array.isArray(value)) return [];
   return [
@@ -478,13 +545,25 @@ export function sanitizeFactionGameState(
     stored.wagonStageId,
     defaults.wagonStageId
   );
-  const chapterNumber = expectedChapterForStage(
+  const chapterNumber = validStoredChapter(
     faction,
-    stageId
+    stored.chapterNumber,
+    stageId,
+    defaults.chapterNumber
   );
   const chapterDefaults = nodesForChapter(
     faction,
     chapterNumber
+  );
+  const chapterNodes = sanitizeNodes(
+    stored.chapterNodes,
+    chapterDefaults
+  );
+  const formationCap = formationCapForState(
+    faction,
+    chapterNumber,
+    stageId,
+    chapterNodes
   );
 
   const units = sanitizeUnits(
@@ -495,7 +574,7 @@ export function sanitizeFactionGameState(
   const formation = sanitizeFormation(
     stored.formation,
     units,
-    stageId
+    formationCap
   );
   const formationShapeId = validShapeForStage(
     stored.formationShapeId,
@@ -558,7 +637,8 @@ export function sanitizeFactionGameState(
       stored.formationPresets,
       units,
       faction,
-      stageId
+      stageId,
+      formationCap
     ),
     wagonItems: Array.isArray(stored.wagonItems)
       ? stored.wagonItems.map(item => ({ ...item }))
@@ -569,10 +649,7 @@ export function sanitizeFactionGameState(
         ? stored.armyReadiness
         : defaults.armyReadiness ?? 100
     ),
-    chapterNodes: sanitizeNodes(
-      stored.chapterNodes,
-      chapterDefaults
-    ),
+    chapterNodes,
     formationDoctrineId,
     equipmentInventory: sanitizeStringArray(
       stored.equipmentInventory
@@ -712,15 +789,15 @@ export function createHumanFactionState(): FactionGameState {
     resources: { ...starterResources },
     units: starterUnits.map(unit => ({ ...unit })),
     formation: [
-      null,
+      'hum_recruit',
       'hum_militia',
       null,
       null,
       null,
       null,
       null,
-      null,
-      'hum_recruit'
+      'hum_hunter',
+      null
     ],
     formationShapeId: 'balanced_333',
     formationPresets: [],
@@ -762,6 +839,8 @@ export function createHumanFactionState(): FactionGameState {
     kingdomDefenseRuns: 0,
     signalTowerUnlocked: false,
     ironProvostWon: false,
+    chapterTwoRouteId: null,
+    chapterTwoBossWon: false,
     marcherWarningChoiceId: null,
     dividedMarchResolved: false,
     lordMarshalWon: false,
@@ -1124,19 +1203,27 @@ export function metadataFromSnapshot(
                 ? 'Chapter 3 · Border Fort'
                 : 'Chapter 3 · Marcher Envoy';
   } else if (current.chapterNumber === 2) {
-    chapterLabel = current.ironProvostWon
-      ? 'Chapter 2 · Raise Greenkeep Town'
-      : current.signalTowerUnlocked
-        ? 'Chapter 2 · The Iron Provost'
-        : current.kingdomDefenseCompleted
-          ? 'Chapter 2 · Broken Signal Tower'
-          : current.unlockedResourceSites.includes('greenwood_camp')
-            ? 'Chapter 2 · Kingdom Defense'
-            : current.unlockedResourceSites.includes('iron_hills_mine')
-              ? 'Chapter 2 · Timber Claim'
-              : current.fourthRecruitChosen
-                ? 'Chapter 2 · Iron Road Skirmish'
-                : 'Chapter 2 · Fort Muster';
+    chapterLabel = current.chapterTwoBossWon
+      ? 'Chapter 2 Complete · Rider\'s Banner'
+      : current.chapterNodes.find(node => node.id === 'ch2_node_10')?.current
+        ? 'Chapter 2 · The Rider\'s Banner'
+        : current.chapterNodes.find(node => node.id === 'ch2_node_9')?.current
+          ? 'Chapter 2 · Build Something Worth Defending'
+          : current.chapterNodes.find(node => node.id === 'ch2_node_8')?.current
+            ? 'Chapter 2 · Take the Watch'
+            : current.chapterNodes.find(node => node.id === 'ch2_node_7')?.current
+              ? 'Chapter 2 · Those Who Remain'
+              : current.chapterNodes.find(node => node.id === 'ch2_node_6')?.current
+                ? 'Chapter 2 · The Long Haul'
+                : current.chapterNodes.find(node => node.id === 'ch2_node_5')?.current
+                  ? 'Chapter 2 · Brace!'
+                  : current.chapterNodes.find(node => node.id === 'ch2_node_4')?.current
+                    ? 'Chapter 2 · Horse and Rider'
+                    : current.chapterNodes.find(node => node.id === 'ch2_node_3')?.current
+                      ? 'Chapter 2 · Three Roads'
+                      : current.chapterNodes.find(node => node.id === 'ch2_node_2')?.current
+                        ? 'Chapter 2 · Beyond the Fires'
+                        : 'Chapter 2 · They Found Us';
   } else if (current.refugeeCampSecured) {
     chapterLabel = 'Chapter 1 · The Toll Captain';
   } else if (current.mercenaryPatrolWon && !current.commanderPathId) {
@@ -1185,10 +1272,10 @@ export function metadataFromSnapshot(
               : current.wagonStageId === 'town'
                 ? 'Greenkeep Town'
                 : current.wagonStageId === 'fort'
-                  ? 'Greenkeep Fort'
+                  ? 'Greenkeep Outpost'
                   : current.settlementUpgraded
-                    ? 'Greenkeep Settlement'
-                    : 'Refugee Camp';
+                    ? 'Greenkeep Permanent Camp'
+                    : 'Temporary Camp';
 
   return {
     slotId,

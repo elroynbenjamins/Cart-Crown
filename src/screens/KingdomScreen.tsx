@@ -33,6 +33,7 @@ export function KingdomScreen({
   const {
     resources,
     currentWagonStage,
+    activeSquadCap,
     holdTheRoadWon,
     settlementUpgraded,
     recruitChosen,
@@ -83,10 +84,10 @@ export function KingdomScreen({
         : currentWagonStage.id === 'town'
         ? 'Greenkeep Town'
         : currentWagonStage.id === 'fort'
-        ? 'Greenkeep Fort'
+        ? 'Greenkeep Outpost'
         : settlementUpgraded
-          ? 'Greenkeep Settlement'
-          : 'Refugee Camp';
+          ? 'Greenkeep Permanent Camp'
+          : 'Temporary Camp';
   const progress = holdTheRoadWon ? 1 : 0.34;
   const dailySupplyClaimed = (rewardedAdClaims.daily_supply ?? 0) >= 1;
   const unlockedCount = buildings.filter(building => isBuildingUnlocked(building.id)).length;
@@ -110,8 +111,8 @@ export function KingdomScreen({
 
   if (settlementUpgraded && !recruitChosen) {
     milestoneTitle = 'Choose the first reinforcements';
-    milestoneBody = 'Greenkeep can now support a third active squad. Choose which role joins your army first.';
-    buttonLabel = 'Choose third squad';
+    milestoneBody = 'The permanent camp can now support a fourth active squad. Choose which role joins the original three survivors.';
+    buttonLabel = 'Choose fourth squad';
     disabled = false;
     requirement = 'Archer · Scout · Field Medic';
     action = () => {
@@ -155,7 +156,7 @@ export function KingdomScreen({
     milestoneCost = getExpansionCost('human', 'capital');
   } else if (currentWagonStage.id === 'stronghold') {
     milestoneTitle = 'Break the old royal command';
-    milestoneBody = 'Use the six-squad Stronghold army and elite equipment to expose the officers still issuing orders in the name of an empty throne.';
+    milestoneBody = 'Use the full nine-position army and elite equipment to expose the officers still issuing orders in the name of an empty throne.';
     buttonLabel = 'Capital tier is story-gated';
     disabled = true;
     requirement = 'Defeat the Pretender General';
@@ -180,7 +181,7 @@ export function KingdomScreen({
     milestoneCost = null;
   } else if (currentWagonStage.id === 'fort' && townUpgradeAvailable) {
     milestoneTitle = 'Raise Greenkeep Town';
-    milestoneBody = 'The Iron Provost is defeated. Finish the professional Barracks, Forge and Wagonwright upgrades, maintain a Stable and rebuild the Signal Tower before funding the Town expansion.';
+    milestoneBody = "The Rider's Banner is defeated. Finish the professional Barracks, Forge and Wagonwright upgrades, maintain the Stable and Watch network, then fund the Town expansion.";
     buttonLabel = 'Build Greenkeep Town';
     disabled = !canUpgradeToTown;
     requirement =
@@ -188,28 +189,19 @@ export function KingdomScreen({
     action = upgradeToTown;
     milestoneCost = getExpansionCost('human', 'town');
   } else if (currentWagonStage.id === 'fort') {
-    milestoneTitle = 'Secure the Iron Road';
-    milestoneBody = 'Develop the Fort, expand cavalry and restore the frontier network while pushing toward the Iron Provost.';
+    milestoneTitle = "Break the Rider's Banner";
+    milestoneBody = 'The Outpost is standing and seven squads can deploy. Prepare a mixed formation for the mounted commander trying to destroy Greenkeep before it becomes permanent.';
     buttonLabel = 'Town tier is story-gated';
     disabled = true;
-    requirement = 'Defeat the Iron Provost';
+    requirement = "Defeat The Rider's Banner";
     action = () => false;
     milestoneCost = null;
-  } else if (settlementUpgraded && recruitChosen && fortUpgradeAvailable) {
-    milestoneTitle = 'Raise Greenkeep Fort';
-    milestoneBody = 'The Toll Captain is defeated. Complete the required building upgrades, then invest in walls, roads and a permanent Stable.';
-    buttonLabel = 'Build Greenkeep Fort';
-    disabled = !canUpgradeToFort;
-    requirement =
-      'Requires Barracks Lv.2 · Forge Lv.2 · Wagonwright Lv.2 · listed expansion resources';
-    action = upgradeToFort;
-    milestoneCost = getExpansionCost('human', 'fort');
   } else if (settlementUpgraded && recruitChosen) {
-    milestoneTitle = 'Build toward the Fort';
-    milestoneBody = 'Upgrade specialized buildings while the campaign opens the road toward the first Fort tier.';
-    buttonLabel = 'Fort tier is story-gated';
+    milestoneTitle = 'Claim the roads around Greenkeep';
+    milestoneBody = 'Chapter 2 grows the field force from five to seven squads while cavalry, three-row combat, Support and the Handcart come online.';
+    buttonLabel = 'Outpost is campaign-gated';
     disabled = true;
-    requirement = 'Improve Greenkeep and defeat the Toll Captain';
+    requirement = 'Progress Claim the Road and secure the Watch';
     action = () => false;
     milestoneCost = null;
   }
@@ -224,7 +216,7 @@ export function KingdomScreen({
             <Text style={[styles.heroBody, { color: theme.colors.textMuted }]}>
               {settlementUpgraded
                 ? 'Campaign milestones bring people and knowledge. You decide which systems receive the kingdom’s resources.'
-                : 'Two squads, one damaged wagon, and the road to Greenkeep.'}
+                : 'Three survivors, a worn pack, and the road to Greenkeep.'}
             </Text>
           </View>
           <View style={[styles.keepMark, { backgroundColor: theme.colors.surface2 }]}>
@@ -243,9 +235,9 @@ export function KingdomScreen({
                 : currentWagonStage.id === 'town'
                 ? 'Town tier · 4'
                 : currentWagonStage.id === 'fort'
-                ? 'Fort tier · 3'
+                ? 'Outpost tier · 3'
                 : settlementUpgraded
-                  ? 'Settlement tier · 2'
+                  ? 'Permanent Camp · 2'
                   : 'Raise Greenkeep Settlement'}
           </Text>
           <Text style={[styles.progressValue, { color: theme.colors.textMuted }]}>
@@ -286,7 +278,7 @@ export function KingdomScreen({
             {currentWagonStage.width}×{currentWagonStage.height}
           </Text>
           <Text style={[styles.summaryNote, { color: theme.colors.primary }]}>
-            {currentWagonStage.formationSlots} active squads
+            {activeSquadCap} active squads
           </Text>
         </GameCard>
 

@@ -209,8 +209,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     name: 'The Pretender General',
     subtitle: 'The officer commanding the last royal companies claims emergency authority over the crownless realm.',
     enemyName: 'Pretender General’s Host',
-    enemyCount: 6,
-    enemyHp: 1280,
+    enemyCount: 8,
+    enemyHp: 2300,
     difficulty: 'Boss'
   },
   old_royal_lands: {
@@ -236,8 +236,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     name: 'Gate of Crownspire',
     subtitle: 'Ashen Court forces hold the western gate while Greenkeep’s Capital army pushes toward the neutral fortress.',
     enemyName: 'Ashen Gate Vanguard',
-    enemyCount: 6,
-    enemyHp: 1580,
+    enemyCount: 9,
+    enemyHp: 2250,
     difficulty: 'Boss'
   },
   sundered_fields: {
