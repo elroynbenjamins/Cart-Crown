@@ -1191,6 +1191,105 @@ function runChapterMatrix() {
   return rows;
 }
 
+function runHumanChapterTwoMissionCoverage() {
+  const army = normalArmy('human', 2);
+  const commander = defaultCommander('human');
+  const doctrineId = doctrineByFaction.human;
+
+  const missions: Array<{
+    encounterId: EncounterId;
+    squadCap: number;
+    minimumTurns: number;
+  }> = [
+    {
+      encounterId: 'ch2_defend_camp',
+      squadCap: 5,
+      minimumTurns: 2
+    },
+    {
+      encounterId: 'ch2_beyond_fires',
+      squadCap: 5,
+      minimumTurns: 2
+    },
+    {
+      encounterId: 'ch2_brace',
+      squadCap: 6,
+      minimumTurns: 3
+    },
+    {
+      encounterId: 'ch2_take_watch',
+      squadCap: 6,
+      minimumTurns: 3
+    },
+    {
+      encounterId: 'ch2_riders_banner',
+      squadCap: 7,
+      minimumTurns: 4
+    }
+  ];
+
+  for (const mission of missions) {
+    const units = army.slice(0, mission.squadCap);
+    const result = simulate({
+      faction: 'human',
+      units,
+      doctrineId,
+      shapeId: 'balanced_333',
+      commander,
+      encounterId: mission.encounterId,
+      squadCap: mission.squadCap,
+      readiness: 100
+    });
+
+    expect(
+      result.victory,
+      'Prepared Chapter 2 army can no longer clear ' +
+        mission.encounterId
+    );
+    expect(
+      result.turns >= mission.minimumTurns,
+      mission.encounterId +
+        ' has become too short to demonstrate its intended combat lesson.'
+    );
+    expect(
+      ratio(result) >= 0.15,
+      mission.encounterId +
+        ' leaves a prepared army too close to deterministic collapse.'
+    );
+  }
+
+  const spear = humanRefugeeReinforcements.find(
+    unit => /spear/i.test(unit.className)
+  );
+  const hunter = starterUnits.find(
+    unit => unit.id === 'hum_hunter'
+  );
+  invariant(spear, 'Chapter 1 Spearman reinforcement missing.');
+  invariant(hunter, 'Human starter Hunter missing.');
+
+  const braced = getArmyRoleCounterProfile(
+    [cloneUnit(spear), cloneUnit(hunter)],
+    'mounted_hunters'
+  );
+  const unbraced = getArmyRoleCounterProfile(
+    [cloneUnit(hunter)],
+    'mounted_hunters'
+  );
+
+  expect(
+    braced.result === 'advantage' &&
+      braced.outgoingDamageMultiplier > 1 &&
+      braced.incomingDamageMultiplier < 1,
+    'Spearman no longer creates a real anti-cavalry advantage.'
+  );
+  expect(
+    unbraced.result === 'disadvantage' &&
+      unbraced.outgoingDamageMultiplier < 1 &&
+      unbraced.incomingDamageMultiplier > 1,
+    'Mounted armies no longer punish formations with no Brace-capable squad.'
+  );
+}
+
 function runTrueOpeningBossCoverage() {
   const openings: Array<{
     faction: 'elf' | 'orc';
@@ -2325,6 +2424,7 @@ function printRows(rows: ScenarioRow[]) {
 function main() {
   runReadinessCoverage();
   const rows = runChapterMatrix();
+  runHumanChapterTwoMissionCoverage();
   runTrueOpeningBossCoverage();
   runCommanderCoverage();
   runHumanStoryChoiceCoverage();
