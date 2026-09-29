@@ -18,6 +18,7 @@ import {
 import {
   getFantasyCombatEdge,
   getFlyingCombatEdge,
+  getHybridCombatEdge,
   getLargeCombatEdge
 } from '../game/progression';
 import {
@@ -236,6 +237,10 @@ export function BattlePrepScreen({
     enemyArmyProfile.id
   );
   const largeCombatEdge = getLargeCombatEdge(
+    activeUnits,
+    enemyArmyProfile.id
+  );
+  const hybridCombatEdge = getHybridCombatEdge(
     activeUnits,
     enemyArmyProfile.id
   );
@@ -1515,6 +1520,47 @@ export function BattlePrepScreen({
           </Text>
           <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
             Flying squads {flyingCombatEdge.unitCount} · Damage dealt ×{flyingCombatEdge.attackMultiplier.toFixed(2)} · Damage received ×{flyingCombatEdge.incomingDamageMultiplier.toFixed(2)}
+          </Text>
+        </GameCard>
+      ) : null}
+
+      {hybridCombatEdge ? (
+        <GameCard
+          accent={
+            hybridCombatEdge.favorable
+              ? theme.colors.gold
+              : theme.colors.danger
+          }
+          faction={activeFaction}
+          state={hybridCombatEdge.favorable ? 'ready' : 'danger'}
+        >
+          <View style={styles.planHeader}>
+            <View style={styles.planCopy}>
+              <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+                LEGENDARY MATCHUP
+              </Text>
+              <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+                {hybridCombatEdge.title}
+              </Text>
+            </View>
+            <StatusPill
+              label={
+                hybridCombatEdge.favorable
+                  ? 'LEGENDARY EDGE'
+                  : 'COUNTERED'
+              }
+              tone={
+                hybridCombatEdge.favorable
+                  ? 'ready'
+                  : 'elite'
+              }
+            />
+          </View>
+          <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+            {hybridCombatEdge.detail}
+          </Text>
+          <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
+            Hybrids {hybridCombatEdge.unitCount} · Damage dealt ×{hybridCombatEdge.attackMultiplier.toFixed(2)} · Damage received ×{hybridCombatEdge.incomingDamageMultiplier.toFixed(2)}
           </Text>
         </GameCard>
       ) : null}
