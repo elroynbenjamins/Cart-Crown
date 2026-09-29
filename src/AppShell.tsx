@@ -1837,5 +1837,5 @@ const styles = StyleSheet.create({
   navItem: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
   navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
   navIconWrap: { width: 36, height: 30, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  navLabel: { fontSize: 8.5, fontWeight: '850', marginTop: 2 }
+  navLabel: { fontSize: 8.5, fontWeight: '800', marginTop: 2 }
 });
