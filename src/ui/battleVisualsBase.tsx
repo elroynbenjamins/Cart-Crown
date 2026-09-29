@@ -12,6 +12,7 @@ import type {
 } from '../game/types';
 import type { EncounterId } from '../game/encounters';
 import { useGameTheme } from '../theme/ThemeProvider';
+import { getBattlefieldSurfaces } from '../theme/battlefieldSurfaces';
 
 type BattlefieldSceneId =
   | 'greenkeep_road'
@@ -426,8 +427,9 @@ export function BattlefieldBackdrop({
   compact?: boolean;
 }) {
   const { theme } = useGameTheme();
-  const scene = getBattlefieldScene(encounterId, faction);
-  const sceneOpacity = theme.dark ? 0.82 : 0.35;
+  const regionScene = getBattlefieldScene(encounterId, faction);
+  const scene = { ...regionScene, ...getBattlefieldSurfaces(theme, regionScene) };
+  const sceneOpacity = theme.dark ? 1 : 0.35;
   const motifOpacity = theme.dark ? 0.5 : 0.24;
 
   return (

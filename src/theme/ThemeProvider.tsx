@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
-import { GameTheme, ThemeId, themes } from './themes';
+import { DEFAULT_THEME_ID, GameTheme, ThemeId, themes } from './themes';
 
 type ThemeContextValue = {
   theme: GameTheme;
@@ -13,7 +13,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 const order: ThemeId[] = ['original', 'dark', 'light'];
 
 export function ThemeProvider({ children }: PropsWithChildren) {
-  const [themeId, setThemeId] = useState<ThemeId>('original');
+  const [themeId, setThemeId] = useState<ThemeId>(DEFAULT_THEME_ID);
 
   const value = useMemo<ThemeContextValue>(() => ({
     theme: themes[themeId],
@@ -21,7 +21,7 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     setThemeId,
     cycleTheme: () => {
       const index = order.indexOf(themeId);
-      setThemeId(order[(index + 1) % order.length] ?? 'original');
+      setThemeId(order[(index + 1) % order.length] ?? DEFAULT_THEME_ID);
     }
   }), [themeId]);
 

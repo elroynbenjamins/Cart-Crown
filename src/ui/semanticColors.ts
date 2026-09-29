@@ -9,7 +9,7 @@ export type StatPresentation = 'absolute' | 'delta' | 'multiplier';
 
 export const semanticPalettes: Record<'dark' | 'light', Record<SemanticTone, string>> = {
   dark: {
-    neutral: '#CDD6DF', positive: '#8DE4AC', negative: '#FFABA7',
+    neutral: '#D6D6D6', positive: '#8DE4AC', negative: '#FFABA7',
     warning: '#FFD485', currency: '#FFDB85', blue: '#94CDFF',
     red: '#FFABA7', orange: '#FFC18B', green: '#8DE4AC',
     violet: '#D6B7FF', cyan: '#82E1EC', rose: '#FFA6D2'

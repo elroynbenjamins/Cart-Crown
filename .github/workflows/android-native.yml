@@ -15,6 +15,11 @@ on:
       - 'app.config.*'
       - 'App.tsx'
       - 'src/ui/AndroidWindowFrame.tsx'
+      - 'src/theme/**'
+      - 'src/ui/components.tsx'
+      - 'src/ui/semanticColors.ts'
+      - 'src/ui/battleVisuals*.tsx'
+      - 'src/screens/BattleScreen.tsx'
   push:
     branches: [main]
     paths:
@@ -29,6 +34,11 @@ on:
       - 'app.config.*'
       - 'App.tsx'
       - 'src/ui/AndroidWindowFrame.tsx'
+      - 'src/theme/**'
+      - 'src/ui/components.tsx'
+      - 'src/ui/semanticColors.ts'
+      - 'src/ui/battleVisuals*.tsx'
+      - 'src/screens/BattleScreen.tsx'
 
 permissions:
   contents: read
