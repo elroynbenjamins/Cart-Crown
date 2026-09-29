@@ -380,6 +380,15 @@ export function FactionKingdomScreen({
                 }}
               />
             </View>
+            {tutorialFocus?.kind === 'kingdom-production' &&
+            productionTotal <= 0 ? (
+              <View style={styles.button}>
+                <PrimaryButton
+                  label="Got it — stock builds from activities"
+                  onPress={onTutorialFocusComplete}
+                />
+              </View>
+            ) : null}
           </GameCard>
           </TutorialFocus>
         </>
