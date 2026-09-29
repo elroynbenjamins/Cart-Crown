@@ -43,6 +43,7 @@ export function createHumanFactionState(): FactionGameState {
       'hum_recruit'
     ],
     formationShapeId: 'balanced_333',
+    formationPresets: [],
     wagonItems: starterWagonItems.map(item => ({ ...item })),
     wagonStageId: 'camp',
     armyReadiness: 100,
