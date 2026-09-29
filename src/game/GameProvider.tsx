@@ -124,6 +124,14 @@ import {
 } from './settlement';
 import { sideModes } from './sideModes';
 import {
+  createExpeditionRun,
+  getExpeditionBaseReward,
+  getExpeditionCompletionReward,
+  getExpeditionPreparation,
+  resolveExpeditionChoice
+} from './expeditions';
+import type { ExpeditionRunState } from './expeditions';
+import {
   evaluateKingdomTrial,
   isKingdomTrialUnlocked,
   kingdomTrialOrder
@@ -337,6 +345,7 @@ type GameContextValue = {
   sideModeDefinitions: SideModeDefinition[];
   expeditionTickets: number;
   expeditionRunsCompleted: number;
+  activeExpeditionRun: ExpeditionRunState | null;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions: KingdomTrialId[];
   rewardedAdClaims: RewardedAdClaimState;
@@ -429,7 +438,12 @@ type GameContextValue = {
   clearFormationPreset: (slotId: FormationPresetSlotId) => boolean;
   isSideModeUnlocked: (id: SideModeId) => boolean;
   consumeExpeditionTicket: () => boolean;
-  finishExpedition: () => void;
+  startExpeditionRun: () => boolean;
+  resolveExpeditionRouteChoice: (
+    choiceId: string
+  ) => boolean;
+  abandonExpeditionRun: () => void;
+  finishExpedition: () => boolean;
   completeFormationTrial: () => boolean;
   completeKingdomTrial: (
     trialId: KingdomTrialId
@@ -720,6 +734,16 @@ export function GameProvider({
   );
   const [expeditionTickets, setExpeditionTickets] = useState(initialFaction.expeditionTickets);
   const [expeditionRunsCompleted, setExpeditionRunsCompleted] = useState(initialFaction.expeditionRunsCompleted);
+  const [activeExpeditionRun, setActiveExpeditionRun] = useState<ExpeditionRunState | null>(
+    () => initialFaction.activeExpeditionRun
+      ? {
+          ...initialFaction.activeExpeditionRun,
+          loot: { ...initialFaction.activeExpeditionRun.loot },
+          baseReward: { ...initialFaction.activeExpeditionRun.baseReward },
+          path: [...initialFaction.activeExpeditionRun.path]
+        }
+      : null
+  );
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
   const [kingdomTrialCompletions, setKingdomTrialCompletions] = useState<KingdomTrialId[]>(
     () => {
@@ -1061,6 +1085,84 @@ export function GameProvider({
     () => getCommanderPath(commanderPathId),
     [commanderPathId]
   );
+  const expeditionPreparation = useMemo(
+    () =>
+      getExpeditionPreparation({
+        buildingLevels,
+        buildingIds: {
+          logistics: factionBuildingIds.logistics,
+          supply: factionBuildingIds.supply
+        },
+        wagonItems
+      }),
+    [
+      buildingLevels,
+      factionBuildingIds.logistics,
+      factionBuildingIds.supply,
+      wagonItems
+    ]
+  );
+
+  const expeditionBaseReward = useMemo(
+    () =>
+      getExpeditionBaseReward({
+        logisticsLevel:
+          buildingLevels[factionBuildingIds.logistics] ?? 0,
+        settlementEffects
+      }),
+    [
+      buildingLevels,
+      factionBuildingIds.logistics,
+      settlementEffects
+    ]
+  );
+
+  const expeditionBasePower = useMemo(
+    () => {
+      const activeUnits = formation
+        .filter(
+          (unitId): unitId is string =>
+            Boolean(unitId)
+        )
+        .map(unitId =>
+          units.find(unit => unit.id === unitId)
+        )
+        .filter(
+          (unit): unit is UnitDefinition =>
+            Boolean(unit)
+        );
+
+      const raw = activeUnits.reduce(
+        (total, unit) =>
+          total +
+          unit.attack +
+          unit.armor * 1.5 +
+          unit.speed * 0.45,
+        0
+      );
+
+      const command =
+        activeCommanderPath
+          ? 1 +
+            (activeCommanderPath.attackMultiplier - 1) * 0.45 +
+            (activeCommanderPath.armorMultiplier - 1) * 0.55
+          : 1;
+
+      return Math.round(
+        raw *
+          formationAnalysis.attackMultiplier *
+          formationAnalysis.armorMultiplier *
+          command
+      );
+    },
+    [
+      activeCommanderPath,
+      formation,
+      formationAnalysis,
+      units
+    ]
+  );
+
   const commanderBaseRespecCost =
     commanderPathId &&
     (buildingLevels[factionBuildingIds.command] ?? 0) >= 2
@@ -1406,6 +1508,7 @@ export function GameProvider({
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
+      activeExpeditionRun,
       formationTrialCompleted,
       kingdomTrialCompletions,
       completedStoryGates,
@@ -1460,6 +1563,7 @@ export function GameProvider({
       lastBattleResult,
       expeditionTickets,
       expeditionRunsCompleted,
+      activeExpeditionRun,
       formationTrialCompleted,
       kingdomTrialCompletions,
       completedStoryGates,
@@ -5462,34 +5566,97 @@ export function GameProvider({
   };
 
   const consumeExpeditionTicket = () => {
-    if (!isSideModeUnlocked('expeditions') || expeditionTickets <= 0) return false;
+    if (
+      activeExpeditionRun ||
+      !isSideModeUnlocked('expeditions') ||
+      expeditionTickets <= 0
+    ) {
+      return false;
+    }
+
     setExpeditionTickets(previous => previous - 1);
     return true;
   };
 
+  const startExpeditionRun = () => {
+    if (!consumeExpeditionTicket()) return false;
+
+    setActiveExpeditionRun(
+      createExpeditionRun({
+        readiness: armyReadiness,
+        supplies:
+          expeditionPreparation.initialSupplies,
+        basePower: expeditionBasePower,
+        playerShapeId: formationShapeId,
+        wagonStageId: currentWagonStage.id,
+        hasRations:
+          expeditionPreparation.hasRations,
+        hasMedicine:
+          expeditionPreparation.hasMedicine,
+        baseReward: expeditionBaseReward
+      })
+    );
+    return true;
+  };
+
+  const resolveExpeditionRouteChoice = (
+    choiceId: string
+  ) => {
+    if (!activeExpeditionRun) return false;
+
+    const result = resolveExpeditionChoice({
+      faction: activeFaction,
+      run: activeExpeditionRun,
+      choiceId
+    });
+
+    if (!result.ok) return false;
+
+    setActiveExpeditionRun(result.state);
+
+    if (result.combat) {
+      setArmyReadiness(
+        clampArmyReadiness(
+          result.state.readiness
+        )
+      );
+    }
+
+    return true;
+  };
+
+  const abandonExpeditionRun = () => {
+    setActiveExpeditionRun(null);
+  };
+
   const finishExpedition = () => {
-    const extraWood =
-      (buildingLevels[factionBuildingIds.logistics] ?? 0) >= 2
-        ? 1
-        : 0;
-    setExpeditionRunsCompleted(previous => previous + 1);
+    if (
+      !activeExpeditionRun ||
+      !activeExpeditionRun.completed ||
+      activeExpeditionRun.failed
+    ) {
+      return false;
+    }
+
+    const reward =
+      getExpeditionCompletionReward(
+        activeExpeditionRun
+      );
+
+    setExpeditionRunsCompleted(
+      previous => previous + 1
+    );
     accrueRegionalProduction();
-    setResources(previous => ({
-      ...previous,
-      gold: previous.gold + 40,
-      wood:
-        previous.wood +
-        8 +
-        extraWood +
-        settlementEffects.expeditionWoodBonus,
-      stone: previous.stone + 2,
-      iron: previous.iron + 1,
-      provisions:
-        previous.provisions +
-        4 +
-        settlementEffects.expeditionProvisionBonus
-    }));
-    recordBattleWear(70, 100, 'Elite', true);
+    setResources(previous =>
+      addResources(previous, reward)
+    );
+    setArmyReadiness(
+      clampArmyReadiness(
+        activeExpeditionRun.readiness
+      )
+    );
+    setActiveExpeditionRun(null);
+    return true;
   };
 
   const completeKingdomTrial = (
@@ -6003,6 +6170,7 @@ export function GameProvider({
       sideModeDefinitions: sideModes,
       expeditionTickets,
       expeditionRunsCompleted,
+      activeExpeditionRun,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,
@@ -6076,6 +6244,9 @@ export function GameProvider({
       clearFormationPreset,
       isSideModeUnlocked,
       consumeExpeditionTicket,
+      startExpeditionRun,
+      resolveExpeditionRouteChoice,
+      abandonExpeditionRun,
       finishExpedition,
       completeFormationTrial,
       completeKingdomTrial,
@@ -6188,6 +6359,7 @@ export function GameProvider({
       factionBuildingIds,
       expeditionTickets,
       expeditionRunsCompleted,
+      activeExpeditionRun,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,
