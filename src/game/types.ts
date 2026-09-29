@@ -2,6 +2,20 @@ export type FactionId = 'human' | 'elf' | 'orc';
 export type CampaignId = FactionId | 'meta';
 export type NavId = 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army';
 export type UnitRole = 'frontline' | 'melee' | 'ranged' | 'support' | 'cavalry' | 'skirmish';
+export type UnitBattleTag =
+  | 'ground'
+  | 'mounted'
+  | 'ranged'
+  | 'magic'
+  | 'flying'
+  | 'large'
+  | 'construct'
+  | 'beast'
+  | 'anti_air'
+  | 'anti_large'
+  | 'armored'
+  | 'support'
+  | 'charge';
 
 export type FormationShapeId =
   | 'balanced_333'
@@ -65,6 +79,8 @@ export type UnitDefinition = {
   attack: number;
   armor: number;
   speed: number;
+  battleTags?: UnitBattleTag[];
+  deploymentCapacity?: 1 | 2 | 3;
   promotionReady?: boolean;
 };
 
