@@ -83,6 +83,7 @@ export type TutorialContext = {
   kingdomTrialsUnlocked: boolean;
   kingdomDefenseModeUnlocked: boolean;
   expeditionsUnlocked: boolean;
+  siegesUnlocked: boolean;
   magicStoryUnlocked: boolean;
   flyingStoryUnlocked: boolean;
   largeStoryUnlocked: boolean;
@@ -115,6 +116,7 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:kingdom-trials',
   'system:kingdom-defense-repeatable',
   'system:expeditions',
+  'system:sieges',
   'system:magic-discovery',
   'system:magic-research',
   'system:magic-training',
@@ -1022,6 +1024,28 @@ function systemMoment(
       focusAfterPrimary: {
         kind: 'campaign-activities',
         modeId: 'expeditions',
+        label: 'TAP ACTIVITIES'
+      }
+    };
+  }
+
+  if (
+    context.siegesUnlocked &&
+    context.view === 'campaign' &&
+    !seen(context, 'system:sieges')
+  ) {
+    return {
+      key: 'system:sieges',
+      kind: 'system',
+      eyebrow: 'NEW ACTIVITY',
+      title: 'Offensive Sieges unlocked',
+      body:
+        'Your army can now attack fortified positions away from the main campaign. Sieges are four-stage assaults: approach, breach, courtyard and commander. Forge, Army, Command, Logistics and Wagon preparation all affect the run, and failed assaults keep their Readiness loss.',
+      primaryLabel: 'Show Offensive Sieges',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'campaign-activities',
+        modeId: 'sieges',
         label: 'TAP ACTIVITIES'
       }
     };
