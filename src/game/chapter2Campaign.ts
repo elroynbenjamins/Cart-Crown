@@ -131,6 +131,7 @@ export type ChapterTwoTerritoryRouteDefinition = {
   names: Record<FactionId, string>;
   benefit: 'trade' | 'materials' | 'mounts';
   summary: string;
+  earlyEffect: string;
 };
 
 export const chapterTwoTerritoryRoutes: ChapterTwoTerritoryRouteDefinition[] = [
@@ -142,7 +143,8 @@ export const chapterTwoTerritoryRoutes: ChapterTwoTerritoryRouteDefinition[] = [
       orc: "Trader's Cut"
     },
     benefit: 'trade',
-    summary: 'Earlier merchant access and stronger Gold flow.'
+    summary: 'Earlier merchant access and stronger Gold flow.',
+    earlyEffect: '+80 Gold now · +3 Gold per meaningful Chapter 2 activity'
   },
   {
     id: 'resource_route',
@@ -152,7 +154,8 @@ export const chapterTwoTerritoryRoutes: ChapterTwoTerritoryRouteDefinition[] = [
       orc: 'Blackstone Pass'
     },
     benefit: 'materials',
-    summary: 'Earlier construction and equipment materials.'
+    summary: 'Earlier construction and equipment materials.',
+    earlyEffect: '+18 Wood · +12 Stone · +8 Iron now · +2 Wood / +1 Iron per Chapter 2 activity'
   },
   {
     id: 'grazing_route',
@@ -162,7 +165,8 @@ export const chapterTwoTerritoryRoutes: ChapterTwoTerritoryRouteDefinition[] = [
       orc: 'Redgrass Plains'
     },
     benefit: 'mounts',
-    summary: 'Earlier and cheaper access to trained mounts.'
+    summary: 'Earlier and cheaper access to trained mounts.',
+    earlyEffect: '+14 Provisions now · 25% lower mount crafting costs during Chapter 2'
   }
 ];
 
