@@ -78,6 +78,24 @@ export function BattlePrepScreen({
     showSevereBattleConfirmation,
     setShowSevereBattleConfirmation
   ] = React.useState(false);
+  const tutorialScrollRef = React.useRef<ScrollView>(null);
+
+  React.useEffect(() => {
+    if (
+      tutorialFocus?.kind !== 'battle-begin' &&
+      tutorialFocus?.kind !== 'battle-readiness'
+    ) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      tutorialScrollRef.current?.scrollToEnd({
+        animated: true
+      });
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [tutorialFocus]);
   const {
     activeFaction,
     resources,
@@ -485,7 +503,11 @@ export function BattlePrepScreen({
   const doctrine = formationDoctrines.find(candidate => candidate.id === formationDoctrineId);
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <GameCard
         accent={
           encounter.difficulty === 'Boss'
@@ -1540,6 +1562,14 @@ export function BattlePrepScreen({
               }
               disabled={resources.provisions < armyResupplyCost}
               onPress={restAndResupplyArmy}
+            />
+          </View>
+        ) : null}
+        {tutorialFocus?.kind === 'battle-readiness' ? (
+          <View style={styles.resupplyButton}>
+            <SecondaryButton
+              label="Got it — keep campaigning"
+              onPress={onTutorialFocusComplete}
             />
           </View>
         ) : null}
