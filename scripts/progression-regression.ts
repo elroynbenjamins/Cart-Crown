@@ -10,6 +10,7 @@ import {
   getArmyDeploymentCapacity,
   getFantasyCombatEdge,
   getFantasyRecruitTemplates,
+  getFlyingCombatEdge,
   getFantasyStoryRewardUnit,
   getResearchGemFinishCost,
   getResearchRemainingHours,
@@ -416,7 +417,9 @@ function runBattleTagAndCapacityCoverage() {
 
 function runPlayableMagicCoverage() {
   expect(
-    fantasyRecruitTemplates.length === 6,
+    fantasyRecruitTemplates.filter(
+      template => template.family === 'magic'
+    ).length === 6,
     'Chapter 4 needs exactly two repeatable magic branches per faction.'
   );
 
@@ -528,6 +531,99 @@ function runPlayableMagicCoverage() {
   );
 }
 
+function runPlayableFlyingCoverage() {
+  const flyingTemplates = fantasyRecruitTemplates.filter(
+    template => template.family === 'flying'
+  );
+  expect(
+    flyingTemplates.length === 7,
+    'Chapter 5 needs seven faction-specific repeatable flying branches.'
+  );
+
+  const expectedCounts = {
+    human: 3,
+    elf: 2,
+    orc: 2
+  } as const;
+
+  for (const faction of ['human', 'elf', 'orc'] as const) {
+    const templates = getFantasyRecruitTemplates(
+      faction,
+      'flying'
+    );
+    expect(
+      templates.length === expectedCounts[faction],
+      faction + ' has the wrong number of flying training branches.'
+    );
+    templates.forEach(template => {
+      expect(
+        template.battleTags.includes('flying'),
+        template.id + ' is missing the flying battle tag.'
+      );
+      expect(
+        researchDefinitions.some(
+          research =>
+            research.id === template.researchId &&
+            research.faction === faction &&
+            research.family === 'flying'
+        ),
+        template.id + ' is not linked to valid flying research.'
+      );
+    });
+  }
+
+  const riderTemplate = flyingTemplates.find(
+    template => template.id === 'human_griffin_rider'
+  );
+  expect(
+    Boolean(riderTemplate),
+    'Human Griffin Rider template is missing.'
+  );
+  if (!riderTemplate) return;
+
+  const rider = {
+    id: 'test_griffin',
+    name: 'Test Griffin Rider',
+    className: riderTemplate.className,
+    faction: riderTemplate.faction,
+    role: riderTemplate.role,
+    tier: riderTemplate.tier,
+    level: riderTemplate.level,
+    hp: riderTemplate.hp,
+    attack: riderTemplate.attack,
+    armor: riderTemplate.armor,
+    speed: riderTemplate.speed,
+    battleTags: riderTemplate.battleTags,
+    deploymentCapacity: 1 as const
+  };
+
+  const shieldEdge = getFlyingCombatEdge(
+    [rider],
+    'shield_host'
+  );
+  const antiAirEdge = getFlyingCombatEdge(
+    [rider],
+    'missile_company'
+  );
+
+  expect(
+    Boolean(
+      shieldEdge &&
+      shieldEdge.attackMultiplier > 1 &&
+      shieldEdge.favorable
+    ),
+    'Flying squads must pressure protected ground backlines.'
+  );
+  expect(
+    Boolean(
+      antiAirEdge &&
+      antiAirEdge.incomingDamageMultiplier > 1 &&
+      !antiAirEdge.favorable
+    ),
+    'Missile Companies must remain a meaningful anti-air counter.'
+  );
+}
+
 function main() {
   runCampaignCurveCoverage();
   runChapterTwoCoverage();
@@ -535,6 +631,7 @@ function main() {
   runResearchCoverage();
   runBattleTagAndCapacityCoverage();
   runPlayableMagicCoverage();
+  runPlayableFlyingCoverage();
 
   if (failures.length > 0) {
     console.error('\nFantasy progression regression failures:');
@@ -544,7 +641,7 @@ function main() {
   }
 
   console.log(
-    'PASS: campaign growth, fantasy gates, research rules, playable Chapter 4 magic branches, counterplay, battle tags and deployment capacity remain inside the intended guardrails.'
+    'PASS: campaign growth, fantasy gates, research rules, playable magic and flying branches, counterplay, battle tags and deployment capacity remain inside the intended guardrails.'
   );
 }
 
