@@ -7,7 +7,9 @@ import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
+  MetricTile,
   PrimaryButton,
+  ScreenHero,
   SecondaryButton,
   SectionTitle,
   StatusPill
@@ -61,25 +63,18 @@ export function DefeatResultsScreen({
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.header}>
-        <StatusPill label="DEFEAT" tone="elite" />
-        <Text
-          style={[
-            styles.title,
-            { color: theme.colors.text }
-          ]}
-        >
-          {encounter.name}
-        </Text>
-        <Text
-          style={[
-            styles.subtitle,
-            { color: theme.colors.textMuted }
-          ]}
-        >
-          Your force withdrew before the enemy line broke. The encounter remains available and no hidden comeback bonus has been applied.
-        </Text>
-      </View>
+      <ScreenHero
+        eyebrow="AFTER ACTION"
+        title={encounter.name}
+        body="Your force withdrew before the enemy line broke. The encounter remains available at full strength."
+        accent={theme.colors.danger}
+        status={<StatusPill label="DEFEAT" tone="elite" />}
+      >
+        <View style={styles.heroMeta}>
+          <StatusPill label="NO PERMANENT LOSSES" tone="done" />
+          <StatusPill label="ENEMY UNCHANGED" tone="neutral" />
+        </View>
+      </ScreenHero>
 
       <SectionTitle
         title="Battle report"
@@ -93,105 +88,32 @@ export function DefeatResultsScreen({
         state="danger"
       >
         <View style={styles.metrics}>
-          <View
-            style={[
-              styles.metric,
-              { backgroundColor: theme.colors.surface2 }
-            ]}
-          >
-            <Text
-              style={[
-                styles.metricValue,
-                { color: theme.colors.primary }
-              ]}
-            >
-              {battleSummary.damageDealt}
-            </Text>
-            <Text
-              style={[
-                styles.metricLabel,
-                { color: theme.colors.textMuted }
-              ]}
-            >
-              DAMAGE DEALT
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.metric,
-              { backgroundColor: theme.colors.surface2 }
-            ]}
-          >
-            <Text
-              style={[
-                styles.metricValue,
-                { color: theme.colors.danger }
-              ]}
-            >
-              {battleSummary.damageTaken}
-            </Text>
-            <Text
-              style={[
-                styles.metricLabel,
-                { color: theme.colors.textMuted }
-              ]}
-            >
-              DAMAGE TAKEN
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.metric,
-              { backgroundColor: theme.colors.surface2 }
-            ]}
-          >
-            <Text
-              style={[
-                styles.metricValue,
-                { color: theme.colors.gold }
-              ]}
-            >
-              {enemyHpPercent}%
-            </Text>
-            <Text
-              style={[
-                styles.metricLabel,
-                { color: theme.colors.textMuted }
-              ]}
-            >
-              ENEMY HP LEFT
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.metric,
-              { backgroundColor: theme.colors.surface2 }
-            ]}
-          >
-            <Text
-              style={[
-                styles.metricValue,
-                { color: theme.colors.text }
-              ]}
-            >
-              -{battleSummary.readinessWear}
-            </Text>
-            <Text
-              style={[
-                styles.metricLabel,
-                { color: theme.colors.textMuted }
-              ]}
-            >
-              READINESS
-            </Text>
-          </View>
+          <MetricTile
+            label="DAMAGE DEALT"
+            value={battleSummary.damageDealt}
+            tone="positive"
+          />
+          <MetricTile
+            label="DAMAGE TAKEN"
+            value={battleSummary.damageTaken}
+            tone="danger"
+          />
+          <MetricTile
+            label="ENEMY HP LEFT"
+            value={enemyHpPercent + '%'}
+            tone="gold"
+            caption="How close the line came to breaking"
+          />
+          <MetricTile
+            label="READINESS WEAR"
+            value={'-' + battleSummary.readinessWear}
+            tone="danger"
+            caption={'Now ' + armyReadiness + '%'}
+          />
         </View>
       </GameCard>
 
-      <SectionTitle title="What was lost" />
+      <SectionTitle title="Consequences" trailing="No inventory loss" />
       <GameCard faction={activeFaction}>
         <View style={styles.lossRow}>
           <StatusPill label="KEPT" tone="done" />
@@ -339,14 +261,20 @@ export function DefeatResultsScreen({
         </Text>
 
         <View style={styles.nextActions}>
-          <SecondaryButton
-            label="Review Formation"
-            onPress={onOpenFormation}
-          />
-          <SecondaryButton
-            label="Review Supply Wagon"
-            onPress={onOpenWagon}
-          />
+          <View style={styles.secondaryActionRow}>
+            <View style={styles.secondaryAction}>
+              <SecondaryButton
+                label="Formation"
+                onPress={onOpenFormation}
+              />
+            </View>
+            <View style={styles.secondaryAction}>
+              <SecondaryButton
+                label="Supply Wagon"
+                onPress={onOpenWagon}
+              />
+            </View>
+          </View>
           <PrimaryButton
             label="Prepare Rematch"
             onPress={onPrepareRematch}
@@ -368,46 +296,15 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     gap: 14
   },
-  header: {
-    alignItems: 'center',
-    paddingVertical: 14
-  },
-  title: {
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: '900',
-    textAlign: 'center',
-    marginTop: 7
-  },
-  subtitle: {
-    fontSize: 12,
-    lineHeight: 18,
-    textAlign: 'center',
-    maxWidth: 340,
-    marginTop: 7
+  heroMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 7
   },
   metrics: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8
-  },
-  metric: {
-    minWidth: '47%',
-    flexGrow: 1,
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    alignItems: 'center'
-  },
-  metricValue: {
-    fontSize: 19,
-    fontWeight: '900'
-  },
-  metricLabel: {
-    fontSize: 8,
-    fontWeight: '900',
-    letterSpacing: 0.7,
-    marginTop: 3
   },
   lossRow: {
     flexDirection: 'row',
@@ -453,7 +350,14 @@ const styles = StyleSheet.create({
     marginTop: 6
   },
   nextActions: {
-    gap: 8,
-    marginTop: 12
+    gap: 9,
+    marginTop: 13
+  },
+  secondaryActionRow: {
+    flexDirection: 'row',
+    gap: 8
+  },
+  secondaryAction: {
+    flex: 1
   }
 });

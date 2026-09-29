@@ -104,6 +104,137 @@ export function SectionTitle({
   );
 }
 
+export function ScreenHero({
+  eyebrow,
+  title,
+  body,
+  accent,
+  status,
+  children
+}: PropsWithChildren<{
+  eyebrow: string;
+  title: string;
+  body?: string;
+  accent?: string;
+  status?: React.ReactNode;
+}>) {
+  const { theme } = useGameTheme();
+
+  return (
+    <GameCard
+      accent={accent}
+      ornament={false}
+      style={styles.screenHero}
+    >
+      <View style={styles.screenHeroHeader}>
+        <View style={styles.screenHeroCopy}>
+          <Text
+            style={[
+              styles.screenHeroEyebrow,
+              { color: accent ?? theme.colors.textMuted }
+            ]}
+          >
+            {eyebrow}
+          </Text>
+          <Text
+            style={[
+              styles.screenHeroTitle,
+              { color: theme.colors.text }
+            ]}
+          >
+            {title}
+          </Text>
+        </View>
+        {status ? (
+          <View style={styles.screenHeroStatus}>
+            {status}
+          </View>
+        ) : null}
+      </View>
+      {body ? (
+        <Text
+          style={[
+            styles.screenHeroBody,
+            { color: theme.colors.textMuted }
+          ]}
+        >
+          {body}
+        </Text>
+      ) : null}
+      {children ? (
+        <View style={styles.screenHeroContent}>
+          {children}
+        </View>
+      ) : null}
+    </GameCard>
+  );
+}
+
+export function MetricTile({
+  label,
+  value,
+  caption,
+  tone = 'neutral'
+}: {
+  label: string;
+  value: string | number;
+  caption?: string;
+  tone?: 'positive' | 'danger' | 'gold' | 'info' | 'neutral';
+}) {
+  const { theme } = useGameTheme();
+  const accent =
+    tone === 'positive'
+      ? theme.colors.primary
+      : tone === 'danger'
+        ? theme.colors.danger
+        : tone === 'gold'
+          ? theme.colors.gold
+          : tone === 'info'
+            ? theme.colors.info
+            : theme.colors.textMuted;
+
+  return (
+    <View
+      style={[
+        styles.metricTile,
+        {
+          backgroundColor: theme.colors.surface2,
+          borderColor: accent + '36'
+        }
+      ]}
+    >
+      <Text
+        style={[
+          styles.metricTileLabel,
+          { color: theme.colors.textMuted }
+        ]}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          styles.metricTileValue,
+          { color: accent }
+        ]}
+        numberOfLines={1}
+      >
+        {value}
+      </Text>
+      {caption ? (
+        <Text
+          style={[
+            styles.metricTileCaption,
+            { color: theme.colors.textMuted }
+          ]}
+          numberOfLines={2}
+        >
+          {caption}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
 export function Pill({
   label,
   color
@@ -205,36 +336,61 @@ export function FlowProgress({
   const currentIndex = stages.findIndex(item => item.id === stage);
 
   return (
-    <View style={[styles.flowProgress, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+    <View
+      style={[
+        styles.flowProgress,
+        {
+          backgroundColor: theme.colors.surface1,
+          borderColor: theme.colors.border
+        }
+      ]}
+    >
       {stages.map((item, index) => {
-        const reached = index <= currentIndex;
+        const completed = index < currentIndex;
         const current = index === currentIndex;
+
         return (
-          <React.Fragment key={item.id}>
-            {index > 0 ? (
-              <View
-                style={[
-                  styles.flowLine,
-                  { backgroundColor: index <= currentIndex ? accent : theme.colors.border }
-                ]}
-              />
-            ) : null}
-            <View style={styles.flowStep}>
-              <View
-                style={[
-                  styles.flowDot,
-                  {
-                    backgroundColor: reached ? accent : theme.colors.surface3,
-                    borderColor: current ? theme.colors.gold : reached ? accent : theme.colors.border,
-                    borderWidth: current ? 2 : 1
-                  }
-                ]}
-              />
-              <Text style={[styles.flowLabel, { color: current ? theme.colors.text : theme.colors.textMuted }]}>
-                {item.label}
-              </Text>
-            </View>
-          </React.Fragment>
+          <View
+            key={item.id}
+            style={[
+              styles.flowSegment,
+              {
+                backgroundColor: current
+                  ? accent + '26'
+                  : completed
+                    ? theme.colors.surface2
+                    : 'transparent',
+                borderColor: current
+                  ? accent + '66'
+                  : 'transparent'
+              }
+            ]}
+          >
+            <Text
+              style={[
+                styles.flowSegmentMark,
+                {
+                  color: current || completed
+                    ? accent
+                    : theme.colors.textMuted
+                }
+              ]}
+            >
+              {completed ? '✓' : current ? '●' : '○'}
+            </Text>
+            <Text
+              style={[
+                styles.flowLabel,
+                {
+                  color: current
+                    ? theme.colors.text
+                    : theme.colors.textMuted
+                }
+              ]}
+            >
+              {item.label}
+            </Text>
+          </View>
         );
       })}
     </View>
@@ -329,7 +485,8 @@ export function PrimaryButton({
         styles.primaryButton,
         {
           backgroundColor: disabled ? theme.colors.surface3 : theme.colors.primary,
-          opacity: pressed ? 0.85 : 1
+          opacity: pressed ? 0.9 : 1,
+          transform: [{ scale: pressed && !disabled ? 0.985 : 1 }]
         }
       ]}
     >
@@ -367,7 +524,8 @@ export function SecondaryButton({
         {
           backgroundColor: theme.colors.surface2,
           borderColor: theme.colors.border,
-          opacity: disabled ? 0.45 : pressed ? 0.8 : 1
+          opacity: disabled ? 0.45 : pressed ? 0.86 : 1,
+          transform: [{ scale: pressed && !disabled ? 0.988 : 1 }]
         }
       ]}
     >
@@ -510,9 +668,9 @@ export function ProgressBar({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
-    padding: 16,
+    padding: 15,
     position: 'relative',
     overflow: 'hidden'
   },
@@ -563,13 +721,76 @@ const styles = StyleSheet.create({
     gap: 12
   },
   sectionTitle: {
-    fontSize: 20,
-    lineHeight: 26,
-    fontWeight: '800'
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: '900'
   },
   sectionTrailing: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700'
+  },
+  screenHero: {
+    paddingVertical: 18,
+    paddingHorizontal: 16
+  },
+  screenHeroHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12
+  },
+  screenHeroCopy: {
+    flex: 1,
+    minWidth: 0
+  },
+  screenHeroEyebrow: {
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: '900',
+    letterSpacing: 1.2
+  },
+  screenHeroTitle: {
+    fontSize: 24,
+    lineHeight: 29,
+    fontWeight: '900',
+    marginTop: 4
+  },
+  screenHeroStatus: {
+    paddingTop: 1
+  },
+  screenHeroBody: {
+    fontSize: 11.5,
+    lineHeight: 17,
+    marginTop: 8,
+    maxWidth: 360
+  },
+  screenHeroContent: {
+    marginTop: 14
+  },
+  metricTile: {
+    minWidth: '47%',
+    flexGrow: 1,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 11,
+    paddingVertical: 10
+  },
+  metricTileLabel: {
+    fontSize: 8,
+    lineHeight: 11,
+    fontWeight: '900',
+    letterSpacing: 0.7
+  },
+  metricTileValue: {
+    fontSize: 19,
+    lineHeight: 24,
+    fontWeight: '900',
+    marginTop: 3
+  },
+  metricTileCaption: {
+    fontSize: 8.5,
+    lineHeight: 12,
+    marginTop: 2
   },
   pill: {
     minHeight: 30,
@@ -602,37 +823,36 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3
   },
   flowProgress: {
-    minHeight: 42,
+    minHeight: 40,
     marginHorizontal: 14,
     marginTop: 7,
     marginBottom: 1,
     borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 12,
+    borderRadius: 13,
+    padding: 4,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    gap: 4
   },
-  flowStep: {
+  flowSegment: {
+    flex: 1,
+    minHeight: 30,
+    borderRadius: 9,
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 48
+    gap: 5
   },
-  flowDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5
+  flowSegmentMark: {
+    fontSize: 8,
+    fontWeight: '900'
   },
   flowLabel: {
-    fontSize: 7.5,
+    fontSize: 8,
     fontWeight: '900',
-    letterSpacing: 0.8,
-    marginTop: 3
-  },
-  flowLine: {
-    flex: 1,
-    height: 2,
-    marginBottom: 12,
-    opacity: 0.7
+    letterSpacing: 0.65
   },
   atmosphere: {
     position: 'absolute',
@@ -663,7 +883,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     minHeight: 52,
-    borderRadius: 16,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 18
@@ -674,7 +894,7 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     minHeight: 46,
-    borderRadius: 14,
+    borderRadius: 13,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',

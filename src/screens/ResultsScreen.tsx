@@ -3,7 +3,15 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getArmyReadinessProfile } from '../game/balance';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, PrimaryButton, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
+import {
+  GameCard,
+  MetricTile,
+  PrimaryButton,
+  ScreenHero,
+  SecondaryButton,
+  SectionTitle,
+  StatusPill
+} from '../ui/components';
 import { ResourceSprite, StoryScene } from '../ui/gameArt';
 import type { BattleCombatSummary } from './BattleScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
@@ -168,62 +176,71 @@ export function ResultsScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <View style={styles.resultHeader}>
-        <StatusPill label="VICTORY" tone="done" />
-        <Text style={[styles.title, { color: theme.colors.text }]}>{lastBattleResult.title}</Text>
-        <Text style={[styles.summary, { color: theme.colors.textMuted }]}>
-          {lastBattleResult.summary}
-        </Text>
+      <ScreenHero
+        eyebrow="AFTER ACTION"
+        title={lastBattleResult.title}
+        body={lastBattleResult.summary}
+        accent={factionAccent}
+        status={<StatusPill label="VICTORY" tone="done" />}
+      >
         <View style={styles.resultScene}>
-          <StoryScene scene={resultScene} faction={activeFaction} size={248} />
+          <StoryScene
+            scene={resultScene}
+            faction={activeFaction}
+            size={210}
+          />
         </View>
-      </View>
+      </ScreenHero>
 
       {battleSummary ? (
         <>
           <SectionTitle title="Battle report" trailing={String(battleSummary.exchanges) + ' exchanges'} />
           <GameCard faction={activeFaction}>
             <View style={styles.reportGrid}>
-              <View style={[styles.reportMetric, { backgroundColor: theme.colors.surface2 }]}>
-                <Text style={[styles.reportValue, { color: theme.colors.primary }]}>
-                  {battleSummary.damageDealt}
-                </Text>
-                <Text style={[styles.reportLabel, { color: theme.colors.textMuted }]}>
-                  DAMAGE DEALT
-                </Text>
-              </View>
-              <View style={[styles.reportMetric, { backgroundColor: theme.colors.surface2 }]}>
-                <Text style={[styles.reportValue, { color: theme.colors.danger }]}>
-                  {battleSummary.damageTaken}
-                </Text>
-                <Text style={[styles.reportLabel, { color: theme.colors.textMuted }]}>
-                  DAMAGE TAKEN
-                </Text>
-              </View>
-              <View style={[styles.reportMetric, { backgroundColor: theme.colors.surface2 }]}>
-                <Text style={[styles.reportValue, { color: factionAccent }]}>
-                  {battleSummary.healing}
-                </Text>
-                <Text style={[styles.reportLabel, { color: theme.colors.textMuted }]}>
-                  RECOVERED
-                </Text>
-              </View>
-              <View style={[styles.reportMetric, { backgroundColor: theme.colors.surface2 }]}>
-                <Text style={[styles.reportValue, { color: theme.colors.gold }]}>
-                  {battleSummary.maxHp > 0
-                    ? Math.round((battleSummary.remainingHp / battleSummary.maxHp) * 100)
-                    : 0}%
-                </Text>
-                <Text style={[styles.reportLabel, { color: theme.colors.textMuted }]}>
-                  HP REMAINING
-                </Text>
-              </View>
+              <MetricTile
+                label="DAMAGE DEALT"
+                value={battleSummary.damageDealt}
+                tone="positive"
+              />
+              <MetricTile
+                label="DAMAGE TAKEN"
+                value={battleSummary.damageTaken}
+                tone="danger"
+              />
+              <MetricTile
+                label="RECOVERED"
+                value={battleSummary.healing}
+                tone="info"
+              />
+              <MetricTile
+                label="ARMY HP"
+                value={
+                  (battleSummary.maxHp > 0
+                    ? Math.round(
+                        (battleSummary.remainingHp /
+                          battleSummary.maxHp) *
+                          100
+                      )
+                    : 0) + '%'
+                }
+                tone="gold"
+                caption={
+                  battleSummary.readinessWear > 0
+                    ? '-' +
+                      battleSummary.readinessWear +
+                      ' Readiness wear'
+                    : 'No meaningful wear'
+                }
+              />
             </View>
           </GameCard>
         </>
       ) : null}
 
-      <SectionTitle title="Rewards" />
+      <SectionTitle
+        title="Rewards"
+        trailing={String(rewards.length) + ' resources'}
+      />
       <GameCard faction={activeFaction} state="ready">
         <View style={styles.rewards}>
           {rewards.map(([key, value]) => (
@@ -1063,26 +1080,16 @@ export function ResultsScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 14 },
-  resultHeader: { alignItems: 'center', paddingVertical: 18 },
-  victory: { fontSize: 12, fontWeight: '900', letterSpacing: 2 },
-  title: { fontSize: 30, fontWeight: '900', marginTop: 6 },
-  summary: { fontSize: 13, lineHeight: 19, textAlign: 'center', marginTop: 8, maxWidth: 330 },
   rewards: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   reward: { minWidth: '47%', flexGrow: 1, borderRadius: 16, padding: 12, alignItems: 'center' },
-  resultScene: { alignItems: 'center', marginTop: 12 },
+  resultScene: {
+    alignItems: 'center',
+    marginTop: 2,
+    marginBottom: -4
+  },
   rewardValue: { fontSize: 18, fontWeight: '900', marginTop: 5 },
   rewardLabel: { fontSize: 10, textTransform: 'capitalize', marginTop: 2 },
   reportGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  reportMetric: {
-    minWidth: '47%',
-    flexGrow: 1,
-    borderRadius: 14,
-    paddingVertical: 11,
-    paddingHorizontal: 10,
-    alignItems: 'center'
-  },
-  reportValue: { fontSize: 18, fontWeight: '900' },
-  reportLabel: { fontSize: 8, fontWeight: '900', letterSpacing: 0.7, marginTop: 3 },
   conditionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   conditionTitle: { fontSize: 16, fontWeight: '900' },
   conditionBody: { fontSize: 11, lineHeight: 17, marginTop: 6 },
