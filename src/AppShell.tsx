@@ -40,6 +40,7 @@ import { FactionChapterSixEventScreen } from './screens/FactionChapterSixEventSc
 import { FactionMandateScreen } from './screens/FactionMandateScreen';
 import { FactionFourthRecruitmentScreen } from './screens/FactionFourthRecruitmentScreen';
 import { FactionFifthRecruitmentScreen } from './screens/FactionFifthRecruitmentScreen';
+import { FantasyResearchScreen } from './screens/FantasyResearchScreen';
 import { FactionKingdomScreen } from './screens/FactionKingdomScreen';
 import { FactionRecruitmentScreen } from './screens/FactionRecruitmentScreen';
 import { FactionChapterOneEventScreen } from './screens/FactionChapterOneEventScreen';
@@ -84,6 +85,7 @@ type FlowScreen =
   | 'recruitment'
   | 'markedRaiders'
   | 'forge'
+  | 'fantasyResearch'
   | 'promotion'
   | 'equipment'
   | 'commanderChoice'
@@ -152,6 +154,7 @@ const flowTitles: Record<FlowScreen, string> = {
   recruitment: 'Recruitment',
   markedRaiders: 'Marked Raiders',
   forge: 'Field Forge',
+  fantasyResearch: 'Arcane Research',
   promotion: 'Promotion',
   equipment: 'Equipment',
   commanderChoice: 'Commander Path',
@@ -572,6 +575,17 @@ export function AppShell({
           onOpenPromotion={() => setFlow('promotion')}
           tutorialFocus={tutorialFocus}
           onTutorialFocusComplete={completeTutorialFocus}
+          onExit={() => {
+            setFlow(null);
+            setActive('army');
+          }}
+        />
+      );
+    }
+
+    if (flow === 'fantasyResearch') {
+      return (
+        <FantasyResearchScreen
           onExit={() => {
             setFlow(null);
             setActive('army');
@@ -1386,6 +1400,7 @@ export function AppShell({
             onOpenForge={() => setFlow('forge')}
             onOpenPromotion={() => setFlow('promotion')}
             onOpenCommander={() => setFlow('commanderChoice')}
+            onOpenFantasyResearch={() => setFlow('fantasyResearch')}
             onOpenEquipment={(unitId) => {
               setEquipmentUnitId(unitId);
               setFlow('equipment');
@@ -1457,6 +1472,7 @@ export function AppShell({
     flow === 'recruitment' ||
     flow === 'markedRaiders' ||
     flow === 'forge' ||
+    flow === 'fantasyResearch' ||
     flow === 'promotion' ||
     flow === 'equipment' ||
     flow === 'commanderChoice' ||
