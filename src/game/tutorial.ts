@@ -84,6 +84,7 @@ export type TutorialContext = {
   kingdomDefenseModeUnlocked: boolean;
   expeditionsUnlocked: boolean;
   siegesUnlocked: boolean;
+  relicHuntsUnlocked: boolean;
   magicStoryUnlocked: boolean;
   flyingStoryUnlocked: boolean;
   largeStoryUnlocked: boolean;
@@ -117,6 +118,7 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:kingdom-defense-repeatable',
   'system:expeditions',
   'system:sieges',
+  'system:relic-hunts',
   'system:magic-discovery',
   'system:magic-research',
   'system:magic-training',
@@ -1046,6 +1048,28 @@ function systemMoment(
       focusAfterPrimary: {
         kind: 'campaign-activities',
         modeId: 'sieges',
+        label: 'TAP ACTIVITIES'
+      }
+    };
+  }
+
+  if (
+    context.relicHuntsUnlocked &&
+    context.view === 'campaign' &&
+    !seen(context, 'system:relic-hunts')
+  ) {
+    return {
+      key: 'system:relic-hunts',
+      kind: 'system',
+      eyebrow: 'LATE-GAME ACTIVITY',
+      title: 'Relic Hunts unlocked',
+      body:
+        'Your first fantasy class gives access to Relic Hunts. These are three-guardian mastery chains built around Magic, Flying, Large and hybrid counters. The first clear awards a unique Artifact-slot item and account cosmetic; later clears are practice only.',
+      primaryLabel: 'Show Relic Hunts',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'campaign-activities',
+        modeId: 'relic_hunts',
         label: 'TAP ACTIVITIES'
       }
     };
