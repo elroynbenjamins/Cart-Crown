@@ -1458,7 +1458,7 @@ export function BattlePrepScreen({
             {fantasyCombatEdge.detail}
           </Text>
           <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
-            Magic squads {fantasyCombatEdge.magicUnits} · Damage dealt ×{fantasyCombatEdge.attackMultiplier.toFixed(2)} · Damage received ×{fantasyCombatEdge.incomingDamageMultiplier.toFixed(2)}
+            Magic squads {fantasyCombatEdge.unitCount} · Damage dealt ×{fantasyCombatEdge.attackMultiplier.toFixed(2)} · Damage received ×{fantasyCombatEdge.incomingDamageMultiplier.toFixed(2)}
           </Text>
         </GameCard>
       ) : null}
