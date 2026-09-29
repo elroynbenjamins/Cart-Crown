@@ -16,17 +16,23 @@ import {
   StatusPill
 } from '../ui/components';
 import { BuildingSprite, ResourceSiteSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function FactionKingdomScreen({
   onOpenSettlement,
   onOpenRecruitment,
   onOpenCommander,
-  onOpenFactionMandate
+  onOpenFactionMandate,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onOpenSettlement: () => void;
   onOpenRecruitment: () => void;
   onOpenCommander: () => void;
   onOpenFactionMandate: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -325,6 +331,10 @@ export function FactionKingdomScreen({
                 </GameCard>
               ))}
           </View>
+          <TutorialFocus
+            active={tutorialFocus?.kind === 'kingdom-production'}
+            label={tutorialFocus?.kind === 'kingdom-production' ? tutorialFocus.label : undefined}
+          >
           <GameCard>
             <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Unclaimed Production</Text>
             <View style={styles.productionAmounts}>
@@ -334,16 +344,24 @@ export function FactionKingdomScreen({
               <PrimaryButton
                 label="Claim Production"
                 disabled={productionTotal <= 0}
-                onPress={() =>
+                onPress={() => {
+                  const ok = claimProduction();
                   setMessage(
-                    claimProduction()
+                    ok
                       ? 'Regional production transferred to the settlement.'
                       : 'No production is ready yet.'
-                  )
-                }
+                  );
+                  if (
+                    ok &&
+                    tutorialFocus?.kind === 'kingdom-production'
+                  ) {
+                    onTutorialFocusComplete?.();
+                  }
+                }}
               />
             </View>
           </GameCard>
+          </TutorialFocus>
         </>
       ) : null}
 
