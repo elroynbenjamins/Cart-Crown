@@ -1,6 +1,7 @@
 import type {
   EncounterDefinition,
   EnemyFantasyThreatFamily,
+  UnitBattleTag,
   UnitDefinition
 } from './types';
 
@@ -16,8 +17,8 @@ export type EnemyFantasyThreatAssessment = {
   detail: string;
 };
 
-function hasTag(unit: UnitDefinition, tag: string) {
-  return unit.battleTags?.includes(tag as never) ?? false;
+function hasTag(unit: UnitDefinition, tag: UnitBattleTag) {
+  return unit.battleTags?.includes(tag) ?? false;
 }
 
 function magicCounterScore(units: UnitDefinition[]) {
