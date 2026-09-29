@@ -235,18 +235,8 @@ export function SettlementScreen({
             guidedPlotId === plot.id;
 
           return (
-            <TutorialFocus
-              key={plot.id}
-              active={tutorialPlotFocused}
-              label={
-                tutorialPlotFocused
-                  ? tutorialFocus?.kind === 'settlement-building'
-                    ? 'TAP EMPTY PLOT'
-                    : tutorialFocus?.label
-                  : undefined
-              }
-            >
             <Pressable
+              key={plot.id}
               disabled={!unlocked}
               onPress={() => {
                 setMessage(null);
@@ -291,17 +281,41 @@ export function SettlementScreen({
                       ? theme.colors.appBg
                       : theme.colors.surface3,
                   borderColor:
-                    plotSelected || buildingSelected
+                    tutorialPlotFocused ||
+                    plotSelected ||
+                    buildingSelected
                       ? theme.colors.gold
                       : building
                         ? factionAccent
                         : theme.colors.border,
                   borderWidth:
-                    plotSelected || buildingSelected ? 3 : 1.5,
-                  opacity: unlocked ? 1 : 0.45
+                    tutorialPlotFocused ||
+                    plotSelected ||
+                    buildingSelected
+                      ? 3
+                      : 1.5,
+                  opacity: unlocked ? 1 : 0.45,
+                  transform: tutorialPlotFocused
+                    ? [{ scale: 1.05 }]
+                    : undefined
                 }
               ]}
             >
+              {tutorialPlotFocused ? (
+                <View
+                  pointerEvents="none"
+                  style={[
+                    styles.plotGuideBadge,
+                    { backgroundColor: theme.colors.gold }
+                  ]}
+                >
+                  <Text style={styles.plotGuideText}>
+                    {tutorialFocus?.kind === 'settlement-building'
+                      ? 'TAP EMPTY PLOT'
+                      : tutorialFocus?.label}
+                  </Text>
+                </View>
+              ) : null}
               {building ? (
                 <>
                   <BuildingSprite buildingId={building.id} faction={building.faction} size={44} />
@@ -369,7 +383,6 @@ export function SettlementScreen({
                 </>
               )}
             </Pressable>
-            </TutorialFocus>
           );
         })}
 
@@ -694,6 +707,21 @@ const styles = StyleSheet.create({
     width: 28,
     height: '100%',
     opacity: 0.65
+  },
+  plotGuideBadge: {
+    position: 'absolute',
+    top: -12,
+    right: -8,
+    zIndex: 5,
+    borderRadius: 999,
+    paddingHorizontal: 7,
+    paddingVertical: 3
+  },
+  plotGuideText: {
+    color: '#111318',
+    fontSize: 7,
+    lineHeight: 9,
+    fontWeight: '900'
   },
   plot: {
     position: 'absolute',
