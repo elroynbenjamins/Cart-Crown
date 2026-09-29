@@ -21,6 +21,7 @@ import {
   getLargeCombatEdge,
   getHybridCombatEdge
 } from '../game/progression';
+import { getEnemyFantasyThreatAssessment } from '../game/enemyFantasy';
 import {
   assessBattlePreparation,
   getPreparationEquipmentUnitId
@@ -244,6 +245,11 @@ export function BattlePrepScreen({
     activeUnits,
     enemyArmyProfile.id
   );
+  const enemyFantasyThreat =
+    getEnemyFantasyThreatAssessment(
+      encounter,
+      activeUnits
+    );
   const readinessProfile = getArmyReadinessProfile(armyReadiness);
   const effectiveMaxHp = Math.round(
     combatProfile.maxHp * readinessProfile.hpMultiplier
@@ -632,6 +638,38 @@ export function BattlePrepScreen({
           </View>
         ) : null}
       </GameCard>
+
+      {enemyFantasyThreat ? (
+        <GameCard
+          accent={
+            enemyFantasyThreat.countered
+              ? theme.colors.primary
+              : theme.colors.danger
+          }
+          state={enemyFantasyThreat.countered ? 'ready' : 'danger'}
+        >
+          <View style={styles.planHeader}>
+            <View style={styles.planCopy}>
+              <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+                ENEMY FANTASY THREAT
+              </Text>
+              <Text style={[styles.planTitle, { color: theme.colors.text }]}>
+                {enemyFantasyThreat.label}
+              </Text>
+            </View>
+            <StatusPill
+              label={enemyFantasyThreat.countered ? 'COUNTERED' : 'EXPOSED'}
+              tone={enemyFantasyThreat.countered ? 'ready' : 'elite'}
+            />
+          </View>
+          <Text style={[styles.planMatchup, { color: theme.colors.textMuted }]}>
+            {enemyFantasyThreat.detail}
+          </Text>
+          <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
+            {enemyFantasyThreat.counterLabel} · coverage {enemyFantasyThreat.counterScore.toFixed(1)}/{enemyFantasyThreat.requiredCounterScore.toFixed(1)} · dealt ×{enemyFantasyThreat.outgoingDamageMultiplier.toFixed(2)} · received ×{enemyFantasyThreat.incomingDamageMultiplier.toFixed(2)}
+          </Text>
+        </GameCard>
+      ) : null}
 
       <GameCard
         accent={
