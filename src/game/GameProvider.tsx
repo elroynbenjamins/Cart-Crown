@@ -174,6 +174,7 @@ import type {
   SharedProgress
 } from '../save/types';
 import { buildFactionSwitchSnapshot } from '../save/schema';
+import type { TutorialFocusTarget } from './tutorial';
 import { createKeyedInFlightGuard } from './mobileSession';
 
 type RewardedAdClaimState = Partial<Record<RewardedAdPlacementId, number>>;
@@ -199,6 +200,9 @@ type GameContextValue = {
   flushSnapshot: () => Promise<void>;
   tutorialSeen: string[];
   markTutorialSeen: (key: string) => void;
+  tutorialFocus: TutorialFocusTarget | null;
+  setTutorialFocus: (focus: TutorialFocusTarget | null) => void;
+  clearTutorialFocus: () => void;
   resetTutorialGuidance: () => void;
   reviewPromptShown: boolean;
   markReviewPromptShown: () => void;
@@ -662,6 +666,10 @@ export function GameProvider({
   const [tutorialSeen, setTutorialSeen] = useState<string[]>(
     () => [...(initialFaction.tutorialSeen ?? [])]
   );
+  const [tutorialFocus, setTutorialFocusState] =
+    useState<TutorialFocusTarget | null>(
+      initialFaction.tutorialFocus ?? null
+    );
   const [rewardedAdClaims, setRewardedAdClaims] = useState<RewardedAdClaimState>({});
   const [rewardedAdMessage, setRewardedAdMessage] = useState<string | null>(null);
 
@@ -1101,7 +1109,8 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
-      tutorialSeen
+      tutorialSeen,
+      tutorialFocus
     }),
     [
       activeFaction,
@@ -1150,7 +1159,8 @@ export function GameProvider({
       expeditionTickets,
       expeditionRunsCompleted,
       formationTrialCompleted,
-      tutorialSeen
+      tutorialSeen,
+      tutorialFocus
     ]
   );
 
@@ -1226,8 +1236,19 @@ export function GameProvider({
     );
   };
 
+  const setTutorialFocus = (
+    focus: TutorialFocusTarget | null
+  ) => {
+    setTutorialFocusState(focus);
+  };
+
+  const clearTutorialFocus = () => {
+    setTutorialFocusState(null);
+  };
+
   const resetTutorialGuidance = () => {
     setTutorialSeen([]);
+    setTutorialFocusState(null);
   };
 
   const reviewPromptShown = Boolean(
@@ -5253,6 +5274,9 @@ export function GameProvider({
       flushSnapshot,
       tutorialSeen,
       markTutorialSeen,
+      tutorialFocus,
+      setTutorialFocus,
+      clearTutorialFocus,
       resetTutorialGuidance,
       reviewPromptShown,
       markReviewPromptShown,
@@ -5442,6 +5466,7 @@ export function GameProvider({
       metaCampaignUnlocked,
       flushSnapshot,
       tutorialSeen,
+      tutorialFocus,
       reviewPromptShown,
       formationShapeId,
       activeFormationShape,
