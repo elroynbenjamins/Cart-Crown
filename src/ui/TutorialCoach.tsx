@@ -27,6 +27,19 @@ export function TutorialCoach({
         ? theme.colors.orc
         : theme.colors.human;
 
+  const coachTip =
+    moment.kind === 'unit'
+      ? 'The gold highlight will show this squad in Formation. You can keep its current position or change it; the lesson is about learning the control, not forcing a specific build.'
+      : moment.kind === 'building'
+        ? 'Unlocking a blueprint does not obligate you to spend resources. Inspect it now, build it when it fits your plan.'
+        : moment.key === 'system:forge'
+          ? 'Equipment is optional at the moment it unlocks. The tutorial can be acknowledged without buying anything.'
+          : moment.key === 'system:readiness'
+            ? 'Readiness only becomes a combat penalty below 70%. This warning appears when recovery actually matters.'
+            : moment.focusAfterPrimary
+              ? 'After this explanation, the next useful control will pulse in gold. If you leave the screen before using it, the lesson will return later.'
+              : 'This is a one-time explanation. You can replay tutorial guidance for the current faction from Settings.';
+
   return (
     <Modal
       transparent
@@ -124,7 +137,7 @@ export function TutorialCoach({
                 { color: theme.colors.text }
               ]}
             >
-              You only see each lesson once in this faction. First-time unlock tips can be replayed from Settings.
+              {coachTip}
             </Text>
           </View>
 
