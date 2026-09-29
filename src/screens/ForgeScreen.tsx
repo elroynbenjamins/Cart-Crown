@@ -5,13 +5,19 @@ import type { ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, ResourceAmountRow, ResourceChip, SectionTitle, StatusPill } from '../ui/components';
 import { EquipmentSprite, ResourceSprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function ForgeScreen({
   onOpenPromotion,
-  onExit
+  onExit,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onOpenPromotion: () => void;
   onExit: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -34,9 +40,18 @@ export function ForgeScreen({
       item.requiredForgeLevel <= (buildingLevels.forge ?? 0)
   );
 
+  const tutorialCraftItemId =
+    tutorialFocus?.kind === 'forge-craft'
+      ? humanWeapons.find(
+          item =>
+            !equipmentInventory.includes(item.id)
+        )?.id ?? humanWeapons[0]?.id ?? null
+      : null;
+
   const craft = (id: string, name: string) => {
     const ok = craftEquipment(id);
     setMessage(ok ? name + ' crafted.' : 'Not enough resources for that item.');
+    return ok;
   };
 
   return (
@@ -75,9 +90,20 @@ export function ForgeScreen({
             return resources[resourceKey] >= (amount ?? 0);
           });
 
+          const tutorialCraftFocused =
+            tutorialCraftItemId === item.id;
+
           return (
-            <GameCard
+            <TutorialFocus
               key={item.id}
+              active={tutorialCraftFocused}
+              label={
+                tutorialCraftFocused
+                  ? tutorialFocus?.label
+                  : undefined
+              }
+            >
+            <GameCard
               faction="human"
               state={owned > 0 ? 'ready' : affordable ? 'default' : 'locked'}
               accent={owned > 0 ? theme.colors.primary : undefined}
@@ -117,10 +143,16 @@ export function ForgeScreen({
                 <PrimaryButton
                   label={owned > 0 ? 'Craft another' : 'Craft ' + item.name}
                   disabled={!affordable}
-                  onPress={() => craft(item.id, item.name)}
+                  onPress={() => {
+                    const ok = craft(item.id, item.name);
+                    if (ok && tutorialCraftFocused) {
+                      onTutorialFocusComplete?.();
+                    }
+                  }}
                 />
               </View>
             </GameCard>
+            </TutorialFocus>
           );
         })}
       </View>
