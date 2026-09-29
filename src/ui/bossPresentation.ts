@@ -26,7 +26,6 @@ export const bossAtmospheres = {
   elf_worldroot_guardian: 'roots',
   orc_stonejaw_champion: 'stonejaw',
   return_to_crownspire: 'ash',
-  ashen_triumvirate: 'ash',
   unbound_beacon: 'beacon'
 } as const satisfies Partial<Record<EncounterId, BossAtmosphereKind>>;
 
