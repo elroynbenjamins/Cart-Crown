@@ -72,6 +72,7 @@ export type FantasyRecruitTemplate = {
   armor: number;
   speed: number;
   battleTags: UnitBattleTag[];
+  deploymentCapacity?: 1 | 2 | 3;
   cost: Partial<ResourceWallet>;
 };
 
@@ -697,6 +698,7 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 5,
     speed: 10,
     battleTags: ['ground', 'magic', 'ranged'],
+    deploymentCapacity: 2,
     cost: { gold: 140, wood: 10, iron: 18, provisions: 4 }
   },
   {
@@ -713,6 +715,7 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 11,
     speed: 9,
     battleTags: ['ground', 'magic', 'armored'],
+    deploymentCapacity: 2,
     cost: { gold: 175, iron: 25, provisions: 6 }
   },
   {
@@ -907,6 +910,7 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 20,
     speed: 5,
     battleTags: ['ground', 'large', 'construct', 'armored'],
+    deploymentCapacity: 2,
     cost: { gold: 420, stone: 55, iron: 40, provisions: 8 }
   },
   {
@@ -923,6 +927,7 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 18,
     speed: 6,
     battleTags: ['ground', 'large', 'construct', 'armored', 'magic'],
+    deploymentCapacity: 2,
     cost: { gold: 500, stone: 45, iron: 45, provisions: 8 }
   },
   {
@@ -955,6 +960,7 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 17,
     speed: 8,
     battleTags: ['ground', 'large', 'support', 'magic'],
+    deploymentCapacity: 2,
     cost: { gold: 455, wood: 75, provisions: 20 }
   },
   {
@@ -987,6 +993,7 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 15,
     speed: 6,
     battleTags: ['ground', 'large', 'beast', 'armored', 'charge'],
+    deploymentCapacity: 2,
     cost: { gold: 520, iron: 35, provisions: 34 }
   },
 ];
