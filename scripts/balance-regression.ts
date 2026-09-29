@@ -2617,7 +2617,7 @@ function runPreparationOutcomeCalibration() {
         assessBattlePreparation({
           activeUnits: riskyUnits,
           squadCap,
-          armyReadiness: 60,
+          armyReadiness: 55,
           hasRations: true,
           difficulty: encounter.difficulty,
           formationMatchupResult:
@@ -2635,7 +2635,7 @@ function runPreparationOutcomeCalibration() {
         commander,
         encounterId,
         squadCap,
-        readiness: 60,
+        readiness: 55,
         modifier
       });
       rows.push({
