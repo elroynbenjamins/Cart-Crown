@@ -3,14 +3,20 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { getResearchGemFinishCost, getResearchRemainingHours } from '../game/progression';
 import type { FantasyRecruitTemplate, ResearchDefinition } from '../game/progression';
+import type { TutorialFocusTarget } from '../game/tutorial';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, MetricTile, PrimaryButton, ScreenHero, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
 import { UnitBadges } from '../ui/SemanticUI';
 import { semanticColor } from '../ui/semanticColors';
 import { ResearchGemCost, ResearchRecruitCard, ResearchStateChip, ResearchUnlocks } from '../ui/ResearchUI';
+import { TutorialFocus } from '../ui/TutorialFocus';
 
-export function FantasyResearchScreen({ onExit }: { onExit: () => void }) {
+export function FantasyResearchScreen({ onExit, tutorialFocus, onTutorialFocusComplete }: {
+  onExit: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
+}) {
   const { theme } = useGameTheme();
   const {
     activeFaction, chapterNumber, units, resources, gems, completedStoryGates,
@@ -35,9 +41,7 @@ export function FantasyResearchScreen({ onExit }: { onExit: () => void }) {
   const researchStatus = (research: ResearchDefinition) => {
     const progress = researchProgress[research.id];
     if (!progress) return { progress: null, remainingHours: research.durationHours, gemCost: research.baseGemFinishCost };
-    const elapsedHours = progress.startedAt === null
-      ? 0
-      : Math.max(0, (now - progress.startedAt) / (60 * 60 * 1000));
+    const elapsedHours = progress.startedAt === null ? 0 : Math.max(0, (now - progress.startedAt) / (60 * 60 * 1000));
     const remainingHours = getResearchRemainingHours(research, elapsedHours, progress.rewardedAdsWatched);
     return { progress, remainingHours, gemCost: getResearchGemFinishCost(research, remainingHours) };
   };
@@ -58,6 +62,7 @@ export function FantasyResearchScreen({ onExit }: { onExit: () => void }) {
       ? action === 'start' ? research.name + ' started.' : research.name + ' completed.'
       : action === 'gems' ? 'Not enough Gems to finish this research.' : 'This research cannot be completed yet.');
     setNow(Date.now());
+    return ok;
   };
 
   const runResearchAd = async (research: ResearchDefinition) => {
@@ -69,6 +74,7 @@ export function FantasyResearchScreen({ onExit }: { onExit: () => void }) {
   const recruit = (template: FantasyRecruitTemplate) => {
     const ok = recruitFantasyUnit(template.id);
     setMessage(ok ? template.className + ' recruited to the roster.' : 'Requirements or resources are missing for this recruitment.');
+    return ok;
   };
 
   return (
@@ -130,45 +136,49 @@ export function FantasyResearchScreen({ onExit }: { onExit: () => void }) {
           const readyToClaim = started && remainingHours <= 0;
           const locked = !storyUnlocked || chapterNumber < research.chapterRequired;
           const blockedByOther = Boolean(activeResearchId) && activeResearchId !== research.id && !completed;
+          const tutorialResearchFocused = tutorialFocus?.kind === 'research-start' && tutorialFocus.family === 'magic' && !progress && !locked && !blockedByOther;
           return (
-            <GameCard key={research.id} accent={completed || started ? accent : undefined} faction={activeFaction} state={completed ? 'ready' : started ? 'selected' : 'default'}>
-              <Text style={[styles.researchName, { color: accent }]}>{research.name}</Text>
-              <View style={styles.badges}>
-                <ResearchStateChip state={completed ? 'complete' : readyToClaim ? 'claimable' : started ? 'active' : locked ? 'locked' : 'available'} remainingHours={remainingHours} />
-              </View>
-              <ResearchUnlocks classes={research.unlocksClasses} templates={fantasyRecruitOptions} />
-              <Text style={[styles.body, { color: theme.colors.textMuted }]}>{research.description}</Text>
-              {started && progress && !readyToClaim ? (
-                <View style={styles.progressRow}>
-                  <Text style={[styles.progressText, { color: theme.colors.textMuted }]}>
-                    Ads {progress.rewardedAdsWatched}/{research.rewardedAdsToComplete}
-                  </Text>
-                  <ResearchGemCost cost={gemCost} balance={gems} />
+            <TutorialFocus key={research.id} active={tutorialResearchFocused} label={tutorialResearchFocused ? tutorialFocus.label : undefined}>
+              <GameCard accent={completed || started ? accent : undefined} faction={activeFaction} state={completed ? 'ready' : started ? 'selected' : 'default'}>
+                <Text style={[styles.researchName, { color: accent }]}>{research.name}</Text>
+                <View style={styles.badges}>
+                  <ResearchStateChip state={completed ? 'complete' : readyToClaim ? 'claimable' : started ? 'active' : locked ? 'locked' : 'available'} remainingHours={remainingHours} />
                 </View>
-              ) : null}
-              <View style={styles.actionStack}>
-                {!progress ? (
-                  <PrimaryButton
-                    label={blockedByOther ? 'Finish Current Research First' : 'Start · ' + research.durationHours + 'h'}
-                    disabled={locked || blockedByOther}
-                    onPress={() => runResearchAction(research, 'start')}
-                  />
-                ) : completed ? (
-                  <SecondaryButton label="Research Complete" disabled onPress={() => undefined} />
-                ) : readyToClaim ? (
-                  <PrimaryButton label="Complete Research" onPress={() => runResearchAction(research, 'claim')} />
-                ) : (
-                  <>
+                <ResearchUnlocks classes={research.unlocksClasses} templates={fantasyRecruitOptions} />
+                <Text style={[styles.body, { color: theme.colors.textMuted }]}>{research.description}</Text>
+                {started && progress && !readyToClaim ? (
+                  <View style={styles.progressRow}>
+                    <Text style={[styles.progressText, { color: theme.colors.textMuted }]}>Ads {progress.rewardedAdsWatched}/{research.rewardedAdsToComplete}</Text>
+                    <ResearchGemCost cost={gemCost} balance={gems} />
+                  </View>
+                ) : null}
+                <View style={styles.actionStack}>
+                  {!progress ? (
                     <PrimaryButton
-                      label={'Watch Ad · ' + progress.rewardedAdsWatched + '/' + research.rewardedAdsToComplete}
-                      disabled={progress.rewardedAdsWatched >= research.rewardedAdsToComplete}
-                      onPress={() => void runResearchAd(research)}
+                      label={blockedByOther ? 'Finish Current Research First' : 'Start · ' + research.durationHours + 'h'}
+                      disabled={locked || blockedByOther}
+                      onPress={() => {
+                        const ok = runResearchAction(research, 'start');
+                        if (ok && tutorialResearchFocused) onTutorialFocusComplete?.();
+                      }}
                     />
-                    <SecondaryButton label={'Finish · ' + gemCost + ' Gems'} disabled={gems < gemCost} onPress={() => runResearchAction(research, 'gems')} />
-                  </>
-                )}
-              </View>
-            </GameCard>
+                  ) : completed ? (
+                    <SecondaryButton label="Research Complete" disabled onPress={() => undefined} />
+                  ) : readyToClaim ? (
+                    <PrimaryButton label="Complete Research" onPress={() => runResearchAction(research, 'claim')} />
+                  ) : (
+                    <>
+                      <PrimaryButton
+                        label={'Watch Ad · ' + progress.rewardedAdsWatched + '/' + research.rewardedAdsToComplete}
+                        disabled={progress.rewardedAdsWatched >= research.rewardedAdsToComplete}
+                        onPress={() => void runResearchAd(research)}
+                      />
+                      <SecondaryButton label={'Finish · ' + gemCost + ' Gems'} disabled={gems < gemCost} onPress={() => runResearchAction(research, 'gems')} />
+                    </>
+                  )}
+                </View>
+              </GameCard>
+            </TutorialFocus>
           );
         })}
       </View>
@@ -178,7 +188,15 @@ export function FantasyResearchScreen({ onExit }: { onExit: () => void }) {
         {fantasyRecruitOptions.map(template => {
           const unlocked = unlockedFantasyClasses.includes(template.className);
           const affordable = Object.entries(template.cost).every(([resource, amount]) => resources[resource as keyof typeof resources] >= (amount ?? 0));
-          return <ResearchRecruitCard key={template.id} template={template} unlocked={unlocked} affordable={affordable} wallet={resources} onTrain={() => recruit(template)} />;
+          const tutorialTrainingFocused = tutorialFocus?.kind === 'research-train' && tutorialFocus.family === 'magic' && unlocked;
+          return (
+            <TutorialFocus key={template.id} active={tutorialTrainingFocused} label={tutorialTrainingFocused ? tutorialFocus.label : undefined}>
+              <ResearchRecruitCard template={template} unlocked={unlocked} affordable={affordable} wallet={resources} onTrain={() => {
+                const ok = recruit(template);
+                if (ok && tutorialTrainingFocused) onTutorialFocusComplete?.();
+              }} />
+            </TutorialFocus>
+          );
         })}
       </View>
       {message ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.text }]}>{message}</Text> : null}
