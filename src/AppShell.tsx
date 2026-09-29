@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  BackHandler,
   Pressable,
   SafeAreaView,
   StatusBar,
@@ -201,6 +202,46 @@ export function AppShell({
 
   const openRecruitment = () => setFlow('recruitment');
 
+  const handleResultsContinue = () => {
+    if (
+      [
+        'mercenary_patrol_result',
+        'elf_hollow_warden_result',
+        'orc_blamecaller_result'
+      ].includes(lastBattleResult?.id ?? '') &&
+      !commanderPathId
+    ) {
+      setFlow('commanderChoice');
+      return;
+    }
+
+    if (
+      [
+        'elf_return_through_roots_result',
+        'orc_crownspire_warmaster_result'
+      ].includes(lastBattleResult?.id ?? '')
+    ) {
+      setFlow(null);
+      setActive('campaign');
+      return;
+    }
+
+    if (
+      [
+        'three_seals_convergence_result',
+        'ashen_triumvirate_result',
+        'unbound_beacon_result'
+      ].includes(lastBattleResult?.id ?? '')
+    ) {
+      setFlow('metaCampaign');
+      setActive('campaign');
+      return;
+    }
+
+    setFlow(null);
+    setActive('kingdom');
+  };
+
   const renderScreen = () => {
     if (flow === 'battlePrep') {
       return (
@@ -232,44 +273,7 @@ export function AppShell({
       return (
         <ResultsScreen
           battleSummary={lastCombatSummary}
-          onContinue={() => {
-            if (
-              [
-                'mercenary_patrol_result',
-                'elf_hollow_warden_result',
-                'orc_blamecaller_result'
-              ].includes(lastBattleResult?.id ?? '') &&
-              !commanderPathId
-            ) {
-              setFlow('commanderChoice');
-              return;
-            }
-            if (
-              [
-                'elf_return_through_roots_result',
-                'orc_crownspire_warmaster_result'
-              ].includes(lastBattleResult?.id ?? '')
-            ) {
-              setFlow(null);
-              setActive('campaign');
-              return;
-            }
-
-            if (
-              [
-                'three_seals_convergence_result',
-                'ashen_triumvirate_result',
-                'unbound_beacon_result'
-              ].includes(lastBattleResult?.id ?? '')
-            ) {
-              setFlow('metaCampaign');
-              setActive('campaign');
-              return;
-            }
-
-            setFlow(null);
-            setActive('kingdom');
-          }}
+          onContinue={handleResultsContinue}
         />
       );
     }
@@ -1208,6 +1212,42 @@ export function AppShell({
       setFlow(null);
     }
   };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (flow === 'battle') {
+          return true;
+        }
+
+        if (flow === 'results') {
+          handleResultsContinue();
+          return true;
+        }
+
+        if (canGoBack) {
+          setFlow(null);
+          return true;
+        }
+
+        if (active !== 'kingdom') {
+          setActive('kingdom');
+          return true;
+        }
+
+        return false;
+      }
+    );
+
+    return () => subscription.remove();
+  }, [
+    active,
+    canGoBack,
+    commanderPathId,
+    flow,
+    lastBattleResult?.id
+  ]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.appBg }]}>
