@@ -47,6 +47,7 @@ export type SiegeRunState = {
   powerBonus: number;
   rewardMultiplier: 0 | 0.5 | 1;
   basePower: number;
+  preparationMultiplier: number;
   playerShapeId: FormationShapeId;
   wagonStageId: string;
   engineering: number;
@@ -402,6 +403,7 @@ export function createSiegeRun({
   readiness,
   supplies,
   basePower,
+  preparationMultiplier,
   playerShapeId,
   wagonStageId,
   engineering,
@@ -413,6 +415,7 @@ export function createSiegeRun({
   readiness: number;
   supplies: number;
   basePower: number;
+  preparationMultiplier: number;
   playerShapeId: FormationShapeId;
   wagonStageId: string;
   engineering: number;
@@ -434,6 +437,10 @@ export function createSiegeRun({
     powerBonus: 0,
     rewardMultiplier,
     basePower: Math.max(0, Math.round(basePower)),
+    preparationMultiplier: Math.max(
+      1,
+      Math.min(1.25, preparationMultiplier)
+    ),
     playerShapeId,
     wagonStageId,
     engineering: Math.max(
@@ -452,12 +459,10 @@ export function createSiegeRun({
 
 export function resolveSiegeChoice({
   run,
-  choiceId,
-  preparationMultiplier
+  choiceId
 }: {
   run: SiegeRunState;
   choiceId: string;
-  preparationMultiplier: number;
 }): SiegeResolution {
   if (run.failed || run.completed) {
     return {
@@ -532,7 +537,8 @@ export function resolveSiegeChoice({
       playerShapeId: run.playerShapeId,
       enemyShapeId: choice.formationShapeId,
       readiness: preFightReadiness,
-      preparationMultiplier,
+      preparationMultiplier:
+        run.preparationMultiplier,
       powerBonus
     });
   const success =
