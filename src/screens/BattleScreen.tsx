@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, AppState, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import {
-  getEncounterForChapter,
+  getEncounter,
   getEnemyArmyProfile,
   getEnemyFormationTactic,
   getEnemyRoleAssignments
@@ -23,6 +23,7 @@ import {
   getLargeCombatEdge,
   getHybridCombatEdge
 } from '../game/progression';
+import { getEnemyFantasyThreatAssessment } from '../game/enemyFantasy';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import {
@@ -158,7 +159,6 @@ export function BattleScreen({
     formationAnalysis,
     activeSquadCap,
     activeFaction,
-    chapterNumber,
     armyReadiness,
     recordBattleWear,
     activeCommanderPath,
@@ -169,11 +169,7 @@ export function BattleScreen({
     settlementEffects
   } = useGame();
 
-  const encounter =
-    getEncounterForChapter(
-      encounterId,
-      chapterNumber
-    );
+  const encounter = getEncounter(encounterId);
   const enemyTactic = useMemo(
     () => getEnemyFormationTactic(encounterId),
     [encounterId]
@@ -306,6 +302,14 @@ export function BattleScreen({
       ),
     [activeUnits, enemyArmyProfile.id]
   );
+  const enemyFantasyThreat = useMemo(
+    () =>
+      getEnemyFantasyThreatAssessment(
+        encounter,
+        activeUnits
+      ),
+    [activeUnits, encounter]
+  );
 
   const activeFormationSlots = useMemo(
     () =>
@@ -429,6 +433,19 @@ export function BattleScreen({
     label: string;
     color: string;
   }> = [];
+  if (enemyFantasyThreat) {
+    battleEffects.push({
+      key: 'enemy-fantasy-threat',
+      label:
+        enemyFantasyThreat.label +
+        (enemyFantasyThreat.countered
+          ? ' · countered'
+          : ' · exposed'),
+      color: enemyFantasyThreat.countered
+        ? theme.colors.primary
+        : theme.colors.danger
+    });
+  }
   if (fantasyCombatEdge) {
     battleEffects.push({
       key: 'fantasy-edge',
@@ -740,6 +757,7 @@ export function BattleScreen({
             (flyingCombatEdge?.attackMultiplier ?? 1) *
             (largeCombatEdge?.attackMultiplier ?? 1) *
             (hybridCombatEdge?.attackMultiplier ?? 1) *
+            (enemyFantasyThreat?.outgoingDamageMultiplier ?? 1) *
             momentum *
             attackFactor *
             tacticalSpeedDamageMultiplier
@@ -778,6 +796,7 @@ export function BattleScreen({
             (flyingCombatEdge?.incomingDamageMultiplier ?? 1) *
             (largeCombatEdge?.incomingDamageMultiplier ?? 1) *
             (hybridCombatEdge?.incomingDamageMultiplier ?? 1) *
+            (enemyFantasyThreat?.incomingDamageMultiplier ?? 1) *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -855,6 +874,9 @@ export function BattleScreen({
                   : '') +
                 (hybridCombatEdge
                   ? ' ' + hybridCombatEdge.detail
+                  : '') +
+                (enemyFantasyThreat
+                  ? ' ' + enemyFantasyThreat.detail
                   : '')
               : action)
       );
@@ -897,6 +919,7 @@ export function BattleScreen({
     enemyPressureMultiplier,
     enemyTactic,
     enemyArmyProfile,
+    enemyFantasyThreat,
     formation,
     units,
     formationAnalysis,
