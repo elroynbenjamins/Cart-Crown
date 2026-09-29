@@ -774,7 +774,8 @@ function FantasyUnitOverlay({
     key.includes('griffin') ||
     key.includes('eagle') ||
     key.includes('wyvern') ||
-    key.includes('moonwing');
+    key.includes('moonwing') ||
+    key.includes('spellwing');
   const large =
     key.includes('golem') ||
     key.includes('ent') ||
@@ -1011,7 +1012,8 @@ export function UnitSprite({
     classKey.includes('griffin') ||
     classKey.includes('eagle') ||
     classKey.includes('wyvern') ||
-    classKey.includes('moonwing');
+    classKey.includes('moonwing') ||
+    classKey.includes('spellwing');
   const large =
     classKey.includes('golem') ||
     classKey.includes('ent') ||
