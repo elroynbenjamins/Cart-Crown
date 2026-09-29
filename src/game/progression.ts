@@ -944,6 +944,7 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 16,
     speed: 7,
     battleTags: ['ground', 'large', 'support'],
+    deploymentCapacity: 2,
     cost: { gold: 390, wood: 65, provisions: 18 }
   },
   {
@@ -977,6 +978,7 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 13,
     speed: 7,
     battleTags: ['ground', 'large', 'beast'],
+    deploymentCapacity: 2,
     cost: { gold: 400, iron: 30, provisions: 28 }
   },
   {
