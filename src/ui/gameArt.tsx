@@ -1,6 +1,12 @@
 import React from 'react';
 import { Image, View } from 'react-native';
-import type { ChapterNode, FactionId, WagonStage } from '../game/types';
+import type {
+  ChapterNode,
+  EnemyFantasyThreatFamily,
+  FactionId,
+  UnitRole,
+  WagonStage
+} from '../game/types';
 import type { EnemyArmyProfileId } from '../game/encounters';
 import {
   getBuildingVisualKind,
@@ -1647,21 +1653,216 @@ export function WagonStageSprite({
 }
 
 
+function EnemyFantasyOverlay({
+  fantasyThreat,
+  role,
+  size
+}: {
+  fantasyThreat?: EnemyFantasyThreatFamily;
+  role?: UnitRole;
+  size: number;
+}) {
+  if (!fantasyThreat) return null;
+
+  if (fantasyThreat === 'magic') {
+    return (
+      <>
+        <View
+          style={{
+            position: 'absolute',
+            right: size * 0.05,
+            top: size * 0.06,
+            width: size * 0.18,
+            height: size * 0.18,
+            borderRadius: size,
+            borderWidth: Math.max(1, size * 0.025),
+            borderColor: palette.red,
+            backgroundColor: palette.red + '44'
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            right: size * 0.125,
+            top: size * 0.2,
+            width: Math.max(2, size * 0.04),
+            height: size * 0.42,
+            backgroundColor: palette.gold,
+            transform: [{ rotate: '8deg' }]
+          }}
+        />
+        {role === 'support' ? (
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.12,
+              bottom: size * 0.08,
+              width: size * 0.76,
+              height: size * 0.14,
+              borderRadius: size,
+              borderWidth: Math.max(1, size * 0.02),
+              borderColor: palette.red,
+              opacity: 0.8
+            }}
+          />
+        ) : null}
+      </>
+    );
+  }
+
+  if (fantasyThreat === 'flying') {
+    return (
+      <>
+        <View
+          style={{
+            position: 'absolute',
+            left: -size * 0.04,
+            top: size * 0.25,
+            width: size * 0.36,
+            height: size * 0.13,
+            borderRadius: size * 0.08,
+            backgroundColor: palette.red,
+            opacity: 0.88,
+            transform: [{ rotate: '-28deg' }]
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            right: -size * 0.04,
+            top: size * 0.25,
+            width: size * 0.36,
+            height: size * 0.13,
+            borderRadius: size * 0.08,
+            backgroundColor: palette.red,
+            opacity: 0.88,
+            transform: [{ rotate: '28deg' }]
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            left: size * 0.15,
+            bottom: size * 0.02,
+            width: size * 0.7,
+            height: Math.max(2, size * 0.045),
+            borderRadius: size,
+            backgroundColor: palette.gold,
+            opacity: 0.55
+          }}
+        />
+      </>
+    );
+  }
+
+  if (fantasyThreat === 'large') {
+    return (
+      <>
+        <View
+          style={{
+            position: 'absolute',
+            left: size * 0.04,
+            right: size * 0.04,
+            top: size * 0.26,
+            height: size * 0.46,
+            borderRadius: size * 0.1,
+            borderWidth: Math.max(2, size * 0.035),
+            borderColor: palette.red,
+            opacity: 0.5
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            left: -size * 0.04,
+            top: size * 0.38,
+            width: size * 0.22,
+            height: size * 0.25,
+            borderRadius: size * 0.06,
+            backgroundColor: palette.leather,
+            opacity: 0.9
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            right: -size * 0.04,
+            top: size * 0.38,
+            width: size * 0.22,
+            height: size * 0.25,
+            borderRadius: size * 0.06,
+            backgroundColor: palette.leather,
+            opacity: 0.9
+          }}
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <View
+        style={{
+          position: 'absolute',
+          left: -size * 0.03,
+          top: size * 0.24,
+          width: size * 0.34,
+          height: size * 0.12,
+          borderRadius: size,
+          backgroundColor: palette.red,
+          transform: [{ rotate: '-26deg' }]
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          right: -size * 0.03,
+          top: size * 0.24,
+          width: size * 0.34,
+          height: size * 0.12,
+          borderRadius: size,
+          backgroundColor: palette.red,
+          transform: [{ rotate: '26deg' }]
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          right: size * 0.08,
+          top: size * 0.05,
+          width: size * 0.18,
+          height: size * 0.18,
+          borderRadius: size,
+          backgroundColor: palette.gold
+        }}
+      />
+    </>
+  );
+}
+
 export function EnemySprite({
   enemyName,
   armyProfileId,
+  fantasyThreat,
+  role,
   size = 42
 }: {
   enemyName: string;
   armyProfileId?: EnemyArmyProfileId;
+  fantasyThreat?: EnemyFantasyThreatFamily;
+  role?: UnitRole;
   size?: number;
 }) {
   const kind = getEnemyVisualKind(enemyName, armyProfileId);
   const production = enemyProductionAsset(kind);
   const productionSource = getProductionAssetSource(production.id);
-  if (productionSource) {
-    return <Image source={productionSource} resizeMode="contain" style={{ width: size, height: size }} />;
-  }
+  const threatScale =
+    fantasyThreat === 'large'
+      ? 1.14
+      : fantasyThreat === 'flying'
+        ? 1.06
+        : 1;
+  const visualSize = size * threatScale;
   const keyByKind: Record<ReturnType<typeof getEnemyVisualKind>, ArtKey> = {
     raider: 'enemy_raider',
     mercenary: 'enemy_mercenary',
@@ -1681,29 +1882,52 @@ export function EnemySprite({
   };
 
   return (
-    <View style={{ width: size, height: size, position: 'relative' }}>
-      <PixelSprite artKey={keyByKind[kind]} size={size} />
-      {kind === 'stalker' ? (
+    <View
+      style={{
+        width: size,
+        height: size,
+        position: 'relative',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'visible'
+      }}
+    >
+      {productionSource ? (
+        <Image
+          source={productionSource}
+          resizeMode="contain"
+          style={{ width: visualSize, height: visualSize }}
+        />
+      ) : (
+        <PixelSprite artKey={keyByKind[kind]} size={visualSize} />
+      )}
+      <EnemyFantasyOverlay
+        fantasyThreat={fantasyThreat}
+        role={role}
+        size={size}
+      />
+      {!productionSource && kind === 'stalker' ? (
+      {!productionSource && kind === 'stalker' ? (
         <>
           <View style={{ position: 'absolute', left: size * 0.05, top: size * 0.26, width: size * 0.2, height: size * 0.08, backgroundColor: palette.greenLight, transform: [{ rotate: '-28deg' }] }} />
           <View style={{ position: 'absolute', right: size * 0.05, top: size * 0.26, width: size * 0.2, height: size * 0.08, backgroundColor: palette.greenLight, transform: [{ rotate: '28deg' }] }} />
           <View style={{ position: 'absolute', left: size * 0.38, top: size * 0.02, width: size * 0.24, height: size * 0.08, backgroundColor: palette.red }} />
         </>
       ) : null}
-      {kind === 'champion' ? (
+      {!productionSource && kind === 'champion' ? (
         <>
           <View style={{ position: 'absolute', left: size * 0.03, top: size * 0.27, width: size * 0.25, height: size * 0.13, backgroundColor: palette.orc }} />
           <View style={{ position: 'absolute', right: size * 0.03, top: size * 0.27, width: size * 0.25, height: size * 0.13, backgroundColor: palette.orc }} />
           <View style={{ position: 'absolute', left: size * 0.32, top: 0, width: size * 0.36, height: size * 0.08, backgroundColor: palette.gold }} />
         </>
       ) : null}
-      {kind === 'ranger' ? (
+      {!productionSource && kind === 'ranger' ? (
         <>
           <View style={{ position: 'absolute', left: size * 0.17, top: size * 0.14, width: size * 0.12, height: size * 0.5, backgroundColor: palette.elf, opacity: 0.9 }} />
           <View style={{ position: 'absolute', right: size * 0.09, top: size * 0.2, width: size * 0.06, height: size * 0.58, backgroundColor: palette.elfLight }} />
         </>
       ) : null}
-      {kind === 'agitator' ? (
+      {!productionSource && kind === 'agitator' ? (
         <>
           <View style={{ position: 'absolute', left: size * 0.11, top: size * 0.08, width: size * 0.78, height: size * 0.08, backgroundColor: palette.red }} />
           <View style={{ position: 'absolute', left: size * 0.45, top: 0, width: size * 0.1, height: size * 0.22, backgroundColor: palette.wood }} />
