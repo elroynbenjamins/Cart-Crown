@@ -15,7 +15,10 @@ import {
   getArmyReadinessProfile,
   getUnitCombatProfile
 } from '../game/balance';
-import { getFantasyCombatEdge } from '../game/progression';
+import {
+  getFantasyCombatEdge,
+  getFlyingCombatEdge
+} from '../game/progression';
 import {
   assessBattlePreparation,
   getPreparationEquipmentUnitId
@@ -223,6 +226,10 @@ export function BattlePrepScreen({
 
   const combatProfile = getUnitCombatProfile(activeUnits);
   const fantasyCombatEdge = getFantasyCombatEdge(
+    activeUnits,
+    enemyArmyProfile.id
+  );
+  const flyingCombatEdge = getFlyingCombatEdge(
     activeUnits,
     enemyArmyProfile.id
   );
@@ -1459,6 +1466,47 @@ export function BattlePrepScreen({
           </Text>
           <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
             Magic squads {fantasyCombatEdge.unitCount} · Damage dealt ×{fantasyCombatEdge.attackMultiplier.toFixed(2)} · Damage received ×{fantasyCombatEdge.incomingDamageMultiplier.toFixed(2)}
+          </Text>
+        </GameCard>
+      ) : null}
+
+      {flyingCombatEdge ? (
+        <GameCard
+          accent={
+            flyingCombatEdge.favorable
+              ? theme.colors.primary
+              : theme.colors.danger
+          }
+          faction={activeFaction}
+          state={flyingCombatEdge.favorable ? 'ready' : 'danger'}
+        >
+          <View style={styles.planHeader}>
+            <View style={styles.planCopy}>
+              <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+                AERIAL MATCHUP
+              </Text>
+              <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+                {flyingCombatEdge.title}
+              </Text>
+            </View>
+            <StatusPill
+              label={
+                flyingCombatEdge.favorable
+                  ? 'AIR EDGE'
+                  : 'ANTI-AIR'
+              }
+              tone={
+                flyingCombatEdge.favorable
+                  ? 'ready'
+                  : 'elite'
+              }
+            />
+          </View>
+          <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+            {flyingCombatEdge.detail}
+          </Text>
+          <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
+            Flying squads {flyingCombatEdge.unitCount} · Damage dealt ×{flyingCombatEdge.attackMultiplier.toFixed(2)} · Damage received ×{flyingCombatEdge.incomingDamageMultiplier.toFixed(2)}
           </Text>
         </GameCard>
       ) : null}
