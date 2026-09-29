@@ -177,7 +177,7 @@ const choices: SiegeChoice[] = [
     formationShapeId: 'reinforced_center_252',
     baseThreat: 194,
     wear: 9,
-    defenderAlertDelta: 0.03
+    defenderAlertDelta: 0.01
   },
   {
     id: 'courtyard_towers',
