@@ -619,6 +619,10 @@ export function simulate(
     input.shapeId
   );
   const profile = getUnitCombatProfile(input.units);
+  const roleCounter = getArmyRoleCounterProfile(
+    input.units,
+    enemyArmyProfile.id
+  );
   const readiness = getArmyReadinessProfile(
     input.readiness
   );
@@ -815,7 +819,8 @@ export function simulate(
             enemyTactic.armorMultiplier *
             enemyArmyProfile.armorMultiplier
           )) *
-          formationMatchup.outgoingDamageMultiplier
+          formationMatchup.outgoingDamageMultiplier *
+          roleCounter.outgoingDamageMultiplier
       )
     );
 
@@ -836,6 +841,7 @@ export function simulate(
           enemyPressureMultiplier *
           enemyTimingMultiplier *
           formationMatchup.incomingDamageMultiplier *
+          roleCounter.incomingDamageMultiplier *
           retaliationFactor *
           (modifier.retaliationMultiplier ?? 1)) /
           Math.max(
