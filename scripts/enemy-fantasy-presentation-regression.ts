@@ -89,6 +89,13 @@ assert.ok(
   'Live Battle no longer forwards threat/role identity into enemy visuals.'
 );
 
+assert.ok(
+  battle.includes('getEnemyFantasyExchangeBehavior') &&
+    battle.includes('INCOMING ·') &&
+    battle.includes('enemyFantasyExchangeBehavior?.damageMultiplier'),
+  'Live Battle no longer telegraphs or applies the authored fantasy attack rhythm.'
+);
+
 const prep = readFileSync(
   'src/screens/BattlePrepScreen.tsx',
   'utf8'
@@ -96,6 +103,12 @@ const prep = readFileSync(
 assert.ok(
   prep.includes('fantasyThreat={encounter.fantasyThreat}'),
   'Battle Prep portrait no longer exposes enemy fantasy identity.'
+);
+
+assert.ok(
+  prep.includes('getEnemyFantasyPatternSummary') &&
+    prep.includes('PATTERN ·'),
+  'Battle Prep no longer explains the enemy fantasy attack rhythm before combat.'
 );
 
 const visuals = readFileSync(
