@@ -10,10 +10,12 @@ import {
   tacticalGuidanceOptions
 } from '../game/tacticalGuidance';
 import { usePreferences } from '../preferences/PreferencesProvider';
+import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
   Pill,
+  PrimaryButton,
   SectionTitle
 } from '../ui/components';
 
@@ -23,6 +25,10 @@ export function SettingsScreen() {
     tacticalGuidance,
     setTacticalGuidance
   } = usePreferences();
+  const {
+    resetTutorialGuidance,
+    tutorialSeen
+  } = useGame();
 
   return (
     <ScrollView
@@ -131,6 +137,40 @@ export function SettingsScreen() {
         })}
       </View>
 
+      <SectionTitle
+        title="Tutorial & unlock guidance"
+        trailing={
+          tutorialSeen.length > 0
+            ? String(tutorialSeen.length) + ' learned'
+            : 'Ready'
+        }
+      />
+
+      <GameCard>
+        <Text
+          style={[
+            styles.optionName,
+            { color: theme.colors.text }
+          ]}
+        >
+          Replay first-time lessons
+        </Text>
+        <Text
+          style={[
+            styles.optionDetail,
+            { color: theme.colors.textMuted }
+          ]}
+        >
+          Resets the current faction's tutorial history. Core onboarding and first-unlock cards for squads, buildings and systems will appear again as their conditions are met.
+        </Text>
+        <View style={styles.replayButton}>
+          <PrimaryButton
+            label="Replay tutorial guidance"
+            onPress={resetTutorialGuidance}
+          />
+        </View>
+      </GameCard>
+
       <Text
         style={[
           styles.footer,
@@ -188,6 +228,7 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     marginTop: 9
   },
+  replayButton: { marginTop: 12 },
   footer: {
     fontSize: 9.5,
     lineHeight: 14,
