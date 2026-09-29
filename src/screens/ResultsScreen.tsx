@@ -21,6 +21,21 @@ export function ResultsScreen({
   onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
+  const tutorialScrollRef = React.useRef<ScrollView>(null);
+
+  React.useEffect(() => {
+    if (tutorialFocus?.kind !== 'results-continue') {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      tutorialScrollRef.current?.scrollToEnd({
+        animated: true
+      });
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [tutorialFocus]);
   const {
     activeFaction,
     armyReadiness,
@@ -167,7 +182,11 @@ export function ResultsScreen({
       : 'victory';
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.resultHeader}>
         <StatusPill label="VICTORY" tone="done" />
         <Text style={[styles.title, { color: theme.colors.text }]}>{lastBattleResult.title}</Text>
