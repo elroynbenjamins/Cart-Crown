@@ -118,6 +118,7 @@ export function FactionOpeningCampaignScreen({
     isSideModeUnlocked,
     expeditionTickets,
     expeditionRunsCompleted,
+    activeExpeditionRun,
     kingdomTrialCompletions,
     kingdomDefenseCompleted,
     kingdomDefenseRuns
@@ -642,7 +643,15 @@ export function FactionOpeningCampaignScreen({
                 mode.id === 'war_table'
                   ? 'Scout contracts'
                   : mode.id === 'expeditions'
-                    ? expeditionTickets + ' ticket' + (expeditionTickets === 1 ? '' : 's')
+                    ? activeExpeditionRun
+                      ? activeExpeditionRun.completed
+                        ? 'Boss defeated · loot ready'
+                        : activeExpeditionRun.failed
+                          ? 'Run failed'
+                          : 'Run active · Stage ' +
+                            (activeExpeditionRun.stageIndex + 1) +
+                            '/5'
+                      : expeditionTickets + ' ticket' + (expeditionTickets === 1 ? '' : 's')
                     : mode.id === 'formation_trials'
                       ? kingdomTrialCompletions.length +
                         '/3 medals'
@@ -690,7 +699,12 @@ export function FactionOpeningCampaignScreen({
                     ) : null}
                     <View style={styles.switchButton}>
                       <SecondaryButton
-                        label={'Open ' + mode.name}
+                        label={
+                          mode.id === 'expeditions' &&
+                          activeExpeditionRun
+                            ? 'Resume Expedition'
+                            : 'Open ' + mode.name
+                        }
                         onPress={() => {
                           if (tutorialActivityFocused) {
                             onTutorialFocusComplete?.();
