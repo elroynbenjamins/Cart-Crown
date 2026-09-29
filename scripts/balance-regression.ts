@@ -65,7 +65,8 @@ import type {
   FactionId,
   FormationPreset,
   FormationShapeId,
-  UnitDefinition
+  UnitDefinition,
+  UnitEquipmentLoadout
 } from '../src/game/types';
 
 type CombatModifier = {
@@ -447,6 +448,105 @@ function applyGear(
     return next;
   });
 }
+
+
+function buildGearLoadouts(
+  units: UnitDefinition[],
+  tier: number,
+  mode: 'light' | 'full'
+): Record<string, UnitEquipmentLoadout> {
+  const allowedSlots =
+    mode === 'light'
+      ? new Set(['weapon', 'armor', 'mount'])
+      : new Set([
+          'weapon',
+          'armor',
+          'shield',
+          'mount',
+          'artifact'
+        ]);
+
+  return Object.fromEntries(
+    units.map(unit => {
+      const loadout: UnitEquipmentLoadout = {};
+      let equippedUnit = { ...unit };
+
+      for (const slot of [
+        'weapon',
+        'armor',
+        'shield',
+        'mount',
+        'artifact'
+      ] as const) {
+        if (!allowedSlots.has(slot)) continue;
+
+        const candidates = equipmentDefinitions
+          .filter(
+            item =>
+              item.faction === unit.faction &&
+              item.slot === slot &&
+              item.tier <= tier &&
+              canUnitEquipEquipment(
+                equippedUnit,
+                item
+              )
+          )
+          .sort(
+            (a, b) =>
+              equipmentScore(b) -
+              equipmentScore(a)
+          );
+
+        const item = candidates[0];
+        if (!item) continue;
+
+        loadout[slot] = item.id;
+        equippedUnit = {
+          ...equippedUnit,
+          attack:
+            equippedUnit.attack +
+            item.attackBonus,
+          armor:
+            equippedUnit.armor +
+            item.armorBonus,
+          speed:
+            equippedUnit.speed +
+            item.speedBonus
+        };
+      }
+
+      return [unit.id, loadout];
+    })
+  );
+}
+
+function stageForPreparationBenchmark(
+  chapter: number,
+  squadCap: number
+) {
+  if (squadCap <= 2) return 'camp';
+  if (squadCap === 3) return 'settlement';
+  if (squadCap === 4) return 'fort';
+  if (squadCap === 5) return 'town';
+  if (chapter <= 4) return 'stronghold';
+  if (chapter === 5) return 'capital';
+  return 'grand';
+}
+
+type PreparationCalibrationRow = {
+  faction: FactionId;
+  chapter: number;
+  expected:
+    | 'ready'
+    | 'risky'
+    | 'severely_underprepared';
+  actual:
+    | 'ready'
+    | 'risky'
+    | 'severely_underprepared';
+  victory: boolean;
+  remainingHpRatio: number;
+};
 
 function centerFirst(slots: number[]) {
   const middle = (slots.length - 1) / 2;
@@ -2399,6 +2499,324 @@ function runBattlePreparationCoverage() {
   });
 }
 
+function runPreparationOutcomeCalibration() {
+  const rows: PreparationCalibrationRow[] = [];
+
+  for (const faction of [
+    'human',
+    'elf',
+    'orc'
+  ] as const) {
+    for (
+      let chapter = 1;
+      chapter <= 6;
+      chapter += 1
+    ) {
+      const encounterId =
+        bossByFaction[faction][chapter - 1];
+      invariant(
+        encounterId,
+        'Missing preparation calibration boss for ' +
+          faction +
+          ' chapter ' +
+          chapter
+      );
+
+      const encounter =
+        getEncounter(encounterId);
+      const squadCap =
+        squadCaps[faction][chapter - 1] ?? 6;
+      const commander =
+        defaultCommander(faction);
+      const modifier =
+        defaultModifierForFaction(
+          faction,
+          chapter
+        );
+      const shapeId =
+        shapeFor(faction, chapter);
+      const matchup =
+        getFormationMatchup(
+          shapeId,
+          getEnemyFormationTactic(
+            encounterId
+          ).formationShapeId
+        );
+      const gearTier =
+        gearTierByChapter[chapter - 1] ?? 3;
+      const stageId =
+        stageForPreparationBenchmark(
+          chapter,
+          squadCap
+        );
+
+      const baseUnits =
+        buildArmy(faction, chapter);
+      const normalUnits =
+        normalArmy(faction, chapter);
+      const normalLoadouts =
+        buildGearLoadouts(
+          baseUnits,
+          gearTier,
+          'light'
+        );
+
+      const readyAssessment =
+        assessBattlePreparation({
+          activeUnits: normalUnits,
+          squadCap,
+          armyReadiness: 100,
+          hasRations: true,
+          difficulty: encounter.difficulty,
+          formationMatchupResult:
+            matchup.result,
+          wagonStageId: stageId,
+          unitEquipment: normalLoadouts,
+          equipmentDefinitions
+        });
+      const readyResult = simulate({
+        faction,
+        units: normalUnits,
+        doctrineId:
+          doctrineByFaction[faction],
+        shapeId,
+        commander,
+        encounterId,
+        squadCap,
+        readiness: 100,
+        modifier
+      });
+      rows.push({
+        faction,
+        chapter,
+        expected: 'ready',
+        actual: readyAssessment.status,
+        victory: readyResult.victory,
+        remainingHpRatio:
+          readyResult.maxHp > 0
+            ? readyResult.remainingHp /
+              readyResult.maxHp
+            : 0
+      });
+
+      const riskyBase = baseUnits.slice(
+        0,
+        Math.max(1, squadCap - 1)
+      );
+      const riskyUnits = normalUnits.slice(
+        0,
+        riskyBase.length
+      );
+      const riskyLoadouts =
+        buildGearLoadouts(
+          riskyBase,
+          gearTier,
+          'light'
+        );
+      const riskyAssessment =
+        assessBattlePreparation({
+          activeUnits: riskyUnits,
+          squadCap,
+          armyReadiness: 60,
+          hasRations: true,
+          difficulty: encounter.difficulty,
+          formationMatchupResult:
+            matchup.result,
+          wagonStageId: stageId,
+          unitEquipment: riskyLoadouts,
+          equipmentDefinitions
+        });
+      const riskyResult = simulate({
+        faction,
+        units: riskyUnits,
+        doctrineId:
+          doctrineByFaction[faction],
+        shapeId,
+        commander,
+        encounterId,
+        squadCap,
+        readiness: 60,
+        modifier
+      });
+      rows.push({
+        faction,
+        chapter,
+        expected: 'risky',
+        actual: riskyAssessment.status,
+        victory: riskyResult.victory,
+        remainingHpRatio:
+          riskyResult.maxHp > 0
+            ? riskyResult.remainingHp /
+              riskyResult.maxHp
+            : 0
+      });
+
+      const missingCount =
+        chapter >= 4 ? 2 : 1;
+      const severeUnits = baseUnits.slice(
+        0,
+        Math.max(
+          1,
+          squadCap - missingCount
+        )
+      );
+      const severeAssessment =
+        assessBattlePreparation({
+          activeUnits: severeUnits,
+          squadCap,
+          armyReadiness: 45,
+          hasRations: false,
+          difficulty: encounter.difficulty,
+          formationMatchupResult:
+            matchup.result,
+          wagonStageId: stageId,
+          unitEquipment: {},
+          equipmentDefinitions
+        });
+      const severeResult = simulate({
+        faction,
+        units: severeUnits,
+        doctrineId:
+          doctrineByFaction[faction],
+        shapeId,
+        commander,
+        encounterId,
+        squadCap,
+        readiness: 45,
+        modifier
+      });
+      rows.push({
+        faction,
+        chapter,
+        expected:
+          'severely_underprepared',
+        actual: severeAssessment.status,
+        victory: severeResult.victory,
+        remainingHpRatio:
+          severeResult.maxHp > 0
+            ? severeResult.remainingHp /
+              severeResult.maxHp
+            : 0
+      });
+    }
+  }
+
+  const grouped = {
+    ready: rows.filter(
+      row => row.expected === 'ready'
+    ),
+    risky: rows.filter(
+      row => row.expected === 'risky'
+    ),
+    severe: rows.filter(
+      row =>
+        row.expected ===
+        'severely_underprepared'
+    )
+  };
+
+  for (const row of rows) {
+    expect(
+      row.actual === row.expected,
+      'Preparation calibration label drifted for ' +
+        row.faction +
+        ' chapter ' +
+        row.chapter +
+        ': expected ' +
+        row.expected +
+        ', got ' +
+        row.actual
+    );
+  }
+
+  const readyWins = grouped.ready.filter(
+    row => row.victory
+  ).length;
+  const riskyWins = grouped.risky.filter(
+    row => row.victory
+  ).length;
+  const severeWins = grouped.severe.filter(
+    row => row.victory
+  ).length;
+
+  const readyWinRate =
+    readyWins / grouped.ready.length;
+  const riskyWinRate =
+    riskyWins / grouped.risky.length;
+  const severeWinRate =
+    severeWins / grouped.severe.length;
+
+  expect(
+    readyWinRate >= 0.85,
+    'Ready preparation no longer correlates with reliable boss success (' +
+      readyWins +
+      '/' +
+      grouped.ready.length +
+      ' wins).'
+  );
+  expect(
+    riskyWins > 0 &&
+      riskyWins < grouped.risky.length &&
+      riskyWinRate >= 0.15 &&
+      riskyWinRate <= 0.85,
+    'Risky preparation no longer produces a meaningful mixed-outcome band (' +
+      riskyWins +
+      '/' +
+      grouped.risky.length +
+      ' wins).'
+  );
+  expect(
+    severeWinRate <= 0.35,
+    'Severely Underprepared warning is no longer trustworthy (' +
+      severeWins +
+      '/' +
+      grouped.severe.length +
+      ' wins).'
+  );
+
+  const weakReadyWins =
+    grouped.ready.filter(
+      row =>
+        row.victory &&
+        row.remainingHpRatio <= 0.5
+    ).length;
+  expect(
+    weakReadyWins > 0,
+    'Ready has become too close to a guaranteed comfortable win; no Ready boss benchmark finishes at or below 50% HP.'
+  );
+
+  console.log(
+    '\nPreparation outcome calibration'
+  );
+  console.log(
+    'Ready  ' +
+      readyWins +
+      '/' +
+      grouped.ready.length +
+      ' wins · ' +
+      Math.round(readyWinRate * 100) +
+      '%'
+  );
+  console.log(
+    'Risky  ' +
+      riskyWins +
+      '/' +
+      grouped.risky.length +
+      ' wins · ' +
+      Math.round(riskyWinRate * 100) +
+      '%'
+  );
+  console.log(
+    'Severe ' +
+      severeWins +
+      '/' +
+      grouped.severe.length +
+      ' wins · ' +
+      Math.round(severeWinRate * 100) +
+      '%'
+  );
+}
+
 function runReadinessCoverage() {
   const fresh =
     getArmyReadinessProfile(100);
@@ -2513,6 +2931,7 @@ function printRows(rows: ScenarioRow[]) {
 
 function main() {
   runBattlePreparationCoverage();
+  runPreparationOutcomeCalibration();
   runReadinessCoverage();
   const rows = runChapterMatrix();
   runTrueOpeningBossCoverage();
@@ -2549,7 +2968,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, pre-battle preparation states, scouted loadout recommendations, tactical adjustment advice, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
+    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, pre-battle preparation states and outcome calibration, scouted loadout recommendations, tactical adjustment advice, enemy formations, enemy army identities, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
   );
 }
 
