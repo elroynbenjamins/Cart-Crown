@@ -1184,6 +1184,78 @@ function centerFirstEnemySlots(slots: number[]) {
   );
 }
 
+function getFantasyThreatRolePlan(
+  id: EncounterId
+): {
+  rolePlan: EnemyArmyProfile['rolePlan'];
+  roleLabels: EnemyArmyProfile['roleLabels'];
+} | null {
+  const threat = encounters[id].fantasyThreat;
+  if (!threat) return null;
+
+  if (threat === 'magic') {
+    return {
+      rolePlan: {
+        front: ['frontline', 'melee'],
+        middle: ['support', 'ranged', 'melee'],
+        rear: ['support', 'ranged', 'support']
+      },
+      roleLabels: {
+        frontline: 'Ward Guard',
+        melee: 'Hexblade',
+        ranged: 'Spellbow',
+        support: 'Hexcaster'
+      }
+    };
+  }
+
+  if (threat === 'flying') {
+    return {
+      rolePlan: {
+        front: ['skirmish', 'cavalry'],
+        middle: ['cavalry', 'skirmish', 'ranged'],
+        rear: ['ranged', 'skirmish']
+      },
+      roleLabels: {
+        cavalry: 'Sky Raider',
+        skirmish: 'Talon Scout',
+        ranged: 'Sky Archer',
+        melee: 'Wingblade'
+      }
+    };
+  }
+
+  if (threat === 'large') {
+    return {
+      rolePlan: {
+        front: ['frontline', 'melee', 'frontline'],
+        middle: ['frontline', 'melee'],
+        rear: ['ranged', 'support']
+      },
+      roleLabels: {
+        frontline: 'Golem',
+        melee: 'Crusher',
+        ranged: 'Stone Hurler',
+        support: 'Binder'
+      }
+    };
+  }
+
+  return {
+    rolePlan: {
+      front: ['cavalry', 'frontline'],
+      middle: ['support', 'ranged', 'cavalry'],
+      rear: ['support', 'ranged']
+    },
+    roleLabels: {
+      frontline: 'Legend Guard',
+      cavalry: 'Arcane Flyer',
+      ranged: 'Spellwing',
+      support: 'War Caster'
+    }
+  };
+}
+
 export function getEnemyRoleAssignments(
   id: EncounterId,
   rows: {
@@ -1194,6 +1266,14 @@ export function getEnemyRoleAssignments(
   enemyCount: number
 ): EnemyRoleAssignment[] {
   const profile = getEnemyArmyProfile(id);
+  const fantasyPresentation =
+    getFantasyThreatRolePlan(id);
+  const rolePlan =
+    fantasyPresentation?.rolePlan ??
+    profile.rolePlan;
+  const roleLabels =
+    fantasyPresentation?.roleLabels ??
+    profile.roleLabels;
   const rowEntries = [
     ['front', rows.front],
     ['middle', rows.middle],
@@ -1228,19 +1308,19 @@ export function getEnemyRoleAssignments(
   const assignments: EnemyRoleAssignment[] = [];
 
   rowEntries.forEach(([row, slots], rowIndex) => {
-    const rolePlan = profile.rolePlan[row];
+    const rowRolePlan = rolePlan[row];
     centerFirstEnemySlots(slots)
       .slice(0, counts[rowIndex] ?? 0)
       .forEach((slot, index) => {
         const role =
-          rolePlan[index % rolePlan.length] ??
+          rowRolePlan[index % rowRolePlan.length] ??
           'melee';
         assignments.push({
           slot,
           row,
           role,
           label:
-            profile.roleLabels[role] ??
+            roleLabels[role] ??
             role.charAt(0).toUpperCase() +
               role.slice(1)
         });
