@@ -171,6 +171,14 @@ export function ForgeScreen({
                   }}
                 />
               </View>
+              {tutorialCraftFocused && !affordable ? (
+                <View style={styles.button}>
+                  <PrimaryButton
+                    label="Got it — return when funded"
+                    onPress={onTutorialFocusComplete}
+                  />
+                </View>
+              ) : null}
             </GameCard>
             </TutorialFocus>
           );
