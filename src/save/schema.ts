@@ -296,30 +296,34 @@ function sanitizeFormation(
   units: UnitDefinition[],
   stageId: string
 ): Array<string | null> {
-  const validUnitIds = new Set(
-    units.map(unit => unit.id)
+  const unitById = new Map(
+    units.map(unit => [unit.id, unit])
   );
   const seen = new Set<string>();
   const cap = formationStageCap(stageId);
-  let active = 0;
+  let usedCapacity = 0;
 
   return Array.from({ length: 9 }, (_, index) => {
     const candidate =
       Array.isArray(value) && typeof value[index] === 'string'
         ? value[index]
         : null;
+    const unit = candidate
+      ? unitById.get(candidate) ?? null
+      : null;
+    const unitCapacity = unit?.deploymentCapacity ?? 1;
 
     if (
       !candidate ||
-      !validUnitIds.has(candidate) ||
+      !unit ||
       seen.has(candidate) ||
-      active >= cap
+      usedCapacity + unitCapacity > cap
     ) {
       return null;
     }
 
     seen.add(candidate);
-    active += 1;
+    usedCapacity += unitCapacity;
     return candidate;
   });
 }
@@ -373,8 +377,8 @@ function sanitizePresets(
   if (!Array.isArray(value)) return [];
 
   const rank = saveStageRank[stageId] ?? 0;
-  const validUnitIds = new Set(
-    units.map(unit => unit.id)
+  const unitById = new Map(
+    units.map(unit => [unit.id, unit])
   );
   const cap = formationStageCap(stageId);
   const doctrines = getFactionDoctrines(faction);
@@ -404,7 +408,7 @@ function sanitizePresets(
     if (!shape || !doctrine) continue;
 
     const seen = new Set<string>();
-    let active = 0;
+    let usedCapacity = 0;
     const formation = Array.from(
       { length: 9 },
       (_, index) => {
@@ -412,23 +416,27 @@ function sanitizePresets(
           typeof raw.formation[index] === 'string'
             ? raw.formation[index]
             : null;
+        const unit = unitId
+          ? unitById.get(unitId) ?? null
+          : null;
+        const unitCapacity = unit?.deploymentCapacity ?? 1;
 
         if (
           !unitId ||
-          !validUnitIds.has(unitId) ||
+          !unit ||
           seen.has(unitId) ||
-          active >= cap
+          usedCapacity + unitCapacity > cap
         ) {
           return null;
         }
 
         seen.add(unitId);
-        active += 1;
+        usedCapacity += unitCapacity;
         return unitId;
       }
     );
 
-    if (active === 0) continue;
+    if (usedCapacity === 0) continue;
 
     bySlot.set(raw.slotId, {
       slotId: raw.slotId,
