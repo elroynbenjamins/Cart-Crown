@@ -1543,6 +1543,14 @@ export function BattlePrepScreen({
             />
           </View>
         ) : null}
+        {tutorialFocus?.kind === 'battle-readiness' ? (
+          <View style={styles.resupplyButton}>
+            <SecondaryButton
+              label="Understood"
+              onPress={onTutorialFocusComplete}
+            />
+          </View>
+        ) : null}
       </GameCard>
       </TutorialFocus>
 

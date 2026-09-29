@@ -11,6 +11,7 @@ import {
   Pill,
   PrimaryButton,
   ResourceAmountRow,
+  SecondaryButton,
   ResourceChip,
   SectionTitle,
   StatusPill
@@ -359,6 +360,14 @@ export function FactionKingdomScreen({
                   }
                 }}
               />
+              {tutorialFocus?.kind === 'kingdom-production' ? (
+                <View style={styles.guidanceLaterButton}>
+                  <SecondaryButton
+                    label={productionTotal > 0 ? 'Claim later' : 'Got it'}
+                    onPress={onTutorialFocusComplete}
+                  />
+                </View>
+              ) : null}
             </View>
           </GameCard>
           </TutorialFocus>
@@ -438,6 +447,7 @@ const styles = StyleSheet.create({
   goalBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
   goalCost: { marginTop: 9 },
   button: { marginTop: 10 },
+  guidanceLaterButton: { marginTop: 8 },
   settlementRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   settlementCopy: { flex: 1 },
   cardTitle: { fontSize: 15, fontWeight: '900' },

@@ -36,6 +36,7 @@ export type TutorialFocusTarget =
   | { kind: 'settlement-first-plot'; label: string }
   | { kind: 'settlement-building'; buildingId: string; label: string }
   | { kind: 'forge-craft'; label: string }
+  | { kind: 'army-equipment'; label: string }
   | { kind: 'kingdom-production'; label: string };
 
 export type TutorialMoment = {
@@ -92,6 +93,10 @@ export const SYSTEM_TUTORIAL_KEYS = [
   'system:side-modes'
 ] as const;
 
+export const FACTION_TUTORIAL_KEYS = [
+  'faction:intro'
+] as const;
+
 const starterUnitIds: Record<FactionId, Set<string>> = {
   human: new Set(['hum_militia', 'hum_recruit']),
   elf: new Set(['elf_warden', 'elf_forest_scout']),
@@ -110,6 +115,56 @@ const stageRank: Record<string, number> = {
 
 function seen(context: TutorialContext, key: string) {
   return context.tutorialSeen.includes(key);
+}
+
+function foundationReady(context: TutorialContext) {
+  return context.faction === 'human'
+    ? seen(context, 'core:results')
+    : seen(context, 'faction:intro');
+}
+
+function factionIntroMoment(
+  context: TutorialContext
+): TutorialMoment | null {
+  if (
+    context.faction === 'human' ||
+    seen(context, 'faction:intro') ||
+    !['kingdom', 'campaign'].includes(context.view)
+  ) {
+    return null;
+  }
+
+  if (context.faction === 'elf') {
+    return {
+      key: 'faction:intro',
+      kind: 'core',
+      eyebrow: 'NEW FACTION',
+      title: 'Elves fight differently',
+      body:
+        'You already know the core game, so this campaign skips the beginner tutorial. Elven Wards reward spacing, diagonals and open cells; tight Human lines are often less effective here. New Elven squads, buildings and systems will still be introduced when they unlock.',
+      primaryLabel: 'Show the first Elven objective',
+      target: 'campaign',
+      focusAfterPrimary: {
+        kind: 'campaign-current',
+        label: 'TAP CURRENT OBJECTIVE'
+      }
+    };
+  }
+
+  return {
+    key: 'faction:intro',
+    kind: 'core',
+    eyebrow: 'NEW FACTION',
+    title: 'Orcs build Momentum',
+    body:
+      'You already know the core game, so this campaign skips the beginner tutorial. Orc formations reward aggressive adjacency, charges and sustained pressure. New Orc squads, buildings and systems will still be introduced when they unlock.',
+    primaryLabel: 'Show the first Orc objective',
+    target: 'campaign',
+    focusAfterPrimary: {
+      kind: 'campaign-current',
+      label: 'TAP CURRENT OBJECTIVE'
+    }
+  };
 }
 
 export function tutorialUnitKey(unitId: string) {
@@ -240,7 +295,7 @@ function coreMoment(
 function unitMoment(
   context: TutorialContext
 ): TutorialMoment | null {
-  if (!seen(context, 'core:results')) return null;
+  if (!foundationReady(context)) return null;
   if (
     !['formation', 'army', 'kingdom', 'campaign'].includes(
       context.view
@@ -297,7 +352,7 @@ function unitMoment(
 function buildingMoment(
   context: TutorialContext
 ): TutorialMoment | null {
-  if (!seen(context, 'core:results')) return null;
+  if (!foundationReady(context)) return null;
   if (
     !['kingdom', 'campaign', 'army', 'formation'].includes(
       context.view
@@ -341,7 +396,7 @@ function buildingMoment(
 function systemMoment(
   context: TutorialContext
 ): TutorialMoment | null {
-  if (!seen(context, 'core:results')) return null;
+  if (!foundationReady(context)) return null;
 
   if (
     context.settlementUpgraded &&
@@ -387,11 +442,31 @@ function systemMoment(
   }
 
   if (
-    context.forgeUnlocked &&
     context.forgeLevel > 0 &&
+    (
+      context.faction !== 'human' ||
+      context.forgeUnlocked
+    ) &&
     ['kingdom', 'army'].includes(context.view) &&
     !seen(context, 'system:forge')
   ) {
+    if (context.faction !== 'human') {
+      return {
+        key: 'system:forge',
+        kind: 'system',
+        eyebrow: 'SYSTEM UNLOCKED',
+        title: 'Equipment is now available',
+        body:
+          'Your faction forge enables equipment progression for individual squads. Gear changes stats and later class branches, but you do not need to buy something immediately just because it unlocked.',
+        primaryLabel: 'Show Unit Equipment',
+        target: 'army',
+        focusAfterPrimary: {
+          kind: 'army-equipment',
+          label: 'OPEN UNIT EQUIPMENT'
+        }
+      };
+    }
+
     return {
       key: 'system:forge',
       kind: 'system',
@@ -443,7 +518,7 @@ function systemMoment(
   }
 
   if (
-    context.armyReadiness < 100 &&
+    context.armyReadiness < 70 &&
     ['kingdom', 'battlePrep'].includes(context.view) &&
     !seen(context, 'system:readiness')
   ) {
@@ -453,7 +528,7 @@ function systemMoment(
       eyebrow: 'ARMY CONDITION',
       title: 'Readiness carries between battles',
       body:
-        'Damage creates campaign wear. At 70–100% Readiness there is no combat penalty, so you should not resupply after every normal win. Below 70%, fatigue starts reducing effective HP, attack and speed. Rest & Resupply uses provisions to restore the army.',
+        'Your army has now dropped below 70% Readiness, so fatigue is actively reducing effective HP, attack and speed. Rest & Resupply uses provisions to restore the army. Above 70%, there is no combat penalty, so normal wins do not require immediate recovery.',
       primaryLabel:
         context.view === 'battlePrep'
           ? 'Show Readiness'
@@ -493,7 +568,7 @@ function systemMoment(
 
   if (
     (stageRank[context.wagonStageId] ?? 0) >= 2 &&
-    ['formation', 'battlePrep'].includes(context.view) &&
+    context.view === 'formation' &&
     !seen(context, 'system:advanced-formations')
   ) {
     return {
@@ -542,6 +617,9 @@ export function getNextTutorialMoment(
   const core = coreMoment(context);
   if (core) return core;
 
+  const factionIntro = factionIntroMoment(context);
+  if (factionIntro) return factionIntro;
+
   const system = systemMoment(context);
   if (system?.key === 'system:settlement') {
     return system;
@@ -552,6 +630,15 @@ export function getNextTutorialMoment(
     buildingMoment(context) ??
     system
   );
+}
+
+export function getTutorialCompletionKeys(
+  tutorialKey: string,
+  focus: TutorialFocusTarget | null
+) {
+  return focus?.kind === 'formation-unit'
+    ? [tutorialKey, 'system:formation']
+    : [tutorialKey];
 }
 
 export function shouldRequestChapterOneReview({

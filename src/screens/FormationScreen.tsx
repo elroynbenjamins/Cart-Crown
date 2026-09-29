@@ -225,6 +225,15 @@ export function FormationScreen({
     if (selectedUnitId) {
       if (unitId === selectedUnitId) {
         setSelectedUnitId(null);
+        if (
+          tutorialFocus?.kind === 'formation-basics' ||
+          (
+            tutorialFocus?.kind === 'formation-unit' &&
+            tutorialFocus.unitId === selectedUnitId
+          )
+        ) {
+          onTutorialFocusComplete?.();
+        }
         return;
       }
 
@@ -261,7 +270,8 @@ export function FormationScreen({
   ];
 
   const tutorialUnitFocusId =
-    tutorialFocus?.kind === 'formation-unit'
+    tutorialFocus?.kind === 'formation-unit' &&
+    !selectedUnitId
       ? tutorialFocus.unitId
       : tutorialFocus?.kind === 'formation-basics' &&
           !selectedUnitId
@@ -277,16 +287,24 @@ export function FormationScreen({
       tutorialFocus?.kind === 'formation-basics' ||
       (
         tutorialFocus?.kind === 'formation-unit' &&
-        tutorialFocus.unitId === selectedUnitId &&
-        !formation.includes(selectedUnitId)
+        tutorialFocus.unitId === selectedUnitId
       )
     )
-      ? activeFormationShape.rows.front
-          .concat(
-            activeFormationShape.rows.middle,
-            activeFormationShape.rows.rear
-          )
-          .find(slot => !formation[slot]) ?? null
+      ? formation.includes(selectedUnitId)
+        ? formation.indexOf(selectedUnitId)
+        : activeFormationShape.rows.front
+            .concat(
+              activeFormationShape.rows.middle,
+              activeFormationShape.rows.rear
+            )
+            .find(slot => !formation[slot]) ??
+          activeFormationShape.rows.front
+            .concat(
+              activeFormationShape.rows.middle,
+              activeFormationShape.rows.rear
+            )
+            .find(slot => Boolean(formation[slot])) ??
+          null
       : null;
 
   return (
@@ -640,7 +658,11 @@ export function FormationScreen({
                       active={tutorialSlotFocus === slot}
                       label={
                         tutorialSlotFocus === slot
-                          ? 'PLACE HERE'
+                          ? formation[slot] === selectedUnitId
+                            ? 'CURRENT POSITION'
+                            : formation[slot]
+                              ? 'REPLACE THIS SQUAD'
+                              : 'PLACE HERE'
                           : undefined
                       }
                     >
@@ -779,8 +801,7 @@ export function FormationScreen({
           const active = formation.includes(unit.id);
           const selected = selectedUnitId === unit.id;
 
-          const canSelectReserve =
-            !active && activeCount < activeSquadCap;
+          const canSelectReserve = !active;
           const tutorialUnitFocused =
             tutorialUnitFocusId === unit.id;
 
@@ -800,14 +821,6 @@ export function FormationScreen({
                 const nextSelected =
                   selected ? null : unit.id;
                 setSelectedUnitId(nextSelected);
-
-                if (
-                  tutorialUnitFocused &&
-                  active &&
-                  tutorialFocus?.kind === 'formation-unit'
-                ) {
-                  onTutorialFocusComplete?.();
-                }
               }}
               style={({ pressed }) => ({
                 opacity: pressed

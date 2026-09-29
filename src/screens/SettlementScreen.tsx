@@ -547,6 +547,19 @@ export function SettlementScreen({
                           }
                         }}
                       />
+                      {tutorialBuildingFocused ? (
+                        <View style={styles.guidanceLaterButton}>
+                          <SecondaryButton
+                            label="Build later"
+                            onPress={() => {
+                              onTutorialFocusComplete?.();
+                              setMessage(
+                                'Blueprint learned. Build it when the resources and timing suit your plan.'
+                              );
+                            }}
+                          />
+                        </View>
+                      ) : null}
                     </View>
                   </GameCard>
                   </TutorialFocus>
@@ -798,6 +811,7 @@ const styles = StyleSheet.create({
   optionBody: { fontSize: 10.5, lineHeight: 15, marginTop: 7 },
   potentialBonus: { fontSize: 9.5, lineHeight: 14, fontWeight: '900', marginTop: 7 },
   button: { marginTop: 10 },
+  guidanceLaterButton: { marginTop: 8 },
   none: { fontSize: 11, lineHeight: 16, textAlign: 'center' },
   bonusList: { gap: 8 },
   bonusHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
