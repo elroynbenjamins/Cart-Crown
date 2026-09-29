@@ -28,6 +28,15 @@ export type FormationShapeDefinition = {
   strength: string;
   risk: string;
 };
+
+export type FormationPresetSlotId = 1 | 2 | 3;
+
+export type FormationPreset = {
+  slotId: FormationPresetSlotId;
+  formationShapeId: FormationShapeId;
+  formationDoctrineId: string;
+  formation: Array<string | null>;
+};
 export type SideModeId = 'expeditions' | 'formation_trials' | 'kingdom_defense' | 'relic_hunts';
 export type EquipmentSlot = 'weapon' | 'armor' | 'shield' | 'mount' | 'artifact';
 export type CommanderSkillEffectType =

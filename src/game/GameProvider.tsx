@@ -143,6 +143,8 @@ import type {
   FactionId,
   FormationBonus,
   FormationDoctrine,
+  FormationPreset,
+  FormationPresetSlotId,
   FormationShapeDefinition,
   FormationShapeId,
   PromotionDefinition,
@@ -195,6 +197,7 @@ type GameContextValue = {
   formationShapeId: FormationShapeId;
   formationShapes: FormationShapeDefinition[];
   activeFormationShape: FormationShapeDefinition;
+  formationPresets: FormationPreset[];
   formationDoctrineId: string;
   formationDoctrines: FormationDoctrine[];
   formationBonuses: FormationBonus[];
@@ -373,6 +376,9 @@ type GameContextValue = {
   resetWagon: () => void;
   setFormationShape: (shapeId: FormationShapeId) => boolean;
   setFormationDoctrine: (doctrineId: string) => boolean;
+  saveFormationPreset: (slotId: FormationPresetSlotId) => boolean;
+  applyFormationPreset: (slotId: FormationPresetSlotId) => boolean;
+  clearFormationPreset: (slotId: FormationPresetSlotId) => boolean;
   isSideModeUnlocked: (id: SideModeId) => boolean;
   consumeExpeditionTicket: () => boolean;
   finishExpedition: () => void;
@@ -411,6 +417,30 @@ function cloneLoadouts(
   return Object.fromEntries(
     Object.entries(loadouts).map(([unitId, loadout]) => [unitId, { ...loadout }])
   );
+}
+
+function cloneFormationPresets(
+  presets: FormationPreset[] | undefined
+): FormationPreset[] {
+  if (!Array.isArray(presets)) return [];
+
+  return presets
+    .filter(
+      preset =>
+        preset &&
+        [1, 2, 3].includes(preset.slotId) &&
+        Array.isArray(preset.formation)
+    )
+    .map(preset => ({
+      slotId: preset.slotId,
+      formationShapeId: preset.formationShapeId,
+      formationDoctrineId: preset.formationDoctrineId,
+      formation: Array.from(
+        { length: 9 },
+        (_, index) => preset.formation[index] ?? null
+      )
+    }))
+    .sort((a, b) => a.slotId - b.slotId);
 }
 
 function itemDimensions(item: WagonItemDefinition) {
@@ -550,6 +580,9 @@ export function GameProvider({
   }));
   const [formationShapeId, setFormationShapeIdState] = useState<FormationShapeId>(
     initialFaction.formationShapeId ?? 'balanced_333'
+  );
+  const [formationPresets, setFormationPresets] = useState<FormationPreset[]>(
+    () => cloneFormationPresets(initialFaction.formationPresets)
   );
   const [formationDoctrineId, setFormationDoctrineId] = useState(initialFaction.formationDoctrineId);
   const [holdTheRoadWon, setHoldTheRoadWon] = useState(initialFaction.holdTheRoadWon);
@@ -1013,6 +1046,7 @@ export function GameProvider({
       units,
       formation,
       formationShapeId,
+      formationPresets,
       wagonItems,
       wagonStageId,
       armyReadiness,
@@ -1060,6 +1094,7 @@ export function GameProvider({
       units,
       formation,
       formationShapeId,
+      formationPresets,
       wagonItems,
       wagonStageId,
       armyReadiness,
@@ -4854,6 +4889,93 @@ export function GameProvider({
     return true;
   };
 
+  const saveFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (![1, 2, 3].includes(slotId)) return false;
+    if (!formation.some(Boolean)) return false;
+
+    const preset: FormationPreset = {
+      slotId,
+      formationShapeId,
+      formationDoctrineId,
+      formation: Array.from(
+        { length: 9 },
+        (_, index) => formation[index] ?? null
+      )
+    };
+
+    setFormationPresets(previous =>
+      [
+        ...previous.filter(candidate => candidate.slotId !== slotId),
+        preset
+      ].sort((a, b) => a.slotId - b.slotId)
+    );
+    return true;
+  };
+
+  const applyFormationPreset = (slotId: FormationPresetSlotId) => {
+    const preset = formationPresets.find(
+      candidate => candidate.slotId === slotId
+    );
+    if (!preset) return false;
+
+    const currentRank = stageRank[currentWagonStage.id] ?? 0;
+    const shape = formationShapes.find(
+      candidate => candidate.id === preset.formationShapeId
+    );
+    const doctrine = formationDoctrines.find(
+      candidate => candidate.id === preset.formationDoctrineId
+    );
+
+    if (
+      !shape ||
+      !doctrine ||
+      currentRank < formationShapeUnlockRank[shape.unlock] ||
+      currentRank < formationShapeUnlockRank[doctrine.unlock]
+    ) {
+      return false;
+    }
+
+    const validUnitIds = new Set(units.map(unit => unit.id));
+    const seenUnitIds = new Set<string>();
+    let activeCount = 0;
+    const nextFormation = Array.from(
+      { length: 9 },
+      (_, index) => {
+        const unitId = preset.formation[index] ?? null;
+        if (
+          !unitId ||
+          !validUnitIds.has(unitId) ||
+          seenUnitIds.has(unitId) ||
+          activeCount >= activeSquadCap
+        ) {
+          return null;
+        }
+
+        seenUnitIds.add(unitId);
+        activeCount += 1;
+        return unitId;
+      }
+    );
+
+    if (activeCount === 0) return false;
+
+    setFormationShapeIdState(shape.id);
+    setFormationDoctrineId(doctrine.id);
+    setFormation(nextFormation);
+    return true;
+  };
+
+  const clearFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!formationPresets.some(candidate => candidate.slotId === slotId)) {
+      return false;
+    }
+
+    setFormationPresets(previous =>
+      previous.filter(candidate => candidate.slotId !== slotId)
+    );
+    return true;
+  };
+
   const isSideModeUnlocked = (id: SideModeId) => {
     const mode = sideModes.find(candidate => candidate.id === id);
     if (!mode) return false;
@@ -5026,6 +5148,7 @@ export function GameProvider({
       formationShapeId,
       formationShapes,
       activeFormationShape,
+      formationPresets,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,
@@ -5178,6 +5301,9 @@ export function GameProvider({
       resetWagon,
       setFormationShape,
       setFormationDoctrine,
+      saveFormationPreset,
+      applyFormationPreset,
+      clearFormationPreset,
       isSideModeUnlocked,
       consumeExpeditionTicket,
       finishExpedition,
@@ -5204,6 +5330,7 @@ export function GameProvider({
       metaCampaignUnlocked,
       formationShapeId,
       activeFormationShape,
+      formationPresets,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,
