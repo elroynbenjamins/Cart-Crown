@@ -237,12 +237,12 @@ export function uiProductionAsset(id: string) {
 
 // Static React Native image sources must be registered with require(...).
 // Adding a source here automatically replaces the code-rendered fallback everywhere.
+// Militia, Forest Scout and Youngblood currently use the existing code-rendered
+// fallback: their source PNGs were corrupt and no intact original was available.
+// Restore their registrations only after the replacement files pass art:check.
 export const productionAssetSources: Partial<Record<string, ImageSourcePropType>> = {
-  'unit.human.militia': require('../../assets/game/units/human/militia.png'),
   'unit.human.recruit': require('../../assets/game/units/human/recruit.png'),
   'unit.elf.warden': require('../../assets/game/units/elf/warden.png'),
-  'unit.elf.forest_scout': require('../../assets/game/units/elf/forest_scout.png'),
-  'unit.orc.youngblood': require('../../assets/game/units/orc/youngblood.png'),
   'unit.orc.hunter': require('../../assets/game/units/orc/hunter.png'),
 
   'faction_crest.human': require('../../assets/game/factions/human/crest.png'),
