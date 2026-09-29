@@ -51,6 +51,8 @@ export function KingdomDefenseScreen({
     formationAnalysis,
     activeCommanderPath,
     armyReadiness,
+    unitEquipment,
+    equipmentDefinitions,
     wagonItems,
     currentWagonStage,
     buildingLevels,
@@ -144,12 +146,59 @@ export function KingdomDefenseScreen({
           Boolean(unit)
       );
 
+    const equipmentById = new Map(
+      equipmentDefinitions.map(
+        equipment => [
+          equipment.id,
+          equipment
+        ] as const
+      )
+    );
+
     const raw = activeUnits.reduce(
-      (total, unit) =>
-        total +
-        unit.attack +
-        unit.armor * 1.5 +
-        unit.speed * 0.45,
+      (total, unit) => {
+        const equipped = Object.values(
+          unitEquipment[unit.id] ?? {}
+        )
+          .map(id =>
+            id
+              ? equipmentById.get(id)
+              : null
+          )
+          .filter(
+            (item): item is NonNullable<typeof item> =>
+              Boolean(item)
+          );
+
+        const attack =
+          unit.attack +
+          equipped.reduce(
+            (sum, item) =>
+              sum + item.attackBonus,
+            0
+          );
+        const armor =
+          unit.armor +
+          equipped.reduce(
+            (sum, item) =>
+              sum + item.armorBonus,
+            0
+          );
+        const speed =
+          unit.speed +
+          equipped.reduce(
+            (sum, item) =>
+              sum + item.speedBonus,
+            0
+          );
+
+        return (
+          total +
+          attack +
+          armor * 1.5 +
+          speed * 0.45
+        );
+      },
       0
     );
 
@@ -176,8 +225,10 @@ export function KingdomDefenseScreen({
     );
   }, [
     activeCommanderPath,
+    equipmentDefinitions,
     formation,
     formationAnalysis,
+    unitEquipment,
     units
   ]);
 
