@@ -29,6 +29,10 @@ import {
   createSiegeRun,
   resolveSiegeChoice
 } from '../src/game/sieges';
+import {
+  createRelicHuntRun,
+  resolveRelicGuardian
+} from '../src/game/relicHunts';
 import type {
   CommanderPathDefinition,
   FactionId,
@@ -972,10 +976,218 @@ function runSiegeMatrix() {
   }
 }
 
+function relicAffinities(
+  chapter: number,
+  profile: Profile
+) {
+  if (profile === 'under') {
+    return {
+      magic: 0,
+      flying: 0,
+      large: 0,
+      hybrid: 0
+    };
+  }
+
+  if (profile === 'normal') {
+    return {
+      magic: 1,
+      flying: chapter >= 5 ? 1 : 0,
+      large: 0,
+      hybrid: 0
+    };
+  }
+
+  return {
+    magic: 2,
+    flying: chapter >= 5 ? 1 : 0,
+    large: 0,
+    hybrid: 0
+  };
+}
+
+function relicRun({
+  faction,
+  chapter,
+  profile
+}: {
+  faction: FactionId;
+  chapter: number;
+  profile: Profile;
+}) {
+  const units =
+    armyFor(
+      faction,
+      chapter,
+      profile
+    );
+  const shapeId =
+    shapeFor(
+      faction,
+      chapter
+    );
+  const commander =
+    commanderFor(
+      faction,
+      profile
+    );
+  const basePower =
+    sideModeBasePower({
+      faction,
+      chapter,
+      units,
+      shapeId,
+      commander
+    });
+
+  let run = createRelicHuntRun({
+    readiness:
+      readinessFor(profile),
+    basePower,
+    playerShapeId: shapeId,
+    wagonStageId:
+      stageFor(
+        faction,
+        chapter
+      ),
+    affinities:
+      relicAffinities(
+        chapter,
+        profile
+      )
+  });
+
+  for (let index = 0; index < 3; index += 1) {
+    const result =
+      resolveRelicGuardian({
+        faction,
+        run
+      });
+
+    if (!result.ok) {
+      return {
+        completed: false,
+        failed: true,
+        readiness: run.readiness
+      };
+    }
+
+    run = result.state;
+    if (
+      run.failed ||
+      run.completed
+    ) {
+      break;
+    }
+  }
+
+  return {
+    completed: run.completed,
+    failed: run.failed,
+    readiness: run.readiness
+  };
+}
+
+function runRelicHuntMatrix() {
+  console.log('\nRelic Hunt side-mode matrix');
+  console.log(
+    'Faction Ch Profile    Result'
+  );
+
+  for (const faction of [
+    'human',
+    'elf',
+    'orc'
+  ] as const) {
+    for (const chapter of [4, 5, 6]) {
+      for (const profile of [
+        'under',
+        'normal',
+        'optimized'
+      ] as const) {
+        const result =
+          relicRun({
+            faction,
+            chapter,
+            profile
+          });
+
+        console.log(
+          faction.padEnd(6) +
+            ' ' +
+            String(chapter).padStart(2) +
+            ' ' +
+            profile.padEnd(10) +
+            ' ' +
+            (
+              result.completed
+                ? 'WIN '
+                : 'LOSS'
+            ) +
+            ' ' +
+            String(
+              result.readiness
+            ).padStart(3) +
+            '%'
+        );
+
+        if (profile === 'under') {
+          expect(
+            !result.completed,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' conventional underprepared army brute-forces the Relic Hunt.'
+          );
+        }
+
+        if (profile === 'normal') {
+          expect(
+            result.completed,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' normal fantasy-prepared army cannot clear the Relic Hunt.'
+          );
+          expect(
+            result.readiness <= 92,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' Relic Hunt leaves a normal army almost untouched (' +
+              result.readiness +
+              '%).'
+          );
+        }
+
+        if (profile === 'optimized') {
+          expect(
+            result.completed,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' optimized fantasy army cannot clear the Relic Hunt.'
+          );
+          expect(
+            result.readiness <= 96,
+            faction +
+              ' Chapter ' +
+              chapter +
+              ' Relic Hunt is almost wear-free for optimized army (' +
+              result.readiness +
+              '%).'
+          );
+        }
+      }
+    }
+  }
+}
+
 runWarTableMatrix();
 runDefenseMatrix();
 runExpeditionMatrix();
 runSiegeMatrix();
+runRelicHuntMatrix();
 
 if (failures.length > 0) {
   console.error(
@@ -997,5 +1209,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  '\nPASS: side modes distinguish underprepared, normal and optimized armies without becoming trivial or unfair across Chapters 1–6.'
+  '\nPASS: side modes distinguish underprepared, normal and optimized armies without becoming trivial or unfair across Chapters 1–6, including fantasy-gated Relic Hunts.'
 );
