@@ -503,7 +503,7 @@ export function assessBattlePreparation({
   risk = clamp(risk, 0, 100);
 
   const status: BattlePreparationStatus =
-    critical || risk >= 36
+    critical || risk >= 48
       ? 'severely_underprepared'
       : risk >= 12
         ? 'risky'
