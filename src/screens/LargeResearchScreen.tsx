@@ -18,6 +18,8 @@ import {
   StatusPill
 } from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 function formatHours(hours: number) {
   if (hours <= 0) return 'Ready';
@@ -40,9 +42,13 @@ function formatCost(cost: FantasyRecruitTemplate['cost']) {
 }
 
 export function LargeResearchScreen({
-  onExit
+  onExit,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onExit: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -117,6 +123,7 @@ export function LargeResearchScreen({
         : 'Complete the faction campaign and finish any active fantasy research first.'
     );
     setNow(Date.now());
+    return ok;
   };
 
   const watchAd = async () => {
@@ -159,6 +166,7 @@ export function LargeResearchScreen({
         ? template.className + ' recruited to the roster.'
         : 'Requirements or resources are missing for this recruitment.'
     );
+    return ok;
   };
 
   return (
@@ -249,6 +257,22 @@ export function LargeResearchScreen({
 
       <SectionTitle title="Mastery research" trailing="Max 24h" />
       {research ? (
+        <TutorialFocus
+          active={
+            tutorialFocus?.kind === 'research-start' &&
+            tutorialFocus.family === 'large' &&
+            !progress &&
+            storyUnlocked
+          }
+          label={
+            tutorialFocus?.kind === 'research-start' &&
+            tutorialFocus.family === 'large' &&
+            !progress &&
+            storyUnlocked
+              ? tutorialFocus.label
+              : undefined
+          }
+        >
         <GameCard
           accent={progress ? accent : undefined}
           faction={activeFaction}
@@ -305,7 +329,16 @@ export function LargeResearchScreen({
               <PrimaryButton
                 label={'Start · ' + research.durationHours + 'h'}
                 disabled={!storyUnlocked}
-                onPress={startResearch}
+                onPress={() => {
+                  const ok = startResearch();
+                  if (
+                    ok &&
+                    tutorialFocus?.kind === 'research-start' &&
+                    tutorialFocus.family === 'large'
+                  ) {
+                    onTutorialFocusComplete?.();
+                  }
+                }}
               />
             ) : progress.completed ? (
               <SecondaryButton
@@ -338,6 +371,7 @@ export function LargeResearchScreen({
             )}
           </View>
         </GameCard>
+        </TutorialFocus>
       ) : null}
 
       <SectionTitle
@@ -358,9 +392,22 @@ export function LargeResearchScreen({
               resources[resource as keyof typeof resources] >= (amount ?? 0)
           );
 
+          const tutorialTrainingFocused =
+            tutorialFocus?.kind === 'research-train' &&
+            tutorialFocus.family === 'large' &&
+            unlocked;
+
           return (
-            <GameCard
+            <TutorialFocus
               key={template.id}
+              active={tutorialTrainingFocused}
+              label={
+                tutorialTrainingFocused
+                  ? tutorialFocus.label
+                  : undefined
+              }
+            >
+            <GameCard
               accent={unlocked ? accent : undefined}
               faction={activeFaction}
               state={unlocked ? 'ready' : 'default'}
@@ -398,10 +445,16 @@ export function LargeResearchScreen({
                       : 'Research Required'
                   }
                   disabled={!unlocked || !affordable}
-                  onPress={() => recruit(template)}
+                  onPress={() => {
+                    const ok = recruit(template);
+                    if (ok && tutorialTrainingFocused) {
+                      onTutorialFocusComplete?.();
+                    }
+                  }}
                 />
               </View>
             </GameCard>
+            </TutorialFocus>
           );
         })}
       </View>
