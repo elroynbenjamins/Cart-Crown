@@ -576,6 +576,10 @@ export function sanitizeFactionGameState(
   };
 }
 
+function sanitizeGuidanceMode(value: unknown): GuidanceMode {
+  return value === 'hints' || value === 'off' ? value : 'full';
+}
+
 function sanitizeSharedProgress(
   value: unknown
 ): GameSnapshot['shared'] {
@@ -612,7 +616,8 @@ function sanitizeSharedProgress(
     ),
     metaCampaignComplete:
       Boolean(source.metaCampaignComplete) &&
-      completedCampaigns.length === 3
+      completedCampaigns.length === 3,
+    guidanceMode: sanitizeGuidanceMode(source.guidanceMode)
   };
 }
 
@@ -845,7 +850,8 @@ export function createInitialGameSnapshot(): GameSnapshot {
       lore: [],
       cosmetics: [],
       metaCampaignStep: 0,
-      metaCampaignComplete: false
+      metaCampaignComplete: false,
+      guidanceMode: 'full'
     },
     factionStates: {
       human: createHumanFactionState(),
