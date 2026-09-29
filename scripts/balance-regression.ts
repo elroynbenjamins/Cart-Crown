@@ -45,6 +45,7 @@ import { elfStarterUnits, orcStarterUnits } from '../src/game/factionStarts';
 import {
   analyzeFormation,
   formationShapes,
+  getFormationMatchup,
   getFormationShape
 } from '../src/game/formation';
 import type {
@@ -662,6 +663,11 @@ function simulate(
       formationAnalysis.healingMultiplier
   );
 
+  const formationMatchup = getFormationMatchup(
+    input.shapeId,
+    enemyTactic.formationShapeId
+  );
+
   const enemyPressureMultiplier =
     enemyTactic.attackMultiplier *
     (1 +
@@ -778,10 +784,11 @@ function simulate(
     const playerDamage = Math.max(
       1,
       Math.round(
-        (rawPlayerStrike +
+        ((rawPlayerStrike +
           skillDamage +
           ongoingDamage) /
-          enemyTactic.armorMultiplier
+          enemyTactic.armorMultiplier) *
+          formationMatchup.outgoingDamageMultiplier
       )
     );
 
@@ -795,6 +802,7 @@ function simulate(
       Math.round(
         (rawEnemyStrike *
           enemyPressureMultiplier *
+          formationMatchup.incomingDamageMultiplier *
           retaliationFactor *
           (modifier.retaliationMultiplier ?? 1)) /
           Math.max(
@@ -1539,6 +1547,88 @@ function runFormationCoverage() {
   }
 }
 
+function runFormationMatchupCoverage() {
+  const specialized = formationShapes.filter(
+    shape => shape.id !== 'balanced_333'
+  );
+
+  for (const shape of formationShapes) {
+    const mirror = getFormationMatchup(
+      shape.id,
+      shape.id
+    );
+    expect(
+      mirror.result === 'even' &&
+        mirror.outgoingDamageMultiplier === 1 &&
+        mirror.incomingDamageMultiplier === 1,
+      shape.name +
+        ' mirror matchup is no longer neutral.'
+    );
+  }
+
+  for (const enemy of formationShapes) {
+    const balanced = getFormationMatchup(
+      'balanced_333',
+      enemy.id
+    );
+    expect(
+      balanced.result === 'even',
+      'Balanced Line should remain the neutral baseline against ' +
+        enemy.name +
+        '.'
+    );
+  }
+
+  for (const shape of specialized) {
+    let advantages = 0;
+    let disadvantages = 0;
+
+    for (const enemy of formationShapes) {
+      if (enemy.id === shape.id) continue;
+      const forward = getFormationMatchup(
+        shape.id,
+        enemy.id
+      );
+      const reverse = getFormationMatchup(
+        enemy.id,
+        shape.id
+      );
+
+      if (forward.result === 'advantage') {
+        advantages += 1;
+        expect(
+          reverse.result === 'disadvantage',
+          shape.name +
+            ' advantage against ' +
+            enemy.name +
+            ' is not symmetric.'
+        );
+      } else if (
+        forward.result === 'disadvantage'
+      ) {
+        disadvantages += 1;
+        expect(
+          reverse.result === 'advantage',
+          shape.name +
+            ' disadvantage against ' +
+            enemy.name +
+            ' is not symmetric.'
+        );
+      }
+    }
+
+    expect(
+      advantages >= 2 && disadvantages >= 2,
+      shape.name +
+        ' no longer has enough meaningful counters and weaknesses (' +
+        advantages +
+        ' advantages / ' +
+        disadvantages +
+        ' disadvantages).'
+    );
+  }
+}
+
 function runEnemyFormationCoverage() {
   const ids = [
     ...bossByFaction.human,
@@ -1753,6 +1843,7 @@ function main() {
   runLatePolicyCoverage();
   runMountedBranchCoverage();
   runFormationCoverage();
+  runFormationMatchupCoverage();
   runEnemyFormationCoverage();
   runMetaCoverage();
 
@@ -1778,7 +1869,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, enemy formations, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
+    '\nPASS: chapter bosses, Readiness thresholds, commander paths, Loyalist approaches, formation shapes, formation counters, enemy formations, late policies, mounted branches and Three Seals remain inside the intended deterministic guardrails.'
   );
 }
 
