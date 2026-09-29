@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   getEncounter,
   getEnemyArmyProfile,
@@ -49,9 +49,11 @@ export function BattlePrepScreen({
     wagonItems,
     formationBonuses,
     formationAnalysis,
+    formationShapes,
     activeFormationShape,
     activeSquadCap,
     currentWagonStage,
+    setFormationShape,
     formationDoctrineId,
     formationDoctrines,
     activeCommanderPath,
@@ -107,6 +109,11 @@ export function BattlePrepScreen({
     Town: 3,
     Stronghold: 4
   };
+  const unlockedFormationShapes = formationShapes.filter(
+    shape =>
+      (stageRank[currentWagonStage.id] ?? 0) >=
+      (unlockRank[shape.unlock] ?? 0)
+  );
   const unlockedCounters = getFormationCounters(enemyShape.id)
     .filter(
       shape =>
@@ -304,6 +311,105 @@ export function BattlePrepScreen({
           </Text>
         ) : null}
       </GameCard>
+
+      <SectionTitle
+        title="Quick formation switch"
+        trailing={String(unlockedFormationShapes.length) + ' unlocked'}
+      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.formationSwitchStrip}
+      >
+        {unlockedFormationShapes.map(shape => {
+          const selected = shape.id === activeFormationShape.id;
+          const preview = getFormationMatchup(
+            shape.id,
+            enemyShape.id
+          );
+          const previewColor =
+            preview.result === 'advantage'
+              ? theme.colors.primary
+              : preview.result === 'disadvantage'
+                ? theme.colors.danger
+                : theme.colors.textMuted;
+
+          return (
+            <Pressable
+              key={shape.id}
+              disabled={selected}
+              onPress={() => setFormationShape(shape.id)}
+              style={({ pressed }) => [
+                styles.formationSwitchCard,
+                {
+                  borderColor: selected
+                    ? theme.colors.gold
+                    : previewColor,
+                  backgroundColor: selected
+                    ? theme.colors.surface1
+                    : theme.colors.surface2,
+                  opacity: pressed ? 0.8 : 1
+                }
+              ]}
+            >
+              <View style={styles.formationSwitchHeader}>
+                <Text
+                  style={[
+                    styles.formationSwitchLayout,
+                    {
+                      color: selected
+                        ? theme.colors.gold
+                        : factionAccent
+                    }
+                  ]}
+                >
+                  {shape.layout}
+                </Text>
+                <Pill
+                  label={
+                    selected
+                      ? 'ACTIVE'
+                      : preview.result === 'advantage'
+                        ? 'EDGE'
+                        : preview.result === 'disadvantage'
+                          ? 'EXPOSED'
+                          : 'NEUTRAL'
+                  }
+                  color={
+                    selected
+                      ? theme.colors.gold + '45'
+                      : preview.result === 'advantage'
+                        ? theme.colors.primary + '35'
+                        : preview.result === 'disadvantage'
+                          ? theme.colors.danger + '35'
+                          : undefined
+                  }
+                />
+              </View>
+              <Text
+                style={[
+                  styles.formationSwitchName,
+                  { color: theme.colors.text }
+                ]}
+                numberOfLines={1}
+              >
+                {shape.name}
+              </Text>
+              <Text
+                style={[
+                  styles.formationSwitchEffect,
+                  { color: previewColor }
+                ]}
+              >
+                dealt ×{preview.outgoingDamageMultiplier.toFixed(2)} · received ×{preview.incomingDamageMultiplier.toFixed(2)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+      <Text style={[styles.switchHint, { color: theme.colors.textMuted }]}>
+        Switching here is immediate and saved. Squad slot assignments stay the same; only the formation geometry changes.
+      </Text>
 
       <GameCard accent={theme.colors.gold} faction={activeFaction}>
         <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>ACTIVE ORDER</Text>
@@ -578,6 +684,24 @@ const styles = StyleSheet.create({
   matchupSummary: { fontSize: 11, lineHeight: 16, marginTop: 8, fontWeight: '700' },
   matchupEffect: { fontSize: 10, lineHeight: 15, marginTop: 7, fontWeight: '900' },
   matchupHint: { fontSize: 9.5, lineHeight: 14, marginTop: 7 },
+  formationSwitchStrip: { gap: 8, paddingRight: 4 },
+  formationSwitchCard: {
+    width: 154,
+    minHeight: 92,
+    borderRadius: 15,
+    borderWidth: 1.5,
+    padding: 10
+  },
+  formationSwitchHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 7
+  },
+  formationSwitchLayout: { fontSize: 15, fontWeight: '900' },
+  formationSwitchName: { fontSize: 11.5, fontWeight: '900', marginTop: 8 },
+  formationSwitchEffect: { fontSize: 8.8, fontWeight: '900', marginTop: 6 },
+  switchHint: { fontSize: 9.5, lineHeight: 14, textAlign: 'center', paddingHorizontal: 10 },
   commandHeader: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   commandCopy: { flex: 1 },
   skillName: { fontSize: 10.5, lineHeight: 16, marginTop: 8, fontWeight: '800' },
