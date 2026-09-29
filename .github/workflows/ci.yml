@@ -41,3 +41,6 @@ jobs:
 
       - name: Production art regression
         run: npm run art:check
+
+      - name: Boss battlefield and VFX regression
+        run: npm run battle-visuals:check
