@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { factionOrder, factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
@@ -101,6 +101,24 @@ export function FactionOpeningCampaignScreen({
   onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
+  const tutorialScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (
+      tutorialFocus?.kind !==
+      'campaign-activities'
+    ) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      tutorialScrollRef.current?.scrollToEnd({
+        animated: true
+      });
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [tutorialFocus]);
   const {
     activeFaction,
     chapterNumber,
@@ -243,7 +261,11 @@ export function FactionOpeningCampaignScreen({
     campaignAvailability.find(campaign => campaign.id === id);
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <GameCard accent={accent} faction={activeFaction}>
         <View style={styles.chapterHero}>
           <View style={styles.chapterCopy}>
