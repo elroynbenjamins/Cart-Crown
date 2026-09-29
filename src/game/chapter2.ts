@@ -1,5 +1,6 @@
 import type {
   ChapterNode,
+  RecruitOption,
   ResourceSiteDefinition,
   UnitDefinition
 } from './types';
@@ -16,6 +17,9 @@ export const chapterTwoNodes: ChapterNode[] = [
   { id: 'ch2_node_9', name: 'Build Something Worth Defending', type: 'event', completed: false },
   { id: 'ch2_node_10', name: "The Rider's Banner", type: 'boss', completed: false }
 ];
+
+// Kept temporarily so older screen modules compile while the Human Chapter 2 UI is replaced.
+export const fortMusterOptions: RecruitOption[] = [];
 
 export const chapterTwoSupportUnit: UnitDefinition = {
   id: 'hum_banner_sergeant',
