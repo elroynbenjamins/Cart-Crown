@@ -168,6 +168,82 @@ export function getUnitCombatProfile(
   };
 }
 
+export type ArmyRoleCounterProfile = {
+  result: 'advantage' | 'even' | 'disadvantage';
+  outgoingDamageMultiplier: number;
+  incomingDamageMultiplier: number;
+  antiCavalryCount: number;
+  cavalryCount: number;
+  label: string;
+  detail: string;
+};
+
+function isAntiCavalryUnit(unit: UnitDefinition) {
+  return /spear|pike|halberd/i.test(unit.className);
+}
+
+export function getArmyRoleCounterProfile(
+  units: UnitDefinition[],
+  enemyArmyProfileId: string
+): ArmyRoleCounterProfile {
+  const antiCavalryCount = units.filter(isAntiCavalryUnit).length;
+  const cavalryCount = units.filter(unit => unit.role === 'cavalry').length;
+
+  if (enemyArmyProfileId === 'mounted_hunters') {
+    if (antiCavalryCount === 0) {
+      return {
+        result: 'disadvantage',
+        outgoingDamageMultiplier: 0.95,
+        incomingDamageMultiplier: 1.1,
+        antiCavalryCount,
+        cavalryCount,
+        label: 'NO BRACE LINE',
+        detail:
+          'Mounted pressure is harder to stop without a Spear, Pike or Halberd squad.'
+      };
+    }
+
+    const strength = Math.min(3, antiCavalryCount);
+    return {
+      result: 'advantage',
+      outgoingDamageMultiplier: 1 + strength * 0.06,
+      incomingDamageMultiplier: 1 - strength * 0.07,
+      antiCavalryCount,
+      cavalryCount,
+      label: 'BRACE READY',
+      detail:
+        String(antiCavalryCount) +
+        ' anti-cavalry squad' +
+        (antiCavalryCount === 1 ? '' : 's') +
+        ' blunt mounted charges and punish riders that commit.'
+    };
+  }
+
+  if (enemyArmyProfileId === 'missile_company' && cavalryCount > 0) {
+    const strength = Math.min(3, cavalryCount);
+    return {
+      result: 'advantage',
+      outgoingDamageMultiplier: 1 + strength * 0.05,
+      incomingDamageMultiplier: 1,
+      antiCavalryCount,
+      cavalryCount,
+      label: 'MOUNTED PRESSURE',
+      detail:
+        'Cavalry threatens the enemy missile line if the frontline can create an opening.'
+    };
+  }
+
+  return {
+    result: 'even',
+    outgoingDamageMultiplier: 1,
+    incomingDamageMultiplier: 1,
+    antiCavalryCount,
+    cavalryCount,
+    label: 'NO ROLE EDGE',
+    detail: 'No major troop-role counter is deciding this matchup.'
+  };
+}
+
 export type ArmyReadinessProfile = {
   hpMultiplier: number;
   attackMultiplier: number;
