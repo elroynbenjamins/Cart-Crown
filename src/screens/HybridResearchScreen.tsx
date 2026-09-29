@@ -18,6 +18,8 @@ import {
   StatusPill
 } from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 function formatHours(hours: number) {
   if (hours <= 0) return 'Ready';
@@ -40,9 +42,13 @@ function formatCost(cost: FantasyRecruitTemplate['cost']) {
 }
 
 export function HybridResearchScreen({
-  onExit
+  onExit,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onExit: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -110,7 +116,7 @@ export function HybridResearchScreen({
     remainingHours <= 0;
 
   const startResearch = () => {
-    if (!research) return;
+    if (!research) return false;
     const ok = startFantasyResearch(research.id);
     setMessage(
       ok
@@ -120,6 +126,7 @@ export function HybridResearchScreen({
           : 'Finish any active fantasy research before starting the legendary doctrine.'
     );
     setNow(Date.now());
+    return ok;
   };
 
   const watchAd = async () => {
@@ -162,6 +169,7 @@ export function HybridResearchScreen({
         ? template.className + ' recruited to the roster.'
         : 'Requirements or resources are missing for this recruitment.'
     );
+    return ok;
   };
 
   return (
@@ -248,6 +256,24 @@ export function HybridResearchScreen({
 
       <SectionTitle title="Legendary doctrine" trailing="Max 24h" />
       {research ? (
+        <TutorialFocus
+          active={
+            tutorialFocus?.kind === 'research-start' &&
+            tutorialFocus.family === 'hybrid' &&
+            !progress &&
+            storyUnlocked &&
+            hybridPrerequisitesMet
+          }
+          label={
+            tutorialFocus?.kind === 'research-start' &&
+            tutorialFocus.family === 'hybrid' &&
+            !progress &&
+            storyUnlocked &&
+            hybridPrerequisitesMet
+              ? tutorialFocus.label
+              : undefined
+          }
+        >
         <GameCard
           accent={progress ? accent : undefined}
           faction={activeFaction}
@@ -310,7 +336,16 @@ export function HybridResearchScreen({
               <PrimaryButton
                 label={'Start · ' + research.durationHours + 'h'}
                 disabled={!storyUnlocked || !hybridPrerequisitesMet}
-                onPress={startResearch}
+                onPress={() => {
+                  const ok = startResearch();
+                  if (
+                    ok &&
+                    tutorialFocus?.kind === 'research-start' &&
+                    tutorialFocus.family === 'hybrid'
+                  ) {
+                    onTutorialFocusComplete?.();
+                  }
+                }}
               />
             ) : progress.completed ? (
               <SecondaryButton
@@ -343,6 +378,7 @@ export function HybridResearchScreen({
             )}
           </View>
         </GameCard>
+        </TutorialFocus>
       ) : null}
 
       <SectionTitle
@@ -362,10 +398,22 @@ export function HybridResearchScreen({
             ([resource, amount]) =>
               resources[resource as keyof typeof resources] >= (amount ?? 0)
           );
+          const tutorialTrainingFocused =
+            tutorialFocus?.kind === 'research-train' &&
+            tutorialFocus.family === 'hybrid' &&
+            unlocked;
 
           return (
-            <GameCard
+            <TutorialFocus
               key={template.id}
+              active={tutorialTrainingFocused}
+              label={
+                tutorialTrainingFocused
+                  ? tutorialFocus.label
+                  : undefined
+              }
+            >
+            <GameCard
               accent={unlocked ? accent : undefined}
               faction={activeFaction}
               state={unlocked ? 'ready' : 'default'}
@@ -403,10 +451,16 @@ export function HybridResearchScreen({
                       : 'Research Required'
                   }
                   disabled={!unlocked || !affordable}
-                  onPress={() => recruit(template)}
+                  onPress={() => {
+                    const ok = recruit(template);
+                    if (ok && tutorialTrainingFocused) {
+                      onTutorialFocusComplete?.();
+                    }
+                  }}
                 />
               </View>
             </GameCard>
+            </TutorialFocus>
           );
         })}
       </View>

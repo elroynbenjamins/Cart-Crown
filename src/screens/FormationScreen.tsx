@@ -76,10 +76,12 @@ export function FormationScreen({
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [guideStepComplete, setGuideStepComplete] = useState(false);
   const [guideMessage, setGuideMessage] = useState<string | null>(null);
+  const [capacityMessage, setCapacityMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setGuideStepComplete(false);
     setGuideMessage(null);
+    setCapacityMessage(null);
     setSelectedUnitId(null);
   }, [
     guide?.adjustment.kind,
@@ -261,7 +263,39 @@ export function FormationScreen({
         ? moveFormationUnit(selectedUnitId, slot)
         : placeFormationUnit(selectedUnitId, slot);
 
+      if (!changed && !selectedIsActive) {
+        const incomingUnit = units.find(
+          candidate => candidate.id === selectedUnitId
+        );
+        const replacedUnitId = formation[slot];
+        const replacedUnit = replacedUnitId
+          ? units.find(candidate => candidate.id === replacedUnitId)
+          : null;
+        const incomingCapacity =
+          incomingUnit?.deploymentCapacity ?? 1;
+        const replacedCapacity =
+          replacedUnit?.deploymentCapacity ?? 0;
+        const attemptedCapacity =
+          activeDeploymentCapacity -
+          replacedCapacity +
+          incomingCapacity;
+
+        if (attemptedCapacity > activeSquadCap) {
+          setCapacityMessage(
+            (incomingUnit?.className ?? 'This squad') +
+              ' uses ' +
+              incomingCapacity +
+              ' deployment capacity. This placement would reach ' +
+              attemptedCapacity +
+              '/' +
+              activeSquadCap +
+              '. Remove or replace enough active capacity first.'
+          );
+        }
+      }
+
       if (changed) {
+        setCapacityMessage(null);
         setSelectedUnitId(null);
         if (
           tutorialFocus?.kind === 'formation-basics' ||
@@ -474,6 +508,17 @@ export function FormationScreen({
           />
         </View>
       </ScreenHero>
+
+      {capacityMessage ? (
+        <GameCard accent={theme.colors.gold} state="selected">
+          <Text style={[styles.capacityWarningTitle, { color: theme.colors.text }]}>
+            Deployment capacity reached
+          </Text>
+          <Text style={[styles.capacityWarningBody, { color: theme.colors.textMuted }]}>
+            {capacityMessage}
+          </Text>
+        </GameCard>
+      ) : null}
 
       <SectionTitle title="Tactical loadouts" trailing="3 presets" />
       <View style={styles.presetList}>
@@ -958,6 +1003,8 @@ const styles = StyleSheet.create({
     gap: 8
   },
   roleLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  capacityWarningTitle: { fontSize: 12.5, fontWeight: '900' },
+  capacityWarningBody: { fontSize: 10.5, lineHeight: 15, marginTop: 4 },
   unitBadges: { marginTop: 8 },
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.05 },
   guideHeader: {

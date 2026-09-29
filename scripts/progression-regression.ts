@@ -417,6 +417,54 @@ function runBattleTagAndCapacityCoverage() {
   }
 }
 
+function runFantasyEconomyPacingCoverage() {
+  const goldBands = {
+    magic: [130, 190],
+    flying: [220, 300],
+    large: [380, 540],
+    hybrid: [590, 650]
+  } as const;
+
+  for (const template of fantasyRecruitTemplates) {
+    const gold = template.cost.gold ?? 0;
+    const [minimum, maximum] = goldBands[template.family];
+
+    expect(
+      gold >= minimum && gold <= maximum,
+      template.id +
+        ' gold cost moved outside its fantasy-family pacing band.'
+    );
+  }
+
+  for (const research of researchDefinitions) {
+    if (research.family === 'magic') {
+      expect(
+        research.durationHours >= 8 &&
+          research.durationHours <= 12,
+        research.id +
+          ' should remain an early, shorter Magic research project.'
+      );
+      expect(
+        research.baseGemFinishCost >= 12 &&
+          research.baseGemFinishCost <= 18,
+        research.id +
+          ' Magic gem finish price moved outside the intended early band.'
+      );
+    } else {
+      expect(
+        research.durationHours === 24,
+        research.id +
+          ' should remain a deliberate 24-hour major fantasy unlock.'
+      );
+      expect(
+        research.baseGemFinishCost === 30,
+        research.id +
+          ' should remain a 30-gem major fantasy unlock.'
+      );
+    }
+  }
+}
+
 function runPlayableMagicCoverage() {
   expect(
     fantasyRecruitTemplates.filter(
@@ -815,6 +863,21 @@ function runPlayableHybridCoverage() {
     'Legendary hybrids must consume two deployment capacity.'
   );
 
+  expect(
+    getFantasyCombatEdge(
+      [hybrid],
+      'shield_host'
+    ) === null,
+    'Legendary hybrids must not also receive the generic Magic matchup modifier.'
+  );
+  expect(
+    getFlyingCombatEdge(
+      [hybrid],
+      'shield_host'
+    ) === null,
+    'Legendary hybrids must not also receive the generic Flying matchup modifier.'
+  );
+
   const breakthrough = getHybridCombatEdge(
     [hybrid],
     'elite_command'
@@ -859,6 +922,7 @@ function main() {
   runChapterTwoCoverage();
   runFamilyGateCoverage();
   runResearchCoverage();
+  runFantasyEconomyPacingCoverage();
   runBattleTagAndCapacityCoverage();
   runPlayableMagicCoverage();
   runPlayableFlyingCoverage();
@@ -873,7 +937,7 @@ function main() {
   }
 
   console.log(
-    'PASS: campaign growth, fantasy gates, research rules, playable magic, flying, Large and legendary hybrid branches, counterplay, battle tags and deployment capacity remain inside the intended guardrails.'
+    'PASS: campaign growth, fantasy gates, research/economy pacing, playable magic, flying, Large and legendary hybrid branches, non-stacking hybrid counterplay, battle tags and deployment capacity remain inside the intended guardrails.'
   );
 }
 

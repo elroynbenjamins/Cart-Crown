@@ -482,32 +482,53 @@ export function ArmyScreen({
                 : 'Chapter 8'
             }
           />
-          <GameCard
-            accent={hybridUnlocked ? theme.colors.gold : undefined}
-            faction={activeFaction}
-            state={hybridUnlocked ? 'ready' : 'default'}
+          <TutorialFocus
+            active={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'hybrid'
+            }
+            label={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'hybrid'
+                ? tutorialFocus.label
+                : undefined
+            }
           >
-            <Text style={[styles.lockedTitle, { color: theme.colors.text }]}>
-              {hybridFamilyUnlock?.buildingName ?? 'Legendary Institution'}
-            </Text>
-            <Text style={[styles.lockedBody, { color: theme.colors.textMuted }]}>
-              {hybridUnlocked
-                ? hybridPrerequisitesMet
-                  ? 'The legendary order is ready for doctrine research. Hybrids combine Magic and Flying strengths but still consume 2 deployment capacity and retain hard counters.'
-                  : 'The first legendary hybrid has joined, but repeatable training stays locked until this faction’s Magic and Flying research are both complete.'
-                : 'Complete the Three Seals meta campaign to establish the legendary order and receive its first hybrid unit.'}
-            </Text>
-            <View style={styles.recruitButton}>
-              <PrimaryButton
-                label={
-                  hybridUnlocked
-                    ? 'Open Legendary Orders'
-                    : 'View Chapter 8 Progress'
-                }
-                onPress={onOpenHybridResearch}
-              />
-            </View>
-          </GameCard>
+            <GameCard
+              accent={hybridUnlocked ? theme.colors.gold : undefined}
+              faction={activeFaction}
+              state={hybridUnlocked ? 'ready' : 'default'}
+            >
+              <Text style={[styles.lockedTitle, { color: theme.colors.text }]}>
+                {hybridFamilyUnlock?.buildingName ?? 'Legendary Institution'}
+              </Text>
+              <Text style={[styles.lockedBody, { color: theme.colors.textMuted }]}>
+                {hybridUnlocked
+                  ? hybridPrerequisitesMet
+                    ? 'The legendary order is ready for doctrine research. Hybrids combine Magic and Flying strengths but still consume 2 deployment capacity and retain hard counters.'
+                    : 'The first legendary hybrid has joined, but repeatable training stays locked until this faction’s Magic and Flying research are both complete.'
+                  : 'Complete the Three Seals meta campaign to establish the legendary order and receive its first hybrid unit.'}
+              </Text>
+              <View style={styles.recruitButton}>
+                <PrimaryButton
+                  label={
+                    hybridUnlocked
+                      ? 'Open Legendary Orders'
+                      : 'View Chapter 8 Progress'
+                  }
+                  onPress={() => {
+                    if (
+                      tutorialFocus?.kind === 'army-fantasy' &&
+                      tutorialFocus.family === 'hybrid'
+                    ) {
+                      onTutorialFocusComplete?.();
+                    }
+                    onOpenHybridResearch();
+                  }}
+                />
+              </View>
+            </GameCard>
+          </TutorialFocus>
         </>
       ) : null}
 
