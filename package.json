@@ -9,7 +9,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "balance:check": "tsx scripts/balance-regression.ts"
+    "balance:check": "tsx scripts/balance-regression.ts",
+    "economy:check": "tsx scripts/economy-regression.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
