@@ -1,123 +1,107 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, Text } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, PrimaryButton, UnitPortrait } from '../ui/components';
-import { StoryScene } from '../ui/gameArt';
+import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionOption, DecisionStats } from '../ui/DecisionUI';
+import { EventIllustration } from '../ui/CampaignEventUI';
+import { GameCard } from '../ui/components';
+import { SemanticChip, SemanticText, UnitBadges } from '../ui/SemanticUI';
+import { rolePresentation } from '../ui/semanticColors';
+import { StoryScene, UnitSprite } from '../ui/gameArt';
 
-export function MarcherEnvoyScreen({
-  onComplete
-}: {
-  onComplete: () => void;
-}) {
+export function MarcherEnvoyScreen({ onComplete }: { onComplete: () => void }) {
   const { theme } = useGameTheme();
-  const {
-    marcherAuxiliaryOptions,
-    chooseMarcherAuxiliary
-  } = useGame();
-  const [selectedId, setSelectedId] = useState(
-    marcherAuxiliaryOptions[0]?.id ?? ''
-  );
-  const [chosen, setChosen] = useState(false);
-
-  const selected =
-    marcherAuxiliaryOptions.find(option => option.id === selectedId) ?? null;
+  const { activeFaction, chapterNumber, chapterNodes, units, marcherAuxiliaryOptions, chooseMarcherAuxiliary } = useGame();
+  const [selectedId, setSelectedId] = useState<string | null>(marcherAuxiliaryOptions[0]?.id ?? null);
+  const [acceptedId, setAcceptedId] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const submitted = useRef(false);
+  const node = chapterNodes.find(candidate => candidate.id === 'ch3_node_1');
+  const ownedChoice = marcherAuxiliaryOptions.find(option => units.some(unit => unit.id === option.unit.id));
+  const recorded = Boolean(node?.completed || ownedChoice || acceptedId);
+  const recordId = ownedChoice?.id ?? acceptedId;
+  const selected = marcherAuxiliaryOptions.find(option => option.id === (recorded ? recordId : selectedId)) ?? null;
+  const canChoose = activeFaction === 'human' && chapterNumber === 3 && Boolean(node?.current) && !recorded;
 
   const confirm = () => {
-    if (!selected) return;
-    if (chooseMarcherAuxiliary(selected.id)) {
-      setChosen(true);
+    if (!selected || !canChoose || submitted.current) return;
+    submitted.current = true;
+    try {
+      if (chooseMarcherAuxiliary(selected.id)) {
+        setAcceptedId(selected.id);
+        setMessage(selected.unit.name + ' joined the roster.');
+        return;
+      }
+    } catch {
+      // A failed provider action must not look like a recruited squad.
     }
+    submitted.current = false;
+    setMessage('The auxiliary could not be recruited. Check the current campaign event and try again.');
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.gold}>
-        <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>CHAPTER 3 · BORDER KINGDOMS</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Marcher Envoy</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          Greenkeep Town draws its first formal visitor from the Border Marches. The envoy warns that the marcher lords are divided and offers one experienced auxiliary squad before you enter their territory.
-        </Text>
-        <View style={styles.sceneWrap}>
-          <StoryScene scene="marcher_envoy" size={236} />
-        </View>
+    <DecisionLayout footer={
+      <DecisionCommit
+        title={recorded ? selected ? selected.unit.name + ' · ' + selected.unit.className : 'Auxiliary choice recorded' : selected?.unit.className ?? 'Choose an auxiliary'}
+        detail={recorded ? 'This event has already supplied its one auxiliary squad.' : 'One auxiliary joins at no resource cost. Selecting a card only previews it.'}
+        warning={!recorded ? !canChoose ? 'Reach the Marcher Envoy event before accepting an auxiliary.' : 'Accepting a squad records this event choice; it cannot be swapped for another envoy option.' : null}
+        message={message}
+        label={recorded ? 'Enter the Border Marches' : selected ? 'Accept ' + selected.unit.className : 'Choose an auxiliary'}
+        disabled={!recorded && (!selected || !canChoose)}
+        onConfirm={recorded ? onComplete : confirm}
+      />
+    }>
+      <DecisionIntro
+        eyebrow="CHAPTER 3 · BORDER KINGDOMS"
+        title="Marcher Envoy"
+        body="Greenkeep Town draws its first formal visitor from the Border Marches. The envoy warns that the marcher lords are divided and offers one experienced auxiliary squad before you enter their territory."
+        accent={theme.colors.gold}
+      />
+      <GameCard ornament={false}>
+        <SemanticChip label={recorded ? 'Auxiliary choice recorded' : 'One squad · recruitment preview'} tone={recorded ? 'positive' : 'blue'} />
+        <Text style={[styles.heading, { color: theme.colors.text }]}>A divided frontier</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>Three marcher houses claim they are defending the same roads, yet their soldiers have begun stopping one another at old forts. Crownspire coin appears in every camp.</Text>
       </GameCard>
-
-      <GameCard>
-        <Text style={[styles.storyTitle, { color: theme.colors.text }]}>A divided frontier</Text>
-        <Text style={[styles.storyBody, { color: theme.colors.textMuted }]}>
-          Three marcher houses claim they are defending the same roads, yet their soldiers have begun stopping one another at old forts. Crownspire coin appears in every camp.
-        </Text>
-      </GameCard>
-
-      <View style={styles.list}>
-        {marcherAuxiliaryOptions.map(option => {
-          const selectedOption = selectedId === option.id;
-
-          return (
-            <PressableCard
-              key={option.id}
-              selected={selectedOption}
-              onPress={() => setSelectedId(option.id)}
-            >
-              <GameCard accent={selectedOption ? theme.colors.gold : undefined}>
-                <View style={styles.optionHeader}>
-                  <UnitPortrait
-                    name={option.unit.name}
-                    className={option.unit.className + ' · Lv. ' + option.unit.level}
-                    accent={selectedOption ? theme.colors.gold : theme.colors.human}
-                    faction={option.unit.faction}
-                  />
-                  <Pill label={option.archetype.toUpperCase()} />
-                </View>
-                <Text style={[styles.pitch, { color: theme.colors.text }]}>{option.pitch}</Text>
-                <Text style={[styles.tradeoff, { color: theme.colors.textMuted }]}>
-                  Tradeoff: {option.tradeoff}
-                </Text>
-              </GameCard>
-            </PressableCard>
-          );
-        })}
-      </View>
-
-      {chosen ? (
-        <PrimaryButton label="Enter the Border Marches" onPress={onComplete} />
-      ) : (
-        <PrimaryButton
-          label={selected ? 'Accept ' + selected.unit.className : 'Choose auxiliary'}
-          disabled={!selected}
-          onPress={confirm}
-        />
-      )}
-    </ScrollView>
-  );
-}
-
-function PressableCard({
-  children,
-  onPress
-}: {
-  children: React.ReactNode;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <View onTouchEnd={onPress}>
-      {children}
-    </View>
+      {(!recorded ? marcherAuxiliaryOptions : selected ? [selected] : []).map(option => (
+        <DecisionOption
+          key={option.id}
+          title={option.unit.className}
+          titleTone={rolePresentation[option.unit.role]?.tone}
+          subtitle={option.unit.name + ' · Level ' + option.unit.level + ' · ' + option.archetype}
+          selected={selected?.id === option.id}
+          disabled={recorded}
+          art={<UnitSprite className={option.unit.className} faction={option.unit.faction} size={44} />}
+          accessibilitySummary={option.pitch + '. Tradeoff: ' + option.tradeoff + '. Recruitment stats: HP ' + option.unit.hp + ', attack ' + option.unit.attack + ', armor ' + option.unit.armor + ', speed ' + option.unit.speed}
+          onSelect={() => {
+            if (recorded) return;
+            setSelectedId(option.id);
+            setMessage(null);
+          }}
+        >
+          <UnitBadges role={option.unit.role} tier={option.unit.tier} battleTags={option.unit.battleTags} />
+          <Text style={[styles.body, { color: theme.colors.text }]}><SemanticText tone="positive" style={styles.emphasis}>Strength: </SemanticText>{option.pitch}</Text>
+          <Text style={[styles.body, { color: theme.colors.textMuted }]}><SemanticText tone="negative" style={styles.emphasis}>Tradeoff: </SemanticText>{option.tradeoff}</Text>
+          {!recorded ? (
+            <>
+              <Text style={[styles.caption, { color: theme.colors.textMuted }]}>Recruitment stats · before equipment</Text>
+              <DecisionStats items={[
+                { label: 'HP', value: option.unit.hp },
+                { label: 'Attack', value: option.unit.attack },
+                { label: 'Armor', value: option.unit.armor },
+                { label: 'Speed', value: option.unit.speed }
+              ]} />
+            </>
+          ) : <SemanticChip label="Recruited · view current stats in Army" tone="positive" compact />}
+        </DecisionOption>
+      ))}
+      <EventIllustration><StoryScene scene="marcher_envoy" size={192} /></EventIllustration>
+    </DecisionLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 30, gap: 13 },
-  eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
-  title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
-  body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  sceneWrap: { alignItems: 'center', marginTop: 10 },
-  storyTitle: { fontSize: 16, fontWeight: '900' },
-  storyBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
-  list: { gap: 9 },
-  optionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  pitch: { fontSize: 11.5, lineHeight: 17, fontWeight: '800', marginTop: 10 },
-  tradeoff: { fontSize: 10.5, lineHeight: 15, marginTop: 5 }
+  heading: { fontSize: 16, lineHeight: 22, fontWeight: '900', marginTop: 10 },
+  body: { fontSize: 14, lineHeight: 20, marginTop: 6 },
+  caption: { fontSize: 12, lineHeight: 18 },
+  emphasis: { fontWeight: '900' }
 });
