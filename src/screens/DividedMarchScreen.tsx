@@ -1,88 +1,69 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { marcherResourceSites } from '../game/chapter3';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
+import { DecisionIntro } from '../ui/DecisionUI';
+import { EventIllustration, EventResolution, EventRewardPanel } from '../ui/CampaignEventUI';
+import { GameCard } from '../ui/components';
 import { ResourceSiteSprite, StoryCharacterPortrait, StoryScene } from '../ui/gameArt';
 
 export function DividedMarchScreen({ onComplete }: { onComplete: () => void }) {
   const { theme } = useGameTheme();
-  const {
-    dividedMarchResolved,
-    completeDividedMarch
-  } = useGame();
+  const { activeFaction, chapterNumber, chapterNodes, dividedMarchResolved, completeDividedMarch } = useGame();
+  const depot = marcherResourceSites.find(site => site.id === 'marcher_depot');
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.human}>
-        <Text style={[styles.eyebrow, { color: theme.colors.human }]}>BORDER EVENT</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>The Divided March</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          With Siege Road open, the marcher captains finally compare their orders. The seals are genuine, but the instructions were deliberately issued to make every house distrust the others.
-        </Text>
-        <View style={styles.sceneWrap}>
-          <StoryScene scene="grand_council" size={236} />
-        </View>
+    <EventResolution
+      key="human-divided-march"
+      title="Unite the Marcher Captains"
+      completed={dividedMarchResolved}
+      canResolve={activeFaction === 'human' && chapterNumber === 3 && Boolean(chapterNodes.find(node => node.id === 'ch3_node_5')?.current)}
+      label="Unite the Marcher Captains"
+      continueLabel="Confront Lord Marshal Veyr"
+      onResolve={completeDividedMarch}
+      onContinue={onComplete}
+    >
+      <DecisionIntro
+        eyebrow="BORDER EVENT · CHAPTER 3"
+        title="The Divided March"
+        body="With Siege Road open, the marcher captains finally compare their orders. The seals are genuine, but the instructions were deliberately issued to make every house distrust the others."
+        accent={theme.colors.human}
+      />
+      <GameCard ornament={false}>
+        <StoryCharacterPortrait role="delegate" size={46} />
+        <Text style={[styles.heading, { color: theme.colors.text }]}>Shared evidence</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>Greenkeep distributes copies of the contradictory orders to all three houses, preventing one faction from controlling the narrative.</Text>
       </GameCard>
-
-      <SectionTitle title="What Greenkeep gains" />
-
-      <GameCard>
-        <View style={styles.row}>
-          <View style={styles.rowArt}><StoryCharacterPortrait role="delegate" size={46} /></View>
-          <View style={styles.copy}>
-            <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Shared evidence</Text>
-            <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
-              Greenkeep distributes copies of the contradictory orders to all three houses, preventing one faction from controlling the narrative.
-            </Text>
-          </View>
-        </View>
-      </GameCard>
-
-      <GameCard>
-        <View style={styles.row}>
-          <View style={styles.rowArt}><ResourceSiteSprite siteId="marcher_depot" faction="human" size={46} /></View>
-          <View style={styles.copy}>
-            <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Marcher Supply Depot</Text>
-            <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
-              A neutral depot joins Greenkeep’s regional network, producing +6 Gold and +2 Provisions per completed activity.
-            </Text>
-          </View>
-        </View>
-      </GameCard>
-
-      <GameCard accent={theme.colors.gold}>
-        <Text style={[styles.noteTitle, { color: theme.colors.text }]}>The real enemy steps forward</Text>
-        <Text style={[styles.noteBody, { color: theme.colors.textMuted }]}>
-          Lord Marshal Veyr orders every marcher fort to ignore Greenkeep’s evidence and rally under his personal standard. The division was not an accident.
-        </Text>
-      </GameCard>
-
-      {!dividedMarchResolved ? (
-        <PrimaryButton
-          label="Unite the Marcher Captains"
-          onPress={() => {
-            completeDividedMarch();
-          }}
+      <EventRewardPanel
+        title="Campaign stores"
+        kind="immediate"
+        completed={dividedMarchResolved}
+        values={{ gold: 40, provisions: 10 }}
+        detail="A one-time grant when the captains unite."
+        note="These resources are separate from the depot’s recurring production. Reopening the report grants nothing again."
+      />
+      {depot ? (
+        <EventRewardPanel
+          title={depot.name}
+          kind="production"
+          completed={dividedMarchResolved}
+          values={depot.productionPerActivity}
+          art={<ResourceSiteSprite siteId={depot.id} faction="human" size={46} />}
+          detail="Base production per eligible activity after the site is unlocked."
+          note="This is not an immediate payout. Production modifiers may change the amount; collect accumulated stock in Kingdom."
         />
-      ) : (
-        <PrimaryButton label="Confront Lord Marshal Veyr" onPress={onComplete} />
-      )}
-    </ScrollView>
+      ) : null}
+      <GameCard ornament={false}>
+        <Text style={[styles.heading, { color: theme.colors.text }]}>The real enemy steps forward</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>Lord Marshal Veyr orders every marcher fort to ignore Greenkeep’s evidence and rally under his personal standard. The division was not an accident.</Text>
+      </GameCard>
+      <EventIllustration><StoryScene scene="grand_council" size={192} /></EventIllustration>
+    </EventResolution>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 30, gap: 13 },
-  eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
-  title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
-  body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  sceneWrap: { alignItems: 'center', marginTop: 10 },
-  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  rowArt: { width: 54, alignItems: 'center', justifyContent: 'center' },
-  copy: { flex: 1 },
-  rowTitle: { fontSize: 15, fontWeight: '900' },
-  rowBody: { fontSize: 11, lineHeight: 16, marginTop: 4 },
-  noteTitle: { fontSize: 15, fontWeight: '900' },
-  noteBody: { fontSize: 11, lineHeight: 17, marginTop: 5 }
+  heading: { fontSize: 16, lineHeight: 22, fontWeight: '900', marginTop: 6 },
+  body: { fontSize: 14, lineHeight: 20, marginTop: 6 }
 });

@@ -1,88 +1,70 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { humanResourceSites } from '../game/chapter2';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, PrimaryButton, SectionTitle } from '../ui/components';
-import { BuildingSprite, ResourceSprite } from '../ui/gameArt';
+import { DecisionIntro } from '../ui/DecisionUI';
+import { EventResolution, EventRewardPanel } from '../ui/CampaignEventUI';
+import { GameCard } from '../ui/components';
+import { SemanticChip } from '../ui/SemanticUI';
+import { BuildingSprite, ResourceSiteSprite } from '../ui/gameArt';
 
-export function BrokenSignalTowerScreen({
-  onExit
-}: {
-  onExit: () => void;
-}) {
+export function BrokenSignalTowerScreen({ onExit }: { onExit: () => void }) {
   const { theme } = useGameTheme();
   const {
-    signalTowerUnlocked,
-    completeBrokenSignalTower
+    activeFaction, chapterNumber, chapterNodes, buildingLevels, kingdomDefenseCompleted,
+    signalTowerUnlocked, completeBrokenSignalTower
   } = useGame();
+  const quarry = humanResourceSites.find(site => site.id === 'old_quarry');
+  const level = buildingLevels.signal_tower ?? 0;
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={theme.colors.gold}>
-        <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>IRON ROAD EVENT</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Broken Signal Tower</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          The old frontier beacon has been stripped for parts, but its stone base still overlooks the Iron Road. Rebuilding the warning network would give Greenkeep better battle intelligence.
-        </Text>
-      </GameCard>
-
-      <SectionTitle title="Restoration gains" />
-
-      <GameCard>
-        <View style={styles.row}>
-          <View style={styles.rowArt}><BuildingSprite buildingId="signal_tower" faction="human" size={46} /></View>
-          <View style={styles.copy}>
-            <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Signal Tower blueprint</Text>
-            <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
-              Unlocks a new placeable settlement building. At Lv.2 it permanently reveals detailed enemy information in Battle Prep.
-            </Text>
-          </View>
-        </View>
-      </GameCard>
-
-      <GameCard>
-        <View style={styles.row}>
-          <View style={styles.rowArt}><ResourceSprite resource="stone" size={42} /></View>
-          <View style={styles.copy}>
-            <Text style={[styles.rowTitle, { color: theme.colors.text }]}>Old Signal Quarry</Text>
-            <Text style={[styles.rowBody, { color: theme.colors.textMuted }]}>
-              The ridge quarry below the tower joins regional production, adding +3 Stone per meaningful activity.
-            </Text>
-          </View>
-        </View>
-      </GameCard>
-
-      <GameCard accent={theme.colors.human}>
-        <Text style={[styles.noteTitle, { color: theme.colors.text }]}>Why this matters</Text>
-        <Text style={[styles.noteBody, { color: theme.colors.textMuted }]}>
-          The Kingdom increasingly changes how campaign preparation works: buildings are no longer only stat gates—they can remove information disadvantages and improve recurring systems.
-        </Text>
-      </GameCard>
-
-      {!signalTowerUnlocked ? (
-        <PrimaryButton
-          label="Restore the Signal Network"
-          onPress={() => {
-            completeBrokenSignalTower();
-          }}
+    <EventResolution
+      key="human-signal-tower"
+      title="Restore the Signal Network"
+      completed={signalTowerUnlocked}
+      canResolve={activeFaction === 'human' && chapterNumber === 2 && kingdomDefenseCompleted && Boolean(chapterNodes.find(node => node.id === 'ch2_node_5')?.current)}
+      label="Restore the Signal Network"
+      continueLabel="Continue to the Iron Provost"
+      onResolve={completeBrokenSignalTower}
+      onContinue={onExit}
+    >
+      <DecisionIntro
+        eyebrow="IRON ROAD EVENT · CHAPTER 2"
+        title="Broken Signal Tower"
+        body="The old frontier beacon has been stripped for parts, but its stone base still overlooks the Iron Road. Rebuilding the warning network would give Greenkeep better battle intelligence."
+        accent={theme.colors.gold}
+      />
+      <EventRewardPanel
+        title="Signal Tower blueprint"
+        kind="blueprint"
+        completed={signalTowerUnlocked}
+        art={<BuildingSprite buildingId="signal_tower" faction="human" size={46} />}
+        detail="Unlocks the placeable Signal Tower. Completing this event does not construct or upgrade the building."
+        note="Build it in Settlement, then reach Level 2 to obtain detailed enemy information in Battle Prep from the tower."
+      />
+      <GameCard ornament={false}>
+        <SemanticChip
+          label={level >= 2 ? 'Tower Level ' + level + ' · intel requirement met' : level > 0 ? 'Tower Level ' + level + ' · upgrade needed for intel' : 'Signal Tower not built'}
+          tone={level >= 2 ? 'positive' : level > 0 ? 'warning' : 'neutral'}
         />
-      ) : (
-        <PrimaryButton label="Continue to the Iron Provost" onPress={onExit} />
-      )}
-    </ScrollView>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>This is the tower’s current state, not the blueprint preview. Other sources of scouting remain separate.</Text>
+      </GameCard>
+      {quarry ? (
+        <EventRewardPanel
+          title={quarry.name}
+          kind="production"
+          completed={signalTowerUnlocked}
+          values={quarry.productionPerActivity}
+          art={<ResourceSiteSprite siteId={quarry.id} faction="human" size={46} />}
+          detail="Base production per eligible activity after the quarry joins the regional network."
+          note="Unlocking the site is not an immediate Stone payout. Modifiers may change later output; collect accumulated production in Kingdom."
+        />
+      ) : null}
+    </EventResolution>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 30, gap: 13 },
-  eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.15 },
-  title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
-  body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
-  row: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  rowArt: { width: 54, alignItems: 'center', justifyContent: 'center' },
-  copy: { flex: 1 },
-  rowTitle: { fontSize: 15, fontWeight: '900' },
-  rowBody: { fontSize: 11, lineHeight: 16, marginTop: 4 },
-  noteTitle: { fontSize: 15, fontWeight: '900' },
-  noteBody: { fontSize: 11, lineHeight: 17, marginTop: 5 }
+  body: { fontSize: 14, lineHeight: 20, marginTop: 8 }
 });
