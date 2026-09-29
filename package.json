@@ -18,6 +18,7 @@
     "defense:check": "tsx scripts/kingdom-defense-regression.ts",
     "expedition:check": "tsx scripts/expedition-regression.ts",
     "war-table:check": "tsx scripts/war-table-regression.ts",
+    "fantasy-enemy:check": "tsx scripts/fantasy-enemy-regression.ts",
     "art:check": "node scripts/art-regression.mjs",
     "boss:check": "tsx scripts/boss-presentation-regression.ts",
     "battle-visuals:check": "tsx scripts/battle-visuals-regression.ts",
