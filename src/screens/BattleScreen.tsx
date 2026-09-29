@@ -1518,7 +1518,7 @@ export function BattleScreen({
       ) : null}
       {defeated ? (
         <PrimaryButton
-          label="Regroup"
+          label="View Defeat Report"
           onPress={() => {
             if (!outcomeCommitGateRef.current()) return;
 
