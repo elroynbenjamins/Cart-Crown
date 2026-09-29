@@ -21,6 +21,10 @@ import type {
 } from '../game/kingdomDefense';
 import { getFormationShape } from '../game/formation';
 import { useGame } from '../game/GameProvider';
+import {
+  getSideModeRewardLabel,
+  scaleResourceReward
+} from '../game/sideModeBalance';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -57,12 +61,22 @@ export function KingdomDefenseScreen({
     factionBuildingIds,
     settlementEffects,
     kingdomDefenseCompleted,
+    kingdomDefenseNextRewardMultiplier,
     completeKingdomDefense,
     commitKingdomDefenseReadiness
   } = useGame();
 
+  const [firstClearAtStart] =
+    useState(!kingdomDefenseCompleted);
   const [repeatable] =
-    useState(kingdomDefenseCompleted);
+    useState(
+      activeFaction !== 'human' ||
+      kingdomDefenseCompleted
+    );
+  const [runRewardMultiplier] =
+    useState(
+      kingdomDefenseNextRewardMultiplier
+    );
   const [started, setStarted] =
     useState(false);
   const [waveIndex, setWaveIndex] =
@@ -74,8 +88,6 @@ export function KingdomDefenseScreen({
   const [failed, setFailed] =
     useState(false);
   const [complete, setComplete] =
-    useState(false);
-  const [firstClearReward, setFirstClearReward] =
     useState(false);
   const [nextWavePowerBonus, setNextWavePowerBonus] =
     useState(0);
@@ -261,13 +273,7 @@ export function KingdomDefenseScreen({
     }
 
     if (waveIndex >= waves.length - 1) {
-      const wasFirstClear =
-        !kingdomDefenseCompleted;
       const ok = completeKingdomDefense();
-
-      setFirstClearReward(
-        ok && wasFirstClear
-      );
       setComplete(ok);
       setMessage(
         ok
@@ -403,6 +409,28 @@ export function KingdomDefenseScreen({
         faction={activeFaction}
         accent={factionAccent}
       >
+        <View style={styles.rewardBand}>
+          <StatusPill
+            label={getSideModeRewardLabel(
+              runRewardMultiplier
+            )}
+            tone={
+              runRewardMultiplier === 1
+                ? 'ready'
+                : runRewardMultiplier === 0.5
+                  ? 'current'
+                  : 'neutral'
+            }
+          />
+          <Text style={[styles.rewardBandText, { color: theme.colors.textMuted }]}>
+            {firstClearAtStart
+              ? 'First clear uses the authored full defense reward.'
+              : runRewardMultiplier === 0.5
+                ? 'First repeat clear this chapter pays half resources.'
+                : 'Further repeat defenses are practice only until the next chapter.'}
+          </Text>
+        </View>
+
         <View style={styles.summaryRow}>
           <View style={styles.summaryBlock}>
             <Text
@@ -916,7 +944,7 @@ export function KingdomDefenseScreen({
             <ResourceAmountRow
               prefix="+"
               values={
-                firstClearReward
+                firstClearAtStart
                   ? {
                       gold: 85,
                       wood: 10,
@@ -924,13 +952,16 @@ export function KingdomDefenseScreen({
                       iron: 4,
                       provisions: 6
                     }
-                  : {
-                      gold: 60,
-                      wood: 8,
-                      stone: 6,
-                      iron: 2,
-                      provisions: 5
-                    }
+                  : scaleResourceReward(
+                      {
+                        gold: 60,
+                        wood: 8,
+                        stone: 6,
+                        iron: 2,
+                        provisions: 5
+                      },
+                      runRewardMultiplier
+                    )
               }
             />
           </View>
@@ -940,8 +971,10 @@ export function KingdomDefenseScreen({
               { color: theme.colors.textMuted }
             ]}
           >
-            Regional production also advances one
-            cycle. The army finishes at{' '}
+            {firstClearAtStart || runRewardMultiplier > 0
+              ? 'Regional production also advances one cycle. '
+              : 'Practice clears do not advance regional production. '}
+            The army finishes at{' '}
             {runReadiness}% Readiness.
           </Text>
           <View style={styles.button}>
@@ -999,6 +1032,14 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 34,
     gap: 13
+  },
+  rewardBand: {
+    gap: 7,
+    marginBottom: 12
+  },
+  rewardBandText: {
+    fontSize: 10.5,
+    lineHeight: 16
   },
   summaryRow: {
     flexDirection: 'row',
