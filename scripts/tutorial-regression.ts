@@ -52,6 +52,10 @@ function baseContext(
     armyReadiness: 100,
     unlockedResourceSites: 0,
     wagonStageId: 'camp',
+    warTableUnlocked: false,
+    kingdomTrialsUnlocked: false,
+    kingdomDefenseModeUnlocked: false,
+    expeditionsUnlocked: false,
     magicStoryUnlocked: false,
     flyingStoryUnlocked: false,
     largeStoryUnlocked: false,
@@ -515,21 +519,80 @@ function runSystemCoverage() {
     'Advanced formation lesson does not spotlight formation shapes.'
   );
 
-  const sideModes = getNextTutorialMoment(
+  const warTable = getNextTutorialMoment(
     baseContext({
       view: 'campaign',
       tutorialSeen: core,
-      wagonStageId: 'fort'
+      warTableUnlocked: true
     })
   );
   expect(
-    sideModes?.key === 'system:side-modes',
-    'Side-mode lesson did not trigger at Fort tier.'
+    warTable?.key === 'system:war-table',
+    'War Table lesson did not trigger when the first optional mode unlocked.'
   );
   expect(
-    sideModes?.focusAfterPrimary?.kind ===
-      'campaign-activities',
-    'Side-mode lesson does not spotlight Activities.'
+    warTable?.focusAfterPrimary?.kind ===
+      'campaign-activities' &&
+      warTable.focusAfterPrimary.modeId ===
+        'war_table',
+    'War Table lesson does not route to the newly visible activity.'
+  );
+
+  const kingdomTrials = getNextTutorialMoment(
+    baseContext({
+      view: 'campaign',
+      tutorialSeen: [
+        ...core,
+        'system:war-table'
+      ],
+      warTableUnlocked: true,
+      kingdomTrialsUnlocked: true
+    })
+  );
+  expect(
+    kingdomTrials?.key ===
+      'system:kingdom-trials',
+    'Kingdom Trials lesson did not wait for its own progression gate.'
+  );
+
+  const kingdomDefense =
+    getNextTutorialMoment(
+      baseContext({
+        view: 'campaign',
+        tutorialSeen: [
+          ...core,
+          'system:war-table',
+          'system:kingdom-trials'
+        ],
+        warTableUnlocked: true,
+        kingdomTrialsUnlocked: true,
+        kingdomDefenseModeUnlocked: true
+      })
+    );
+  expect(
+    kingdomDefense?.key ===
+      'system:kingdom-defense-repeatable',
+    'Repeatable Kingdom Defense lesson did not wait for the story defense clear.'
+  );
+
+  const expeditions = getNextTutorialMoment(
+    baseContext({
+      view: 'campaign',
+      tutorialSeen: [
+        ...core,
+        'system:war-table',
+        'system:kingdom-trials',
+        'system:kingdom-defense-repeatable'
+      ],
+      warTableUnlocked: true,
+      kingdomTrialsUnlocked: true,
+      kingdomDefenseModeUnlocked: true,
+      expeditionsUnlocked: true
+    })
+  );
+  expect(
+    expeditions?.key === 'system:expeditions',
+    'Expedition lesson did not wait until the later campaign gate.'
   );
 }
 

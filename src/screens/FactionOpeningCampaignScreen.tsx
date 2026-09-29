@@ -55,6 +55,7 @@ export function FactionOpeningCampaignScreen({
   onOpenChapterSixSeal,
   onStartChapterSixBoss,
   onOpenMetaCampaign,
+  onOpenWarTable,
   onOpenExpedition,
   onOpenFormationTrial,
   onOpenKingdomDefense,
@@ -97,6 +98,7 @@ export function FactionOpeningCampaignScreen({
   onOpenChapterSixSeal: () => void;
   onStartChapterSixBoss: () => void;
   onOpenMetaCampaign: () => void;
+  onOpenWarTable: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
   onOpenKingdomDefense: () => void;
@@ -119,6 +121,24 @@ export function FactionOpeningCampaignScreen({
     formationTrialCompleted,
     kingdomDefenseCompleted
   } = useGame();
+
+  const availableSideModes = sideModeDefinitions.filter(
+    mode =>
+      [
+        'war_table',
+        'formation_trials',
+        'kingdom_defense',
+        'expeditions'
+      ].includes(mode.id) &&
+      isSideModeUnlocked(mode.id)
+  );
+
+  const openSideMode = (id: SideModeId) => {
+    if (id === 'war_table') onOpenWarTable();
+    if (id === 'expeditions') onOpenExpedition();
+    if (id === 'formation_trials') onOpenFormationTrial();
+    if (id === 'kingdom_defense') onOpenKingdomDefense();
+  };
 
   const faction = factions[activeFaction];
   const accent =
@@ -612,91 +632,77 @@ export function FactionOpeningCampaignScreen({
         })}
       </View>
 
-      <SectionTitle title="Activities" trailing="Recovery & tactics" />
-      <View style={styles.factionList}>
-        {sideModeDefinitions
-          .filter(mode =>
-            ['expeditions', 'formation_trials', 'kingdom_defense'].includes(mode.id)
-          )
-          .map(mode => {
-            const unlocked = isSideModeUnlocked(mode.id);
-            const openMode = (id: SideModeId) => {
-              if (id === 'expeditions') onOpenExpedition();
-              if (id === 'formation_trials') onOpenFormationTrial();
-              if (id === 'kingdom_defense') onOpenKingdomDefense();
-            };
+      {availableSideModes.length > 0 ? (
+        <>
+          <SectionTitle title="Activities" trailing="Recovery & tactics" />
+          <View style={styles.factionList}>
+            {availableSideModes.map(mode => {
+              const status =
+                mode.id === 'war_table'
+                  ? 'Scout contracts'
+                  : mode.id === 'expeditions'
+                    ? expeditionTickets + ' ticket' + (expeditionTickets === 1 ? '' : 's')
+                    : mode.id === 'formation_trials'
+                      ? formationTrialCompleted
+                        ? 'First trial complete'
+                        : 'Tactical challenge'
+                      : kingdomDefenseCompleted
+                        ? 'Repeatable'
+                        : 'Endurance defense';
 
-            const status =
-              mode.id === 'expeditions'
-                ? expeditionTickets + ' ticket' + (expeditionTickets === 1 ? '' : 's')
-                : mode.id === 'formation_trials'
-                  ? formationTrialCompleted
-                    ? 'First trial complete'
-                    : 'Tactical challenge'
-                  : kingdomDefenseCompleted
-                    ? 'Repeatable'
-                    : 'First clear available';
+              const tutorialActivityFocused =
+                tutorialFocus?.kind === 'campaign-activities' &&
+                mode.id ===
+                  (tutorialFocus.modeId ??
+                    availableSideModes[0]?.id);
 
-            const tutorialActivityFocused =
-              tutorialFocus?.kind === 'campaign-activities' &&
-              unlocked &&
-              mode.id ===
-                sideModeDefinitions.find(candidate =>
-                  ['expeditions', 'formation_trials', 'kingdom_defense'].includes(candidate.id) &&
-                  isSideModeUnlocked(candidate.id)
-                )?.id;
-
-            return (
-              <TutorialFocus
-                key={mode.id}
-                active={tutorialActivityFocused}
-                label={tutorialActivityFocused ? tutorialFocus?.label : undefined}
-              >
-              <GameCard
-                faction={activeFaction}
-                state={unlocked ? 'default' : 'locked'}
-                accent={unlocked ? accent : undefined}
-              >
-                <View style={styles.factionHeader}>
-                  <View style={styles.factionCopy}>
-                    <Text style={[styles.factionName, { color: theme.colors.text }]}>
-                      {mode.name}
+              return (
+                <TutorialFocus
+                  key={mode.id}
+                  active={tutorialActivityFocused}
+                  label={tutorialActivityFocused ? tutorialFocus?.label : undefined}
+                >
+                  <GameCard
+                    faction={activeFaction}
+                    accent={accent}
+                  >
+                    <View style={styles.factionHeader}>
+                      <View style={styles.factionCopy}>
+                        <Text style={[styles.factionName, { color: theme.colors.text }]}>
+                          {mode.name}
+                        </Text>
+                        <Text style={[styles.factionSubtitle, { color: accent }]}>
+                          {status}
+                        </Text>
+                      </View>
+                      <StatusPill label="AVAILABLE" tone="available" />
+                    </View>
+                    <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+                      {mode.description}
                     </Text>
-                    <Text style={[styles.factionSubtitle, { color: accent }]}>
-                      {status}
-                    </Text>
-                  </View>
-                  <StatusPill
-                    label={unlocked ? 'AVAILABLE' : mode.unlockStage.toUpperCase()}
-                    tone={unlocked ? 'available' : 'locked'}
-                  />
-                </View>
-                <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-                  {mode.description}
-                </Text>
-                {mode.id === 'expeditions' ? (
-                  <Text style={[styles.factionSubtitle, { color: theme.colors.textMuted }]}>
-                    Completed runs: {expeditionRunsCompleted}
-                  </Text>
-                ) : null}
-                {unlocked ? (
-                  <View style={styles.switchButton}>
-                    <SecondaryButton
-                      label={'Open ' + mode.name}
-                      onPress={() => {
-                        if (tutorialActivityFocused) {
-                          onTutorialFocusComplete?.();
-                        }
-                        openMode(mode.id);
-                      }}
-                    />
-                  </View>
-                ) : null}
-              </GameCard>
-              </TutorialFocus>
-            );
-          })}
-      </View>
+                    {mode.id === 'expeditions' ? (
+                      <Text style={[styles.factionSubtitle, { color: theme.colors.textMuted }]}>
+                        Completed runs: {expeditionRunsCompleted}
+                      </Text>
+                    ) : null}
+                    <View style={styles.switchButton}>
+                      <SecondaryButton
+                        label={'Open ' + mode.name}
+                        onPress={() => {
+                          if (tutorialActivityFocused) {
+                            onTutorialFocusComplete?.();
+                          }
+                          openSideMode(mode.id);
+                        }}
+                      />
+                    </View>
+                  </GameCard>
+                </TutorialFocus>
+              );
+            })}
+          </View>
+        </>
+      ) : null}
 
       <SectionTitle title="Campaigns in this save" />
       <View style={styles.factionList}>
