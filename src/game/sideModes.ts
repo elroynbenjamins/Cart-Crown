@@ -42,6 +42,16 @@ export const sideModes: SideModeDefinition[] = [
     example: 'Battle → Event/Supply → Elite → Boss'
   },
   {
+    id: 'sieges',
+    name: 'Offensive Sieges',
+    subtitle: 'Staged fortress assaults',
+    description:
+      'Lead a four-stage assault from the outer approach to the enemy commander. Army, Forge, Command, Logistics and Wagon preparation all influence the attack.',
+    unlockStage: 'fort',
+    rewardFocus: 'Gold, stone, iron and siege mastery',
+    example: 'Approach → Breach → Courtyard → Commander'
+  },
+  {
     id: 'relic_hunts',
     name: 'Relic Hunts',
     subtitle: 'Late-game boss chains',
