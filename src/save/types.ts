@@ -1,3 +1,4 @@
+import type { ExpeditionRunState } from '../game/expeditions';
 import type {
   BattleResult,
   ChapterNode,
@@ -64,6 +65,7 @@ export type FactionGameState = {
   lastBattleResult: BattleResult | null;
   expeditionTickets: number;
   expeditionRunsCompleted: number;
+  activeExpeditionRun?: ExpeditionRunState | null;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions?: string[];
   completedStoryGates?: string[];
