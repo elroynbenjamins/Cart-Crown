@@ -407,8 +407,7 @@ export function AppShell({
         );
       }
 
-      setFlow('battlePrep');
-      return null;
+      return <FormationScreen />;
     }
 
     if (flow === 'battlePrep') {
