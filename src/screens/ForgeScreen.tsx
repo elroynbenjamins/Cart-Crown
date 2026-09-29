@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import type { ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, PrimaryButton, ResourceAmountRow, ResourceChip, SectionTitle, StatusPill } from '../ui/components';
+import { GameCard, PrimaryButton, ResourceAmountRow, ResourceChip, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { EquipmentSprite, ResourceSprite } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
@@ -150,6 +150,19 @@ export function ForgeScreen({
                     }
                   }}
                 />
+                {tutorialCraftFocused ? (
+                  <View style={styles.guidanceLaterButton}>
+                    <SecondaryButton
+                      label="Craft later"
+                      onPress={() => {
+                        onTutorialFocusComplete?.();
+                        setMessage(
+                          'Forge lesson learned. Return when you want to invest resources.'
+                        );
+                      }}
+                    />
+                  </View>
+                ) : null}
               </View>
             </GameCard>
             </TutorialFocus>
