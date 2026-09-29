@@ -45,6 +45,9 @@ jobs:
       - name: Kingdom Defense regression
         run: npm run defense:check
 
+      - name: Expedition regression
+        run: npm run expedition:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 
