@@ -196,6 +196,54 @@ export const warTableContracts: WarTableContract[] = [
       label: 'Win in 10 exchanges or fewer'
     },
     bonusReward: { gold: 12, provisions: 2 }
+  },
+  {
+    id: 'ashen_hex_circle',
+    encounterId: 'war_table_ashen_hex_circle',
+    category: 'counter',
+    tier: 'veteran',
+    unlockChapter: 4,
+    tacticalNote:
+      'Magic threat: a warded caster line builds pressure behind protection. Bring support, your own magic specialists or enough frontline stability to survive the spell cycle.',
+    rewardLabel: 'Gold + Wood + Provisions',
+    bonusObjective: {
+      type: 'low_wear',
+      maxWear: 10,
+      label: 'Take no more than 10 Readiness wear'
+    },
+    bonusReward: { gold: 10, wood: 2 }
+  },
+  {
+    id: 'sky_raiders',
+    encounterId: 'war_table_sky_raiders',
+    category: 'pursuit',
+    tier: 'elite',
+    unlockChapter: 5,
+    tacticalNote:
+      'Flying threat: aerial squads bypass ordinary screens and attack protected lanes. Ranged and skirmish pressure act as practical anti-air.',
+    rewardLabel: 'Gold + Provisions + Iron',
+    bonusObjective: {
+      type: 'healthy',
+      hpPercent: 60,
+      label: 'Finish with at least 60% army HP'
+    },
+    bonusReward: { gold: 12, provisions: 2 }
+  },
+  {
+    id: 'golem_breach',
+    encounterId: 'war_table_golem_breach',
+    category: 'breakthrough',
+    tier: 'elite',
+    unlockChapter: 6,
+    tacticalNote:
+      'Large threat: oversized constructs trade speed for breakthrough power. Spears, lancers and concentrated ranged fire are the most reliable answers.',
+    rewardLabel: 'Gold + Stone + Iron',
+    bonusObjective: {
+      type: 'swift',
+      exchanges: 11,
+      label: 'Win in 11 exchanges or fewer'
+    },
+    bonusReward: { gold: 12, iron: 2 }
   }
 ];
 
