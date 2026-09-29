@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
@@ -66,6 +66,38 @@ export function FormationScreen({
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [guideStepComplete, setGuideStepComplete] = useState(false);
   const [guideMessage, setGuideMessage] = useState<string | null>(null);
+  const tutorialScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (!tutorialFocus) return;
+
+    const timer = setTimeout(() => {
+      if (
+        tutorialFocus.kind === 'formation-unit' ||
+        tutorialFocus.kind === 'formation-basics'
+      ) {
+        if (selectedUnitId) {
+          tutorialScrollRef.current?.scrollTo({
+            y: 560,
+            animated: true
+          });
+        } else {
+          tutorialScrollRef.current?.scrollToEnd({
+            animated: true
+          });
+        }
+      } else if (
+        tutorialFocus.kind === 'formation-shape'
+      ) {
+        tutorialScrollRef.current?.scrollTo({
+          y: 430,
+          animated: true
+        });
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [selectedUnitId, tutorialFocus]);
 
   useEffect(() => {
     setGuideStepComplete(false);
@@ -281,16 +313,32 @@ export function FormationScreen({
         !formation.includes(selectedUnitId)
       )
     )
-      ? activeFormationShape.rows.front
-          .concat(
-            activeFormationShape.rows.middle,
-            activeFormationShape.rows.rear
-          )
-          .find(slot => !formation[slot]) ?? null
+      ? (
+          activeFormationShape.rows.front
+            .concat(
+              activeFormationShape.rows.middle,
+              activeFormationShape.rows.rear
+            )
+            .find(slot => !formation[slot]) ??
+          activeFormationShape.rows.front
+            .concat(
+              activeFormationShape.rows.middle,
+              activeFormationShape.rows.rear
+            )
+            .find(
+              slot =>
+                formation[slot] !== selectedUnitId
+            ) ??
+          null
+        )
       : null;
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       {guide ? (
         <GameCard
           accent={guideStepComplete ? theme.colors.primary : theme.colors.gold}
@@ -640,7 +688,9 @@ export function FormationScreen({
                       active={tutorialSlotFocus === slot}
                       label={
                         tutorialSlotFocus === slot
-                          ? 'PLACE HERE'
+                          ? formation[slot]
+                            ? 'REPLACE HERE'
+                            : 'PLACE HERE'
                           : undefined
                       }
                     >
@@ -713,7 +763,7 @@ export function FormationScreen({
       </View>
 
       <Text style={[styles.interactionHint, { color: theme.colors.textMuted }]}>
-        Tap a squad, then tap any visible position to move or swap it. Changing shape changes which positions belong to the front, middle and rear; it does not change your squad cap.
+        Tap a squad, then tap any visible position to move or swap it. Reserve squads can replace an active squad even when your deployment cap is full. Changing shape changes which positions belong to the front, middle and rear; it does not change your squad cap.
       </Text>
 
       <SectionTitle title={faction.name + ' ' + faction.mechanicName} trailing="Battle behavior" />
@@ -779,8 +829,7 @@ export function FormationScreen({
           const active = formation.includes(unit.id);
           const selected = selectedUnitId === unit.id;
 
-          const canSelectReserve =
-            !active && activeCount < activeSquadCap;
+          const canSelectReserve = !active;
           const tutorialUnitFocused =
             tutorialUnitFocusId === unit.id;
 
