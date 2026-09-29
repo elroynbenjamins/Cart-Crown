@@ -247,6 +247,8 @@ export function CampaignScreen({
         onOpenExpedition={onOpenExpedition}
         onOpenFormationTrial={onOpenFormationTrial}
         onOpenKingdomDefense={onOpenKingdomDefense}
+        tutorialFocus={tutorialFocus}
+        onTutorialFocusComplete={onTutorialFocusComplete}
       />
     );
   }
