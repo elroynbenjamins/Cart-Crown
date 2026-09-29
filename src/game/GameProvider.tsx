@@ -5335,29 +5335,37 @@ export function GameProvider({
       return false;
     }
 
-    const validUnitIds = new Set(units.map(unit => unit.id));
+    const unitById = new Map(
+      units.map(unit => [unit.id, unit])
+    );
     const seenUnitIds = new Set<string>();
-    let activeCount = 0;
+    let usedCapacity = 0;
     const nextFormation = Array.from(
       { length: 9 },
       (_, index) => {
         const unitId = preset.formation[index] ?? null;
+        const unit = unitId
+          ? unitById.get(unitId) ?? null
+          : null;
+        const unitCapacity =
+          unit?.deploymentCapacity ?? 1;
+
         if (
           !unitId ||
-          !validUnitIds.has(unitId) ||
+          !unit ||
           seenUnitIds.has(unitId) ||
-          activeCount >= activeSquadCap
+          usedCapacity + unitCapacity > activeSquadCap
         ) {
           return null;
         }
 
         seenUnitIds.add(unitId);
-        activeCount += 1;
+        usedCapacity += unitCapacity;
         return unitId;
       }
     );
 
-    if (activeCount === 0) return false;
+    if (usedCapacity === 0) return false;
 
     setFormationShapeIdState(shape.id);
     setFormationDoctrineId(doctrine.id);
