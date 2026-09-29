@@ -261,7 +261,8 @@ export function FormationScreen({
   ];
 
   const tutorialUnitFocusId =
-    tutorialFocus?.kind === 'formation-unit'
+    tutorialFocus?.kind === 'formation-unit' &&
+    !selectedUnitId
       ? tutorialFocus.unitId
       : tutorialFocus?.kind === 'formation-basics' &&
           !selectedUnitId
@@ -277,8 +278,7 @@ export function FormationScreen({
       tutorialFocus?.kind === 'formation-basics' ||
       (
         tutorialFocus?.kind === 'formation-unit' &&
-        tutorialFocus.unitId === selectedUnitId &&
-        !formation.includes(selectedUnitId)
+        tutorialFocus.unitId === selectedUnitId
       )
     )
       ? activeFormationShape.rows.front
@@ -800,14 +800,6 @@ export function FormationScreen({
                 const nextSelected =
                   selected ? null : unit.id;
                 setSelectedUnitId(nextSelected);
-
-                if (
-                  tutorialUnitFocused &&
-                  active &&
-                  tutorialFocus?.kind === 'formation-unit'
-                ) {
-                  onTutorialFocusComplete?.();
-                }
               }}
               style={({ pressed }) => ({
                 opacity: pressed
