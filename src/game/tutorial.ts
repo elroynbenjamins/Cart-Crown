@@ -23,6 +23,21 @@ export type TutorialTarget =
   | 'forge'
   | 'none';
 
+export type TutorialFocusTarget =
+  | { kind: 'nav'; nav: NavId; label: string }
+  | { kind: 'campaign-current'; label: string }
+  | { kind: 'campaign-activities'; label: string }
+  | { kind: 'battle-begin'; label: string }
+  | { kind: 'battle-readiness'; label: string }
+  | { kind: 'results-continue'; label: string }
+  | { kind: 'formation-unit'; unitId: string; label: string }
+  | { kind: 'formation-basics'; label: string }
+  | { kind: 'formation-shape'; label: string }
+  | { kind: 'settlement-first-plot'; label: string }
+  | { kind: 'settlement-building'; buildingId: string; label: string }
+  | { kind: 'forge-craft'; label: string }
+  | { kind: 'kingdom-production'; label: string };
+
 export type TutorialMoment = {
   key: string;
   kind: 'core' | 'system' | 'unit' | 'building';
@@ -31,6 +46,7 @@ export type TutorialMoment = {
   body: string;
   primaryLabel: string;
   target: TutorialTarget;
+  focusAfterPrimary?: TutorialFocusTarget;
   stepLabel?: string;
 };
 
@@ -120,8 +136,13 @@ function coreMoment(
       title: 'This camp is your command center',
       body:
         'Kingdom shows your settlement, resources and buildings. You start small; campaign victories turn this camp into a real realm. For now, your next decision is on the Campaign screen.',
-      primaryLabel: 'Open Campaign',
-      target: 'campaign'
+      primaryLabel: 'Show me where to go',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'nav',
+        nav: 'campaign',
+        label: 'TAP CAMPAIGN'
+      }
     };
   }
 
@@ -139,8 +160,12 @@ function coreMoment(
       title: 'Advance one objective at a time',
       body:
         'The campaign is deliberately staged. Complete the highlighted objective, then the next node opens. Your first fight teaches the basics before recruitment, buildings and deeper formations are introduced.',
-      primaryLabel: 'I understand',
-      target: 'none'
+      primaryLabel: 'Show the first objective',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'campaign-current',
+        label: 'TAP CURRENT OBJECTIVE'
+      }
     };
   }
 
@@ -158,8 +183,12 @@ function coreMoment(
       title: 'Prepare before committing',
       body:
         'Battle Prep is where you check active squads, formation, enemy information and Army Readiness. Early fights are readable, but later battles expect you to react to counters instead of simply having higher numbers.',
-      primaryLabel: 'Review the battlefield',
-      target: 'none'
+      primaryLabel: 'Show Begin Battle',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'battle-begin',
+        label: 'TAP BEGIN BATTLE'
+      }
     };
   }
 
@@ -196,8 +225,12 @@ function coreMoment(
       title: 'Rewards and losses carry forward',
       body:
         'Results show what the army earned and how much condition remains. Rewards are already secured here. Army Readiness persists into later battles, so repeated hard fights eventually require rest and provisions.',
-      primaryLabel: 'View Results',
-      target: 'none'
+      primaryLabel: 'Show Continue',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'results-continue',
+        label: 'TAP CONTINUE'
+      }
     };
   }
 
@@ -251,8 +284,13 @@ function unitMoment(
       '.' +
       capacity +
       ' New squads are not automatically the best fit for every battle—place them deliberately in Formation.',
-    primaryLabel: 'Open Formation',
-    target: 'formation'
+    primaryLabel: 'Show me the squad',
+    target: 'formation',
+    focusAfterPrimary: {
+      kind: 'formation-unit',
+      unitId: newUnit.id,
+      label: 'SELECT NEW SQUAD'
+    }
   };
 }
 
@@ -290,8 +328,13 @@ function buildingMoment(
     body:
       building.definition.description +
       ' The blueprint is now available, but it still needs a free Settlement plot and its construction resources.',
-    primaryLabel: 'Open Settlement',
-    target: 'settlement'
+    primaryLabel: 'Show me where to build it',
+    target: 'settlement',
+    focusAfterPrimary: {
+      kind: 'settlement-building',
+      buildingId: building.definition.id,
+      label: 'BUILD ' + building.definition.name.toUpperCase()
+    }
   };
 }
 
@@ -312,8 +355,12 @@ function systemMoment(
       title: 'Settlement building',
       body:
         'Your settlement is now more than a backdrop. Place unlocked buildings on open plots, then upgrade the structures required by future chapter expansions. Build for progression first; adjacency bonuses are optimization, not an early requirement.',
-      primaryLabel: 'Open Settlement',
-      target: 'settlement'
+      primaryLabel: 'Show me a building plot',
+      target: 'settlement',
+      focusAfterPrimary: {
+        kind: 'settlement-first-plot',
+        label: 'TAP AN EMPTY PLOT'
+      }
     };
   }
 
@@ -330,8 +377,12 @@ function systemMoment(
       title: 'Formation now matters',
       body:
         'You have more squads than the opening pair. Tap a squad, then a position to place or move it. Front, middle and rear rows behave differently, and later formation shapes trade protection, width and pressure.',
-      primaryLabel: 'Arrange my squads',
-      target: 'none'
+      primaryLabel: 'Show me how to place a squad',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'formation-basics',
+        label: 'SELECT A SQUAD'
+      }
     };
   }
 
@@ -348,8 +399,12 @@ function systemMoment(
       title: 'Equipment changes progression',
       body:
         'The Forge creates real equipment for individual squads. Weapons, armor, shields and mounts improve combat stats, and some class branches require specific gear combinations rather than only higher levels.',
-      primaryLabel: 'Open Forge',
-      target: 'forge'
+      primaryLabel: 'Show the Forge',
+      target: 'forge',
+      focusAfterPrimary: {
+        kind: 'forge-craft',
+        label: 'CRAFT YOUR FIRST ITEM'
+      }
     };
   }
 
@@ -399,8 +454,12 @@ function systemMoment(
       title: 'Readiness carries between battles',
       body:
         'Damage creates campaign wear. At 70–100% Readiness there is no combat penalty, so you should not resupply after every normal win. Below 70%, fatigue starts reducing effective HP, attack and speed. Rest & Resupply uses provisions to restore the army.',
-      primaryLabel: 'Got it',
-      target: 'none'
+      primaryLabel: 'Show Readiness',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'battle-readiness',
+        label: 'ARMY READINESS'
+      }
     };
   }
 
@@ -416,8 +475,12 @@ function systemMoment(
       title: 'Secured regions now work for you',
       body:
         'Some campaign victories unlock farms, mines, camps or depots. Meaningful activities add their output to regional stock. Claim that stock from Kingdom when you need it; it is part of normal progression, not an ad reward.',
-      primaryLabel: 'Understood',
-      target: 'none'
+      primaryLabel: 'Show regional stock',
+      target: 'kingdom',
+      focusAfterPrimary: {
+        kind: 'kingdom-production',
+        label: 'REGIONAL PRODUCTION'
+      }
     };
   }
 
@@ -433,8 +496,12 @@ function systemMoment(
       title: 'Formation shapes have counters',
       body:
         'Fort-tier armies unlock specialized shapes such as wide fronts and protected rear lines. No shape is simply best: enemy geometry can create an edge or expose a weakness. Save useful setups as loadouts so you can switch quickly in Battle Prep.',
-      primaryLabel: 'Open Formation',
-      target: 'formation'
+      primaryLabel: 'Show formation shapes',
+      target: 'formation',
+      focusAfterPrimary: {
+        kind: 'formation-shape',
+        label: 'CHOOSE A SHAPE'
+      }
     };
   }
 
@@ -450,8 +517,12 @@ function systemMoment(
       title: 'Recovery content is now available',
       body:
         'Expeditions, Formation Trials and Kingdom Defense provide extra resources or tactical practice when you want them. They are useful recovery tools, but normal campaign progress is balanced so they should not become mandatory farming.',
-      primaryLabel: 'Got it',
-      target: 'none'
+      primaryLabel: 'Show Activities',
+      target: 'none',
+      focusAfterPrimary: {
+        kind: 'campaign-activities',
+        label: 'TAP ACTIVITIES'
+      }
     };
   }
 
