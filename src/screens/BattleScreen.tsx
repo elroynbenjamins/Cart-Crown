@@ -18,6 +18,10 @@ import {
 } from '../game/formation';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
+import {
+  appStateAllowsBattleProgress,
+  createOneShotGate
+} from '../game/mobileSession';
 import { useGameTheme } from '../theme/ThemeProvider';
 import type { CommanderSkillEffectType, UnitRole } from '../game/types';
 import { GameCard, PrimaryButton, ProgressBar } from '../ui/components';
@@ -288,7 +292,7 @@ export function BattleScreen({
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
   const [battleSpeed, setBattleSpeed] = useState<BattleSpeed>(1);
   const [appIsActive, setAppIsActive] = useState(
-    AppState.currentState === 'active'
+    appStateAllowsBattleProgress(AppState.currentState)
   );
   const [exchangeFeedback, setExchangeFeedback] = useState<ExchangeFeedback | null>(null);
   const [battleTotals, setBattleTotals] = useState({
@@ -297,7 +301,9 @@ export function BattleScreen({
     healing: 0
   });
   const battleScrollRef = useRef<ScrollView>(null);
-  const outcomeCommittedRef = useRef(false);
+  const outcomeCommitGateRef = useRef(
+    createOneShotGate()
+  );
   const attackPulse = useRef(new Animated.Value(0)).current;
   const impactPulse = useRef(new Animated.Value(0)).current;
   const feedbackPulse = useRef(new Animated.Value(0)).current;
@@ -494,7 +500,9 @@ export function BattleScreen({
     const subscription = AppState.addEventListener(
       'change',
       nextState => {
-        setAppIsActive(nextState === 'active');
+        setAppIsActive(
+          appStateAllowsBattleProgress(nextState)
+        );
       }
     );
 
@@ -1463,8 +1471,7 @@ export function BattleScreen({
         <PrimaryButton
           label="View Results"
           onPress={() => {
-            if (outcomeCommittedRef.current) return;
-            outcomeCommittedRef.current = true;
+            if (!outcomeCommitGateRef.current()) return;
 
             recordBattleWear(
               partyHp,
@@ -1487,8 +1494,7 @@ export function BattleScreen({
         <PrimaryButton
           label="Regroup"
           onPress={() => {
-            if (outcomeCommittedRef.current) return;
-            outcomeCommittedRef.current = true;
+            if (!outcomeCommitGateRef.current()) return;
 
             recordBattleWear(
               partyHp,
