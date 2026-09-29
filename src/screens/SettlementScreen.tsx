@@ -74,7 +74,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         : currentWagonStage.id === 'town' ? 'GREENKEEP TOWN'
         : currentWagonStage.id === 'fort' ? 'GREENKEEP FORT'
         : currentWagonStage.id === 'settlement' ? 'GREENKEEP SETTLEMENT' : 'REFUGEE CAMP';
-  const mapHeight = Math.max(390, Math.ceil(370 * Math.max(1, Number.isFinite(fontScale) ? fontScale : 1)));
+  const mapHeight = Math.max(448, Math.ceil(370 * Math.max(1, Number.isFinite(fontScale) ? fontScale : 1)));
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -92,7 +92,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       </GameCard>
 
       <View style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
-        <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
+        <View pointerEvents="none" style={styles.backdrop}>
           <SettlementTerrainBackdrop faction={activeFaction} />
           <View style={[styles.roadHorizontal, { backgroundColor: theme.colors.surface3 }]} />
           <View style={[styles.roadVertical, { backgroundColor: theme.colors.surface3 }]} />
@@ -200,7 +200,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         </GameCard>
       ) : selectedPlot ? (
         <>
-          <SectionTitle title="Construct Building" trailing={selectedPlot.id.replace('plot_', '').toUpperCase()} />
+          <SectionTitle title="Construct Building" trailing={selectedPlot.id.replace('plot_', '').toUpperCase()}
+          />
           {availableBuildings.length ? (
             <View style={styles.list}>
               {availableBuildings.map(building => {
@@ -301,6 +302,7 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   section: { gap: 8, marginTop: 12 },
   map: { borderRadius: 22, borderWidth: 1, overflow: 'hidden', position: 'relative' },
+  backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
   roadHorizontal: { position: 'absolute', left: '0%', top: '46%', width: '100%', height: 28, opacity: 0.65 },
   roadVertical: { position: 'absolute', left: '46%', top: '0%', width: 28, height: '100%', opacity: 0.65 },
   plot: { position: 'absolute', width: '27%', height: '25%', borderRadius: 16, alignItems: 'center', justifyContent: 'center', padding: 5 },
