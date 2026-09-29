@@ -892,6 +892,103 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     battleTags: ['flying', 'mounted', 'beast', 'charge', 'armored'],
     cost: { gold: 285, iron: 30, provisions: 14 }
   },
+
+  {
+    id: 'human_stone_golem',
+    researchId: 'human_construct_mastery',
+    faction: 'human',
+    family: 'large',
+    className: 'Stone Golem',
+    role: 'frontline',
+    tier: 7,
+    level: 12,
+    hp: 245,
+    attack: 31,
+    armor: 20,
+    speed: 5,
+    battleTags: ['ground', 'large', 'construct', 'armored'],
+    cost: { gold: 420, stone: 55, iron: 40, provisions: 8 }
+  },
+  {
+    id: 'human_arcane_golem',
+    researchId: 'human_construct_mastery',
+    faction: 'human',
+    family: 'large',
+    className: 'Arcane Golem',
+    role: 'frontline',
+    tier: 7,
+    level: 12,
+    hp: 225,
+    attack: 36,
+    armor: 18,
+    speed: 6,
+    battleTags: ['ground', 'large', 'construct', 'armored', 'magic'],
+    cost: { gold: 500, stone: 45, iron: 45, provisions: 8 }
+  },
+  {
+    id: 'elf_ancient_ent',
+    researchId: 'elf_ancient_guardian_mastery',
+    faction: 'elf',
+    family: 'large',
+    className: 'Ancient Ent',
+    role: 'frontline',
+    tier: 7,
+    level: 12,
+    hp: 228,
+    attack: 30,
+    armor: 16,
+    speed: 7,
+    battleTags: ['ground', 'large', 'support'],
+    cost: { gold: 390, wood: 65, provisions: 18 }
+  },
+  {
+    id: 'elf_grove_guardian',
+    researchId: 'elf_ancient_guardian_mastery',
+    faction: 'elf',
+    family: 'large',
+    className: 'Grove Guardian',
+    role: 'support',
+    tier: 7,
+    level: 12,
+    hp: 210,
+    attack: 28,
+    armor: 17,
+    speed: 8,
+    battleTags: ['ground', 'large', 'support', 'magic'],
+    cost: { gold: 455, wood: 75, provisions: 20 }
+  },
+  {
+    id: 'orc_war_troll',
+    researchId: 'orc_great_beast_mastery',
+    faction: 'orc',
+    family: 'large',
+    className: 'War Troll',
+    role: 'melee',
+    tier: 7,
+    level: 12,
+    hp: 260,
+    attack: 36,
+    armor: 13,
+    speed: 7,
+    battleTags: ['ground', 'large', 'beast'],
+    cost: { gold: 400, iron: 30, provisions: 28 }
+  },
+  {
+    id: 'orc_war_mammoth',
+    researchId: 'orc_great_beast_mastery',
+    faction: 'orc',
+    family: 'large',
+    className: 'War Mammoth',
+    role: 'frontline',
+    tier: 7,
+    level: 12,
+    hp: 290,
+    attack: 34,
+    armor: 15,
+    speed: 6,
+    battleTags: ['ground', 'large', 'beast', 'armored', 'charge'],
+    cost: { gold: 520, iron: 35, provisions: 34 }
+  },
 ];
 
 export type FantasyCombatEdge = {
@@ -902,6 +999,61 @@ export type FantasyCombatEdge = {
   detail: string;
   favorable: boolean;
 };
+
+export function getLargeCombatEdge(
+  activeUnits: UnitDefinition[],
+  enemyProfileId: EnemyArmyProfileId
+): FantasyCombatEdge | null {
+  const largeUnits = activeUnits.filter(unit =>
+    unitHasBattleTag(unit, 'large')
+  ).length;
+
+  if (largeUnits === 0) return null;
+
+  let attackMultiplier =
+    1 + Math.min(0.07, largeUnits * 0.035);
+  let incomingDamageMultiplier = 1;
+  let title = 'Formation breaker';
+  let detail =
+    'Large units trade deployment capacity for raw staying power and can disrupt compact ground formations.';
+  let favorable = true;
+
+  if (
+    enemyProfileId === 'shield_host' ||
+    enemyProfileId === 'shock_warband'
+  ) {
+    attackMultiplier =
+      1 + Math.min(0.12, largeUnits * 0.06);
+    title = 'Crush the line';
+    detail =
+      'Large units excel at breaking dense shield and shock formations.';
+  } else if (enemyProfileId === 'missile_company') {
+    incomingDamageMultiplier =
+      1 + Math.min(0.12, largeUnits * 0.06);
+    title = 'Concentrated volleys';
+    detail =
+      'Massed ranged fire can focus large targets before they reach the line.';
+    favorable = false;
+  } else if (enemyProfileId === 'elite_command') {
+    attackMultiplier =
+      Math.max(0.94, 1 - largeUnits * 0.03);
+    incomingDamageMultiplier =
+      1 + Math.min(0.1, largeUnits * 0.05);
+    title = 'Anti-large discipline';
+    detail =
+      'Elite command troops coordinate spears and focus fire against oversized targets.';
+    favorable = false;
+  }
+
+  return {
+    unitCount: largeUnits,
+    attackMultiplier,
+    incomingDamageMultiplier,
+    title,
+    detail,
+    favorable
+  };
+}
 
 export function getFlyingCombatEdge(
   activeUnits: UnitDefinition[],
