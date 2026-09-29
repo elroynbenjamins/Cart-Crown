@@ -114,6 +114,22 @@ export function BattlePrepScreen({
       (stageRank[currentWagonStage.id] ?? 0) >=
       (unlockRank[shape.unlock] ?? 0)
   );
+  const formationSwitchOptions = [...unlockedFormationShapes].sort(
+    (a, b) => {
+      if (a.id === activeFormationShape.id) return -1;
+      if (b.id === activeFormationShape.id) return 1;
+
+      const rank = {
+        advantage: 0,
+        even: 1,
+        disadvantage: 2
+      };
+      return (
+        rank[getFormationMatchup(a.id, enemyShape.id).result] -
+        rank[getFormationMatchup(b.id, enemyShape.id).result]
+      );
+    }
+  );
   const unlockedCounters = getFormationCounters(enemyShape.id)
     .filter(
       shape =>
@@ -321,7 +337,7 @@ export function BattlePrepScreen({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.formationSwitchStrip}
       >
-        {unlockedFormationShapes.map(shape => {
+        {formationSwitchOptions.map(shape => {
           const selected = shape.id === activeFormationShape.id;
           const preview = getFormationMatchup(
             shape.id,
@@ -461,7 +477,7 @@ export function BattlePrepScreen({
         </Text>
         {formationMatchup.result !== 'advantage' && unlockedCounters.length > 0 ? (
           <Text style={[styles.matchupHint, { color: theme.colors.textMuted }]}>
-            Unlocked counters: {unlockedCounters.map(shape => shape.layout + ' ' + shape.name).join(' · ')}
+            Counter available above: {unlockedCounters.map(shape => shape.layout + ' ' + shape.name).join(' · ')}
           </Text>
         ) : null}
       </GameCard>
