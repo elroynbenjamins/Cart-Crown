@@ -16,6 +16,8 @@ import {
   StatusPill,
   UnitPortrait
 } from '../ui/components';
+import { EmphasisText, RoleChip, UnitBadges } from '../ui/SemanticUI';
+import { rolePresentation, semanticColor } from '../ui/semanticColors';
 import { UnitSprite } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
@@ -651,6 +653,9 @@ export function FormationScreen({
       </ScrollView>
 
       <SectionTitle title="Battle positions" trailing={activeFormationShape.layout} />
+      <View style={styles.roleLegend}>
+        {[...new Set(units.filter(unit => formation.includes(unit.id)).map(unit => unit.role))].map(role => <RoleChip key={role} role={role} compact />)}
+      </View>
 
       <View style={styles.board}>
         {rows.map(row => {
@@ -669,6 +674,7 @@ export function FormationScreen({
                   const unitId = formation[slot] ?? null;
                   const unit = units.find(candidate => candidate.id === unitId);
                   const selected = Boolean(unit && selectedUnitId === unit.id);
+                  const roleAccent = semanticColor(theme, unit ? rolePresentation[unit.role]?.tone ?? 'neutral' : 'neutral');
 
                   return (
                     <TutorialFocus
@@ -685,6 +691,9 @@ export function FormationScreen({
                       }
                     >
                     <Pressable
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={unit ? unit.name + ', ' + unit.className + ', ' + (rolePresentation[unit.role]?.label ?? unit.role) + ', ' + row.label + ' position ' + (slot + 1) : 'Empty ' + row.label + ' position ' + (slot + 1)}
                       onPress={() => handleSlot(slot, unitId)}
                       style={[
                         styles.slot,
@@ -711,7 +720,7 @@ export function FormationScreen({
                             style={[
                               styles.slotPortrait,
                               dense && styles.slotPortraitDense,
-                              { borderColor: factionAccent }
+                              { borderColor: roleAccent }
                             ]}
                           >
                             <UnitSprite
@@ -724,7 +733,7 @@ export function FormationScreen({
                             style={[
                               styles.slotName,
                               dense && styles.slotNameDense,
-                              { color: theme.colors.text }
+                              { color: roleAccent }
                             ]}
                             numberOfLines={1}
                           >
@@ -797,7 +806,7 @@ export function FormationScreen({
             <GameCard key={bonus.id} accent={theme.colors.primary}>
               <View style={styles.bonusHeader}>
                 <Text style={[styles.bonusName, { color: theme.colors.text }]}>{bonus.name}</Text>
-                <Text style={[styles.bonusValue, { color: theme.colors.primary }]}>{bonus.value}</Text>
+                <EmphasisText text={bonus.value} style={[styles.bonusValue, { color: theme.colors.textMuted }]} />
               </View>
               <Text style={[styles.bonusBody, { color: theme.colors.textMuted }]}>
                 {bonus.description}
@@ -865,7 +874,8 @@ export function FormationScreen({
                   <UnitPortrait
                     name={unit.name}
                     className={unit.className}
-                    accent={selected ? theme.colors.gold : factionAccent}
+                    accent={selected ? theme.colors.gold : semanticColor(theme, rolePresentation[unit.role]?.tone ?? 'neutral')}
+                    faction={unit.faction}
                     compact
                   />
                   <View style={styles.stats}>
@@ -874,6 +884,7 @@ export function FormationScreen({
                     <Text style={[styles.stat, { color: theme.colors.text }]}>ARM {unit.armor}</Text>
                   </View>
                 </View>
+                <View style={styles.unitBadges}><UnitBadges role={unit.role} tier={unit.tier} battleTags={unit.battleTags} compact /></View>
               </GameCard>
             </Pressable>
             </TutorialFocus>
@@ -891,6 +902,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8
   },
+  roleLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  unitBadges: { marginTop: 8 },
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.05 },
   guideHeader: {
     flexDirection: 'row',
@@ -985,9 +998,9 @@ const styles = StyleSheet.create({
   doctrineName: { fontSize: 14, fontWeight: '900' },
   doctrineBody: { fontSize: 10.5, lineHeight: 15, marginTop: 4 },
   bonusList: { gap: 8 },
-  bonusHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
-  bonusName: { fontSize: 14, fontWeight: '900' },
-  bonusValue: { fontSize: 11, fontWeight: '900' },
+  bonusHeader: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 10 },
+  bonusName: { fontSize: 14, fontWeight: '900', flexShrink: 1 },
+  bonusValue: { fontSize: 11, fontWeight: '900', flexShrink: 1 },
   bonusBody: { fontSize: 11, lineHeight: 16, marginTop: 4 },
   noBonus: { fontSize: 12, textAlign: 'center' },
   unitList: { gap: 8 },
