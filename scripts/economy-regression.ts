@@ -24,6 +24,10 @@ import {
   capitalResourceSites
 } from '../src/game/chapter5';
 import {
+  crownspireResourceSites
+} from '../src/game/chapter6';
+import { royalDecrees } from '../src/game/capital';
+import {
   encounterRewards,
   getEncounter,
   getEnemyArmyProfile,
@@ -54,7 +58,8 @@ import {
   orcFifthRecruitOptions
 } from '../src/game/factionChapter4';
 import {
-  factionChapterFiveResourceSites
+  factionChapterFiveResourceSites,
+  factionMandates
 } from '../src/game/factionChapter5';
 import {
   elfStarterResources,
@@ -150,6 +155,7 @@ const allSites: ResourceSiteDefinition[] = [
   ...marcherResourceSites,
   ...crownroadResourceSites,
   ...capitalResourceSites,
+  ...crownspireResourceSites,
   ...factionChapterTwoResourceSites,
   ...factionChapterThreeResourceSites,
   ...factionChapterFourResourceSites,
@@ -208,6 +214,11 @@ const chapterEncounters: Record<
       'old_royal_lands',
       'ashen_envoy',
       'gate_of_crownspire'
+    ],
+    6: [
+      'sundered_fields',
+      'ashen_court',
+      'return_to_crownspire'
     ]
   },
   elf: {
@@ -235,6 +246,11 @@ const chapterEncounters: Record<
       'elf_wounded_worldroot',
       'elf_ashen_rootkeepers',
       'elf_worldroot_guardian'
+    ],
+    6: [
+      'elf_stars_over_crownspire',
+      'elf_ashen_starwatch',
+      'elf_return_through_roots'
     ]
   },
   orc: {
@@ -262,6 +278,11 @@ const chapterEncounters: Record<
       'orc_no_clan_left_behind',
       'orc_ashen_clanbreakers',
       'orc_last_clanbreaker'
+    ],
+    6: [
+      'orc_truth_at_crownspire',
+      'orc_ashen_warfires',
+      'orc_crownspire_warmaster'
     ]
   }
 };
@@ -886,6 +907,41 @@ function combatModifierForEncounter(
     };
   }
 
+  if (chapter >= 6 && faction === 'human') {
+    const decree = royalDecrees.find(
+      candidate => candidate.id === 'royal_muster'
+    );
+    invariant(decree, 'Royal Muster missing.');
+    return {
+      attackMultiplier: decree.attackMultiplier,
+      armorMultiplier: decree.armorMultiplier,
+      speedMultiplier: 1,
+      commanderSkillPowerMultiplier: 1
+    };
+  }
+
+  if (chapter >= 6 && faction !== 'human') {
+    const policy = factionMandates.find(
+      candidate =>
+        candidate.faction === faction &&
+        candidate.id ===
+          (faction === 'elf'
+            ? 'living_canopy'
+            : 'blood_hunt')
+    );
+    invariant(
+      policy,
+      faction + ' final campaign policy missing.'
+    );
+    return {
+      attackMultiplier: policy.attackMultiplier,
+      armorMultiplier: policy.armorMultiplier,
+      speedMultiplier: policy.speedMultiplier,
+      commanderSkillPowerMultiplier:
+        policy.commanderSkillPowerMultiplier
+    };
+  }
+
   return {
     attackMultiplier: 1,
     armorMultiplier: 1,
@@ -1017,7 +1073,12 @@ function simulateEncounter(
       state.faction,
       chapter,
       id
-    )
+    ),
+    alliance: [
+      'three_seals_convergence',
+      'ashen_triumvirate',
+      'unbound_beacon'
+    ].includes(id)
   });
 }
 
@@ -1878,6 +1939,22 @@ function playHumanChapter(
     return;
   }
 
+  if (chapter === 6) {
+    addEvent(state, {
+      gold: 50,
+      provisions: 30
+    });
+    addEncounter(state, ids[0]!);
+    addEvent(
+      state,
+      {},
+      'concord_cache'
+    );
+    addEncounter(state, ids[1]!);
+    addEncounter(state, ids[2]!);
+    return;
+  }
+
   invariant(
     false,
     'Unsupported Human economy chapter ' +
@@ -2042,6 +2119,7 @@ function runHumanPath() {
 
   playHumanChapter(state, 5);
   prepareTransition(state, 5, 'grand');
+  playHumanChapter(state, 6);
 
   expect(
     state.recoveryActivities <= 8,
@@ -2079,6 +2157,7 @@ function runFactionPath(
     5,
     'capital'
   );
+  playFactionChapter(state, 6);
 
   expect(
     state.recoveryActivities <= 8,
@@ -2089,6 +2168,18 @@ function runFactionPath(
   );
 
   return state;
+}
+
+function runThreeSeals(
+  state: EconomyState
+) {
+  for (const id of [
+    'three_seals_convergence',
+    'ashen_triumvirate',
+    'unbound_beacon'
+  ] as EncounterId[]) {
+    addEncounter(state, id);
+  }
 }
 
 function formatWallet(wallet: ResourceWallet) {
@@ -2142,6 +2233,7 @@ function main() {
   const human = runHumanPath();
   const elf = runFactionPath('elf');
   const orc = runFactionPath('orc');
+  runThreeSeals(human);
 
   printRows();
 
@@ -2186,37 +2278,83 @@ function main() {
       ' provisions'
   );
 
+  console.log(
+    '\nJoined campaign combat'
+  );
+  for (const state of [human, elf, orc]) {
+    console.log(
+      state.faction.padEnd(6) +
+        ' ' +
+        state.battlesWon +
+        ' wins · ' +
+        state.battleDefeats +
+        ' defeats · weakest win ' +
+        state.weakestWinHpPercent +
+        '% HP · ' +
+        state.formationSwitches +
+        ' formation switches'
+    );
+  }
+
   expect(
-    human.resupplyCount <= 6,
-    'Human prepared campaign now requires ' +
-      human.resupplyCount +
-      ' field resupplies before Chapter 6; expected at most 6.'
+    human.battleDefeats <= 1,
+    'Prepared Human route now needs more than one defeat/regroup: ' +
+      human.battleDefeats
   );
   expect(
-    elf.resupplyCount <= 6,
-    'Elf prepared campaign now requires ' +
-      elf.resupplyCount +
-      ' field resupplies before Chapter 6; expected at most 6.'
+    elf.battleDefeats <= 1,
+    'Prepared Elf route now needs more than one defeat/regroup: ' +
+      elf.battleDefeats
   );
   expect(
-    orc.resupplyCount <= 6,
-    'Orc prepared campaign now requires ' +
-      orc.resupplyCount +
-      ' field resupplies before Chapter 6; expected at most 6.'
+    orc.battleDefeats <= 1,
+    'Prepared Orc route now needs more than one defeat/regroup: ' +
+      orc.battleDefeats
+  );
+  expect(
+    human.weakestWinHpPercent >= 8 &&
+      elf.weakestWinHpPercent >= 8 &&
+      orc.weakestWinHpPercent >= 8,
+    'A prepared route now depends on a near-zero-HP deterministic tie edge.'
+  );
+  expect(
+    human.formationSwitches >= 2 &&
+      elf.formationSwitches >= 2 &&
+      orc.formationSwitches >= 2,
+    'Scout-driven formation adaptation is no longer meaningfully used across all three campaigns.'
   );
 
   expect(
-    human.resupplyProvisions <= 70,
+    human.resupplyCount <= 9,
+    'Human prepared campaign now requires ' +
+      human.resupplyCount +
+      ' field resupplies before Chapter 6; expected at most 9.'
+  );
+  expect(
+    elf.resupplyCount <= 9,
+    'Elf prepared campaign now requires ' +
+      elf.resupplyCount +
+      ' field resupplies before Chapter 6; expected at most 9.'
+  );
+  expect(
+    orc.resupplyCount <= 9,
+    'Orc prepared campaign now requires ' +
+      orc.resupplyCount +
+      ' field resupplies before Chapter 6; expected at most 9.'
+  );
+
+  expect(
+    human.resupplyProvisions <= 110,
     'Human prepared campaign spends too many provisions on field recovery: ' +
       human.resupplyProvisions
   );
   expect(
-    elf.resupplyProvisions <= 70,
+    elf.resupplyProvisions <= 110,
     'Elf prepared campaign spends too many provisions on field recovery: ' +
       elf.resupplyProvisions
   );
   expect(
-    orc.resupplyProvisions <= 70,
+    orc.resupplyProvisions <= 110,
     'Orc prepared campaign spends too many provisions on field recovery: ' +
       orc.resupplyProvisions
   );
@@ -2241,7 +2379,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: every faction reaches its final campaign tier without ads while paying required buildings, expansion costs, representative equipment and realistic Readiness resupply costs, with recovery activity remaining inside the anti-grind guardrails.'
+    '\nPASS: every faction completes its full campaign and the shared Three Seals chain remains viable without ads while real combat outcomes, adaptive loadouts, Readiness, resupply, equipment, buildings and expansion costs stay inside the joined anti-grind guardrails.'
   );
 }
 
