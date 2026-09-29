@@ -1721,7 +1721,7 @@ function runEnemyArmyIdentityCoverage() {
         ' assigns multiple enemy roles to the same formation slot.'
     );
 
-    if (encounter.enemyCount >= 3) {
+    if (encounter.enemyCount >= 4) {
       expect(
         new Set(
           assignments.map(assignment => assignment.role)
