@@ -1162,6 +1162,7 @@ export function BattleScreen({
   };
 
   return (
+    <View style={styles.viewport}>
     <ScrollView
       ref={battleScrollRef}
       style={styles.scroll}
@@ -1595,6 +1596,17 @@ export function BattleScreen({
         ) : null}
       </GameCard>
 
+    </ScrollView>
+
+    {battleEnded ? (
+      <View
+        testID="battle-outcome-actions"
+        style={[
+          styles.outcomeActions,
+          compactLayout && styles.outcomeActionsCompact,
+          { backgroundColor: theme.colors.appBg, borderTopColor: theme.colors.border }
+        ]}
+      >
       {finished ? (
         <PrimaryButton
           label="View Results"
@@ -1657,11 +1669,16 @@ export function BattleScreen({
           }}
         />
       ) : null}
-    </ScrollView>
+      </View>
+    ) : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  viewport: { flex: 1, minHeight: 0 },
+  outcomeActions: { flexShrink: 0, padding: 16, paddingTop: 10, borderTopWidth: 1 },
+  outcomeActionsCompact: { padding: 11, paddingTop: 8 },
   scroll: { flex: 1 },
   screen: { flexGrow: 1, padding: 16, gap: 10 },
   screenCompact: { padding: 11, gap: 7 },
