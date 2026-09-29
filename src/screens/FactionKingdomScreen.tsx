@@ -1,32 +1,23 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { factions } from '../game/factions';
-import { getBuildingLevelDefinition } from '../game/kingdom';
 import { useGame } from '../game/GameProvider';
 import type { ResourceWallet } from '../game/types';
 import { getExpansionCost } from '../game/balance';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
-  GameCard,
-  Pill,
-  PrimaryButton,
-  ResourceAmountRow,
-  SecondaryButton,
-  ResourceChip,
-  SectionTitle,
-  StatusPill
+  GameCard, Pill, PrimaryButton, ResourceAmountRow,
+  SecondaryButton, ResourceChip, SectionTitle, StatusPill
 } from '../ui/components';
-import { BuildingSprite, ResourceSiteSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
+import { KingdomBuildings } from '../ui/KingdomBuildings';
+import { BuildingCosts } from '../ui/SettlementUI';
+import { ResourceSiteSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function FactionKingdomScreen({
-  onOpenSettlement,
-  onOpenRecruitment,
-  onOpenCommander,
-  onOpenFactionMandate,
-  tutorialFocus,
-  onTutorialFocusComplete
+  onOpenSettlement, onOpenRecruitment, onOpenCommander, onOpenFactionMandate,
+  tutorialFocus, onTutorialFocusComplete
 }: {
   onOpenSettlement: () => void;
   onOpenRecruitment: () => void;
@@ -37,68 +28,30 @@ export function FactionKingdomScreen({
 }) {
   const { theme } = useGameTheme();
   const {
-    activeFaction,
-    resources,
-    currentWagonStage,
-    recruitChoiceAvailable,
-    recruitChosen,
-    buildings,
-    buildingLevels,
-    settlementAdjacencyBonuses,
-    factionFortUpgradeAvailable,
-    canUpgradeFactionFort,
-    factionTownUpgradeAvailable,
-    canUpgradeFactionTown,
-    factionStrongholdUpgradeAvailable,
-    canUpgradeFactionStronghold,
-    factionCapitalUpgradeAvailable,
-    canUpgradeFactionCapital,
-    upgradeFactionToFort,
-    upgradeFactionToTown,
-    upgradeFactionToStronghold,
-    upgradeFactionToCapital,
-    activeFactionMandate,
-    factionMandateSwitchCost,
-    upgradeBuilding,
-    isBuildingUnlocked,
-    activeCommanderPath,
-    commanderRespecCost,
-    unlockedResourceSites,
-    resourceSites,
-    productionStock,
-    claimProduction
+    activeFaction, resources, currentWagonStage, recruitChoiceAvailable, recruitChosen,
+    buildings, buildingLevels, settlementAdjacencyBonuses, factionFortUpgradeAvailable,
+    canUpgradeFactionFort, factionTownUpgradeAvailable, canUpgradeFactionTown,
+    factionStrongholdUpgradeAvailable, canUpgradeFactionStronghold,
+    factionCapitalUpgradeAvailable, canUpgradeFactionCapital, upgradeFactionToFort,
+    upgradeFactionToTown, upgradeFactionToStronghold, upgradeFactionToCapital,
+    activeFactionMandate, factionMandateSwitchCost, upgradeBuilding, isBuildingUnlocked,
+    activeCommanderPath, commanderRespecCost, unlockedResourceSites, resourceSites,
+    productionStock, claimProduction
   } = useGame();
-
   const [message, setMessage] = useState<string | null>(null);
   const elf = activeFaction === 'elf';
   const accent = elf ? theme.colors.elf : theme.colors.orc;
   const faction = factions[activeFaction];
-
-  const settlementName =
-    elf
-      ? currentWagonStage.id === 'capital'
-        ? 'Starroot Conclave'
-        : currentWagonStage.id === 'stronghold'
-          ? 'Worldroot Sanctuary'
-        : currentWagonStage.id === 'town'
-          ? 'Heartgrove Enclave'
-          : currentWagonStage.id === 'fort'
-            ? 'Heartgrove Wardhold'
-            : 'Heartgrove Sanctuary'
-      : currentWagonStage.id === 'capital'
-        ? 'Warfire Confederacy'
-        : currentWagonStage.id === 'stronghold'
-          ? 'Emberclan High Warhold'
-        : currentWagonStage.id === 'town'
-          ? 'Emberclan Great Warhold'
-          : currentWagonStage.id === 'fort'
-            ? 'Emberclan Warhold'
-            : 'Emberclan Warcamp';
-
-  const productionTotal = Object.values(productionStock).reduce(
-    (total, value) => total + value,
-    0
-  );
+  const settlementName = elf
+    ? currentWagonStage.id === 'capital' ? 'Starroot Conclave'
+      : currentWagonStage.id === 'stronghold' ? 'Worldroot Sanctuary'
+        : currentWagonStage.id === 'town' ? 'Heartgrove Enclave'
+          : currentWagonStage.id === 'fort' ? 'Heartgrove Wardhold' : 'Heartgrove Sanctuary'
+    : currentWagonStage.id === 'capital' ? 'Warfire Confederacy'
+      : currentWagonStage.id === 'stronghold' ? 'Emberclan High Warhold'
+        : currentWagonStage.id === 'town' ? 'Emberclan Great Warhold'
+          : currentWagonStage.id === 'fort' ? 'Emberclan Warhold' : 'Emberclan Warcamp';
+  const productionTotal = Object.values(productionStock).reduce((total, value) => total + value, 0);
 
   let goalTitle = elf ? 'Restore the Last Heartgrove' : 'Gather the Clans';
   let goalBody = elf
@@ -114,10 +67,7 @@ export function FactionKingdomScreen({
     goalBody = 'Your new settlement can support one more active squad.';
     goalButton = 'Choose third squad';
     goalDisabled = false;
-    goalAction = () => {
-      onOpenRecruitment();
-      return true;
-    };
+    goalAction = () => { onOpenRecruitment(); return true; };
   } else if (factionFortUpgradeAvailable) {
     goalTitle = elf ? 'Raise Heartgrove Wardhold' : 'Raise Emberclan Warhold';
     goalBody = elf
@@ -161,16 +111,9 @@ export function FactionKingdomScreen({
       : elf
         ? 'Choose a Worldroot Attunement before the Conclave begins its final Crownspire campaign.'
         : 'Choose a Clan Pact before the Confederacy begins its final Crownspire campaign.';
-    goalButton = activeFactionMandate
-      ? 'Chapter 6 underway'
-      : elf
-        ? 'Choose Worldroot Attunement'
-        : 'Choose Clan Pact';
+    goalButton = activeFactionMandate ? 'Chapter 6 underway' : elf ? 'Choose Worldroot Attunement' : 'Choose Clan Pact';
     goalDisabled = Boolean(activeFactionMandate);
-    goalAction = () => {
-      onOpenFactionMandate();
-      return true;
-    };
+    goalAction = () => { onOpenFactionMandate(); return true; };
   } else if (currentWagonStage.id === 'stronghold') {
     goalTitle = elf ? 'Heal the Wounded Worldroot' : 'Leave No Clan Behind';
     goalBody = elf
@@ -199,19 +142,11 @@ export function FactionKingdomScreen({
       <GameCard accent={accent} faction={activeFaction}>
         <View style={styles.heroRow}>
           <View style={styles.heroCopy}>
-            <Text style={[styles.eyebrow, { color: accent }]}>
-              {faction.name.toUpperCase()} KINGDOM
-            </Text>
+            <Text style={[styles.eyebrow, { color: accent }]}>{faction.name.toUpperCase()} KINGDOM</Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>{settlementName}</Text>
-            <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-              {faction.gameplayIdentity}
-            </Text>
+            <Text style={[styles.body, { color: theme.colors.textMuted }]}>{faction.gameplayIdentity}</Text>
           </View>
-          <SettlementStageSprite
-            stageId={currentWagonStage.id as any}
-            faction={activeFaction}
-            size={78}
-          />
+          <SettlementStageSprite stageId={currentWagonStage.id as any} faction={activeFaction} size={78} />
         </View>
       </GameCard>
 
@@ -226,70 +161,34 @@ export function FactionKingdomScreen({
         <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>CURRENT KINGDOM GOAL</Text>
         <Text style={[styles.goalTitle, { color: theme.colors.text }]}>{goalTitle}</Text>
         <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>{goalBody}</Text>
-        {goalCost ? (
-          <View style={styles.goalCost}>
-            <ResourceAmountRow values={goalCost} compact />
-          </View>
-        ) : null}
-        <View style={styles.button}>
-          <PrimaryButton label={goalButton} disabled={goalDisabled} onPress={goalAction} />
-        </View>
+        {goalCost ? <BuildingCosts cost={goalCost} wallet={resources} title="Expansion cost" /> : null}
+        <View style={styles.button}><PrimaryButton label={goalButton} disabled={goalDisabled} onPress={goalAction} /></View>
       </GameCard>
 
       <GameCard accent={accent}>
         <View style={styles.settlementRow}>
           <View style={styles.settlementCopy}>
             <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Settlement View</Text>
-            <Text style={[styles.cardBody, { color: theme.colors.textMuted }]}>
-              Place faction-specific buildings and tune {settlementAdjacencyBonuses.length} active adjacency {settlementAdjacencyBonuses.length === 1 ? 'bonus' : 'bonuses'}.
-            </Text>
+            <Text style={[styles.cardBody, { color: theme.colors.textMuted }]}>Place faction-specific buildings and tune {settlementAdjacencyBonuses.length} active adjacency {settlementAdjacencyBonuses.length === 1 ? 'bonus' : 'bonuses'}.</Text>
           </View>
-          <SettlementStageSprite
-            stageId={currentWagonStage.id as any}
-            faction={activeFaction}
-            size={58}
-          />
+          <SettlementStageSprite stageId={currentWagonStage.id as any} faction={activeFaction} size={58} />
         </View>
-        <View style={styles.button}>
-          <PrimaryButton label="Open Settlement View" onPress={onOpenSettlement} />
-        </View>
+        <View style={styles.button}><PrimaryButton label="Open Settlement View" onPress={onOpenSettlement} /></View>
       </GameCard>
 
       {currentWagonStage.id === 'capital' ? (
         <GameCard accent={accent}>
           <View style={styles.commanderRow}>
             <View style={styles.commanderCopy}>
-              <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
-                {activeFactionMandate?.name ??
-                  (elf ? 'Worldroot Attunement' : 'Clan Pact')}
-              </Text>
-              <Text style={[styles.cardBody, { color: theme.colors.textMuted }]}>
-                {activeFactionMandate
-                  ? activeFactionMandate.effectText +
-                    ' Changing it costs ' +
-                    factionMandateSwitchCost +
-                    ' Gold.'
-                  : 'One strategic choice can be active at a time. Your first choice is free.'}
-              </Text>
+              <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{activeFactionMandate?.name ?? (elf ? 'Worldroot Attunement' : 'Clan Pact')}</Text>
+              <Text style={[styles.cardBody, { color: theme.colors.textMuted }]}>{activeFactionMandate
+                ? activeFactionMandate.effectText + ' Changing it costs ' + factionMandateSwitchCost + ' Gold.'
+                : 'One strategic choice can be active at a time. Your first choice is free.'}</Text>
             </View>
-            <StatusPill
-              label={activeFactionMandate ? 'ACTIVE' : 'CHOOSE'}
-              tone={activeFactionMandate ? 'current' : 'available'}
-            />
+            <StatusPill label={activeFactionMandate ? 'ACTIVE' : 'CHOOSE'} tone={activeFactionMandate ? 'current' : 'available'} />
           </View>
           <View style={styles.button}>
-            <PrimaryButton
-              label={
-                activeFactionMandate
-                  ? elf
-                    ? 'Manage Attunement'
-                    : 'Manage Clan Pact'
-                  : elf
-                    ? 'Choose Attunement'
-                    : 'Choose Clan Pact'
-              }
-              onPress={onOpenFactionMandate}
-            />
+            <PrimaryButton label={activeFactionMandate ? elf ? 'Manage Attunement' : 'Manage Clan Pact' : elf ? 'Choose Attunement' : 'Choose Clan Pact'} onPress={onOpenFactionMandate} />
           </View>
         </GameCard>
       ) : null}
@@ -298,21 +197,12 @@ export function FactionKingdomScreen({
         <GameCard>
           <View style={styles.commanderRow}>
             <View style={styles.commanderCopy}>
-              <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
-                {activeCommanderPath.name}
-              </Text>
-              <Text style={[styles.cardBody, { color: theme.colors.textMuted }]}>
-                {activeCommanderPath.passiveDescription}
-              </Text>
+              <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{activeCommanderPath.name}</Text>
+              <Text style={[styles.cardBody, { color: theme.colors.textMuted }]}>{activeCommanderPath.passiveDescription}</Text>
             </View>
             <Pill label={activeCommanderPath.title.toUpperCase()} />
           </View>
-          <View style={styles.button}>
-            <PrimaryButton
-              label={'Retrain · ' + commanderRespecCost + ' Gold'}
-              onPress={onOpenCommander}
-            />
-          </View>
+          <View style={styles.button}><PrimaryButton label={'Retrain · ' + commanderRespecCost + ' Gold'} onPress={onOpenCommander} /></View>
         </GameCard>
       ) : null}
 
@@ -320,123 +210,51 @@ export function FactionKingdomScreen({
         <>
           <SectionTitle title="Regional Production" trailing={productionTotal > 0 ? 'Stock ready' : 'Building stock'} />
           <View style={styles.productionGrid}>
-            {resourceSites
-              .filter(site => unlockedResourceSites.includes(site.id))
-              .map(site => (
-                <GameCard key={site.id} style={styles.productionCard} accent={accent}>
-                  <View style={styles.productionIcon}><ResourceSiteSprite siteId={site.id} faction={activeFaction} size={44} /></View>
-                  <Text style={[styles.productionName, { color: theme.colors.text }]}>{site.name}</Text>
-                  <View style={styles.productionAmounts}>
-                    <ResourceAmountRow values={site.productionPerActivity} prefix="+" compact />
-                  </View>
-                </GameCard>
-              ))}
+            {resourceSites.filter(site => unlockedResourceSites.includes(site.id)).map(site => (
+              <GameCard key={site.id} style={styles.productionCard} accent={accent}>
+                <View style={styles.productionIcon}><ResourceSiteSprite siteId={site.id} faction={activeFaction} size={44} /></View>
+                <Text style={[styles.productionName, { color: theme.colors.text }]}>{site.name}</Text>
+                <View style={styles.productionAmounts}><ResourceAmountRow values={site.productionPerActivity} prefix="+" compact /></View>
+              </GameCard>
+            ))}
           </View>
-          <TutorialFocus
-            active={tutorialFocus?.kind === 'kingdom-production'}
-            label={tutorialFocus?.kind === 'kingdom-production' ? tutorialFocus.label : undefined}
-          >
-          <GameCard>
-            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Unclaimed Production</Text>
-            <View style={styles.productionAmounts}>
-              <ResourceAmountRow values={productionStock} />
-            </View>
-            <View style={styles.button}>
-              <PrimaryButton
-                label="Claim Production"
-                disabled={productionTotal <= 0}
-                onPress={() => {
+          <TutorialFocus active={tutorialFocus?.kind === 'kingdom-production'} label={tutorialFocus?.kind === 'kingdom-production' ? tutorialFocus.label : undefined}>
+            <GameCard>
+              <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Unclaimed Production</Text>
+              <View style={styles.productionAmounts}><ResourceAmountRow values={productionStock} /></View>
+              <View style={styles.button}>
+                <PrimaryButton label="Claim Production" disabled={productionTotal <= 0} onPress={() => {
                   const ok = claimProduction();
-                  setMessage(
-                    ok
-                      ? 'Regional production transferred to the settlement.'
-                      : 'No production is ready yet.'
-                  );
-                  if (
-                    ok &&
-                    tutorialFocus?.kind === 'kingdom-production'
-                  ) {
-                    onTutorialFocusComplete?.();
-                  }
-                }}
-              />
-              {tutorialFocus?.kind === 'kingdom-production' ? (
-                <View style={styles.guidanceLaterButton}>
-                  <SecondaryButton
-                    label={productionTotal > 0 ? 'Claim later' : 'Got it'}
-                    onPress={onTutorialFocusComplete}
-                  />
-                </View>
-              ) : null}
-            </View>
-          </GameCard>
+                  setMessage(ok ? 'Regional production transferred to the settlement.' : 'No production is ready yet.');
+                  if (ok && tutorialFocus?.kind === 'kingdom-production') onTutorialFocusComplete?.();
+                }} />
+                {tutorialFocus?.kind === 'kingdom-production' ? (
+                  <View style={styles.guidanceLaterButton}>
+                    <SecondaryButton label={productionTotal > 0 ? 'Claim later' : 'Got it'} onPress={onTutorialFocusComplete} />
+                  </View>
+                ) : null}
+              </View>
+            </GameCard>
           </TutorialFocus>
         </>
       ) : null}
 
-      <SectionTitle title="Faction Buildings" trailing="Build in Settlement View" />
-      <View style={styles.buildingGrid}>
-        {buildings.map(building => {
-          const unlocked = isBuildingUnlocked(building.id);
-          const level = buildingLevels[building.id] ?? 0;
-          const next = level > 0
-            ? getBuildingLevelDefinition(building.id, level + 1)
-            : null;
-
-          return (
-            <GameCard
-              key={building.id}
-              style={styles.buildingCard}
-              accent={unlocked && level > 0 ? accent : undefined}
-            >
-              <View style={styles.buildingTop}>
-                <BuildingSprite buildingId={building.id} faction={activeFaction} size={42} />
-                <StatusPill
-                  label={level > 0 ? 'LV.' + level : unlocked ? 'BLUEPRINT' : 'LOCKED'}
-                  tone={level > 0 ? 'available' : unlocked ? 'available' : 'locked'}
-                />
-              </View>
-              <Text style={[styles.buildingName, { color: theme.colors.text }]}>{building.name}</Text>
-              <Text style={[styles.buildingBody, { color: theme.colors.textMuted }]}>{building.description}</Text>
-
-              {level <= 0 ? (
-                <Text style={[styles.buildingHint, { color: unlocked ? accent : theme.colors.textMuted }]}>
-                  {unlocked ? 'Choose a plot to construct.' : 'Progress Chapter 2 to unlock.'}
-                </Text>
-              ) : next ? (
-                <>
-                  <Text style={[styles.buildingHint, { color: accent }]}>Next: {next.effect}</Text>
-                  <View style={styles.buildingCost}>
-                    <ResourceAmountRow values={next.cost} compact />
-                  </View>
-                  <View style={styles.button}>
-                    <PrimaryButton
-                      label={'Upgrade to Lv.' + (level + 1)}
-                      onPress={() =>
-                        setMessage(
-                          upgradeBuilding(building.id)
-                            ? building.name + ' upgraded.'
-                            : 'Requirements or resources are missing.'
-                        )
-                      }
-                    />
-                  </View>
-                </>
-              ) : null}
-            </GameCard>
-          );
-        })}
-      </View>
-
-      {message ? (
-        <Text style={[styles.message, { color: theme.colors.textMuted }]}>{message}</Text>
-      ) : null}
+      <KingdomBuildings
+        key={activeFaction}
+        buildings={buildings}
+        levels={buildingLevels}
+        wallet={resources}
+        isBuildingUnlocked={isBuildingUnlocked}
+        onUpgrade={upgradeBuilding}
+        onOpenSettlement={onOpenSettlement}
+      />
+      {message ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.textMuted }]}>{message}</Text> : null}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 14 },
+  content: { padding: 16, paddingBottom: 32, gap: 12 },
   heroRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   heroCopy: { flex: 1 },
   eyebrow: { fontSize: 9.5, fontWeight: '900', letterSpacing: 1.1 },
@@ -444,8 +262,7 @@ const styles = StyleSheet.create({
   body: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
   resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
   goalTitle: { fontSize: 17, fontWeight: '900', marginTop: 4 },
-  goalBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
-  goalCost: { marginTop: 9 },
+  goalBody: { fontSize: 13, lineHeight: 20, marginTop: 5 },
   button: { marginTop: 10 },
   guidanceLaterButton: { marginTop: 8 },
   settlementRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -458,16 +275,6 @@ const styles = StyleSheet.create({
   productionCard: { width: '48%' },
   productionIcon: { height: 46, alignItems: 'center', justifyContent: 'center' },
   productionName: { fontSize: 12.5, fontWeight: '900', marginTop: 5 },
-  productionRate: { fontSize: 9, fontWeight: '900', lineHeight: 14, marginTop: 6 },
-  productionStock: { fontSize: 10.5, fontWeight: '900', lineHeight: 16, marginTop: 6 },
   productionAmounts: { marginTop: 7 },
-  buildingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  buildingCard: { width: '48%' },
-  buildingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  buildingName: { fontSize: 13.5, fontWeight: '900', marginTop: 7 },
-  buildingBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
-  buildingHint: { fontSize: 9, lineHeight: 13, fontWeight: '800', marginTop: 7 },
-  buildingCost: { marginTop: 8 },
-  cost: { fontSize: 8.5, fontWeight: '900', lineHeight: 13, marginTop: 5 },
-  message: { textAlign: 'center', fontSize: 10.5, fontWeight: '800' }
+  message: { textAlign: 'center', fontSize: 12, lineHeight: 18, fontWeight: '800' }
 });
