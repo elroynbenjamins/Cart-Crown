@@ -56,6 +56,7 @@ function baseContext(
     kingdomTrialsUnlocked: false,
     kingdomDefenseModeUnlocked: false,
     expeditionsUnlocked: false,
+    siegesUnlocked: false,
     magicStoryUnlocked: false,
     flyingStoryUnlocked: false,
     largeStoryUnlocked: false,
@@ -596,6 +597,35 @@ function runSystemCoverage() {
   expect(
     expeditions?.key === 'system:expeditions',
     'Expedition lesson did not wait until the later campaign gate.'
+  );
+
+  const sieges = getNextTutorialMoment(
+    baseContext({
+      view: 'campaign',
+      tutorialSeen: [
+        ...core,
+        'system:war-table',
+        'system:kingdom-trials',
+        'system:kingdom-defense-repeatable',
+        'system:expeditions'
+      ],
+      warTableUnlocked: true,
+      kingdomTrialsUnlocked: true,
+      kingdomDefenseModeUnlocked: true,
+      expeditionsUnlocked: true,
+      siegesUnlocked: true
+    })
+  );
+  expect(
+    sieges?.key === 'system:sieges',
+    'Offensive Siege lesson did not wait for its own Chapter 3 activity gate.'
+  );
+  expect(
+    sieges?.focusAfterPrimary?.kind ===
+      'campaign-activities' &&
+      sieges.focusAfterPrimary.modeId ===
+        'sieges',
+    'Offensive Siege lesson does not route to the Siege activity.'
   );
 }
 
