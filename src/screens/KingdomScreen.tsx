@@ -17,17 +17,23 @@ import {
   StatusPill
 } from '../ui/components';
 import { BuildingSprite, ResourceSiteSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function KingdomScreen({
   onOpenRecruitment,
   onOpenForge,
   onOpenSettlement,
-  onOpenRoyalDecrees
+  onOpenRoyalDecrees,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onOpenRecruitment: () => void;
   onOpenForge: () => void;
   onOpenSettlement: () => void;
   onOpenRoyalDecrees: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -333,6 +339,10 @@ export function KingdomScreen({
               ))}
           </View>
 
+          <TutorialFocus
+            active={tutorialFocus?.kind === 'kingdom-production'}
+            label={tutorialFocus?.kind === 'kingdom-production' ? tutorialFocus.label : undefined}
+          >
           <GameCard>
             <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>Unclaimed Production</Text>
             <View style={styles.productionAmounts}>
@@ -348,10 +358,17 @@ export function KingdomScreen({
                 onPress={() => {
                   const ok = claimProduction();
                   setBuildingMessage(ok ? 'Regional production transferred to Greenkeep.' : 'No production is ready yet.');
+                  if (
+                    ok &&
+                    tutorialFocus?.kind === 'kingdom-production'
+                  ) {
+                    onTutorialFocusComplete?.();
+                  }
                 }}
               />
             </View>
           </GameCard>
+          </TutorialFocus>
         </>
       ) : null}
 
