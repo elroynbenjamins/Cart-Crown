@@ -208,7 +208,7 @@ export function CampaignScreen({
     isSideModeUnlocked,
     expeditionTickets,
     expeditionRunsCompleted,
-    formationTrialCompleted,
+    kingdomTrialCompletions,
     claimRewardedAd,
     rewardedAdClaims,
     rewardedAdMessage
@@ -899,9 +899,19 @@ export function CampaignScreen({
             </Text>
           ) : null}
 
-          {mode.id === 'formation_trials' && formationTrialCompleted ? (
+          {mode.id === 'formation_trials' ? (
             <View style={styles.modeStatusRow}>
-              <StatusPill label="FIRST TRIAL COMPLETE" tone="done" />
+              <StatusPill
+                label={
+                  kingdomTrialCompletions.length +
+                  '/3 MEDALS'
+                }
+                tone={
+                  kingdomTrialCompletions.length >= 3
+                    ? 'done'
+                    : 'current'
+                }
+              />
             </View>
           ) : null}
 
