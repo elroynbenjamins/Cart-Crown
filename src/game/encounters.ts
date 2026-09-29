@@ -11,6 +11,9 @@ export type EncounterId =
   | 'war_table_hollow_guard'
   | 'war_table_ironclad_push'
   | 'war_table_crownroad_lancers'
+  | 'war_table_ashen_hex_circle'
+  | 'war_table_sky_raiders'
+  | 'war_table_golem_breach'
   | 'mercenary_patrol'
   | 'toll_captain'
   | 'ch2_defend_camp'
@@ -167,6 +170,36 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 6,
     enemyHp: 270,
     difficulty: 'Elite'
+  },
+  war_table_ashen_hex_circle: {
+    id: 'war_table_ashen_hex_circle',
+    name: 'Ashen Hex Circle',
+    subtitle: 'An Ashen ritual cell is testing battlefield hexes against patrol routes and hiding its casters behind a warded screen.',
+    enemyName: 'Ashen Hex Circle',
+    enemyCount: 6,
+    enemyHp: 760,
+    difficulty: 'Elite',
+    fantasyThreat: 'magic'
+  },
+  war_table_sky_raiders: {
+    id: 'war_table_sky_raiders',
+    name: 'Sky Raiders',
+    subtitle: 'Aerial raiders are bypassing road defenses and striking messengers, supply wagons and exposed rear positions.',
+    enemyName: 'Ashen Sky Raiders',
+    enemyCount: 6,
+    enemyHp: 980,
+    difficulty: 'Elite',
+    fantasyThreat: 'flying'
+  },
+  war_table_golem_breach: {
+    id: 'war_table_golem_breach',
+    name: 'Golem Breach',
+    subtitle: 'Oversized Ashen constructs are advancing in a compact assault column and smashing through ordinary roadblocks.',
+    enemyName: 'Ashen Golem Vanguard',
+    enemyCount: 6,
+    enemyHp: 1280,
+    difficulty: 'Elite',
+    fantasyThreat: 'large'
   },
   mercenary_patrol: {
     id: 'mercenary_patrol',
@@ -544,7 +577,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyName: 'Ashen Druid Circle',
     enemyCount: 6,
     enemyHp: 1320,
-    difficulty: 'Boss'
+    difficulty: 'Boss',
+    fantasyThreat: 'magic'
   },
   orc_two_front_war: {
     id: 'orc_two_front_war',
@@ -598,7 +632,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyName: 'Worldroot Guardian',
     enemyCount: 6,
     enemyHp: 1960,
-    difficulty: 'Boss'
+    difficulty: 'Boss',
+    fantasyThreat: 'large'
   },
   orc_no_clan_left_behind: {
     id: 'orc_no_clan_left_behind',
@@ -670,7 +705,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyName: 'Ashen Warfire Host',
     enemyCount: 6,
     enemyHp: 2190,
-    difficulty: 'Elite'
+    difficulty: 'Elite',
+    fantasyThreat: 'magic'
   },
   orc_crownspire_warmaster: {
     id: 'orc_crownspire_warmaster',
@@ -797,6 +833,9 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   war_table_hollow_guard: 'deep_234',
   war_table_ironclad_push: 'heavy_front_441',
   war_table_crownroad_lancers: 'skirmish_screen_243',
+  war_table_ashen_hex_circle: 'protected_rear_225',
+  war_table_sky_raiders: 'skirmish_screen_243',
+  war_table_golem_breach: 'heavy_front_441',
   mercenary_patrol: 'assault_432',
   toll_captain: 'wide_vanguard_522',
   ch2_defend_camp: 'assault_432',
@@ -1091,6 +1130,9 @@ const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>
   war_table_hollow_guard: 'warded_host',
   war_table_ironclad_push: 'shock_warband',
   war_table_crownroad_lancers: 'mounted_hunters',
+  war_table_ashen_hex_circle: 'warded_host',
+  war_table_sky_raiders: 'mounted_hunters',
+  war_table_golem_breach: 'shock_warband',
   mercenary_patrol: 'mercenary_line',
   ch2_defend_camp: 'raider_pack',
   ch2_beyond_fires: 'mercenary_line',
@@ -1248,6 +1290,18 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   war_table_crownroad_lancers: {
     resources: { gold: 50, iron: 2, provisions: 5 },
     storySummary: 'The veteran riders are forced off the route after their maneuver lanes close. Patrol traffic resumes.'
+  },
+  war_table_ashen_hex_circle: {
+    resources: { gold: 46, wood: 5, provisions: 4 },
+    storySummary: 'The ritual cell collapses after its warded caster screen is disrupted. Patrols recover supplies and a useful record of Ashen spell tactics.'
+  },
+  war_table_sky_raiders: {
+    resources: { gold: 52, iron: 3, provisions: 6 },
+    storySummary: 'The Sky Raiders lose control of the air approaches and abandon the route. Scouts recover gear and intact supply packs.'
+  },
+  war_table_golem_breach: {
+    resources: { gold: 55, stone: 6, iron: 5 },
+    storySummary: 'The Golem Vanguard is dismantled before it reaches the inner roads. Salvaged stone and metal are returned to the kingdom.'
   },
   mercenary_patrol: {
     resources: { gold: 65, wood: 8, iron: 5, provisions: 3 },

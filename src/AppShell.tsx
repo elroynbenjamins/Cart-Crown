@@ -18,6 +18,7 @@ import {
   shouldRequestChapterOneReview
 } from './game/tutorial';
 import type { TutorialFocusTarget } from './game/tutorial';
+import { getEncounter } from './game/encounters';
 import type { EncounterId } from './game/encounters';
 import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
@@ -363,7 +364,11 @@ export function AppShell({
     completedHybridResearch:
       hybridResearchDefinitions.filter(
         research => researchProgress[research.id]?.completed
-      ).length
+      ).length,
+    enemyFantasyThreatFamily:
+      flow === 'battlePrep'
+        ? getEncounter(activeEncounterId).fantasyThreat ?? null
+        : null
   });
 
   const tutorialMoment =

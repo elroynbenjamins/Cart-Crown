@@ -18,6 +18,7 @@
     "defense:check": "tsx scripts/kingdom-defense-regression.ts",
     "expedition:check": "tsx scripts/expedition-regression.ts",
     "war-table:check": "tsx scripts/war-table-regression.ts",
+    "fantasy-enemy:check": "tsx scripts/fantasy-enemy-regression.ts",
     "side-mode-difficulty:check": "tsx scripts/side-mode-difficulty-regression.ts",
     "siege:check": "tsx scripts/siege-regression.ts",
     "relic-hunt:check": "tsx scripts/relic-hunt-regression.ts",
