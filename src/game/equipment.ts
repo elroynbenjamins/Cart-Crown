@@ -680,6 +680,49 @@ export const equipmentDefinitions: EquipmentDefinition[] = [
     requiredForgeLevel: 3,
     upgradeFromId: 'orc_reinforced_warhide',
     description: 'Tier III Orc armor built to keep melee units alive deep into Momentum fights.'
+  },
+
+  {
+    id: 'hum_oathglass_relic',
+    name: 'Oathglass Lens',
+    faction: 'human',
+    slot: 'artifact',
+    tier: 4,
+    tags: ['artifact', 'relic', 'magic', 'human'],
+    attackBonus: 6,
+    armorBonus: 4,
+    speedBonus: 2,
+    craftCost: {},
+    requiredForgeLevel: 0,
+    description: 'Unique Relic Hunt artifact. Refracted oath-runes sharpen offense, protection and tactical timing without replacing normal equipment.'
+  },
+  {
+    id: 'elf_moonroot_relic',
+    name: 'Moonroot Sigil',
+    faction: 'elf',
+    slot: 'artifact',
+    tier: 4,
+    tags: ['artifact', 'relic', 'magic', 'elf'],
+    attackBonus: 4,
+    armorBonus: 4,
+    speedBonus: 4,
+    craftCost: {},
+    requiredForgeLevel: 0,
+    description: 'Unique Relic Hunt artifact. Living moonroot channels speed and warding into whichever squad carries the sigil.'
+  },
+  {
+    id: 'orc_emberfang_relic',
+    name: 'Emberfang Totem',
+    faction: 'orc',
+    slot: 'artifact',
+    tier: 4,
+    tags: ['artifact', 'relic', 'magic', 'orc'],
+    attackBonus: 7,
+    armorBonus: 5,
+    speedBonus: 1,
+    craftCost: {},
+    requiredForgeLevel: 0,
+    description: 'Unique Relic Hunt artifact. The bound emberfang strengthens pressure and staying power without consuming a weapon slot.'
   }
 ];
 
