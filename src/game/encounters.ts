@@ -1491,6 +1491,104 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   }
 };
 
+const standardWarTableEncounters = new Set<EncounterId>([
+  'war_table_broken_spear',
+  'war_table_blackwood_ambush',
+  'war_table_dusk_riders',
+  'war_table_stonegate_pikes'
+]);
+
+const veteranWarTableEncounters = new Set<EncounterId>([
+  'war_table_red_banner',
+  'war_table_ashen_reserves',
+  'war_table_hollow_guard'
+]);
+
+const eliteWarTableEncounters = new Set<EncounterId>([
+  'war_table_ironclad_push',
+  'war_table_crownroad_lancers'
+]);
+
+export function getWarTableEncounterScaling(
+  id: EncounterId,
+  chapterNumber: number
+) {
+  const chapter = Math.max(
+    1,
+    Math.min(6, Math.floor(chapterNumber))
+  );
+
+  if (standardWarTableEncounters.has(id)) {
+    return {
+      hpMultiplier:
+        1 + (chapter - 1) * 0.22,
+      pressureMultiplier:
+        1 + (chapter - 1) * 0.04
+    };
+  }
+
+  if (veteranWarTableEncounters.has(id)) {
+    const laterChapter = Math.max(
+      0,
+      chapter - 2
+    );
+    return {
+      hpMultiplier:
+        1.65 + laterChapter * 0.26,
+      pressureMultiplier:
+        1.16 + laterChapter * 0.055
+    };
+  }
+
+  if (eliteWarTableEncounters.has(id)) {
+    const laterChapter = Math.max(
+      0,
+      chapter - 3
+    );
+    return {
+      hpMultiplier:
+        1.95 + laterChapter * 0.3,
+      pressureMultiplier:
+        1.22 + laterChapter * 0.065
+    };
+  }
+
+  return {
+    hpMultiplier: 1,
+    pressureMultiplier: 1
+  };
+}
+
 export function getEncounter(id: EncounterId) {
   return encounters[id];
+}
+
+export function getEncounterForChapter(
+  id: EncounterId,
+  chapterNumber: number
+) {
+  const encounter = getEncounter(id);
+  if (!id.startsWith('war_table_')) {
+    return encounter;
+  }
+
+  const scaling =
+    getWarTableEncounterScaling(
+      id,
+      chapterNumber
+    );
+
+  return {
+    ...encounter,
+    enemyHp: Math.max(
+      1,
+      Math.round(
+        encounter.enemyHp *
+          scaling.hpMultiplier
+      )
+    ),
+    pressureMultiplier:
+      (encounter.pressureMultiplier ?? 1) *
+      scaling.pressureMultiplier
+  };
 }
