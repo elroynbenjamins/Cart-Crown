@@ -5,8 +5,15 @@ import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { ResourceSprite, StoryScene } from '../ui/gameArt';
+import type { BattleCombatSummary } from './BattleScreen';
 
-export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
+export function ResultsScreen({
+  battleSummary,
+  onContinue
+}: {
+  battleSummary?: BattleCombatSummary | null;
+  onContinue: () => void;
+}) {
   const { theme } = useGameTheme();
   const {
     activeFaction,
@@ -17,6 +24,12 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
     rewardedAdClaims,
     rewardedAdMessage
   } = useGame();
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
 
   if (!lastBattleResult) {
     return (
@@ -159,6 +172,50 @@ export function ResultsScreen({ onContinue }: { onContinue: () => void }) {
           <StoryScene scene={resultScene} faction={activeFaction} size={248} />
         </View>
       </View>
+
+      {battleSummary ? (
+        <>
+          <SectionTitle title="Battle report" trailing={String(battleSummary.exchanges) + ' exchanges'} />
+          <GameCard faction={activeFaction}>
+            <View style={styles.reportGrid}>
+              <View style={[styles.reportMetric, { backgroundColor: theme.colors.surface2 }]}>
+                <Text style={[styles.reportValue, { color: theme.colors.primary }]}>
+                  {battleSummary.damageDealt}
+                </Text>
+                <Text style={[styles.reportLabel, { color: theme.colors.textMuted }]}>
+                  DAMAGE DEALT
+                </Text>
+              </View>
+              <View style={[styles.reportMetric, { backgroundColor: theme.colors.surface2 }]}>
+                <Text style={[styles.reportValue, { color: theme.colors.danger }]}>
+                  {battleSummary.damageTaken}
+                </Text>
+                <Text style={[styles.reportLabel, { color: theme.colors.textMuted }]}>
+                  DAMAGE TAKEN
+                </Text>
+              </View>
+              <View style={[styles.reportMetric, { backgroundColor: theme.colors.surface2 }]}>
+                <Text style={[styles.reportValue, { color: factionAccent }]}>
+                  {battleSummary.healing}
+                </Text>
+                <Text style={[styles.reportLabel, { color: theme.colors.textMuted }]}>
+                  RECOVERED
+                </Text>
+              </View>
+              <View style={[styles.reportMetric, { backgroundColor: theme.colors.surface2 }]}>
+                <Text style={[styles.reportValue, { color: theme.colors.gold }]}>
+                  {battleSummary.maxHp > 0
+                    ? Math.round((battleSummary.remainingHp / battleSummary.maxHp) * 100)
+                    : 0}%
+                </Text>
+                <Text style={[styles.reportLabel, { color: theme.colors.textMuted }]}>
+                  HP REMAINING
+                </Text>
+              </View>
+            </View>
+          </GameCard>
+        </>
+      ) : null}
 
       <SectionTitle title="Rewards" />
       <GameCard faction={activeFaction} state="ready">
@@ -999,6 +1056,17 @@ const styles = StyleSheet.create({
   resultScene: { alignItems: 'center', marginTop: 12 },
   rewardValue: { fontSize: 18, fontWeight: '900', marginTop: 5 },
   rewardLabel: { fontSize: 10, textTransform: 'capitalize', marginTop: 2 },
+  reportGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  reportMetric: {
+    minWidth: '47%',
+    flexGrow: 1,
+    borderRadius: 14,
+    paddingVertical: 11,
+    paddingHorizontal: 10,
+    alignItems: 'center'
+  },
+  reportValue: { fontSize: 18, fontWeight: '900' },
+  reportLabel: { fontSize: 8, fontWeight: '900', letterSpacing: 0.7, marginTop: 3 },
   conditionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   conditionTitle: { fontSize: 16, fontWeight: '900' },
   conditionBody: { fontSize: 11, lineHeight: 17, marginTop: 6 },

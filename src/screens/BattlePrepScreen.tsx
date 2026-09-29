@@ -38,6 +38,7 @@ export function BattlePrepScreen({
   onBegin: () => void;
 }) {
   const { theme } = useGameTheme();
+  const [showBattleDetails, setShowBattleDetails] = React.useState(false);
   const {
     activeFaction,
     resources,
@@ -331,6 +332,69 @@ export function BattlePrepScreen({
         ) : null}
       </GameCard>
 
+      <GameCard
+        accent={
+          formationMatchup.result === 'advantage'
+            ? theme.colors.primary
+            : formationMatchup.result === 'disadvantage'
+              ? theme.colors.danger
+              : factionAccent
+        }
+        faction={activeFaction}
+        state={formationMatchup.result === 'disadvantage' ? 'danger' : 'default'}
+      >
+        <View style={styles.planHeader}>
+          <View style={styles.planCopy}>
+            <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+              BATTLE PLAN
+            </Text>
+            <Text style={[styles.planTitle, { color: theme.colors.text }]}>
+              {activeFormationShape.layout} · {activeFormationShape.name}
+            </Text>
+          </View>
+          <StatusPill
+            label={
+              formationMatchup.result === 'advantage'
+                ? 'FORMATION EDGE'
+                : formationMatchup.result === 'disadvantage'
+                  ? 'EXPOSED'
+                  : 'NEUTRAL'
+            }
+            tone={
+              formationMatchup.result === 'advantage'
+                ? 'ready'
+                : formationMatchup.result === 'disadvantage'
+                  ? 'elite'
+                  : 'neutral'
+            }
+          />
+        </View>
+        <Text style={[styles.planMatchup, { color: theme.colors.textMuted }]}>
+          vs {enemyShape.layout} {enemyShape.name} · dealt ×{formationMatchup.outgoingDamageMultiplier.toFixed(2)} · received ×{formationMatchup.incomingDamageMultiplier.toFixed(2)}
+        </Text>
+        <View style={styles.planStatuses}>
+          <StatusPill
+            label={formationFull ? 'SQUADS FULL' : 'SQUAD MISSING'}
+            tone={formationFull ? 'done' : 'elite'}
+          />
+          <StatusPill
+            label={armyReadiness >= 70 ? 'ARMY READY' : 'FATIGUED'}
+            tone={armyReadiness >= 70 ? 'ready' : armyReadiness >= 50 ? 'available' : 'elite'}
+          />
+          <StatusPill
+            label={hasFood ? 'FOOD PACKED' : 'FOOD MISSING'}
+            tone={hasFood ? 'done' : 'elite'}
+          />
+        </View>
+        {formationMatchup.result !== 'advantage' && unlockedCounters.length > 0 ? (
+          <Text style={[styles.planHint, { color: theme.colors.gold }]}>
+            Counter available · {unlockedCounters.map(shape => shape.layout + ' ' + shape.name).join(' · ')}
+          </Text>
+        ) : null}
+      </GameCard>
+
+      {showBattleDetails ? (
+        <>
       <SectionTitle
         title="Your formation"
         trailing={String(activeUnits.length) + ' / ' + String(activeSquadCap) + ' squads'}
@@ -373,6 +437,8 @@ export function BattlePrepScreen({
           </Text>
         ) : null}
       </GameCard>
+        </>
+      ) : null}
 
       {formationPresetOptions.length > 0 ? (
         <>
@@ -613,6 +679,34 @@ export function BattlePrepScreen({
         Switching here is immediate and saved. Squad slot assignments stay the same; only the formation geometry changes.
       </Text>
 
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={showBattleDetails ? 'Hide battle details' : 'Show battle details'}
+        onPress={() => setShowBattleDetails(previous => !previous)}
+        style={({ pressed }) => [
+          styles.detailsToggle,
+          {
+            backgroundColor: theme.colors.surface1,
+            borderColor: theme.colors.border,
+            opacity: pressed ? 0.78 : 1
+          }
+        ]}
+      >
+        <View>
+          <Text style={[styles.detailsToggleTitle, { color: theme.colors.text }]}>
+            Battle details
+          </Text>
+          <Text style={[styles.detailsToggleBody, { color: theme.colors.textMuted }]}>
+            Squad stats, order, matchup math, commander and formation synergies
+          </Text>
+        </View>
+        <Text style={[styles.detailsToggleAction, { color: theme.colors.gold }]}>
+          {showBattleDetails ? 'HIDE' : 'SHOW'}
+        </Text>
+      </Pressable>
+
+      {showBattleDetails ? (
+        <>
       <GameCard accent={theme.colors.gold} faction={activeFaction}>
         <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>ACTIVE ORDER</Text>
         <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
@@ -759,6 +853,8 @@ export function BattlePrepScreen({
           </View>
         </>
       ) : null}
+        </>
+      ) : null}
 
       <SectionTitle title="Army readiness" trailing={String(armyReadiness) + '%'} />
       <GameCard
@@ -876,6 +972,22 @@ const styles = StyleSheet.create({
   enemyTactic: { fontSize: 9.5, lineHeight: 14, marginTop: 3 },
   enemyComposition: { fontSize: 9.5, lineHeight: 14, marginTop: 5, fontWeight: '800' },
   scoutButton: { marginTop: 12 },
+  planHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10
+  },
+  planCopy: { flex: 1 },
+  planTitle: { fontSize: 16, fontWeight: '900', marginTop: 3 },
+  planMatchup: { fontSize: 10.5, lineHeight: 15, marginTop: 7 },
+  planStatuses: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10
+  },
+  planHint: { fontSize: 9.5, lineHeight: 14, fontWeight: '900', marginTop: 9 },
   unitList: { gap: 8 },
   unitRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   unitStats: { alignItems: 'flex-end', gap: 3 },
@@ -928,6 +1040,20 @@ const styles = StyleSheet.create({
   formationSwitchName: { fontSize: 11.5, fontWeight: '900', marginTop: 8 },
   formationSwitchEffect: { fontSize: 8.8, fontWeight: '900', marginTop: 6 },
   switchHint: { fontSize: 9.5, lineHeight: 14, textAlign: 'center', paddingHorizontal: 10 },
+  detailsToggle: {
+    minHeight: 58,
+    borderRadius: 15,
+    borderWidth: 1,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12
+  },
+  detailsToggleTitle: { fontSize: 13, fontWeight: '900' },
+  detailsToggleBody: { fontSize: 9.5, lineHeight: 14, marginTop: 2, maxWidth: 260 },
+  detailsToggleAction: { fontSize: 9, fontWeight: '900', letterSpacing: 0.7 },
   commandHeader: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   commandCopy: { flex: 1 },
   skillName: { fontSize: 10.5, lineHeight: 16, marginTop: 8, fontWeight: '800' },

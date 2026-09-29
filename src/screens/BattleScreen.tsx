@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   getEncounter,
   getEnemyArmyProfile,
@@ -29,6 +29,27 @@ type ActiveEffect = {
   remaining: number;
 };
 
+type BattleSpeed = 1 | 2;
+
+type ExchangeFeedback = {
+  outgoing: number;
+  incoming: number;
+  healed: number;
+  activeSlot: number | null;
+  enemySlot: number | null;
+  commanderSkillName: string | null;
+  ongoingDamage: number;
+};
+
+export type BattleCombatSummary = {
+  exchanges: number;
+  damageDealt: number;
+  damageTaken: number;
+  healing: number;
+  remainingHp: number;
+  maxHp: number;
+};
+
 const combatLines = [
   'The front line catches the enemy advance.',
   'Your formation turns spacing into a clean counterattack.',
@@ -52,7 +73,7 @@ export function BattleScreen({
   onDefeated
 }: {
   encounterId: EncounterId;
-  onFinished: () => void;
+  onFinished: (summary: BattleCombatSummary) => void;
   onDefeated: () => void;
 }) {
   const { theme } = useGameTheme();
@@ -172,6 +193,14 @@ export function BattleScreen({
     [formation, units]
   );
 
+  const activeFormationSlots = useMemo(
+    () =>
+      formation
+        .map((unitId, slot) => (unitId ? slot : null))
+        .filter((slot): slot is number => slot !== null),
+    [formation]
+  );
+
   const combatProfile = useMemo(
     () => getUnitCombatProfile(activeUnits),
     [activeUnits]
@@ -208,6 +237,13 @@ export function BattleScreen({
   const [turn, setTurn] = useState(0);
   const [skillTriggered, setSkillTriggered] = useState(false);
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
+  const [battleSpeed, setBattleSpeed] = useState<BattleSpeed>(1);
+  const [exchangeFeedback, setExchangeFeedback] = useState<ExchangeFeedback | null>(null);
+  const [battleTotals, setBattleTotals] = useState({
+    damageDealt: 0,
+    damageTaken: 0,
+    healing: 0
+  });
   const [lastAction, setLastAction] = useState(
     enemyArmyProfile.name +
       ' in ' +
@@ -236,6 +272,80 @@ export function BattleScreen({
   const enemyPressureMultiplier =
     enemyTactic.attackMultiplier *
     (1 + (enemyTactic.speedMultiplier - 1) * 0.6);
+  const liveEnemyCount =
+    enemyHp <= 0
+      ? 0
+      : Math.max(
+          1,
+          Math.ceil(
+            encounter.enemyCount *
+              (enemyHp / Math.max(1, encounter.enemyHp))
+          )
+        );
+  const defeatedEnemySlots = useMemo(() => {
+    const defeatedCount = Math.max(
+      0,
+      enemyAssignments.length - liveEnemyCount
+    );
+    if (defeatedCount === 0) return new Set<number>();
+    return new Set(
+      enemyAssignments
+        .slice(enemyAssignments.length - defeatedCount)
+        .map(assignment => assignment.slot)
+    );
+  }, [enemyAssignments, liveEnemyCount]);
+  const bossSlot =
+    encounter.difficulty === 'Boss'
+      ? enemyAssignments[0]?.slot ?? null
+      : null;
+
+  const battleEffects: Array<{
+    key: string;
+    label: string;
+    color: string;
+  }> = [];
+  if (metaAllianceActive) {
+    battleEffects.push({
+      key: 'alliance',
+      label: 'Three Seals · +10% ATK / +8% ARM',
+      color: theme.colors.gold
+    });
+  }
+  if (activeFactionMandate) {
+    battleEffects.push({
+      key: 'mandate',
+      label: activeFactionMandate.name,
+      color: factionAccent
+    });
+  }
+  if (activeRoyalDecree) {
+    battleEffects.push({
+      key: 'decree',
+      label: activeRoyalDecree.name,
+      color: theme.colors.primary
+    });
+  }
+  if (loyalistApproachActive && activeLastLoyalistsChoice) {
+    battleEffects.push({
+      key: 'loyalists',
+      label: activeLastLoyalistsChoice.name,
+      color: theme.colors.gold
+    });
+  }
+  if (marcherDoctrineActive && activeMarcherWarningChoice) {
+    battleEffects.push({
+      key: 'marcher',
+      label: activeMarcherWarningChoice.name,
+      color: theme.colors.primary
+    });
+  }
+  if (activeCommanderPath) {
+    battleEffects.push({
+      key: 'commander',
+      label: activeCommanderPath.name + ' · ' + activeCommanderPath.skill.name,
+      color: theme.colors.gold
+    });
+  }
 
   useEffect(() => {
     if (battleEnded) return;
@@ -243,7 +353,34 @@ export function BattleScreen({
     const timer = setTimeout(() => {
       let effect = activeEffect;
       let skillDamage = 0;
+      let commanderSkillName: string | null = null;
       let action = combatLines[Math.min(turn, combatLines.length - 1)] ?? combatLines[combatLines.length - 1]!;
+      const activeSlot =
+        activeFormationSlots.length > 0
+          ? activeFormationSlots[turn % activeFormationSlots.length]!
+          : null;
+      const attackingUnit =
+        activeSlot !== null
+          ? units.find(unit => unit.id === formation[activeSlot]) ?? null
+          : null;
+      const exchangeEnemyCount =
+        enemyHp <= 0
+          ? 0
+          : Math.max(
+              1,
+              Math.ceil(
+                encounter.enemyCount *
+                  (enemyHp / Math.max(1, encounter.enemyHp))
+              )
+            );
+      const liveEnemyAssignments = enemyAssignments.slice(
+        0,
+        exchangeEnemyCount
+      );
+      const targetAssignment =
+        liveEnemyAssignments.length > 0
+          ? liveEnemyAssignments[turn % liveEnemyAssignments.length]!
+          : null;
 
       const commanderSkillTurn =
         settlementEffects.commanderSkillEarlyTrigger ? 0 : 1;
@@ -254,6 +391,7 @@ export function BattleScreen({
         turn === commanderSkillTurn
       ) {
         const skill = activeCommanderPath.skill;
+        commanderSkillName = skill.name;
         const adjustedSkillPower = Math.max(
           1,
           Math.round(
@@ -367,25 +505,45 @@ export function BattleScreen({
         )
       );
 
-      setEnemyHp(previous =>
-        Math.max(0, previous - playerDamage)
-      );
-      setPartyHp(previous => {
-        const damaged = Math.max(0, previous - enemyStrike);
-        if (damaged <= 0 || supportRecovery <= 0) return damaged;
-        return Math.min(partyMaxHp, damaged + supportRecovery);
+      const actualPlayerDamage = Math.min(enemyHp, playerDamage);
+      const damagedPartyHp = Math.max(0, partyHp - enemyStrike);
+      const actualEnemyDamage = partyHp - damagedPartyHp;
+      const healedPartyHp =
+        damagedPartyHp <= 0 || supportRecovery <= 0
+          ? damagedPartyHp
+          : Math.min(partyMaxHp, damagedPartyHp + supportRecovery);
+      const actualHealing = healedPartyHp - damagedPartyHp;
+
+      setEnemyHp(Math.max(0, enemyHp - playerDamage));
+      setPartyHp(healedPartyHp);
+      setExchangeFeedback({
+        outgoing: actualPlayerDamage,
+        incoming: actualEnemyDamage,
+        healed: actualHealing,
+        activeSlot,
+        enemySlot: targetAssignment?.slot ?? null,
+        commanderSkillName,
+        ongoingDamage
       });
+      setBattleTotals(previous => ({
+        damageDealt: previous.damageDealt + actualPlayerDamage,
+        damageTaken: previous.damageTaken + actualEnemyDamage,
+        healing: previous.healing + actualHealing
+      }));
       setTurn(previous => previous + 1);
       setLastAction(
-        ongoingDamage > 0
-          ? action + ' Ongoing damage adds ' + ongoingDamage + ' before enemy formation armor.'
-          : turn === 0
-            ? action +
-              ' ' +
-              enemyArmyProfile.pressureSummary +
-              '. ' +
-              formationMatchup.summary
-            : action
+        (attackingUnit
+          ? attackingUnit.className + ' leads the exchange. '
+          : '') +
+          (ongoingDamage > 0
+            ? action + ' Ongoing damage adds ' + ongoingDamage + ' before enemy formation armor.'
+            : turn === 0
+              ? action +
+                ' ' +
+                enemyArmyProfile.pressureSummary +
+                '. ' +
+                formationMatchup.summary
+              : action)
       );
 
       if (effect) {
@@ -393,14 +551,15 @@ export function BattleScreen({
         setActiveEffect(remaining > 0 ? { ...effect, remaining } : null);
       }
     }, Math.max(
-      360,
+      battleSpeed === 2 ? 180 : 360,
       Math.round(
         650 /
           (
             formationAnalysis.speedMultiplier *
             commanderSpeedMultiplier *
             marcherSpeedMultiplier *
-            mandateSpeedMultiplier
+            mandateSpeedMultiplier *
+            battleSpeed
           )
       )
     ));
@@ -410,18 +569,25 @@ export function BattleScreen({
     activeCommanderPath,
     activeEffect,
     activeFaction,
+    activeFormationSlots,
+    battleSpeed,
     commanderArmorMultiplier,
     commanderSpeedMultiplier,
     activeSquadCap,
     battleEnded,
     combatProfile.armorStatMultiplier,
     encounter,
+    enemyAssignments,
+    enemyHp,
     enemyPressureMultiplier,
     enemyTactic,
     enemyArmyProfile,
+    formation,
+    units,
     formationAnalysis,
     formationMatchup,
     partyAttack,
+    partyHp,
     skillTriggered,
     turn,
     settlementEffects.commanderSkillPowerMultiplier,
@@ -457,6 +623,10 @@ export function BattleScreen({
           const favored = Boolean(
             unit && activeCommanderPath?.favoredRoles.includes(unit.role)
           );
+          const active =
+            Boolean(unit) &&
+            !battleEnded &&
+            exchangeFeedback?.activeSlot === slot;
 
           return (
             <View
@@ -465,12 +635,20 @@ export function BattleScreen({
                 styles.miniSlot,
                 {
                   width,
-                  backgroundColor: unit ? theme.colors.surface2 : theme.colors.appBg,
-                  borderColor: favored
-                    ? theme.colors.gold
+                  backgroundColor: active
+                    ? theme.colors.gold + '18'
                     : unit
-                      ? factionAccent
-                      : theme.colors.border
+                      ? theme.colors.surface2
+                      : theme.colors.appBg,
+                  borderColor: active
+                    ? theme.colors.gold
+                    : favored
+                      ? theme.colors.gold
+                      : unit
+                        ? factionAccent
+                        : theme.colors.border,
+                  borderWidth: active ? 2 : 1.2,
+                  transform: active ? [{ scale: 1.05 }] : undefined
                 }
               ]}
             >
@@ -505,6 +683,14 @@ export function BattleScreen({
           const assignment =
             enemyAssignmentsBySlot.get(slot);
           const occupied = Boolean(assignment);
+          const fallen =
+            occupied && defeatedEnemySlots.has(slot);
+          const targeted =
+            occupied &&
+            !fallen &&
+            !battleEnded &&
+            exchangeFeedback?.enemySlot === slot;
+          const boss = occupied && bossSlot === slot;
 
           return (
             <View
@@ -513,26 +699,57 @@ export function BattleScreen({
                 styles.enemySlot,
                 {
                   width,
-                  borderColor: occupied ? theme.colors.danger : theme.colors.border,
-                  backgroundColor: occupied ? theme.colors.surface2 : theme.colors.appBg,
-                  opacity: occupied ? 1 : 0.45
+                  borderColor: fallen
+                    ? theme.colors.border
+                    : boss
+                      ? theme.colors.gold
+                      : theme.colors.danger,
+                  backgroundColor: fallen
+                    ? theme.colors.appBg
+                    : targeted
+                      ? theme.colors.danger + '18'
+                      : theme.colors.surface2,
+                  borderWidth: targeted || boss ? 2 : 1.2,
+                  opacity: fallen ? 0.22 : occupied ? 1 : 0.4,
+                  transform: targeted ? [{ scale: 1.05 }] : undefined
                 }
               ]}
             >
               {occupied ? (
                 <>
-                  <EnemySprite enemyName={encounter.enemyName} size={dense ? 21 : 25} />
+                  <EnemySprite
+                    enemyName={encounter.enemyName}
+                    size={
+                      boss
+                        ? dense
+                          ? 25
+                          : 29
+                        : dense
+                          ? 21
+                          : 25
+                    }
+                  />
                   <Text
                     style={[
                       styles.tokenName,
                       dense && styles.tokenNameDense,
-                      { color: theme.colors.text }
+                      {
+                        color: boss
+                          ? theme.colors.gold
+                          : fallen
+                            ? theme.colors.textMuted
+                            : theme.colors.text
+                      }
                     ]}
                     numberOfLines={1}
                   >
-                    {dense
-                      ? assignment?.role.slice(0, 3).toUpperCase()
-                      : assignment?.label}
+                    {fallen
+                      ? 'DOWN'
+                      : boss
+                        ? 'BOSS'
+                        : dense
+                          ? assignment?.role.slice(0, 3).toUpperCase()
+                          : assignment?.label}
                   </Text>
                 </>
               ) : null}
@@ -548,9 +765,31 @@ export function BattleScreen({
       <View style={styles.topCopy}>
         <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>AUTO-BATTLE</Text>
         <Text style={[styles.title, { color: theme.colors.text }]}>{encounter.name}</Text>
-        <Text style={[styles.turn, { color: theme.colors.textMuted }]}>
-          {finished ? 'Victory' : defeated ? 'Defeat' : 'Exchange ' + String(turn + 1)}
-        </Text>
+        <View style={styles.turnRow}>
+          <Text style={[styles.turn, { color: theme.colors.textMuted }]}>
+            {finished ? 'Victory' : defeated ? 'Defeat' : 'Exchange ' + String(turn + 1)}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={'Battle speed ' + battleSpeed + ' times'}
+            disabled={battleEnded}
+            onPress={() =>
+              setBattleSpeed(previous => (previous === 1 ? 2 : 1))
+            }
+            style={({ pressed }) => [
+              styles.speedButton,
+              {
+                backgroundColor: theme.colors.surface2,
+                borderColor: theme.colors.border,
+                opacity: battleEnded ? 0.5 : pressed ? 0.75 : 1
+              }
+            ]}
+          >
+            <Text style={[styles.speedButtonText, { color: theme.colors.gold }]}>
+              {battleSpeed}×
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <GameCard style={styles.arena}>
@@ -570,46 +809,34 @@ export function BattleScreen({
           Army Readiness {armyReadiness}% · {readinessProfile.label}
         </Text>
 
-        {metaAllianceActive ? (
-          <Text style={[styles.commanderLine, { color: theme.colors.gold }]}>
-            Three Seals Alliance · +10% ATK · +8% ARM
-          </Text>
-        ) : null}
-
-        {activeFactionMandate ? (
-          <Text style={[styles.commanderLine, { color: factionAccent }]}>
-            {activeFactionMandate.name}
-          </Text>
-        ) : null}
-
-        {activeRoyalDecree ? (
-          <Text style={[styles.commanderLine, { color: theme.colors.primary }]}>
-            {activeRoyalDecree.name}
-          </Text>
-        ) : null}
-
-        {loyalistApproachActive && activeLastLoyalistsChoice ? (
-          <Text style={[styles.commanderLine, { color: theme.colors.gold }]}>
-            {activeLastLoyalistsChoice.name}
-          </Text>
-        ) : null}
-
-        {marcherDoctrineActive && activeMarcherWarningChoice ? (
-          <Text style={[styles.commanderLine, { color: theme.colors.primary }]}>
-            {activeMarcherWarningChoice.name}
-          </Text>
-        ) : null}
-
-        {activeCommanderPath ? (
-          <Text style={[styles.commanderLine, { color: theme.colors.gold }]}>
-            {activeCommanderPath.name} · {activeCommanderPath.skill.name}
-          </Text>
+        {battleEffects.length > 0 ? (
+          <View style={styles.effectChips}>
+            {battleEffects.map(effect => (
+              <View
+                key={effect.key}
+                style={[
+                  styles.effectChip,
+                  {
+                    backgroundColor: effect.color + '14',
+                    borderColor: effect.color + '55'
+                  }
+                ]}
+              >
+                <Text
+                  style={[styles.effectChipText, { color: effect.color }]}
+                  numberOfLines={1}
+                >
+                  {effect.label}
+                </Text>
+              </View>
+            ))}
+          </View>
         ) : null}
 
         <Text style={[styles.versus, { color: theme.colors.textMuted }]}>VS</Text>
 
         <Text style={[styles.sideLabel, { color: theme.colors.danger }]}>
-          ENEMY {enemyShape.layout} · {enemyTactic.name.toUpperCase()}
+          ENEMY {enemyShape.layout} · {enemyTactic.name.toUpperCase()} · {liveEnemyCount}/{encounter.enemyCount} ACTIVE
         </Text>
         <View style={styles.formationBoard}>
           {renderEnemyRow(enemyShape.rows.front)}
@@ -647,6 +874,70 @@ export function BattleScreen({
           {enemyHp} / {encounter.enemyHp} HP
         </Text>
         <ProgressBar value={enemyHp / encounter.enemyHp} color={theme.colors.danger} />
+
+        {exchangeFeedback ? (
+          <View style={styles.exchangeFeedback}>
+            <View
+              style={[
+                styles.exchangeMetric,
+                {
+                  backgroundColor: theme.colors.surface2,
+                  borderColor: theme.colors.primary + '55'
+                }
+              ]}
+            >
+              <Text style={[styles.metricLabel, { color: theme.colors.textMuted }]}>DEALT</Text>
+              <Text style={[styles.metricValue, { color: theme.colors.primary }]}>
+                -{exchangeFeedback.outgoing}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.exchangeMetric,
+                {
+                  backgroundColor: theme.colors.surface2,
+                  borderColor: theme.colors.danger + '55'
+                }
+              ]}
+            >
+              <Text style={[styles.metricLabel, { color: theme.colors.textMuted }]}>TAKEN</Text>
+              <Text style={[styles.metricValue, { color: theme.colors.danger }]}>
+                -{exchangeFeedback.incoming}
+              </Text>
+            </View>
+            {exchangeFeedback.healed > 0 ? (
+              <View
+                style={[
+                  styles.exchangeMetric,
+                  {
+                    backgroundColor: theme.colors.surface2,
+                    borderColor: factionAccent + '55'
+                  }
+                ]}
+              >
+                <Text style={[styles.metricLabel, { color: theme.colors.textMuted }]}>HEAL</Text>
+                <Text style={[styles.metricValue, { color: factionAccent }]}>
+                  +{exchangeFeedback.healed}
+                </Text>
+              </View>
+            ) : null}
+            {exchangeFeedback.commanderSkillName ? (
+              <View
+                style={[
+                  styles.skillMetric,
+                  {
+                    backgroundColor: theme.colors.gold + '14',
+                    borderColor: theme.colors.gold + '55'
+                  }
+                ]}
+              >
+                <Text style={[styles.skillMetricText, { color: theme.colors.gold }]} numberOfLines={1}>
+                  {exchangeFeedback.commanderSkillName}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
       </GameCard>
 
       <GameCard
@@ -685,7 +976,14 @@ export function BattleScreen({
               encounter.difficulty,
               true
             );
-            onFinished();
+            onFinished({
+              exchanges: turn,
+              damageDealt: battleTotals.damageDealt,
+              damageTaken: battleTotals.damageTaken,
+              healing: battleTotals.healing,
+              remainingHp: partyHp,
+              maxHp: partyMaxHp
+            });
           }}
         />
       ) : null}
@@ -712,7 +1010,18 @@ const styles = StyleSheet.create({
   topCopy: { alignItems: 'center', paddingTop: 3 },
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.3 },
   title: { fontSize: 24, fontWeight: '900', marginTop: 3 },
-  turn: { fontSize: 11, fontWeight: '800', marginTop: 4 },
+  turnRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  turn: { fontSize: 11, fontWeight: '800' },
+  speedButton: {
+    minWidth: 38,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 9
+  },
+  speedButtonText: { fontSize: 10, fontWeight: '900' },
   arena: { flex: 1, justifyContent: 'center', gap: 5 },
   sideLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8, textAlign: 'center' },
   formationBoard: { alignSelf: 'center', gap: 3, minWidth: 220 },
@@ -740,6 +1049,51 @@ const styles = StyleSheet.create({
   enemyArmyLine: { fontSize: 8.5, fontWeight: '900', textAlign: 'center' },
   enemyDoctrine: { fontSize: 8, fontWeight: '800', textAlign: 'center' },
   matchupLine: { fontSize: 8.5, fontWeight: '900', textAlign: 'center' },
+  effectChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: 4
+  },
+  effectChip: {
+    maxWidth: '48%',
+    minHeight: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 7,
+    paddingVertical: 3
+  },
+  effectChipText: { fontSize: 7.3, fontWeight: '900', textAlign: 'center' },
+  exchangeFeedback: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 5,
+    marginTop: 2
+  },
+  exchangeMetric: {
+    minWidth: 54,
+    minHeight: 31,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 7
+  },
+  metricLabel: { fontSize: 6.7, fontWeight: '900', letterSpacing: 0.5 },
+  metricValue: { fontSize: 11, fontWeight: '900', marginTop: 1 },
+  skillMetric: {
+    maxWidth: 126,
+    minHeight: 31,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8
+  },
+  skillMetricText: { fontSize: 7.5, fontWeight: '900', textAlign: 'center' },
   commanderLine: { fontSize: 8.5, fontWeight: '900', textAlign: 'center' },
   versus: { fontSize: 10, fontWeight: '900', textAlign: 'center', marginVertical: 1 },
   logLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1.1 },
