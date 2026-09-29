@@ -7,7 +7,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "android": {
-      "package": "com.cartandcrown.mobile"
+      "package": "com.elroybenjamins.cartcrown"
     },
     "ios": {
       "bundleIdentifier": "com.cartandcrown.mobile",

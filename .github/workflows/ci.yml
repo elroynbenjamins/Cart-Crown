@@ -35,3 +35,6 @@ jobs:
 
       - name: Mobile session regression
         run: npm run mobile:check
+
+      - name: Tutorial and review regression
+        run: npm run tutorial:check

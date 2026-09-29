@@ -59,6 +59,7 @@ export type FactionGameState = {
   expeditionTickets: number;
   expeditionRunsCompleted: number;
   formationTrialCompleted: boolean;
+  tutorialSeen?: string[];
 };
 
 export type SharedProgress = {
@@ -68,6 +69,7 @@ export type SharedProgress = {
   cosmetics: string[];
   metaCampaignStep: number;
   metaCampaignComplete: boolean;
+  reviewPromptShown?: boolean;
 };
 
 export type GameSnapshot = {

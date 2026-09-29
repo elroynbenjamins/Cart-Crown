@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import * as StoreReview from 'expo-store-review';
 import {
   BackHandler,
   Pressable,
@@ -10,6 +11,10 @@ import {
 } from 'react-native';
 import type { NavId } from './game/types';
 import { resolveHardwareBackAction } from './game/mobileSession';
+import {
+  getNextTutorialMoment,
+  shouldRequestChapterOneReview
+} from './game/tutorial';
 import type { EncounterId } from './game/encounters';
 import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
@@ -63,6 +68,7 @@ import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
 import { FlowProgress, ScreenAtmosphere } from './ui/components';
+import { TutorialCoach } from './ui/TutorialCoach';
 import { AppNavIcon, ThemeModeIcon } from './ui/gameArt';
 
 type FlowScreen =
@@ -195,6 +201,7 @@ export function AppShell({
   const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
+  const reviewAttemptedRef = useRef(false);
   const { theme, cycleTheme } = useGameTheme();
   const {
     activeFaction,
@@ -203,8 +210,53 @@ export function AppShell({
     lastBattleResult,
     commanderPathId,
     firstPromotionComplete,
-    settlementUpgraded
+    settlementUpgraded,
+    units,
+    buildings,
+    buildingLevels,
+    isBuildingUnlocked,
+    factionBuildingIds,
+    forgeUnlocked,
+    armyReadiness,
+    unlockedResourceSites,
+    currentWagonStage,
+    tutorialSeen,
+    markTutorialSeen,
+    reviewPromptShown,
+    markReviewPromptShown
   } = useGame();
+
+  const tutorialView =
+    flow === 'battlePrep' ||
+    flow === 'battle' ||
+    flow === 'results' ||
+    flow === 'settlement'
+      ? flow
+      : flow
+        ? 'other'
+        : active;
+
+  const tutorialMoment = getNextTutorialMoment({
+    faction: activeFaction,
+    view: tutorialView,
+    tutorialSeen,
+    units,
+    buildings: buildings.map(definition => ({
+      definition,
+      level: buildingLevels[definition.id] ?? 0,
+      unlocked: isBuildingUnlocked(definition.id)
+    })),
+    settlementUpgraded,
+    forgeUnlocked,
+    forgeLevel:
+      buildingLevels[factionBuildingIds.forge] ?? 0,
+    firstPromotionComplete,
+    commanderPathId,
+    armyReadiness,
+    unlockedResourceSites:
+      unlockedResourceSites.length,
+    wagonStageId: currentWagonStage.id
+  });
 
   const openRecruitment = () => setFlow('recruitment');
 
@@ -253,6 +305,80 @@ export function AppShell({
     setActive('kingdom');
   };
 
+  const handleTutorialPrimary = () => {
+    if (!tutorialMoment) return;
+
+    const target = tutorialMoment.target;
+    markTutorialSeen(tutorialMoment.key);
+
+    if (target === 'campaign') {
+      setFlow(null);
+      setActive('campaign');
+    } else if (target === 'kingdom') {
+      setFlow(null);
+      setActive('kingdom');
+    } else if (target === 'formation') {
+      setFlow(null);
+      setActive('formation');
+    } else if (target === 'army') {
+      setFlow(null);
+      setActive('army');
+    } else if (target === 'wagon') {
+      setFlow(null);
+      setActive('wagon');
+    } else if (target === 'settlement') {
+      setActive('kingdom');
+      setFlow('settlement');
+    } else if (target === 'forge') {
+      setActive('kingdom');
+      setFlow('forge');
+    }
+  };
+
+  useEffect(() => {
+    if (
+      reviewAttemptedRef.current ||
+      !shouldRequestChapterOneReview({
+        activeFaction,
+        activeView: tutorialView,
+        lastBattleResultId:
+          lastBattleResult?.id ?? null,
+        reviewPromptShown,
+        tutorialActive: Boolean(tutorialMoment)
+      })
+    ) {
+      return;
+    }
+
+    reviewAttemptedRef.current = true;
+
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          if (!(await StoreReview.hasAction())) {
+            return;
+          }
+
+          markReviewPromptShown();
+          await StoreReview.requestReview();
+        } catch {
+          // Store-controlled review prompts may be unavailable
+          // or suppressed. Never interrupt the normal game flow.
+        }
+      })();
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, [
+    active,
+    activeFaction,
+    flow,
+    lastBattleResult?.id,
+    markReviewPromptShown,
+    reviewPromptShown,
+    tutorialMoment
+  ]);
+
   const renderScreen = () => {
     if (flow === 'settings') {
       return <SettingsScreen />;
@@ -283,6 +409,9 @@ export function AppShell({
       return (
         <BattleScreen
           encounterId={activeEncounterId}
+          pausedForTutorial={
+            tutorialMoment?.key === 'core:battle'
+          }
           onFinished={summary => {
             setLastCombatSummary(summary);
             finishEncounter(activeEncounterId);
@@ -1405,6 +1534,14 @@ export function AppShell({
       ) : null}
 
       <View style={styles.screen}>{renderScreen()}</View>
+
+      {tutorialMoment ? (
+        <TutorialCoach
+          faction={activeFaction}
+          moment={tutorialMoment}
+          onPrimary={handleTutorialPrimary}
+        />
+      ) : null}
 
       {!flow ? (
         <View
