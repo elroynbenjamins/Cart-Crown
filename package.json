@@ -12,7 +12,8 @@
     "balance:check": "tsx scripts/balance-regression.ts && tsx scripts/progression-regression.ts",
     "economy:check": "tsx scripts/economy-regression.ts",
     "save:check": "tsx scripts/save-regression.ts",
-    "mobile:check": "tsx scripts/mobile-session-regression.ts"
+    "mobile:check": "tsx scripts/mobile-session-regression.ts",
+    "tutorial:check": "tsx scripts/tutorial-regression.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
