@@ -25,7 +25,7 @@ export function ArmyScreen({
     activeFaction,
     units,
     formation,
-    currentWagonStage,
+    activeSquadCap,
     settlementUpgraded,
     recruitChosen,
     recruitOptions,
@@ -69,7 +69,7 @@ export function ArmyScreen({
             </Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>Army</Text>
           </View>
-          <Pill label={String(activeCount) + ' / ' + String(currentWagonStage.formationSlots) + ' active'} />
+          <Pill label={String(activeCount) + ' / ' + String(activeSquadCap) + ' active'} />
         </View>
         <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
           Squads keep their experience and assigned equipment. Promotions branch from what you train and give them.
