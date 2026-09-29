@@ -168,6 +168,7 @@ export function FlyingResearchScreen({
         ? template.className + ' recruited to the roster.'
         : 'Requirements or resources are missing for this recruitment.'
     );
+    return ok;
   };
 
   return (
