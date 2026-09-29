@@ -1774,39 +1774,39 @@ export function AppShell({
 const styles = StyleSheet.create({
   safeArea: { flex: 1, position: 'relative', overflow: 'hidden' },
   topBar: {
-    height: 66,
+    height: 62,
     zIndex: 2,
-    paddingHorizontal: 17,
+    paddingHorizontal: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between'
   },
-  titleArea: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  topActions: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  titleArea: { flexDirection: 'row', alignItems: 'center', gap: 9, minWidth: 0, flex: 1 },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 8 },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  backText: { fontSize: 30, lineHeight: 32, marginTop: -3 },
-  brand: { fontSize: 9, letterSpacing: 1.8, fontWeight: '900' },
-  screenTitle: { fontSize: 21, lineHeight: 26, fontWeight: '900', marginTop: 1 },
+  backText: { fontSize: 28, lineHeight: 30, marginTop: -3 },
+  brand: { fontSize: 8, letterSpacing: 1.55, fontWeight: '900' },
+  screenTitle: { fontSize: 19, lineHeight: 23, fontWeight: '900', marginTop: 1 },
   slotButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
   slotButtonText: { fontSize: 11, fontWeight: '900' },
   settingsButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
@@ -1817,25 +1817,25 @@ const styles = StyleSheet.create({
     fontWeight: '900'
   },
   themeButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
   screen: { flex: 1, zIndex: 1 },
   bottomNav: {
-    height: 76,
+    height: 72,
     zIndex: 2,
     borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingBottom: 4
+    paddingHorizontal: 5,
+    paddingBottom: 3
   },
-  navItem: { flex: 1, minHeight: 64, alignItems: 'center', justifyContent: 'center' },
-  navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 52 },
-  navIconWrap: { width: 36, height: 31, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  navLabel: { fontSize: 9, fontWeight: '800', marginTop: 2 }
+  navItem: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
+  navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
+  navIconWrap: { width: 36, height: 30, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  navLabel: { fontSize: 8.5, fontWeight: '800', marginTop: 2 }
 });

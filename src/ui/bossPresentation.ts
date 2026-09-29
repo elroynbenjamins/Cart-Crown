@@ -1,126 +1,145 @@
 import type { EncounterId } from '../game/encounters';
-import type { UnitRole } from '../game/types';
 
-/** Presentation only: no battle stats, phase changes, damage or persistence. */
-export type BossAtmosphereKind = 'roots' | 'stonejaw' | 'ash' | 'beacon';
-export type BossPalette = Readonly<{ accent: string; secondary: string }>;
-export type BossDecor = Readonly<{
-  id: string;
+// Presentation only: no HP thresholds, phases, attacks, rewards or save writes.
+export type BossSignature = 'hollow_roots' | 'stonejaw' | 'ashen_regent' | 'beacon';
+export type BossMark = Readonly<{
   x: number;
   y: number;
   width: number;
   height: number;
-  color: keyof BossPalette;
-  opacity: number;
-  rotate?: number;
-  round?: boolean;
-  outline?: boolean;
-  detail?: boolean;
+  shape: 'bar' | 'diamond' | 'ring';
+  glow?: boolean;
+  optional?: boolean;
+}>;
+export type BossPresentation = Readonly<{
+  signature: BossSignature;
+  name: string;
+  material: string;
+  light: string;
+  introMs: number;
+  drift: number;
+  marks: readonly BossMark[];
 }>;
 
-// Explicit IDs: an ordinary Warden/Champion or a neighbouring story node
-// must not accidentally inherit boss presentation through a name substring.
-export const bossAtmospheres = {
-  elf_hollow_warden: 'roots',
-  elf_ashroot_stalker: 'roots',
-  elf_worldroot_guardian: 'roots',
+// Exact encounter IDs avoid decorating ordinary enemies with boss-only tells.
+export const bossSignatureByEncounter: Readonly<Partial<Record<EncounterId, BossSignature>>> = {
+  elf_hollow_warden: 'hollow_roots',
   orc_stonejaw_champion: 'stonejaw',
-  return_to_crownspire: 'ash',
+  return_to_crownspire: 'ashen_regent',
   unbound_beacon: 'beacon'
-} as const satisfies Partial<Record<EncounterId, BossAtmosphereKind>>;
+};
 
-export function getBossAtmosphere(
-  encounterId: string,
-  difficulty: 'Normal' | 'Elite' | 'Boss'
-): BossAtmosphereKind | null {
-  if (difficulty !== 'Boss' || !Object.prototype.hasOwnProperty.call(bossAtmospheres, encounterId)) {
-    return null;
-  }
-  return bossAtmospheres[encounterId as keyof typeof bossAtmospheres];
-}
+export const BOSS_RAIL_WIDTH = 12;
+export const BOSS_COMPACT_RAIL_WIDTH = 9;
+export const BOSS_MAX_MARKS_PER_RAIL = 12;
 
-const palettes: Record<BossAtmosphereKind, Readonly<{ dark: BossPalette; light: BossPalette }>> = {
-  roots: {
-    dark: { accent: '#9FD4AF', secondary: '#BCA1D9' },
-    light: { accent: '#356447', secondary: '#705089' }
+const definitions: Readonly<Record<BossSignature, {
+  name: string;
+  dark: readonly [string, string];
+  light: readonly [string, string];
+  introMs: number;
+  drift: number;
+  marks: readonly BossMark[];
+}>> = {
+  hollow_roots: {
+    name: 'Hollow Warden',
+    dark: ['#75946B', '#B89BD9'],
+    light: ['#3D5940', '#6D497E'],
+    introMs: 800,
+    drift: 5,
+    marks: [
+      { x: 2, y: 10, width: 3, height: 28, shape: 'bar' },
+      { x: 4, y: 15, width: 6, height: 3, shape: 'bar' },
+      { x: 7, y: 12, width: 2, height: 9, shape: 'bar' },
+      { x: 2, y: 37, width: 4, height: 24, shape: 'bar' },
+      { x: 4, y: 44, width: 6, height: 3, shape: 'bar' },
+      { x: 7, y: 41, width: 2, height: 10, shape: 'bar' },
+      { x: 4, y: 66, width: 3, height: 29, shape: 'bar' },
+      { x: 2, y: 74, width: 8, height: 3, shape: 'bar' },
+      { x: 6, y: 27, width: 3, height: 3, shape: 'diamond', glow: true },
+      { x: 5, y: 55, width: 4, height: 4, shape: 'ring', glow: true },
+      { x: 2, y: 85, width: 3, height: 3, shape: 'diamond', glow: true, optional: true }
+    ]
   },
   stonejaw: {
-    dark: { accent: '#DBB687', secondary: '#B1A496' },
-    light: { accent: '#805126', secondary: '#62605B' }
+    name: 'Stonejaw Champion',
+    dark: ['#A9927A', '#D4BA90'],
+    light: ['#735B43', '#826038'],
+    introMs: 580,
+    drift: 7,
+    marks: [
+      { x: 2, y: 11, width: 7, height: 15, shape: 'bar' },
+      { x: 3, y: 18, width: 5, height: 6, shape: 'bar' },
+      { x: 1, y: 39, width: 8, height: 18, shape: 'bar' },
+      { x: 4, y: 47, width: 6, height: 5, shape: 'bar' },
+      { x: 3, y: 70, width: 7, height: 14, shape: 'bar' },
+      { x: 2, y: 78, width: 5, height: 6, shape: 'bar' },
+      { x: 6, y: 29, width: 3, height: 3, shape: 'diamond', glow: true },
+      { x: 2, y: 58, width: 3, height: 3, shape: 'diamond', glow: true },
+      { x: 7, y: 88, width: 2, height: 2, shape: 'bar', glow: true, optional: true }
+    ]
   },
-  ash: {
-    dark: { accent: '#E6A286', secondary: '#A69AAB' },
-    light: { accent: '#99482E', secondary: '#635468' }
+  ashen_regent: {
+    name: 'Ashen Court Regent',
+    dark: ['#965D52', '#EBAB79'],
+    light: ['#80534C', '#8B4C22'],
+    introMs: 950,
+    drift: -8,
+    marks: [
+      { x: 3, y: 10, width: 3, height: 13, shape: 'bar' },
+      { x: 3, y: 38, width: 3, height: 19, shape: 'bar' },
+      { x: 3, y: 70, width: 3, height: 15, shape: 'bar' },
+      { x: 6, y: 20, width: 3, height: 3, shape: 'diamond', glow: true },
+      { x: 2, y: 31, width: 2, height: 2, shape: 'diamond', glow: true },
+      { x: 6, y: 52, width: 3, height: 3, shape: 'diamond', glow: true },
+      { x: 2, y: 62, width: 3, height: 3, shape: 'bar', glow: true },
+      { x: 6, y: 84, width: 3, height: 3, shape: 'diamond', glow: true },
+      { x: 7, y: 44, width: 2, height: 2, shape: 'bar', glow: true, optional: true },
+      { x: 1, y: 89, width: 2, height: 2, shape: 'bar', optional: true }
+    ]
   },
   beacon: {
-    dark: { accent: '#91D9E5', secondary: '#DCC08A' },
-    light: { accent: '#286576', secondary: '#8A6228' }
+    name: 'Unbound Beacon',
+    dark: ['#739BA8', '#E1C478'],
+    light: ['#356473', '#826522'],
+    introMs: 1000,
+    drift: -4,
+    marks: [
+      { x: 4, y: 10, width: 2, height: 30, shape: 'bar' },
+      { x: 2, y: 20, width: 8, height: 8, shape: 'ring', glow: true },
+      { x: 4, y: 38, width: 2, height: 30, shape: 'bar' },
+      { x: 2, y: 48, width: 8, height: 8, shape: 'ring', glow: true },
+      { x: 4, y: 68, width: 2, height: 30, shape: 'bar' },
+      { x: 2, y: 78, width: 8, height: 8, shape: 'ring', glow: true },
+      { x: 5, y: 14, width: 2, height: 2, shape: 'diamond', glow: true, optional: true },
+      { x: 5, y: 42, width: 2, height: 2, shape: 'diamond', glow: true, optional: true },
+      { x: 5, y: 72, width: 2, height: 2, shape: 'diamond', glow: true, optional: true }
+    ]
   }
 };
 
-export function getBossPalette(kind: BossAtmosphereKind, dark: boolean): BossPalette {
-  return palettes[kind][dark ? 'dark' : 'light'];
-}
-
-// Percentage geometry is confined to the outer gutters. The formation, HP
-// values, tutorial targets and combat text keep an unobstructed centre.
-const leftDecor: Record<BossAtmosphereKind, readonly BossDecor[]> = {
-  roots: [
-    { id: 'root-low', x: 3, y: 66, width: 1.4, height: 21, color: 'accent', opacity: .4, rotate: -3 },
-    { id: 'root-mid', x: 3.8, y: 50, width: 1.2, height: 18, color: 'accent', opacity: .4, rotate: 3 },
-    { id: 'root-high', x: 2.6, y: 34, width: 1, height: 18, color: 'accent', opacity: .32, rotate: -2 },
-    { id: 'branch-low', x: 3, y: 73, width: 7, height: .5, color: 'accent', opacity: .45, rotate: -18 },
-    { id: 'branch-high', x: 3, y: 45, width: 6, height: .5, color: 'accent', opacity: .45, rotate: -20 },
-    { id: 'corruption-bud', x: 8.5, y: 42, width: 1.6, height: 1.4, color: 'secondary', opacity: .65, rotate: 45 },
-    { id: 'root-fork', x: 2.5, y: 57, width: 5, height: .4, color: 'secondary', opacity: .3, rotate: 22, detail: true },
-    { id: 'spore', x: 9, y: 60, width: .9, height: .7, color: 'secondary', opacity: .55, detail: true }
-  ],
-  stonejaw: [
-    { id: 'stone-foot', x: 1, y: 78, width: 10, height: 2.5, color: 'secondary', opacity: .48, rotate: 4 },
-    { id: 'stone-crown', x: 2, y: 74, width: 6, height: 3, color: 'secondary', opacity: .42, rotate: -5 },
-    { id: 'dust-wide', x: 2, y: 70, width: 9, height: .7, color: 'accent', opacity: .45 },
-    { id: 'dust-high', x: 4, y: 65, width: 7, height: .45, color: 'accent', opacity: .32 },
-    { id: 'crack', x: 2, y: 85, width: 7, height: .4, color: 'accent', opacity: .45, rotate: -20 },
-    { id: 'stone-shard', x: 9, y: 77, width: 2, height: 1.1, color: 'accent', opacity: .55, rotate: 15 },
-    { id: 'dust-speck', x: 5, y: 59, width: .8, height: .6, color: 'accent', opacity: .5, detail: true },
-    { id: 'crack-fork', x: 8, y: 87, width: 4, height: .3, color: 'secondary', opacity: .45, rotate: 25, detail: true }
-  ],
-  ash: [
-    { id: 'charred-pillar', x: 2, y: 47, width: 2.5, height: 29, color: 'secondary', opacity: .28 },
-    { id: 'pillar-cap', x: 1, y: 46, width: 4.5, height: .7, color: 'secondary', opacity: .45 },
-    { id: 'cinder-low', x: 7, y: 69, width: 1.3, height: 1, color: 'accent', opacity: .65, rotate: 35 },
-    { id: 'cinder-mid', x: 4, y: 58, width: .9, height: 1.5, color: 'accent', opacity: .65, rotate: -15 },
-    { id: 'cinder-high', x: 9, y: 39, width: 1.1, height: .7, color: 'accent', opacity: .55, rotate: 30 },
-    { id: 'ash-bed', x: 2, y: 82, width: 9, height: .6, color: 'accent', opacity: .38 },
-    { id: 'ash-flake', x: 7, y: 30, width: 1.2, height: .4, color: 'secondary', opacity: .45, rotate: -20, detail: true },
-    { id: 'ember-trail', x: 9.5, y: 48, width: .6, height: 3, color: 'accent', opacity: .25, detail: true }
-  ],
-  beacon: [
-    { id: 'energy-column', x: 4, y: 29, width: .75, height: 53, color: 'accent', opacity: .38 },
-    { id: 'seal-high', x: 3.7, y: 39, width: 2.8, height: 1.8, color: 'accent', opacity: .65, outline: true, rotate: 45 },
-    { id: 'seal-low', x: 3.7, y: 68, width: 2.8, height: 1.8, color: 'secondary', opacity: .65, outline: true, rotate: 45 },
-    { id: 'conduit', x: 4, y: 56, width: 7, height: .4, color: 'accent', opacity: .4 },
-    { id: 'seal-core', x: 3.5, y: 53, width: 1.8, height: 1.8, color: 'secondary', opacity: .75, rotate: 45 },
-    { id: 'foot', x: 2, y: 83, width: 6, height: .5, color: 'secondary', opacity: .5 },
-    { id: 'energy-thread', x: 6, y: 35, width: .4, height: 43, color: 'accent', opacity: .18, detail: true },
-    { id: 'mote', x: 9, y: 63, width: 1, height: .8, color: 'accent', opacity: .6, rotate: 45, detail: true }
-  ]
-};
-
-/** At most 16 decorative primitives; compact mode reduces this to 12. */
-export function getBossDecor(kind: BossAtmosphereKind, compact: boolean): BossDecor[] {
-  return leftDecor[kind].filter(part => !compact || !part.detail).flatMap(part => [
-    { ...part, id: part.id + '-left' },
-    { ...part, id: part.id + '-right', x: 100 - part.x - part.width, rotate: -(part.rotate ?? 0) }
-  ]);
-}
-
-/** Healing supplements, never replaces, an army's attack animation. */
-export function getExchangeVisuals(role: UnitRole | null, healed: number) {
+export function getBossPresentation(
+  encounterId: EncounterId,
+  difficulty: 'Normal' | 'Elite' | 'Boss',
+  dark: boolean,
+  compact: boolean
+): BossPresentation | null {
+  const signature = bossSignatureByEncounter[encounterId];
+  if (difficulty !== 'Boss' || !signature) return null;
+  const source = definitions[signature];
+  const [material, light] = dark ? source.dark : source.light;
   return {
-    attack: role === 'ranged' ? 'arrow' : role === 'cavalry' ? 'charge'
-      : role === 'skirmish' ? 'skirmish' : role === 'support' ? 'ward'
-      : role === 'frontline' || role === 'melee' ? 'slash' : null,
-    heal: Number.isFinite(healed) && healed > 0
-  } as const;
+    signature,
+    name: source.name,
+    material,
+    light,
+    introMs: source.introMs,
+    drift: source.drift,
+    marks: compact ? source.marks.filter(mark => !mark.optional) : source.marks
+  };
+}
+
+export function canAnimateBossIntro(reduceMotion: boolean | null, appState: string | null) {
+  // null means the OS preference has not resolved yet: do not guess.
+  return reduceMotion === false && appState === 'active';
 }
