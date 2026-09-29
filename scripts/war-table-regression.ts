@@ -80,6 +80,53 @@ function runTierCoverage() {
   );
 }
 
+function runFantasyThreatTierCoverage() {
+  const familiesByChapter = [
+    [4, 'magic'],
+    [5, 'flying'],
+    [6, 'large']
+  ] as const;
+
+  for (const [chapter, family] of familiesByChapter) {
+    const surfaced = new Set<string>();
+
+    for (let cycle = 0; cycle < 12; cycle += 1) {
+      getWarTablePostedContracts({
+        cycle,
+        boardChapter: chapter
+      }).forEach(contract => {
+        const threat =
+          getEncounter(contract.encounterId)
+            .fantasyThreat;
+        if (threat) surfaced.add(threat);
+      });
+    }
+
+    check(
+      surfaced.has(family),
+      'War Table Chapter ' +
+        chapter +
+        ' never surfaces its ' +
+        family +
+        ' fantasy threat.'
+    );
+  }
+
+  const fantasyContracts =
+    warTableContracts.filter(
+      contract =>
+        Boolean(
+          getEncounter(contract.encounterId)
+            .fantasyThreat
+        )
+    );
+
+  check(
+    fantasyContracts.length >= 3,
+    'War Table needs at least one authored Magic, Flying and Large threat contract.'
+  );
+}
+
 function runRotationCoverage() {
   const first =
     getWarTablePostedContracts({
@@ -353,7 +400,8 @@ function runSaveCoverage() {
     'Human save fixture missing.'
   );
 
-  human.chapterNumber = 5;
+  human.chapterNumber = 6;
+  human.wagonStageId = 'grand';
   human.warTableCycle = 7;
   human.warTableBoardChapter = 99;
   human.warTableCompletedContractIds = [
@@ -378,8 +426,8 @@ function runSaveCoverage() {
     'War Table cycle was not preserved.'
   );
   check(
-    restored?.warTableBoardChapter === 3,
-    'War Table board chapter was not clamped to the highest authored tier.'
+    restored?.warTableBoardChapter === 6,
+    'War Table board chapter was not clamped to the highest authored fantasy tier.'
   );
   check(
     restored?.warTableCompletedContractIds.length ===
@@ -401,6 +449,7 @@ function runSaveCoverage() {
 }
 
 runTierCoverage();
+runFantasyThreatTierCoverage();
 runRotationCoverage();
 runContractCatalogCoverage();
 runBonusCoverage();
@@ -408,5 +457,5 @@ runBoardClearCoverage();
 runSaveCoverage();
 
 console.log(
-  'PASS: War Table tiers, rotation, categories, objectives, rewards, board clearing and save sanitization remain valid.'
+  'PASS: War Table tiers, fantasy threat staging, rotation, categories, objectives, rewards, board clearing and save sanitization remain valid.'
 );
