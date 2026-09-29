@@ -5,6 +5,8 @@ import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { SecondaryButton } from '../ui/components';
 import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionOption, DecisionStats } from '../ui/DecisionUI';
+import { RoleChip, SemanticText } from '../ui/SemanticUI';
+import { rolePresentation } from '../ui/semanticColors';
 import { signedStat } from '../ui/decisionPresentation';
 import { EquipmentSprite, UnitSprite } from '../ui/gameArt';
 
@@ -69,6 +71,7 @@ export function PromotionScreen({ onOpenForge, onComplete }: {
           <DecisionOption
             key={promotion.id}
             title={promotion.toClass}
+            titleTone={rolePresentation[promotion.role]?.tone}
             subtitle={promotion.role}
             selected={promotion.id === selectedId}
             art={<UnitSprite className={promotion.toClass} faction={mira.faction} size={44} />}
@@ -78,12 +81,13 @@ export function PromotionScreen({ onOpenForge, onComplete }: {
               setMessage(null);
             }}
           >
+            <RoleChip role={promotion.role} />
             <Text style={[styles.body, { color: theme.colors.textMuted }]}>{promotion.pitch}</Text>
             <View style={styles.requirement}>
               <EquipmentSprite equipmentId={promotion.requiredEquipmentId} faction={mira.faction} size={28} />
-              <Text style={[styles.requirementText, { color: owned ? theme.colors.primary : theme.colors.gold }]}>{requirement}</Text>
+              <SemanticText tone={owned ? 'positive' : 'warning'} style={styles.requirementText}>{requirement}</SemanticText>
             </View>
-            <DecisionStats items={[
+            <DecisionStats presentation="delta" items={[
               { label: 'Class attack', value: signedStat(promotion.attackBonus) },
               { label: 'Class armor', value: signedStat(promotion.armorBonus) },
               { label: 'Class speed', value: signedStat(promotion.speedBonus) }
