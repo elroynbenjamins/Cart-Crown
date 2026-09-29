@@ -4310,10 +4310,11 @@ export function GameProvider({
     setKingdomDefenseRuns(previous => previous + 1);
     setResources(previous => ({
       ...previous,
-      gold: previous.gold + (firstClear ? 75 : 50),
+      gold: previous.gold + (firstClear ? 85 : 60),
+      wood: previous.wood + (firstClear ? 10 : 8),
       stone: previous.stone + (firstClear ? 10 : 6),
       iron: previous.iron + (firstClear ? 4 : 2),
-      provisions: previous.provisions + 5
+      provisions: previous.provisions + (firstClear ? 6 : 5)
     }));
     accrueRegionalProduction();
     recordBattleWear(65, 100, 'Elite', true);
