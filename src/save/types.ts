@@ -9,6 +9,7 @@ import type {
   UnitEquipmentLoadout,
   WagonItemDefinition
 } from '../game/types';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 export type SaveSlotId = 1 | 2;
 
@@ -60,6 +61,8 @@ export type FactionGameState = {
   expeditionRunsCompleted: number;
   formationTrialCompleted: boolean;
   tutorialSeen?: string[];
+  tutorialFocus?: TutorialFocusTarget | null;
+  tutorialFocusKey?: string | null;
 };
 
 export type SharedProgress = {
