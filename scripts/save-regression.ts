@@ -77,12 +77,12 @@ function runFreshRoundTrip() {
     'Fresh save unexpectedly created presets.'
   );
   expect(
-    human.formation.filter(Boolean).length === 2,
-    'Fresh save changed starter active squad count.'
+    human.formation.filter(Boolean).length === 3,
+    'Fresh save must begin with three active squads.'
   );
   expect(
-    normalized.metadata.activeSquads === 2,
-    'Fresh metadata active squad count drifted.'
+    normalized.metadata.activeSquads === 3,
+    'Fresh metadata must report three active starter squads.'
   );
   expect(
     normalized.metadata.chapterLabel.includes(
@@ -92,38 +92,17 @@ function runFreshRoundTrip() {
   );
 }
 
-function runBackwardCompatibleV13Defaults() {
+function runOldSchemaRejection() {
   const record = createNewSaveRecord(1);
-  const human =
-    record.snapshot.factionStates.human;
-  check(human, 'Human state missing.');
-
-  delete human.armyReadiness;
-  delete human.formationShapeId;
-  delete human.formationPresets;
-
-  const normalized = normalize(record);
-  check(
-    normalized,
-    'Older v13-compatible save failed normalization.'
-  );
-  const repaired =
-    normalized.snapshot.factionStates.human;
-  check(repaired, 'Repaired Human state missing.');
+  (
+    record.snapshot as unknown as {
+      schemaVersion: number;
+    }
+  ).schemaVersion = 13;
 
   expect(
-    repaired.armyReadiness === 100,
-    'Missing v13 Readiness did not default to 100.'
-  );
-  expect(
-    repaired.formationShapeId ===
-      'balanced_333',
-    'Missing v13 formation shape did not default safely.'
-  );
-  expect(
-    Array.isArray(repaired.formationPresets) &&
-      repaired.formationPresets.length === 0,
-    'Missing v13 formation presets did not default to empty.'
+    normalize(record) === null,
+    'Schema v13 must be rejected instead of migrated into the new campaign model.'
   );
 }
 
@@ -625,7 +604,7 @@ function runMultiFactionMetadata() {
 
 function main() {
   runFreshRoundTrip();
-  runBackwardCompatibleV13Defaults();
+  runOldSchemaRejection();
   runCorruptionRepair();
   runActiveFactionRepair();
   runUnrecoverableSaveRejection();
@@ -652,7 +631,7 @@ function main() {
   }
 
   console.log(
-    'PASS: fresh saves, older v13 optional fields, corruption repair, stage/chapter coherence, formation/preset sanitization, active-faction repair, faction switching, JSON round trips and metadata remain valid.'
+    'PASS: fresh v14 saves, v13 rejection, corruption repair, authored chapter persistence, formation/preset sanitization, faction switching, JSON round trips and metadata remain valid.'
   );
 }
 
