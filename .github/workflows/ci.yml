@@ -84,6 +84,9 @@ jobs:
       - name: Early faction event UI regression
         run: npx --no-install tsx scripts/faction-event-ui-regression.ts
 
+      - name: Late faction event UI regression
+        run: npx --no-install tsx scripts/late-faction-event-ui-regression.ts
+
       - name: Production art regression
         run: npm run art:check
 
