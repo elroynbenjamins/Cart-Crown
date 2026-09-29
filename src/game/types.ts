@@ -1,6 +1,7 @@
 export type FactionId = 'human' | 'elf' | 'orc';
 export type CampaignId = FactionId | 'meta';
 export type NavId = 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army';
+export type GuidanceMode = 'full' | 'hints' | 'off';
 export type UnitRole = 'frontline' | 'melee' | 'ranged' | 'support' | 'cavalry' | 'skirmish';
 export type UnitBattleTag =
   | 'ground'
