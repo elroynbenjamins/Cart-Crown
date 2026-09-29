@@ -69,7 +69,7 @@ type CombatModifier = {
   commanderSkillPowerMultiplier?: number;
 };
 
-type SimulationInput = {
+export type SimulationInput = {
   faction: FactionId;
   units: UnitDefinition[];
   doctrineId: string;
@@ -82,7 +82,7 @@ type SimulationInput = {
   alliance?: boolean;
 };
 
-type SimulationResult = {
+export type SimulationResult = {
   victory: boolean;
   turns: number;
   remainingHp: number;
@@ -367,7 +367,7 @@ function buildOrcArmy(chapter: number): UnitDefinition[] {
   );
 }
 
-function buildArmy(
+export function buildArmy(
   faction: FactionId,
   chapter: number
 ) {
@@ -459,7 +459,7 @@ function outerFirst(slots: number[]) {
   );
 }
 
-function buildFormation(
+export function buildFormation(
   units: UnitDefinition[],
   faction: FactionId,
   shapeId: FormationShapeId
@@ -580,7 +580,7 @@ function buildFormation(
   return formation;
 }
 
-function simulate(
+export function simulate(
   input: SimulationInput
 ): SimulationResult {
   const encounter = getEncounter(input.encounterId);
@@ -882,11 +882,11 @@ function ratio(result: SimulationResult) {
     : 0;
 }
 
-function defaultCommander(faction: FactionId) {
+export function defaultCommander(faction: FactionId) {
   return getCommanderPaths(faction)[0] ?? null;
 }
 
-function defaultModifierForFaction(
+export function defaultModifierForFaction(
   faction: FactionId,
   chapter: number
 ): CombatModifier {
@@ -935,7 +935,7 @@ function defaultModifierForFaction(
   };
 }
 
-function normalArmy(
+export function normalArmy(
   faction: FactionId,
   chapter: number
 ) {
@@ -957,7 +957,7 @@ function strongArmy(
   );
 }
 
-function shapeFor(
+export function shapeFor(
   faction: FactionId,
   chapter: number
 ) {
@@ -2147,4 +2147,6 @@ function main() {
   );
 }
 
-main();
+if (process.argv[1]?.includes('balance-regression')) {
+  main();
+}
