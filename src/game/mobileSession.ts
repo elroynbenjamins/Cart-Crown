@@ -61,3 +61,22 @@ export function createSerialTaskQueue() {
     }
   };
 }
+
+
+export function createKeyedInFlightGuard<Key>() {
+  const active = new Set<Key>();
+
+  return {
+    tryStart(key: Key) {
+      if (active.has(key)) return false;
+      active.add(key);
+      return true;
+    },
+    finish(key: Key) {
+      active.delete(key);
+    },
+    has(key: Key) {
+      return active.has(key);
+    }
+  };
+}
