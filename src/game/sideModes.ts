@@ -39,7 +39,7 @@ export const sideModes: SideModeDefinition[] = [
     description:
       'Take your army through a short route of battles, events, supplies and a boss. Your wagon and readiness must last for the full run.',
     unlockStage: 'fort',
-    rewardFocus: 'Resources, blueprints and build experimentation',
+    rewardFocus: 'Resources, route loot and build experimentation',
     example: 'Battle → Event/Supply → Elite → Boss'
   },
   {
@@ -85,10 +85,3 @@ export const warTableContracts: WarTableContract[] = [
   }
 ];
 
-export const expeditionRoute = [
-  { id: 'exp_1', type: 'Battle', title: 'Road Skirmish' },
-  { id: 'exp_2', type: 'Event', title: 'Abandoned Tollhouse' },
-  { id: 'exp_3', type: 'Supply', title: 'Hidden Spring' },
-  { id: 'exp_4', type: 'Elite', title: 'Veteran Raiders' },
-  { id: 'exp_5', type: 'Boss', title: 'The Roadbreaker' }
-] as const;
