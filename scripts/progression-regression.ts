@@ -14,6 +14,13 @@ import {
   researchDefinitions,
   unitHasBattleTag
 } from '../src/game/progression';
+import {
+  chapterTwoCampaign,
+  chapterTwoTerritoryRoutes,
+  getChapterTwoRosterCap,
+  getChapterTwoSquadCap,
+  getChapterTwoTerritoryName
+} from '../src/game/chapter2Campaign';
 
 const failures: string[] = [];
 
@@ -37,8 +44,12 @@ function runCampaignCurveCoverage() {
       'A chapter may not reduce the active squad cap.'
     );
     expect(
-      stage.endSquadCap <= 6,
-      'Active squad cap must remain six or lower.'
+      stage.endSquadCap <= 9,
+      'Active squad cap must remain nine or lower.'
+    );
+    expect(
+      stage.endRosterCap >= stage.startRosterCap,
+      'A chapter may not reduce roster capacity.'
     );
   });
 
@@ -57,21 +68,127 @@ function runCampaignCurveCoverage() {
   }
 
   expect(
-    campaignProgression[0]?.startSquadCap === 2 &&
-      campaignProgression[0]?.endSquadCap === 3,
-    'Chapter 1 must remain a 2→3 squad progression.'
+    campaignProgression[0]?.startSquadCap === 3 &&
+      campaignProgression[0]?.endSquadCap === 5 &&
+      campaignProgression[0]?.startRosterCap === 5 &&
+      campaignProgression[0]?.endRosterCap === 9,
+    'Chapter 1 must remain a 3→5 deployment and 5→9 roster progression.'
   );
   expect(
-    campaignProgression[1]?.endSquadCap === 4,
-    'Chapter 2 must end at four active squads.'
+    campaignProgression[1]?.startSquadCap === 5 &&
+      campaignProgression[1]?.endSquadCap === 7 &&
+      campaignProgression[1]?.endRosterCap === 16,
+    'Chapter 2 must remain a 5→7 deployment progression ending near 16 roster slots.'
   );
   expect(
-    campaignProgression[2]?.endSquadCap === 5,
-    'Chapter 3 must end at five active squads.'
+    campaignProgression[2]?.startSquadCap === 7 &&
+      campaignProgression[2]?.endSquadCap === 9 &&
+      campaignProgression[2]?.endRosterCap === 30,
+    'Chapter 3 must reach the nine-squad battlefield and roughly 30 roster slots.'
+  );
+
+  campaignProgression.slice(3).forEach(stage => {
+    expect(
+      stage.startSquadCap === 9 && stage.endSquadCap === 9,
+      'Chapter ' + stage.chapter + ' must keep the nine-squad long-term battlefield cap.'
+    );
+  });
+}
+
+function runChapterTwoCoverage() {
+  expect(
+    chapterTwoCampaign.length === 10,
+    'Chapter 2 must contain exactly ten authored main missions.'
+  );
+
+  chapterTwoCampaign.forEach((mission, index) => {
+    expect(
+      mission.order === index + 1,
+      'Chapter 2 mission order must remain contiguous.'
+    );
+    expect(
+      mission.mandatory === true,
+      mission.id + ' must remain part of the authored Chapter 2 backbone.'
+    );
+  });
+
+  const expectedNames = [
+    'They Found Us',
+    'Beyond the Fires',
+    'Three Roads',
+    'Horse and Rider',
+    'Brace!',
+    'The Long Haul',
+    'Those Who Remain',
+    'Take the Watch',
+    'Build Something Worth Defending',
+    "The Rider's Banner"
+  ];
+  expect(
+    chapterTwoCampaign.every((mission, index) => mission.name === expectedNames[index]),
+    'Chapter 2 authored mission names or order drifted.'
+  );
+
+  expect(
+    chapterTwoCampaign[0]?.deploymentCap === 5,
+    'Chapter 2 must open at five deployed squads.'
   );
   expect(
-    campaignProgression[3]?.endSquadCap === 6,
-    'Chapter 4 must reach the six-squad long-term cap.'
+    chapterTwoCampaign.find(mission => mission.id === 'ch2_beyond_fires')?.deploymentCap === 6,
+    'Beyond the Fires must unlock/use the sixth deployment slot.'
+  );
+  expect(
+    chapterTwoCampaign.find(mission => mission.id === 'ch2_take_watch')?.deploymentCap === 7 &&
+      chapterTwoCampaign.at(-1)?.deploymentCap === 7,
+    'Take the Watch must establish the seven-squad Chapter 2 end state.'
+  );
+
+  expect(getChapterTwoSquadCap([]) === 5, 'Chapter 2 squad cap must begin at five.');
+  expect(
+    getChapterTwoSquadCap(['ch2_beyond_fires']) === 6,
+    'Beyond the Fires must raise the Chapter 2 squad cap to six.'
+  );
+  expect(
+    getChapterTwoSquadCap(['ch2_beyond_fires', 'ch2_take_watch']) === 7,
+    'Take the Watch must raise the Chapter 2 squad cap to seven.'
+  );
+
+  expect(getChapterTwoRosterCap([]) === 9, 'Chapter 2 roster cap must begin at nine.');
+  expect(
+    getChapterTwoRosterCap(['ch2_beyond_fires']) === 12,
+    'Beyond the Fires must expand the roster to twelve.'
+  );
+  expect(
+    getChapterTwoRosterCap(['ch2_beyond_fires', 'ch2_take_watch']) === 16,
+    'Take the Watch must expand the roster to sixteen.'
+  );
+
+  expect(
+    chapterTwoTerritoryRoutes.length === 3,
+    'Chapter 2 must offer exactly three first-route priorities.'
+  );
+  expect(
+    new Set(chapterTwoTerritoryRoutes.map(route => route.benefit)).size === 3,
+    'Trade, materials and mounts must each have a distinct Chapter 2 route.'
+  );
+
+  expect(
+    getChapterTwoTerritoryName('trade_route', 'human') === "Old King's Road" &&
+      getChapterTwoTerritoryName('resource_route', 'human') === 'Iron Ford' &&
+      getChapterTwoTerritoryName('grazing_route', 'human') === 'Greenfields',
+    'Human Chapter 2 route names drifted.'
+  );
+  expect(
+    getChapterTwoTerritoryName('trade_route', 'elf') === 'Silver Path' &&
+      getChapterTwoTerritoryName('resource_route', 'elf') === 'Stonegrove' &&
+      getChapterTwoTerritoryName('grazing_route', 'elf') === 'Windmeadow',
+    'Elf Chapter 2 route names drifted.'
+  );
+  expect(
+    getChapterTwoTerritoryName('trade_route', 'orc') === "Trader's Cut" &&
+      getChapterTwoTerritoryName('resource_route', 'orc') === 'Blackstone Pass' &&
+      getChapterTwoTerritoryName('grazing_route', 'orc') === 'Redgrass Plains',
+    'Orc Chapter 2 route names drifted.'
   );
 }
 
@@ -291,6 +408,7 @@ function runBattleTagAndCapacityCoverage() {
 
 function main() {
   runCampaignCurveCoverage();
+  runChapterTwoCoverage();
   runFamilyGateCoverage();
   runResearchCoverage();
   runBattleTagAndCapacityCoverage();
@@ -303,7 +421,7 @@ function main() {
   }
 
   console.log(
-    'PASS: Chapters 1-8, fantasy family gates, 24h/30-gem/3-ad research rules, non-bypassable story gates, battle tags and deployment capacity remain inside the intended guardrails.'
+    'PASS: 3→5→7→9 campaign growth, ten-mission authored Chapter 2, fantasy family gates, 24h/30-gem/3-ad research rules, battle tags and deployment capacity remain inside the intended guardrails.'
   );
 }
 
