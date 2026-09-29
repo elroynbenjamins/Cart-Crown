@@ -13,6 +13,7 @@ import {
 import { initialHumanPlacements } from '../game/settlement';
 import {
   CORE_TUTORIAL_KEYS,
+  FACTION_TUTORIAL_KEYS,
   SYSTEM_TUTORIAL_KEYS,
   tutorialBuildingKey,
   tutorialUnitKey
@@ -526,6 +527,7 @@ export function sanitizeFactionGameState(
     ? [
         ...new Set([
           ...CORE_TUTORIAL_KEYS,
+          ...FACTION_TUTORIAL_KEYS,
           ...SYSTEM_TUTORIAL_KEYS,
           ...units
             .filter(
