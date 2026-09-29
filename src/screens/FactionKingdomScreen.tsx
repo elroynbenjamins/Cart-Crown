@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { factions } from '../game/factions';
 import { getBuildingLevelDefinition } from '../game/kingdom';
@@ -69,6 +69,22 @@ export function FactionKingdomScreen({
   } = useGame();
 
   const [message, setMessage] = useState<string | null>(null);
+  const tutorialScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (tutorialFocus?.kind !== 'kingdom-production') {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      tutorialScrollRef.current?.scrollTo({
+        y: 520,
+        animated: true
+      });
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [tutorialFocus]);
   const elf = activeFaction === 'elf';
   const accent = elf ? theme.colors.elf : theme.colors.orc;
   const faction = factions[activeFaction];
@@ -194,7 +210,11 @@ export function FactionKingdomScreen({
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <GameCard accent={accent} faction={activeFaction}>
         <View style={styles.heroRow}>
           <View style={styles.heroCopy}>
@@ -360,6 +380,15 @@ export function FactionKingdomScreen({
                 }}
               />
             </View>
+            {tutorialFocus?.kind === 'kingdom-production' &&
+            productionTotal <= 0 ? (
+              <View style={styles.button}>
+                <PrimaryButton
+                  label="Got it — stock builds from activities"
+                  onPress={onTutorialFocusComplete}
+                />
+              </View>
+            ) : null}
           </GameCard>
           </TutorialFocus>
         </>
