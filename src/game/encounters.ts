@@ -2,6 +2,9 @@ import type { EncounterDefinition, FormationShapeId, ResourceWallet, UnitRole } 
 
 export type EncounterId =
   | 'hold_the_road'
+  | 'war_table_broken_spear'
+  | 'war_table_blackwood_ambush'
+  | 'war_table_red_banner'
   | 'mercenary_patrol'
   | 'toll_captain'
   | 'ch2_defend_camp'
@@ -77,6 +80,33 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 3,
     enemyHp: 128,
     difficulty: 'Normal'
+  },
+  war_table_broken_spear: {
+    id: 'war_table_broken_spear',
+    name: 'Broken Spear Company',
+    subtitle: 'A shield-heavy deserter company has occupied a supply crossing outside the main campaign route.',
+    enemyName: 'Broken Spear Company',
+    enemyCount: 5,
+    enemyHp: 190,
+    difficulty: 'Normal'
+  },
+  war_table_blackwood_ambush: {
+    id: 'war_table_blackwood_ambush',
+    name: 'Blackwood Ambush',
+    subtitle: 'Scouts found a lightly screened missile band preparing an ambush from protected ground.',
+    enemyName: 'Blackwood Bowband',
+    enemyCount: 5,
+    enemyHp: 205,
+    difficulty: 'Normal'
+  },
+  war_table_red_banner: {
+    id: 'war_table_red_banner',
+    name: 'Red Banner Raiders',
+    subtitle: 'An aggressive raiding host is probing Greenkeep for a quick fight before reinforcements arrive.',
+    enemyName: 'Red Banner Raiders',
+    enemyCount: 6,
+    enemyHp: 255,
+    difficulty: 'Elite'
   },
   mercenary_patrol: {
     id: 'mercenary_patrol',
@@ -698,6 +728,9 @@ const enemyFormationProfiles: Record<FormationShapeId, Omit<EnemyFormationTactic
 
 const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   hold_the_road: 'skirmish_screen_243',
+  war_table_broken_spear: 'wide_vanguard_522',
+  war_table_blackwood_ambush: 'protected_rear_225',
+  war_table_red_banner: 'assault_432',
   mercenary_patrol: 'assault_432',
   toll_captain: 'wide_vanguard_522',
   ch2_defend_camp: 'assault_432',
@@ -983,6 +1016,9 @@ const enemyArmyProfileByFormation: Record<FormationShapeId, EnemyArmyProfileId> 
 };
 
 const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>> = {
+  war_table_broken_spear: 'shield_host',
+  war_table_blackwood_ambush: 'missile_company',
+  war_table_red_banner: 'shock_warband',
   mercenary_patrol: 'mercenary_line',
   ch2_defend_camp: 'raider_pack',
   ch2_beyond_fires: 'mercenary_line',
@@ -1104,6 +1140,18 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   hold_the_road: {
     resources: { gold: 45, wood: 12, iron: 3, provisions: 4 },
     storySummary: 'The raider patrol breaks. Refugees can finally reach the ruins of Greenkeep.'
+  },
+  war_table_broken_spear: {
+    resources: { gold: 30, iron: 3, provisions: 2 },
+    storySummary: 'The Broken Spear Company abandons the crossing. Your scouts recover a small cache without changing the campaign front.'
+  },
+  war_table_blackwood_ambush: {
+    resources: { gold: 26, wood: 8, provisions: 3 },
+    storySummary: 'The Blackwood ambush is scattered before it can close the road. The contract pays modestly and the campaign remains unchanged.'
+  },
+  war_table_red_banner: {
+    resources: { gold: 48, iron: 4, provisions: 3 },
+    storySummary: 'The Red Banner assault collapses under disciplined resistance. Greenkeep gains supplies and practical formation experience.'
   },
   mercenary_patrol: {
     resources: { gold: 65, wood: 8, iron: 5, provisions: 3 },
