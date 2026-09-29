@@ -13,7 +13,7 @@ import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
 import { ArmyScreen } from './screens/ArmyScreen';
 import { BattlePrepScreen } from './screens/BattlePrepScreen';
-import { BattleScreen } from './screens/BattleScreen';
+import { BattleScreen, type BattleCombatSummary } from './screens/BattleScreen';
 import { BrokenSignalTowerScreen } from './screens/BrokenSignalTowerScreen';
 import { BrokenArchivesScreen } from './screens/BrokenArchivesScreen';
 import { CampaignScreen } from './screens/CampaignScreen';
@@ -187,6 +187,7 @@ export function AppShell({
   const [active, setActive] = useState<NavId>('kingdom');
   const [flow, setFlow] = useState<FlowScreen | null>(null);
   const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
+  const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const { theme, cycleTheme } = useGameTheme();
   const {
@@ -205,7 +206,10 @@ export function AppShell({
       return (
         <BattlePrepScreen
           encounterId={activeEncounterId}
-          onBegin={() => setFlow('battle')}
+          onBegin={() => {
+            setLastCombatSummary(null);
+            setFlow('battle');
+          }}
         />
       );
     }
@@ -214,7 +218,8 @@ export function AppShell({
       return (
         <BattleScreen
           encounterId={activeEncounterId}
-          onFinished={() => {
+          onFinished={summary => {
+            setLastCombatSummary(summary);
             finishEncounter(activeEncounterId);
             setFlow('results');
           }}
@@ -226,6 +231,7 @@ export function AppShell({
     if (flow === 'results') {
       return (
         <ResultsScreen
+          battleSummary={lastCombatSummary}
           onContinue={() => {
             if (
               [
