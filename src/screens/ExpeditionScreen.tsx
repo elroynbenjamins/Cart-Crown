@@ -19,6 +19,7 @@ import {
 } from '../game/formation';
 import { useGame } from '../game/GameProvider';
 import {
+  MAX_EXPEDITION_TICKETS,
   getSideModeRewardLabel
 } from '../game/sideModeBalance';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -188,10 +189,12 @@ export function ExpeditionScreen({
                   : activeExpeditionRun.failed
                     ? 'RUN FAILED'
                     : 'RUN ACTIVE'
-                : String(expeditionTickets) +
-                  (expeditionTickets === 1
-                    ? ' TICKET'
-                    : ' TICKETS')
+                : expeditionNextRewardMultiplier === 0
+                  ? 'PRACTICE READY'
+                  : String(expeditionTickets) +
+                    (expeditionTickets === 1
+                      ? ' TICKET'
+                      : ' TICKETS')
             }
             tone={
               activeExpeditionRun?.completed
@@ -200,9 +203,11 @@ export function ExpeditionScreen({
                   ? 'elite'
                   : activeExpeditionRun
                     ? 'current'
-                    : expeditionTickets > 0
+                    : expeditionNextRewardMultiplier === 0
                       ? 'available'
-                      : 'locked'
+                      : expeditionTickets > 0
+                        ? 'available'
+                        : 'locked'
             }
           />
         }
@@ -473,14 +478,17 @@ export function ExpeditionScreen({
           {expeditionNextRewardMultiplier > 0 ? (
             <SecondaryButton
               label={
-                (
-                  rewardedAdClaims
-                    .expedition_ticket ?? 0
-                ) >= 1
-                  ? 'Extra ticket claimed'
-                  : 'Watch optional ad for +1 ticket'
+                expeditionTickets >= MAX_EXPEDITION_TICKETS
+                  ? 'Ticket storage full'
+                  : (
+                      rewardedAdClaims
+                        .expedition_ticket ?? 0
+                    ) >= 1
+                    ? 'Extra ticket claimed'
+                    : 'Watch optional ad for +1 ticket'
               }
               disabled={
+                expeditionTickets >= MAX_EXPEDITION_TICKETS ||
                 (
                   rewardedAdClaims
                     .expedition_ticket ?? 0
