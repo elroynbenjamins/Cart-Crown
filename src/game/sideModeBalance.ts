@@ -63,6 +63,25 @@ export function getExpeditionRewardMultiplier({
   return 0;
 }
 
+export function getSiegeRewardMultiplier({
+  currentChapter,
+  rewardChapter,
+  rewardedRunsThisChapter
+}: {
+  currentChapter: number;
+  rewardChapter: number;
+  rewardedRunsThisChapter: number;
+}): SideModeRewardMultiplier {
+  const runs =
+    rewardChapter === currentChapter
+      ? rewardedRunsThisChapter
+      : 0;
+
+  if (runs <= 0) return 1;
+  if (runs === 1) return 0.5;
+  return 0;
+}
+
 export function scaleResourceReward(
   reward: Partial<ResourceWallet>,
   multiplier: SideModeRewardMultiplier
