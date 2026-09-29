@@ -313,12 +313,24 @@ export function FormationScreen({
         !formation.includes(selectedUnitId)
       )
     )
-      ? activeFormationShape.rows.front
-          .concat(
-            activeFormationShape.rows.middle,
-            activeFormationShape.rows.rear
-          )
-          .find(slot => !formation[slot]) ?? null
+      ? (
+          activeFormationShape.rows.front
+            .concat(
+              activeFormationShape.rows.middle,
+              activeFormationShape.rows.rear
+            )
+            .find(slot => !formation[slot]) ??
+          activeFormationShape.rows.front
+            .concat(
+              activeFormationShape.rows.middle,
+              activeFormationShape.rows.rear
+            )
+            .find(
+              slot =>
+                formation[slot] !== selectedUnitId
+            ) ??
+          null
+        )
       : null;
 
   return (
@@ -676,7 +688,9 @@ export function FormationScreen({
                       active={tutorialSlotFocus === slot}
                       label={
                         tutorialSlotFocus === slot
-                          ? 'PLACE HERE'
+                          ? formation[slot]
+                            ? 'REPLACE HERE'
+                            : 'PLACE HERE'
                           : undefined
                       }
                     >
@@ -749,7 +763,7 @@ export function FormationScreen({
       </View>
 
       <Text style={[styles.interactionHint, { color: theme.colors.textMuted }]}>
-        Tap a squad, then tap any visible position to move or swap it. Changing shape changes which positions belong to the front, middle and rear; it does not change your squad cap.
+        Tap a squad, then tap any visible position to move or swap it. Reserve squads can replace an active squad even when your deployment cap is full. Changing shape changes which positions belong to the front, middle and rear; it does not change your squad cap.
       </Text>
 
       <SectionTitle title={faction.name + ' ' + faction.mechanicName} trailing="Battle behavior" />
@@ -815,8 +829,7 @@ export function FormationScreen({
           const active = formation.includes(unit.id);
           const selected = selectedUnitId === unit.id;
 
-          const canSelectReserve =
-            !active && activeCount < activeSquadCap;
+          const canSelectReserve = !active;
           const tutorialUnitFocused =
             tutorialUnitFocusId === unit.id;
 
