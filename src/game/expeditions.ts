@@ -44,6 +44,7 @@ export type ExpeditionRunState = {
   readiness: number;
   supplies: number;
   powerBonus: number;
+  rewardMultiplier: 0 | 0.5 | 1;
   basePower: number;
   playerShapeId: FormationShapeId;
   wagonStageId: string;
@@ -333,7 +334,8 @@ export function createExpeditionRun({
   wagonStageId,
   hasRations,
   hasMedicine,
-  baseReward
+  baseReward,
+  rewardMultiplier = 1
 }: {
   readiness: number;
   supplies: number;
@@ -343,6 +345,7 @@ export function createExpeditionRun({
   hasRations: boolean;
   hasMedicine: boolean;
   baseReward: ResourceWallet;
+  rewardMultiplier?: 0 | 0.5 | 1;
 }): ExpeditionRunState {
   return {
     stageIndex: 0,
@@ -355,6 +358,7 @@ export function createExpeditionRun({
       Math.floor(supplies)
     ),
     powerBonus: 0,
+    rewardMultiplier,
     basePower: Math.max(
       0,
       Math.round(basePower)
@@ -865,8 +869,31 @@ export function getExpeditionBaseReward({
 export function getExpeditionCompletionReward(
   run: ExpeditionRunState
 ): ResourceWallet {
-  return addLoot(
+  const combined = addLoot(
     run.baseReward,
     run.loot
   );
+
+  if (run.rewardMultiplier <= 0) {
+    return emptyWallet();
+  }
+
+  return {
+    gold: Math.round(
+      combined.gold * run.rewardMultiplier
+    ),
+    wood: Math.round(
+      combined.wood * run.rewardMultiplier
+    ),
+    stone: Math.round(
+      combined.stone * run.rewardMultiplier
+    ),
+    iron: Math.round(
+      combined.iron * run.rewardMultiplier
+    ),
+    provisions: Math.round(
+      combined.provisions *
+        run.rewardMultiplier
+    )
+  };
 }
