@@ -15,7 +15,10 @@ import {
   getArmyReadinessProfile,
   getUnitCombatProfile
 } from '../game/balance';
-import { evaluateFormationPreset } from '../game/loadoutAnalysis';
+import {
+  evaluateFormationPreset,
+  getTacticalAdjustmentAdvice
+} from '../game/loadoutAnalysis';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -151,12 +154,13 @@ export function BattlePrepScreen({
     );
   };
 
-  const unlockedCounters = getFormationCounters(enemyShape.id)
+  const unlockedCounterShapes = getFormationCounters(enemyShape.id)
     .filter(
       shape =>
         (stageRank[currentWagonStage.id] ?? 0) >=
         (unlockRank[shape.unlock] ?? 0)
-    )
+    );
+  const unlockedCounters = unlockedCounterShapes
     .filter(shape => shape.id !== activeFormationShape.id)
     .slice(0, 3);
   const factionAccent =
@@ -271,6 +275,25 @@ export function BattlePrepScreen({
   const recommendedEvaluation = recommendedPreset
     ? presetEvaluations.get(recommendedPreset.slotId) ?? null
     : null;
+  const tacticalAdjustments =
+    scoutReport &&
+    recommendedPreset &&
+    recommendedEvaluation &&
+    (
+      recommendedEvaluation.score < 68 ||
+      recommendedEvaluation.risks.length > 0
+    )
+      ? getTacticalAdjustmentAdvice({
+          preset: recommendedPreset,
+          evaluation: recommendedEvaluation,
+          units,
+          enemyShapeId: enemyShape.id,
+          enemyArmyProfileId: enemyArmyProfile.id,
+          squadCap: activeSquadCap,
+          availableCounterShapeIds:
+            unlockedCounterShapes.map(shape => shape.id)
+        })
+      : [];
 
   const doctrine = formationDoctrines.find(candidate => candidate.id === formationDoctrineId);
 
@@ -557,6 +580,77 @@ export function BattlePrepScreen({
               >
                 This is a situational recommendation based on the scouted army, saved squad roles and positioning—not a universal best formation.
               </Text>
+              {tacticalAdjustments.length > 0 ? (
+                <View style={styles.adjustmentList}>
+                  <Text
+                    style={[
+                      styles.adjustmentHeading,
+                      { color: theme.colors.text }
+                    ]}
+                  >
+                    Improve before committing
+                  </Text>
+                  {tacticalAdjustments.map((adjustment, index) => (
+                    <View
+                      key={
+                        adjustment.kind +
+                        ':' +
+                        String(index) +
+                        ':' +
+                        adjustment.title
+                      }
+                      style={[
+                        styles.adjustmentRow,
+                        { borderTopColor: theme.colors.border }
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.adjustmentIndex,
+                          {
+                            backgroundColor:
+                              index === 0
+                                ? theme.colors.gold + '30'
+                                : theme.colors.surface2
+                          }
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.adjustmentIndexText,
+                            {
+                              color:
+                                index === 0
+                                  ? theme.colors.gold
+                                  : theme.colors.textMuted
+                            }
+                          ]}
+                        >
+                          {index + 1}
+                        </Text>
+                      </View>
+                      <View style={styles.adjustmentCopy}>
+                        <Text
+                          style={[
+                            styles.adjustmentTitle,
+                            { color: theme.colors.text }
+                          ]}
+                        >
+                          {adjustment.title}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.adjustmentDetail,
+                            { color: theme.colors.textMuted }
+                          ]}
+                        >
+                          {adjustment.detail}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </GameCard>
           ) : (
             <Text
@@ -1209,6 +1303,42 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 8,
     marginTop: 7
+  },
+  adjustmentList: { marginTop: 12 },
+  adjustmentHeading: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    marginBottom: 2
+  },
+  adjustmentRow: {
+    flexDirection: 'row',
+    gap: 9,
+    alignItems: 'flex-start',
+    borderTopWidth: 1,
+    paddingTop: 8,
+    marginTop: 7
+  },
+  adjustmentIndex: {
+    width: 22,
+    height: 22,
+    borderRadius: 7,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  adjustmentIndexText: {
+    fontSize: 10,
+    fontWeight: '900'
+  },
+  adjustmentCopy: { flex: 1 },
+  adjustmentTitle: {
+    fontSize: 10.5,
+    fontWeight: '900'
+  },
+  adjustmentDetail: {
+    fontSize: 9,
+    lineHeight: 13,
+    marginTop: 2
   },
   presetSwitchStrip: { gap: 8, paddingRight: 4 },
   presetSwitchCard: {
