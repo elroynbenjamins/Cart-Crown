@@ -1453,6 +1453,8 @@ export function AppShell({
   const goBack = () => {
     if (!canGoBack) return;
 
+    setTutorialFocus(null);
+
     if (flow === 'preparationFix') {
       setFlow('battlePrep');
       return;
@@ -1476,11 +1478,13 @@ export function AppShell({
         }
 
         if (action === 'continue_results') {
+          setTutorialFocus(null);
           handleResultsContinue();
           return true;
         }
 
         if (action === 'close_flow') {
+          setTutorialFocus(null);
           setFlow(
             flow === 'preparationFix'
               ? 'battlePrep'
@@ -1490,6 +1494,7 @@ export function AppShell({
         }
 
         if (action === 'go_kingdom') {
+          setTutorialFocus(null);
           setActive('kingdom');
           return true;
         }
