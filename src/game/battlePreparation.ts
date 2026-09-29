@@ -49,6 +49,7 @@ export type BattlePreparationAssessment = {
 type BattlePreparationInput = {
   activeUnits: UnitDefinition[];
   squadCap: number;
+  activeDeploymentCapacity?: number;
   armyReadiness: number;
   hasRations: boolean;
   difficulty: EncounterDefinition['difficulty'];
@@ -131,12 +132,12 @@ function getEquipmentProfile({
 }
 
 function getSquadFactor(
-  activeCount: number,
+  activeCapacity: number,
   squadCap: number
 ): BattlePreparationFactor {
   const missing = Math.max(
     0,
-    squadCap - activeCount
+    squadCap - activeCapacity
   );
 
   if (missing === 0) {
@@ -146,10 +147,10 @@ function getSquadFactor(
       severity: 'good',
       summary: 'Full field strength',
       detail:
-        String(activeCount) +
+        String(activeCapacity) +
         '/' +
         String(squadCap) +
-        ' active squads are deployed.',
+        ' deployment capacity is filled.',
       riskWeight: 0
     };
   }
@@ -159,12 +160,12 @@ function getSquadFactor(
       id: 'squads',
       label: 'Army size',
       severity: 'caution',
-      summary: 'One squad short',
+      summary: 'One capacity short',
       detail:
-        String(activeCount) +
+        String(activeCapacity) +
         '/' +
         String(squadCap) +
-        ' active squads are deployed.',
+        ' deployment capacity is filled.',
       riskWeight: 18
     };
   }
@@ -174,12 +175,12 @@ function getSquadFactor(
     label: 'Army size',
     severity: 'danger',
     summary:
-      String(missing) + ' squads short',
+      String(missing) + ' capacity short',
     detail:
-      String(activeCount) +
+      String(activeCapacity) +
       '/' +
       String(squadCap) +
-      ' active squads are deployed.',
+      ' deployment capacity is filled.',
     riskWeight:
       30 + Math.max(0, missing - 2) * 8
   };
@@ -446,6 +447,7 @@ export function getPreparationEquipmentUnitId(
 export function assessBattlePreparation({
   activeUnits,
   squadCap,
+  activeDeploymentCapacity,
   armyReadiness,
   hasRations,
   difficulty,
@@ -461,8 +463,16 @@ export function assessBattlePreparation({
     equipmentDefinitions
   });
 
+  const deployedCapacity =
+    activeDeploymentCapacity ??
+    activeUnits.reduce(
+      (total, unit) =>
+        total + (unit.deploymentCapacity ?? 1),
+      0
+    );
+
   const factors: BattlePreparationFactor[] = [
-    getSquadFactor(activeUnits.length, squadCap),
+    getSquadFactor(deployedCapacity, squadCap),
     getReadinessFactor(armyReadiness),
     getRationsFactor(hasRations, difficulty),
     getFormationFactor(formationMatchupResult),
@@ -476,7 +486,7 @@ export function assessBattlePreparation({
 
   const missingSquads = Math.max(
     0,
-    squadCap - activeUnits.length
+    squadCap - deployedCapacity
   );
   const critical =
     missingSquads >= 2 ||
