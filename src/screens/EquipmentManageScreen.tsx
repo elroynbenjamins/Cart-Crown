@@ -6,9 +6,12 @@ import {
   getEquipment
 } from '../game/equipment';
 import { useGame } from '../game/GameProvider';
-import type { EquipmentSlot, ResourceWallet } from '../game/types';
+import type { EquipmentDefinition, EquipmentSlot, ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, Pill, PrimaryButton, ResourceAmountRow, SectionTitle, StatusPill } from '../ui/components';
+import { GameCard, PrimaryButton, ResourceAmountRow, SectionTitle, StatusPill } from '../ui/components';
+import { EquipmentStatLine } from '../ui/EquipmentStatLine';
+import { RoleChip, SemanticChip, SemanticText, TierChip, UnitBadges } from '../ui/SemanticUI';
+import { rolePresentation, semanticColor, tierTone } from '../ui/semanticColors';
 import { EquipmentSprite, UnitSprite } from '../ui/gameArt';
 
 type ViewMode = 'loadout' | 'forge' | 'promotion';
@@ -126,11 +129,18 @@ export function EquipmentManageScreen({
     );
   };
 
+  const renderComparison = (item: EquipmentDefinition) => {
+    const current = getEquipment(loadout[item.slot] ?? '');
+    return current
+      ? <EquipmentStatLine item={item} current={current} label={'Change vs ' + current.name} />
+      : null;
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <GameCard accent={factionAccent} faction={activeFaction}>
         <View style={styles.heroRow}>
-          <View style={[styles.portrait, { borderColor: factionAccent }]}>
+          <View style={[styles.portrait, { borderColor: semanticColor(theme, rolePresentation[unit.role]?.tone ?? 'neutral') }]}>
             <UnitSprite className={unit.className} faction={unit.faction} size={54} />
           </View>
           <View style={styles.heroCopy}>
@@ -141,6 +151,7 @@ export function EquipmentManageScreen({
             </Text>
           </View>
         </View>
+        <View style={styles.badges}><UnitBadges role={unit.role} tier={unit.tier} battleTags={unit.battleTags} /></View>
       </GameCard>
 
       <View style={[styles.segment, { backgroundColor: theme.colors.surface1 }]}>
@@ -177,7 +188,7 @@ export function EquipmentManageScreen({
                   style={styles.slotCard}
                   faction={activeFaction}
                   state={item ? 'selected' : 'default'}
-                  accent={item ? theme.colors.gold : undefined}
+                  accent={item ? semanticColor(theme, tierTone(item.tier)) : undefined}
                 >
                   <Text style={[styles.slotLabel, { color: theme.colors.textMuted }]}>{slotLabels[slot].toUpperCase()}</Text>
                   {item ? (
@@ -185,15 +196,14 @@ export function EquipmentManageScreen({
                       <EquipmentSprite equipmentId={item.id} faction={unit.faction} size={34} />
                     </View>
                   ) : null}
-                  <Text style={[styles.slotName, { color: theme.colors.text }]}>
+                  <Text style={[styles.slotName, { color: item ? semanticColor(theme, tierTone(item.tier)) : theme.colors.text }]}>
                     {item?.name ?? 'Empty'}
                   </Text>
                   {item ? (
-                    <Text style={[styles.slotStats, { color: theme.colors.primary }]}>
-                      {item.attackBonus ? 'ATK +' + item.attackBonus + ' ' : ''}
-                      {item.armorBonus ? 'ARM +' + item.armorBonus + ' ' : ''}
-                      {item.speedBonus ? 'SPD ' + (item.speedBonus > 0 ? '+' : '') + item.speedBonus : ''}
-                    </Text>
+                    <>
+                      <View style={styles.badges}><TierChip tier={item.tier} compact /></View>
+                      <EquipmentStatLine item={item} />
+                    </>
                   ) : null}
                 </GameCard>
               );
@@ -213,16 +223,18 @@ export function EquipmentManageScreen({
                 >
                   <View style={styles.itemHeader}>
                     <View style={styles.itemCopy}>
-                      <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
+                      <Text style={[styles.itemName, { color: semanticColor(theme, tierTone(item.tier)) }]}>{item.name}</Text>
                       <Text style={[styles.itemMeta, { color: theme.colors.textMuted }]}>
                         Tier {item.tier} · {slotLabels[item.slot]}
                       </Text>
                     </View>
-                    <Pill label={compatible ? 'EQUIP' : 'INCOMPATIBLE'} />
+                    <SemanticChip label={compatible ? 'Compatible' : 'Incompatible'} tone={compatible ? 'positive' : 'warning'} />
                   </View>
                   <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>
                     {item.description}
                   </Text>
+                  <EquipmentStatLine item={item} />
+                  {renderComparison(item)}
                   <View style={styles.button}>
                     <PrimaryButton
                       label={compatible ? 'Equip ' + item.name : 'Not compatible with ' + unit.className}
@@ -257,9 +269,7 @@ export function EquipmentManageScreen({
               bonus.effects.equipmentCostMultiplier < 1
           ) ? (
             <GameCard accent={theme.colors.primary}>
-              <Text style={[styles.itemName, { color: theme.colors.text }]}>
-                Equipment district active
-              </Text>
+              <SemanticChip label="Equipment district active" tone="positive" />
               <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>
                 Your settlement layout reduces equipment crafting and upgrade costs.
               </Text>
@@ -282,15 +292,20 @@ export function EquipmentManageScreen({
                     <EquipmentSprite equipmentId={item.id} faction={item.faction} size={40} />
                   </View>
                   <View style={styles.itemCopy}>
-                    <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
+                    <Text style={[styles.itemName, { color: semanticColor(theme, tierTone(item.tier)) }]}>{item.name}</Text>
                     <Text style={[styles.itemMeta, { color: theme.colors.textMuted }]}>
                       Tier {item.tier} · {slotLabels[item.slot]}
                     </Text>
                   </View>
                 </View>
                 <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>{item.description}</Text>
+                <EquipmentStatLine item={item} />
                 <View style={styles.itemCostRow}>
                   <ResourceAmountRow values={getEquipmentCraftCost(item)} compact />
+                </View>
+                <View style={styles.badges}>
+                  <TierChip tier={item.tier} />
+                  <SemanticChip label={canAfford(getEquipmentCraftCost(item)) ? 'Materials ready' : 'Materials short'} tone={canAfford(getEquipmentCraftCost(item)) ? 'positive' : 'warning'} />
                 </View>
                 <View style={styles.button}>
                   <PrimaryButton
@@ -313,19 +328,22 @@ export function EquipmentManageScreen({
           {upgrades.length > 0 ? (
             <View style={styles.list}>
               {upgrades.map(item => (
-                <GameCard key={item.id} accent={theme.colors.gold} faction={activeFaction} state="selected">
+                <GameCard key={item.id} accent={semanticColor(theme, tierTone(item.tier))} faction={activeFaction} state="selected">
                   <View style={styles.itemHeader}>
                     <View style={styles.itemArt}>
                       <EquipmentSprite equipmentId={item.id} faction={item.faction} size={40} />
                     </View>
                     <View style={styles.itemCopy}>
-                      <Text style={[styles.itemName, { color: theme.colors.text }]}>{item.name}</Text>
+                      <Text style={[styles.itemName, { color: semanticColor(theme, tierTone(item.tier)) }]}>{item.name}</Text>
                       <Text style={[styles.itemMeta, { color: theme.colors.textMuted }]}>
                         Upgrade from {getEquipment(item.upgradeFromId ?? '')?.name}
                       </Text>
                     </View>
                   </View>
+                  <View style={styles.badges}><TierChip tier={item.tier} /></View>
                   <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>{item.description}</Text>
+                  <EquipmentStatLine item={item} />
+                  {renderComparison(item)}
                   <View style={styles.itemCostRow}>
                     <ResourceAmountRow values={getEquipmentCraftCost(item)} compact />
                   </View>
@@ -388,14 +406,13 @@ export function EquipmentManageScreen({
                   >
                     <View style={styles.itemHeader}>
                       <View style={styles.itemCopy}>
-                        <Text style={[styles.itemName, { color: theme.colors.text }]}>{promotion.toClass}</Text>
-                        <Text style={[styles.itemMeta, { color: factionAccent }]}>
-                          {promotion.role.toUpperCase()}
-                        </Text>
+                        <Text style={[styles.itemName, { color: semanticColor(theme, rolePresentation[promotion.role]?.tone ?? 'neutral') }]}>{promotion.toClass}</Text>
+                        <View style={styles.badges}><RoleChip role={promotion.role} /></View>
                       </View>
                       <StatusPill label={ready ? 'READY' : 'LOCKED'} tone={ready ? 'ready' : 'locked'} />
                     </View>
                     <Text style={[styles.itemDescription, { color: theme.colors.textMuted }]}>{promotion.pitch}</Text>
+                    <EquipmentStatLine item={promotion} label="Class bonuses" />
                     <View style={styles.promotionVisualRow}>
                       <View style={styles.promotionGear}>
                         {promotion.requiredEquippedIds.map(id => (
@@ -411,39 +428,39 @@ export function EquipmentManageScreen({
                     </View>
                     <View style={styles.requirements}>
                       <View style={styles.requirementRow}>
-                        <StatusPill label={gearReady ? 'DONE' : 'MISSING'} tone={gearReady ? 'done' : 'locked'} />
-                        <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                        <SemanticChip label={gearReady ? 'Done' : 'Missing'} tone={gearReady ? 'positive' : 'warning'} compact />
+                        <SemanticText tone={gearReady ? 'positive' : 'warning'} style={styles.requirement}>
                           Required gear: {promotion.requiredEquippedIds.map(id => getEquipment(id)?.name ?? id).join(' + ')}
-                        </Text>
+                        </SemanticText>
                       </View>
                       <View style={styles.requirementRow}>
-                        <StatusPill label={barracksReady ? 'DONE' : 'NEEDED'} tone={barracksReady ? 'done' : 'locked'} />
-                        <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                        <SemanticChip label={barracksReady ? 'Done' : 'Needed'} tone={barracksReady ? 'positive' : 'warning'} compact />
+                        <SemanticText tone={barracksReady ? 'positive' : 'warning'} style={styles.requirement}>
                           {armyName} Lv.{promotion.requiredBarracksLevel}
-                        </Text>
+                        </SemanticText>
                       </View>
                       {promotion.requiredForgeLevel > 0 ? (
                         <View style={styles.requirementRow}>
-                          <StatusPill label={forgeReady ? 'DONE' : 'NEEDED'} tone={forgeReady ? 'done' : 'locked'} />
-                          <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                          <SemanticChip label={forgeReady ? 'Done' : 'Needed'} tone={forgeReady ? 'positive' : 'warning'} compact />
+                          <SemanticText tone={forgeReady ? 'positive' : 'warning'} style={styles.requirement}>
                             {forgeName} Lv.{promotion.requiredForgeLevel}
-                          </Text>
+                          </SemanticText>
                         </View>
                       ) : null}
                       {(promotion.requiredStableLevel ?? 0) > 0 ? (
                         <View style={styles.requirementRow}>
-                          <StatusPill label={stableReady ? 'DONE' : 'NEEDED'} tone={stableReady ? 'done' : 'locked'} />
-                          <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                          <SemanticChip label={stableReady ? 'Done' : 'Needed'} tone={stableReady ? 'positive' : 'warning'} compact />
+                          <SemanticText tone={stableReady ? 'positive' : 'warning'} style={styles.requirement}>
                             {mountName} Lv.{promotion.requiredStableLevel}
-                          </Text>
+                          </SemanticText>
                         </View>
                       ) : null}
                       {(promotion.requiredOfficerAcademyLevel ?? 0) > 0 ? (
                         <View style={styles.requirementRow}>
-                          <StatusPill label={academyReady ? 'DONE' : 'NEEDED'} tone={academyReady ? 'done' : 'locked'} />
-                          <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>
+                          <SemanticChip label={academyReady ? 'Done' : 'Needed'} tone={academyReady ? 'positive' : 'warning'} compact />
+                          <SemanticText tone={academyReady ? 'positive' : 'warning'} style={styles.requirement}>
                             Officer Academy Lv.{promotion.requiredOfficerAcademyLevel}
-                          </Text>
+                          </SemanticText>
                         </View>
                       ) : null}
                     </View>
@@ -485,6 +502,7 @@ export function EquipmentManageScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 13 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 7 },
   heroRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   portrait: { width: 62, height: 70, borderRadius: 17, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   heroCopy: { flex: 1 },
@@ -499,7 +517,6 @@ const styles = StyleSheet.create({
   slotLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1 },
   slotArt: { alignItems: 'center', marginVertical: 3 },
   slotName: { fontSize: 13, fontWeight: '900', marginTop: 4 },
-  slotStats: { fontSize: 9, fontWeight: '800', marginTop: 5 },
   list: { gap: 9 },
   itemHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   itemArt: { width: 44, alignItems: 'center', justifyContent: 'center' },
@@ -518,6 +535,6 @@ const styles = StyleSheet.create({
   promotionResult: { width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
   requirements: { gap: 6, marginTop: 9 },
   requirementRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  requirement: { flex: 1, fontSize: 9.5, lineHeight: 14, fontWeight: '700' },
+  requirement: { flex: 1, fontSize: 12, lineHeight: 18, fontWeight: '700' },
   message: { textAlign: 'center', fontSize: 10.5, lineHeight: 16, fontWeight: '800' }
 });
