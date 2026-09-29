@@ -131,6 +131,13 @@ import {
 } from './warTable';
 import type { WarTableBattleSummary } from './warTable';
 import {
+  MAX_EXPEDITION_TICKETS,
+  getExpeditionRewardMultiplier,
+  getKingdomDefenseRewardMultiplier,
+  getWarTableBoardRewardMultiplier,
+  scaleResourceReward
+} from './sideModeBalance';
+import {
   createExpeditionRun,
   getExpeditionBaseReward,
   getExpeditionCompletionReward,
@@ -353,12 +360,20 @@ type GameContextValue = {
   expeditionTickets: number;
   expeditionRunsCompleted: number;
   activeExpeditionRun: ExpeditionRunState | null;
+  expeditionRewardChapter: number;
+  expeditionRewardedRunsThisChapter: number;
+  expeditionNextRewardMultiplier: 0 | 0.5 | 1;
   warTableCycle: number;
   warTableBoardChapter: number;
   warTableCompletedContractIds: string[];
   warTableBonusContractIds: string[];
   warTableContractsCompleted: number;
   warTableBonusObjectivesCompleted: number;
+  warTableBoardsClearedThisChapter: number;
+  warTableBoardRewardMultiplier: 0 | 0.5 | 1;
+  kingdomDefenseRewardChapter: number;
+  kingdomDefenseRewardedRunsThisChapter: number;
+  kingdomDefenseNextRewardMultiplier: 0 | 0.5 | 1;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions: KingdomTrialId[];
   rewardedAdClaims: RewardedAdClaimState;
@@ -761,6 +776,12 @@ export function GameProvider({
         }
       : null
   );
+  const [expeditionRewardChapter, setExpeditionRewardChapter] = useState(
+    initialFaction.expeditionRewardChapter
+  );
+  const [expeditionRewardedRunsThisChapter, setExpeditionRewardedRunsThisChapter] = useState(
+    initialFaction.expeditionRewardedRunsThisChapter
+  );
   const [warTableCycle, setWarTableCycle] = useState(
     initialFaction.warTableCycle
   );
@@ -778,6 +799,15 @@ export function GameProvider({
   );
   const [warTableBonusObjectivesCompleted, setWarTableBonusObjectivesCompleted] = useState(
     initialFaction.warTableBonusObjectivesCompleted
+  );
+  const [warTableBoardsClearedThisChapter, setWarTableBoardsClearedThisChapter] = useState(
+    initialFaction.warTableBoardsClearedThisChapter
+  );
+  const [kingdomDefenseRewardChapter, setKingdomDefenseRewardChapter] = useState(
+    initialFaction.kingdomDefenseRewardChapter
+  );
+  const [kingdomDefenseRewardedRunsThisChapter, setKingdomDefenseRewardedRunsThisChapter] = useState(
+    initialFaction.kingdomDefenseRewardedRunsThisChapter
   );
   const [formationTrialCompleted, setFormationTrialCompleted] = useState(initialFaction.formationTrialCompleted);
   const [kingdomTrialCompletions, setKingdomTrialCompletions] = useState<KingdomTrialId[]>(
@@ -812,6 +842,27 @@ export function GameProvider({
   );
   const [rewardedAdClaims, setRewardedAdClaims] = useState<RewardedAdClaimState>({});
   const [rewardedAdMessage, setRewardedAdMessage] = useState<string | null>(null);
+
+  const expeditionNextRewardMultiplier =
+    getExpeditionRewardMultiplier({
+      currentChapter: chapterNumber,
+      rewardChapter: expeditionRewardChapter,
+      rewardedRunsThisChapter:
+        expeditionRewardedRunsThisChapter
+    });
+  const warTableBoardRewardMultiplier =
+    getWarTableBoardRewardMultiplier(
+      warTableBoardsClearedThisChapter
+    );
+  const kingdomDefenseNextRewardMultiplier =
+    getKingdomDefenseRewardMultiplier({
+      firstClear: !kingdomDefenseCompleted,
+      currentChapter: chapterNumber,
+      rewardChapter:
+        kingdomDefenseRewardChapter,
+      rewardedRunsThisChapter:
+        kingdomDefenseRewardedRunsThisChapter
+    });
 
   const gems = sharedProgress.gems ?? 0;
   const magicFamilyUnlock = useMemo(
