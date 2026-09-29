@@ -568,6 +568,19 @@ export function sanitizeFactionGameState(
       Boolean(stored.commanderPathId)
     );
 
+  const storedKingdomTrialCompletions =
+    sanitizeStringArray(
+      stored.kingdomTrialCompletions
+    ).filter(id =>
+      ['bronze', 'silver', 'gold'].includes(id)
+    );
+  const kingdomTrialCompletions =
+    storedKingdomTrialCompletions.length > 0
+      ? storedKingdomTrialCompletions
+      : stored.formationTrialCompleted
+        ? ['bronze']
+        : [];
+
   const tutorialSeen = progressedLegacySave
     ? [
         ...new Set([
@@ -660,6 +673,10 @@ export function sanitizeFactionGameState(
       stored.expeditionRunsCompleted,
       defaults.expeditionRunsCompleted
     ),
+    kingdomTrialCompletions,
+    formationTrialCompleted:
+      Boolean(stored.formationTrialCompleted) ||
+      kingdomTrialCompletions.includes('bronze'),
     completedStoryGates: sanitizeStringArray(
       stored.completedStoryGates
     ),
@@ -834,6 +851,7 @@ export function createHumanFactionState(): FactionGameState {
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
     formationTrialCompleted: false,
+    kingdomTrialCompletions: [],
     completedStoryGates: [],
     researchProgress: {},
     unlockedFantasyClasses: [],
