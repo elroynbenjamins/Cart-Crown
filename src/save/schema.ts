@@ -2,8 +2,14 @@ import {
   chapterOneNodes,
   starterResources,
   starterUnits,
-  starterWagonItems
+  starterWagonItems,
+  wagonStages
 } from '../game/data';
+import { clampArmyReadiness } from '../game/balance';
+import {
+  formationShapes,
+  getFactionDoctrines
+} from '../game/formation';
 import { initialHumanPlacements } from '../game/settlement';
 import {
   elfChapterOneNodes,
@@ -14,7 +20,14 @@ import {
   orcStarterResources,
   orcStarterUnits
 } from '../game/factionStarts';
-import type { FactionId } from '../game/types';
+import type {
+  ChapterNode,
+  FactionId,
+  FormationPreset,
+  FormationShapeId,
+  ResourceWallet,
+  UnitDefinition
+} from '../game/types';
 import type {
   FactionGameState,
   GameSnapshot,
@@ -24,6 +37,496 @@ import type {
 } from './types';
 
 export const SAVE_SCHEMA_VERSION = 13;
+
+const factionOrder: FactionId[] = ['human', 'elf', 'orc'];
+
+const saveStageRank: Record<string, number> = {
+  camp: 0,
+  settlement: 1,
+  fort: 2,
+  town: 3,
+  stronghold: 4,
+  capital: 5,
+  grand: 6
+};
+
+const formationUnlockRank = {
+  Start: 0,
+  Settlement: 1,
+  Fort: 2,
+  Town: 3,
+  Stronghold: 4
+} as const;
+
+function nonNegativeInteger(value: unknown, fallback: number) {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.max(0, Math.floor(value))
+    : fallback;
+}
+
+function sanitizeWallet(
+  value: unknown,
+  fallback: ResourceWallet
+): ResourceWallet {
+  const source =
+    value && typeof value === 'object'
+      ? (value as Partial<ResourceWallet>)
+      : {};
+
+  return {
+    gold: nonNegativeInteger(source.gold, fallback.gold),
+    wood: nonNegativeInteger(source.wood, fallback.wood),
+    stone: nonNegativeInteger(source.stone, fallback.stone),
+    iron: nonNegativeInteger(source.iron, fallback.iron),
+    provisions: nonNegativeInteger(
+      source.provisions,
+      fallback.provisions
+    )
+  };
+}
+
+function sanitizeUnits(
+  value: unknown,
+  faction: FactionId,
+  fallback: UnitDefinition[]
+) {
+  if (!Array.isArray(value)) {
+    return fallback.map(unit => ({ ...unit }));
+  }
+
+  const seen = new Set<string>();
+  const units = value
+    .filter(
+      (candidate): candidate is UnitDefinition =>
+        Boolean(
+          candidate &&
+            typeof candidate === 'object' &&
+            typeof candidate.id === 'string' &&
+            candidate.faction === faction &&
+            !seen.has(candidate.id)
+        )
+    )
+    .map(unit => {
+      seen.add(unit.id);
+      return { ...unit };
+    });
+
+  return units.length > 0
+    ? units
+    : fallback.map(unit => ({ ...unit }));
+}
+
+function sanitizeNodes(
+  value: unknown,
+  fallback: ChapterNode[]
+): ChapterNode[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    return fallback.map(node => ({ ...node }));
+  }
+
+  let currentKept = false;
+  return value
+    .filter(
+      (node): node is ChapterNode =>
+        Boolean(
+          node &&
+            typeof node === 'object' &&
+            typeof node.id === 'string' &&
+            typeof node.name === 'string'
+        )
+    )
+    .map(node => {
+      const current =
+        Boolean(node.current) && !currentKept;
+      if (current) currentKept = true;
+      return {
+        ...node,
+        current
+      };
+    });
+}
+
+function formationStageCap(stageId: string) {
+  return (
+    wagonStages.find(stage => stage.id === stageId)
+      ?.formationSlots ?? 2
+  );
+}
+
+function sanitizeFormation(
+  value: unknown,
+  units: UnitDefinition[],
+  stageId: string
+): Array<string | null> {
+  const validUnitIds = new Set(
+    units.map(unit => unit.id)
+  );
+  const seen = new Set<string>();
+  const cap = formationStageCap(stageId);
+  let active = 0;
+
+  return Array.from({ length: 9 }, (_, index) => {
+    const candidate =
+      Array.isArray(value) && typeof value[index] === 'string'
+        ? value[index]
+        : null;
+
+    if (
+      !candidate ||
+      !validUnitIds.has(candidate) ||
+      seen.has(candidate) ||
+      active >= cap
+    ) {
+      return null;
+    }
+
+    seen.add(candidate);
+    active += 1;
+    return candidate;
+  });
+}
+
+function validShapeForStage(
+  value: unknown,
+  stageId: string
+): FormationShapeId {
+  const rank = saveStageRank[stageId] ?? 0;
+  const shape = formationShapes.find(
+    candidate => candidate.id === value
+  );
+
+  return shape &&
+    rank >= formationUnlockRank[shape.unlock]
+    ? shape.id
+    : 'balanced_333';
+}
+
+function validDoctrineForStage(
+  value: unknown,
+  faction: FactionId,
+  stageId: string,
+  fallback: string
+) {
+  const rank = saveStageRank[stageId] ?? 0;
+  const doctrines = getFactionDoctrines(faction);
+  const doctrine = doctrines.find(
+    candidate => candidate.id === value
+  );
+
+  if (
+    doctrine &&
+    rank >= formationUnlockRank[doctrine.unlock]
+  ) {
+    return doctrine.id;
+  }
+
+  const defaultDoctrine = doctrines.find(
+    candidate => candidate.id === fallback
+  );
+  return defaultDoctrine?.id ?? doctrines[0]?.id ?? fallback;
+}
+
+function sanitizePresets(
+  value: unknown,
+  units: UnitDefinition[],
+  faction: FactionId,
+  stageId: string
+): FormationPreset[] {
+  if (!Array.isArray(value)) return [];
+
+  const rank = saveStageRank[stageId] ?? 0;
+  const validUnitIds = new Set(
+    units.map(unit => unit.id)
+  );
+  const cap = formationStageCap(stageId);
+  const doctrines = getFactionDoctrines(faction);
+  const bySlot = new Map<number, FormationPreset>();
+
+  for (const raw of value) {
+    if (
+      !raw ||
+      typeof raw !== 'object' ||
+      ![1, 2, 3].includes(raw.slotId) ||
+      !Array.isArray(raw.formation)
+    ) {
+      continue;
+    }
+
+    const shape = formationShapes.find(
+      candidate =>
+        candidate.id === raw.formationShapeId &&
+        rank >= formationUnlockRank[candidate.unlock]
+    );
+    const doctrine = doctrines.find(
+      candidate =>
+        candidate.id === raw.formationDoctrineId &&
+        rank >= formationUnlockRank[candidate.unlock]
+    );
+
+    if (!shape || !doctrine) continue;
+
+    const seen = new Set<string>();
+    let active = 0;
+    const formation = Array.from(
+      { length: 9 },
+      (_, index) => {
+        const unitId =
+          typeof raw.formation[index] === 'string'
+            ? raw.formation[index]
+            : null;
+
+        if (
+          !unitId ||
+          !validUnitIds.has(unitId) ||
+          seen.has(unitId) ||
+          active >= cap
+        ) {
+          return null;
+        }
+
+        seen.add(unitId);
+        active += 1;
+        return unitId;
+      }
+    );
+
+    if (active === 0) continue;
+
+    bySlot.set(raw.slotId, {
+      slotId: raw.slotId,
+      formationShapeId: shape.id,
+      formationDoctrineId: doctrine.id,
+      formation
+    });
+  }
+
+  return [...bySlot.values()].sort(
+    (a, b) => a.slotId - b.slotId
+  );
+}
+
+function sanitizeStringArray(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return [
+    ...new Set(
+      value.filter(
+        (entry): entry is string =>
+          typeof entry === 'string'
+      )
+    )
+  ];
+}
+
+export function sanitizeFactionGameState(
+  faction: FactionId,
+  value: unknown
+): FactionGameState | null {
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    (value as Partial<FactionGameState>).faction !== faction
+  ) {
+    return null;
+  }
+
+  const stored = value as Partial<FactionGameState>;
+  const defaults = createFactionGameState(faction);
+  const definedStored = Object.fromEntries(
+    Object.entries(stored).filter(
+      ([, entry]) => entry !== undefined
+    )
+  ) as Partial<FactionGameState>;
+
+  const stageId = wagonStages.some(
+    stage => stage.id === stored.wagonStageId
+  )
+    ? stored.wagonStageId!
+    : defaults.wagonStageId;
+
+  const units = sanitizeUnits(
+    stored.units,
+    faction,
+    defaults.units
+  );
+  const formation = sanitizeFormation(
+    stored.formation,
+    units,
+    stageId
+  );
+  const formationShapeId = validShapeForStage(
+    stored.formationShapeId,
+    stageId
+  );
+  const formationDoctrineId = validDoctrineForStage(
+    stored.formationDoctrineId,
+    faction,
+    stageId,
+    defaults.formationDoctrineId
+  );
+
+  return {
+    ...defaults,
+    ...definedStored,
+    faction,
+    chapterNumber: Math.min(
+      6,
+      Math.max(
+        1,
+        nonNegativeInteger(
+          stored.chapterNumber,
+          defaults.chapterNumber
+        )
+      )
+    ),
+    resources: sanitizeWallet(
+      stored.resources,
+      defaults.resources
+    ),
+    units,
+    formation,
+    formationShapeId,
+    formationPresets: sanitizePresets(
+      stored.formationPresets,
+      units,
+      faction,
+      stageId
+    ),
+    wagonItems: Array.isArray(stored.wagonItems)
+      ? stored.wagonItems.map(item => ({ ...item }))
+      : defaults.wagonItems.map(item => ({ ...item })),
+    wagonStageId: stageId,
+    armyReadiness: clampArmyReadiness(
+      typeof stored.armyReadiness === 'number'
+        ? stored.armyReadiness
+        : defaults.armyReadiness ?? 100
+    ),
+    chapterNodes: sanitizeNodes(
+      stored.chapterNodes,
+      defaults.chapterNodes
+    ),
+    formationDoctrineId,
+    equipmentInventory: sanitizeStringArray(
+      stored.equipmentInventory
+    ),
+    buildingLevels:
+      stored.buildingLevels &&
+      typeof stored.buildingLevels === 'object'
+        ? Object.fromEntries(
+            Object.entries(stored.buildingLevels).map(
+              ([id, level]) => [
+                id,
+                nonNegativeInteger(level, 0)
+              ]
+            )
+          )
+        : { ...defaults.buildingLevels },
+    buildingPlacements:
+      stored.buildingPlacements &&
+      typeof stored.buildingPlacements === 'object'
+        ? { ...stored.buildingPlacements }
+        : { ...defaults.buildingPlacements },
+    unlockedResourceSites: sanitizeStringArray(
+      stored.unlockedResourceSites
+    ),
+    productionStock: sanitizeWallet(
+      stored.productionStock,
+      defaults.productionStock
+    ),
+    kingdomDefenseRuns: nonNegativeInteger(
+      stored.kingdomDefenseRuns,
+      defaults.kingdomDefenseRuns
+    ),
+    expeditionTickets: nonNegativeInteger(
+      stored.expeditionTickets,
+      defaults.expeditionTickets
+    ),
+    expeditionRunsCompleted: nonNegativeInteger(
+      stored.expeditionRunsCompleted,
+      defaults.expeditionRunsCompleted
+    )
+  };
+}
+
+function sanitizeSharedProgress(
+  value: GameSnapshot['shared']
+): GameSnapshot['shared'] {
+  const completedCampaigns = [
+    ...new Set(
+      (Array.isArray(value.completedCampaigns)
+        ? value.completedCampaigns
+        : []
+      ).filter(
+        (faction): faction is FactionId =>
+          factionOrder.includes(faction)
+      )
+    )
+  ];
+
+  return {
+    completedCampaigns,
+    achievements: sanitizeStringArray(
+      value.achievements
+    ),
+    lore: sanitizeStringArray(value.lore),
+    cosmetics: sanitizeStringArray(value.cosmetics),
+    metaCampaignStep: Math.min(
+      5,
+      nonNegativeInteger(
+        value.metaCampaignStep,
+        0
+      )
+    ),
+    metaCampaignComplete:
+      Boolean(value.metaCampaignComplete) &&
+      completedCampaigns.length === 3
+  };
+}
+
+export function buildFactionSwitchSnapshot(
+  snapshot: GameSnapshot,
+  currentFactionState: FactionGameState,
+  targetFaction: FactionId
+): GameSnapshot | null {
+  if (targetFaction === snapshot.activeFaction) {
+    return {
+      ...snapshot,
+      factionStates: {
+        ...snapshot.factionStates,
+        [snapshot.activeFaction]: currentFactionState
+      }
+    };
+  }
+
+  if (
+    targetFaction !== 'human' &&
+    !snapshot.shared.completedCampaigns.includes(
+      'human'
+    )
+  ) {
+    return null;
+  }
+
+  const targetState =
+    sanitizeFactionGameState(
+      targetFaction,
+      snapshot.factionStates[targetFaction]
+    ) ?? createFactionGameState(targetFaction);
+
+  return {
+    ...snapshot,
+    activeFaction: targetFaction,
+    factionStates: {
+      ...snapshot.factionStates,
+      [snapshot.activeFaction]:
+        sanitizeFactionGameState(
+          snapshot.activeFaction,
+          currentFactionState
+        ) ?? currentFactionState,
+      [targetFaction]: targetState
+    }
+  };
+}
+
 
 export function createHumanFactionState(): FactionGameState {
   return {
@@ -548,31 +1051,48 @@ export function normalizeSaveRecord(
     return null;
   }
 
-  const factionOrder: FactionId[] = ['human', 'elf', 'orc'];
   const storedSnapshot = record.snapshot;
-  const activeState = storedSnapshot.factionStates[storedSnapshot.activeFaction];
+  const factionStates = {
+    human: sanitizeFactionGameState(
+      'human',
+      storedSnapshot.factionStates.human
+    ),
+    elf: sanitizeFactionGameState(
+      'elf',
+      storedSnapshot.factionStates.elf
+    ),
+    orc: sanitizeFactionGameState(
+      'orc',
+      storedSnapshot.factionStates.orc
+    )
+  };
+
   const activeFaction =
-    activeState?.faction === storedSnapshot.activeFaction
+    factionStates[storedSnapshot.activeFaction]
       ? storedSnapshot.activeFaction
-      : factionOrder.find(faction => {
-          const state = storedSnapshot.factionStates[faction];
-          return state?.faction === faction;
-        });
+      : factionOrder.find(
+          faction => factionStates[faction]
+        );
 
   if (!activeFaction) {
     return null;
   }
 
-  const snapshot =
-    activeFaction === storedSnapshot.activeFaction
-      ? storedSnapshot
-      : {
-          ...storedSnapshot,
-          activeFaction
-        };
+  const snapshot: GameSnapshot = {
+    schemaVersion: SAVE_SCHEMA_VERSION,
+    activeFaction,
+    shared: sanitizeSharedProgress(
+      storedSnapshot.shared
+    ),
+    factionStates
+  };
 
   return {
     snapshot,
-    metadata: metadataFromSnapshot(slotId, snapshot, record.metadata)
+    metadata: metadataFromSnapshot(
+      slotId,
+      snapshot,
+      record.metadata
+    )
   };
 }
