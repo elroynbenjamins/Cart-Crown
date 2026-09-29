@@ -41,6 +41,7 @@ export function FormationScreen({
     formation,
     activeFaction,
     activeSquadCap,
+    middleRowUnlocked,
     formationShapeId,
     formationShapes,
     activeFormationShape,
@@ -234,7 +235,15 @@ export function FormationScreen({
 
   const rows = [
     { key: 'front' as const, label: 'FRONT', slots: activeFormationShape.rows.front },
-    { key: 'middle' as const, label: 'MIDDLE', slots: activeFormationShape.rows.middle },
+    ...(middleRowUnlocked
+      ? [
+          {
+            key: 'middle' as const,
+            label: 'MIDDLE',
+            slots: activeFormationShape.rows.middle
+          }
+        ]
+      : []),
     { key: 'rear' as const, label: 'REAR', slots: activeFormationShape.rows.rear }
   ];
 
@@ -330,7 +339,9 @@ export function FormationScreen({
         <View style={styles.summaryRow}>
           <View style={styles.summaryCopy}>
             <Text style={[styles.eyebrow, { color: factionAccent }]}>
-              {activeFormationShape.layout} FORMATION
+              {middleRowUnlocked
+                ? activeFormationShape.layout + ' FORMATION'
+                : 'FRONT / REAR FORMATION'}
             </Text>
             <Text style={[styles.title, { color: theme.colors.text }]}>
               {activeFormationShape.name} · {formationDoctrines.find(d => d.id === formationDoctrineId)?.name ?? faction.mechanicName}
@@ -486,13 +497,15 @@ export function FormationScreen({
         Each loadout saves the formation shape, faction doctrine and exact squad positions.
       </Text>
 
-      <SectionTitle title="Formation shape" trailing={"9 positions · max " + String(activeSquadCap) + " squads"} />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.shapeStrip}
-      >
-        {formationShapes.map(shape => {
+      {middleRowUnlocked ? (
+        <>
+          <SectionTitle title="Formation shape" trailing={"9 positions · max " + String(activeSquadCap) + " squads"} />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.shapeStrip}
+          >
+            {formationShapes.map(shape => {
           const selected = shape.id === formationShapeId;
           const unlocked = unlockedAtStage(shape.unlock);
 
@@ -537,10 +550,27 @@ export function FormationScreen({
               </Text>
             </Pressable>
           );
-        })}
-      </ScrollView>
+            })}
+          </ScrollView>
+        </>
+      ) : (
+        <>
+          <SectionTitle title="Formation" trailing="Front + Rear" />
+          <GameCard>
+            <Text style={[styles.lockedFormationTitle, { color: theme.colors.text }]}>
+              Middle Row unlocks in Chapter 2
+            </Text>
+            <Text style={[styles.lockedFormationBody, { color: theme.colors.textMuted }]}>
+              For now, protect the rear line with your frontline. Beyond the Fires introduces the sixth deployment slot and the full Front / Middle / Rear battlefield.
+            </Text>
+          </GameCard>
+        </>
+      )}
 
-      <SectionTitle title="Battle positions" trailing={activeFormationShape.layout} />
+      <SectionTitle
+        title="Battle positions"
+        trailing={middleRowUnlocked ? activeFormationShape.layout : 'Front + Rear'}
+      />
 
       <View style={styles.board}>
         {rows.map(row => {
@@ -630,7 +660,9 @@ export function FormationScreen({
       </View>
 
       <Text style={[styles.interactionHint, { color: theme.colors.textMuted }]}>
-        Tap a squad, then tap any visible position to move or swap it. Changing shape changes which positions belong to the front, middle and rear; it does not change your squad cap.
+        {middleRowUnlocked
+          ? 'Tap a squad, then tap any visible position to move or swap it. Changing shape changes which positions belong to the front, middle and rear; it does not change your squad cap.'
+          : 'Tap a squad, then tap a Front or Rear position to move or swap it. The Middle Row unlocks after Beyond the Fires.'}
       </Text>
 
       <SectionTitle title={faction.name + ' ' + faction.mechanicName} trailing="Battle behavior" />
@@ -745,6 +777,8 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 20, lineHeight: 26, fontWeight: '900', marginTop: 4 },
   subtitle: { fontSize: 13, lineHeight: 18, marginTop: 9 },
+  lockedFormationTitle: { fontSize: 15, fontWeight: '900' },
+  lockedFormationBody: { fontSize: 11.5, lineHeight: 17, marginTop: 5 },
   guideHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
