@@ -65,6 +65,7 @@ function baseContext(
     completedFlyingResearch: 0,
     completedLargeResearch: 0,
     completedHybridResearch: 0,
+    enemyFantasyThreatFamily: null,
     ...overrides
   };
 }
@@ -599,6 +600,51 @@ function runSystemCoverage() {
   );
 }
 
+function runEnemyFantasyTutorialCoverage() {
+  const moment = getNextTutorialMoment(
+    baseContext({
+      view: 'battlePrep',
+      tutorialSeen: [
+        ...CORE_TUTORIAL_KEYS,
+        'system:readiness'
+      ],
+      wagonStageId: 'stronghold',
+      enemyFantasyThreatFamily: 'flying'
+    })
+  );
+
+  expect(
+    moment?.key === 'system:enemy-fantasy-threat',
+    'The first enemy fantasy encounter does not teach its counter system in Battle Prep.'
+  );
+  expect(
+    moment?.title.toLowerCase().includes('fly'),
+    'Flying enemy tutorial copy does not explain the active threat family.'
+  );
+  expect(
+    !moment?.focusAfterPrimary,
+    'Enemy fantasy lesson should not trap the user on a non-interactive spotlight.'
+  );
+
+  const repeated = getNextTutorialMoment(
+    baseContext({
+      view: 'battlePrep',
+      tutorialSeen: [
+        ...CORE_TUTORIAL_KEYS,
+        'system:readiness',
+        'system:enemy-fantasy-threat'
+      ],
+      wagonStageId: 'stronghold',
+      enemyFantasyThreatFamily: 'large'
+    })
+  );
+
+  expect(
+    repeated?.key !== 'system:enemy-fantasy-threat',
+    'Enemy fantasy counter lesson repeats after it has already been completed.'
+  );
+}
+
 function runFantasyFamilyCoverage() {
   const core = [...CORE_TUTORIAL_KEYS];
 
@@ -1095,6 +1141,7 @@ function main() {
   runUnitUnlockCoverage();
   runBuildingUnlockCoverage();
   runSystemCoverage();
+  runEnemyFantasyTutorialCoverage();
   runFantasyFamilyCoverage();
   runReviewTimingCoverage();
   runLegacySaveCoverage();
@@ -1118,7 +1165,7 @@ function main() {
   }
 
   console.log(
-    'PASS: staged onboarding, faction-specific intros, non-repetitive pacing, transactional spotlight completion, first-unit/building guidance, system unlock lessons, legacy-save behavior, post-Chapter-1 review timing and Android app identity remain protected.'
+    'PASS: staged onboarding, faction-specific intros, non-repetitive pacing, transactional spotlight completion, first-unit/building guidance, fantasy enemy counter teaching, system unlock lessons, legacy-save behavior, post-Chapter-1 review timing and Android app identity remain protected.'
   );
 }
 
