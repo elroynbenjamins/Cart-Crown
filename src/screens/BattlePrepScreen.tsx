@@ -28,7 +28,10 @@ import type { TacticalAdjustmentAdvice } from '../game/loadoutAnalysis';
 import type { FormationPresetSlotId } from '../game/types';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
-import { getTacticalGuidanceFeatures } from '../game/tacticalGuidance';
+import {
+  getTacticalGuidanceFeatures,
+  requiresSeverePreparationConfirmation
+} from '../game/tacticalGuidance';
 import { usePreferences } from '../preferences/PreferencesProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
@@ -71,6 +74,10 @@ export function BattlePrepScreen({
   const guidanceFeatures =
     getTacticalGuidanceFeatures(tacticalGuidance);
   const [showBattleDetails, setShowBattleDetails] = React.useState(false);
+  const [
+    showSevereBattleConfirmation,
+    setShowSevereBattleConfirmation
+  ] = React.useState(false);
   const {
     activeFaction,
     resources,
@@ -271,6 +278,37 @@ export function BattlePrepScreen({
     : null;
   const canFullyResupply =
     resources.provisions >= armyResupplyCost;
+
+  const requiresBattleConfirmation =
+    requiresSeverePreparationConfirmation(
+      tacticalGuidance,
+      preparation.status
+    );
+
+  React.useEffect(() => {
+    setShowSevereBattleConfirmation(false);
+  }, [
+    encounterId,
+    preparation.status,
+    tacticalGuidance
+  ]);
+
+  const beginBattle = (
+    confirmedSevere = false
+  ) => {
+    if (
+      requiresBattleConfirmation &&
+      !confirmedSevere
+    ) {
+      setShowSevereBattleConfirmation(true);
+      return;
+    }
+
+    if (tutorialFocus?.kind === 'battle-begin') {
+      onTutorialFocusComplete?.();
+    }
+    onBegin();
+  };
 
   const preparationAction =
     tacticalGuidance === 'full' &&
@@ -1554,15 +1592,60 @@ export function BattlePrepScreen({
         active={tutorialFocus?.kind === 'battle-begin'}
         label={tutorialFocus?.kind === 'battle-begin' ? tutorialFocus.label : undefined}
       >
-        <PrimaryButton
-          label="Begin Battle"
-          onPress={() => {
-            if (tutorialFocus?.kind === 'battle-begin') {
-              onTutorialFocusComplete?.();
-            }
-            onBegin();
-          }}
-        />
+        <View style={styles.beginBattleArea}>
+          {showSevereBattleConfirmation ? (
+            <GameCard
+              accent={theme.colors.danger}
+              state="danger"
+            >
+              <Text
+                style={[
+                  styles.severeConfirmEyebrow,
+                  { color: theme.colors.danger }
+                ]}
+              >
+                SEVERELY UNDERPREPARED
+              </Text>
+              <Text
+                style={[
+                  styles.severeConfirmTitle,
+                  { color: theme.colors.text }
+                ]}
+              >
+                Fight anyway?
+              </Text>
+              <Text
+                style={[
+                  styles.severeConfirmBody,
+                  { color: theme.colors.textMuted }
+                ]}
+              >
+                This warning reflects multiple preparation problems, not a guaranteed defeat. You can still commit if that is the risk you want to take.
+              </Text>
+              <View style={styles.severeConfirmActions}>
+                <SecondaryButton
+                  label="Keep preparing"
+                  onPress={() =>
+                    setShowSevereBattleConfirmation(false)
+                  }
+                />
+                <PrimaryButton
+                  label="Fight anyway"
+                  onPress={() => beginBattle(true)}
+                />
+              </View>
+            </GameCard>
+          ) : (
+            <PrimaryButton
+              label={
+                requiresBattleConfirmation
+                  ? 'Begin Battle · Underprepared'
+                  : 'Begin Battle'
+              }
+              onPress={() => beginBattle()}
+            />
+          )}
+        </View>
       </TutorialFocus>
     </ScrollView>
   );
@@ -1570,6 +1653,27 @@ export function BattlePrepScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 14 },
+  beginBattleArea: { gap: 8 },
+  severeConfirmEyebrow: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.9
+  },
+  severeConfirmTitle: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: '900',
+    marginTop: 4
+  },
+  severeConfirmBody: {
+    fontSize: 10.5,
+    lineHeight: 16,
+    marginTop: 7
+  },
+  severeConfirmActions: {
+    gap: 8,
+    marginTop: 12
+  },
   encounterHeader: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   encounterCopy: { flex: 1 },
   eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
