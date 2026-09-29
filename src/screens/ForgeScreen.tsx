@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import type { ResourceWallet } from '../game/types';
@@ -31,6 +31,22 @@ export function ForgeScreen({
     firstPromotionComplete
   } = useGame();
   const [message, setMessage] = useState<string | null>(null);
+  const tutorialScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (tutorialFocus?.kind !== 'forge-craft') {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      tutorialScrollRef.current?.scrollTo({
+        y: 170,
+        animated: true
+      });
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [tutorialFocus]);
 
   const humanWeapons = equipmentDefinitions.filter(
     item =>
@@ -55,7 +71,11 @@ export function ForgeScreen({
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <GameCard accent={theme.colors.gold} faction="human">
         <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>FIELD FORGE</Text>
         <Text style={[styles.title, { color: theme.colors.text }]}>First Equipment</Text>
