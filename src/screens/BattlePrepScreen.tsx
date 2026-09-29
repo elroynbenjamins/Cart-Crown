@@ -1,7 +1,11 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getEncounter, getEnemyFormationTactic } from '../game/encounters';
-import { getFormationShape } from '../game/formation';
+import {
+  getFormationCounters,
+  getFormationMatchup,
+  getFormationShape
+} from '../game/formation';
 import {
   getArmyReadinessProfile,
   getUnitCombatProfile
@@ -42,6 +46,7 @@ export function BattlePrepScreen({
     formationAnalysis,
     activeFormationShape,
     activeSquadCap,
+    currentWagonStage,
     formationDoctrineId,
     formationDoctrines,
     activeCommanderPath,
@@ -60,6 +65,34 @@ export function BattlePrepScreen({
   const encounter = getEncounter(encounterId);
   const enemyTactic = getEnemyFormationTactic(encounterId);
   const enemyShape = getFormationShape(enemyTactic.formationShapeId);
+  const formationMatchup = getFormationMatchup(
+    activeFormationShape.id,
+    enemyShape.id
+  );
+  const stageRank: Record<string, number> = {
+    camp: 0,
+    settlement: 1,
+    fort: 2,
+    town: 3,
+    stronghold: 4,
+    capital: 5,
+    grand: 6
+  };
+  const unlockRank: Record<string, number> = {
+    Start: 0,
+    Settlement: 1,
+    Fort: 2,
+    Town: 3,
+    Stronghold: 4
+  };
+  const unlockedCounters = getFormationCounters(enemyShape.id)
+    .filter(
+      shape =>
+        (stageRank[currentWagonStage.id] ?? 0) >=
+        (unlockRank[shape.unlock] ?? 0)
+    )
+    .filter(shape => shape.id !== activeFormationShape.id)
+    .slice(0, 3);
   const factionAccent =
     activeFaction === 'elf'
       ? theme.colors.elf
@@ -248,6 +281,51 @@ export function BattlePrepScreen({
         <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
           Attack ×{formationAnalysis.attackMultiplier.toFixed(2)} · Armor ×{formationAnalysis.armorMultiplier.toFixed(2)} · Speed ×{formationAnalysis.speedMultiplier.toFixed(2)}
         </Text>
+      </GameCard>
+
+      <GameCard
+        accent={
+          formationMatchup.result === 'advantage'
+            ? theme.colors.primary
+            : formationMatchup.result === 'disadvantage'
+              ? theme.colors.danger
+              : theme.colors.gold
+        }
+        faction={activeFaction}
+        state={formationMatchup.result === 'disadvantage' ? 'danger' : 'default'}
+      >
+        <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+          FORMATION MATCHUP
+        </Text>
+        <Text
+          style={[
+            styles.doctrineName,
+            {
+              color:
+                formationMatchup.result === 'advantage'
+                  ? theme.colors.primary
+                  : formationMatchup.result === 'disadvantage'
+                    ? theme.colors.danger
+                    : theme.colors.text
+            }
+          ]}
+        >
+          {formationMatchup.title}
+        </Text>
+        <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+          {activeFormationShape.layout} {activeFormationShape.name} vs {enemyShape.layout} {enemyShape.name}
+        </Text>
+        <Text style={[styles.matchupSummary, { color: theme.colors.text }]}>
+          {formationMatchup.summary}
+        </Text>
+        <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
+          Damage dealt ×{formationMatchup.outgoingDamageMultiplier.toFixed(2)} · Damage received ×{formationMatchup.incomingDamageMultiplier.toFixed(2)}
+        </Text>
+        {formationMatchup.result !== 'advantage' && unlockedCounters.length > 0 ? (
+          <Text style={[styles.matchupHint, { color: theme.colors.textMuted }]}>
+            Unlocked counters: {unlockedCounters.map(shape => shape.layout + ' ' + shape.name).join(' · ')}
+          </Text>
+        ) : null}
       </GameCard>
 
       {marcherDoctrineActive && activeMarcherWarningChoice ? (
@@ -463,6 +541,9 @@ const styles = StyleSheet.create({
   doctrineLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
   doctrineName: { fontSize: 16, fontWeight: '900', marginTop: 3 },
   doctrineBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
+  matchupSummary: { fontSize: 11, lineHeight: 16, marginTop: 8, fontWeight: '700' },
+  matchupEffect: { fontSize: 10, lineHeight: 15, marginTop: 7, fontWeight: '900' },
+  matchupHint: { fontSize: 9.5, lineHeight: 14, marginTop: 7 },
   commandHeader: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   commandCopy: { flex: 1 },
   skillName: { fontSize: 10.5, lineHeight: 16, marginTop: 8, fontWeight: '800' },
