@@ -5,6 +5,7 @@ import {
   humanRecruitOptions,
   humanRefugeeReinforcements,
   starterWagonItems,
+  transportStages,
   wagonStages
 } from './data';
 import {
@@ -163,6 +164,7 @@ import type {
   SettlementAdjacencyEffects,
   SideModeDefinition,
   SideModeId,
+  TransportStage,
   UnitDefinition,
   UnitEquipmentLoadout,
   WagonItemDefinition,
@@ -192,6 +194,7 @@ type GameContextValue = {
   formation: Array<string | null>;
   wagonItems: WagonItemDefinition[];
   currentWagonStage: WagonStage;
+  currentTransportStage: TransportStage;
   armyReadiness: number;
   armyResupplyCost: number;
   chapterNumber: number;
@@ -487,7 +490,7 @@ function overlaps(a: WagonItemDefinition, b: WagonItemDefinition) {
 function canPlaceItem(
   item: WagonItemDefinition,
   otherItems: WagonItemDefinition[],
-  stage: WagonStage
+  stage: Pick<TransportStage, 'width' | 'height'>
 ) {
   const dimensions = itemDimensions(item);
 
@@ -684,6 +687,49 @@ export function GameProvider({
     () => wagonStages.find(stage => stage.id === wagonStageId) ?? wagonStages[0]!,
     [wagonStageId]
   );
+
+  const currentTransportStage = useMemo<TransportStage>(() => {
+    let transportId: TransportStage['id'];
+
+    if (activeFaction === 'human') {
+      transportId =
+        chapterNumber >= 6
+          ? 'kingdom_caravan'
+          : chapterNumber >= 4
+            ? 'wagon'
+            : chapterNumber >= 3
+              ? 'supply_cart'
+              : sharedProgress.lore.includes('human_handcart')
+                ? 'handcart'
+                : settlementUpgraded
+                  ? 'pack_gear'
+                  : 'worn_pack';
+    } else {
+      transportId =
+        ['capital', 'grand'].includes(wagonStageId)
+          ? 'kingdom_caravan'
+          : wagonStageId === 'stronghold'
+            ? 'wagon'
+            : wagonStageId === 'town'
+              ? 'supply_cart'
+              : wagonStageId === 'fort'
+                ? 'handcart'
+                : wagonStageId === 'settlement'
+                  ? 'pack_gear'
+                  : 'worn_pack';
+    }
+
+    return (
+      transportStages.find(stage => stage.id === transportId) ??
+      transportStages[0]!
+    );
+  }, [
+    activeFaction,
+    chapterNumber,
+    settlementUpgraded,
+    sharedProgress.lore,
+    wagonStageId
+  ]);
 
   const buildings = useMemo(() => getBuildings(activeFaction), [activeFaction]);
   const factionBuildingIds = useMemo(
@@ -5334,7 +5380,7 @@ export function GameProvider({
 
     const moved: WagonItemDefinition = { ...item, x, y };
     const others = wagonItems.filter(candidate => candidate.id !== itemId);
-    if (!canPlaceItem(moved, others, currentWagonStage)) return false;
+    if (!canPlaceItem(moved, others, currentTransportStage)) return false;
 
     setWagonItems(previous =>
       previous.map(candidate => (candidate.id === itemId ? moved : candidate))
@@ -5351,7 +5397,7 @@ export function GameProvider({
       rotation: item.rotation === 0 ? 90 : 0
     };
     const others = wagonItems.filter(candidate => candidate.id !== itemId);
-    if (!canPlaceItem(rotated, others, currentWagonStage)) return false;
+    if (!canPlaceItem(rotated, others, currentTransportStage)) return false;
 
     setWagonItems(previous =>
       previous.map(candidate => (candidate.id === itemId ? rotated : candidate))
@@ -5637,6 +5683,7 @@ export function GameProvider({
       formation,
       wagonItems,
       currentWagonStage,
+      currentTransportStage,
       armyReadiness,
       armyResupplyCost,
       chapterNumber,
@@ -5833,6 +5880,7 @@ export function GameProvider({
       formation,
       wagonItems,
       currentWagonStage,
+      currentTransportStage,
       armyReadiness,
       armyResupplyCost,
       chapterNumber,
