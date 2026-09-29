@@ -10,6 +10,7 @@ import type { StyleProp, ViewStyle } from 'react-native';
 import type { FactionId, ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { ResourceSprite, UnitSprite } from './gameArt';
+import { shouldAcceptActionPress } from '../game/mobileSession';
 
 export type CardState = 'default' | 'selected' | 'ready' | 'locked' | 'danger';
 
@@ -283,6 +284,30 @@ export function ScreenAtmosphere({
   );
 }
 
+function useGuardedPress(
+  onPress: (() => void) | undefined,
+  disabled: boolean | undefined
+) {
+  const lastPressAtRef = React.useRef(0);
+
+  return React.useCallback(() => {
+    if (disabled || !onPress) return;
+
+    const now = Date.now();
+    if (
+      !shouldAcceptActionPress(
+        lastPressAtRef.current,
+        now
+      )
+    ) {
+      return;
+    }
+
+    lastPressAtRef.current = now;
+    onPress();
+  }, [disabled, onPress]);
+}
+
 export function PrimaryButton({
   label,
   onPress,
@@ -293,12 +318,13 @@ export function PrimaryButton({
   disabled?: boolean;
 }) {
   const { theme } = useGameTheme();
+  const guardedPress = useGuardedPress(onPress, disabled);
 
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
-      onPress={onPress}
+      onPress={guardedPress}
       style={({ pressed }) => [
         styles.primaryButton,
         {
@@ -329,12 +355,13 @@ export function SecondaryButton({
   disabled?: boolean;
 }) {
   const { theme } = useGameTheme();
+  const guardedPress = useGuardedPress(onPress, disabled);
 
   return (
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
-      onPress={onPress}
+      onPress={guardedPress}
       style={({ pressed }) => [
         styles.secondaryButton,
         {

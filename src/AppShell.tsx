@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  BackHandler,
   Pressable,
   SafeAreaView,
   StatusBar,
@@ -8,6 +9,7 @@ import {
   View
 } from 'react-native';
 import type { NavId } from './game/types';
+import { resolveHardwareBackAction } from './game/mobileSession';
 import type { EncounterId } from './game/encounters';
 import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
@@ -194,6 +196,7 @@ export function AppShell({
   const {
     activeFaction,
     finishEncounter,
+    flushSnapshot,
     lastBattleResult,
     commanderPathId,
     firstPromotionComplete,
@@ -201,6 +204,51 @@ export function AppShell({
   } = useGame();
 
   const openRecruitment = () => setFlow('recruitment');
+
+  const exitToSaveSlots = async () => {
+    await flushSnapshot();
+    onExitToSaves();
+  };
+
+  const handleResultsContinue = () => {
+    if (
+      [
+        'mercenary_patrol_result',
+        'elf_hollow_warden_result',
+        'orc_blamecaller_result'
+      ].includes(lastBattleResult?.id ?? '') &&
+      !commanderPathId
+    ) {
+      setFlow('commanderChoice');
+      return;
+    }
+
+    if (
+      [
+        'elf_return_through_roots_result',
+        'orc_crownspire_warmaster_result'
+      ].includes(lastBattleResult?.id ?? '')
+    ) {
+      setFlow(null);
+      setActive('campaign');
+      return;
+    }
+
+    if (
+      [
+        'three_seals_convergence_result',
+        'ashen_triumvirate_result',
+        'unbound_beacon_result'
+      ].includes(lastBattleResult?.id ?? '')
+    ) {
+      setFlow('metaCampaign');
+      setActive('campaign');
+      return;
+    }
+
+    setFlow(null);
+    setActive('kingdom');
+  };
 
   const renderScreen = () => {
     if (flow === 'battlePrep') {
@@ -242,44 +290,7 @@ export function AppShell({
       return (
         <ResultsScreen
           battleSummary={lastCombatSummary}
-          onContinue={() => {
-            if (
-              [
-                'mercenary_patrol_result',
-                'elf_hollow_warden_result',
-                'orc_blamecaller_result'
-              ].includes(lastBattleResult?.id ?? '') &&
-              !commanderPathId
-            ) {
-              setFlow('commanderChoice');
-              return;
-            }
-            if (
-              [
-                'elf_return_through_roots_result',
-                'orc_crownspire_warmaster_result'
-              ].includes(lastBattleResult?.id ?? '')
-            ) {
-              setFlow(null);
-              setActive('campaign');
-              return;
-            }
-
-            if (
-              [
-                'three_seals_convergence_result',
-                'ashen_triumvirate_result',
-                'unbound_beacon_result'
-              ].includes(lastBattleResult?.id ?? '')
-            ) {
-              setFlow('metaCampaign');
-              setActive('campaign');
-              return;
-            }
-
-            setFlow(null);
-            setActive('kingdom');
-          }}
+          onContinue={handleResultsContinue}
         />
       );
     }
@@ -1232,6 +1243,52 @@ export function AppShell({
     }
   };
 
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        const action = resolveHardwareBackAction({
+          flow,
+          canGoBack,
+          active
+        });
+
+        if (action === 'block_battle') {
+          return true;
+        }
+
+        if (action === 'continue_results') {
+          handleResultsContinue();
+          return true;
+        }
+
+        if (action === 'close_flow') {
+          setFlow(null);
+          return true;
+        }
+
+        if (action === 'go_kingdom') {
+          setActive('kingdom');
+          return true;
+        }
+
+        void flushSnapshot().finally(() => {
+          BackHandler.exitApp();
+        });
+        return true;
+      }
+    );
+
+    return () => subscription.remove();
+  }, [
+    active,
+    canGoBack,
+    commanderPathId,
+    flow,
+    flushSnapshot,
+    lastBattleResult?.id
+  ]);
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.appBg }]}>
       <ScreenAtmosphere
@@ -1274,7 +1331,9 @@ export function AppShell({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Return to save slots"
-              onPress={onExitToSaves}
+              onPress={() => {
+                void exitToSaveSlots();
+              }}
               style={[
                 styles.slotButton,
                 {

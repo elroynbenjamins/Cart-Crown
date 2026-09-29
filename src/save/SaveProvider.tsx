@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import {
   createNewSaveRecord,
   metadataFromSnapshot,
   normalizeSaveRecord
 } from './schema';
+import { createSerialTaskQueue } from '../game/mobileSession';
 import type {
   GameSnapshot,
   SaveRecord,
@@ -53,6 +54,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
     1: null,
     2: null
   });
+  const writeQueueRef = useRef(createSerialTaskQueue());
 
   useEffect(() => {
     let cancelled = false;
@@ -92,18 +94,40 @@ export function SaveProvider({ children }: PropsWithChildren) {
   const writeSnapshot = async (snapshot: GameSnapshot) => {
     if (!selectedSlotId) return;
 
-    const existing = records[selectedSlotId]?.metadata ?? selectedRecord?.metadata;
+    const slotId = selectedSlotId;
+    const existing =
+      records[slotId]?.metadata ??
+      selectedRecord?.metadata;
     const record: SaveRecord = {
       snapshot,
-      metadata: metadataFromSnapshot(selectedSlotId, snapshot, existing)
+      metadata: metadataFromSnapshot(
+        slotId,
+        snapshot,
+        existing
+      )
     };
 
-    await AsyncStorage.setItem(keyForSlot(selectedSlotId), JSON.stringify(record));
-    setRecords(previous => ({ ...previous, [selectedSlotId]: record }));
-    setSelectedRecord(record);
+    const write = async () => {
+      await AsyncStorage.setItem(
+        keyForSlot(slotId),
+        JSON.stringify(record)
+      );
+      setRecords(previous => ({
+        ...previous,
+        [slotId]: record
+      }));
+      setSelectedRecord(previous =>
+        selectedSlotId === slotId
+          ? record
+          : previous
+      );
+    };
+
+    await writeQueueRef.current.enqueue(write);
   };
 
   const deleteSlot = async (slotId: SaveSlotId) => {
+    await writeQueueRef.current.wait();
     await AsyncStorage.removeItem(keyForSlot(slotId));
     setRecords(previous => ({ ...previous, [slotId]: null }));
 

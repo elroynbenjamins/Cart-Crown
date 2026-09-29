@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Animated, AppState, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import {
   getEncounter,
   getEnemyArmyProfile,
@@ -18,6 +18,10 @@ import {
 } from '../game/formation';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
+import {
+  appStateAllowsBattleProgress,
+  createOneShotGate
+} from '../game/mobileSession';
 import { useGameTheme } from '../theme/ThemeProvider';
 import type { CommanderSkillEffectType, UnitRole } from '../game/types';
 import { GameCard, PrimaryButton, ProgressBar } from '../ui/components';
@@ -287,6 +291,9 @@ export function BattleScreen({
   const [skillTriggered, setSkillTriggered] = useState(false);
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
   const [battleSpeed, setBattleSpeed] = useState<BattleSpeed>(1);
+  const [appIsActive, setAppIsActive] = useState(
+    appStateAllowsBattleProgress(AppState.currentState)
+  );
   const [exchangeFeedback, setExchangeFeedback] = useState<ExchangeFeedback | null>(null);
   const [battleTotals, setBattleTotals] = useState({
     damageDealt: 0,
@@ -294,6 +301,9 @@ export function BattleScreen({
     healing: 0
   });
   const battleScrollRef = useRef<ScrollView>(null);
+  const outcomeCommitGateRef = useRef(
+    createOneShotGate()
+  );
   const attackPulse = useRef(new Animated.Value(0)).current;
   const impactPulse = useRef(new Animated.Value(0)).current;
   const feedbackPulse = useRef(new Animated.Value(0)).current;
@@ -487,7 +497,20 @@ export function BattleScreen({
   ]);
 
   useEffect(() => {
-    if (battleEnded) return;
+    const subscription = AppState.addEventListener(
+      'change',
+      nextState => {
+        setAppIsActive(
+          appStateAllowsBattleProgress(nextState)
+        );
+      }
+    );
+
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    if (battleEnded || !appIsActive) return;
 
     const timer = setTimeout(() => {
       let effect = activeEffect;
@@ -718,6 +741,7 @@ export function BattleScreen({
   }, [
     activeCommanderPath,
     activeEffect,
+    appIsActive,
     activeFaction,
     activeFormationSlots,
     battleSpeed,
@@ -1447,6 +1471,8 @@ export function BattleScreen({
         <PrimaryButton
           label="View Results"
           onPress={() => {
+            if (!outcomeCommitGateRef.current()) return;
+
             recordBattleWear(
               partyHp,
               partyMaxHp,
@@ -1468,6 +1494,8 @@ export function BattleScreen({
         <PrimaryButton
           label="Regroup"
           onPress={() => {
+            if (!outcomeCommitGateRef.current()) return;
+
             recordBattleWear(
               partyHp,
               partyMaxHp,
