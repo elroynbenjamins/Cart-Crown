@@ -5,14 +5,8 @@ import { factions } from '../game/factions';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { SecondaryButton } from '../ui/components';
 import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionOption, DecisionStats } from '../ui/DecisionUI';
+import { EffectChip, EmphasisText, RoleChip, SemanticChip } from '../ui/SemanticUI';
 import { CommanderPortrait } from '../ui/gameArt';
-
-const effectLabels: Record<string, string> = {
-  single_damage: 'Direct damage',
-  bleed: 'Bleed',
-  morale_break: 'Morale break',
-  armor_break: 'Armor break'
-};
 
 export function CommanderChoiceScreen({ onComplete }: { onComplete: () => void }) {
   const { theme } = useGameTheme();
@@ -81,17 +75,19 @@ export function CommanderChoiceScreen({ onComplete }: { onComplete: () => void }
               setMessage(null);
             }}
           >
-            <Text style={[styles.roles, { color: accent }]}>Favored roles: {path.favoredRoles.join(', ')}</Text>
+            {current ? <SemanticChip label="Current specialization" tone="positive" /> : null}
+            <Text style={[styles.roles, { color: theme.colors.textMuted }]}>Favored roles</Text>
+            <View style={styles.badges}>{path.favoredRoles.map(role => <RoleChip key={role} role={role} />)}</View>
             <Text style={[styles.label, { color: theme.colors.text }]}>{path.passiveName}</Text>
-            <Text style={[styles.body, { color: theme.colors.textMuted }]}>{path.passiveDescription}</Text>
-            <DecisionStats items={[
+            <EmphasisText text={path.passiveDescription} style={[styles.body, { color: theme.colors.textMuted }]} />
+            <DecisionStats presentation="multiplier" items={[
               { label: 'Attack', value: '×' + path.attackMultiplier.toFixed(2) },
               { label: 'Armor', value: '×' + path.armorMultiplier.toFixed(2) },
               { label: 'Speed', value: '×' + path.speedMultiplier.toFixed(2) }
             ]} />
             <View style={[styles.skill, { backgroundColor: theme.colors.surface2 }]}>
               <Text style={[styles.label, { color: theme.colors.text }]}>{path.skill.name}</Text>
-              <Text style={[styles.roles, { color: theme.colors.gold }]}>{effectLabels[path.skill.effectType] ?? path.skill.effectType}</Text>
+              <EffectChip effect={path.skill.effectType} />
               <Text style={[styles.body, { color: theme.colors.textMuted }]}>{path.skill.description}</Text>
             </View>
           </DecisionOption>
@@ -105,5 +101,6 @@ const styles = StyleSheet.create({
   body: { fontSize: 13, lineHeight: 19 },
   roles: { fontSize: 12, lineHeight: 18, fontWeight: '800' },
   label: { fontSize: 14, lineHeight: 20, fontWeight: '900' },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   skill: { padding: 12, borderRadius: 12, gap: 5 }
 });
