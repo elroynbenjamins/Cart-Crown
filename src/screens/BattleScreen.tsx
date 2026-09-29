@@ -985,6 +985,7 @@ export function BattleScreen({
                   ) : (
                     <EnemySprite
                       enemyName={encounter.enemyName}
+                      armyProfileId={enemyArmyProfile.id}
                       size={
                         dense
                           ? compactLayout
@@ -1173,6 +1174,7 @@ export function BattleScreen({
             >
               <EnemySprite
                 enemyName={encounter.enemyName}
+                armyProfileId={enemyArmyProfile.id}
                 size={compactLayout ? 40 : 48}
               />
             </View>
