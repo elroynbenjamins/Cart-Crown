@@ -51,6 +51,9 @@ jobs:
       - name: War Table regression
         run: npm run war-table:check
 
+      - name: Enemy fantasy regression
+        run: npm run fantasy-enemy:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 
