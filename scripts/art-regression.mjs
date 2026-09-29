@@ -46,9 +46,10 @@ function walk(dir) {
   });
 }
 function relative(file) { return path.relative(root, file).split(path.sep).join('/'); }
-const sprites = ['assets/game/units', 'assets/game/enemies']
-  .flatMap(dir => walk(path.join(root, dir))).filter(file => file.endsWith('.png')).sort();
-assert.ok(sprites.length > 0, 'No production sprites found');
+// All currently bundled game art shares the 256x256 alpha contract, including
+// equipment and faction crests. Do not silently exclude a category from decoding.
+const sprites = walk(path.join(root, 'assets/game')).filter(file => file.endsWith('.png')).sort();
+assert.ok(sprites.length > 0, 'No production PNGs found');
 const hashes = new Map();
 for (const file of sprites) {
   const rel = relative(file), bytes = fs.readFileSync(file);
@@ -62,10 +63,10 @@ for (const file of sprites) {
   matches.push(rel); hashes.set(hash, matches);
 }
 for (const matches of hashes.values()) {
-  if (matches.length > 1) failures.push('Exact duplicate production sprites: ' + matches.join(' | '));
+  if (matches.length > 1) failures.push('Exact duplicate production PNGs: ' + matches.join(' | '));
 }
 const registry = fs.readFileSync(path.join(root, 'src/ui/productionAssets.ts'), 'utf8');
-const registered = new Set([...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/(?:units|enemies)\/[^']+\.png)'\)/g)].map(match => match[1]));
+const registered = new Set([...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/[^']+\.png)'\)/g)].map(match => match[1]));
 const spritePaths = new Set(sprites.map(relative));
 for (const sprite of spritePaths) {
   if (!registered.has(sprite)) failures.push(sprite + ' exists but is not registered in productionAssetSources.');
@@ -78,4 +79,4 @@ if (failures.length) {
   failures.forEach(failure => console.error('- ' + failure));
   process.exit(1);
 }
-console.log('PASS: ' + sprites.length + ' sprites fully decoded: CRCs, zlib payload, scanline/filter integrity, real alpha, size, registration and exact duplicates.');
+console.log('PASS: ' + sprites.length + ' game PNGs fully decoded: CRCs, zlib payload, scanline/filter integrity, real alpha, size, registration and exact duplicates.');
