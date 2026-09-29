@@ -263,6 +263,18 @@ export function ArmyScreen({
                 : 'Story gate'
             }
           />
+          <TutorialFocus
+            active={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'magic'
+            }
+            label={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'magic'
+                ? tutorialFocus.label
+                : undefined
+            }
+          >
           <GameCard
             accent={magicUnlocked ? factionAccent : undefined}
             faction={activeFaction}
@@ -283,10 +295,19 @@ export function ArmyScreen({
                     ? 'Open Arcane Research'
                     : 'View Magic Progress'
                 }
-                onPress={onOpenFantasyResearch}
+                onPress={() => {
+                  if (
+                    tutorialFocus?.kind === 'army-fantasy' &&
+                    tutorialFocus.family === 'magic'
+                  ) {
+                    onTutorialFocusComplete?.();
+                  }
+                  onOpenFantasyResearch();
+                }}
               />
             </View>
           </GameCard>
+          </TutorialFocus>
         </>
       ) : null}
 
@@ -303,6 +324,18 @@ export function ArmyScreen({
                 : 'Story gate'
             }
           />
+          <TutorialFocus
+            active={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'flying'
+            }
+            label={
+              tutorialFocus?.kind === 'army-fantasy' &&
+              tutorialFocus.family === 'flying'
+                ? tutorialFocus.label
+                : undefined
+            }
+          >
           <GameCard
             accent={flyingUnlocked ? factionAccent : undefined}
             faction={activeFaction}
@@ -323,10 +356,19 @@ export function ArmyScreen({
                     ? 'Open Aerial Training'
                     : 'View Flying Progress'
                 }
-                onPress={onOpenFlyingResearch}
+                onPress={() => {
+                  if (
+                    tutorialFocus?.kind === 'army-fantasy' &&
+                    tutorialFocus.family === 'flying'
+                  ) {
+                    onTutorialFocusComplete?.();
+                  }
+                  onOpenFlyingResearch();
+                }}
               />
             </View>
           </GameCard>
+          </TutorialFocus>
         </>
       ) : null}
 
