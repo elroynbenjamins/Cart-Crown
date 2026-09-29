@@ -110,7 +110,7 @@ const choices: SiegeChoice[] = [
     formationShapeId: 'wide_vanguard_522',
     baseThreat: 146,
     wear: 6,
-    defenderAlertDelta: 0.06
+    defenderAlertDelta: 0.02
   },
   {
     id: 'approach_flank',
@@ -124,7 +124,7 @@ const choices: SiegeChoice[] = [
     wear: 7,
     supplyCost: 1,
     powerBonusDelta: 0.04,
-    defenderAlertDelta: -0.03
+    defenderAlertDelta: -0.02
   },
   {
     id: 'breach_ladders',
@@ -137,7 +137,7 @@ const choices: SiegeChoice[] = [
     baseThreat: 198,
     wear: 11,
     supplyCost: 1,
-    defenderAlertDelta: 0.08
+    defenderAlertDelta: 0.06
   },
   {
     id: 'breach_ram',
@@ -150,7 +150,7 @@ const choices: SiegeChoice[] = [
     baseThreat: 176,
     wear: 8,
     minimumEngineering: 1,
-    defenderAlertDelta: 0.03
+    defenderAlertDelta: 0.02
   },
   {
     id: 'breach_sappers',
@@ -165,7 +165,7 @@ const choices: SiegeChoice[] = [
     supplyCost: 2,
     minimumEngineering: 2,
     powerBonusDelta: 0.05,
-    defenderAlertDelta: -0.04
+    defenderAlertDelta: -0.02
   },
   {
     id: 'courtyard_center',
