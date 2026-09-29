@@ -910,6 +910,11 @@ export function FormationScreen({
                     <Text style={[styles.stat, { color: theme.colors.text }]}>HP {unit.hp}</Text>
                     <Text style={[styles.stat, { color: theme.colors.text }]}>ATK {unit.attack}</Text>
                     <Text style={[styles.stat, { color: theme.colors.text }]}>ARM {unit.armor}</Text>
+                    {(unit.deploymentCapacity ?? 1) > 1 ? (
+                      <Text style={[styles.stat, { color: theme.colors.gold }]}>
+                        CAP {unit.deploymentCapacity}
+                      </Text>
+                    ) : null}
                   </View>
                 </View>
                 <View style={styles.unitBadges}><UnitBadges role={unit.role} tier={unit.tier} battleTags={unit.battleTags} compact /></View>
