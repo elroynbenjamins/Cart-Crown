@@ -652,8 +652,8 @@ export const researchDefinitions: ResearchDefinition[] = [
     durationHours: 24,
     baseGemFinishCost: 30,
     rewardedAdsToComplete: 3,
-    unlocksClasses: ['Arcane Griffin Rider'],
-    description: 'Late-game hybrid doctrine requiring both Magic and Flying progression.'
+    unlocksClasses: ['Arcane Griffin Rider', 'Spellwing Marksman'],
+    description: 'Legendary hybrid doctrine unlocked after the Three Seals campaign and prior Magic + Flying mastery.'
   },
   {
     id: 'elf_legendary_hybrid_doctrine',
@@ -665,8 +665,8 @@ export const researchDefinitions: ResearchDefinition[] = [
     durationHours: 24,
     baseGemFinishCost: 30,
     rewardedAdsToComplete: 3,
-    unlocksClasses: ['Moonwing Spellweaver'],
-    description: 'Late-game hybrid doctrine requiring both Magic and Flying progression.'
+    unlocksClasses: ['Moonwing Spellweaver', 'Moonwing Warden'],
+    description: 'Legendary hybrid doctrine unlocked after the Three Seals campaign and prior Magic + Flying mastery.'
   },
   {
     id: 'orc_legendary_hybrid_doctrine',
@@ -678,8 +678,8 @@ export const researchDefinitions: ResearchDefinition[] = [
     durationHours: 24,
     baseGemFinishCost: 30,
     rewardedAdsToComplete: 3,
-    unlocksClasses: ['Wyvern War Shaman'],
-    description: 'Late-game hybrid doctrine requiring both Magic and Flying progression.'
+    unlocksClasses: ['Wyvern War Shaman', 'Storm Wyvern Reaver'],
+    description: 'Legendary hybrid doctrine unlocked after the Three Seals campaign and prior Magic + Flying mastery.'
   }
 ];
 
@@ -698,7 +698,6 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 5,
     speed: 10,
     battleTags: ['ground', 'magic', 'ranged'],
-    deploymentCapacity: 2,
     cost: { gold: 140, wood: 10, iron: 18, provisions: 4 }
   },
   {
@@ -715,7 +714,6 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     armor: 11,
     speed: 9,
     battleTags: ['ground', 'magic', 'armored'],
-    deploymentCapacity: 2,
     cost: { gold: 175, iron: 25, provisions: 6 }
   },
   {
@@ -998,6 +996,109 @@ export const fantasyRecruitTemplates: FantasyRecruitTemplate[] = [
     deploymentCapacity: 2,
     cost: { gold: 520, iron: 35, provisions: 34 }
   },
+
+  {
+    id: 'human_arcane_griffin_rider',
+    researchId: 'human_legendary_hybrid_doctrine',
+    faction: 'human',
+    family: 'hybrid',
+    className: 'Arcane Griffin Rider',
+    role: 'cavalry',
+    tier: 8,
+    level: 14,
+    hp: 168,
+    attack: 36,
+    armor: 13,
+    speed: 19,
+    battleTags: ['flying', 'mounted', 'beast', 'magic', 'charge'],
+    deploymentCapacity: 2,
+    cost: { gold: 680, iron: 52, provisions: 18 }
+  },
+  {
+    id: 'human_spellwing_marksman',
+    researchId: 'human_legendary_hybrid_doctrine',
+    faction: 'human',
+    family: 'hybrid',
+    className: 'Spellwing Marksman',
+    role: 'ranged',
+    tier: 8,
+    level: 14,
+    hp: 150,
+    attack: 39,
+    armor: 10,
+    speed: 20,
+    battleTags: ['flying', 'mounted', 'beast', 'magic', 'ranged'],
+    deploymentCapacity: 2,
+    cost: { gold: 720, wood: 28, iron: 48, provisions: 18 }
+  },
+  {
+    id: 'elf_moonwing_spellweaver',
+    researchId: 'elf_legendary_hybrid_doctrine',
+    faction: 'elf',
+    family: 'hybrid',
+    className: 'Moonwing Spellweaver',
+    role: 'support',
+    tier: 8,
+    level: 14,
+    hp: 142,
+    attack: 34,
+    armor: 10,
+    speed: 22,
+    battleTags: ['flying', 'mounted', 'magic', 'support'],
+    deploymentCapacity: 2,
+    cost: { gold: 650, wood: 55, provisions: 22 }
+  },
+  {
+    id: 'elf_moonwing_warden',
+    researchId: 'elf_legendary_hybrid_doctrine',
+    faction: 'elf',
+    family: 'hybrid',
+    className: 'Moonwing Warden',
+    role: 'skirmish',
+    tier: 8,
+    level: 14,
+    hp: 158,
+    attack: 37,
+    armor: 12,
+    speed: 21,
+    battleTags: ['flying', 'mounted', 'magic', 'ranged', 'armored'],
+    deploymentCapacity: 2,
+    cost: { gold: 710, wood: 48, iron: 26, provisions: 22 }
+  },
+  {
+    id: 'orc_wyvern_war_shaman',
+    researchId: 'orc_legendary_hybrid_doctrine',
+    faction: 'orc',
+    family: 'hybrid',
+    className: 'Wyvern War Shaman',
+    role: 'support',
+    tier: 8,
+    level: 14,
+    hp: 178,
+    attack: 35,
+    armor: 12,
+    speed: 18,
+    battleTags: ['flying', 'mounted', 'beast', 'magic', 'support'],
+    deploymentCapacity: 2,
+    cost: { gold: 665, iron: 44, provisions: 26 }
+  },
+  {
+    id: 'orc_storm_wyvern_reaver',
+    researchId: 'orc_legendary_hybrid_doctrine',
+    faction: 'orc',
+    family: 'hybrid',
+    className: 'Storm Wyvern Reaver',
+    role: 'cavalry',
+    tier: 8,
+    level: 14,
+    hp: 192,
+    attack: 41,
+    armor: 13,
+    speed: 17,
+    battleTags: ['flying', 'mounted', 'beast', 'magic', 'charge'],
+    deploymentCapacity: 2,
+    cost: { gold: 735, iron: 56, provisions: 28 }
+  },
 ];
 
 export type FantasyCombatEdge = {
@@ -1008,6 +1109,71 @@ export type FantasyCombatEdge = {
   detail: string;
   favorable: boolean;
 };
+
+export function getHybridCombatEdge(
+  activeUnits: UnitDefinition[],
+  enemyProfileId: EnemyArmyProfileId
+): FantasyCombatEdge | null {
+  const hybridUnits = activeUnits.filter(
+    unit =>
+      unitHasBattleTag(unit, 'magic') &&
+      unitHasBattleTag(unit, 'flying')
+  ).length;
+
+  if (hybridUnits === 0) return null;
+
+  let attackMultiplier =
+    1 + Math.min(0.1, hybridUnits * 0.05);
+  let incomingDamageMultiplier = 1;
+  let title = 'Legendary combined arms';
+  let detail =
+    'Magic and aerial mobility combine into one specialist profile instead of stacking separate family bonuses.';
+  let favorable = true;
+
+  if (enemyProfileId === 'shield_host') {
+    attackMultiplier =
+      1 + Math.min(0.14, hybridUnits * 0.07);
+    title = 'Arcane dive';
+    detail =
+      'Legendary hybrids bypass the shield line and disrupt protected specialists with magical aerial pressure.';
+  } else if (enemyProfileId === 'warded_host') {
+    attackMultiplier =
+      Math.max(0.93, 1 - hybridUnits * 0.035);
+    incomingDamageMultiplier =
+      1 + Math.min(0.08, hybridUnits * 0.04);
+    title = 'Layered wards';
+    detail =
+      'Warded hosts blunt the magical half of the hybrid doctrine and force riskier aerial approaches.';
+    favorable = false;
+  } else if (enemyProfileId === 'missile_company') {
+    attackMultiplier =
+      Math.max(0.95, 1 - hybridUnits * 0.025);
+    incomingDamageMultiplier =
+      1 + Math.min(0.12, hybridUnits * 0.06);
+    title = 'Legendary anti-air';
+    detail =
+      'Massed missile fire remains a deliberate counter even against legendary flying casters.';
+    favorable = false;
+  } else if (enemyProfileId === 'elite_command') {
+    attackMultiplier =
+      1 + Math.min(0.06, hybridUnits * 0.03);
+    incomingDamageMultiplier =
+      1 + Math.min(0.06, hybridUnits * 0.03);
+    title = 'Matched doctrine';
+    detail =
+      'Elite command formations can coordinate wards and anti-air discipline, creating a high-risk legendary matchup.';
+    favorable = false;
+  }
+
+  return {
+    unitCount: hybridUnits,
+    attackMultiplier,
+    incomingDamageMultiplier,
+    title,
+    detail,
+    favorable
+  };
+}
 
 export function getLargeCombatEdge(
   activeUnits: UnitDefinition[],
@@ -1068,8 +1234,10 @@ export function getFlyingCombatEdge(
   activeUnits: UnitDefinition[],
   enemyProfileId: EnemyArmyProfileId
 ): FantasyCombatEdge | null {
-  const flyingUnits = activeUnits.filter(unit =>
-    unitHasBattleTag(unit, 'flying')
+  const flyingUnits = activeUnits.filter(
+    unit =>
+      unitHasBattleTag(unit, 'flying') &&
+      !unitHasBattleTag(unit, 'magic')
   ).length;
 
   if (flyingUnits === 0) return null;
@@ -1122,8 +1290,10 @@ export function getFantasyCombatEdge(
   activeUnits: UnitDefinition[],
   enemyProfileId: EnemyArmyProfileId
 ): FantasyCombatEdge | null {
-  const magicUnits = activeUnits.filter(unit =>
-    unitHasBattleTag(unit, 'magic')
+  const magicUnits = activeUnits.filter(
+    unit =>
+      unitHasBattleTag(unit, 'magic') &&
+      !unitHasBattleTag(unit, 'flying')
   ).length;
 
   if (magicUnits === 0) return null;
