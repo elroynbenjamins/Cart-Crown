@@ -1,5 +1,8 @@
 import {
   canAffordCost,
+  clampArmyReadiness,
+  getArmyResupplyCost,
+  getBattleReadinessWear,
   getExpansionCost,
   payResourceCost
 } from '../src/game/balance';
@@ -16,7 +19,8 @@ import {
   capitalResourceSites
 } from '../src/game/chapter5';
 import {
-  encounterRewards
+  encounterRewards,
+  getEncounter
 } from '../src/game/encounters';
 import type { EncounterId } from '../src/game/encounters';
 import {
@@ -69,6 +73,9 @@ type EconomyState = {
   defenseCompleted: boolean;
   recoveryActivities: number;
   transitionRecoveries: number;
+  armyReadiness: number;
+  resupplyCount: number;
+  resupplyProvisions: number;
   equipmentSpent: ResourceWallet;
 };
 
@@ -78,6 +85,9 @@ type TransitionRow = {
   chapter: number;
   recoveryActivities: number;
   resources: ResourceWallet;
+  readiness: number;
+  resupplies: number;
+  resupplyProvisions: number;
 };
 
 const failures: string[] = [];
@@ -114,6 +124,25 @@ const stageRank: Record<EconomyState['stage'], number> = {
   stronghold: 4,
   capital: 5,
   grand: 6
+};
+
+const squadCapByStage: Record<EconomyState['stage'], number> = {
+  camp: 2,
+  settlement: 3,
+  fort: 4,
+  town: 5,
+  stronghold: 6,
+  capital: 6,
+  grand: 6
+};
+
+const representativeRemainingHp: Record<
+  'Normal' | 'Elite' | 'Boss',
+  number
+> = {
+  Normal: 80,
+  Elite: 65,
+  Boss: 50
 };
 
 const chapterEncounters: Record<
@@ -326,6 +355,62 @@ function accrueProduction(state: EconomyState) {
   );
 }
 
+function resupplyIfFatigued(
+  state: EconomyState,
+  context: string
+) {
+  if (state.armyReadiness >= 70) return;
+
+  const cost = getArmyResupplyCost(
+    state.armyReadiness,
+    squadCapByStage[state.stage],
+    true,
+    true
+  );
+
+  expect(
+    state.resources.provisions >= cost,
+    context +
+      ' cannot afford a prepared-army resupply of ' +
+      cost +
+      ' provisions at ' +
+      state.armyReadiness +
+      '% Readiness.'
+  );
+
+  if (state.resources.provisions < cost) return;
+
+  state.resources = {
+    ...state.resources,
+    provisions:
+      state.resources.provisions - cost
+  };
+  state.resupplyCount += 1;
+  state.resupplyProvisions += cost;
+  state.armyReadiness = 100;
+}
+
+function applyBattleWear(
+  state: EconomyState,
+  difficulty: 'Normal' | 'Elite' | 'Boss',
+  remainingHp: number,
+  context: string
+) {
+  const wear = getBattleReadinessWear(
+    remainingHp,
+    100,
+    difficulty,
+    true,
+    true,
+    true
+  );
+
+  state.armyReadiness = clampArmyReadiness(
+    state.armyReadiness - wear
+  );
+  resupplyIfFatigued(state, context);
+}
+
 function addEncounter(
   state: EconomyState,
   id: EncounterId
@@ -335,6 +420,14 @@ function addEncounter(
     encounterRewards[id].resources
   );
   accrueProduction(state);
+
+  const encounter = getEncounter(id);
+  applyBattleWear(
+    state,
+    encounter.difficulty,
+    representativeRemainingHp[encounter.difficulty],
+    state.faction + ' ' + encounter.name
+  );
 }
 
 function addEvent(
@@ -427,6 +520,13 @@ function runExpedition(
     state.resources,
     expeditionReward(state)
   );
+  applyBattleWear(
+    state,
+    'Elite',
+    70,
+    state.faction + ' Expedition'
+  );
+
   if (countsAsRecovery) {
     state.recoveryActivities += 1;
     state.transitionRecoveries += 1;
@@ -448,6 +548,13 @@ function runDefense(
     defenseReward(state)
   );
   state.defenseCompleted = true;
+
+  applyBattleWear(
+    state,
+    'Elite',
+    65,
+    state.faction + ' Kingdom Defense'
+  );
 
   if (countsAsRecovery) {
     state.recoveryActivities += 1;
@@ -813,7 +920,10 @@ function prepareTransition(
     chapter,
     recoveryActivities:
       state.transitionRecoveries,
-    resources: cloneWallet(state.resources)
+    resources: cloneWallet(state.resources),
+    readiness: state.armyReadiness,
+    resupplies: state.resupplyCount,
+    resupplyProvisions: state.resupplyProvisions
   });
 
   expect(
@@ -850,6 +960,9 @@ function newHumanState(): EconomyState {
     defenseCompleted: false,
     recoveryActivities: 0,
     transitionRecoveries: 0,
+    armyReadiness: 100,
+    resupplyCount: 0,
+    resupplyProvisions: 0,
     equipmentSpent: { ...ZERO }
   };
 }
@@ -882,6 +995,9 @@ function newFactionState(
     defenseCompleted: false,
     recoveryActivities: 0,
     transitionRecoveries: 0,
+    armyReadiness: 100,
+    resupplyCount: 0,
+    resupplyProvisions: 0,
     equipmentSpent: { ...ZERO }
   };
 }
@@ -1301,7 +1417,7 @@ function printRows() {
     '\nEconomy progression regression'
   );
   console.log(
-    'Faction Ch Target      Recovery  Resources after expansion'
+    'Faction Ch Target      Recovery  Ready  Resupplies  Rest P  Resources after expansion'
   );
 
   for (const row of rows) {
@@ -1316,6 +1432,12 @@ function printRows() {
           8,
           ' '
         ) +
+        '  ' +
+        String(row.readiness).padStart(5, ' ') +
+        '%  ' +
+        String(row.resupplies).padStart(10, ' ') +
+        '  ' +
+        String(row.resupplyProvisions).padStart(6, ' ') +
         '  ' +
         formatWallet(row.resources)
     );
@@ -1345,6 +1467,66 @@ function main() {
       formatWallet(orc.equipmentSpent)
   );
 
+  console.log(
+    '\nPrepared-army field recovery'
+  );
+  console.log(
+    'Human ' +
+      human.resupplyCount +
+      ' resupplies · ' +
+      human.resupplyProvisions +
+      ' provisions'
+  );
+  console.log(
+    'Elf   ' +
+      elf.resupplyCount +
+      ' resupplies · ' +
+      elf.resupplyProvisions +
+      ' provisions'
+  );
+  console.log(
+    'Orc   ' +
+      orc.resupplyCount +
+      ' resupplies · ' +
+      orc.resupplyProvisions +
+      ' provisions'
+  );
+
+  expect(
+    human.resupplyCount <= 6,
+    'Human prepared campaign now requires ' +
+      human.resupplyCount +
+      ' field resupplies before Chapter 6; expected at most 6.'
+  );
+  expect(
+    elf.resupplyCount <= 6,
+    'Elf prepared campaign now requires ' +
+      elf.resupplyCount +
+      ' field resupplies before Chapter 6; expected at most 6.'
+  );
+  expect(
+    orc.resupplyCount <= 6,
+    'Orc prepared campaign now requires ' +
+      orc.resupplyCount +
+      ' field resupplies before Chapter 6; expected at most 6.'
+  );
+
+  expect(
+    human.resupplyProvisions <= 70,
+    'Human prepared campaign spends too many provisions on field recovery: ' +
+      human.resupplyProvisions
+  );
+  expect(
+    elf.resupplyProvisions <= 70,
+    'Elf prepared campaign spends too many provisions on field recovery: ' +
+      elf.resupplyProvisions
+  );
+  expect(
+    orc.resupplyProvisions <= 70,
+    'Orc prepared campaign spends too many provisions on field recovery: ' +
+      orc.resupplyProvisions
+  );
+
   if (failures.length > 0) {
     console.error(
       '\nECONOMY REGRESSION FAILURES (' +
@@ -1365,7 +1547,7 @@ function main() {
   }
 
   console.log(
-    '\nPASS: every faction reaches its final campaign tier without ads while paying required buildings, expansion costs and a representative equipment budget, with recovery activity remaining inside the anti-grind guardrails.'
+    '\nPASS: every faction reaches its final campaign tier without ads while paying required buildings, expansion costs, representative equipment and realistic Readiness resupply costs, with recovery activity remaining inside the anti-grind guardrails.'
   );
 }
 
