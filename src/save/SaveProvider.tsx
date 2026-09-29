@@ -6,6 +6,7 @@ import {
   metadataFromSnapshot,
   normalizeSaveRecord
 } from './schema';
+import { createSerialTaskQueue } from '../game/mobileSession';
 import type {
   GameSnapshot,
   SaveRecord,
@@ -53,7 +54,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
     1: null,
     2: null
   });
-  const writeChainRef = useRef<Promise<void>>(Promise.resolve());
+  const writeQueueRef = useRef(createSerialTaskQueue());
 
   useEffect(() => {
     let cancelled = false;
@@ -122,13 +123,11 @@ export function SaveProvider({ children }: PropsWithChildren) {
       );
     };
 
-    writeChainRef.current =
-      writeChainRef.current.then(write, write);
-    await writeChainRef.current;
+    await writeQueueRef.current.enqueue(write);
   };
 
   const deleteSlot = async (slotId: SaveSlotId) => {
-    await writeChainRef.current;
+    await writeQueueRef.current.wait();
     await AsyncStorage.removeItem(keyForSlot(slotId));
     setRecords(previous => ({ ...previous, [slotId]: null }));
 
