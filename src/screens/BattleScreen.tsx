@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import {
   getEncounter,
   getEnemyArmyProfile,
@@ -77,6 +77,9 @@ export function BattleScreen({
   onDefeated: () => void;
 }) {
   const { theme } = useGameTheme();
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+  const compactLayout = windowHeight < 760 || windowWidth < 360;
+  const veryCompactLayout = windowHeight < 680;
   const {
     units,
     formation,
@@ -244,6 +247,9 @@ export function BattleScreen({
     damageTaken: 0,
     healing: 0
   });
+  const attackPulse = useRef(new Animated.Value(0)).current;
+  const impactPulse = useRef(new Animated.Value(0)).current;
+  const feedbackPulse = useRef(new Animated.Value(0)).current;
   const [lastAction, setLastAction] = useState(
     enemyArmyProfile.name +
       ' in ' +
@@ -346,6 +352,70 @@ export function BattleScreen({
       color: theme.colors.gold
     });
   }
+  const visibleBattleEffects = compactLayout
+    ? battleEffects.slice(0, 3)
+    : battleEffects;
+  const hiddenBattleEffectCount = Math.max(
+    0,
+    battleEffects.length - visibleBattleEffects.length
+  );
+
+  useEffect(() => {
+    if (!exchangeFeedback) return;
+
+    const duration = battleSpeed === 2 ? 85 : 135;
+    attackPulse.stopAnimation();
+    impactPulse.stopAnimation();
+    feedbackPulse.stopAnimation();
+    attackPulse.setValue(0);
+    impactPulse.setValue(0);
+    feedbackPulse.setValue(0);
+
+    Animated.parallel([
+      Animated.sequence([
+        Animated.timing(attackPulse, {
+          toValue: 1,
+          duration,
+          useNativeDriver: true
+        }),
+        Animated.timing(attackPulse, {
+          toValue: 0,
+          duration,
+          useNativeDriver: true
+        })
+      ]),
+      Animated.sequence([
+        Animated.timing(impactPulse, {
+          toValue: 1,
+          duration: Math.max(70, Math.round(duration * 0.8)),
+          useNativeDriver: true
+        }),
+        Animated.timing(impactPulse, {
+          toValue: 0,
+          duration: Math.max(70, Math.round(duration * 0.8)),
+          useNativeDriver: true
+        })
+      ]),
+      Animated.sequence([
+        Animated.timing(feedbackPulse, {
+          toValue: 1,
+          duration,
+          useNativeDriver: true
+        }),
+        Animated.timing(feedbackPulse, {
+          toValue: 0,
+          duration,
+          useNativeDriver: true
+        })
+      ])
+    ]).start();
+  }, [
+    attackPulse,
+    battleSpeed,
+    exchangeFeedback,
+    feedbackPulse,
+    impactPulse
+  ]);
 
   useEffect(() => {
     if (battleEnded) return;
@@ -629,10 +699,11 @@ export function BattleScreen({
             exchangeFeedback?.activeSlot === slot;
 
           return (
-            <View
+            <Animated.View
               key={slot}
               style={[
                 styles.miniSlot,
+                compactLayout && styles.slotCompact,
                 {
                   width,
                   backgroundColor: active
@@ -647,9 +718,26 @@ export function BattleScreen({
                       : unit
                         ? factionAccent
                         : theme.colors.border,
-                  borderWidth: active ? 2 : 1.2,
-                  transform: active ? [{ scale: 1.05 }] : undefined
-                }
+                  borderWidth: active ? 2 : 1.2
+                },
+                active
+                  ? {
+                      transform: [
+                        {
+                          translateY: attackPulse.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0, -4]
+                          })
+                        },
+                        {
+                          scale: attackPulse.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [1, 1.07]
+                          })
+                        }
+                      ]
+                    }
+                  : null
               ]}
             >
               {unit ? (
@@ -657,7 +745,15 @@ export function BattleScreen({
                   <UnitSprite
                     className={unit.className}
                     faction={unit.faction}
-                    size={dense ? 20 : 24}
+                    size={
+                      dense
+                        ? compactLayout
+                          ? 18
+                          : 20
+                        : compactLayout
+                          ? 21
+                          : 24
+                    }
                   />
                   {!dense ? (
                     <Text style={[styles.tokenName, { color: theme.colors.text }]} numberOfLines={1}>
@@ -666,7 +762,7 @@ export function BattleScreen({
                   ) : null}
                 </>
               ) : null}
-            </View>
+            </Animated.View>
           );
         })}
       </View>
@@ -693,10 +789,11 @@ export function BattleScreen({
           const boss = occupied && bossSlot === slot;
 
           return (
-            <View
+            <Animated.View
               key={slot}
               style={[
                 styles.enemySlot,
+                compactLayout && styles.slotCompact,
                 {
                   width,
                   borderColor: fallen
@@ -710,25 +807,57 @@ export function BattleScreen({
                       ? theme.colors.danger + '18'
                       : theme.colors.surface2,
                   borderWidth: targeted || boss ? 2 : 1.2,
-                  opacity: fallen ? 0.22 : occupied ? 1 : 0.4,
-                  transform: targeted ? [{ scale: 1.05 }] : undefined
-                }
+                  opacity: fallen ? 0.22 : occupied ? 1 : 0.4
+                },
+                targeted
+                  ? {
+                      transform: [
+                        {
+                          translateX: impactPulse.interpolate({
+                            inputRange: [0, 0.35, 0.7, 1],
+                            outputRange: [0, -3, 3, 0]
+                          })
+                        },
+                        {
+                          scale: impactPulse.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [1, 1.07]
+                          })
+                        }
+                      ]
+                    }
+                  : null
               ]}
             >
               {occupied ? (
                 <>
-                  <EnemySprite
-                    enemyName={encounter.enemyName}
-                    size={
-                      boss
-                        ? dense
-                          ? 25
-                          : 29
-                        : dense
-                          ? 21
-                          : 25
-                    }
-                  />
+                  {boss ? (
+                    <Text
+                      style={[
+                        styles.bossSlotMark,
+                        {
+                          color: fallen
+                            ? theme.colors.textMuted
+                            : theme.colors.gold
+                        }
+                      ]}
+                    >
+                      ♛
+                    </Text>
+                  ) : (
+                    <EnemySprite
+                      enemyName={encounter.enemyName}
+                      size={
+                        dense
+                          ? compactLayout
+                            ? 18
+                            : 21
+                          : compactLayout
+                            ? 22
+                            : 25
+                      }
+                    />
+                  )}
                   <Text
                     style={[
                       styles.tokenName,
@@ -753,7 +882,7 @@ export function BattleScreen({
                   </Text>
                 </>
               ) : null}
-            </View>
+            </Animated.View>
           );
         })}
       </View>
@@ -761,10 +890,27 @@ export function BattleScreen({
   };
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.topCopy}>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={[
+        styles.screen,
+        compactLayout && styles.screenCompact
+      ]}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+    >
+      <View style={[styles.topCopy, compactLayout && styles.topCopyCompact]}>
         <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>AUTO-BATTLE</Text>
-        <Text style={[styles.title, { color: theme.colors.text }]}>{encounter.name}</Text>
+        <Text
+          style={[
+            styles.title,
+            compactLayout && styles.titleCompact,
+            { color: theme.colors.text }
+          ]}
+          numberOfLines={compactLayout ? 1 : 2}
+        >
+          {encounter.name}
+        </Text>
         <View style={styles.turnRow}>
           <Text style={[styles.turn, { color: theme.colors.textMuted }]}>
             {finished ? 'Victory' : defeated ? 'Defeat' : 'Exchange ' + String(turn + 1)}
@@ -772,6 +918,7 @@ export function BattleScreen({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={'Battle speed ' + battleSpeed + ' times'}
+            hitSlop={8}
             disabled={battleEnded}
             onPress={() =>
               setBattleSpeed(previous => (previous === 1 ? 2 : 1))
@@ -792,11 +939,21 @@ export function BattleScreen({
         </View>
       </View>
 
-      <GameCard style={styles.arena}>
+      <GameCard
+        style={[
+          styles.arena,
+          compactLayout && styles.arenaCompact
+        ]}
+      >
         <Text style={[styles.sideLabel, { color: factionAccent }]}>
           YOUR {activeFormationShape.layout} · {activeFormationShape.name.toUpperCase()}
         </Text>
-        <View style={styles.formationBoard}>
+        <View
+          style={[
+            styles.formationBoard,
+            compactLayout && styles.formationBoardCompact
+          ]}
+        >
           {renderPlayerRow(activeFormationShape.rows.front)}
           {renderPlayerRow(activeFormationShape.rows.middle)}
           {renderPlayerRow(activeFormationShape.rows.rear)}
@@ -811,7 +968,7 @@ export function BattleScreen({
 
         {battleEffects.length > 0 ? (
           <View style={styles.effectChips}>
-            {battleEffects.map(effect => (
+            {visibleBattleEffects.map(effect => (
               <View
                 key={effect.key}
                 style={[
@@ -830,25 +987,108 @@ export function BattleScreen({
                 </Text>
               </View>
             ))}
+            {hiddenBattleEffectCount > 0 ? (
+              <View
+                style={[
+                  styles.effectChip,
+                  {
+                    backgroundColor: theme.colors.surface2,
+                    borderColor: theme.colors.border
+                  }
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.effectChipText,
+                    { color: theme.colors.textMuted }
+                  ]}
+                >
+                  +{hiddenBattleEffectCount} MORE
+                </Text>
+              </View>
+            ) : null}
           </View>
         ) : null}
 
         <Text style={[styles.versus, { color: theme.colors.textMuted }]}>VS</Text>
 
+        {encounter.difficulty === 'Boss' ? (
+          <View
+            style={[
+              styles.bossStage,
+              compactLayout && styles.bossStageCompact,
+              {
+                backgroundColor: theme.colors.surface2,
+                borderColor: theme.colors.gold + '66'
+              }
+            ]}
+          >
+            <View
+              style={[
+                styles.bossPortrait,
+                {
+                  borderColor: theme.colors.gold,
+                  backgroundColor: theme.colors.appBg
+                }
+              ]}
+            >
+              <EnemySprite
+                enemyName={encounter.enemyName}
+                size={compactLayout ? 40 : 48}
+              />
+            </View>
+            <View style={styles.bossCopy}>
+              <Text style={[styles.bossEyebrow, { color: theme.colors.gold }]}>
+                BOSS ENCOUNTER
+              </Text>
+              <Text
+                style={[
+                  styles.bossName,
+                  compactLayout && styles.bossNameCompact,
+                  { color: theme.colors.text }
+                ]}
+                numberOfLines={1}
+              >
+                {encounter.enemyName}
+              </Text>
+              {!veryCompactLayout ? (
+                <Text
+                  style={[
+                    styles.bossPressure,
+                    { color: theme.colors.textMuted }
+                  ]}
+                  numberOfLines={1}
+                >
+                  {enemyArmyProfile.pressureSummary}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
+
         <Text style={[styles.sideLabel, { color: theme.colors.danger }]}>
           ENEMY {enemyShape.layout} · {enemyTactic.name.toUpperCase()} · {liveEnemyCount}/{encounter.enemyCount} ACTIVE
         </Text>
-        <View style={styles.formationBoard}>
+        <View
+          style={[
+            styles.formationBoard,
+            compactLayout && styles.formationBoardCompact
+          ]}
+        >
           {renderEnemyRow(enemyShape.rows.front)}
           {renderEnemyRow(enemyShape.rows.middle)}
           {renderEnemyRow(enemyShape.rows.rear)}
         </View>
-        <Text style={[styles.enemyArmyLine, { color: theme.colors.gold }]}>
-          {enemyArmyProfile.name} · {enemyArmyProfile.pressureSummary}
-        </Text>
-        <Text style={[styles.enemyDoctrine, { color: theme.colors.textMuted }]}>
-          Formation ATK ×{enemyTactic.attackMultiplier.toFixed(2)} · ARM ×{enemyTactic.armorMultiplier.toFixed(2)} · SPD ×{enemyTactic.speedMultiplier.toFixed(2)}
-        </Text>
+        {!veryCompactLayout ? (
+          <Text style={[styles.enemyArmyLine, { color: theme.colors.gold }]}>
+            {enemyArmyProfile.name} · {enemyArmyProfile.pressureSummary}
+          </Text>
+        ) : null}
+        {!compactLayout ? (
+          <Text style={[styles.enemyDoctrine, { color: theme.colors.textMuted }]}>
+            Formation ATK ×{enemyTactic.attackMultiplier.toFixed(2)} · ARM ×{enemyTactic.armorMultiplier.toFixed(2)} · SPD ×{enemyTactic.speedMultiplier.toFixed(2)}
+          </Text>
+        ) : null}
         <Text
           style={[
             styles.matchupLine,
@@ -876,7 +1116,22 @@ export function BattleScreen({
         <ProgressBar value={enemyHp / encounter.enemyHp} color={theme.colors.danger} />
 
         {exchangeFeedback ? (
-          <View style={styles.exchangeFeedback}>
+          <Animated.View
+            style={[
+              styles.exchangeFeedback,
+              compactLayout && styles.exchangeFeedbackCompact,
+              {
+                transform: [
+                  {
+                    scale: feedbackPulse.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1, 1.035]
+                    })
+                  }
+                ]
+              }
+            ]}
+          >
             <View
               style={[
                 styles.exchangeMetric,
@@ -936,11 +1191,12 @@ export function BattleScreen({
                 </Text>
               </View>
             ) : null}
-          </View>
+          </Animated.View>
         ) : null}
       </GameCard>
 
       <GameCard
+        style={compactLayout ? styles.logCardCompact : undefined}
         accent={
           finished
             ? theme.colors.primary
@@ -1001,15 +1257,19 @@ export function BattleScreen({
           }}
         />
       ) : null}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 16, gap: 10 },
+  scroll: { flex: 1 },
+  screen: { flexGrow: 1, padding: 16, gap: 10 },
+  screenCompact: { padding: 11, gap: 7 },
   topCopy: { alignItems: 'center', paddingTop: 3 },
+  topCopyCompact: { paddingTop: 0 },
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.3 },
-  title: { fontSize: 24, fontWeight: '900', marginTop: 3 },
+  title: { fontSize: 24, fontWeight: '900', marginTop: 3, textAlign: 'center' },
+  titleCompact: { fontSize: 20, marginTop: 2 },
   turnRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   turn: { fontSize: 11, fontWeight: '800' },
   speedButton: {
@@ -1022,9 +1282,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9
   },
   speedButtonText: { fontSize: 10, fontWeight: '900' },
-  arena: { flex: 1, justifyContent: 'center', gap: 5 },
+  arena: { flexGrow: 1, justifyContent: 'center', gap: 5 },
+  arenaCompact: { gap: 3 },
   sideLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 0.8, textAlign: 'center' },
   formationBoard: { alignSelf: 'center', gap: 3, minWidth: 220 },
+  formationBoardCompact: { gap: 2, minWidth: 205 },
   formationRow: { flexDirection: 'row', justifyContent: 'center', gap: 4 },
   miniSlot: {
     height: 38,
@@ -1042,6 +1304,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 2
   },
+  slotCompact: { height: 33, borderRadius: 8 },
+  bossSlotMark: { fontSize: 15, lineHeight: 16, fontWeight: '900' },
+  bossStage: {
+    minHeight: 62,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    width: '94%',
+    gap: 9
+  },
+  bossStageCompact: { minHeight: 52, paddingVertical: 5 },
+  bossPortrait: {
+    width: 54,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  bossCopy: { flex: 1, minWidth: 0 },
+  bossEyebrow: { fontSize: 7.5, fontWeight: '900', letterSpacing: 0.9 },
+  bossName: { fontSize: 14, fontWeight: '900', marginTop: 2 },
+  bossNameCompact: { fontSize: 12.5 },
+  bossPressure: { fontSize: 7.8, fontWeight: '700', marginTop: 2 },
   tokenName: { fontSize: 6.5, fontWeight: '800', marginTop: 1, maxWidth: '94%' },
   tokenNameDense: { fontSize: 5.3, letterSpacing: 0.2 },
   hpLabel: { fontSize: 9, fontWeight: '800', textAlign: 'right' },
@@ -1073,6 +1362,7 @@ const styles = StyleSheet.create({
     gap: 5,
     marginTop: 2
   },
+  exchangeFeedbackCompact: { gap: 3, marginTop: 1 },
   exchangeMetric: {
     minWidth: 54,
     minHeight: 31,
@@ -1098,5 +1388,6 @@ const styles = StyleSheet.create({
   versus: { fontSize: 10, fontWeight: '900', textAlign: 'center', marginVertical: 1 },
   logLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1.1 },
   logLine: { fontSize: 11, lineHeight: 16, fontWeight: '700', marginTop: 3 },
-  effectLine: { fontSize: 9, fontWeight: '900', marginTop: 5, textTransform: 'uppercase' }
+  effectLine: { fontSize: 9, fontWeight: '900', marginTop: 5, textTransform: 'uppercase' },
+  logCardCompact: { paddingVertical: 9 }
 });
