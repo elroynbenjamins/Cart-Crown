@@ -85,3 +85,17 @@ export function isTacticalGuidanceLevel(
     value === 'off'
   );
 }
+
+export function requiresSeverePreparationConfirmation(
+  level: TacticalGuidanceLevel,
+  preparationStatus:
+    | 'ready'
+    | 'risky'
+    | 'severely_underprepared'
+) {
+  return (
+    level === 'full' &&
+    preparationStatus ===
+      'severely_underprepared'
+  );
+}

@@ -6,7 +6,10 @@ import {
   resolveHardwareBackAction,
   shouldAcceptActionPress
 } from '../src/game/mobileSession';
-import { getTacticalGuidanceFeatures } from '../src/game/tacticalGuidance';
+import {
+  getTacticalGuidanceFeatures,
+  requiresSeverePreparationConfirmation
+} from '../src/game/tacticalGuidance';
 
 const failures: string[] = [];
 
@@ -190,6 +193,43 @@ function runInFlightCoverage() {
   );
 }
 
+function runSeverePreparationConfirmationCoverage() {
+  expect(
+    requiresSeverePreparationConfirmation(
+      'full',
+      'severely_underprepared'
+    ),
+    'Full Guidance no longer requires an explicit confirmation for Severely Underprepared battle starts.'
+  );
+
+  for (const level of [
+    'standard',
+    'off'
+  ] as const) {
+    expect(
+      !requiresSeverePreparationConfirmation(
+        level,
+        'severely_underprepared'
+      ),
+      level +
+        ' Guidance unexpectedly added an extra battle-start confirmation.'
+    );
+  }
+
+  for (const status of [
+    'ready',
+    'risky'
+  ] as const) {
+    expect(
+      !requiresSeverePreparationConfirmation(
+        'full',
+        status
+      ),
+      'Full Guidance is adding confirmation friction outside the Severe preparation state.'
+    );
+  }
+}
+
 function runTacticalGuidanceCoverage() {
   const full = getTacticalGuidanceFeatures('full');
   const standard = getTacticalGuidanceFeatures('standard');
@@ -230,6 +270,7 @@ async function main() {
   runOneShotCoverage();
   runAppStateCoverage();
   runInFlightCoverage();
+  runSeverePreparationConfirmationCoverage();
   runTacticalGuidanceCoverage();
   await runSerialQueueCoverage();
 
@@ -251,7 +292,7 @@ async function main() {
   }
 
   console.log(
-    'PASS: Android Back routing, rapid-press throttling, one-shot battle completion, background battle pause, rewarded-ad in-flight locking, tactical-guidance separation and serialized save writes remain protected.'
+    'PASS: Android Back routing, rapid-press throttling, one-shot battle completion, background battle pause, rewarded-ad in-flight locking, tactical-guidance separation, severe-prep confirmation boundaries and serialized save writes remain protected.'
   );
 }
 
