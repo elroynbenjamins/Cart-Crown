@@ -65,6 +65,10 @@ function runFreshRoundTrip() {
     'Fresh save changed active faction.'
   );
   expect(
+    normalized.snapshot.shared.guidanceMode === 'full',
+    'Fresh save did not default Tactical Guidance to Full.'
+  );
+  expect(
     human.armyReadiness === 100,
     'Fresh save did not retain 100 Readiness.'
   );
@@ -101,6 +105,7 @@ function runBackwardCompatibleV13Defaults() {
   delete human.armyReadiness;
   delete human.formationShapeId;
   delete human.formationPresets;
+  delete record.snapshot.shared.guidanceMode;
 
   const normalized = normalize(record);
   check(
@@ -124,6 +129,10 @@ function runBackwardCompatibleV13Defaults() {
     Array.isArray(repaired.formationPresets) &&
       repaired.formationPresets.length === 0,
     'Missing v13 formation presets did not default to empty.'
+  );
+  expect(
+    normalized.snapshot.shared.guidanceMode === 'full',
+    'Missing v13 Tactical Guidance did not default to Full.'
   );
 }
 
@@ -265,7 +274,8 @@ function runCorruptionRepair() {
     lore: ['l', 'l'],
     cosmetics: ['c', 'c'],
     metaCampaignStep: 99,
-    metaCampaignComplete: true
+    metaCampaignComplete: true,
+    guidanceMode: 'overhelp' as never
   };
 
   const normalized = normalize(record);
@@ -379,6 +389,10 @@ function runCorruptionRepair() {
     'Meta campaign state was not clamped/locked to valid campaign completion.'
   );
   expect(
+    normalized.snapshot.shared.guidanceMode === 'full',
+    'Invalid Tactical Guidance value was not sanitized to Full.'
+  );
+  expect(
     normalized.snapshot.shared.achievements.length ===
       1 &&
       normalized.snapshot.shared.lore.length === 1 &&
@@ -480,6 +494,7 @@ function runFactionSwitchRoundTrip() {
   snapshot.shared.completedCampaigns = [
     'human'
   ];
+  snapshot.shared.guidanceMode = 'hints';
 
   const toElf = buildFactionSwitchSnapshot(
     snapshot,
@@ -493,6 +508,10 @@ function runFactionSwitchRoundTrip() {
   expect(
     toElf.activeFaction === 'elf',
     'Elf switch did not update active faction.'
+  );
+  expect(
+    toElf.shared.guidanceMode === 'hints',
+    'Tactical Guidance was lost during Human → Elf switch.'
   );
   expect(
     toElf.factionStates.human?.resources.gold ===
@@ -575,6 +594,10 @@ function runFactionSwitchRoundTrip() {
       reloaded.metadata.faction === 'human',
     'Metadata did not follow the active faction after round trip.'
   );
+  expect(
+    reloaded.snapshot.shared.guidanceMode === 'hints',
+    'Tactical Guidance did not survive faction switch + JSON reload.'
+  );
 }
 
 function runMultiFactionMetadata() {
@@ -652,7 +675,7 @@ function main() {
   }
 
   console.log(
-    'PASS: fresh saves, older v13 optional fields, corruption repair, stage/chapter coherence, formation/preset sanitization, active-faction repair, faction switching, JSON round trips and metadata remain valid.'
+    'PASS: fresh saves, older v13 optional fields, corruption repair, stage/chapter coherence, formation/preset sanitization, Tactical Guidance persistence, active-faction repair, faction switching, JSON round trips and metadata remain valid.'
   );
 }
 
