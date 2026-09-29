@@ -16,7 +16,8 @@
     "tutorial:check": "tsx scripts/tutorial-regression.ts",
     "art:check": "node scripts/art-regression.mjs",
     "boss:check": "tsx scripts/boss-presentation-regression.ts",
-    "battle-visuals:check": "tsx scripts/battle-visuals-regression.ts"
+    "battle-visuals:check": "tsx scripts/battle-visuals-regression.ts",
+    "decision-ui:check": "tsx scripts/decision-ui-regression.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
