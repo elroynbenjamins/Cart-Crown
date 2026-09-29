@@ -73,3 +73,34 @@ Production goals:
 - Clan Warrior reads as frontline, War Drummer as support, Warg Scout as mounted;
 - the weapon/icon silhouette must stay recognizable at 38–56 px;
 - armor icons should communicate faction material language without any text or rarity frame.
+
+
+## Third production batch — enemy_identity_v3
+
+This batch replaces the enemy code-rendered fallback with optimized 256×256 transparent PNG sprites.
+
+Named threat sprites:
+- Raider
+- Mercenary
+- Ashen
+- Scout
+- Hollow
+- Ashroot Stalker
+- Stonejaw Champion
+- Pale Ranger
+- Agitator / Clanbreaker
+
+Tactical army-identity sprites:
+- Shield Host
+- Missile Company
+- Mounted Hunters
+- Shock Warband
+- Warded Host
+- Elite Command
+
+Battle Prep and live combat pass the current enemy army profile into the art renderer. Named bosses keep bespoke silhouettes; otherwise the tactical army identity controls the sprite so formation and Scout Report information is visually reinforced.
+
+Performance rule:
+- enemy combat tokens should prefer one cached production PNG over layered React Native fallback views;
+- keep enemy PNGs at 256×256 transparent source size and render them down at token scale;
+- avoid multi-frame sprite sheets unless a later profiling pass proves they are worthwhile.
