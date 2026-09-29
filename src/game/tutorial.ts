@@ -454,12 +454,19 @@ function systemMoment(
       title: 'Readiness carries between battles',
       body:
         'Damage creates campaign wear. At 70–100% Readiness there is no combat penalty, so you should not resupply after every normal win. Below 70%, fatigue starts reducing effective HP, attack and speed. Rest & Resupply uses provisions to restore the army.',
-      primaryLabel: 'Show Readiness',
+      primaryLabel:
+        context.view === 'battlePrep'
+          ? 'Show Readiness'
+          : 'Got it',
       target: 'none',
-      focusAfterPrimary: {
-        kind: 'battle-readiness',
-        label: 'ARMY READINESS'
-      }
+      ...(context.view === 'battlePrep'
+        ? {
+            focusAfterPrimary: {
+              kind: 'battle-readiness' as const,
+              label: 'ARMY READINESS'
+            }
+          }
+        : {})
     };
   }
 
