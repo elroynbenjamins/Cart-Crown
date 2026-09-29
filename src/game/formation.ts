@@ -197,6 +197,193 @@ export function getFormationShapeByLayout(layout: string) {
   return formationShapes.find(shape => shape.layout === layout) ?? formationShapes[0]!;
 }
 
+export type FormationMatchupResult = 'advantage' | 'disadvantage' | 'even';
+
+export type FormationMatchup = {
+  result: FormationMatchupResult;
+  title: string;
+  summary: string;
+  outgoingDamageMultiplier: number;
+  incomingDamageMultiplier: number;
+};
+
+type FormationCounterRule = {
+  winner: FormationShapeId;
+  loser: FormationShapeId;
+  winnerSummary: string;
+  loserSummary: string;
+};
+
+const formationCounterRules: FormationCounterRule[] = [
+  {
+    winner: 'assault_432',
+    loser: 'protected_rear_225',
+    winnerSummary: 'Four squads hit the thin enemy screen before its large rear line can settle.',
+    loserSummary: 'Your thin screen can be broken before the rear line has time to dominate.'
+  },
+  {
+    winner: 'assault_432',
+    loser: 'wide_vanguard_522',
+    winnerSummary: 'A deeper assault can concentrate pressure against the wide but shallow enemy front.',
+    loserSummary: 'Your broad first line risks being punched through by the enemy’s deeper assault.'
+  },
+  {
+    winner: 'deep_234',
+    loser: 'assault_432',
+    winnerSummary: 'Your extra depth absorbs the opening push and keeps reserves available for the counterattack.',
+    loserSummary: 'The enemy’s deeper formation can absorb your opening pressure and answer with reserves.'
+  },
+  {
+    winner: 'deep_234',
+    loser: 'heavy_front_441',
+    winnerSummary: 'Protected depth lets you survive the heavy first exchanges and punish the exposed rear.',
+    loserSummary: 'Your heavy ranks can be drawn into a longer fight where the enemy’s protected depth matters.'
+  },
+  {
+    winner: 'deep_234',
+    loser: 'spear_wall_531',
+    winnerSummary: 'Your deeper rear pressure exploits the Spear Wall’s lack of protected back-line space.',
+    loserSummary: 'The enemy’s deeper formation can pressure the single protected rear position behind your wall.'
+  },
+  {
+    winner: 'wide_vanguard_522',
+    loser: 'skirmish_screen_243',
+    winnerSummary: 'Five-wide frontage closes the lanes the enemy needs to maneuver around your line.',
+    loserSummary: 'The enemy’s wide front denies the maneuver lanes your skirmishers normally exploit.'
+  },
+  {
+    winner: 'wide_vanguard_522',
+    loser: 'reinforced_center_252',
+    winnerSummary: 'Broad pressure stretches the enemy’s dense central reserve across too much frontage.',
+    loserSummary: 'The enemy’s wide line can pull your central reserve in too many directions at once.'
+  },
+  {
+    winner: 'protected_rear_225',
+    loser: 'wide_vanguard_522',
+    winnerSummary: 'A large rear line can punish the enemy’s broad, slower front before it reaches your screen.',
+    loserSummary: 'The enemy’s large rear line can focus fire across your broad frontage.'
+  },
+  {
+    winner: 'protected_rear_225',
+    loser: 'spear_wall_531',
+    winnerSummary: 'Ranged depth punishes the slow wall while your small screen avoids a direct charge contest.',
+    loserSummary: 'Your wall is difficult to break head-on but vulnerable to sustained rear-line pressure.'
+  },
+  {
+    winner: 'reinforced_center_252',
+    loser: 'assault_432',
+    winnerSummary: 'A dense reserve can plug the lanes the assault needs to turn its opening pressure into a breakthrough.',
+    loserSummary: 'The enemy’s central reserve can reinforce whichever lane your assault starts to crack.'
+  },
+  {
+    winner: 'reinforced_center_252',
+    loser: 'heavy_front_441',
+    winnerSummary: 'Central reserves rotate into the heavy engagement while the enemy has almost no rear flexibility.',
+    loserSummary: 'The enemy’s reserve can keep feeding the central fight after your two heavy ranks commit.'
+  },
+  {
+    winner: 'spear_wall_531',
+    loser: 'assault_432',
+    winnerSummary: 'A braced five-wide wall absorbs the enemy’s aggressive first-rank pressure.',
+    loserSummary: 'The enemy’s braced frontage blunts the direct assault before it can gain momentum.'
+  },
+  {
+    winner: 'spear_wall_531',
+    loser: 'skirmish_screen_243',
+    winnerSummary: 'The broad wall closes approach lanes and denies fast units an easy path through the front.',
+    loserSummary: 'The enemy’s broad braced line limits the space your mobile middle rank needs.'
+  },
+  {
+    winner: 'skirmish_screen_243',
+    loser: 'reinforced_center_252',
+    winnerSummary: 'Mobile middle-rank pressure avoids the enemy’s strongest central reserve and attacks its edges.',
+    loserSummary: 'The enemy can avoid your dense center and force the fight onto weaker outside lanes.'
+  },
+  {
+    winner: 'skirmish_screen_243',
+    loser: 'protected_rear_225',
+    winnerSummary: 'Mobility lets your middle rank threaten the thin screen before the enemy rear line controls the battle.',
+    loserSummary: 'The enemy’s mobile middle rank can reach your thin screen and disrupt the protected rear.'
+  },
+  {
+    winner: 'heavy_front_441',
+    loser: 'wide_vanguard_522',
+    winnerSummary: 'Two combat-heavy ranks can outlast the enemy’s wide but shallow first line.',
+    loserSummary: 'The enemy has enough depth behind its front to keep pushing after your wide line absorbs contact.'
+  },
+  {
+    winner: 'heavy_front_441',
+    loser: 'protected_rear_225',
+    winnerSummary: 'Two heavy combat ranks can force a breakthrough before the enemy rear line wins the damage race.',
+    loserSummary: 'The enemy’s two heavy ranks can break your thin screen before the rear line takes over.'
+  }
+];
+
+const MATCHUP_ATTACK_EDGE = 1.04;
+const MATCHUP_DEFENSE_EDGE = 0.97;
+
+export function getFormationMatchup(
+  playerShapeId: FormationShapeId | string | null | undefined,
+  enemyShapeId: FormationShapeId | string | null | undefined
+): FormationMatchup {
+  const playerShape = getFormationShape(playerShapeId);
+  const enemyShape = getFormationShape(enemyShapeId);
+
+  if (playerShape.id === enemyShape.id) {
+    return {
+      result: 'even',
+      title: 'Mirror formation',
+      summary: 'Both armies are using the same geometry. Troops, equipment and doctrine decide the exchange.',
+      outgoingDamageMultiplier: 1,
+      incomingDamageMultiplier: 1
+    };
+  }
+
+  const winningRule = formationCounterRules.find(
+    rule => rule.winner === playerShape.id && rule.loser === enemyShape.id
+  );
+  if (winningRule) {
+    return {
+      result: 'advantage',
+      title: 'Formation edge',
+      summary: winningRule.winnerSummary,
+      outgoingDamageMultiplier: MATCHUP_ATTACK_EDGE,
+      incomingDamageMultiplier: MATCHUP_DEFENSE_EDGE
+    };
+  }
+
+  const losingRule = formationCounterRules.find(
+    rule => rule.winner === enemyShape.id && rule.loser === playerShape.id
+  );
+  if (losingRule) {
+    return {
+      result: 'disadvantage',
+      title: 'Formation exposed',
+      summary: losingRule.loserSummary,
+      outgoingDamageMultiplier: MATCHUP_DEFENSE_EDGE,
+      incomingDamageMultiplier: MATCHUP_ATTACK_EDGE
+    };
+  }
+
+  return {
+    result: 'even',
+    title: 'No direct counter',
+    summary: 'Neither formation directly exploits the other. Unit roles, doctrine and equipment matter more here.',
+    outgoingDamageMultiplier: 1,
+    incomingDamageMultiplier: 1
+  };
+}
+
+export function getFormationCounters(
+  enemyShapeId: FormationShapeId | string | null | undefined
+) {
+  const enemyShape = getFormationShape(enemyShapeId);
+  return formationCounterRules
+    .filter(rule => rule.loser === enemyShape.id)
+    .map(rule => getFormationShape(rule.winner))
+    .filter((shape, index, all) => all.findIndex(candidate => candidate.id === shape.id) === index);
+}
+
 function centerFirst(indices: number[]) {
   const middle = (indices.length - 1) / 2;
   return [...indices].sort(
