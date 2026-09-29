@@ -250,27 +250,33 @@ export function AppShell({
         ? 'other'
         : active;
 
-  const tutorialMoment = getNextTutorialMoment({
-    faction: activeFaction,
-    view: tutorialView,
-    tutorialSeen,
-    units,
-    buildings: buildings.map(definition => ({
-      definition,
-      level: buildingLevels[definition.id] ?? 0,
-      unlocked: isBuildingUnlocked(definition.id)
-    })),
-    settlementUpgraded,
-    forgeUnlocked,
-    forgeLevel:
-      buildingLevels[factionBuildingIds.forge] ?? 0,
-    firstPromotionComplete,
-    commanderPathId,
-    armyReadiness,
-    unlockedResourceSites:
-      unlockedResourceSites.length,
-    wagonStageId: currentWagonStage.id
-  });
+  const tutorialMoment = tutorialFocus
+    ? null
+    : getNextTutorialMoment({
+        faction: activeFaction,
+        view: tutorialView,
+        tutorialSeen,
+        units,
+        buildings: buildings.map(definition => ({
+          definition,
+          level:
+            buildingLevels[definition.id] ?? 0,
+          unlocked: isBuildingUnlocked(
+            definition.id
+          )
+        })),
+        settlementUpgraded,
+        forgeUnlocked,
+        forgeLevel:
+          buildingLevels[factionBuildingIds.forge] ??
+          0,
+        firstPromotionComplete,
+        commanderPathId,
+        armyReadiness,
+        unlockedResourceSites:
+          unlockedResourceSites.length,
+        wagonStageId: currentWagonStage.id
+      });
 
   const openRecruitment = () => setFlow('recruitment');
 
