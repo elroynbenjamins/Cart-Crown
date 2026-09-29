@@ -59,7 +59,7 @@ import type {
   SaveSlotMetadata
 } from './types';
 
-export const SAVE_SCHEMA_VERSION = 13;
+export const SAVE_SCHEMA_VERSION = 14;
 
 const factionOrder: FactionId[] = ['human', 'elf', 'orc'];
 
@@ -669,15 +669,15 @@ export function createHumanFactionState(): FactionGameState {
     resources: { ...starterResources },
     units: starterUnits.map(unit => ({ ...unit })),
     formation: [
-      null,
+      'hum_recruit',
       'hum_militia',
       null,
       null,
       null,
       null,
       null,
-      null,
-      'hum_recruit'
+      'hum_hunter',
+      null
     ],
     formationShapeId: 'balanced_333',
     formationPresets: [],
@@ -719,6 +719,8 @@ export function createHumanFactionState(): FactionGameState {
     kingdomDefenseRuns: 0,
     signalTowerUnlocked: false,
     ironProvostWon: false,
+    chapterTwoRouteId: null,
+    chapterTwoBossWon: false,
     marcherWarningChoiceId: null,
     dividedMarchResolved: false,
     lordMarshalWon: false,
