@@ -1,3 +1,4 @@
+import type { RelicHuntRunState } from '../game/relicHunts';
 import type { SiegeRunState } from '../game/sieges';
 import type { ExpeditionRunState } from '../game/expeditions';
 import type {
@@ -82,6 +83,9 @@ export type FactionGameState = {
   activeSiegeRun?: SiegeRunState | null;
   siegeRewardChapter: number;
   siegeRewardedRunsThisChapter: number;
+  relicHuntRunsCompleted: number;
+  activeRelicHuntRun?: RelicHuntRunState | null;
+  relicHuntRewardClaimed: boolean;
   formationTrialCompleted: boolean;
   kingdomTrialCompletions?: string[];
   completedStoryGates?: string[];
