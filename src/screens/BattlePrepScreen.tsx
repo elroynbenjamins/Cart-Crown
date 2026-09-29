@@ -36,9 +36,11 @@ import { usePreferences } from '../preferences/PreferencesProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
+  MetricTile,
   Pill,
   PrimaryButton,
   ProgressBar,
+  ScreenHero,
   SecondaryButton,
   SectionTitle,
   StatusPill,
@@ -486,7 +488,10 @@ export function BattlePrepScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard
+      <ScreenHero
+        eyebrow="BATTLE PREP"
+        title={encounter.name}
+        body={encounter.subtitle}
         accent={
           encounter.difficulty === 'Boss'
             ? theme.colors.danger
@@ -494,17 +499,7 @@ export function BattlePrepScreen({
               ? theme.colors.gold
               : factionAccent
         }
-        faction={activeFaction}
-        state={encounter.difficulty === 'Boss' ? 'danger' : 'default'}
-      >
-        <View style={styles.encounterHeader}>
-          <View style={styles.encounterCopy}>
-            <Text style={[styles.eyebrow, { color: theme.colors.danger }]}>BATTLE PREP</Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>{encounter.name}</Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-              {encounter.subtitle}
-            </Text>
-          </View>
+        status={
           <StatusPill
             label={encounter.difficulty.toUpperCase()}
             tone={
@@ -515,8 +510,35 @@ export function BattlePrepScreen({
                   : 'neutral'
             }
           />
+        }
+      >
+        <View style={styles.prepAtGlance}>
+          <MetricTile
+            label="ACTIVE SQUADS"
+            value={
+              String(activeUnits.length) +
+              '/' +
+              String(activeSquadCap)
+            }
+            tone={
+              formationFull
+                ? 'positive'
+                : 'danger'
+            }
+          />
+          <MetricTile
+            label="READINESS"
+            value={String(armyReadiness) + '%'}
+            tone={
+              armyReadiness >= 70
+                ? 'positive'
+                : armyReadiness >= 50
+                  ? 'gold'
+                  : 'danger'
+            }
+          />
         </View>
-      </GameCard>
+      </ScreenHero>
 
       <SectionTitle
         title="Enemy"
@@ -1600,35 +1622,59 @@ export function BattlePrepScreen({
         active={tutorialFocus?.kind === 'battle-begin'}
         label={tutorialFocus?.kind === 'battle-begin' ? tutorialFocus.label : undefined}
       >
-        <View style={styles.beginBattleArea}>
-          {showSevereBattleConfirmation ? (
-            <GameCard
-              accent={theme.colors.danger}
-              state="danger"
-            >
+        <GameCard
+          accent={
+            preparation.status === 'ready'
+              ? theme.colors.primary
+              : preparation.status === 'risky'
+                ? theme.colors.gold
+                : theme.colors.danger
+          }
+          ornament={false}
+          style={styles.commitCard}
+        >
+          <View style={styles.commitHeader}>
+            <View style={styles.commitCopy}>
               <Text
                 style={[
-                  styles.severeConfirmEyebrow,
-                  { color: theme.colors.danger }
-                ]}
-              >
-                SEVERELY UNDERPREPARED
-              </Text>
-              <Text
-                style={[
-                  styles.severeConfirmTitle,
-                  { color: theme.colors.text }
-                ]}
-              >
-                Fight anyway?
-              </Text>
-              <Text
-                style={[
-                  styles.severeConfirmBody,
+                  styles.commitEyebrow,
                   { color: theme.colors.textMuted }
                 ]}
               >
-                This warning reflects multiple preparation problems, not a guaranteed defeat. You can still commit if that is the risk you want to take.
+                FINAL CHECK
+              </Text>
+              <Text
+                style={[
+                  styles.commitTitle,
+                  { color: theme.colors.text }
+                ]}
+              >
+                {showSevereBattleConfirmation
+                  ? 'Commit despite the warning?'
+                  : preparation.status === 'ready'
+                    ? 'Army ready to deploy'
+                    : preparation.status === 'risky'
+                      ? 'You can deploy with risk'
+                      : 'Preparation is incomplete'}
+              </Text>
+            </View>
+            {tacticalGuidance !== 'off' ? (
+              <StatusPill
+                label={preparationLabel}
+                tone={preparationTone}
+              />
+            ) : null}
+          </View>
+
+          {showSevereBattleConfirmation ? (
+            <>
+              <Text
+                style={[
+                  styles.commitBody,
+                  { color: theme.colors.textMuted }
+                ]}
+              >
+                Multiple preparation problems remain. This is not a guaranteed defeat, but the enemy will not be weakened if you proceed.
               </Text>
               <View style={styles.severeConfirmActions}>
                 <SecondaryButton
@@ -1642,51 +1688,86 @@ export function BattlePrepScreen({
                   onPress={() => beginBattle(true)}
                 />
               </View>
-            </GameCard>
+            </>
           ) : (
-            <PrimaryButton
-              label={
-                requiresBattleConfirmation
-                  ? 'Begin Battle · Underprepared'
-                  : 'Begin Battle'
-              }
-              onPress={() => beginBattle()}
-            />
+            <>
+              <Text
+                style={[
+                  styles.commitBody,
+                  { color: theme.colors.textMuted }
+                ]}
+              >
+                {tacticalGuidance === 'off'
+                  ? 'Your current formation, supplies and Readiness will be used as shown above.'
+                  : preparation.status === 'ready'
+                    ? 'No major preparation weakness is currently detected.'
+                    : preparation.status === 'risky'
+                      ? 'The battle is viable, but one or more preparation weaknesses remain.'
+                      : 'Full Guidance will ask for confirmation before committing this force.'}
+              </Text>
+              <View style={styles.commitAction}>
+                <PrimaryButton
+                  label={
+                    requiresBattleConfirmation
+                      ? 'Begin Battle · Underprepared'
+                      : 'Begin Battle'
+                  }
+                  onPress={() => beginBattle()}
+                />
+              </View>
+            </>
           )}
-        </View>
+        </GameCard>
       </TutorialFocus>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 30, gap: 14 },
-  beginBattleArea: { gap: 8 },
-  severeConfirmEyebrow: {
-    fontSize: 9,
+  content: { padding: 16, paddingBottom: 30, gap: 12 },
+  prepAtGlance: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8
+  },
+  commitCard: {
+    marginTop: 2
+  },
+  commitHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10
+  },
+  commitCopy: {
+    flex: 1,
+    minWidth: 0
+  },
+  commitEyebrow: {
+    fontSize: 8,
+    lineHeight: 11,
     fontWeight: '900',
     letterSpacing: 0.9
   },
-  severeConfirmTitle: {
+  commitTitle: {
     fontSize: 16,
     lineHeight: 21,
     fontWeight: '900',
-    marginTop: 4
+    marginTop: 3
   },
-  severeConfirmBody: {
+  commitBody: {
     fontSize: 10.5,
     lineHeight: 16,
-    marginTop: 7
+    marginTop: 8
+  },
+  commitAction: {
+    marginTop: 12
   },
   severeConfirmActions: {
     gap: 8,
     marginTop: 12
   },
-  encounterHeader: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
-  encounterCopy: { flex: 1 },
-  eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
-  title: { fontSize: 26, fontWeight: '900', marginTop: 4 },
-  subtitle: { fontSize: 13, lineHeight: 18, marginTop: 6 },
+
   enemyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   enemyMark: { width: 58, height: 64, borderRadius: 17, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   enemyCopy: { flex: 1 },
