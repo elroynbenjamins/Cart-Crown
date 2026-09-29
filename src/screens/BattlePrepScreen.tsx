@@ -15,6 +15,7 @@ import {
   getArmyReadinessProfile,
   getUnitCombatProfile
 } from '../game/balance';
+import { getFantasyCombatEdge } from '../game/progression';
 import {
   assessBattlePreparation,
   getPreparationEquipmentUnitId
@@ -221,6 +222,10 @@ export function BattlePrepScreen({
     .filter((unit): unit is NonNullable<typeof unit> => Boolean(unit));
 
   const combatProfile = getUnitCombatProfile(activeUnits);
+  const fantasyCombatEdge = getFantasyCombatEdge(
+    activeUnits,
+    enemyArmyProfile.id
+  );
   const readinessProfile = getArmyReadinessProfile(armyReadiness);
   const effectiveMaxHp = Math.round(
     combatProfile.maxHp * readinessProfile.hpMultiplier
@@ -1416,6 +1421,47 @@ export function BattlePrepScreen({
           </Text>
         ) : null}
       </GameCard>
+
+      {fantasyCombatEdge ? (
+        <GameCard
+          accent={
+            fantasyCombatEdge.favorable
+              ? factionAccent
+              : theme.colors.danger
+          }
+          faction={activeFaction}
+          state={fantasyCombatEdge.favorable ? 'ready' : 'danger'}
+        >
+          <View style={styles.planHeader}>
+            <View style={styles.planCopy}>
+              <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+                ARCANE MATCHUP
+              </Text>
+              <Text style={[styles.doctrineName, { color: theme.colors.text }]}>
+                {fantasyCombatEdge.title}
+              </Text>
+            </View>
+            <StatusPill
+              label={
+                fantasyCombatEdge.favorable
+                  ? 'ARCANE EDGE'
+                  : 'COUNTERED'
+              }
+              tone={
+                fantasyCombatEdge.favorable
+                  ? 'ready'
+                  : 'elite'
+              }
+            />
+          </View>
+          <Text style={[styles.doctrineBody, { color: theme.colors.textMuted }]}>
+            {fantasyCombatEdge.detail}
+          </Text>
+          <Text style={[styles.matchupEffect, { color: theme.colors.gold }]}>
+            Magic squads {fantasyCombatEdge.magicUnits} · Damage dealt ×{fantasyCombatEdge.attackMultiplier.toFixed(2)} · Damage received ×{fantasyCombatEdge.incomingDamageMultiplier.toFixed(2)}
+          </Text>
+        </GameCard>
+      ) : null}
 
       {marcherDoctrineActive && activeMarcherWarningChoice ? (
         <GameCard accent={theme.colors.gold}>
