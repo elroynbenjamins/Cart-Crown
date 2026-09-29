@@ -24,6 +24,12 @@ export function ResultsScreen({
     rewardedAdClaims,
     rewardedAdMessage
   } = useGame();
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
 
   if (!lastBattleResult) {
     return (
@@ -189,7 +195,7 @@ export function ResultsScreen({
                 </Text>
               </View>
               <View style={[styles.reportMetric, { backgroundColor: theme.colors.surface2 }]}>
-                <Text style={[styles.reportValue, { color: factionAccentForResult(activeFaction, theme) }]}>
+                <Text style={[styles.reportValue, { color: factionAccent }]}>
                   {battleSummary.healing}
                 </Text>
                 <Text style={[styles.reportLabel, { color: theme.colors.textMuted }]}>
@@ -1037,15 +1043,6 @@ export function ResultsScreen({
       />
     </ScrollView>
   );
-}
-
-function factionAccentForResult(
-  faction: 'human' | 'elf' | 'orc',
-  theme: ReturnType<typeof useGameTheme>['theme']
-) {
-  if (faction === 'elf') return theme.colors.elf;
-  if (faction === 'orc') return theme.colors.orc;
-  return theme.colors.human;
 }
 
 const styles = StyleSheet.create({
