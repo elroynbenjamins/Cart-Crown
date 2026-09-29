@@ -435,7 +435,9 @@ function sanitizePresets(
 }
 
 function validStoredChapter(
+  faction: FactionId,
   value: unknown,
+  stageId: string,
   fallback: number
 ) {
   if (
@@ -445,7 +447,30 @@ function validStoredChapter(
     return fallback;
   }
 
-  return Math.max(1, Math.min(6, Math.floor(value)));
+  const chapter = Math.max(
+    1,
+    Math.min(6, Math.floor(value))
+  );
+
+  if (faction !== 'human') {
+    return chapter === expectedChapterForStage(faction, stageId)
+      ? chapter
+      : expectedChapterForStage(faction, stageId);
+  }
+
+  const allowedByStage: Record<string, number[]> = {
+    camp: [1],
+    settlement: [1, 2],
+    fort: [2],
+    town: [3],
+    stronghold: [4],
+    capital: [5],
+    grand: [6]
+  };
+
+  return (allowedByStage[stageId] ?? [fallback]).includes(chapter)
+    ? chapter
+    : expectedChapterForStage(faction, stageId);
 }
 
 function formationCapForState(
@@ -515,7 +540,9 @@ export function sanitizeFactionGameState(
     defaults.wagonStageId
   );
   const chapterNumber = validStoredChapter(
+    faction,
     stored.chapterNumber,
+    stageId,
     defaults.chapterNumber
   );
   const chapterDefaults = nodesForChapter(
