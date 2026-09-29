@@ -104,6 +104,137 @@ export function SectionTitle({
   );
 }
 
+export function ScreenHero({
+  eyebrow,
+  title,
+  body,
+  accent,
+  status,
+  children
+}: PropsWithChildren<{
+  eyebrow: string;
+  title: string;
+  body?: string;
+  accent?: string;
+  status?: React.ReactNode;
+}>) {
+  const { theme } = useGameTheme();
+
+  return (
+    <GameCard
+      accent={accent}
+      ornament={false}
+      style={styles.screenHero}
+    >
+      <View style={styles.screenHeroHeader}>
+        <View style={styles.screenHeroCopy}>
+          <Text
+            style={[
+              styles.screenHeroEyebrow,
+              { color: accent ?? theme.colors.textMuted }
+            ]}
+          >
+            {eyebrow}
+          </Text>
+          <Text
+            style={[
+              styles.screenHeroTitle,
+              { color: theme.colors.text }
+            ]}
+          >
+            {title}
+          </Text>
+        </View>
+        {status ? (
+          <View style={styles.screenHeroStatus}>
+            {status}
+          </View>
+        ) : null}
+      </View>
+      {body ? (
+        <Text
+          style={[
+            styles.screenHeroBody,
+            { color: theme.colors.textMuted }
+          ]}
+        >
+          {body}
+        </Text>
+      ) : null}
+      {children ? (
+        <View style={styles.screenHeroContent}>
+          {children}
+        </View>
+      ) : null}
+    </GameCard>
+  );
+}
+
+export function MetricTile({
+  label,
+  value,
+  caption,
+  tone = 'neutral'
+}: {
+  label: string;
+  value: string | number;
+  caption?: string;
+  tone?: 'positive' | 'danger' | 'gold' | 'info' | 'neutral';
+}) {
+  const { theme } = useGameTheme();
+  const accent =
+    tone === 'positive'
+      ? theme.colors.primary
+      : tone === 'danger'
+        ? theme.colors.danger
+        : tone === 'gold'
+          ? theme.colors.gold
+          : tone === 'info'
+            ? theme.colors.info
+            : theme.colors.textMuted;
+
+  return (
+    <View
+      style={[
+        styles.metricTile,
+        {
+          backgroundColor: theme.colors.surface2,
+          borderColor: accent + '36'
+        }
+      ]}
+    >
+      <Text
+        style={[
+          styles.metricTileLabel,
+          { color: theme.colors.textMuted }
+        ]}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          styles.metricTileValue,
+          { color: accent }
+        ]}
+        numberOfLines={1}
+      >
+        {value}
+      </Text>
+      {caption ? (
+        <Text
+          style={[
+            styles.metricTileCaption,
+            { color: theme.colors.textMuted }
+          ]}
+          numberOfLines={2}
+        >
+          {caption}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
 export function Pill({
   label,
   color
@@ -329,7 +460,8 @@ export function PrimaryButton({
         styles.primaryButton,
         {
           backgroundColor: disabled ? theme.colors.surface3 : theme.colors.primary,
-          opacity: pressed ? 0.85 : 1
+          opacity: pressed ? 0.9 : 1,
+          transform: [{ scale: pressed && !disabled ? 0.985 : 1 }]
         }
       ]}
     >
@@ -367,7 +499,8 @@ export function SecondaryButton({
         {
           backgroundColor: theme.colors.surface2,
           borderColor: theme.colors.border,
-          opacity: disabled ? 0.45 : pressed ? 0.8 : 1
+          opacity: disabled ? 0.45 : pressed ? 0.86 : 1,
+          transform: [{ scale: pressed && !disabled ? 0.988 : 1 }]
         }
       ]}
     >
@@ -510,9 +643,9 @@ export function ProgressBar({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 1,
-    padding: 16,
+    padding: 15,
     position: 'relative',
     overflow: 'hidden'
   },
@@ -563,13 +696,76 @@ const styles = StyleSheet.create({
     gap: 12
   },
   sectionTitle: {
-    fontSize: 20,
-    lineHeight: 26,
-    fontWeight: '800'
+    fontSize: 17,
+    lineHeight: 22,
+    fontWeight: '900'
   },
   sectionTrailing: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700'
+  },
+  screenHero: {
+    paddingVertical: 18,
+    paddingHorizontal: 16
+  },
+  screenHeroHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12
+  },
+  screenHeroCopy: {
+    flex: 1,
+    minWidth: 0
+  },
+  screenHeroEyebrow: {
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: '900',
+    letterSpacing: 1.2
+  },
+  screenHeroTitle: {
+    fontSize: 24,
+    lineHeight: 29,
+    fontWeight: '900',
+    marginTop: 4
+  },
+  screenHeroStatus: {
+    paddingTop: 1
+  },
+  screenHeroBody: {
+    fontSize: 11.5,
+    lineHeight: 17,
+    marginTop: 8,
+    maxWidth: 360
+  },
+  screenHeroContent: {
+    marginTop: 14
+  },
+  metricTile: {
+    minWidth: '47%',
+    flexGrow: 1,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 11,
+    paddingVertical: 10
+  },
+  metricTileLabel: {
+    fontSize: 8,
+    lineHeight: 11,
+    fontWeight: '900',
+    letterSpacing: 0.7
+  },
+  metricTileValue: {
+    fontSize: 19,
+    lineHeight: 24,
+    fontWeight: '900',
+    marginTop: 3
+  },
+  metricTileCaption: {
+    fontSize: 8.5,
+    lineHeight: 12,
+    marginTop: 2
   },
   pill: {
     minHeight: 30,
@@ -663,7 +859,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     minHeight: 52,
-    borderRadius: 16,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 18
@@ -674,7 +870,7 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     minHeight: 46,
-    borderRadius: 14,
+    borderRadius: 13,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
