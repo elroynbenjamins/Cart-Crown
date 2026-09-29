@@ -441,7 +441,7 @@ export function KingdomScreen({
                     <ResourceAmountRow values={cost} compact />
                   </View>
                   <View style={styles.buildingButton}>
-                    <PrimaryButton
+                    <SecondaryButton
                       label={'Upgrade to Lv.' + (level + 1)}
                       onPress={() => {
                         const ok = upgradeBuilding(building.id);
