@@ -3,6 +3,7 @@ import {
   getExpeditionRewardMultiplier,
   getExpeditionTicketsAfterChapterTransition,
   getKingdomDefenseRewardMultiplier,
+  getSiegeRewardMultiplier,
   getWarTableBoardRewardMultiplier,
   scaleResourceReward
 } from '../src/game/sideModeBalance';
@@ -23,6 +24,9 @@ import {
   getExpeditionCompletionReward,
   resolveExpeditionChoice
 } from '../src/game/expeditions';
+import {
+  getSiegeReward
+} from '../src/game/sieges';
 import type {
   ResourceWallet,
   SettlementAdjacencyEffects
@@ -88,6 +92,25 @@ function runRewardBands() {
       rewardedRunsThisChapter: 1
     }) === 0,
     'Additional Kingdom Defense repeats must become practice-only.'
+  );
+
+  check(
+    getSiegeRewardMultiplier({
+      currentChapter: 3,
+      rewardChapter: 2,
+      rewardedRunsThisChapter: 9
+    }) === 1 &&
+      getSiegeRewardMultiplier({
+        currentChapter: 3,
+        rewardChapter: 3,
+        rewardedRunsThisChapter: 1
+      }) === 0.5 &&
+      getSiegeRewardMultiplier({
+        currentChapter: 3,
+        rewardChapter: 3,
+        rewardedRunsThisChapter: 2
+      }) === 0,
+    'Sieges must taper full -> half -> practice each chapter.'
   );
 
   check(
@@ -282,14 +305,18 @@ function runEconomyEnvelope() {
     30 +
     gold(kingdomTrialRewards.silver) +
     expeditionGold(1) +
-    expeditionGold(0.5);
+    expeditionGold(0.5) +
+    gold(getSiegeReward(1)) +
+    gold(getSiegeReward(0.5));
 
   const ch4Gold =
     maxWarTableGold(4) +
     30 +
     gold(kingdomTrialRewards.gold) +
     expeditionGold(1) +
-    expeditionGold(0.5);
+    expeditionGold(0.5) +
+    gold(getSiegeReward(1)) +
+    gold(getSiegeReward(0.5));
 
   check(
     ch2Gold <= 300,
@@ -297,12 +324,12 @@ function runEconomyEnvelope() {
       ch2Gold
   );
   check(
-    ch3Gold <= 525,
+    ch3Gold <= 650,
     'Chapter 3 optional-mode Gold envelope is too high: ' +
       ch3Gold
   );
   check(
-    ch4Gold <= 550,
+    ch4Gold <= 675,
     'Chapter 4 optional-mode Gold envelope is too high: ' +
       ch4Gold
   );
@@ -322,5 +349,5 @@ runTrialPacing();
 runEconomyEnvelope();
 
 console.log(
-  'PASS: cross-mode reward fatigue, Trial chapter gates, ticket caps and bounded optional-resource envelopes remain intact.'
+  'PASS: cross-mode reward fatigue, Siege/Expedition pacing, Trial chapter gates, ticket caps and bounded optional-resource envelopes remain intact.'
 );
