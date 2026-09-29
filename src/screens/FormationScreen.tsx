@@ -25,8 +25,12 @@ export function FormationScreen() {
     formationDoctrineId,
     formationDoctrines,
     formationBonuses,
+    formationPresets,
     setFormationShape,
     setFormationDoctrine,
+    saveFormationPreset,
+    applyFormationPreset,
+    clearFormationPreset,
     moveFormationUnit,
     currentWagonStage
   } = useGame();
@@ -54,6 +58,25 @@ export function FormationScreen() {
       return ['stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
     }
     return false;
+  };
+
+  const presetSlots = [1, 2, 3] as const;
+
+  const presetMatchesCurrent = (slotId: 1 | 2 | 3) => {
+    const preset = formationPresets.find(
+      candidate => candidate.slotId === slotId
+    );
+    if (!preset) return false;
+
+    return (
+      preset.formationShapeId === formationShapeId &&
+      preset.formationDoctrineId === formationDoctrineId &&
+      Array.from({ length: 9 }).every(
+        (_, index) =>
+          (preset.formation[index] ?? null) ===
+          (formation[index] ?? null)
+      )
+    );
   };
 
   const handleSlot = (slot: number, unitId: string | null) => {
@@ -97,6 +120,147 @@ export function FormationScreen() {
           {activeFormationShape.summary}
         </Text>
       </GameCard>
+
+      <SectionTitle title="Tactical loadouts" trailing="3 presets" />
+      <View style={styles.presetList}>
+        {presetSlots.map(slotId => {
+          const preset = formationPresets.find(
+            candidate => candidate.slotId === slotId
+          );
+          const presetShape = preset
+            ? formationShapes.find(
+                shape => shape.id === preset.formationShapeId
+              )
+            : null;
+          const presetDoctrine = preset
+            ? formationDoctrines.find(
+                doctrine => doctrine.id === preset.formationDoctrineId
+              )
+            : null;
+          const active = presetMatchesCurrent(slotId);
+          const squadCount = preset
+            ? preset.formation.filter(Boolean).length
+            : 0;
+
+          return (
+            <GameCard
+              key={slotId}
+              accent={
+                active
+                  ? theme.colors.gold
+                  : preset
+                    ? factionAccent
+                    : undefined
+              }
+            >
+              <View style={styles.presetHeader}>
+                <View style={styles.presetCopy}>
+                  <Text
+                    style={[
+                      styles.presetTitle,
+                      { color: theme.colors.text }
+                    ]}
+                  >
+                    Loadout {slotId}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.presetMeta,
+                      { color: theme.colors.textMuted }
+                    ]}
+                  >
+                    {preset
+                      ? (presetShape?.layout ?? 'Formation') +
+                        ' · ' +
+                        (presetShape?.name ?? 'Saved shape') +
+                        ' · ' +
+                        (presetDoctrine?.name ?? 'Saved doctrine') +
+                        ' · ' +
+                        squadCount +
+                        ' squads'
+                      : 'Empty preset'}
+                  </Text>
+                </View>
+                {active ? (
+                  <Pill
+                    label="CURRENT"
+                    color={theme.colors.gold + '45'}
+                  />
+                ) : null}
+              </View>
+
+              <View style={styles.presetActions}>
+                {preset && !active ? (
+                  <Pressable
+                    onPress={() => applyFormationPreset(slotId)}
+                    style={({ pressed }) => [
+                      styles.presetAction,
+                      {
+                        borderColor: factionAccent,
+                        opacity: pressed ? 0.75 : 1
+                      }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.presetActionText,
+                        { color: factionAccent }
+                      ]}
+                    >
+                      Apply
+                    </Text>
+                  </Pressable>
+                ) : null}
+
+                <Pressable
+                  onPress={() => saveFormationPreset(slotId)}
+                  style={({ pressed }) => [
+                    styles.presetAction,
+                    {
+                      borderColor: theme.colors.gold,
+                      opacity: pressed ? 0.75 : 1
+                    }
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.presetActionText,
+                      { color: theme.colors.gold }
+                    ]}
+                  >
+                    {preset ? 'Overwrite' : 'Save current'}
+                  </Text>
+                </Pressable>
+
+                {preset ? (
+                  <Pressable
+                    onPress={() => clearFormationPreset(slotId)}
+                    style={({ pressed }) => [
+                      styles.presetAction,
+                      {
+                        borderColor: theme.colors.border,
+                        opacity: pressed ? 0.75 : 1
+                      }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.presetActionText,
+                        { color: theme.colors.textMuted }
+                      ]}
+                    >
+                      Clear
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            </GameCard>
+          );
+        })}
+      </View>
+      <Text style={[styles.presetHint, { color: theme.colors.textMuted }]}>
+        Each loadout saves the formation shape, faction doctrine and exact squad positions.
+      </Text>
 
       <SectionTitle title="Formation shape" trailing="9 positions · max 6 squads" />
       <ScrollView
@@ -332,6 +496,32 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
   title: { fontSize: 20, lineHeight: 26, fontWeight: '900', marginTop: 4 },
   subtitle: { fontSize: 13, lineHeight: 18, marginTop: 9 },
+  presetList: { gap: 8 },
+  presetHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10
+  },
+  presetCopy: { flex: 1 },
+  presetTitle: { fontSize: 14, fontWeight: '900' },
+  presetMeta: { fontSize: 9.5, lineHeight: 14, marginTop: 4 },
+  presetActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 10 },
+  presetAction: {
+    minHeight: 32,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  presetActionText: { fontSize: 9.5, fontWeight: '900' },
+  presetHint: {
+    fontSize: 9.5,
+    lineHeight: 14,
+    textAlign: 'center',
+    paddingHorizontal: 10
+  },
   shapeStrip: { gap: 9, paddingRight: 4 },
   shapeCard: {
     width: 174,
