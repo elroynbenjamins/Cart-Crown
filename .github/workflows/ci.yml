@@ -69,6 +69,9 @@ jobs:
       - name: Kingdom building UI regression
         run: npx --no-install tsx scripts/kingdom-building-ui-regression.ts
 
+      - name: Policy UI regression
+        run: npx --no-install tsx scripts/policy-ui-regression.ts
+
       - name: Production art regression
         run: npm run art:check
 
