@@ -90,6 +90,9 @@ jobs:
       - name: Late faction event UI regression
         run: npx --no-install tsx scripts/late-faction-event-ui-regression.ts
 
+      - name: Late Human event UI regression
+        run: npx --no-install tsx scripts/late-human-event-ui-regression.ts
+
       - name: Production art regression
         run: npm run art:check
 
