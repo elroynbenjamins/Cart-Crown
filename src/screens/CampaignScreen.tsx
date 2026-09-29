@@ -192,6 +192,7 @@ export function CampaignScreen({
     fourthRecruitChosen,
     unlockedResourceSites,
     kingdomDefenseCompleted,
+    kingdomDefenseRuns,
     signalTowerUnlocked,
     ironProvostWon,
     marcherWarningChoiceId,
@@ -917,7 +918,15 @@ export function CampaignScreen({
 
           {mode.id === 'kingdom_defense' && kingdomDefenseCompleted ? (
             <View style={styles.modeStatusRow}>
-              <StatusPill label="STORY DEFENSE CLEARED" tone="done" />
+              <StatusPill
+                label={
+                  kingdomDefenseRuns +
+                  (kingdomDefenseRuns === 1
+                    ? ' CLEAR'
+                    : ' CLEARS')
+                }
+                tone="done"
+              />
             </View>
           ) : null}
 

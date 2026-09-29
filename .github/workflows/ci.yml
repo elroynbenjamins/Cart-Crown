@@ -42,6 +42,9 @@ jobs:
       - name: Kingdom Trials regression
         run: npm run trials:check
 
+      - name: Kingdom Defense regression
+        run: npm run defense:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 

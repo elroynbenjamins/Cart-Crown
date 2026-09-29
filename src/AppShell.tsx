@@ -222,7 +222,10 @@ export function AppShell({
   const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
-  const [returnToKingdomTrials, setReturnToKingdomTrials] = useState(false);
+  const [formationReturnFlow, setFormationReturnFlow] =
+    useState<'formationTrial' | 'kingdomDefense' | null>(null);
+  const [wagonReturnFlow, setWagonReturnFlow] =
+    useState<'kingdomDefense' | null>(null);
   const [preparationFixTarget, setPreparationFixTarget] =
     useState<BattlePreparationFixTarget | null>(null);
   const [tutorialFocus, setTutorialFocus] =
@@ -767,9 +770,14 @@ export function AppShell({
             setActive('campaign');
           }}
           onEditFormation={() => {
-            setReturnToKingdomTrials(true);
+            setFormationReturnFlow('kingdomDefense');
             setFlow(null);
             setActive('formation');
+          }}
+          onEditWagon={() => {
+            setWagonReturnFlow('kingdomDefense');
+            setFlow(null);
+            setActive('wagon');
           }}
         />
       );
@@ -1184,6 +1192,7 @@ export function AppShell({
             setActive('campaign');
           }}
           onEditFormation={() => {
+            setFormationReturnFlow('formationTrial');
             setFlow(null);
             setActive('formation');
           }}
@@ -1488,18 +1497,21 @@ export function AppShell({
             onTutorialFocusComplete={completeTutorialFocus}
             onClearGuide={() => setFormationGuide(null)}
             onReturnToMode={
-              returnToKingdomTrials
+              formationReturnFlow
                 ? () => {
-                    setReturnToKingdomTrials(false);
+                    const target = formationReturnFlow;
+                    setFormationReturnFlow(null);
                     setActive('campaign');
-                    setFlow('formationTrial');
+                    setFlow(target);
                   }
                 : undefined
             }
             returnToModeLabel={
-              returnToKingdomTrials
+              formationReturnFlow === 'formationTrial'
                 ? 'Back to Kingdom Trials'
-                : undefined
+                : formationReturnFlow === 'kingdomDefense'
+                  ? 'Back to Kingdom Defense'
+                  : undefined
             }
             onReturnToBattlePrep={
               formationGuide
@@ -1512,7 +1524,25 @@ export function AppShell({
           />
         );
       case 'wagon':
-        return <WagonScreen />;
+        return (
+          <WagonScreen
+            onReturnToMode={
+              wagonReturnFlow
+                ? () => {
+                    const target = wagonReturnFlow;
+                    setWagonReturnFlow(null);
+                    setActive('campaign');
+                    setFlow(target);
+                  }
+                : undefined
+            }
+            returnToModeLabel={
+              wagonReturnFlow
+                ? 'Back to Kingdom Defense'
+                : undefined
+            }
+          />
+        );
       case 'army':
         return (
           <ArmyScreen
@@ -1863,6 +1893,10 @@ export function AppShell({
                 onPress={() => {
                   if (item.id !== 'formation') {
                     setFormationGuide(null);
+                    setFormationReturnFlow(null);
+                  }
+                  if (item.id !== 'wagon') {
+                    setWagonReturnFlow(null);
                   }
                   if (tutorialNavFocused) {
                     completeTutorialFocus();

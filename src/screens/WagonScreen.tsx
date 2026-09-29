@@ -104,7 +104,13 @@ function DraggableItem({
   );
 }
 
-export function WagonScreen() {
+export function WagonScreen({
+  onReturnToMode,
+  returnToModeLabel
+}: {
+  onReturnToMode?: () => void;
+  returnToModeLabel?: string;
+} = {}) {
   const { width } = useWindowDimensions();
   const { theme } = useGameTheme();
   const {
@@ -161,6 +167,24 @@ export function WagonScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      {onReturnToMode ? (
+        <GameCard
+          accent={theme.colors.gold}
+          faction={activeFaction}
+          ornament={false}
+        >
+          <Text style={[styles.readyBody, { color: theme.colors.textMuted }]}>
+            Adjust the Wagon here, then return directly to the activity that asked for this loadout.
+          </Text>
+          <View style={styles.returnButton}>
+            <SecondaryButton
+              label={returnToModeLabel ?? 'Back to Activity'}
+              onPress={onReturnToMode}
+            />
+          </View>
+        </GameCard>
+      ) : null}
+
       <ScreenHero
         eyebrow="CAMPAIGN PACK"
         title={faction.wagonName}
@@ -382,6 +406,7 @@ const styles = StyleSheet.create({
   selectionName: { fontSize: 16, fontWeight: '900', marginTop: 4 },
   feedback: { fontSize: 11, lineHeight: 16, marginTop: 5 },
   controls: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  returnButton: { marginTop: 10 },
   control: { flex: 1 },
   readinessRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   readinessCopy: { flex: 1 },
