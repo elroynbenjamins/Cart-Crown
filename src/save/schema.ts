@@ -286,13 +286,12 @@ function formationStageCap(stageId: string) {
 function sanitizeFormation(
   value: unknown,
   units: UnitDefinition[],
-  stageId: string
+  cap: number
 ): Array<string | null> {
   const validUnitIds = new Set(
     units.map(unit => unit.id)
   );
   const seen = new Set<string>();
-  const cap = formationStageCap(stageId);
   let active = 0;
 
   return Array.from({ length: 9 }, (_, index) => {
@@ -360,7 +359,8 @@ function sanitizePresets(
   value: unknown,
   units: UnitDefinition[],
   faction: FactionId,
-  stageId: string
+  stageId: string,
+  cap: number
 ): FormationPreset[] {
   if (!Array.isArray(value)) return [];
 
@@ -368,7 +368,6 @@ function sanitizePresets(
   const validUnitIds = new Set(
     units.map(unit => unit.id)
   );
-  const cap = formationStageCap(stageId);
   const doctrines = getFactionDoctrines(faction);
   const bySlot = new Map<number, FormationPreset>();
 
@@ -435,6 +434,49 @@ function sanitizePresets(
   );
 }
 
+function validStoredChapter(
+  value: unknown,
+  fallback: number
+) {
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value)
+  ) {
+    return fallback;
+  }
+
+  return Math.max(1, Math.min(6, Math.floor(value)));
+}
+
+function formationCapForState(
+  faction: FactionId,
+  chapterNumber: number,
+  stageId: string,
+  chapterNodes: ChapterNode[]
+) {
+  if (faction === 'human' && chapterNumber === 2) {
+    if (
+      chapterNodes.some(
+        node => node.id === 'ch2_node_8' && node.completed
+      )
+    ) {
+      return 7;
+    }
+
+    if (
+      chapterNodes.some(
+        node => node.id === 'ch2_node_2' && node.completed
+      )
+    ) {
+      return 6;
+    }
+
+    return 5;
+  }
+
+  return formationStageCap(stageId);
+}
+
 function sanitizeStringArray(value: unknown) {
   if (!Array.isArray(value)) return [];
   return [
@@ -472,13 +514,23 @@ export function sanitizeFactionGameState(
     stored.wagonStageId,
     defaults.wagonStageId
   );
-  const chapterNumber = expectedChapterForStage(
-    faction,
-    stageId
+  const chapterNumber = validStoredChapter(
+    stored.chapterNumber,
+    defaults.chapterNumber
   );
   const chapterDefaults = nodesForChapter(
     faction,
     chapterNumber
+  );
+  const chapterNodes = sanitizeNodes(
+    stored.chapterNodes,
+    chapterDefaults
+  );
+  const formationCap = formationCapForState(
+    faction,
+    chapterNumber,
+    stageId,
+    chapterNodes
   );
 
   const units = sanitizeUnits(
@@ -489,7 +541,7 @@ export function sanitizeFactionGameState(
   const formation = sanitizeFormation(
     stored.formation,
     units,
-    stageId
+    formationCap
   );
   const formationShapeId = validShapeForStage(
     stored.formationShapeId,
@@ -518,7 +570,8 @@ export function sanitizeFactionGameState(
       stored.formationPresets,
       units,
       faction,
-      stageId
+      stageId,
+      formationCap
     ),
     wagonItems: Array.isArray(stored.wagonItems)
       ? stored.wagonItems.map(item => ({ ...item }))
@@ -529,10 +582,7 @@ export function sanitizeFactionGameState(
         ? stored.armyReadiness
         : defaults.armyReadiness ?? 100
     ),
-    chapterNodes: sanitizeNodes(
-      stored.chapterNodes,
-      chapterDefaults
-    ),
+    chapterNodes,
     formationDoctrineId,
     equipmentInventory: sanitizeStringArray(
       stored.equipmentInventory
