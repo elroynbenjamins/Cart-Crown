@@ -594,12 +594,6 @@ const stageRank: Record<string, number> = {
   grand: 6
 };
 
-const sideModeUnlockRank: Record<SideModeDefinition['unlockStage'], number> = {
-  settlement: 1,
-  fort: 2,
-  stronghold: 4
-};
-
 const formationShapeUnlockRank: Record<FormationShapeDefinition['unlock'], number> = {
   Start: 0,
   Settlement: 1,
@@ -1641,6 +1635,24 @@ export function GameProvider({
 
   const finishEncounter = (encounterId: EncounterId) => {
     const reward = encounterRewards[encounterId];
+
+    if (encounterId.startsWith('war_table_')) {
+      if (!isSideModeUnlocked('war_table')) return;
+
+      setResources(previous =>
+        addResources(previous, reward.resources)
+      );
+      accrueRegionalProduction();
+      setLastBattleResult({
+        id: encounterId + '_result',
+        title: 'War Table Contract Complete',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
 
     if (encounterId === 'elf_wardbreakers') {
       if (
@@ -5385,9 +5397,33 @@ export function GameProvider({
   };
 
   const isSideModeUnlocked = (id: SideModeId) => {
-    const mode = sideModes.find(candidate => candidate.id === id);
-    if (!mode) return false;
-    return (stageRank[currentWagonStage.id] ?? 0) >= sideModeUnlockRank[mode.unlockStage];
+    const completedNodes =
+      chapterNodes.filter(node => node.completed).length;
+
+    if (id === 'war_table') {
+      if (chapterNumber > 1) return true;
+      return activeFaction === 'human'
+        ? mercenaryPatrolWon
+        : completedNodes >= 3;
+    }
+
+    if (id === 'formation_trials') {
+      return chapterNumber >= 2;
+    }
+
+    if (id === 'kingdom_defense') {
+      return activeFaction === 'human'
+        ? kingdomDefenseCompleted
+        : chapterNumber >= 3;
+    }
+
+    if (id === 'expeditions') {
+      return chapterNumber >= 3;
+    }
+
+    // Relic Hunts remain deliberately hidden until their full late-game
+    // progression and reward loop is implemented.
+    return false;
   };
 
   const consumeExpeditionTicket = () => {
