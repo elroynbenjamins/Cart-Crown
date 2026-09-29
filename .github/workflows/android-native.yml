@@ -1,0 +1,124 @@
+name: Android native validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/android-native.yml'
+      - 'scripts/android-native-*'
+      - 'package*.json'
+      - 'app.json'
+      - 'app.config.*'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-native.yml'
+      - 'scripts/android-native-*'
+      - 'package*.json'
+      - 'app.json'
+      - 'app.config.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-native-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install the repository dependencies (including build tools)
+        run: npm install --include=dev --no-audit --no-fund
+      - name: Record exact build inputs
+        run: |
+          mkdir -p artifacts/android
+          git rev-parse HEAD > artifacts/android/source-commit.txt
+          node --version > artifacts/android/node-version.txt
+          npm ls --depth=0 > artifacts/android/dependencies.txt
+          cp package-lock.json artifacts/android/resolved-package-lock.json
+          npx --no-install expo config --type public --json > artifacts/android/expo-config.json
+      - name: Generate native Android project
+        run: |
+          set -o pipefail
+          npx --no-install expo prebuild --platform android --no-install 2>&1 | tee artifacts/android/prebuild.log
+      - name: Compile release JS and native ARM64 and emulator code
+        run: |
+          set -o pipefail
+          cd android
+          chmod +x gradlew
+          ./gradlew :app:assembleRelease --no-daemon --max-workers=2 \
+            -PreactNativeArchitectures=arm64-v8a,x86_64 \
+            '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g' \
+            2>&1 | tee ../artifacts/android/gradle-build.log
+      - name: Sign installable test APK with an ephemeral CI key
+        run: |
+          set -euo pipefail
+          APK=$(find android/app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -n 1)
+          test -n "$APK"
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          # This key is ONLY for emulator/sideload validation, never Google Play.
+          keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/cart-crown-ci.jks" \
+            -storepass android -keypass android -alias androiddebugkey \
+            -dname 'CN=Cart Crown CI, O=Testing, C=NL' -keyalg RSA -keysize 2048 -validity 30
+          "$BUILD_TOOLS/apksigner" sign --ks "$RUNNER_TEMP/cart-crown-ci.jks" \
+            --ks-pass pass:android --key-pass pass:android \
+            --out artifacts/android/cart-crown-ci.apk "$APK"
+          "$BUILD_TOOLS/apksigner" verify --verbose artifacts/android/cart-crown-ci.apk > artifacts/android/signature-check.txt
+          "$BUILD_TOOLS/aapt" dump badging artifacts/android/cart-crown-ci.apk > artifacts/android/apk-badging.txt
+          grep -q "package: name='com.elroybenjamins.cartcrown'" artifacts/android/apk-badging.txt
+          sha256sum artifacts/android/cart-crown-ci.apk > artifacts/android/apk-sha256.txt
+          python3 - <<'PY'
+          import json, zipfile
+          from pathlib import Path
+          with zipfile.ZipFile('artifacts/android/cart-crown-ci.apk') as apk:
+              names = apk.namelist()
+              bundles = [n for n in names if n.startswith('assets/') and n.endswith('.bundle')]
+              assert bundles, 'Release APK has no embedded JavaScript bundle'
+              for arch in ('arm64-v8a', 'x86_64'):
+                  assert any(n.startswith('lib/' + arch + '/') and n.endswith('.so') for n in names), arch
+              Path('artifacts/android/apk-contents-check.json').write_text(json.dumps({
+                  'embedded_bundles': bundles, 'abis': ['arm64-v8a', 'x86_64'],
+                  'bytes': Path('artifacts/android/cart-crown-ci.apk').stat().st_size,
+                  'signing': 'ephemeral CI test key; NOT a Play release'
+              }, indent=2))
+          PY
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and exercise the native APK on Android 15
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: python3 scripts/android-native-smoke.py --apk artifacts/android/cart-crown-ci.apk --out artifacts/android/smoke
+      - name: Retain APK, build evidence and real emulator captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-native-${{ github.run_id }}
+          path: artifacts/android/
+          if-no-files-found: warn
+          retention-days: 7
