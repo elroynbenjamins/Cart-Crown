@@ -1,17 +1,32 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
+} from 'react-native';
 import {
   getEncounter,
   getEnemyFormationTactic
 } from '../game/encounters';
 import type { EncounterId } from '../game/encounters';
-import { getFormationShape } from '../game/formation';
-import { warTableContracts } from '../game/sideModes';
+import {
+  getFormationShape
+} from '../game/formation';
+import { useGame } from '../game/GameProvider';
+import {
+  getWarTableCategoryLabel,
+  getWarTablePostedContracts,
+  getWarTableTierLabel,
+  isWarTableBoardCleared
+} from '../game/warTable';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
   PrimaryButton,
+  ResourceAmountRow,
   ScreenHero,
+  SecondaryButton,
   SectionTitle,
   StatusPill
 } from '../ui/components';
@@ -19,9 +34,53 @@ import {
 export function WarTableScreen({
   onStartBattle
 }: {
-  onStartBattle: (encounterId: EncounterId) => void;
+  onStartBattle: (
+    encounterId: EncounterId
+  ) => void;
 }) {
   const { theme } = useGameTheme();
+  const {
+    activeFaction,
+    chapterNumber,
+    warTableCycle,
+    warTableBoardChapter,
+    warTableCompletedContractIds,
+    warTableBonusContractIds,
+    warTableContractsCompleted,
+    warTableBonusObjectivesCompleted,
+    refreshWarTableBoard
+  } = useGame();
+
+  const factionAccent =
+    activeFaction === 'elf'
+      ? theme.colors.elf
+      : activeFaction === 'orc'
+        ? theme.colors.orc
+        : theme.colors.human;
+
+  const contracts =
+    getWarTablePostedContracts({
+      cycle: warTableCycle,
+      boardChapter: warTableBoardChapter
+    });
+
+  const boardCleared =
+    isWarTableBoardCleared({
+      postedContracts: contracts,
+      completedContractIds:
+        warTableCompletedContractIds
+    });
+
+  const completedOnBoard =
+    contracts.filter(contract =>
+      warTableCompletedContractIds.includes(
+        contract.id
+      )
+    ).length;
+
+  const tierUpgradePending =
+    Math.min(chapterNumber, 3) >
+    warTableBoardChapter;
 
   return (
     <ScrollView
@@ -29,47 +88,220 @@ export function WarTableScreen({
       showsVerticalScrollIndicator={false}
     >
       <ScreenHero
-        eyebrow="OPTIONAL MODE"
+        eyebrow="QUICK BATTLE MODE"
         title="War Table"
-        body="Scouts post short contracts away from the main campaign. Use them to practice counters, test formations and earn modest supplies without advancing the story."
-        accent={theme.colors.primary}
-        status={<StatusPill label="SCOUT CONTRACTS" tone="available" />}
+        body="Scouts post a small rotating set of short contracts. Each fight tests a different enemy formation, and every contract has an optional performance objective for a modest bonus."
+        accent={factionAccent}
+        status={
+          <StatusPill
+            label={
+              'BOARD ' +
+              (warTableCycle + 1)
+            }
+            tone="available"
+          />
+        }
       />
 
-      <GameCard accent={theme.colors.primary}>
-        <Text style={[styles.noticeTitle, { color: theme.colors.text }]}>
-          Optional by design
-        </Text>
-        <Text style={[styles.noticeBody, { color: theme.colors.textMuted }]}>
-          War Table victories do not unlock campaign nodes. Rewards are deliberately smaller than story milestones so this mode helps recovery and experimentation without becoming mandatory farming.
-        </Text>
+      <GameCard
+        accent={factionAccent}
+        faction={activeFaction}
+      >
+        <View style={styles.boardHeader}>
+          <View style={styles.headerCopy}>
+            <Text
+              style={[
+                styles.noticeTitle,
+                { color: theme.colors.text }
+              ]}
+            >
+              Rotating scout contracts
+            </Text>
+            <Text
+              style={[
+                styles.noticeBody,
+                {
+                  color:
+                    theme.colors.textMuted
+                }
+              ]}
+            >
+              Clear the posted board to rotate in
+              a new set. Standard contracts arrive
+              first; Veteran and Elite slots join
+              later as the campaign advances.
+            </Text>
+          </View>
+          <StatusPill
+            label={
+              completedOnBoard +
+              '/' +
+              contracts.length +
+              ' CLEARED'
+            }
+            tone={
+              boardCleared
+                ? 'done'
+                : 'current'
+            }
+          />
+        </View>
+
+        <View style={styles.stats}>
+          <View style={styles.stat}>
+            <Text
+              style={[
+                styles.statLabel,
+                {
+                  color:
+                    theme.colors.textMuted
+                }
+              ]}
+            >
+              LIFETIME CONTRACTS
+            </Text>
+            <Text
+              style={[
+                styles.statValue,
+                { color: theme.colors.text }
+              ]}
+            >
+              {warTableContractsCompleted}
+            </Text>
+          </View>
+          <View style={styles.stat}>
+            <Text
+              style={[
+                styles.statLabel,
+                {
+                  color:
+                    theme.colors.textMuted
+                }
+              ]}
+            >
+              BONUS OBJECTIVES
+            </Text>
+            <Text
+              style={[
+                styles.statValue,
+                { color: theme.colors.gold }
+              ]}
+            >
+              {
+                warTableBonusObjectivesCompleted
+              }
+            </Text>
+          </View>
+        </View>
+
+        {tierUpgradePending ? (
+          <View
+            style={[
+              styles.unlockNotice,
+              {
+                backgroundColor:
+                  theme.colors.surface2,
+                borderColor:
+                  theme.colors.border
+              }
+            ]}
+          >
+            <Text
+              style={[
+                styles.unlockTitle,
+                { color: theme.colors.gold }
+              ]}
+            >
+              NEW TIER AVAILABLE
+            </Text>
+            <Text
+              style={[
+                styles.unlockBody,
+                {
+                  color:
+                    theme.colors.textMuted
+                }
+              ]}
+            >
+              Campaign progress has unlocked a
+              stronger contract tier. Finish this
+              board and refresh it to add those
+              contracts to the rotation.
+            </Text>
+          </View>
+        ) : null}
       </GameCard>
 
       <SectionTitle
-        title="Available Contracts"
-        trailing={warTableContracts.length + ' posted'}
+        title="Posted Contracts"
+        trailing={
+          contracts.length + ' active'
+        }
       />
 
-      {warTableContracts.map(contract => {
-        const encounter = getEncounter(contract.encounterId);
-        const tactic = getEnemyFormationTactic(
-          contract.encounterId
-        );
-        const shape = getFormationShape(
-          tactic.formationShapeId
-        );
+      {contracts.map(contract => {
+        const encounter =
+          getEncounter(contract.encounterId);
+        const tactic =
+          getEnemyFormationTactic(
+            contract.encounterId
+          );
+        const shape =
+          getFormationShape(
+            tactic.formationShapeId
+          );
+        const completed =
+          warTableCompletedContractIds.includes(
+            contract.id
+          );
+        const bonusComplete =
+          warTableBonusContractIds.includes(
+            contract.id
+          );
+        const tierLabel =
+          getWarTableTierLabel(
+            contract.tier
+          );
+        const categoryLabel =
+          getWarTableCategoryLabel(
+            contract.category
+          );
 
         return (
           <GameCard
             key={contract.id}
+            faction={activeFaction}
+            state={
+              completed
+                ? 'ready'
+                : contract.tier === 'elite'
+                  ? 'selected'
+                  : 'default'
+            }
             accent={
-              encounter.difficulty === 'Elite'
+              contract.tier === 'elite'
                 ? theme.colors.gold
-                : theme.colors.primary
+                : completed
+                  ? theme.colors.primary
+                  : factionAccent
             }
           >
             <View style={styles.header}>
               <View style={styles.headerCopy}>
+                <Text
+                  style={[
+                    styles.category,
+                    {
+                      color:
+                        contract.tier ===
+                        'elite'
+                          ? theme.colors.gold
+                          : factionAccent
+                    }
+                  ]}
+                >
+                  {categoryLabel.toUpperCase()}
+                </Text>
                 <Text
                   style={[
                     styles.name,
@@ -81,18 +313,31 @@ export function WarTableScreen({
                 <Text
                   style={[
                     styles.subtitle,
-                    { color: theme.colors.textMuted }
+                    {
+                      color:
+                        theme.colors.textMuted
+                    }
                   ]}
                 >
                   {encounter.subtitle}
                 </Text>
               </View>
               <StatusPill
-                label={encounter.difficulty.toUpperCase()}
+                label={
+                  completed
+                    ? 'CLEARED'
+                    : tierLabel
+                }
                 tone={
-                  encounter.difficulty === 'Elite'
-                    ? 'elite'
-                    : 'neutral'
+                  completed
+                    ? 'done'
+                    : contract.tier ===
+                        'elite'
+                      ? 'elite'
+                      : contract.tier ===
+                          'veteran'
+                        ? 'current'
+                        : 'neutral'
                 }
               />
             </View>
@@ -101,15 +346,17 @@ export function WarTableScreen({
               style={[
                 styles.intel,
                 {
-                  backgroundColor: theme.colors.surface2,
-                  borderColor: theme.colors.border
+                  backgroundColor:
+                    theme.colors.surface2,
+                  borderColor:
+                    theme.colors.border
                 }
               ]}
             >
               <Text
                 style={[
                   styles.intelLabel,
-                  { color: theme.colors.primary }
+                  { color: factionAccent }
                 ]}
               >
                 ENEMY FORMATION
@@ -125,33 +372,193 @@ export function WarTableScreen({
               <Text
                 style={[
                   styles.note,
-                  { color: theme.colors.textMuted }
+                  {
+                    color:
+                      theme.colors.textMuted
+                  }
                 ]}
               >
                 {contract.tacticalNote}
               </Text>
             </View>
 
-            <Text
+            <View style={styles.rewardBlock}>
+              <Text
+                style={[
+                  styles.rewardTitle,
+                  { color: theme.colors.text }
+                ]}
+              >
+                Base reward
+              </Text>
+              <Text
+                style={[
+                  styles.reward,
+                  { color: theme.colors.gold }
+                ]}
+              >
+                {contract.rewardLabel}
+              </Text>
+            </View>
+
+            <View
               style={[
-                styles.reward,
-                { color: theme.colors.gold }
+                styles.bonusBox,
+                {
+                  borderColor:
+                    bonusComplete
+                      ? theme.colors.primary
+                      : theme.colors.border,
+                  backgroundColor:
+                    theme.colors.surface2
+                }
               ]}
             >
-              Reward focus: {contract.rewardLabel}
-            </Text>
+              <View style={styles.bonusHeader}>
+                <View style={styles.headerCopy}>
+                  <Text
+                    style={[
+                      styles.bonusEyebrow,
+                      {
+                        color:
+                          bonusComplete
+                            ? theme.colors.primary
+                            : theme.colors.gold
+                      }
+                    ]}
+                  >
+                    BONUS OBJECTIVE
+                  </Text>
+                  <Text
+                    style={[
+                      styles.bonusText,
+                      {
+                        color:
+                          theme.colors.text
+                      }
+                    ]}
+                  >
+                    {
+                      contract
+                        .bonusObjective
+                        .label
+                    }
+                  </Text>
+                </View>
+                {completed ? (
+                  <StatusPill
+                    label={
+                      bonusComplete
+                        ? 'ACHIEVED'
+                        : 'MISSED'
+                    }
+                    tone={
+                      bonusComplete
+                        ? 'done'
+                        : 'neutral'
+                    }
+                  />
+                ) : null}
+              </View>
+              <View style={styles.bonusReward}>
+                <ResourceAmountRow
+                  prefix="+"
+                  values={
+                    contract.bonusReward
+                  }
+                />
+              </View>
+            </View>
 
             <View style={styles.button}>
               <PrimaryButton
-                label="Prepare for Skirmish"
+                label={
+                  completed
+                    ? 'Contract Cleared'
+                    : 'Prepare for Contract'
+                }
+                disabled={completed}
                 onPress={() =>
-                  onStartBattle(contract.encounterId)
+                  onStartBattle(
+                    contract.encounterId
+                  )
                 }
               />
             </View>
           </GameCard>
         );
       })}
+
+      {boardCleared ? (
+        <GameCard
+          faction={activeFaction}
+          accent={theme.colors.gold}
+          state="ready"
+        >
+          <View style={styles.refreshHeader}>
+            <View style={styles.headerCopy}>
+              <Text
+                style={[
+                  styles.refreshTitle,
+                  { color: theme.colors.text }
+                ]}
+              >
+                Board cleared
+              </Text>
+              <Text
+                style={[
+                  styles.noticeBody,
+                  {
+                    color:
+                      theme.colors.textMuted
+                  }
+                ]}
+              >
+                Rotate the War Table to post a
+                fresh set of contracts. New
+                campaign tiers are picked up when
+                the board refreshes.
+              </Text>
+            </View>
+            <StatusPill
+              label="READY"
+              tone="done"
+            />
+          </View>
+          <View style={styles.button}>
+            <SecondaryButton
+              label="Refresh War Table"
+              onPress={refreshWarTableBoard}
+            />
+          </View>
+        </GameCard>
+      ) : null}
+
+      <GameCard
+        faction={activeFaction}
+        ornament={false}
+      >
+        <Text
+          style={[
+            styles.footerTitle,
+            { color: theme.colors.text }
+          ]}
+        >
+          Optional by design
+        </Text>
+        <Text
+          style={[
+            styles.noticeBody,
+            { color: theme.colors.textMuted }
+          ]}
+        >
+          Contracts do not advance campaign nodes.
+          Base rewards stay below major story
+          payouts, and bonus objectives reward
+          cleaner play rather than mandatory
+          grinding.
+        </Text>
+      </GameCard>
     </ScrollView>
   );
 }
@@ -162,14 +569,10 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     gap: 12
   },
-  noticeTitle: {
-    fontSize: 14,
-    fontWeight: '900'
-  },
-  noticeBody: {
-    marginTop: 5,
-    fontSize: 11,
-    lineHeight: 17
+  boardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10
   },
   header: {
     flexDirection: 'row',
@@ -179,9 +582,58 @@ const styles = StyleSheet.create({
   headerCopy: {
     flex: 1
   },
-  name: {
-    fontSize: 16,
+  noticeTitle: {
+    fontSize: 15,
     fontWeight: '900'
+  },
+  noticeBody: {
+    marginTop: 5,
+    fontSize: 11,
+    lineHeight: 17
+  },
+  stats: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12
+  },
+  stat: {
+    flex: 1
+  },
+  statLabel: {
+    fontSize: 8.5,
+    fontWeight: '900',
+    letterSpacing: 0.6
+  },
+  statValue: {
+    fontSize: 19,
+    fontWeight: '900',
+    marginTop: 2
+  },
+  unlockNotice: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 12
+  },
+  unlockTitle: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.8
+  },
+  unlockBody: {
+    fontSize: 10.5,
+    lineHeight: 16,
+    marginTop: 4
+  },
+  category: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.8
+  },
+  name: {
+    fontSize: 17,
+    fontWeight: '900',
+    marginTop: 2
   },
   subtitle: {
     marginTop: 4,
@@ -209,12 +661,57 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 15
   },
+  rewardBlock: {
+    marginTop: 10
+  },
+  rewardTitle: {
+    fontSize: 10,
+    fontWeight: '900'
+  },
   reward: {
-    marginTop: 9,
+    marginTop: 3,
     fontSize: 10.5,
     fontWeight: '800'
   },
+  bonusBox: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 11
+  },
+  bonusHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 9
+  },
+  bonusEyebrow: {
+    fontSize: 8.5,
+    fontWeight: '900',
+    letterSpacing: 0.7
+  },
+  bonusText: {
+    fontSize: 11,
+    lineHeight: 16,
+    fontWeight: '800',
+    marginTop: 3
+  },
+  bonusReward: {
+    marginTop: 8
+  },
   button: {
     marginTop: 12
+  },
+  refreshHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10
+  },
+  refreshTitle: {
+    fontSize: 17,
+    fontWeight: '900'
+  },
+  footerTitle: {
+    fontSize: 13,
+    fontWeight: '900'
   }
 });
