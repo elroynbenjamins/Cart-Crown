@@ -371,6 +371,7 @@ type GameContextValue = {
   getAdvancedPromotionsForUnit: (unitId: string) => AdvancedPromotionDefinition[];
   chooseCommanderPath: (pathId: string) => boolean;
   moveFormationUnit: (unitId: string, targetSlot: number) => boolean;
+  placeFormationUnit: (unitId: string, targetSlot: number) => boolean;
   moveWagonItem: (itemId: string, x: number, y: number) => boolean;
   rotateWagonItem: (itemId: string) => boolean;
   resetWagon: () => void;
@@ -4830,6 +4831,37 @@ export function GameProvider({
     return true;
   };
 
+  const placeFormationUnit = (unitId: string, targetSlot: number) => {
+    if (!formationCells.includes(targetSlot)) return false;
+    if (!units.some(unit => unit.id === unitId)) return false;
+
+    const sourceSlot = formation.indexOf(unitId);
+    const targetUnit = formation[targetSlot] ?? null;
+    const activeCount = formation.filter(Boolean).length;
+
+    if (sourceSlot === targetSlot) return false;
+    if (
+      sourceSlot < 0 &&
+      !targetUnit &&
+      activeCount >= activeSquadCap
+    ) {
+      return false;
+    }
+
+    setFormation(previous => {
+      const next = [...previous];
+      const liveSource = next.indexOf(unitId);
+      const liveTarget = next[targetSlot] ?? null;
+
+      if (liveSource >= 0) {
+        next[liveSource] = liveTarget;
+      }
+      next[targetSlot] = unitId;
+      return next;
+    });
+    return true;
+  };
+
   const moveWagonItem = (itemId: string, x: number, y: number) => {
     const item = wagonItems.find(candidate => candidate.id === itemId);
     if (!item) return false;
@@ -5287,6 +5319,7 @@ export function GameProvider({
       getAdvancedPromotionsForUnit,
       chooseCommanderPath,
       moveFormationUnit,
+      placeFormationUnit,
       moveWagonItem,
       rotateWagonItem,
       resetWagon,

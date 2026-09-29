@@ -34,7 +34,7 @@ import { FactionKingdomScreen } from './screens/FactionKingdomScreen';
 import { FactionRecruitmentScreen } from './screens/FactionRecruitmentScreen';
 import { FactionChapterOneEventScreen } from './screens/FactionChapterOneEventScreen';
 import { ForgeScreen } from './screens/ForgeScreen';
-import { FormationScreen } from './screens/FormationScreen';
+import { FormationScreen, type FormationGuide } from './screens/FormationScreen';
 import { FortMusterScreen } from './screens/FortMusterScreen';
 import { FormationTrialScreen } from './screens/FormationTrialScreen';
 import { ForcedBeaconScreen } from './screens/ForcedBeaconScreen';
@@ -189,6 +189,7 @@ export function AppShell({
   const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
   const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
+  const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
   const { theme, cycleTheme } = useGameTheme();
   const {
     activeFaction,
@@ -206,8 +207,17 @@ export function AppShell({
       return (
         <BattlePrepScreen
           encounterId={activeEncounterId}
+          onOpenAdjustment={(adjustment, presetSlotId) => {
+            setFormationGuide({
+              adjustment,
+              presetSlotId
+            });
+            setFlow(null);
+            setActive('formation');
+          }}
           onBegin={() => {
             setLastCombatSummary(null);
+            setFormationGuide(null);
             setFlow('battle');
           }}
         />
@@ -1085,7 +1095,20 @@ export function AppShell({
           />
         );
       case 'formation':
-        return <FormationScreen />;
+        return (
+          <FormationScreen
+            guide={formationGuide}
+            onClearGuide={() => setFormationGuide(null)}
+            onReturnToBattlePrep={
+              formationGuide
+                ? () => {
+                    setFormationGuide(null);
+                    setFlow('battlePrep');
+                  }
+                : undefined
+            }
+          />
+        );
       case 'wagon':
         return <WagonScreen />;
       case 'army':
@@ -1308,7 +1331,12 @@ export function AppShell({
                 key={item.id}
                 accessibilityRole="tab"
                 accessibilityState={{ selected }}
-                onPress={() => setActive(item.id)}
+                onPress={() => {
+                  if (item.id !== 'formation') {
+                    setFormationGuide(null);
+                  }
+                  setActive(item.id);
+                }}
                 style={styles.navItem}
               >
                 <View
