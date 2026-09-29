@@ -84,7 +84,7 @@ export function WarTableScreen({
     ).length;
 
   const tierUpgradePending =
-    Math.min(chapterNumber, 3) >
+    Math.min(chapterNumber, 6) >
     warTableBoardChapter;
 
   return (
@@ -250,10 +250,10 @@ export function WarTableScreen({
                 }
               ]}
             >
-              Campaign progress has unlocked a
-              stronger contract tier. Finish this
-              board and refresh it to add those
-              contracts to the rotation.
+              Campaign progress has unlocked
+              stronger contracts or a new fantasy
+              threat family. Finish this board and
+              refresh it to expand the rotation.
             </Text>
           </View>
         ) : null}
@@ -368,6 +368,18 @@ export function WarTableScreen({
                 }
               />
             </View>
+
+            {encounter.fantasyThreat ? (
+              <View style={styles.threatRow}>
+                <StatusPill
+                  label={
+                    encounter.fantasyThreat.toUpperCase() +
+                    ' THREAT'
+                  }
+                  tone="elite"
+                />
+              </View>
+            ) : null}
 
             <View
               style={[
@@ -683,6 +695,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 11,
     lineHeight: 16
+  },
+  threatRow: {
+    marginTop: 8,
+    alignItems: 'flex-start'
   },
   intel: {
     marginTop: 11,
