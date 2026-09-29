@@ -2315,10 +2315,11 @@ function runBattlePreparationCoverage() {
         item.faction === 'human' &&
         item.tier >= 2
     );
-  check(
-    tierTwo,
+  expect(
+    Boolean(tierTwo),
     'Preparation coverage could not find Human Tier 2 equipment.'
   );
+  if (!tierTwo) return;
 
   const gearedLoadouts = Object.fromEntries(
     army.map(unit => [
