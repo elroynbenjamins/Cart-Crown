@@ -16,6 +16,8 @@ export type CampaignProgressionStage = {
   theme: string;
   startSquadCap: number;
   endSquadCap: number;
+  startRosterCap: number;
+  endRosterCap: number;
   wagon: string;
   settlementStage:
     | 'camp'
@@ -61,40 +63,48 @@ export const MAJOR_RESEARCH_REWARDED_ADS = 3;
 export const campaignProgression: CampaignProgressionStage[] = [
   {
     chapter: 1,
-    theme: 'Survive and establish the first settlement',
-    startSquadCap: 2,
-    endSquadCap: 3,
-    wagon: '4x4 → 4x5',
+    theme: 'Survive, recruit and establish a permanent camp',
+    startSquadCap: 3,
+    endSquadCap: 5,
+    startRosterCap: 5,
+    endRosterCap: 9,
+    wagon: 'Worn Backpack → Pack Gear',
     settlementStage: 'settlement',
     newFamily: null,
-    difficultyLesson: 'Formation basics, counters and Readiness'
+    difficultyLesson: 'Front/rear positioning, Readiness, recovery and first equipment branches'
   },
   {
     chapter: 2,
-    theme: 'Become a real military faction',
-    startSquadCap: 3,
-    endSquadCap: 4,
-    wagon: '4x5 → 5x5',
+    theme: 'Claim the road and turn the camp into an outpost',
+    startSquadCap: 5,
+    endSquadCap: 7,
+    startRosterCap: 9,
+    endRosterCap: 16,
+    wagon: 'Pack Gear → Handcart',
     settlementStage: 'fort',
     newFamily: null,
-    difficultyLesson: 'Specialization, equipment and scouting'
+    difficultyLesson: 'Three rows, cavalry, Brace/Charge counters, Support and reserves'
   },
   {
     chapter: 3,
-    theme: 'Peak conventional warfare',
-    startSquadCap: 4,
-    endSquadCap: 5,
-    wagon: '5x5 → 5x6',
+    theme: 'Become a recognized regional military power',
+    startSquadCap: 7,
+    endSquadCap: 9,
+    startRosterCap: 16,
+    endRosterCap: 30,
+    wagon: 'Handcart → Supply Cart',
     settlementStage: 'town',
     newFamily: null,
-    difficultyLesson: 'Terrain, cavalry and adaptation'
+    difficultyLesson: 'Advanced formations, logistics, multi-battle campaigns and faction doctrine'
   },
   {
     chapter: 4,
     theme: 'The age of magic',
-    startSquadCap: 5,
-    endSquadCap: 6,
-    wagon: '5x6 → 6x7',
+    startSquadCap: 9,
+    endSquadCap: 9,
+    startRosterCap: 30,
+    endRosterCap: 30,
+    wagon: 'Supply Cart',
     settlementStage: 'stronghold',
     newFamily: 'magic',
     difficultyLesson: 'Area pressure, caster protection and magic counterplay'
@@ -102,19 +112,23 @@ export const campaignProgression: CampaignProgressionStage[] = [
   {
     chapter: 5,
     theme: 'The sky opens',
-    startSquadCap: 6,
-    endSquadCap: 6,
-    wagon: '6x7 → 7x8',
+    startSquadCap: 9,
+    endSquadCap: 9,
+    startRosterCap: 30,
+    endRosterCap: 30,
+    wagon: 'Supply Cart → Wagon',
     settlementStage: 'capital',
     newFamily: 'flying',
-    difficultyLesson: 'Backline access, anti-air and aerial pressure'
+    difficultyLesson: 'Backline access, interception, anti-air and aerial pressure'
   },
   {
     chapter: 6,
     theme: 'Combined arms',
-    startSquadCap: 6,
-    endSquadCap: 6,
-    wagon: '7x8 → 7x9',
+    startSquadCap: 9,
+    endSquadCap: 9,
+    startRosterCap: 30,
+    endRosterCap: 32,
+    wagon: 'Wagon → Kingdom Caravan',
     settlementStage: 'grand',
     newFamily: null,
     difficultyLesson: 'Mixed enemy doctrines, reserves and attrition'
@@ -122,9 +136,11 @@ export const campaignProgression: CampaignProgressionStage[] = [
   {
     chapter: 7,
     theme: 'Monsters and constructs',
-    startSquadCap: 6,
-    endSquadCap: 6,
-    wagon: '7x9',
+    startSquadCap: 9,
+    endSquadCap: 9,
+    startRosterCap: 32,
+    endRosterCap: 34,
+    wagon: 'Kingdom Caravan',
     settlementStage: 'grand',
     newFamily: 'large',
     difficultyLesson: 'Deployment capacity, anti-large and formation breaking'
@@ -132,14 +148,16 @@ export const campaignProgression: CampaignProgressionStage[] = [
   {
     chapter: 8,
     theme: 'Legendary warfare',
-    startSquadCap: 6,
-    endSquadCap: 6,
-    wagon: '7x9',
+    startSquadCap: 9,
+    endSquadCap: 9,
+    startRosterCap: 34,
+    endRosterCap: 36,
+    wagon: 'Kingdom Caravan',
     settlementStage: 'grand',
     newFamily: 'hybrid',
     difficultyLesson: 'Hybrid threats and authored late-game army compositions'
   }
-];
+]
 
 export const familyUnlocks: FamilyUnlockDefinition[] = [
   {
