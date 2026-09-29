@@ -14,6 +14,7 @@
     "save:check": "tsx scripts/save-regression.ts",
     "mobile:check": "tsx scripts/mobile-session-regression.ts",
     "tutorial:check": "tsx scripts/tutorial-regression.ts",
+    "trials:check": "tsx scripts/kingdom-trials-regression.ts",
     "art:check": "node scripts/art-regression.mjs",
     "boss:check": "tsx scripts/boss-presentation-regression.ts",
     "battle-visuals:check": "tsx scripts/battle-visuals-regression.ts",
