@@ -39,6 +39,9 @@ jobs:
       - name: Tutorial and review regression
         run: npm run tutorial:check
 
+      - name: Kingdom Trials regression
+        run: npm run trials:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 
