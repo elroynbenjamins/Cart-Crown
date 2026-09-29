@@ -17,7 +17,10 @@ import {
   getFormationMatchup,
   getFormationShape
 } from '../game/formation';
-import { getFantasyCombatEdge } from '../game/progression';
+import {
+  getFantasyCombatEdge,
+  getFlyingCombatEdge
+} from '../game/progression';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import {
@@ -271,6 +274,15 @@ export function BattleScreen({
     [activeUnits, enemyArmyProfile.id]
   );
 
+  const flyingCombatEdge = useMemo(
+    () =>
+      getFlyingCombatEdge(
+        activeUnits,
+        enemyArmyProfile.id
+      ),
+    [activeUnits, enemyArmyProfile.id]
+  );
+
   const activeFormationSlots = useMemo(
     () =>
       formation
@@ -403,6 +415,19 @@ export function BattleScreen({
           : ' · countered'),
       color: fantasyCombatEdge.favorable
         ? factionAccent
+        : theme.colors.danger
+    });
+  }
+  if (flyingCombatEdge) {
+    battleEffects.push({
+      key: 'flying-edge',
+      label:
+        flyingCombatEdge.title +
+        (flyingCombatEdge.favorable
+          ? ' · favorable'
+          : ' · countered'),
+      color: flyingCombatEdge.favorable
+        ? theme.colors.primary
         : theme.colors.danger
     });
   }
@@ -662,6 +687,7 @@ export function BattleScreen({
             mandateAttackMultiplier *
             allianceAttackMultiplier *
             (fantasyCombatEdge?.attackMultiplier ?? 1) *
+            (flyingCombatEdge?.attackMultiplier ?? 1) *
             momentum *
             attackFactor *
             tacticalSpeedDamageMultiplier
@@ -697,6 +723,7 @@ export function BattleScreen({
             enemyTimingMultiplier *
             formationMatchup.incomingDamageMultiplier *
             (fantasyCombatEdge?.incomingDamageMultiplier ?? 1) *
+            (flyingCombatEdge?.incomingDamageMultiplier ?? 1) *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -765,6 +792,9 @@ export function BattleScreen({
                 formationMatchup.summary +
                 (fantasyCombatEdge
                   ? ' ' + fantasyCombatEdge.detail
+                  : '') +
+                (flyingCombatEdge
+                  ? ' ' + flyingCombatEdge.detail
                   : '')
               : action)
       );
