@@ -12,7 +12,7 @@ import type {
   WagonItemVisualKind
 } from '../game/visualManifest';
 
-export const PRODUCTION_ASSET_PIPELINE_VERSION = 3;
+export const PRODUCTION_ASSET_PIPELINE_VERSION = 4;
 export const PRODUCTION_ASSET_ROOT = 'assets/game';
 
 export type ProductionAssetCategory =
@@ -262,6 +262,29 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'unit.orc.clan_warrior': require('../../assets/game/units/orc/clan_warrior.png'),
   'unit.orc.war_drummer': require('../../assets/game/units/orc/war_drummer.png'),
   'unit.orc.warg_scout': require('../../assets/game/units/orc/warg_scout.png'),
+
+  'unit.human.scout': require('../../assets/game/units/human/scout.png'),
+  'unit.human.field_medic': require('../../assets/game/units/human/field_medic.png'),
+  'unit.human.crossbowman': require('../../assets/game/units/human/crossbowman.png'),
+  'unit.human.man_at_arms': require('../../assets/game/units/human/man_at_arms.png'),
+  'unit.human.halberdier': require('../../assets/game/units/human/halberdier.png'),
+  'unit.human.field_chaplain': require('../../assets/game/units/human/field_chaplain.png'),
+  'unit.human.border_ranger': require('../../assets/game/units/human/border_ranger.png'),
+  'unit.human.royal_guard': require('../../assets/game/units/human/royal_guard.png'),
+  'unit.human.siege_engineer': require('../../assets/game/units/human/siege_engineer.png'),
+  'unit.human.banner_captain': require('../../assets/game/units/human/banner_captain.png'),
+  'unit.elf.spear_warden': require('../../assets/game/units/elf/spear_warden.png'),
+  'unit.elf.pathfinder': require('../../assets/game/units/elf/pathfinder.png'),
+  'unit.elf.spiritkeeper': require('../../assets/game/units/elf/spiritkeeper.png'),
+  'unit.elf.blade_warden': require('../../assets/game/units/elf/blade_warden.png'),
+  'unit.elf.druid': require('../../assets/game/units/elf/druid.png'),
+  'unit.elf.moon_ranger': require('../../assets/game/units/elf/moon_ranger.png'),
+  'unit.orc.spear_raider': require('../../assets/game/units/orc/spear_raider.png'),
+  'unit.orc.bone_hunter': require('../../assets/game/units/orc/bone_hunter.png'),
+  'unit.orc.warbringer': require('../../assets/game/units/orc/warbringer.png'),
+  'unit.orc.ironhide': require('../../assets/game/units/orc/ironhide.png'),
+  'unit.orc.axe_thrower': require('../../assets/game/units/orc/axe_thrower.png'),
+  'unit.orc.bone_shaman': require('../../assets/game/units/orc/bone_shaman.png'),
 
   'equipment.hum_iron_sword': require('../../assets/game/equipment/human/hum_iron_sword.png'),
   'equipment.hum_infantry_spear': require('../../assets/game/equipment/human/hum_infantry_spear.png'),

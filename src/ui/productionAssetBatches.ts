@@ -114,10 +114,44 @@ export const enemyIdentityProductionBatch: ProductionAssetBatch = {
   ]
 };
 
+export const midgameUnitsProductionBatch: ProductionAssetBatch = {
+  id: 'midgame_units_v4',
+  name: 'Midgame Unit Identity',
+  purpose:
+    'Exact production sprites for directly recruited Human, Elf and Orc classes that dominate Chapters 2–4.',
+  assets: [
+    unitProductionAsset('human', 'Scout', getUnitVisualKind('Scout')),
+    unitProductionAsset('human', 'Field Medic', getUnitVisualKind('Field Medic')),
+    unitProductionAsset('human', 'Crossbowman', getUnitVisualKind('Crossbowman')),
+    unitProductionAsset('human', 'Man-at-Arms', getUnitVisualKind('Man-at-Arms')),
+    unitProductionAsset('human', 'Halberdier', getUnitVisualKind('Halberdier')),
+    unitProductionAsset('human', 'Field Chaplain', getUnitVisualKind('Field Chaplain')),
+    unitProductionAsset('human', 'Border Ranger', getUnitVisualKind('Border Ranger')),
+    unitProductionAsset('human', 'Royal Guard', getUnitVisualKind('Royal Guard')),
+    unitProductionAsset('human', 'Siege Engineer', getUnitVisualKind('Siege Engineer')),
+    unitProductionAsset('human', 'Banner Captain', getUnitVisualKind('Banner Captain')),
+
+    unitProductionAsset('elf', 'Spear Warden', getUnitVisualKind('Spear Warden')),
+    unitProductionAsset('elf', 'Pathfinder', getUnitVisualKind('Pathfinder')),
+    unitProductionAsset('elf', 'Spiritkeeper', getUnitVisualKind('Spiritkeeper')),
+    unitProductionAsset('elf', 'Blade Warden', getUnitVisualKind('Blade Warden')),
+    unitProductionAsset('elf', 'Druid', getUnitVisualKind('Druid')),
+    unitProductionAsset('elf', 'Moon Ranger', getUnitVisualKind('Moon Ranger')),
+
+    unitProductionAsset('orc', 'Spear Raider', getUnitVisualKind('Spear Raider')),
+    unitProductionAsset('orc', 'Bone Hunter', getUnitVisualKind('Bone Hunter')),
+    unitProductionAsset('orc', 'Warbringer', getUnitVisualKind('Warbringer')),
+    unitProductionAsset('orc', 'Ironhide', getUnitVisualKind('Ironhide')),
+    unitProductionAsset('orc', 'Axe Thrower', getUnitVisualKind('Axe Thrower')),
+    unitProductionAsset('orc', 'Bone Shaman', getUnitVisualKind('Bone Shaman'))
+  ]
+};
+
 export const productionAssetBatches: ProductionAssetBatch[] = [
   starterProductionBatch,
   earlyProgressionProductionBatch,
-  enemyIdentityProductionBatch
+  enemyIdentityProductionBatch,
+  midgameUnitsProductionBatch
 ];
 
 export function getProductionBatch(id: string) {
