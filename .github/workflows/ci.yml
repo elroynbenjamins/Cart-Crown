@@ -26,3 +26,6 @@ jobs:
 
       - name: Balance regression
         run: npm run balance:check
+
+      - name: Economy regression
+        run: npm run economy:check

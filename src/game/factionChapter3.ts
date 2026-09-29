@@ -130,8 +130,8 @@ export const factionChapterThreeResourceSites: ResourceSiteDefinition[] = [
     faction: 'elf',
     name: 'Moonlit Watch',
     icon: '🌙',
-    description: 'Restored beacon paths provide coin, herbs and safe rootway access through Moonlit Pass.',
-    productionPerActivity: { gold: 4, provisions: 3 }
+    description: 'Restored beacon paths provide coin, moon-silver salvage, herbs and safe rootway access through Moonlit Pass.',
+    productionPerActivity: { gold: 4, iron: 2, provisions: 3 }
   },
   {
     id: 'orc_stonejaw_quarry',

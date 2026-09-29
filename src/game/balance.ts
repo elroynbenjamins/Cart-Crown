@@ -23,23 +23,23 @@ export const expansionCosts: Record<
   Partial<Record<ExpansionStage, Partial<ResourceWallet>>>
 > = {
   human: {
-    fort: { gold: 110, wood: 50, stone: 25, iron: 6 },
-    town: { gold: 160, wood: 75, stone: 50, iron: 16 },
-    stronghold: { gold: 220, wood: 105, stone: 75, iron: 24 },
-    capital: { gold: 300, wood: 135, stone: 100, iron: 32 },
-    grand: { gold: 400, wood: 180, stone: 145, iron: 48 }
+    fort: { gold: 100, wood: 45, stone: 22, iron: 5 },
+    town: { gold: 135, wood: 65, stone: 42, iron: 13 },
+    stronghold: { gold: 180, wood: 85, stone: 62, iron: 20 },
+    capital: { gold: 240, wood: 110, stone: 82, iron: 26 },
+    grand: { gold: 320, wood: 145, stone: 115, iron: 38 }
   },
   elf: {
-    fort: { gold: 105, wood: 55, stone: 26 },
-    town: { gold: 155, wood: 75, stone: 48, iron: 6 },
-    stronghold: { gold: 215, wood: 105, stone: 75, iron: 18 },
-    capital: { gold: 295, wood: 140, stone: 105, iron: 30 }
+    fort: { gold: 95, wood: 50, stone: 23 },
+    town: { gold: 130, wood: 65, stone: 42, iron: 5 },
+    stronghold: { gold: 175, wood: 88, stone: 62, iron: 15 },
+    capital: { gold: 235, wood: 112, stone: 85, iron: 25 }
   },
   orc: {
-    fort: { gold: 100, wood: 50, stone: 24, iron: 5 },
-    town: { gold: 150, wood: 70, stone: 46, iron: 12 },
-    stronghold: { gold: 220, wood: 100, stone: 72, iron: 26 },
-    capital: { gold: 300, wood: 135, stone: 100, iron: 40 }
+    fort: { gold: 90, wood: 45, stone: 22, iron: 4 },
+    town: { gold: 125, wood: 60, stone: 40, iron: 10 },
+    stronghold: { gold: 180, wood: 84, stone: 60, iron: 22 },
+    capital: { gold: 240, wood: 110, stone: 82, iron: 32 }
   }
 };
 
@@ -74,10 +74,10 @@ export function payResourceCost(
 }
 
 const BUILDING_LEVEL_COST_MULTIPLIER: Record<number, number> = {
-  2: 0.75,
-  3: 0.65,
-  4: 0.55,
-  5: 0.45
+  2: 0.6,
+  3: 0.45,
+  4: 0.32,
+  5: 0.24
 };
 
 export function rebalanceBuildingCost(
@@ -104,7 +104,7 @@ export function rebalanceConstructionCost(
   (Object.keys(cost) as Array<keyof ResourceWallet>).forEach(key => {
     const value = cost[key];
     if (value === undefined) return;
-    next[key] = Math.max(1, Math.ceil(value * 0.75));
+    next[key] = Math.max(1, Math.ceil(value * 0.65));
   });
 
   return next;
