@@ -763,13 +763,35 @@ export function UnitSprite({
 }) {
   const kind = getUnitVisualKind(className);
   const production = unitProductionAsset(faction, className, kind);
+  const mounted =
+    kind === 'scout_rider' ||
+    kind === 'cavalryman' ||
+    kind === 'lancer' ||
+    kind === 'mounted_archer';
+  const productionScale = mounted && size <= 32 ? 1.12 : 1;
+  const productionSize = size * productionScale;
+
   return (
-    <ProductionAssetFrame assetId={production.id} width={size}>
-      <View style={{ width: size, height: size, position: 'relative' }}>
-        <PixelSprite artKey={unitArtKey(className)} size={size} faction={faction} />
-        <FactionUnitSilhouette faction={faction} className={className} size={size} />
-      </View>
-    </ProductionAssetFrame>
+    <View
+      style={{
+        width: size,
+        height: size,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'visible'
+      }}
+    >
+      <ProductionAssetFrame
+        assetId={production.id}
+        width={productionSize}
+        height={productionSize}
+      >
+        <View style={{ width: size, height: size, position: 'relative' }}>
+          <PixelSprite artKey={unitArtKey(className)} size={size} faction={faction} />
+          <FactionUnitSilhouette faction={faction} className={className} size={size} />
+        </View>
+      </ProductionAssetFrame>
+    </View>
   );
 }
 

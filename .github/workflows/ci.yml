@@ -38,3 +38,6 @@ jobs:
 
       - name: Tutorial and review regression
         run: npm run tutorial:check
+
+      - name: Production art regression
+        run: npm run art:check
