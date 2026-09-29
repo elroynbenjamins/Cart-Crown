@@ -40,6 +40,20 @@ export const elfStarterUnits: UnitDefinition[] = [
     attack: 13,
     armor: 3,
     speed: 15
+  },
+  {
+    id: 'elf_young_archer',
+    name: 'Erynd',
+    className: 'Young Archer',
+    faction: 'elf',
+    role: 'ranged',
+    tier: 1,
+    level: 1,
+    hp: 76,
+    attack: 12,
+    armor: 3,
+    speed: 14,
+    battleTags: ['ground', 'ranged']
   }
 ];
 
@@ -86,6 +100,20 @@ export const orcStarterUnits: UnitDefinition[] = [
     attack: 13,
     armor: 3,
     speed: 12
+  },
+  {
+    id: 'orc_spearhand',
+    name: 'Brakka',
+    className: 'Spearhand',
+    faction: 'orc',
+    role: 'frontline',
+    tier: 1,
+    level: 1,
+    hp: 102,
+    attack: 12,
+    armor: 4,
+    speed: 9,
+    battleTags: ['ground', 'anti_large']
   }
 ];
 
