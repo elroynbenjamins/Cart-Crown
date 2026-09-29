@@ -277,7 +277,7 @@ export function getEnemyStrikePressure(
         0,
         encounter.enemyCount - Math.max(2, squadCap)
       )
-    ) * 4;
+    ) * 8;
   const base =
     9 +
     Math.max(2, squadCap) * 2 +
