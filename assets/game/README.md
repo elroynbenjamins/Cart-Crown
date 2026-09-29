@@ -104,3 +104,44 @@ Performance rule:
 - enemy combat tokens should prefer one cached production PNG over layered React Native fallback views;
 - keep enemy PNGs at 256×256 transparent source size and render them down at token scale;
 - avoid multi-frame sprite sheets unless a later profiling pass proves they are worthwhile.
+
+
+## Fourth production batch — midgame_units_v4
+
+This batch replaces generic fallback silhouettes for the directly recruited classes that dominate Chapters 2–4.
+
+Human:
+- Scout
+- Field Medic
+- Crossbowman
+- Man-at-Arms
+- Halberdier
+- Field Chaplain
+- Border Ranger
+- Royal Guard
+- Siege Engineer
+- Banner Captain
+
+Elf:
+- Spear Warden
+- Pathfinder
+- Spiritkeeper
+- Blade Warden
+- Druid
+- Moon Ranger
+
+Orc:
+- Spear Raider
+- Bone Hunter
+- Warbringer
+- Ironhide
+- Axe Thrower
+- Bone Shaman
+
+All use the same 256×256 transparent production contract as the starter sprites. They are intentionally compact, nearest-neighbour pixel assets so exact class art can replace multi-view fallback rendering without requiring battle-screen changes.
+
+Art direction:
+- Human midgame classes become progressively more disciplined and heraldic while keeping practical steel/wood construction.
+- Elven classes use slimmer silhouettes, moon-silver, spiritwood, ward/light motifs and cleaner weapon lines.
+- Orc classes use broader silhouettes, rough iron/bone, rust cloth and visibly heavier melee/support equipment.
+- Support classes must read as support at 38–56 px through staff, banner, tome/drum or glow cues rather than text.
