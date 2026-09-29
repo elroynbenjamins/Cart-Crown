@@ -15,6 +15,7 @@ import {
   getArmyReadinessProfile,
   getUnitCombatProfile
 } from '../game/balance';
+import { assessBattlePreparation } from '../game/battlePreparation';
 import {
   evaluateFormationPreset,
   getTacticalAdjustmentAdvice
@@ -64,6 +65,8 @@ export function BattlePrepScreen({
     units,
     formation,
     wagonItems,
+    unitEquipment,
+    equipmentDefinitions,
     formationBonuses,
     formationAnalysis,
     formationShapes,
@@ -204,6 +207,42 @@ export function BattlePrepScreen({
   const formationFull = activeUnits.length >= activeSquadCap;
   const hasFood = wagonItems.some(item => item.id === 'rations');
   const hasMedicine = wagonItems.some(item => item.id === 'medicine');
+  const preparation = assessBattlePreparation({
+    activeUnits,
+    squadCap: activeSquadCap,
+    armyReadiness,
+    hasRations: hasFood,
+    difficulty: encounter.difficulty,
+    formationMatchupResult: formationMatchup.result,
+    wagonStageId: currentWagonStage.id,
+    unitEquipment,
+    equipmentDefinitions
+  });
+  const preparationConcerns = preparation.factors
+    .filter(
+      factor =>
+        factor.severity === 'caution' ||
+        factor.severity === 'danger'
+    )
+    .sort((a, b) => b.riskWeight - a.riskWeight);
+  const preparationLabel =
+    preparation.status === 'ready'
+      ? 'READY'
+      : preparation.status === 'risky'
+        ? 'RISKY'
+        : 'UNDERPREPARED';
+  const preparationTitle =
+    preparation.status === 'ready'
+      ? 'Ready'
+      : preparation.status === 'risky'
+        ? 'Risky'
+        : 'Severely underprepared';
+  const preparationTone =
+    preparation.status === 'ready'
+      ? 'ready'
+      : preparation.status === 'risky'
+        ? 'available'
+        : 'elite';
   const marcherDoctrineActive =
     encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
   const loyalistApproachActive =
@@ -468,6 +507,112 @@ export function BattlePrepScreen({
         <Text style={[styles.planMatchup, { color: theme.colors.textMuted }]}>
           vs {enemyShape.layout} {enemyShape.name} · dealt ×{formationMatchup.outgoingDamageMultiplier.toFixed(2)} · received ×{formationMatchup.incomingDamageMultiplier.toFixed(2)}
         </Text>
+        {tacticalGuidance !== 'off' ? (
+          <View
+            style={[
+              styles.preparationSummary,
+              {
+                borderColor:
+                  preparation.status === 'ready'
+                    ? theme.colors.primary + '55'
+                    : preparation.status === 'risky'
+                      ? theme.colors.gold + '55'
+                      : theme.colors.danger + '66',
+                backgroundColor: theme.colors.surface2
+              }
+            ]}
+          >
+            <View style={styles.preparationHeader}>
+              <View style={styles.preparationCopy}>
+                <Text
+                  style={[
+                    styles.preparationEyebrow,
+                    { color: theme.colors.textMuted }
+                  ]}
+                >
+                  PREPARATION
+                </Text>
+                <Text
+                  style={[
+                    styles.preparationTitle,
+                    { color: theme.colors.text }
+                  ]}
+                >
+                  {preparationTitle}
+                </Text>
+              </View>
+              <StatusPill
+                label={preparationLabel}
+                tone={preparationTone}
+              />
+            </View>
+
+            <Text
+              style={[
+                styles.preparationSummaryText,
+                { color: theme.colors.textMuted }
+              ]}
+            >
+              {preparationConcerns.length === 0
+                ? 'No major preparation weaknesses detected.'
+                : preparationConcerns.length +
+                  ' concern' +
+                  (preparationConcerns.length === 1 ? '' : 's') +
+                  ' · ' +
+                  preparationConcerns
+                    .map(factor => factor.label)
+                    .join(' · ')}
+            </Text>
+
+            {tacticalGuidance === 'full' &&
+            preparationConcerns.length > 0 ? (
+              <View style={styles.preparationDetails}>
+                {preparationConcerns
+                  .slice(0, 3)
+                  .map(factor => (
+                    <View
+                      key={factor.id}
+                      style={styles.preparationFactor}
+                    >
+                      <Text
+                        style={[
+                          styles.preparationFactorTitle,
+                          {
+                            color:
+                              factor.severity === 'danger'
+                                ? theme.colors.danger
+                                : theme.colors.gold
+                          }
+                        ]}
+                      >
+                        {factor.label} · {factor.summary}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.preparationFactorDetail,
+                          { color: theme.colors.textMuted }
+                        ]}
+                      >
+                        {factor.detail}
+                      </Text>
+                    </View>
+                  ))}
+              </View>
+            ) : null}
+
+            {tacticalGuidance === 'standard' ? (
+              <Text
+                style={[
+                  styles.preparationModeHint,
+                  { color: theme.colors.textMuted }
+                ]}
+              >
+                Standard shows the overall preparation state and its broad causes; Full Guidance adds the detailed breakdown.
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+
         <View style={styles.planStatuses}>
           <StatusPill
             label={formationFull ? 'SQUADS FULL' : 'SQUAD MISSING'}
@@ -1335,6 +1480,55 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   planHint: { fontSize: 9.5, lineHeight: 14, fontWeight: '900', marginTop: 9 },
+  preparationSummary: {
+    borderWidth: 1,
+    borderRadius: 13,
+    padding: 10,
+    marginTop: 10
+  },
+  preparationHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 9
+  },
+  preparationCopy: { flex: 1 },
+  preparationEyebrow: {
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.9
+  },
+  preparationTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    marginTop: 2
+  },
+  preparationSummaryText: {
+    fontSize: 9.5,
+    lineHeight: 14,
+    marginTop: 6
+  },
+  preparationDetails: {
+    gap: 7,
+    marginTop: 9
+  },
+  preparationFactor: {
+    gap: 2
+  },
+  preparationFactorTitle: {
+    fontSize: 9.5,
+    lineHeight: 13,
+    fontWeight: '900'
+  },
+  preparationFactorDetail: {
+    fontSize: 8.8,
+    lineHeight: 13
+  },
+  preparationModeHint: {
+    fontSize: 8.5,
+    lineHeight: 13,
+    marginTop: 7
+  },
   unitList: { gap: 8 },
   unitRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   unitStats: { alignItems: 'flex-end', gap: 3 },
