@@ -7,10 +7,13 @@ import type { FormationPresetSlotId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
+  MetricTile,
   Pill,
   PrimaryButton,
+  ScreenHero,
   SecondaryButton,
   SectionTitle,
+  StatusPill,
   UnitPortrait
 } from '../ui/components';
 import { UnitSprite } from '../ui/gameArt';
@@ -395,22 +398,37 @@ export function FormationScreen({
         </GameCard>
       ) : null}
 
-      <GameCard accent={factionAccent} faction={activeFaction}>
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryCopy}>
-            <Text style={[styles.eyebrow, { color: factionAccent }]}>
-              {activeFormationShape.layout} FORMATION
-            </Text>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
-              {activeFormationShape.name} · {formationDoctrines.find(d => d.id === formationDoctrineId)?.name ?? faction.mechanicName}
-            </Text>
-          </View>
-          <Pill label={String(activeCount) + ' / ' + String(activeSquadCap) + ' squads'} />
+      <ScreenHero
+        eyebrow={activeFormationShape.layout + ' FORMATION'}
+        title={activeFormationShape.name}
+        body={activeFormationShape.summary}
+        accent={factionAccent}
+        status={
+          <StatusPill
+            label={activeCount + '/' + activeSquadCap + ' SQUADS'}
+            tone={activeCount >= activeSquadCap ? 'ready' : 'available'}
+          />
+        }
+      >
+        <View style={styles.heroMetrics}>
+          <MetricTile
+            label="DOCTRINE"
+            value={
+              formationDoctrines.find(
+                doctrine => doctrine.id === formationDoctrineId
+              )?.name ?? faction.mechanicName
+            }
+            caption="active battle behavior"
+            tone="gold"
+          />
+          <MetricTile
+            label="LOADOUTS"
+            value={formationPresets.length + '/3'}
+            caption="saved tactical presets"
+            tone="info"
+          />
         </View>
-        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-          {activeFormationShape.summary}
-        </Text>
-      </GameCard>
+      </ScreenHero>
 
       <SectionTitle title="Tactical loadouts" trailing="3 presets" />
       <View style={styles.presetList}>
@@ -867,12 +885,13 @@ export function FormationScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 13 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
-  summaryCopy: { flex: 1 },
-  eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
-  title: { fontSize: 20, lineHeight: 26, fontWeight: '900', marginTop: 4 },
-  subtitle: { fontSize: 13, lineHeight: 18, marginTop: 9 },
+  content: { padding: 16, paddingBottom: 32, gap: 12 },
+  heroMetrics: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8
+  },
+  eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.05 },
   guideHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
