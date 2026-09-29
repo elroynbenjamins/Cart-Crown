@@ -73,6 +73,7 @@ import { SettlementScreen } from './screens/SettlementScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
+import { WarTableScreen } from './screens/WarTableScreen';
 import { useGameTheme } from './theme/ThemeProvider';
 import { FlowProgress, ScreenAtmosphere } from './ui/components';
 import { TutorialCoach } from './ui/TutorialCoach';
@@ -129,6 +130,7 @@ type FlowScreen =
   | 'factionChapterSixSeal'
   | 'metaCampaign'
   | 'settlement'
+  | 'warTable'
   | 'expedition'
   | 'formationTrial'
   | 'settings'
@@ -200,8 +202,9 @@ const flowTitles: Record<FlowScreen, string> = {
   factionChapterSixSeal: 'The Seal',
   metaCampaign: 'Three Seals',
   settlement: 'Settlement',
+  warTable: 'War Table',
   expedition: 'Expedition',
-  formationTrial: 'Formation Trial',
+  formationTrial: 'Kingdom Trial',
   settings: 'Settings',
   preparationFix: 'Preparation Fix'
 };
@@ -244,6 +247,7 @@ export function AppShell({
     armyReadiness,
     unlockedResourceSites,
     currentWagonStage,
+    isSideModeUnlocked,
     completedStoryGates,
     researchProgress,
     magicFamilyUnlock,
@@ -291,6 +295,13 @@ export function AppShell({
     unlockedResourceSites:
       unlockedResourceSites.length,
     wagonStageId: currentWagonStage.id,
+    warTableUnlocked: isSideModeUnlocked('war_table'),
+    kingdomTrialsUnlocked:
+      isSideModeUnlocked('formation_trials'),
+    kingdomDefenseModeUnlocked:
+      isSideModeUnlocked('kingdom_defense'),
+    expeditionsUnlocked:
+      isSideModeUnlocked('expeditions'),
     magicStoryUnlocked: Boolean(
       magicFamilyUnlock &&
       completedStoryGates.includes(
@@ -353,6 +364,14 @@ export function AppShell({
       ].includes(lastBattleResult?.id ?? '')
     ) {
       setFlow(null);
+      setActive('campaign');
+      return;
+    }
+
+    if (
+      activeEncounterId.startsWith('war_table_')
+    ) {
+      setFlow('warTable');
       setActive('campaign');
       return;
     }
@@ -1133,6 +1152,17 @@ export function AppShell({
       );
     }
 
+    if (flow === 'warTable') {
+      return (
+        <WarTableScreen
+          onStartBattle={encounterId => {
+            setActiveEncounterId(encounterId);
+            setFlow('battlePrep');
+          }}
+        />
+      );
+    }
+
     if (flow === 'expedition') {
       return (
         <ExpeditionScreen
@@ -1443,6 +1473,7 @@ export function AppShell({
               setFlow('battlePrep');
             }}
             onOpenMetaCampaign={() => setFlow('metaCampaign')}
+            onOpenWarTable={() => setFlow('warTable')}
             onOpenExpedition={() => setFlow('expedition')}
             onOpenFormationTrial={() => setFlow('formationTrial')}
           />
@@ -1591,6 +1622,7 @@ export function AppShell({
     flow === 'factionChapterSixSeal' ||
     flow === 'metaCampaign' ||
     flow === 'settlement' ||
+    flow === 'warTable' ||
     flow === 'expedition' ||
     flow === 'formationTrial' ||
     flow === 'settings' ||
