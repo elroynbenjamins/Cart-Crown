@@ -1534,9 +1534,9 @@ export function getWarTableEncounterScaling(
     );
     return {
       hpMultiplier:
-        1.8 + laterChapter * 0.28,
+        2.15 + laterChapter * 0.3,
       pressureMultiplier:
-        1.28 + laterChapter * 0.07
+        1.42 + laterChapter * 0.075
     };
   }
 
@@ -1547,9 +1547,9 @@ export function getWarTableEncounterScaling(
     );
     return {
       hpMultiplier:
-        2.15 + laterChapter * 0.32,
+        2.5 + laterChapter * 0.34,
       pressureMultiplier:
-        1.35 + laterChapter * 0.08
+        1.52 + laterChapter * 0.085
     };
   }
 
