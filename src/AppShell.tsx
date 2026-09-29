@@ -210,6 +210,8 @@ export function AppShell({
     useState<BattlePreparationFixTarget | null>(null);
   const [tutorialFocus, setTutorialFocus] =
     useState<TutorialFocusTarget | null>(null);
+  const [tutorialFocusKey, setTutorialFocusKey] =
+    useState<string | null>(null);
   const reviewAttemptedRef = useRef(false);
   const { theme, cycleTheme } = useGameTheme();
   const {
@@ -245,7 +247,7 @@ export function AppShell({
         ? 'other'
         : active;
 
-  const tutorialMoment = getNextTutorialMoment({
+  const nextTutorialMoment = getNextTutorialMoment({
     faction: activeFaction,
     view: tutorialView,
     tutorialSeen,
@@ -266,6 +268,9 @@ export function AppShell({
       unlockedResourceSites.length,
     wagonStageId: currentWagonStage.id
   });
+
+  const tutorialMoment =
+    tutorialFocus ? null : nextTutorialMoment;
 
   const openRecruitment = () => setFlow('recruitment');
 
@@ -314,14 +319,38 @@ export function AppShell({
     setActive('kingdom');
   };
 
+  const completeTutorialFocus = () => {
+    if (tutorialFocusKey) {
+      markTutorialSeen(tutorialFocusKey);
+
+      if (tutorialFocus?.kind === 'formation-unit') {
+        markTutorialSeen('system:formation');
+      }
+    }
+
+    setTutorialFocus(null);
+    setTutorialFocusKey(null);
+  };
+
+  const cancelTutorialFocus = () => {
+    setTutorialFocus(null);
+    setTutorialFocusKey(null);
+  };
+
   const handleTutorialPrimary = () => {
     if (!tutorialMoment) return;
 
     const target = tutorialMoment.target;
-    markTutorialSeen(tutorialMoment.key);
-    setTutorialFocus(
-      tutorialMoment.focusAfterPrimary ?? null
-    );
+    const focus = tutorialMoment.focusAfterPrimary ?? null;
+
+    if (focus) {
+      setTutorialFocus(focus);
+      setTutorialFocusKey(tutorialMoment.key);
+    } else {
+      markTutorialSeen(tutorialMoment.key);
+      setTutorialFocus(null);
+      setTutorialFocusKey(null);
+    }
 
     if (target === 'campaign') {
       setFlow(null);
@@ -425,9 +454,7 @@ export function AppShell({
         <BattlePrepScreen
           encounterId={activeEncounterId}
           tutorialFocus={tutorialFocus}
-          onTutorialFocusComplete={() =>
-            setTutorialFocus(null)
-          }
+          onTutorialFocusComplete={completeTutorialFocus}
           onOpenAdjustment={(adjustment, presetSlotId) => {
             setFormationGuide({
               adjustment,
@@ -475,9 +502,7 @@ export function AppShell({
           battleSummary={lastCombatSummary}
           onContinue={handleResultsContinue}
           tutorialFocus={tutorialFocus}
-          onTutorialFocusComplete={() =>
-            setTutorialFocus(null)
-          }
+          onTutorialFocusComplete={completeTutorialFocus}
         />
       );
     }
@@ -513,9 +538,7 @@ export function AppShell({
         <ForgeScreen
           onOpenPromotion={() => setFlow('promotion')}
           tutorialFocus={tutorialFocus}
-          onTutorialFocusComplete={() =>
-            setTutorialFocus(null)
-          }
+          onTutorialFocusComplete={completeTutorialFocus}
           onExit={() => {
             setFlow(null);
             setActive('army');
@@ -529,6 +552,7 @@ export function AppShell({
         <PromotionScreen
           onOpenForge={() => setFlow('forge')}
           onComplete={() => {
+            markTutorialSeen('system:promotion');
             setFlow(null);
             setActive('army');
           }}
@@ -552,6 +576,7 @@ export function AppShell({
       return (
         <CommanderChoiceScreen
           onComplete={() => {
+            markTutorialSeen('system:commander');
             setFlow(null);
             setActive('army');
           }}
@@ -977,9 +1002,7 @@ export function AppShell({
       return (
         <SettlementScreen
           tutorialFocus={tutorialFocus}
-          onTutorialFocusComplete={() =>
-            setTutorialFocus(null)
-          }
+          onTutorialFocusComplete={completeTutorialFocus}
           onExit={() => {
             setFlow(null);
             setActive('kingdom');
@@ -1019,9 +1042,7 @@ export function AppShell({
         return (
           <CampaignScreen
             tutorialFocus={tutorialFocus}
-            onTutorialFocusComplete={() =>
-              setTutorialFocus(null)
-            }
+            onTutorialFocusComplete={completeTutorialFocus}
             onStartBattle={() => {
               setActiveEncounterId('hold_the_road');
               setFlow('battlePrep');
@@ -1309,9 +1330,7 @@ export function AppShell({
           <FormationScreen
             guide={formationGuide}
             tutorialFocus={tutorialFocus}
-            onTutorialFocusComplete={() =>
-              setTutorialFocus(null)
-            }
+            onTutorialFocusComplete={completeTutorialFocus}
             onClearGuide={() => setFormationGuide(null)}
             onReturnToBattlePrep={
               formationGuide
@@ -1345,9 +1364,7 @@ export function AppShell({
             return (
               <FactionKingdomScreen
                 tutorialFocus={tutorialFocus}
-                onTutorialFocusComplete={() =>
-                  setTutorialFocus(null)
-                }
+                onTutorialFocusComplete={completeTutorialFocus}
                 onOpenSettlement={() => setFlow('settlement')}
                 onOpenRecruitment={() => setFlow('factionRecruitment')}
                 onOpenCommander={() => setFlow('commanderChoice')}
@@ -1366,9 +1383,7 @@ export function AppShell({
         return (
           <KingdomScreen
             tutorialFocus={tutorialFocus}
-            onTutorialFocusComplete={() =>
-              setTutorialFocus(null)
-            }
+            onTutorialFocusComplete={completeTutorialFocus}
             onOpenRecruitment={openRecruitment}
             onOpenSettlement={() => setFlow('settlement')}
             onOpenRoyalDecrees={() => setFlow('royalDecrees')}
@@ -1453,7 +1468,7 @@ export function AppShell({
   const goBack = () => {
     if (!canGoBack) return;
 
-    setTutorialFocus(null);
+    cancelTutorialFocus();
 
     if (flow === 'preparationFix') {
       setFlow('battlePrep');
@@ -1478,13 +1493,13 @@ export function AppShell({
         }
 
         if (action === 'continue_results') {
-          setTutorialFocus(null);
+          cancelTutorialFocus();
           handleResultsContinue();
           return true;
         }
 
         if (action === 'close_flow') {
-          setTutorialFocus(null);
+          cancelTutorialFocus();
           setFlow(
             flow === 'preparationFix'
               ? 'battlePrep'
@@ -1494,7 +1509,7 @@ export function AppShell({
         }
 
         if (action === 'go_kingdom') {
-          setTutorialFocus(null);
+          cancelTutorialFocus();
           setActive('kingdom');
           return true;
         }
@@ -1579,7 +1594,7 @@ export function AppShell({
               accessibilityLabel="Open settings"
               onPress={() => {
                 setFormationGuide(null);
-                setTutorialFocus(null);
+                cancelTutorialFocus();
                 setFlow('settings');
               }}
               style={({ pressed }) => [
@@ -1661,7 +1676,9 @@ export function AppShell({
                     setFormationGuide(null);
                   }
                   if (tutorialNavFocused) {
-                    setTutorialFocus(null);
+                    completeTutorialFocus();
+                  } else if (tutorialFocus) {
+                    cancelTutorialFocus();
                   }
                   setActive(item.id);
                 }}
