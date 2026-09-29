@@ -7,7 +7,10 @@ import {
   getTacticalSpeedDamageMultiplier,
   getUnitCombatProfile
 } from '../game/balance';
-import { getFormationShape } from '../game/formation';
+import {
+  getFormationMatchup,
+  getFormationShape
+} from '../game/formation';
 import type { EncounterId } from '../game/encounters';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
@@ -118,6 +121,10 @@ export function BattleScreen({
     () => getFormationShape(enemyTactic.formationShapeId),
     [enemyTactic.formationShapeId]
   );
+  const formationMatchup = useMemo(
+    () => getFormationMatchup(activeFormationShape.id, enemyShape.id),
+    [activeFormationShape.id, enemyShape.id]
+  );
   const enemyOccupiedSlots = useMemo(
     () => getEnemyOccupiedSlots(enemyShape.rows, encounter.enemyCount),
     [enemyShape.rows, encounter.enemyCount]
@@ -223,7 +230,12 @@ export function BattleScreen({
   const [skillTriggered, setSkillTriggered] = useState(false);
   const [activeEffect, setActiveEffect] = useState<ActiveEffect | null>(null);
   const [lastAction, setLastAction] = useState(
-    enemyTactic.name + ' meets your ' + activeFormationShape.name + '.'
+    enemyTactic.name +
+      ' meets your ' +
+      activeFormationShape.name +
+      '. ' +
+      formationMatchup.title +
+      '.'
   );
 
   const defeated = partyHp <= 0;
@@ -332,8 +344,9 @@ export function BattleScreen({
       const playerDamage = Math.max(
         1,
         Math.round(
-          (rawPlayerStrike + skillDamage + ongoingDamage) /
-            enemyTactic.armorMultiplier
+          ((rawPlayerStrike + skillDamage + ongoingDamage) /
+            enemyTactic.armorMultiplier) *
+            formationMatchup.outgoingDamageMultiplier
         )
       );
 
@@ -347,6 +360,7 @@ export function BattleScreen({
         Math.round(
           (rawEnemyStrike *
             enemyPressureMultiplier *
+            formationMatchup.incomingDamageMultiplier *
             retaliationFactor *
             loyalistRetaliationMultiplier) /
             Math.max(
@@ -376,7 +390,7 @@ export function BattleScreen({
         ongoingDamage > 0
           ? action + ' Ongoing damage adds ' + ongoingDamage + ' before enemy formation armor.'
           : turn === 0
-            ? action + ' The ' + enemyTactic.name + ' changes the opening pressure.'
+            ? action + ' ' + formationMatchup.summary
             : action
       );
 
@@ -411,6 +425,7 @@ export function BattleScreen({
     enemyPressureMultiplier,
     enemyTactic,
     formationAnalysis,
+    formationMatchup,
     partyAttack,
     skillTriggered,
     turn,
@@ -604,6 +619,27 @@ export function BattleScreen({
         <Text style={[styles.enemyDoctrine, { color: theme.colors.textMuted }]}>
           ATK ×{enemyTactic.attackMultiplier.toFixed(2)} · ARM ×{enemyTactic.armorMultiplier.toFixed(2)} · SPD ×{enemyTactic.speedMultiplier.toFixed(2)}
         </Text>
+        <Text
+          style={[
+            styles.matchupLine,
+            {
+              color:
+                formationMatchup.result === 'advantage'
+                  ? theme.colors.primary
+                  : formationMatchup.result === 'disadvantage'
+                    ? theme.colors.danger
+                    : theme.colors.textMuted
+            }
+          ]}
+        >
+          {formationMatchup.result === 'advantage'
+            ? 'Formation edge'
+            : formationMatchup.result === 'disadvantage'
+              ? 'Formation exposed'
+              : 'Formation neutral'}
+          {' · dealt ×' + formationMatchup.outgoingDamageMultiplier.toFixed(2)}
+          {' · received ×' + formationMatchup.incomingDamageMultiplier.toFixed(2)}
+        </Text>
         <Text style={[styles.hpLabel, { color: theme.colors.text }]}>
           {enemyHp} / {encounter.enemyHp} HP
         </Text>
@@ -698,6 +734,7 @@ const styles = StyleSheet.create({
   hpLabel: { fontSize: 9, fontWeight: '800', textAlign: 'right' },
   readinessLine: { fontSize: 8.5, fontWeight: '900', textAlign: 'center' },
   enemyDoctrine: { fontSize: 8, fontWeight: '800', textAlign: 'center' },
+  matchupLine: { fontSize: 8.5, fontWeight: '900', textAlign: 'center' },
   commanderLine: { fontSize: 8.5, fontWeight: '900', textAlign: 'center' },
   versus: { fontSize: 10, fontWeight: '900', textAlign: 'center', marginVertical: 1 },
   logLabel: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1.1 },
