@@ -6,13 +6,19 @@ import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { ResourceSprite, StoryScene } from '../ui/gameArt';
 import type { BattleCombatSummary } from './BattleScreen';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function ResultsScreen({
   battleSummary,
-  onContinue
+  onContinue,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   battleSummary?: BattleCombatSummary | null;
   onContinue: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -1037,10 +1043,20 @@ export function ResultsScreen({
         </>
       )}
 
-      <PrimaryButton
-        label={mercenaryResult ? 'Choose Commander Path' : 'Return to Kingdom'}
-        onPress={onContinue}
-      />
+      <TutorialFocus
+        active={tutorialFocus?.kind === 'results-continue'}
+        label={tutorialFocus?.kind === 'results-continue' ? tutorialFocus.label : undefined}
+      >
+        <PrimaryButton
+          label={mercenaryResult ? 'Choose Commander Path' : 'Return to Kingdom'}
+          onPress={() => {
+            if (tutorialFocus?.kind === 'results-continue') {
+              onTutorialFocusComplete?.();
+            }
+            onContinue();
+          }}
+        />
+      </TutorialFocus>
     </ScrollView>
   );
 }
