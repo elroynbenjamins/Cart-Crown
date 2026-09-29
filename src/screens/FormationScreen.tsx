@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
@@ -66,6 +66,38 @@ export function FormationScreen({
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [guideStepComplete, setGuideStepComplete] = useState(false);
   const [guideMessage, setGuideMessage] = useState<string | null>(null);
+  const tutorialScrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    if (!tutorialFocus) return;
+
+    const timer = setTimeout(() => {
+      if (
+        tutorialFocus.kind === 'formation-unit' ||
+        tutorialFocus.kind === 'formation-basics'
+      ) {
+        if (selectedUnitId) {
+          tutorialScrollRef.current?.scrollTo({
+            y: 560,
+            animated: true
+          });
+        } else {
+          tutorialScrollRef.current?.scrollToEnd({
+            animated: true
+          });
+        }
+      } else if (
+        tutorialFocus.kind === 'formation-shape'
+      ) {
+        tutorialScrollRef.current?.scrollTo({
+          y: 430,
+          animated: true
+        });
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [selectedUnitId, tutorialFocus]);
 
   useEffect(() => {
     setGuideStepComplete(false);
@@ -290,7 +322,11 @@ export function FormationScreen({
       : null;
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      ref={tutorialScrollRef}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       {guide ? (
         <GameCard
           accent={guideStepComplete ? theme.colors.primary : theme.colors.gold}
