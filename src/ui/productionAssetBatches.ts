@@ -1,6 +1,7 @@
 import {
   factionCrestProductionAsset,
   equipmentProductionAsset,
+  enemyProductionAsset,
   type ProductionAssetSpec,
   unitProductionAsset
 } from './productionAssets';
@@ -89,9 +90,34 @@ export const earlyProgressionProductionBatch: ProductionAssetBatch = {
   ]
 };
 
+export const enemyIdentityProductionBatch: ProductionAssetBatch = {
+  id: 'enemy_identity_v3',
+  name: 'Enemy Army Identity',
+  purpose:
+    'Production sprites for named threats plus the tactical army identities used by Battle Prep, Scout Report and live combat.',
+  assets: [
+    enemyProductionAsset('raider'),
+    enemyProductionAsset('mercenary'),
+    enemyProductionAsset('ashen'),
+    enemyProductionAsset('scout'),
+    enemyProductionAsset('hollow'),
+    enemyProductionAsset('stalker'),
+    enemyProductionAsset('champion'),
+    enemyProductionAsset('ranger'),
+    enemyProductionAsset('agitator'),
+    enemyProductionAsset('shield_host'),
+    enemyProductionAsset('missile_company'),
+    enemyProductionAsset('mounted_hunters'),
+    enemyProductionAsset('shock_warband'),
+    enemyProductionAsset('warded_host'),
+    enemyProductionAsset('elite_command')
+  ]
+};
+
 export const productionAssetBatches: ProductionAssetBatch[] = [
   starterProductionBatch,
-  earlyProgressionProductionBatch
+  earlyProgressionProductionBatch,
+  enemyIdentityProductionBatch
 ];
 
 export function getProductionBatch(id: string) {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, View } from 'react-native';
 import type { ChapterNode, FactionId, WagonStage } from '../game/types';
+import type { EnemyArmyProfileId } from '../game/encounters';
 import {
   getBuildingVisualKind,
   getEnemyVisualKind,
@@ -1364,12 +1365,14 @@ export function WagonStageSprite({
 
 export function EnemySprite({
   enemyName,
+  armyProfileId,
   size = 42
 }: {
   enemyName: string;
+  armyProfileId?: EnemyArmyProfileId;
   size?: number;
 }) {
-  const kind = getEnemyVisualKind(enemyName);
+  const kind = getEnemyVisualKind(enemyName, armyProfileId);
   const production = enemyProductionAsset(kind);
   const productionSource = getProductionAssetSource(production.id);
   if (productionSource) {
@@ -1384,7 +1387,13 @@ export function EnemySprite({
     stalker: 'enemy_hollow',
     champion: 'enemy_mercenary',
     ranger: 'enemy_scout',
-    agitator: 'enemy_raider'
+    agitator: 'enemy_raider',
+    shield_host: 'enemy_mercenary',
+    missile_company: 'enemy_scout',
+    mounted_hunters: 'human_scout_rider',
+    shock_warband: 'enemy_raider',
+    warded_host: 'enemy_hollow',
+    elite_command: 'enemy_mercenary'
   };
 
   return (

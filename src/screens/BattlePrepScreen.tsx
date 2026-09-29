@@ -359,7 +359,11 @@ export function BattlePrepScreen({
       <GameCard>
         <View style={styles.enemyRow}>
           <View style={[styles.enemyMark, { borderColor: theme.colors.danger }]}>
-            <EnemySprite enemyName={encounter.enemyName} size={48} />
+            <EnemySprite
+              enemyName={encounter.enemyName}
+              armyProfileId={enemyArmyProfile.id}
+              size={48}
+            />
           </View>
           <View style={styles.enemyCopy}>
             <Text style={[styles.enemyName, { color: theme.colors.text }]}>

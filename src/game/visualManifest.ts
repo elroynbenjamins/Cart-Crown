@@ -1,4 +1,5 @@
 import type { FactionId } from './types';
+import type { EnemyArmyProfileId } from './encounters';
 
 export type UnitVisualKind =
   | 'infantry'
@@ -50,7 +51,13 @@ export type EnemyVisualKind =
   | 'stalker'
   | 'champion'
   | 'ranger'
-  | 'agitator';
+  | 'agitator'
+  | 'shield_host'
+  | 'missile_company'
+  | 'mounted_hunters'
+  | 'shock_warband'
+  | 'warded_host'
+  | 'elite_command';
 
 export type CommanderVisualKind =
   | 'vanguard'
@@ -98,7 +105,7 @@ export type ResourceSiteVisualKind =
   | 'beacon'
   | 'quarry';
 
-export const VISUAL_ASSET_VERSION = 10;
+export const VISUAL_ASSET_VERSION = 11;
 
 export const unitClassVisuals: Record<string, UnitVisualKind> = {
   militia: 'infantry',
@@ -299,14 +306,34 @@ export function getResourceSiteVisualKind(siteId: string): ResourceSiteVisualKin
 
 
 export function getEnemyVisualKind(
-  enemyName: string
+  enemyName: string,
+  armyProfileId?: EnemyArmyProfileId
 ): EnemyVisualKind {
   const key = enemyName.toLowerCase();
+
+  // Named threats keep their bespoke silhouettes even when their battle
+  // formation uses a broader army profile.
   if (key.includes('worldroot guardian')) return 'hollow';
   if (key.includes('ashroot stalker')) return 'stalker';
   if (key.includes('stonejaw champion')) return 'champion';
   if (key.includes('pale ranger')) return 'ranger';
   if (key.includes('blamecaller') || key.includes('clanbreaker')) return 'agitator';
+  if (key.includes('hollow warden')) return 'hollow';
+
+  if (armyProfileId) {
+    const profileVisuals: Record<EnemyArmyProfileId, EnemyVisualKind> = {
+      raider_pack: 'raider',
+      mercenary_line: 'mercenary',
+      shield_host: 'shield_host',
+      missile_company: 'missile_company',
+      mounted_hunters: 'mounted_hunters',
+      shock_warband: 'shock_warband',
+      warded_host: 'warded_host',
+      elite_command: 'elite_command'
+    };
+    return profileVisuals[armyProfileId];
+  }
+
   if (key.includes('hollow') || key.includes('warden')) return 'hollow';
   if (key.includes('ashen') || key.includes('regent')) return 'ashen';
   if (key.includes('scout') || key.includes('tracker')) return 'scout';

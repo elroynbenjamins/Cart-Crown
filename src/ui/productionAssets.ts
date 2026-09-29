@@ -12,7 +12,7 @@ import type {
   WagonItemVisualKind
 } from '../game/visualManifest';
 
-export const PRODUCTION_ASSET_PIPELINE_VERSION = 2;
+export const PRODUCTION_ASSET_PIPELINE_VERSION = 3;
 export const PRODUCTION_ASSET_ROOT = 'assets/game';
 
 export type ProductionAssetCategory =
@@ -273,7 +273,23 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'equipment.elf_leafweave': require('../../assets/game/equipment/elf/elf_leafweave.png'),
   'equipment.orc_iron_axe': require('../../assets/game/equipment/orc/orc_iron_axe.png'),
   'equipment.orc_hunter_bow': require('../../assets/game/equipment/orc/orc_hunter_bow.png'),
-  'equipment.orc_warhide': require('../../assets/game/equipment/orc/orc_warhide.png')
+  'equipment.orc_warhide': require('../../assets/game/equipment/orc/orc_warhide.png'),
+
+  'enemy.raider': require('../../assets/game/enemies/raider.png'),
+  'enemy.mercenary': require('../../assets/game/enemies/mercenary.png'),
+  'enemy.ashen': require('../../assets/game/enemies/ashen.png'),
+  'enemy.scout': require('../../assets/game/enemies/scout.png'),
+  'enemy.hollow': require('../../assets/game/enemies/hollow.png'),
+  'enemy.stalker': require('../../assets/game/enemies/stalker.png'),
+  'enemy.champion': require('../../assets/game/enemies/champion.png'),
+  'enemy.ranger': require('../../assets/game/enemies/ranger.png'),
+  'enemy.agitator': require('../../assets/game/enemies/agitator.png'),
+  'enemy.shield_host': require('../../assets/game/enemies/shield_host.png'),
+  'enemy.missile_company': require('../../assets/game/enemies/missile_company.png'),
+  'enemy.mounted_hunters': require('../../assets/game/enemies/mounted_hunters.png'),
+  'enemy.shock_warband': require('../../assets/game/enemies/shock_warband.png'),
+  'enemy.warded_host': require('../../assets/game/enemies/warded_host.png'),
+  'enemy.elite_command': require('../../assets/game/enemies/elite_command.png')
 };
 
 export function getProductionAssetSource(assetId: string) {
