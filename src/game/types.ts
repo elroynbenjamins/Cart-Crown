@@ -241,6 +241,19 @@ export type WagonStage = {
   formationSlots: number;
 };
 
+export type TransportStage = {
+  id:
+    | 'worn_pack'
+    | 'pack_gear'
+    | 'handcart'
+    | 'supply_cart'
+    | 'wagon'
+    | 'kingdom_caravan';
+  name: string;
+  width: number;
+  height: number;
+};
+
 export type RegionDefinition = {
   id: string;
   name: string;
