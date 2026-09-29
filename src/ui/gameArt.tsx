@@ -775,8 +775,14 @@ function FantasyUnitOverlay({
     key.includes('eagle') ||
     key.includes('wyvern') ||
     key.includes('moonwing');
+  const large =
+    key.includes('golem') ||
+    key.includes('ent') ||
+    key.includes('guardian') ||
+    key.includes('troll') ||
+    key.includes('mammoth');
 
-  if (!magical && !flying) return null;
+  if (!magical && !flying && !large) return null;
 
   const accent =
     faction === 'elf'
@@ -793,6 +799,100 @@ function FantasyUnitOverlay({
 
   return (
     <>
+      {large ? (
+        <>
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.08,
+              right: size * 0.08,
+              top: size * 0.3,
+              height: size * 0.38,
+              borderRadius: size * 0.12,
+              backgroundColor: accent,
+              opacity: 0.42
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.04,
+              top: size * 0.38,
+              width: size * 0.18,
+              height: size * 0.26,
+              borderRadius: size * 0.08,
+              backgroundColor: secondary,
+              opacity: 0.75,
+              transform: [{ rotate: '-8deg' }]
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.04,
+              top: size * 0.38,
+              width: size * 0.18,
+              height: size * 0.26,
+              borderRadius: size * 0.08,
+              backgroundColor: secondary,
+              opacity: 0.75,
+              transform: [{ rotate: '8deg' }]
+            }}
+          />
+          {key.includes('ent') || key.includes('grove') ? (
+            <>
+              <View
+                style={{
+                  position: 'absolute',
+                  left: size * 0.14,
+                  top: size * 0.09,
+                  width: size * 0.06,
+                  height: size * 0.28,
+                  backgroundColor: palette.greenLight,
+                  transform: [{ rotate: '-28deg' }]
+                }}
+              />
+              <View
+                style={{
+                  position: 'absolute',
+                  right: size * 0.14,
+                  top: size * 0.09,
+                  width: size * 0.06,
+                  height: size * 0.28,
+                  backgroundColor: palette.greenLight,
+                  transform: [{ rotate: '28deg' }]
+                }}
+              />
+            </>
+          ) : null}
+          {key.includes('mammoth') || key.includes('troll') ? (
+            <>
+              <View
+                style={{
+                  position: 'absolute',
+                  left: size * 0.12,
+                  top: size * 0.14,
+                  width: size * 0.1,
+                  height: size * 0.16,
+                  backgroundColor: palette.cloth,
+                  transform: [{ rotate: '-24deg' }]
+                }}
+              />
+              <View
+                style={{
+                  position: 'absolute',
+                  right: size * 0.12,
+                  top: size * 0.14,
+                  width: size * 0.1,
+                  height: size * 0.16,
+                  backgroundColor: palette.cloth,
+                  transform: [{ rotate: '24deg' }]
+                }}
+              />
+            </>
+          ) : null}
+        </>
+      ) : null}
       {flying ? (
         <>
           <View
@@ -912,14 +1012,24 @@ export function UnitSprite({
     classKey.includes('eagle') ||
     classKey.includes('wyvern') ||
     classKey.includes('moonwing');
+  const large =
+    classKey.includes('golem') ||
+    classKey.includes('ent') ||
+    classKey.includes('guardian') ||
+    classKey.includes('troll') ||
+    classKey.includes('mammoth');
   const productionScale =
-    flying
+    large
       ? size <= 32
-        ? 1.18
-        : 1.08
-      : mounted && size <= 32
-        ? 1.12
-        : 1;
+        ? 1.22
+        : 1.14
+      : flying
+        ? size <= 32
+          ? 1.18
+          : 1.08
+        : mounted && size <= 32
+          ? 1.12
+          : 1;
   const productionSize = size * productionScale;
 
   return (
