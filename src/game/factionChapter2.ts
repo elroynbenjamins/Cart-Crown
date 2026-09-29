@@ -174,7 +174,7 @@ export const factionChapterTwoResourceSites: ResourceSiteDefinition[] = [
     faction: 'orc',
     name: 'Red Plains Hunt',
     icon: '🦬',
-    description: 'Clan hunting routes provide meat, hide and salvage for the War Cart.',
-    productionPerActivity: { gold: 3, provisions: 5 }
+    description: 'Clan hunting routes provide meat, hide, wagon timber and salvage for the War Cart.',
+    productionPerActivity: { gold: 3, wood: 4, provisions: 5 }
   }
 ];
