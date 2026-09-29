@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
+import { AppState } from 'react-native';
 import {
   humanRecruitOptions,
   starterWagonItems,
@@ -194,6 +195,7 @@ type GameContextValue = {
   metaCampaignUnlocked: boolean;
   hasFactionState: (faction: FactionId) => boolean;
   switchFaction: (faction: FactionId) => Promise<boolean>;
+  flushSnapshot: () => Promise<void>;
   formationShapeId: FormationShapeId;
   formationShapes: FormationShapeDefinition[];
   activeFormationShape: FormationShapeDefinition;
@@ -1152,6 +1154,11 @@ export function GameProvider({
 
   const saveCallbackRef = useRef(onSnapshotChange);
   const switchingFactionRef = useRef(false);
+  const snapshotRef = useRef(snapshot);
+  const rewardedAdInFlightRef = useRef(
+    new Set<RewardedAdPlacementId>()
+  );
+  snapshotRef.current = snapshot;
 
   useEffect(() => {
     saveCallbackRef.current = onSnapshotChange;
@@ -1168,6 +1175,33 @@ export function GameProvider({
       clearTimeout(timer);
     };
   }, [snapshot]);
+
+  const flushSnapshot = async () => {
+    if (switchingFactionRef.current) return;
+    await saveCallbackRef.current(snapshotRef.current);
+  };
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      nextState => {
+        if (nextState !== 'active') {
+          void flushSnapshot();
+        }
+      }
+    );
+
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (!switchingFactionRef.current) {
+        void saveCallbackRef.current(snapshotRef.current);
+      }
+    },
+    []
+  );
 
   const hasFactionState = (faction: FactionId) =>
     snapshot.factionStates[faction]?.faction === faction;
@@ -5070,7 +5104,19 @@ export function GameProvider({
       return { status: 'unavailable', provider: 'none' };
     }
 
-    const result = await showRewardedAd(placementId);
+    if (rewardedAdInFlightRef.current.has(placementId)) {
+      setRewardedAdMessage('Reward request already in progress.');
+      return { status: 'unavailable', provider: 'none' };
+    }
+
+    rewardedAdInFlightRef.current.add(placementId);
+    let result: RewardedAdResult;
+    try {
+      result = await showRewardedAd(placementId);
+    } finally {
+      rewardedAdInFlightRef.current.delete(placementId);
+    }
+
     if (result.status !== 'rewarded') {
       setRewardedAdMessage('Rewarded ads are not configured in this build yet.');
       return result;
@@ -5136,6 +5182,7 @@ export function GameProvider({
       metaCampaignUnlocked,
       hasFactionState,
       switchFaction,
+      flushSnapshot,
       formationShapeId,
       formationShapes,
       activeFormationShape,
@@ -5319,6 +5366,7 @@ export function GameProvider({
       metaCampaignStep,
       metaCampaignComplete,
       metaCampaignUnlocked,
+      flushSnapshot,
       formationShapeId,
       activeFormationShape,
       formationPresets,
