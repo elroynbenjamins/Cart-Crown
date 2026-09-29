@@ -14,7 +14,8 @@
     "save:check": "tsx scripts/save-regression.ts",
     "mobile:check": "tsx scripts/mobile-session-regression.ts",
     "tutorial:check": "tsx scripts/tutorial-regression.ts",
-    "art:check": "node scripts/art-regression.mjs"
+    "art:check": "node scripts/art-regression.mjs",
+    "boss:check": "tsx scripts/boss-presentation-regression.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
