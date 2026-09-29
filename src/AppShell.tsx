@@ -223,9 +223,9 @@ export function AppShell({
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
   const [formationReturnFlow, setFormationReturnFlow] =
-    useState<'formationTrial' | 'kingdomDefense' | null>(null);
+    useState<'formationTrial' | 'kingdomDefense' | 'expedition' | null>(null);
   const [wagonReturnFlow, setWagonReturnFlow] =
-    useState<'kingdomDefense' | null>(null);
+    useState<'kingdomDefense' | 'expedition' | null>(null);
   const [preparationFixTarget, setPreparationFixTarget] =
     useState<BattlePreparationFixTarget | null>(null);
   const [tutorialFocus, setTutorialFocus] =
@@ -1176,6 +1176,16 @@ export function AppShell({
     if (flow === 'expedition') {
       return (
         <ExpeditionScreen
+          onEditFormation={() => {
+            setFormationReturnFlow('expedition');
+            setFlow(null);
+            setActive('formation');
+          }}
+          onEditWagon={() => {
+            setWagonReturnFlow('expedition');
+            setFlow(null);
+            setActive('wagon');
+          }}
           onExit={() => {
             setFlow(null);
             setActive('campaign');
@@ -1511,7 +1521,9 @@ export function AppShell({
                 ? 'Back to Kingdom Trials'
                 : formationReturnFlow === 'kingdomDefense'
                   ? 'Back to Kingdom Defense'
-                  : undefined
+                  : formationReturnFlow === 'expedition'
+                    ? 'Back to Expedition'
+                    : undefined
             }
             onReturnToBattlePrep={
               formationGuide
@@ -1537,9 +1549,11 @@ export function AppShell({
                 : undefined
             }
             returnToModeLabel={
-              wagonReturnFlow
+              wagonReturnFlow === 'kingdomDefense'
                 ? 'Back to Kingdom Defense'
-                : undefined
+                : wagonReturnFlow === 'expedition'
+                  ? 'Back to Expedition'
+                  : undefined
             }
           />
         );

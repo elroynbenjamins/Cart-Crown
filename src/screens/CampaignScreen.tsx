@@ -209,6 +209,7 @@ export function CampaignScreen({
     isSideModeUnlocked,
     expeditionTickets,
     expeditionRunsCompleted,
+    activeExpeditionRun,
     kingdomTrialCompletions,
     claimRewardedAd,
     rewardedAdClaims,
@@ -896,7 +897,18 @@ export function CampaignScreen({
 
           {mode.id === 'expeditions' ? (
             <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
-              Tickets: {expeditionTickets} · Completed runs: {expeditionRunsCompleted}
+              {activeExpeditionRun
+                ? activeExpeditionRun.completed
+                  ? 'Boss defeated · loot ready to secure'
+                  : activeExpeditionRun.failed
+                    ? 'Run failed · return to close it'
+                    : 'Run active · Stage ' +
+                      (activeExpeditionRun.stageIndex + 1) +
+                      '/5'
+                : 'Tickets: ' +
+                  expeditionTickets +
+                  ' · Completed runs: ' +
+                  expeditionRunsCompleted}
             </Text>
           ) : null}
 
@@ -932,7 +944,12 @@ export function CampaignScreen({
 
           <View style={styles.modeButton}>
             <SecondaryButton
-              label={'Open ' + mode.name}
+              label={
+                mode.id === 'expeditions' &&
+                activeExpeditionRun
+                  ? 'Resume Expedition'
+                  : 'Open ' + mode.name
+              }
               onPress={() => openMode(mode.id)}
             />
           </View>

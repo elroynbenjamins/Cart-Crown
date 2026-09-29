@@ -7,6 +7,11 @@ import {
 } from '../game/data';
 import { clampArmyReadiness } from '../game/balance';
 import {
+  expeditionStages,
+  getExpeditionChoice
+} from '../game/expeditions';
+import type { ExpeditionRunState } from '../game/expeditions';
+import {
   formationShapes,
   getFactionDoctrines
 } from '../game/formation';
@@ -205,6 +210,113 @@ function sanitizeWallet(
       source.provisions,
       fallback.provisions
     )
+  };
+}
+
+function sanitizeExpeditionRun(
+  value: unknown
+): ExpeditionRunState | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const source =
+    value as Partial<ExpeditionRunState>;
+  const stageIndex = Math.min(
+    expeditionStages.length,
+    nonNegativeInteger(
+      source.stageIndex,
+      0
+    )
+  );
+  const path = Array.isArray(source.path)
+    ? source.path.filter(
+        (id): id is string =>
+          typeof id === 'string' &&
+          Boolean(getExpeditionChoice(id))
+      )
+    : [];
+  const failed = Boolean(source.failed);
+  const completed =
+    !failed &&
+    Boolean(source.completed) &&
+    stageIndex >= expeditionStages.length;
+  const powerBonus =
+    typeof source.powerBonus === 'number' &&
+    Number.isFinite(source.powerBonus)
+      ? Math.max(
+          0,
+          Math.min(0.18, source.powerBonus)
+        )
+      : 0;
+
+  return {
+    stageIndex:
+      completed
+        ? expeditionStages.length
+        : Math.min(
+            stageIndex,
+            expeditionStages.length - 1
+          ),
+    readiness: clampArmyReadiness(
+      typeof source.readiness === 'number'
+        ? source.readiness
+        : 100
+    ),
+    supplies: Math.min(
+      8,
+      nonNegativeInteger(
+        source.supplies,
+        0
+      )
+    ),
+    powerBonus,
+    basePower: nonNegativeInteger(
+      source.basePower,
+      0
+    ),
+    playerShapeId:
+      formationShapes.some(
+        shape =>
+          shape.id === source.playerShapeId
+      )
+        ? source.playerShapeId as FormationShapeId
+        : 'balanced_333',
+    wagonStageId:
+      typeof source.wagonStageId === 'string'
+        ? source.wagonStageId
+        : 'fort',
+    hasRations:
+      Boolean(source.hasRations),
+    hasMedicine:
+      Boolean(source.hasMedicine),
+    baseReward: sanitizeWallet(
+      source.baseReward,
+      {
+        gold: 40,
+        wood: 8,
+        stone: 2,
+        iron: 1,
+        provisions: 4
+      }
+    ),
+    loot: sanitizeWallet(
+      source.loot,
+      {
+        gold: 0,
+        wood: 0,
+        stone: 0,
+        iron: 0,
+        provisions: 0
+      }
+    ),
+    path,
+    failed,
+    completed,
+    lastSummary:
+      typeof source.lastSummary === 'string'
+        ? source.lastSummary
+        : null
   };
 }
 
@@ -689,6 +801,10 @@ export function sanitizeFactionGameState(
       stored.expeditionRunsCompleted,
       defaults.expeditionRunsCompleted
     ),
+    activeExpeditionRun:
+      sanitizeExpeditionRun(
+        stored.activeExpeditionRun
+      ),
     kingdomTrialCompletions,
     formationTrialCompleted:
       Boolean(stored.formationTrialCompleted) ||
@@ -866,6 +982,7 @@ export function createHumanFactionState(): FactionGameState {
     lastBattleResult: null,
     expeditionTickets: 1,
     expeditionRunsCompleted: 0,
+    activeExpeditionRun: null,
     formationTrialCompleted: false,
     kingdomTrialCompletions: [],
     completedStoryGates: [],
