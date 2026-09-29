@@ -2,6 +2,12 @@ export type FactionId = 'human' | 'elf' | 'orc';
 export type CampaignId = FactionId | 'meta';
 export type NavId = 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army';
 export type UnitRole = 'frontline' | 'melee' | 'ranged' | 'support' | 'cavalry' | 'skirmish';
+export type EnemyFantasyThreatFamily =
+  | 'magic'
+  | 'flying'
+  | 'large'
+  | 'hybrid';
+
 export type UnitBattleTag =
   | 'ground'
   | 'mounted'
@@ -283,6 +289,7 @@ export type EncounterDefinition = {
   enemyCount: number;
   enemyHp: number;
   difficulty: 'Normal' | 'Elite' | 'Boss';
+  fantasyThreat?: EnemyFantasyThreatFamily;
 };
 
 export type FormationBonus = {
