@@ -311,7 +311,7 @@ type GameContextValue = {
     maxHp: number,
     difficulty: 'Normal' | 'Elite' | 'Boss',
     victory: boolean
-  ) => void;
+  ) => number;
   restAndResupplyArmy: () => boolean;
   completeFactionChapterOneEvent: (
     stage: 'investigation' | 'supply'
@@ -1326,10 +1326,11 @@ export function GameProvider({
       hasPackedMedicine
     );
 
-    if (wear <= 0) return;
+    if (wear <= 0) return 0;
     setArmyReadiness(previous =>
       clampArmyReadiness(previous - wear)
     );
+    return wear;
   };
 
   const restAndResupplyArmy = () => {
