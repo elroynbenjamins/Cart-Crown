@@ -58,6 +58,7 @@ import { RecruitmentScreen } from './screens/RecruitmentScreen';
 import { RefugeeCampScreen } from './screens/RefugeeCampScreen';
 import { KingdomDefenseScreen } from './screens/KingdomDefenseScreen';
 import { ResultsScreen } from './screens/ResultsScreen';
+import { DefeatResultsScreen } from './screens/DefeatResultsScreen';
 import { RoyalLedgerScreen } from './screens/RoyalLedgerScreen';
 import { RoyalDecreesScreen } from './screens/RoyalDecreesScreen';
 import { StrongholdMusterScreen } from './screens/StrongholdMusterScreen';
@@ -78,6 +79,7 @@ type FlowScreen =
   | 'battlePrep'
   | 'battle'
   | 'results'
+  | 'defeatResults'
   | 'recruitment'
   | 'markedRaiders'
   | 'forge'
@@ -145,6 +147,7 @@ const flowTitles: Record<FlowScreen, string> = {
   battlePrep: 'Battle Prep',
   battle: 'Battle',
   results: 'Results',
+  defeatResults: 'Defeat Report',
   recruitment: 'Recruitment',
   markedRaiders: 'Marked Raiders',
   forge: 'Field Forge',
@@ -464,7 +467,10 @@ export function AppShell({
             finishEncounter(activeEncounterId);
             setFlow('results');
           }}
-          onDefeated={() => setFlow('battlePrep')}
+          onDefeated={summary => {
+            setLastCombatSummary(summary);
+            setFlow('defeatResults');
+          }}
         />
       );
     }
@@ -478,6 +484,33 @@ export function AppShell({
           onTutorialFocusComplete={() =>
             setTutorialFocus(null)
           }
+        />
+      );
+    }
+
+    if (
+      flow === 'defeatResults' &&
+      lastCombatSummary
+    ) {
+      return (
+        <DefeatResultsScreen
+          encounterId={activeEncounterId}
+          battleSummary={lastCombatSummary}
+          onPrepareRematch={() =>
+            setFlow('battlePrep')
+          }
+          onOpenFormation={() => {
+            setPreparationFixTarget('formation');
+            setFlow('preparationFix');
+          }}
+          onOpenWagon={() => {
+            setPreparationFixTarget('wagon');
+            setFlow('preparationFix');
+          }}
+          onLeave={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
         />
       );
     }
@@ -1396,12 +1429,14 @@ export function AppShell({
       ? 'prep'
       : flow === 'battle'
         ? 'battle'
-        : flow === 'results'
+        : flow === 'results' ||
+            flow === 'defeatResults'
           ? 'results'
           : null;
 
   const canGoBack =
     flow === 'battlePrep' ||
+    flow === 'defeatResults' ||
     flow === 'recruitment' ||
     flow === 'markedRaiders' ||
     flow === 'forge' ||
@@ -1455,7 +1490,10 @@ export function AppShell({
 
     setTutorialFocus(null);
 
-    if (flow === 'preparationFix') {
+    if (
+      flow === 'preparationFix' ||
+      flow === 'defeatResults'
+    ) {
       setFlow('battlePrep');
       return;
     }
@@ -1480,6 +1518,12 @@ export function AppShell({
         if (action === 'continue_results') {
           setTutorialFocus(null);
           handleResultsContinue();
+          return true;
+        }
+
+        if (action === 'prepare_rematch') {
+          setTutorialFocus(null);
+          setFlow('battlePrep');
           return true;
         }
 

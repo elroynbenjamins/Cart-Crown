@@ -100,6 +100,15 @@ function runBackCoverage() {
 
   expect(
     resolveHardwareBackAction({
+      flow: 'defeatResults',
+      canGoBack: true,
+      active: 'campaign'
+    }) === 'prepare_rematch',
+    'Hardware Back no longer returns a defeat report to rematch preparation.'
+  );
+
+  expect(
+    resolveHardwareBackAction({
       flow: null,
       canGoBack: false,
       active: 'formation'
@@ -292,7 +301,7 @@ async function main() {
   }
 
   console.log(
-    'PASS: Android Back routing, rapid-press throttling, one-shot battle completion, background battle pause, rewarded-ad in-flight locking, tactical-guidance separation, severe-prep confirmation boundaries and serialized save writes remain protected.'
+    'PASS: Android Back routing, rapid-press throttling, one-shot battle completion, background battle pause, rewarded-ad in-flight locking, tactical-guidance separation, severe-prep confirmation boundaries, defeat-to-rematch routing and serialized save writes remain protected.'
   );
 }
 

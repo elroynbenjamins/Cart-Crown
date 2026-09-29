@@ -7,6 +7,7 @@ import {
   getEnemyRoleAssignments
 } from '../game/encounters';
 import {
+  clampArmyReadiness,
   getArmyReadinessProfile,
   getEnemyStrikePressure,
   getTacticalSpeedDamageMultiplier,
@@ -53,12 +54,18 @@ type ExchangeFeedback = {
 };
 
 export type BattleCombatSummary = {
+  victory: boolean;
   exchanges: number;
   damageDealt: number;
   damageTaken: number;
   healing: number;
   remainingHp: number;
   maxHp: number;
+  enemyRemainingHp: number;
+  enemyMaxHp: number;
+  startingReadiness: number;
+  readinessWear: number;
+  resultingReadiness: number;
 };
 
 const combatLines = [
@@ -132,7 +139,7 @@ export function BattleScreen({
   encounterId: EncounterId;
   pausedForTutorial?: boolean;
   onFinished: (summary: BattleCombatSummary) => void;
-  onDefeated: () => void;
+  onDefeated: (summary: BattleCombatSummary) => void;
 }) {
   const { theme } = useGameTheme();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
@@ -1508,36 +1515,59 @@ export function BattleScreen({
           onPress={() => {
             if (!outcomeCommitGateRef.current()) return;
 
-            recordBattleWear(
+            const wear = recordBattleWear(
               partyHp,
               partyMaxHp,
               encounter.difficulty,
               true
             );
             onFinished({
+              victory: true,
               exchanges: turn,
               damageDealt: battleTotals.damageDealt,
               damageTaken: battleTotals.damageTaken,
               healing: battleTotals.healing,
               remainingHp: partyHp,
-              maxHp: partyMaxHp
+              maxHp: partyMaxHp,
+              enemyRemainingHp: enemyHp,
+              enemyMaxHp: encounter.enemyHp,
+              startingReadiness: armyReadiness,
+              readinessWear: wear,
+              resultingReadiness: clampArmyReadiness(
+                armyReadiness - wear
+              )
             });
           }}
         />
       ) : null}
       {defeated ? (
         <PrimaryButton
-          label="Regroup"
+          label="View Defeat Report"
           onPress={() => {
             if (!outcomeCommitGateRef.current()) return;
 
-            recordBattleWear(
+            const wear = recordBattleWear(
               partyHp,
               partyMaxHp,
               encounter.difficulty,
               false
             );
-            onDefeated();
+            onDefeated({
+              victory: false,
+              exchanges: turn,
+              damageDealt: battleTotals.damageDealt,
+              damageTaken: battleTotals.damageTaken,
+              healing: battleTotals.healing,
+              remainingHp: partyHp,
+              maxHp: partyMaxHp,
+              enemyRemainingHp: enemyHp,
+              enemyMaxHp: encounter.enemyHp,
+              startingReadiness: armyReadiness,
+              readinessWear: wear,
+              resultingReadiness: clampArmyReadiness(
+                armyReadiness - wear
+              )
+            });
           }}
         />
       ) : null}

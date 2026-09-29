@@ -3,6 +3,7 @@ import type { NavId } from './types';
 export type HardwareBackAction =
   | 'block_battle'
   | 'continue_results'
+  | 'prepare_rematch'
   | 'close_flow'
   | 'go_kingdom'
   | 'exit_app';
@@ -18,6 +19,7 @@ export function resolveHardwareBackAction({
 }): HardwareBackAction {
   if (flow === 'battle') return 'block_battle';
   if (flow === 'results') return 'continue_results';
+  if (flow === 'defeatResults') return 'prepare_rematch';
   if (canGoBack) return 'close_flow';
   if (active !== 'kingdom') return 'go_kingdom';
   return 'exit_app';
