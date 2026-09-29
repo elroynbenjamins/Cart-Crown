@@ -118,7 +118,7 @@ export function FactionOpeningCampaignScreen({
     isSideModeUnlocked,
     expeditionTickets,
     expeditionRunsCompleted,
-    formationTrialCompleted,
+    kingdomTrialCompletions,
     kingdomDefenseCompleted
   } = useGame();
 
@@ -643,9 +643,8 @@ export function FactionOpeningCampaignScreen({
                   : mode.id === 'expeditions'
                     ? expeditionTickets + ' ticket' + (expeditionTickets === 1 ? '' : 's')
                     : mode.id === 'formation_trials'
-                      ? formationTrialCompleted
-                        ? 'First trial complete'
-                        : 'Tactical challenge'
+                      ? kingdomTrialCompletions.length +
+                        '/3 medals'
                       : kingdomDefenseCompleted
                         ? 'Repeatable'
                         : 'Endurance defense';
