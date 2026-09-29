@@ -294,6 +294,7 @@ export function BattleScreen({
     healing: 0
   });
   const battleScrollRef = useRef<ScrollView>(null);
+  const outcomeCommittedRef = useRef(false);
   const attackPulse = useRef(new Animated.Value(0)).current;
   const impactPulse = useRef(new Animated.Value(0)).current;
   const feedbackPulse = useRef(new Animated.Value(0)).current;
@@ -1447,6 +1448,9 @@ export function BattleScreen({
         <PrimaryButton
           label="View Results"
           onPress={() => {
+            if (outcomeCommittedRef.current) return;
+            outcomeCommittedRef.current = true;
+
             recordBattleWear(
               partyHp,
               partyMaxHp,
@@ -1468,6 +1472,9 @@ export function BattleScreen({
         <PrimaryButton
           label="Regroup"
           onPress={() => {
+            if (outcomeCommittedRef.current) return;
+            outcomeCommittedRef.current = true;
+
             recordBattleWear(
               partyHp,
               partyMaxHp,
