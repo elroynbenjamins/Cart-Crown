@@ -10,6 +10,7 @@ import {
   View
 } from 'react-native';
 import type { NavId } from './game/types';
+import type { BattlePreparationFixTarget } from './game/battlePreparation';
 import { resolveHardwareBackAction } from './game/mobileSession';
 import {
   getNextTutorialMoment,
@@ -119,7 +120,8 @@ type FlowScreen =
   | 'settlement'
   | 'expedition'
   | 'formationTrial'
-  | 'settings';
+  | 'settings'
+  | 'preparationFix';
 
 const navItems: Array<{ id: NavId; label: string }> = [
   { id: 'kingdom', label: 'Kingdom' },
@@ -185,7 +187,8 @@ const flowTitles: Record<FlowScreen, string> = {
   settlement: 'Settlement',
   expedition: 'Expedition',
   formationTrial: 'Formation Trial',
-  settings: 'Settings'
+  settings: 'Settings',
+  preparationFix: 'Preparation Fix'
 };
 
 export function AppShell({
@@ -201,6 +204,8 @@ export function AppShell({
   const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
+  const [preparationFixTarget, setPreparationFixTarget] =
+    useState<BattlePreparationFixTarget | null>(null);
   const reviewAttemptedRef = useRef(false);
   const { theme, cycleTheme } = useGameTheme();
   const {
@@ -384,6 +389,28 @@ export function AppShell({
       return <SettingsScreen />;
     }
 
+    if (flow === 'preparationFix') {
+      if (preparationFixTarget === 'formation') {
+        return <FormationScreen />;
+      }
+
+      if (preparationFixTarget === 'wagon') {
+        return <WagonScreen />;
+      }
+
+      if (preparationFixTarget === 'equipment') {
+        return (
+          <EquipmentManageScreen
+            unitId={equipmentUnitId}
+            onExit={() => setFlow('battlePrep')}
+          />
+        );
+      }
+
+      setFlow('battlePrep');
+      return null;
+    }
+
     if (flow === 'battlePrep') {
       return (
         <BattlePrepScreen
@@ -395,6 +422,13 @@ export function AppShell({
             });
             setFlow(null);
             setActive('formation');
+          }}
+          onOpenPreparationFix={(target, unitId) => {
+            setPreparationFixTarget(target);
+            if (unitId) {
+              setEquipmentUnitId(unitId);
+            }
+            setFlow('preparationFix');
           }}
           onBegin={() => {
             setLastCombatSummary(null);
@@ -1371,13 +1405,19 @@ export function AppShell({
     flow === 'settlement' ||
     flow === 'expedition' ||
     flow === 'formationTrial' ||
-    flow === 'settings';
+    flow === 'settings' ||
+    flow === 'preparationFix';
   const title = flow ? flowTitles[flow] : screenTitles[active];
 
   const goBack = () => {
-    if (canGoBack) {
-      setFlow(null);
+    if (!canGoBack) return;
+
+    if (flow === 'preparationFix') {
+      setFlow('battlePrep');
+      return;
     }
+
+    setFlow(null);
   };
 
   useEffect(() => {
@@ -1400,7 +1440,11 @@ export function AppShell({
         }
 
         if (action === 'close_flow') {
-          setFlow(null);
+          setFlow(
+            flow === 'preparationFix'
+              ? 'battlePrep'
+              : null
+          );
           return true;
         }
 
