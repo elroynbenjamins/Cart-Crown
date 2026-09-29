@@ -66,8 +66,11 @@ export function KingdomDefenseScreen({
     commitKingdomDefenseReadiness
   } = useGame();
 
-  const [firstClearAtStart] =
-    useState(!kingdomDefenseCompleted);
+  const [fullStoryClearAtStart] =
+    useState(
+      activeFaction === 'human' &&
+      !kingdomDefenseCompleted
+    );
   const [repeatable] =
     useState(
       activeFaction !== 'human' ||
@@ -423,7 +426,7 @@ export function KingdomDefenseScreen({
             }
           />
           <Text style={[styles.rewardBandText, { color: theme.colors.textMuted }]}>
-            {firstClearAtStart
+            {fullStoryClearAtStart
               ? 'First clear uses the authored full defense reward.'
               : runRewardMultiplier === 0.5
                 ? 'First repeat clear this chapter pays half resources.'
@@ -944,7 +947,7 @@ export function KingdomDefenseScreen({
             <ResourceAmountRow
               prefix="+"
               values={
-                firstClearAtStart
+                fullStoryClearAtStart
                   ? {
                       gold: 85,
                       wood: 10,
@@ -971,7 +974,7 @@ export function KingdomDefenseScreen({
               { color: theme.colors.textMuted }
             ]}
           >
-            {firstClearAtStart || runRewardMultiplier > 0
+            {fullStoryClearAtStart || runRewardMultiplier > 0
               ? 'Regional production also advances one cycle. '
               : 'Practice clears do not advance regional production. '}
             The army finishes at{' '}
