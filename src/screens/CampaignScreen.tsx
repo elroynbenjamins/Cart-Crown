@@ -10,6 +10,8 @@ import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, Pill, PrimaryButton, SecondaryButton, SectionTitle, StatusPill } from '../ui/components';
 import { CampaignNodeSprite, FactionCrest, LockIcon, RegionMapBackdrop } from '../ui/gameArt';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
+import { TutorialFocus } from '../ui/TutorialFocus';
+import type { TutorialFocusTarget } from '../game/tutorial';
 
 type CampaignView = 'story' | 'activities' | 'factions';
 
@@ -86,7 +88,9 @@ export function CampaignScreen({
   onStartFactionChapterSixBoss,
   onOpenMetaCampaign,
   onOpenExpedition,
-  onOpenFormationTrial
+  onOpenFormationTrial,
+  tutorialFocus,
+  onTutorialFocusComplete
 }: {
   onStartBattle: () => void;
   onOpenMarkedRaiders: () => void;
@@ -161,6 +165,8 @@ export function CampaignScreen({
   onOpenMetaCampaign: () => void;
   onOpenExpedition: () => void;
   onOpenFormationTrial: () => void;
+  tutorialFocus?: TutorialFocusTarget | null;
+  onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
   const {
@@ -736,9 +742,30 @@ export function CampaignScreen({
             <Pressable
               key={node.id}
               disabled={!playable}
-              onPress={action}
+              onPress={() => {
+                if (
+                  tutorialFocus?.kind === 'campaign-current' &&
+                  node.current
+                ) {
+                  onTutorialFocusComplete?.();
+                }
+                action?.();
+              }}
               style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
             >
+              <TutorialFocus
+                active={
+                  tutorialFocus?.kind === 'campaign-current' &&
+                  Boolean(node.current) &&
+                  playable
+                }
+                label={
+                  tutorialFocus?.kind === 'campaign-current' &&
+                  node.current
+                    ? tutorialFocus.label
+                    : undefined
+                }
+              >
               <GameCard
                 accent={node.current ? theme.colors.human : undefined}
                 faction="human"
@@ -787,6 +814,7 @@ export function CampaignScreen({
                   }
                 />
               </GameCard>
+              </TutorialFocus>
             </Pressable>
           );
         })}
@@ -1013,25 +1041,41 @@ export function CampaignScreen({
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={[styles.segment, { backgroundColor: theme.colors.surface1 }]}>
-        {(['story', 'activities', 'factions'] as CampaignView[]).map(option => (
-          <Pressable
-            key={option}
-            onPress={() => setView(option)}
-            style={[
-              styles.segmentButton,
-              view === option ? { backgroundColor: theme.colors.surface2 } : undefined
-            ]}
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                { color: view === option ? theme.colors.primary : theme.colors.textMuted }
-              ]}
+        {(['story', 'activities', 'factions'] as CampaignView[]).map(option => {
+          const focused =
+            tutorialFocus?.kind === 'campaign-activities' &&
+            option === 'activities';
+
+          return (
+            <TutorialFocus
+              key={option}
+              active={focused}
+              label={focused ? tutorialFocus.label : undefined}
             >
-              {option === 'story' ? 'Story' : option === 'activities' ? 'Activities' : 'Factions'}
-            </Text>
-          </Pressable>
-        ))}
+              <Pressable
+                onPress={() => {
+                  if (focused) {
+                    onTutorialFocusComplete?.();
+                  }
+                  setView(option);
+                }}
+                style={[
+                  styles.segmentButton,
+                  view === option ? { backgroundColor: theme.colors.surface2 } : undefined
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    { color: view === option ? theme.colors.primary : theme.colors.textMuted }
+                  ]}
+                >
+                  {option === 'story' ? 'Story' : option === 'activities' ? 'Activities' : 'Factions'}
+                </Text>
+              </Pressable>
+            </TutorialFocus>
+          );
+        })}
       </View>
 
       {view === 'story' ? renderStory() : view === 'activities' ? renderActivities() : renderFactions()}
