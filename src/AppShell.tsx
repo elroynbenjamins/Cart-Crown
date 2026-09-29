@@ -58,6 +58,7 @@ import { EmptyThroneScreen } from './screens/EmptyThroneScreen';
 import { ThreeWarningsScreen } from './screens/ThreeWarningsScreen';
 import { DividedMarchScreen } from './screens/DividedMarchScreen';
 import { SettlementScreen } from './screens/SettlementScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
 import { TimberClaimScreen } from './screens/TimberClaimScreen';
 import { WagonScreen } from './screens/WagonScreen';
 import { useGameTheme } from './theme/ThemeProvider';
@@ -111,7 +112,8 @@ type FlowScreen =
   | 'metaCampaign'
   | 'settlement'
   | 'expedition'
-  | 'formationTrial';
+  | 'formationTrial'
+  | 'settings';
 
 const navItems: Array<{ id: NavId; label: string }> = [
   { id: 'kingdom', label: 'Kingdom' },
@@ -176,7 +178,8 @@ const flowTitles: Record<FlowScreen, string> = {
   metaCampaign: 'Three Seals',
   settlement: 'Settlement',
   expedition: 'Expedition',
-  formationTrial: 'Formation Trial'
+  formationTrial: 'Formation Trial',
+  settings: 'Settings'
 };
 
 export function AppShell({
@@ -200,7 +203,8 @@ export function AppShell({
     lastBattleResult,
     commanderPathId,
     firstPromotionComplete,
-    settlementUpgraded
+    settlementUpgraded,
+    guidanceMode
   } = useGame();
 
   const openRecruitment = () => setFlow('recruitment');
@@ -255,14 +259,18 @@ export function AppShell({
       return (
         <BattlePrepScreen
           encounterId={activeEncounterId}
-          onOpenAdjustment={(adjustment, presetSlotId) => {
-            setFormationGuide({
-              adjustment,
-              presetSlotId
-            });
-            setFlow(null);
-            setActive('formation');
-          }}
+          onOpenAdjustment={
+            guidanceMode === 'full'
+              ? (adjustment, presetSlotId) => {
+                  setFormationGuide({
+                    adjustment,
+                    presetSlotId
+                  });
+                  setFlow(null);
+                  setActive('formation');
+                }
+              : undefined
+          }
           onBegin={() => {
             setLastCombatSummary(null);
             setFormationGuide(null);
@@ -270,6 +278,10 @@ export function AppShell({
           }}
         />
       );
+    }
+
+    if (flow === 'settings') {
+      return <SettingsScreen />;
     }
 
     if (flow === 'battle') {
@@ -1108,7 +1120,7 @@ export function AppShell({
       case 'formation':
         return (
           <FormationScreen
-            guide={formationGuide}
+            guide={guidanceMode === 'full' ? formationGuide : null}
             onClearGuide={() => setFormationGuide(null)}
             onReturnToBattlePrep={
               formationGuide
@@ -1234,7 +1246,8 @@ export function AppShell({
     flow === 'metaCampaign' ||
     flow === 'settlement' ||
     flow === 'expedition' ||
-    flow === 'formationTrial';
+    flow === 'formationTrial' ||
+    flow === 'settings';
   const title = flow ? flowTitles[flow] : screenTitles[active];
 
   const goBack = () => {
@@ -1328,6 +1341,32 @@ export function AppShell({
 
         {flow !== 'battle' ? (
           <View style={styles.topActions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
+              onPress={() => {
+                setFormationGuide(null);
+                setFlow('settings');
+              }}
+              style={({ pressed }) => [
+                styles.settingsButton,
+                {
+                  backgroundColor: theme.colors.surface1,
+                  borderColor: theme.colors.border,
+                  opacity: pressed ? 0.78 : 1
+                }
+              ]}
+            >
+              <Text
+                style={[
+                  styles.settingsButtonText,
+                  { color: theme.colors.gold }
+                ]}
+              >
+                SET
+              </Text>
+            </Pressable>
+
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Return to save slots"
@@ -1451,6 +1490,19 @@ const styles = StyleSheet.create({
   backText: { fontSize: 30, lineHeight: 32, marginTop: -3 },
   brand: { fontSize: 9, letterSpacing: 1.8, fontWeight: '900' },
   screenTitle: { fontSize: 21, lineHeight: 26, fontWeight: '900', marginTop: 1 },
+  settingsButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  settingsButtonText: {
+    fontSize: 8.5,
+    fontWeight: '900',
+    letterSpacing: 0.7
+  },
   slotButton: {
     width: 42,
     height: 42,
