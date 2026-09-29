@@ -257,6 +257,7 @@ export function AppShell({
     largeResearchDefinitions,
     hybridFamilyUnlock,
     hybridResearchDefinitions,
+    hybridResearchPrerequisitesMet,
     tutorialSeen,
     markTutorialSeen,
     reviewPromptShown,
@@ -321,6 +322,7 @@ export function AppShell({
         hybridFamilyUnlock.storyGateId
       )
     ),
+    hybridResearchPrerequisitesMet,
     completedMagicResearch:
       magicResearchDefinitions.filter(
         research => researchProgress[research.id]?.completed
