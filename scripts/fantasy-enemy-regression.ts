@@ -83,6 +83,7 @@ function runMagicCounterCoverage() {
       encounter,
       [
         unit('ward', 'Dawnkeeper', 'support', ['magic', 'support']),
+        unit('mage', 'Mage', 'ranged', ['magic']),
         unit('guard', 'Shield Guard', 'frontline')
       ]
     );
