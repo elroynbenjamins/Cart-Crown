@@ -5621,6 +5621,7 @@ export function GameProvider({
     if (
       !equipment ||
       equipment.faction !== activeFaction ||
+      equipment.rarity === 'relic' ||
       equipment.upgradeFromId ||
       equipment.requiredForgeLevel > forgeLevel ||
       (equipment.requiredStableLevel ?? 0) > stableLevel
