@@ -1873,6 +1873,7 @@ export function AppShell({
         backgroundColor={theme.colors.appBg}
       />
 
+      {flow !== 'battle' ? (
       <View
         style={[
           styles.topBar,
@@ -1899,8 +1900,7 @@ export function AppShell({
           </View>
         </View>
 
-        {flow !== 'battle' ? (
-          <View style={styles.topActions}>
+        <View style={styles.topActions}>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Return to save slots"
@@ -1962,11 +1962,12 @@ export function AppShell({
             >
               <ThemeModeIcon dark={theme.dark} color={theme.colors.gold} size={20} />
             </Pressable>
-          </View>
-        ) : null}
+        </View>
       </View>
 
-      {battleFlowStage ? (
+      ) : null}
+
+      {battleFlowStage && flow !== 'battle' ? (
         <FlowProgress stage={battleFlowStage} faction={activeFaction} />
       ) : null}
 

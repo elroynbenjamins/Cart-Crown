@@ -333,7 +333,29 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'enemy.mounted_hunters': require('../../assets/game/enemies/mounted_hunters.png'),
   'enemy.shock_warband': require('../../assets/game/enemies/shock_warband.png'),
   'enemy.warded_host': require('../../assets/game/enemies/warded_host.png'),
-  'enemy.elite_command': require('../../assets/game/enemies/elite_command.png')
+  'enemy.elite_command': require('../../assets/game/enemies/elite_command.png'),
+  'battle_portrait.captain_unit': require('../../assets/game/battle_portraits/captain_unit.png'),
+  'battle_portrait.ranger_unit': require('../../assets/game/battle_portraits/ranger_unit.png'),
+  'battle_portrait.priest_unit': require('../../assets/game/battle_portraits/priest_unit.png'),
+  'battle_portrait.raider_unit': require('../../assets/game/battle_portraits/raider_unit.png'),
+  'battle_portrait.missile_unit': require('../../assets/game/battle_portraits/missile_unit.png'),
+  'battle_portrait.warg_unit': require('../../assets/game/battle_portraits/warg_unit.png'),
+  'battle_portrait.captain_portrait': require('../../assets/game/battle_portraits/captain_portrait.png'),
+  'battle_portrait.ranger_portrait': require('../../assets/game/battle_portraits/ranger_portrait.png'),
+  'battle_portrait.priest_portrait': require('../../assets/game/battle_portraits/priest_portrait.png'),
+  'battle_portrait.raider_portrait': require('../../assets/game/battle_portraits/raider_portrait.png'),
+  'battle_portrait.missile_portrait': require('../../assets/game/battle_portraits/missile_portrait.png'),
+  'battle_portrait.warg_portrait': require('../../assets/game/battle_portraits/warg_portrait.png'),
+  'battle_portrait.greenkeep_sky': require('../../assets/game/battle_portraits/greenkeep_sky.png'),
+  'battle_portrait.greenkeep_ground': require('../../assets/game/battle_portraits/greenkeep_ground.png'),
+  'battle_portrait.greenkeep_location': require('../../assets/game/battle_portraits/greenkeep_location.png'),
+
+
+
+
+
+
+
 };
 
 export function getProductionAssetSource(assetId: string) {
