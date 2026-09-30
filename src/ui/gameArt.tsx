@@ -2374,26 +2374,38 @@ export function FactionCampScene({
 
 
 export function SettlementTerrainBackdrop({
-  faction = 'human'
+  faction = 'human',
+  stageId = 'camp'
 }: {
   faction?: FactionId;
+  stageId?: WagonStage['id'];
 }) {
+  const rank = stageRanks[stageId] ?? 0;
+  const accent = faction === 'elf' ? palette.elfLight : faction === 'orc' ? palette.orcLight : palette.humanLight;
   const ground =
     faction === 'elf'
-      ? '#304935'
+      ? '#2D4934'
       : faction === 'orc'
-        ? '#4A382C'
-        : '#354A37';
+        ? '#47352A'
+        : '#354B37';
   const clearing =
     faction === 'elf'
-      ? '#466247'
+      ? '#456448'
       : faction === 'orc'
-        ? '#624536'
-        : '#506347';
-  const road =
-    faction === 'orc'
-      ? '#7E5D42'
-      : '#8A7353';
+        ? '#634738'
+        : '#52684B';
+  const road = faction === 'orc' ? '#76563E' : '#846E50';
+  const roadEdge = faction === 'elf' ? '#557053' : faction === 'orc' ? '#553C30' : '#5B5946';
+  const roadWidth = rank >= 3 ? 30 : rank >= 1 ? 25 : 20;
+  const foliage = [
+    { left: '2%', top: '7%' }, { left: '88%', top: '8%' },
+    { left: '1%', top: '78%' }, { left: '90%', top: '75%' }
+  ] as const;
+  const stones = [
+    { left: '12%', top: '31%' }, { left: '84%', top: '31%' },
+    { left: '16%', top: '64%' }, { left: '81%', top: '67%' },
+    { left: '43%', top: '13%' }, { left: '53%', top: '82%' }
+  ] as const;
 
   return (
     <View
@@ -2408,32 +2420,92 @@ export function SettlementTerrainBackdrop({
         overflow: 'hidden'
       }}
     >
-      <View style={{ position: 'absolute', left: '4%', top: '6%', width: '30%', height: '24%', backgroundColor: clearing, opacity: 0.45 }} />
-      <View style={{ position: 'absolute', right: '4%', top: '8%', width: '27%', height: '20%', backgroundColor: clearing, opacity: 0.4 }} />
-      <View style={{ position: 'absolute', left: '8%', bottom: '7%', width: '26%', height: '20%', backgroundColor: clearing, opacity: 0.35 }} />
-      <View style={{ position: 'absolute', right: '8%', bottom: '8%', width: '29%', height: '22%', backgroundColor: clearing, opacity: 0.38 }} />
-      <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: 30, backgroundColor: road, opacity: 0.78 }} />
-      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '46%', width: 30, backgroundColor: road, opacity: 0.78 }} />
-      <View style={{ position: 'absolute', left: '10%', top: '34%', width: 7, height: 7, backgroundColor: palette.stone, opacity: 0.8 }} />
-      <View style={{ position: 'absolute', right: '13%', top: '33%', width: 5, height: 5, backgroundColor: palette.stoneLight, opacity: 0.8 }} />
-      <View style={{ position: 'absolute', left: '17%', bottom: '29%', width: 5, height: 5, backgroundColor: palette.stoneLight, opacity: 0.75 }} />
-      <View style={{ position: 'absolute', right: '19%', bottom: '24%', width: 8, height: 5, backgroundColor: palette.stone, opacity: 0.75 }} />
-      {faction === 'elf' ? (
+      <View style={{ position: 'absolute', left: '3%', top: '5%', width: '32%', height: '25%', backgroundColor: clearing, opacity: 0.58 }} />
+      <View style={{ position: 'absolute', right: '3%', top: '7%', width: '30%', height: '23%', backgroundColor: clearing, opacity: 0.52 }} />
+      <View style={{ position: 'absolute', left: '6%', bottom: '5%', width: '30%', height: '24%', backgroundColor: clearing, opacity: 0.47 }} />
+      <View style={{ position: 'absolute', right: '5%', bottom: '5%', width: '31%', height: '25%', backgroundColor: clearing, opacity: 0.5 }} />
+
+      <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: roadWidth + 6, backgroundColor: roadEdge, opacity: 0.78 }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, top: '47%', height: roadWidth, backgroundColor: road, opacity: 0.94 }} />
+      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '46%', width: roadWidth + 6, backgroundColor: roadEdge, opacity: 0.78 }} />
+      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '47%', width: roadWidth, backgroundColor: road, opacity: 0.94 }} />
+
+      {rank >= 1 ? (
         <>
-          <View style={{ position: 'absolute', left: '3%', top: '18%', width: 18, height: 18, backgroundColor: palette.elf, opacity: 0.72 }} />
-          <View style={{ position: 'absolute', right: '4%', bottom: '18%', width: 21, height: 21, backgroundColor: palette.elf, opacity: 0.68 }} />
+          <View style={{ position: 'absolute', left: '8%', top: '43%', width: '18%', height: 3, backgroundColor: palette.wood, opacity: 0.7 }} />
+          <View style={{ position: 'absolute', right: '8%', top: '56%', width: '18%', height: 3, backgroundColor: palette.wood, opacity: 0.7 }} />
+          <View style={{ position: 'absolute', left: '42%', top: '8%', width: 3, height: '17%', backgroundColor: palette.wood, opacity: 0.65 }} />
         </>
       ) : null}
-      {faction === 'orc' ? (
+
+      {rank >= 2 ? (
         <>
-          <View style={{ position: 'absolute', left: '7%', top: '14%', width: 14, height: 6, backgroundColor: palette.red, opacity: 0.7 }} />
-          <View style={{ position: 'absolute', right: '7%', bottom: '17%', width: 16, height: 7, backgroundColor: palette.red, opacity: 0.65 }} />
+          <View style={{ position: 'absolute', left: '1.5%', right: '1.5%', top: 5, height: 3, backgroundColor: accent, opacity: 0.62 }} />
+          <View style={{ position: 'absolute', left: '1.5%', right: '1.5%', bottom: 5, height: 3, backgroundColor: accent, opacity: 0.62 }} />
+          <View style={{ position: 'absolute', left: 5, top: '2%', bottom: '2%', width: 3, backgroundColor: accent, opacity: 0.48 }} />
+          <View style={{ position: 'absolute', right: 5, top: '2%', bottom: '2%', width: 3, backgroundColor: accent, opacity: 0.48 }} />
+        </>
+      ) : null}
+
+      {rank >= 3 ? stones.map((stone, index) => (
+        <View
+          key={'road-stone-' + String(index)}
+          style={{
+            position: 'absolute',
+            left: stone.left,
+            top: stone.top,
+            width: index % 2 === 0 ? 7 : 5,
+            height: index % 3 === 0 ? 5 : 4,
+            backgroundColor: palette.stoneLight,
+            opacity: 0.4
+          }}
+        />
+      )) : null}
+
+      {foliage.map((spot, index) => faction === 'orc' ? (
+        <View key={'edge-' + String(index)} style={{ position: 'absolute', left: spot.left, top: spot.top, width: 23, height: 24 }}>
+          <View style={{ position: 'absolute', left: 10, top: 3, width: 4, height: 19, backgroundColor: palette.wood }} />
+          <View style={{ position: 'absolute', left: 3, top: 7, width: 18, height: 5, backgroundColor: palette.orc }} />
+          <View style={{ position: 'absolute', left: 0, top: 15, width: 7, height: 6, backgroundColor: palette.stone }} />
+        </View>
+      ) : (
+        <View key={'edge-' + String(index)} style={{ position: 'absolute', left: spot.left, top: spot.top, width: 24, height: 26 }}>
+          <View style={{ position: 'absolute', left: 10, top: 10, width: 5, height: 16, backgroundColor: palette.wood }} />
+          <View style={{ position: 'absolute', left: 2, top: 3, width: 20, height: 12, backgroundColor: faction === 'elf' ? palette.elf : palette.green }} />
+          <View style={{ position: 'absolute', left: 6, top: 0, width: 13, height: 9, backgroundColor: faction === 'elf' ? palette.elfLight : palette.greenLight }} />
+        </View>
+      ))}
+
+      {faction === 'human' ? (
+        <>
+          <View style={{ position: 'absolute', left: '3%', bottom: '33%', width: 28, height: 20, borderWidth: 2, borderColor: palette.wood, opacity: 0.72 }} />
+          <View style={{ position: 'absolute', right: '3%', top: '34%', width: 24, height: 17, backgroundColor: palette.food, opacity: 0.24 }} />
+        </>
+      ) : faction === 'elf' ? (
+        <>
+          <View style={{ position: 'absolute', left: '8%', top: '17%', width: 7, height: 7, backgroundColor: palette.elfLight, opacity: 0.9 }} />
+          <View style={{ position: 'absolute', right: '9%', bottom: '16%', width: 9, height: 9, backgroundColor: palette.blue, opacity: 0.72 }} />
+          <View style={{ position: 'absolute', left: '14%', bottom: '12%', width: 17, height: 4, backgroundColor: palette.elfLight, opacity: 0.48 }} />
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', left: '7%', top: '17%', width: 13, height: 5, backgroundColor: palette.red, opacity: 0.82 }} />
+          <View style={{ position: 'absolute', right: '7%', bottom: '16%', width: 16, height: 6, backgroundColor: palette.red, opacity: 0.72 }} />
+          <View style={{ position: 'absolute', right: '12%', top: '18%', width: 6, height: 15, backgroundColor: palette.outline, opacity: 0.75 }} />
+        </>
+      )}
+
+      {rank >= 4 ? (
+        <>
+          <View style={{ position: 'absolute', left: '25%', top: 12, width: 10, height: 7, backgroundColor: accent, opacity: 0.68 }} />
+          <View style={{ position: 'absolute', right: '25%', top: 12, width: 10, height: 7, backgroundColor: accent, opacity: 0.68 }} />
+          <View style={{ position: 'absolute', left: '23%', bottom: 12, width: 12, height: 7, backgroundColor: accent, opacity: 0.62 }} />
+          <View style={{ position: 'absolute', right: '23%', bottom: 12, width: 12, height: 7, backgroundColor: accent, opacity: 0.62 }} />
         </>
       ) : null}
     </View>
   );
 }
-
 
 export function ResourceSiteSprite({
   siteId,

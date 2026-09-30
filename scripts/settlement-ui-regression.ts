@@ -186,6 +186,8 @@ function testRecipesAndInteractions() {
     const start = JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels, placements: f.game.buildingPlacements });
     check(f.calls.length === 0, 'Initial rendering cannot call construction or relocation.');
     check(nodes(tree, 'Pressable').filter(node => node.props.testID?.startsWith('settlement-')).length === 9, 'Settlement must keep all nine authored plot positions.');
+    check(nodes(tree, 'SettlementTerrainBackdrop')[0]?.props.stageId === 'fort', 'Settlement scenery must receive the live kingdom stage.');
+    check(nodes(tree, 'BuildingSprite').some(node => Number(node.props.size) >= 50), 'Built structures must read as primary map objects rather than tiny card icons.');
     check(plot(tree, 'plot_se').props.disabled, 'A Town plot must remain locked at Fort.');
     choosePlot(tree, 'plot_se'); check(f.calls.length === 0, 'Locked plots must not trigger a transaction.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
