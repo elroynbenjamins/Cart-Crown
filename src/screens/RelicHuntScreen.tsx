@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -47,6 +47,9 @@ export function RelicHuntScreen({
     relicHuntRunsCompleted,
     relicHuntRewardClaimed,
     relicCollectionClaimedFactions,
+    equipmentInventory,
+    unitEquipment,
+    equipEquipment,
     startRelicHuntRun,
     resolveRelicHuntStage,
     abandonRelicHuntRun,
@@ -90,6 +93,48 @@ export function RelicHuntScreen({
     relicRewards[activeFaction];
   const artifact =
     getEquipment(reward.artifactId);
+  const [justClaimed, setJustClaimed] =
+    useState(false);
+  const [equipMessage, setEquipMessage] =
+    useState<string | null>(null);
+
+  const recommendedRelicUnit = useMemo(() => {
+    const deployed = activeUnits.filter(
+      unit => unit.faction === activeFaction
+    );
+    const candidates =
+      deployed.length > 0
+        ? deployed
+        : units.filter(
+            unit => unit.faction === activeFaction
+          );
+
+    return candidates.reduce<
+      (typeof candidates)[number] | null
+    >((best, candidate) => {
+      if (!best) return candidate;
+      const bestPower =
+        best.attack + best.armor + best.speed;
+      const candidatePower =
+        candidate.attack +
+        candidate.armor +
+        candidate.speed;
+      return candidatePower > bestPower
+        ? candidate
+        : best;
+    }, null);
+  }, [activeFaction, activeUnits, units]);
+
+  const equippedRelicUnit =
+    units.find(
+      unit =>
+        unitEquipment[unit.id]?.artifact ===
+        reward.artifactId
+    ) ?? null;
+  const relicInInventory =
+    equipmentInventory.includes(
+      reward.artifactId
+    );
 
   const currentStage =
     activeRelicHuntRun &&
@@ -140,15 +185,168 @@ export function RelicHuntScreen({
     currentAffinities.large;
 
   const finish = () => {
+    const firstClear = !relicHuntRewardClaimed;
     if (finishRelicHuntRun()) {
-      onExit();
+      if (firstClear) {
+        setJustClaimed(true);
+        setEquipMessage(null);
+      } else {
+        onExit();
+      }
     }
+  };
+
+  const equipRelicToRecommended = () => {
+    if (!recommendedRelicUnit) {
+      setEquipMessage('No eligible squad is available.');
+      return;
+    }
+    setEquipMessage(
+      equipEquipment(
+        recommendedRelicUnit.id,
+        reward.artifactId
+      )
+        ? 'Equipped to ' +
+          recommendedRelicUnit.className +
+          '.'
+        : 'Could not equip the Relic.'
+    );
   };
 
   const failAndExit = () => {
     abandonRelicHuntRun();
     onExit();
   };
+
+  if (justClaimed) {
+    return (
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <ScreenHero
+          eyebrow="FIRST-CLEAR REWARD"
+          title="Relic Earned"
+          body="Your unique artifact is now in inventory. Equip it now, or leave it there for later."
+          accent={theme.colors.gold}
+          status={
+            <StatusPill
+              label="NEW RELIC"
+              tone="done"
+            />
+          }
+        />
+
+        <GameCard
+          faction={activeFaction}
+          state="ready"
+          accent={theme.colors.gold}
+        >
+          <View style={styles.rewardHeader}>
+            <View
+              style={[
+                styles.rewardArt,
+                {
+                  borderColor: theme.colors.info,
+                  backgroundColor:
+                    theme.colors.surface2
+                }
+              ]}
+            >
+              <EquipmentSprite
+                equipmentId={reward.artifactId}
+                faction={activeFaction}
+                size={56}
+              />
+            </View>
+            <View style={styles.stageCopy}>
+              <Text
+                style={[
+                  styles.rewardName,
+                  { color: theme.colors.text }
+                ]}
+              >
+                {reward.artifactName}
+              </Text>
+              <View style={styles.rewardBadges}>
+                <RarityChip rarity={artifact?.rarity} />
+                <StatusPill
+                  label="ARTIFACT"
+                  tone="current"
+                />
+              </View>
+            </View>
+          </View>
+
+          {artifact ? (
+            <Text
+              style={[
+                styles.rewardStats,
+                { color: theme.colors.info }
+              ]}
+            >
+              +{artifact.attackBonus} ATK · +{artifact.armorBonus} ARM · +{artifact.speedBonus} SPD
+            </Text>
+          ) : null}
+
+          <Text
+            style={[
+              styles.note,
+              { color: theme.colors.textMuted }
+            ]}
+          >
+            {recommendedRelicUnit
+              ? 'Best fit: ' +
+                recommendedRelicUnit.className +
+                '. This is your strongest deployed squad by current ATK + ARM + SPD.'
+              : 'No deployed squad is available. The Relic will stay safely in inventory.'}
+          </Text>
+
+          <View style={styles.actions}>
+            <PrimaryButton
+              label={
+                equippedRelicUnit
+                  ? 'Equipped to ' +
+                    equippedRelicUnit.className
+                  : recommendedRelicUnit
+                    ? 'Equip to ' +
+                      recommendedRelicUnit.className
+                    : 'No squad available'
+              }
+              disabled={
+                Boolean(equippedRelicUnit) ||
+                !recommendedRelicUnit ||
+                !relicInInventory
+              }
+              onPress={equipRelicToRecommended}
+            />
+            {equipMessage ? (
+              <Text
+                style={[
+                  styles.note,
+                  {
+                    color: equippedRelicUnit
+                      ? theme.colors.primary
+                      : theme.colors.textMuted
+                  }
+                ]}
+              >
+                {equipMessage}
+              </Text>
+            ) : null}
+            <SecondaryButton
+              label={
+                equippedRelicUnit
+                  ? 'Return to Activities'
+                  : 'Not now · Return'
+              }
+              onPress={onExit}
+            />
+          </View>
+        </GameCard>
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView
@@ -830,7 +1028,7 @@ export function RelicHuntScreen({
                   label={
                     relicHuntRewardClaimed
                       ? 'Finish Practice Hunt'
-                      : 'Claim Relic & Return'
+                      : 'Claim Relic'
                   }
                   onPress={finish}
                 />
