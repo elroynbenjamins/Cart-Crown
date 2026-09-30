@@ -1011,7 +1011,7 @@ export function CampaignScreen({
       <ScreenHero
         eyebrow="OPTIONAL MODES"
         title="Beyond the Campaign"
-        body="Repeatable modes test formation and wagon builds without requiring another story chapter."
+        body="Repeatable tactical modes for formations, saved runs and mastery rewards."
         accent={theme.colors.primary}
         status={<StatusPill label="REPEATABLE" tone="available" />}
       />
