@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   map: { borderRadius: 22, borderWidth: 1, overflow: 'hidden', position: 'relative' },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
   plot: { position: 'absolute', width: '27%', height: '25%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 5, overflow: 'hidden' },
-  plotSurface: { ...StyleSheet.absoluteFillObject, borderRadius: 13 },
+  plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 13 },
   buildingPad: { width: 66, height: 58, alignItems: 'center', justifyContent: 'flex-end' },
   buildingFootprint: { position: 'absolute', left: 7, right: 7, bottom: 1, height: 16, borderRadius: 999, opacity: 0.2 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
