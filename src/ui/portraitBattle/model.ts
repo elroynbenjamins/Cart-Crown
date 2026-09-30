@@ -57,7 +57,7 @@ export function battleLayout(width: number, height: number, fontScale = 1) {
   const compact = h < 680 || w < 360;
   const portraitSize = compact ? 48 : 56;
   const railHeight = portraitSize + 18 * scale + 6;
-  const footerStacked = w < 340 && scale > 1.2;
+  const footerStacked = w < 300 || (w < 480 && scale > 1.25);
   const reserved = 46 * scale + 2 * railHeight + 44 * scale + 52 * scale + 26 + 32;
   return {
     compact, portraitSize, railHeight, footerStacked,

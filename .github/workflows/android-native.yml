@@ -20,6 +20,8 @@ on:
       - 'src/ui/semanticColors.ts'
       - 'src/ui/battleVisuals*.tsx'
       - 'src/screens/BattleScreen.tsx'
+      - 'src/AppShell.tsx'
+      - 'src/ui/portraitBattle/**'
   push:
     branches: [main]
     paths:
@@ -39,6 +41,8 @@ on:
       - 'src/ui/semanticColors.ts'
       - 'src/ui/battleVisuals*.tsx'
       - 'src/screens/BattleScreen.tsx'
+      - 'src/AppShell.tsx'
+      - 'src/ui/portraitBattle/**'
 
 permissions:
   contents: read
