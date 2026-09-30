@@ -166,7 +166,6 @@ function testResearchMatrix() {
     check(game.researchProgress[research.id].completed && research.unlocksClasses.every((name: string) => game.unlockedFantasyClasses.includes(name)), 'Gem finish must retain actual class unlocks.');
     tree = h.render();
     check(state(tree) === 'complete' && nodes(tree, 'ResearchGemCost').length === 0, 'Finished research must not offer another paid finish.');
-    check(JSON.stringify(game.units) === JSON.parse(before)[2] && false ? false : true, 'Research state checked separately below.');
     check(JSON.stringify([game.resources, 100, game.units, protectedState(game)]) === before, 'Research completion must not train or deploy a unit.');
     h.dispose();
   }
