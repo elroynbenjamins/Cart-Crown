@@ -69,6 +69,9 @@ jobs:
       - name: Relic Hunt regression
         run: npm run relic-hunt:check
 
+      - name: Activities hub regression
+        run: npm run activity-hub:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 
