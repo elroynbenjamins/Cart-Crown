@@ -110,6 +110,9 @@ import {
   getPreferredFormationSlots
 } from './formation';
 import {
+  applyArmyLoadoutEquipment
+} from './armyLoadouts';
+import {
   canPayBuildingCost,
   getBuildingLevelDefinition,
   getBuildings,
@@ -596,7 +599,14 @@ function cloneFormationPresets(
       formation: Array.from(
         { length: 9 },
         (_, index) => preset.formation[index] ?? null
-      )
+      ),
+      ...(preset.unitEquipment
+        ? {
+            unitEquipment: cloneLoadouts(
+              preset.unitEquipment
+            )
+          }
+        : {})
     }))
     .sort((a, b) => a.slotId - b.slotId);
 }
@@ -5984,6 +5994,10 @@ export function GameProvider({
     if (![1, 2, 3].includes(slotId)) return false;
     if (!formation.some(Boolean)) return false;
 
+    const activeUnitIds = formation.filter(
+      (unitId): unitId is string =>
+        Boolean(unitId)
+    );
     const preset: FormationPreset = {
       slotId,
       formationShapeId,
@@ -5991,6 +6005,14 @@ export function GameProvider({
       formation: Array.from(
         { length: 9 },
         (_, index) => formation[index] ?? null
+      ),
+      unitEquipment: Object.fromEntries(
+        activeUnitIds.map(unitId => [
+          unitId,
+          {
+            ...(unitEquipment[unitId] ?? {})
+          }
+        ])
       )
     };
 
@@ -6057,6 +6079,27 @@ export function GameProvider({
     );
 
     if (usedCapacity === 0) return false;
+
+    if (preset.unitEquipment) {
+      const appliedEquipment =
+        applyArmyLoadoutEquipment({
+          units,
+          targetFormation: nextFormation,
+          savedUnitEquipment:
+            preset.unitEquipment,
+          currentUnitEquipment:
+            unitEquipment,
+          equipmentInventory
+        });
+
+      setUnitEquipment(
+        appliedEquipment.unitEquipment
+      );
+      setEquipmentInventory(
+        appliedEquipment.equipmentInventory
+      );
+      setUnits(appliedEquipment.units);
+    }
 
     setFormationShapeIdState(shape.id);
     setFormationDoctrineId(doctrine.id);
