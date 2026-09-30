@@ -742,7 +742,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyName: 'Unbound Beacon Regent',
     enemyCount: 6,
     enemyHp: 3600,
-    difficulty: 'Boss'
+    difficulty: 'Boss',
+    fantasyThreat: 'hybrid'
   }
 };
 
