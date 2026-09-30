@@ -17,6 +17,18 @@ import { buildingRolePresentation, districtRecipePresentation, districtRecipeSta
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
+const settlementPlotPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
+  plot_nw: { left: '4%', top: '7%' },
+  plot_n: { left: '36%', top: '4%' },
+  plot_ne: { left: '68%', top: '8%' },
+  plot_w: { left: '3%', top: '38%' },
+  plot_center: { left: '36%', top: '36%' },
+  plot_e: { left: '70%', top: '39%' },
+  plot_sw: { left: '7%', top: '69%' },
+  plot_s: { left: '38%', top: '69%' },
+  plot_se: { left: '69%', top: '68%' }
+};
+
 export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplete }: {
   onExit: () => void;
   tutorialFocus?: TutorialFocusTarget | null;
@@ -85,17 +97,16 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           <SemanticChip label={placedIds.length + ' built'} tone="neutral" compact />
           <SemanticChip label={settlementAdjacencyBonuses.length + ' active districts'} tone={settlementAdjacencyBonuses.length ? 'positive' : 'neutral'} compact />
           <SemanticChip label="Relocation is free" tone="cyan" compact />
+          <SemanticChip label="Living settlement" tone="violet" compact />
         </View>
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-          Tap an empty plot to build. Tap a structure to inspect its levels or move it to an empty unlocked plot. Districts connect up, down, left or right—not diagonally.
+          Tap a plot to build or a structure to inspect and relocate it. Neighbouring buildings can form powerful districts.
         </Text>
       </GameCard>
 
       <View style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
         <View pointerEvents="none" style={styles.backdrop}>
-          <SettlementTerrainBackdrop faction={activeFaction} />
-          <View style={[styles.roadHorizontal, { backgroundColor: theme.colors.surface3 }]} />
-          <View style={[styles.roadVertical, { backgroundColor: theme.colors.surface3 }]} />
+          <SettlementTerrainBackdrop faction={activeFaction} stageId={currentWagonStage.id} />
         </View>
         {settlementPlots.map(plot => {
           const unlocked = isSettlementPlotUnlocked(plot, currentWagonStage.id);
@@ -109,6 +120,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const roleColor = semanticColor(theme, roleTone);
           const selected = plotSelected || buildingSelected;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
+          const visualPosition = settlementPlotPositions[plot.id] ?? {
+            left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
+            top: (String(7 + plot.row * 31) + '%') as ViewStyle['top']
+          };
           return (
             <Pressable
               key={plot.id}
@@ -139,15 +154,26 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               style={[
                 styles.plot,
                 {
-                  left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
-                  top: (String(7 + plot.row * 31) + '%') as ViewStyle['top'],
-                  backgroundColor: building ? theme.colors.surface2 : unlocked ? theme.colors.appBg : theme.colors.surface3,
+                  left: visualPosition.left,
+                  top: visualPosition.top,
+                  backgroundColor: 'transparent',
                   borderColor: tutorialPlotFocused || selected ? theme.colors.gold : building ? roleColor : theme.colors.border,
-                  borderWidth: tutorialPlotFocused || selected ? 3 : 1.5,
+                  borderWidth: tutorialPlotFocused || selected ? 3 : building ? 1 : 1.5,
+                  borderStyle: building || selected || tutorialPlotFocused ? 'solid' : 'dashed',
                   transform: tutorialPlotFocused ? [{ scale: 1.05 }] : undefined
                 }
               ]}
             >
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.plotSurface,
+                  {
+                    backgroundColor: building ? theme.colors.surface1 : unlocked ? theme.colors.appBg : theme.colors.surface3,
+                    opacity: building ? 0.36 : unlocked ? 0.5 : 0.78
+                  }
+                ]}
+              />
               {tutorialPlotFocused ? (
                 <View pointerEvents="none" style={[styles.plotGuideBadge, { backgroundColor: theme.colors.gold }]}>
                   <Text style={styles.plotGuideText}>{tutorialFocus?.kind === 'settlement-building' ? 'TAP EMPTY PLOT' : tutorialFocus?.label}</Text>
@@ -155,8 +181,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               ) : null}
               {building ? (
                 <>
-                  <BuildingSprite buildingId={building.id} faction={building.faction} size={44} />
-                  <Text style={[styles.plotBuildingName, { color: roleColor }]} numberOfLines={2}>{building.name}</Text>
+                  <View style={styles.buildingPad}>
+                    <View pointerEvents="none" style={[styles.buildingFootprint, { backgroundColor: roleColor }]} />
+                    <BuildingSprite buildingId={building.id} faction={building.faction} size={58} />
+                  </View>
+                  <Text style={[styles.plotBuildingName, { color: roleColor, backgroundColor: theme.colors.surface1 }]} numberOfLines={1}>{building.name}</Text>
                   <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
                 </>
               ) : unlocked ? (
@@ -303,13 +332,14 @@ const styles = StyleSheet.create({
   section: { gap: 8, marginTop: 12 },
   map: { borderRadius: 22, borderWidth: 1, overflow: 'hidden', position: 'relative' },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
-  roadHorizontal: { position: 'absolute', left: '0%', top: '46%', width: '100%', height: 28, opacity: 0.65 },
-  roadVertical: { position: 'absolute', left: '46%', top: '0%', width: 28, height: '100%', opacity: 0.65 },
-  plot: { position: 'absolute', width: '27%', height: '25%', borderRadius: 16, alignItems: 'center', justifyContent: 'center', padding: 5 },
+  plot: { position: 'absolute', width: '27%', height: '25%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 5, overflow: 'hidden' },
+  plotSurface: { ...StyleSheet.absoluteFillObject, borderRadius: 13 },
+  buildingPad: { width: 66, height: 58, alignItems: 'center', justifyContent: 'flex-end' },
+  buildingFootprint: { position: 'absolute', left: 7, right: 7, bottom: 1, height: 16, borderRadius: 999, opacity: 0.2 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
   plotGuideText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900' },
-  plotBuildingName: { fontSize: 11, lineHeight: 15, fontWeight: '900', textAlign: 'center', marginTop: 4 },
-  plotLevel: { fontSize: 11, lineHeight: 15, marginTop: 2 },
+  plotBuildingName: { fontSize: 10, lineHeight: 14, fontWeight: '900', textAlign: 'center', marginTop: 1, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 5, maxWidth: '96%' },
+  plotLevel: { fontSize: 10, lineHeight: 14, marginTop: 1 },
   emptyPlus: { fontSize: 28, fontWeight: '600' },
   emptyText: { fontSize: 12, lineHeight: 17, fontWeight: '800' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
