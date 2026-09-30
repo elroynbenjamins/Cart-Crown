@@ -20,6 +20,11 @@ import {
 import { CampaignNodeSprite, FactionCrest, LockIcon, RegionMapBackdrop } from '../ui/gameArt';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
+import { ActivityCard } from '../ui/ActivityCard';
+import {
+  activityGroups,
+  activityPresentation
+} from '../game/activityPresentation';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
 type CampaignView = 'story' | 'activities' | 'factions';
@@ -885,6 +890,76 @@ export function CampaignScreen({
     if (id === 'kingdom_defense') onOpenKingdomDefense();
   };
 
+  const activityStatus = (id: SideModeId) => {
+    if (id === 'war_table') {
+      return 'Board ' +
+        (warTableCycle + 1) +
+        ' · ' +
+        warTableCompletedContractIds.length +
+        '/3 cleared';
+    }
+    if (id === 'expeditions') {
+      return activeExpeditionRun
+        ? activeExpeditionRun.completed
+          ? 'Boss defeated · loot ready'
+          : activeExpeditionRun.failed
+            ? 'Run failed · return to close it'
+            : 'Run active · Stage ' +
+              (activeExpeditionRun.stageIndex + 1) +
+              '/5'
+        : expeditionTickets +
+          (expeditionTickets === 1 ? ' ticket' : ' tickets') +
+          ' · ' +
+          expeditionRunsCompleted +
+          ' clears';
+    }
+    if (id === 'sieges') {
+      return activeSiegeRun
+        ? activeSiegeRun.completed
+          ? 'Fortress captured · reward ready'
+          : activeSiegeRun.failed
+            ? 'Assault failed · return to close it'
+            : 'Siege active · Stage ' +
+              (activeSiegeRun.stageIndex + 1) +
+              '/4'
+        : siegeRunsCompleted +
+          (siegeRunsCompleted === 1 ? ' clear' : ' clears');
+    }
+    if (id === 'relic_hunts') {
+      return activeRelicHuntRun
+        ? activeRelicHuntRun.completed
+          ? 'Relic secured · reward ready'
+          : activeRelicHuntRun.failed
+            ? 'Chain broken · return to close it'
+            : 'Hunt active · Guardian ' +
+              (activeRelicHuntRun.stageIndex + 1) +
+              '/3'
+        : relicHuntRewardClaimed
+          ? relicHuntRunsCompleted + ' clears · relic claimed'
+          : 'Unique relic reward available';
+    }
+    if (id === 'formation_trials') {
+      return kingdomTrialCompletions.length + '/3 medals';
+    }
+    return kingdomDefenseCompleted
+      ? kingdomDefenseRuns +
+        (kingdomDefenseRuns === 1 ? ' clear' : ' clears')
+      : 'Endurance defense';
+  };
+
+  const activityActionLabel = (id: SideModeId) =>
+    id === 'expeditions' && activeExpeditionRun
+      ? 'Resume Expedition'
+      : id === 'sieges' && activeSiegeRun
+        ? 'Resume Siege'
+        : id === 'relic_hunts' && activeRelicHuntRun
+          ? 'Resume Relic Hunt'
+          : 'Open ' +
+            (
+              sideModeDefinitions.find(mode => mode.id === id)?.name ??
+              'Activity'
+            );
+
   const renderActivities = () => (
     <>
       <ScreenHero
@@ -895,126 +970,57 @@ export function CampaignScreen({
         status={<StatusPill label="REPEATABLE" tone="available" />}
       />
 
-      {availableSideModes.map(mode => (
-        <GameCard
-          key={mode.id}
-          faction="human"
-          accent={theme.colors.primary}
-        >
-          <View style={styles.modeHeader}>
-            <View style={styles.modeCopy}>
-              <Text style={[styles.modeName, { color: theme.colors.text }]}>{mode.name}</Text>
-              <Text style={[styles.modeSubtitle, { color: theme.colors.primary }]}>{mode.subtitle}</Text>
-            </View>
-            <StatusPill label="UNLOCKED" tone="available" />
-          </View>
-          <Text style={[styles.modeBody, { color: theme.colors.textMuted }]}>{mode.description}</Text>
-          <Text style={[styles.modeExample, { color: theme.colors.text }]}>Example: {mode.example}</Text>
-          <Text style={[styles.modeReward, { color: theme.colors.gold }]}>Rewards: {mode.rewardFocus}</Text>
+      {activityGroups.map(group => {
+        const modes =
+          availableSideModes.filter(
+            mode =>
+              activityPresentation[mode.id].group ===
+              group.id
+          );
+        if (modes.length === 0) return null;
 
-          {mode.id === 'war_table' ? (
-            <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
-              Board {warTableCycle + 1} · {warTableCompletedContractIds.length}/3 cleared
-            </Text>
-          ) : null}
-
-          {mode.id === 'expeditions' ? (
-            <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
-              {activeExpeditionRun
-                ? activeExpeditionRun.completed
-                  ? 'Boss defeated · loot ready to secure'
-                  : activeExpeditionRun.failed
-                    ? 'Run failed · return to close it'
-                    : 'Run active · Stage ' +
-                      (activeExpeditionRun.stageIndex + 1) +
-                      '/5'
-                : 'Tickets: ' +
-                  expeditionTickets +
-                  ' · Completed runs: ' +
-                  expeditionRunsCompleted}
-            </Text>
-          ) : null}
-
-          {mode.id === 'sieges' ? (
-            <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
-              {activeSiegeRun
-                ? activeSiegeRun.completed
-                  ? 'Fortress captured · reward ready'
-                  : activeSiegeRun.failed
-                    ? 'Assault failed · return to close it'
-                    : 'Siege active · Stage ' +
-                      (activeSiegeRun.stageIndex + 1) +
-                      '/4'
-                : 'Completed sieges: ' +
-                  siegeRunsCompleted}
-            </Text>
-          ) : null}
-
-          {mode.id === 'relic_hunts' ? (
-            <Text style={[styles.modeMeta, { color: theme.colors.textMuted }]}>
-              {activeRelicHuntRun
-                ? activeRelicHuntRun.completed
-                  ? 'Relic secured · reward ready'
-                  : activeRelicHuntRun.failed
-                    ? 'Chain broken · return to close it'
-                    : 'Hunt active · Guardian ' +
-                      (activeRelicHuntRun.stageIndex + 1) +
-                      '/3'
-                : relicHuntRewardClaimed
-                  ? relicHuntRunsCompleted + ' clears · unique relic claimed'
-                  : 'Unique relic reward available'}
-            </Text>
-          ) : null}
-
-          {mode.id === 'formation_trials' ? (
-            <View style={styles.modeStatusRow}>
-              <StatusPill
-                label={
-                  kingdomTrialCompletions.length +
-                  '/3 MEDALS'
-                }
-                tone={
-                  kingdomTrialCompletions.length >= 3
-                    ? 'done'
-                    : 'current'
-                }
-              />
-            </View>
-          ) : null}
-
-          {mode.id === 'kingdom_defense' && kingdomDefenseCompleted ? (
-            <View style={styles.modeStatusRow}>
-              <StatusPill
-                label={
-                  kingdomDefenseRuns +
-                  (kingdomDefenseRuns === 1
-                    ? ' CLEAR'
-                    : ' CLEARS')
-                }
-                tone="done"
-              />
-            </View>
-          ) : null}
-
-          <View style={styles.modeButton}>
-            <SecondaryButton
-              label={
-                mode.id === 'expeditions' &&
-                activeExpeditionRun
-                  ? 'Resume Expedition'
-                  : mode.id === 'sieges' &&
-                      activeSiegeRun
-                    ? 'Resume Siege'
-                    : mode.id === 'relic_hunts' &&
-                        activeRelicHuntRun
-                      ? 'Resume Relic Hunt'
-                      : 'Open ' + mode.name
+        return (
+          <View
+            key={group.id}
+            style={styles.activityGroup}
+          >
+            <SectionTitle
+              title={group.title}
+              trailing={
+                modes.length +
+                (modes.length === 1
+                  ? ' mode'
+                  : ' modes')
               }
-              onPress={() => openMode(mode.id)}
             />
+            <Text
+              style={[
+                styles.activityGroupSubtitle,
+                { color: theme.colors.textMuted }
+              ]}
+            >
+              {group.subtitle}
+            </Text>
+            <View style={styles.activityList}>
+              {modes.map(mode => (
+                <ActivityCard
+                  key={mode.id}
+                  mode={mode}
+                  faction="human"
+                  accent={theme.colors.primary}
+                  status={activityStatus(mode.id)}
+                  actionLabel={activityActionLabel(mode.id)}
+                  highlight={
+                    mode.id === 'relic_hunts' &&
+                    !relicHuntRewardClaimed
+                  }
+                  onPress={() => openMode(mode.id)}
+                />
+              ))}
+            </View>
           </View>
-        </GameCard>
-      ))}
+        );
+      })}
 
       {isSideModeUnlocked('expeditions') ? (
         <>
@@ -1274,6 +1280,9 @@ const styles = StyleSheet.create({
   chevron: { fontSize: 10, fontWeight: '900' },
   activityHeroTitle: { fontSize: 20, fontWeight: '900' },
   activityHeroBody: { fontSize: 12, lineHeight: 18, marginTop: 6 },
+  activityGroup: { gap: 7 },
+  activityGroupSubtitle: { fontSize: 10.5, lineHeight: 15, marginTop: -6 },
+  activityList: { gap: 8 },
   modeHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   modeCopy: { flex: 1 },
   modeName: { fontSize: 17, fontWeight: '900' },
