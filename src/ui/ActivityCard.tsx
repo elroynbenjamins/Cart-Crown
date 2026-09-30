@@ -25,7 +25,9 @@ export function ActivityCard({
   status,
   actionLabel,
   onPress,
-  highlight = false
+  highlight = false,
+  attentionLabel,
+  attentionTone = 'resume'
 }: {
   mode: SideModeDefinition;
   faction: FactionId;
@@ -34,10 +36,20 @@ export function ActivityCard({
   actionLabel: string;
   onPress: () => void;
   highlight?: boolean;
+  attentionLabel?: string;
+  attentionTone?: 'reward' | 'resume' | 'review' | 'unique';
 }) {
   const { theme } = useGameTheme();
   const presentation =
     activityPresentation[mode.id];
+  const attentionColor =
+    attentionTone === 'reward'
+      ? theme.colors.gold
+      : attentionTone === 'review'
+        ? theme.colors.danger
+        : attentionTone === 'unique'
+          ? theme.colors.info
+          : accent;
 
   return (
     <GameCard
@@ -49,15 +61,26 @@ export function ActivityCard({
     >
       <View style={styles.header}>
         <View style={styles.copy}>
-          <Text
-            style={[
-              styles.name,
-              { color: theme.colors.text }
-            ]}
-            numberOfLines={1}
-          >
-            {mode.name}
-          </Text>
+          <View style={styles.nameRow}>
+            <Text
+              style={[
+                styles.name,
+                { color: theme.colors.text }
+              ]}
+              numberOfLines={1}
+            >
+              {mode.name}
+            </Text>
+            {attentionLabel ? (
+              <View
+                accessibilityLabel={attentionLabel}
+                style={[
+                  styles.notificationDot,
+                  { backgroundColor: attentionColor }
+                ]}
+              />
+            ) : null}
+          </View>
           <Text
             style={[
               styles.purpose,
@@ -79,15 +102,28 @@ export function ActivityCard({
       </View>
 
       <View style={styles.metaRow}>
-        <Text
-          style={[
-            styles.status,
-            { color: accent }
-          ]}
-          numberOfLines={1}
-        >
-          {status}
-        </Text>
+        <View style={styles.statusRow}>
+          <Text
+            style={[
+              styles.status,
+              { color: accent }
+            ]}
+            numberOfLines={1}
+          >
+            {status}
+          </Text>
+          {attentionLabel ? (
+            <Text
+              style={[
+                styles.attention,
+                { color: attentionColor }
+              ]}
+              numberOfLines={1}
+            >
+              {attentionLabel}
+            </Text>
+          ) : null}
+        </View>
         <Text
           style={[
             styles.reward,
@@ -121,9 +157,20 @@ const styles = StyleSheet.create({
   copy: {
     flex: 1
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7
+  },
   name: {
+    flexShrink: 1,
     fontSize: 15,
     fontWeight: '900'
+  },
+  notificationDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4
   },
   purpose: {
     fontSize: 10.5,
@@ -134,10 +181,24 @@ const styles = StyleSheet.create({
     marginTop: 9,
     gap: 3
   },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8
+  },
   status: {
+    flex: 1,
     fontSize: 10,
     lineHeight: 14,
     fontWeight: '900'
+  },
+  attention: {
+    flexShrink: 0,
+    fontSize: 8.5,
+    lineHeight: 12,
+    fontWeight: '900',
+    letterSpacing: 0.55
   },
   reward: {
     fontSize: 9.5,

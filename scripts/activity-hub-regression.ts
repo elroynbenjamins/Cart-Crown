@@ -81,6 +81,30 @@ assert.ok(
   'Compact Activity purpose text needs a mobile line cap.'
 );
 assert.ok(
+  card.includes('attentionLabel') &&
+    card.includes('notificationDot'),
+  'Activity cards must expose compact attention text plus a notification dot.'
+);
+assert.ok(
+  human.includes('activitiesNeedAttention') &&
+    human.includes('segmentDot'),
+  'Human Activities tab must show an actionable notification dot.'
+);
+for (const source of [human, faction]) {
+  assert.ok(
+    source.includes("'NEW REWARD'") &&
+      source.includes("'NEW RELIC'") &&
+      source.includes("'RESUME'") &&
+      source.includes("'REVIEW'"),
+    'Activities must distinguish rewards, Relics, resumable runs and review states.'
+  );
+  assert.ok(
+    source.includes("return 'Open';") &&
+      source.includes("return 'Resume';"),
+    'Activity actions should stay short at first glance.'
+  );
+}
+assert.ok(
   relic.includes('Relic Collection') &&
     relic.includes('relicCollectionClaimedFactions'),
   'Relic Hunt must expose account collection progress.'
@@ -94,7 +118,18 @@ assert.ok(
   relic.includes('RarityChip'),
   'Relic Hunt reward preview must show explicit rarity.'
 );
+assert.ok(
+  relic.includes('justClaimed') &&
+    relic.includes('recommendedRelicUnit') &&
+    relic.includes('equipEquipment(') &&
+    relic.includes('NEW RELIC'),
+  'First-clear Relic claim must stay visible and offer one-tap recommended equipping.'
+);
+assert.ok(
+  !relic.includes('Claim Relic & Return'),
+  'First-clear claim must not immediately eject the player before equipping.'
+);
 
 console.log(
-  'PASS: Activities stay grouped and compact, Relic rarity is explicit, and the Relic Hunt exposes guardian/reward visuals plus 3-faction collection progress.'
+  'PASS: Activities stay grouped, compact and glanceable with attention states; Relic first-clear stays visible with one-tap recommended equipping and 3-faction collection progress.'
 );

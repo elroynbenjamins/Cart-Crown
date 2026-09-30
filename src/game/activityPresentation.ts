@@ -21,17 +21,17 @@ export const activityGroups: Array<{
   {
     id: 'quick',
     title: 'Quick Battles',
-    subtitle: 'Short tactical sessions'
+    subtitle: 'Short tactical fights'
   },
   {
     id: 'runs',
     title: 'Persistent Runs',
-    subtitle: 'Multi-stage modes with saved progress'
+    subtitle: 'Saved multi-stage runs'
   },
   {
     id: 'mastery',
     title: 'Mastery',
-    subtitle: 'Puzzles, build checks and unique rewards'
+    subtitle: 'Build tests & unique rewards'
   }
 ];
 
@@ -40,31 +40,31 @@ export const activityPresentation:
     war_table: {
       group: 'quick',
       badge: 'QUICK',
-      purpose: 'Fast formation-counter contracts.'
+      purpose: 'Counter-focused contracts.'
     },
     formation_trials: {
       group: 'mastery',
       badge: 'PUZZLE',
-      purpose: 'Formation challenges with authored constraints.'
+      purpose: 'Formation puzzles with fixed constraints.'
     },
     kingdom_defense: {
       group: 'runs',
       badge: 'ENDURANCE',
-      purpose: 'Hold one army through escalating waves.'
+      purpose: 'Escalating waves on one army.'
     },
     expeditions: {
       group: 'runs',
       badge: 'ROGUELITE',
-      purpose: 'Branching route with persistent Readiness and loot.'
+      purpose: 'Branching run with saved Readiness and loot.'
     },
     sieges: {
       group: 'runs',
       badge: 'ASSAULT',
-      purpose: 'Staged fortress attack with preparation choices.'
+      purpose: 'Multi-stage fortress assault.'
     },
     relic_hunts: {
       group: 'mastery',
       badge: 'RELIC',
-      purpose: 'Fantasy-counter boss chain with a unique first-clear reward.'
+      purpose: 'Three guardians. One unique Relic.'
     }
   };
