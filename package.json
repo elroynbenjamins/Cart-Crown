@@ -23,6 +23,7 @@
     "side-mode-difficulty:check": "tsx scripts/side-mode-difficulty-regression.ts",
     "siege:check": "tsx scripts/siege-regression.ts",
     "relic-hunt:check": "tsx scripts/relic-hunt-regression.ts",
+    "activity-hub:check": "tsx scripts/activity-hub-regression.ts",
     "cross-mode:check": "tsx scripts/cross-mode-regression.ts",
     "art:check": "node scripts/art-regression.mjs",
     "boss:check": "tsx scripts/boss-presentation-regression.ts",
