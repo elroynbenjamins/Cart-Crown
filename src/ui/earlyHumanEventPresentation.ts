@@ -51,7 +51,7 @@ const events: Record<EarlyHumanEventId, EventDefinition> = {
 export type EarlyHumanEventState = {
   activeFaction: FactionId;
   chapterNumber: number;
-  chapterNodes: readonly { id: string; current: boolean; completed: boolean }[];
+  chapterNodes: readonly { id: string; current?: boolean; completed?: boolean }[];
   holdTheRoadWon: boolean;
   markedRaidersInvestigated: boolean;
   forgeUnlocked: boolean;
