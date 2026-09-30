@@ -2038,45 +2038,49 @@ function EnemyFantasyOverlay({
     );
   }
 
-  return (
-    <>
-      <View
-        style={{
-          position: 'absolute',
-          left: -size * 0.03,
-          top: size * 0.24,
-          width: size * 0.34,
-          height: size * 0.12,
-          borderRadius: size,
-          backgroundColor: palette.red,
-          transform: [{ rotate: '-26deg' }]
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          right: -size * 0.03,
-          top: size * 0.24,
-          width: size * 0.34,
-          height: size * 0.12,
-          borderRadius: size,
-          backgroundColor: palette.red,
-          transform: [{ rotate: '26deg' }]
-        }}
-      />
-      <View
-        style={{
-          position: 'absolute',
-          right: size * 0.08,
-          top: size * 0.05,
-          width: size * 0.18,
-          height: size * 0.18,
-          borderRadius: size,
-          backgroundColor: palette.gold
-        }}
-      />
-    </>
-  );
+  if (fantasyThreat === 'hybrid') {
+    return (
+      <>
+        <View
+          style={{
+            position: 'absolute',
+            left: -size * 0.03,
+            top: size * 0.24,
+            width: size * 0.34,
+            height: size * 0.12,
+            borderRadius: size,
+            backgroundColor: palette.red,
+            transform: [{ rotate: '-26deg' }]
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            right: -size * 0.03,
+            top: size * 0.24,
+            width: size * 0.34,
+            height: size * 0.12,
+            borderRadius: size,
+            backgroundColor: palette.red,
+            transform: [{ rotate: '26deg' }]
+          }}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            right: size * 0.08,
+            top: size * 0.05,
+            width: size * 0.18,
+            height: size * 0.18,
+            borderRadius: size,
+            backgroundColor: palette.gold
+          }}
+        />
+      </>
+    );
+  }
+
+  return null;
 }
 
 export function EnemySprite({
