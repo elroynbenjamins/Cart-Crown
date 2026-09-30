@@ -129,7 +129,7 @@ export function EnemyFantasyThreatAura({
             }}
           />
         </>
-      ) : (
+      ) : fantasyThreat === 'hybrid' ? (
         <>
           <View
             style={{
@@ -156,7 +156,7 @@ export function EnemyFantasyThreatAura({
             }}
           />
         </>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -308,7 +308,7 @@ export function EnemyFantasyStrikeVfx({
             }}
           />
         </>
-      ) : (
+      ) : fantasyThreat === 'hybrid' ? (
         <>
           <View
             style={{
@@ -347,7 +347,7 @@ export function EnemyFantasyStrikeVfx({
             }}
           />
         </>
-      )}
+      ) : null}
     </Animated.View>
   );
 }
