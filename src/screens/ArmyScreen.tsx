@@ -15,7 +15,7 @@ import {
   UnitPortrait
 } from '../ui/components';
 import { EmphasisText, SemanticText, UnitBadges } from '../ui/SemanticUI';
-import { rolePresentation, semanticColor, tierTone } from '../ui/semanticColors';
+import { getRarityPresentation, rolePresentation, semanticColor, tierTone } from '../ui/semanticColors';
 import { UnitSprite } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
@@ -578,9 +578,27 @@ export function ArmyScreen({
               {equipmentInventory.length > 0
                 ? equipmentInventory.map((id, index) => {
                     const item = getEquipment(id);
+                    const rarity =
+                      getRarityPresentation(
+                        item?.rarity
+                      );
                     return <React.Fragment key={id + ':' + index}>
                       {index > 0 ? ' · ' : ''}
-                      <SemanticText tone={item ? tierTone(item.tier) : 'neutral'}>{item?.name ?? id}</SemanticText>
+                      <SemanticText
+                        tone={
+                          rarity?.tone ??
+                          (item
+                            ? tierTone(item.tier)
+                            : 'neutral')
+                        }
+                      >
+                        {item?.name ?? id}
+                        {rarity
+                          ? ' [' +
+                            rarity.label.toUpperCase() +
+                            ']'
+                          : ''}
+                      </SemanticText>
                     </React.Fragment>;
                   })
                 : 'No unassigned equipment. Crafted gear appears here until equipped or used for a promotion.'}
