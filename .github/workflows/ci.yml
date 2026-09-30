@@ -42,6 +42,9 @@ jobs:
       - name: Kingdom Trials regression
         run: npm run trials:check
 
+      - name: Kingdom Trials UI regression
+        run: npx --no-install tsx scripts/kingdom-trial-ui-regression.ts
+
       - name: Kingdom Defense regression
         run: npm run defense:check
 
