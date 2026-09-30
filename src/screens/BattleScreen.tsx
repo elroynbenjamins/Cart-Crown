@@ -38,6 +38,7 @@ import {
   BattlefieldBackdrop,
   BattleStatusMarker,
   BattleVfxStrip,
+  EnemyFantasyStrikeVfx,
   EnemyFantasyThreatAura
 } from '../ui/battleVisuals';
 
@@ -1212,7 +1213,10 @@ export function BattleScreen({
                       : boss
                         ? 'BOSS'
                         : dense
-                          ? assignment?.role.slice(0, 3).toUpperCase()
+                          ? assignment?.label
+                              .replace(/[^A-Za-z]/g, '')
+                              .slice(0, 4)
+                              .toUpperCase()
                           : assignment?.label}
                   </Text>
                 </>
@@ -1290,6 +1294,11 @@ export function BattleScreen({
         />
         <EnemyFantasyThreatAura
           fantasyThreat={encounter.fantasyThreat}
+          compact={compactLayout}
+        />
+        <EnemyFantasyStrikeVfx
+          fantasyThreat={encounter.fantasyThreat}
+          progress={impactPulse}
           compact={compactLayout}
         />
 
