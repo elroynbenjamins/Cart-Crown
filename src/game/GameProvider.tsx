@@ -402,6 +402,7 @@ type GameContextValue = {
   relicHuntRunsCompleted: number;
   activeRelicHuntRun: RelicHuntRunState | null;
   relicHuntRewardClaimed: boolean;
+  relicCollectionClaimedFactions: FactionId[];
   formationTrialCompleted: boolean;
   kingdomTrialCompletions: KingdomTrialId[];
   rewardedAdClaims: RewardedAdClaimState;
@@ -948,6 +949,18 @@ export function GameProvider({
       rewardedRunsThisChapter:
         kingdomDefenseRewardedRunsThisChapter
     });
+
+  const relicCollectionClaimedFactions = (
+    Object.entries(relicRewards) as Array<
+      [FactionId, (typeof relicRewards)[FactionId]]
+    >
+  )
+    .filter(([, reward]) =>
+      sharedProgress.cosmetics.includes(
+        reward.cosmeticId
+      )
+    )
+    .map(([faction]) => faction);
 
   const gems = sharedProgress.gems ?? 0;
   const magicFamilyUnlock = useMemo(
@@ -5621,6 +5634,7 @@ export function GameProvider({
     if (
       !equipment ||
       equipment.faction !== activeFaction ||
+      equipment.rarity === 'relic' ||
       equipment.upgradeFromId ||
       equipment.requiredForgeLevel > forgeLevel ||
       (equipment.requiredStableLevel ?? 0) > stableLevel
@@ -7027,6 +7041,7 @@ export function GameProvider({
       relicHuntRunsCompleted,
       activeRelicHuntRun,
       relicHuntRewardClaimed,
+      relicCollectionClaimedFactions,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,
@@ -7251,6 +7266,7 @@ export function GameProvider({
       relicHuntRunsCompleted,
       activeRelicHuntRun,
       relicHuntRewardClaimed,
+      relicCollectionClaimedFactions,
       formationTrialCompleted,
       kingdomTrialCompletions,
       rewardedAdClaims,

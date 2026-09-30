@@ -245,6 +245,11 @@ function runRewardCoverage() {
         ' Relic Hunt reward does not use the Artifact slot.'
     );
     check(
+      artifact.rarity === 'relic',
+      faction +
+        ' Relic Hunt artifact is not explicitly presented as Relic rarity.'
+    );
+    check(
       artifact.craftCost &&
         Object.keys(
           artifact.craftCost

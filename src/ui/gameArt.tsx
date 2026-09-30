@@ -1072,7 +1072,56 @@ function EquipmentKindSprite({
   faction: FactionId;
   size: number;
 }) {
-  const keyByKind: Record<ReturnType<typeof getEquipmentVisualKind>, ArtKey> = {
+  if (kind === 'artifact') {
+    const accent =
+      faction === 'elf'
+        ? palette.elfLight
+        : faction === 'orc'
+          ? palette.orcLight
+          : palette.humanLight;
+    const core =
+      faction === 'elf'
+        ? palette.greenLight
+        : faction === 'orc'
+          ? palette.red
+          : palette.gold;
+
+    return (
+      <View style={{ width: size, height: size, position: 'relative' }}>
+        <View style={{
+          position: 'absolute',
+          left: size * 0.2,
+          top: size * 0.2,
+          width: size * 0.6,
+          height: size * 0.6,
+          borderWidth: Math.max(1, size * 0.08),
+          borderColor: accent,
+          transform: [{ rotate: '45deg' }],
+          backgroundColor: palette.outline
+        }} />
+        <View style={{
+          position: 'absolute',
+          left: size * 0.34,
+          top: size * 0.34,
+          width: size * 0.32,
+          height: size * 0.32,
+          borderRadius: size * 0.16,
+          backgroundColor: core
+        }} />
+        <View style={{
+          position: 'absolute',
+          left: size * 0.46,
+          top: size * 0.08,
+          width: size * 0.08,
+          height: size * 0.84,
+          backgroundColor: accent,
+          opacity: 0.65
+        }} />
+      </View>
+    );
+  }
+
+  const keyByKind: Record<Exclude<ReturnType<typeof getEquipmentVisualKind>, 'artifact'>, ArtKey> = {
     sword: 'eq_sword',
     spear: 'eq_spear',
     bow: 'eq_bow',
@@ -1153,6 +1202,55 @@ export function EquipmentSprite({
     <ProductionAssetFrame assetId={production.id} width={size}>
       <EquipmentKindSprite kind={kind} faction={renderFaction} size={size} />
     </ProductionAssetFrame>
+  );
+}
+
+export function RelicGuardianSprite({
+  stageId,
+  faction,
+  size = 64
+}: {
+  stageId: 'rune_sentinel' | 'sky_keeper' | 'relic_guardian';
+  faction: FactionId;
+  size?: number;
+}) {
+  const accent =
+    faction === 'elf'
+      ? palette.elfLight
+      : faction === 'orc'
+        ? palette.orcLight
+        : palette.humanLight;
+  const core =
+    faction === 'elf'
+      ? palette.greenLight
+      : faction === 'orc'
+        ? palette.red
+        : palette.gold;
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      {stageId === 'rune_sentinel' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.24, top: size * 0.16, width: size * 0.52, height: size * 0.52, borderRadius: size * 0.26, borderWidth: Math.max(2, size * 0.07), borderColor: accent }} />
+          <View style={{ position: 'absolute', left: size * 0.39, top: size * 0.31, width: size * 0.22, height: size * 0.22, transform: [{ rotate: '45deg' }], backgroundColor: core }} />
+          <View style={{ position: 'absolute', left: size * 0.46, top: size * 0.62, width: size * 0.08, height: size * 0.25, backgroundColor: palette.steel }} />
+        </>
+      ) : stageId === 'sky_keeper' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.39, top: size * 0.28, width: size * 0.22, height: size * 0.34, borderRadius: size * 0.11, backgroundColor: core }} />
+          <View style={{ position: 'absolute', left: size * 0.03, top: size * 0.18, width: size * 0.4, height: size * 0.24, backgroundColor: accent, transform: [{ rotate: '-22deg' }] }} />
+          <View style={{ position: 'absolute', right: size * 0.03, top: size * 0.18, width: size * 0.4, height: size * 0.24, backgroundColor: accent, transform: [{ rotate: '22deg' }] }} />
+          <View style={{ position: 'absolute', left: size * 0.44, top: size * 0.05, width: size * 0.12, height: size * 0.16, borderRadius: size * 0.06, backgroundColor: palette.steel }} />
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.18, top: size * 0.19, width: size * 0.64, height: size * 0.58, borderRadius: size * 0.16, backgroundColor: palette.steelDark, borderWidth: Math.max(2, size * 0.06), borderColor: accent }} />
+          <View style={{ position: 'absolute', left: size * 0.32, top: size * 0.3, width: size * 0.36, height: size * 0.3, transform: [{ rotate: '45deg' }], backgroundColor: core }} />
+          <View style={{ position: 'absolute', left: size * 0.08, top: size * 0.05, width: size * 0.18, height: size * 0.34, backgroundColor: accent, transform: [{ rotate: '-28deg' }] }} />
+          <View style={{ position: 'absolute', right: size * 0.08, top: size * 0.05, width: size * 0.18, height: size * 0.34, backgroundColor: accent, transform: [{ rotate: '28deg' }] }} />
+        </>
+      )}
+    </View>
   );
 }
 

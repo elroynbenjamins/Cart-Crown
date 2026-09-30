@@ -25,6 +25,11 @@ import {
   SectionTitle,
   StatusPill
 } from '../ui/components';
+import { RarityChip } from '../ui/SemanticUI';
+import {
+  EquipmentSprite,
+  RelicGuardianSprite
+} from '../ui/gameArt';
 
 export function RelicHuntScreen({
   onEditFormation,
@@ -41,6 +46,7 @@ export function RelicHuntScreen({
     activeRelicHuntRun,
     relicHuntRunsCompleted,
     relicHuntRewardClaimed,
+    relicCollectionClaimedFactions,
     startRelicHuntRun,
     resolveRelicHuntStage,
     abandonRelicHuntRun,
@@ -356,6 +362,23 @@ export function RelicHuntScreen({
                 ornament={false}
               >
                 <View style={styles.stageRow}>
+                  <View
+                    style={[
+                      styles.guardianIcon,
+                      {
+                        borderColor:
+                          theme.colors.border,
+                        backgroundColor:
+                          theme.colors.surface2
+                      }
+                    ]}
+                  >
+                    <RelicGuardianSprite
+                      stageId={stage.id as 'rune_sentinel' | 'sky_keeper' | 'relic_guardian'}
+                      faction={activeFaction}
+                      size={54}
+                    />
+                  </View>
                   <View style={styles.stageCopy}>
                     <Text
                       style={[
@@ -415,22 +438,52 @@ export function RelicHuntScreen({
             faction={activeFaction}
             accent={theme.colors.gold}
           >
-            <Text
-              style={[
-                styles.rewardName,
-                { color: theme.colors.text }
-              ]}
-            >
-              {reward.artifactName}
-            </Text>
+            <View style={styles.rewardHeader}>
+              <View
+                style={[
+                  styles.rewardArt,
+                  {
+                    borderColor:
+                      theme.colors.info,
+                    backgroundColor:
+                      theme.colors.surface2
+                  }
+                ]}
+              >
+                <EquipmentSprite
+                  equipmentId={reward.artifactId}
+                  faction={activeFaction}
+                  size={48}
+                />
+              </View>
+              <View style={styles.stageCopy}>
+                <Text
+                  style={[
+                    styles.rewardName,
+                    { color: theme.colors.text }
+                  ]}
+                >
+                  {reward.artifactName}
+                </Text>
+                <View style={styles.rewardBadges}>
+                  <RarityChip
+                    rarity={artifact?.rarity}
+                  />
+                  <StatusPill
+                    label="ARTIFACT SLOT"
+                    tone="current"
+                  />
+                </View>
+              </View>
+            </View>
             {artifact ? (
               <Text
                 style={[
                   styles.rewardStats,
-                  { color: theme.colors.gold }
+                  { color: theme.colors.info }
                 ]}
               >
-                Artifact · +{artifact.attackBonus} ATK · +{artifact.armorBonus} ARM · +{artifact.speedBonus} SPD
+                +{artifact.attackBonus} ATK · +{artifact.armorBonus} ARM · +{artifact.speedBonus} SPD
               </Text>
             ) : null}
             <Text
@@ -448,6 +501,89 @@ export function RelicHuntScreen({
               and does not replace weapon, armor,
               shield or mount gear.
             </Text>
+          </GameCard>
+
+          <SectionTitle
+            title="Relic Collection"
+            trailing={
+              relicCollectionClaimedFactions.length +
+              '/3'
+            }
+          />
+          <GameCard ornament={false}>
+            <View style={styles.collectionList}>
+              {(
+                ['human', 'elf', 'orc'] as const
+              ).map(faction => {
+                const collected =
+                  relicCollectionClaimedFactions.includes(
+                    faction
+                  );
+                const relic =
+                  relicRewards[faction];
+
+                return (
+                  <View
+                    key={faction}
+                    style={[
+                      styles.collectionRow,
+                      {
+                        borderColor:
+                          theme.colors.border
+                      }
+                    ]}
+                  >
+                    <EquipmentSprite
+                      equipmentId={relic.artifactId}
+                      faction={faction}
+                      size={34}
+                    />
+                    <View style={styles.stageCopy}>
+                      <Text
+                        style={[
+                          styles.collectionName,
+                          {
+                            color:
+                              collected
+                                ? theme.colors.info
+                                : theme.colors.text
+                          }
+                        ]}
+                      >
+                        {relic.artifactName}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.collectionFaction,
+                          {
+                            color:
+                              theme.colors.textMuted
+                          }
+                        ]}
+                      >
+                        {faction.toUpperCase()}
+                      </Text>
+                    </View>
+                    <StatusPill
+                      label={
+                        collected
+                          ? 'COLLECTED'
+                          : faction === activeFaction
+                            ? 'AVAILABLE'
+                            : 'OTHER FACTION'
+                      }
+                      tone={
+                        collected
+                          ? 'done'
+                          : faction === activeFaction
+                            ? 'available'
+                            : 'locked'
+                      }
+                    />
+                  </View>
+                );
+              })}
+            </View>
           </GameCard>
 
           <PrimaryButton
@@ -727,6 +863,13 @@ export function RelicHuntScreen({
                     : accent
                 }
               >
+                <View style={styles.guardianHero}>
+                  <RelicGuardianSprite
+                    stageId={currentStage.id as 'rune_sentinel' | 'sky_keeper' | 'relic_guardian'}
+                    faction={activeFaction}
+                    size={82}
+                  />
+                </View>
                 <Text
                   style={[
                     styles.stageBody,
@@ -952,6 +1095,19 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 10
   },
+  guardianIcon: {
+    width: 64,
+    height: 64,
+    borderWidth: 1,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  guardianHero: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6
+  },
   stageCopy: {
     flex: 1
   },
@@ -970,6 +1126,25 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginTop: 5
   },
+  rewardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11
+  },
+  rewardArt: {
+    width: 62,
+    height: 62,
+    borderRadius: 15,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  rewardBadges: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 5
+  },
   rewardName: {
     fontSize: 18,
     fontWeight: '900'
@@ -978,6 +1153,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '900',
     marginTop: 5
+  },
+  collectionList: {
+    gap: 8
+  },
+  collectionRow: {
+    minHeight: 50,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    paddingVertical: 6
+  },
+  collectionName: {
+    fontSize: 12,
+    fontWeight: '900'
+  },
+  collectionFaction: {
+    fontSize: 8.5,
+    fontWeight: '900',
+    marginTop: 2,
+    letterSpacing: 0.6
   },
   track: {
     flexDirection: 'row',

@@ -43,4 +43,8 @@ assert.equal(JSON.stringify({ base, next }), before, 'Presenting comparisons mus
 const screen = readFileSync('src/screens/EquipmentManageScreen.tsx', 'utf8');
 assert.ok(screen.includes('renderComparison(item)'), 'Equipment screen must actually use the comparison presentation.');
 assert.ok(!screen.includes("'ATK +' + item.attackBonus"), 'Legacy double-sign/all-green item formatting must remain removed.');
-console.log('PASS: equipment emphasis preserves signs, shows actual equipped-item differences, treats unchanged values neutrally and never mutates gear.');
+assert.ok(screen.includes("item.rarity !== 'relic'"), 'Reward-only Relic artifacts must stay out of Forge craft lists.');
+assert.ok(screen.includes('RarityChip'), 'Equipment screen must visibly present explicit item rarity.');
+const provider = readFileSync('src/game/GameProvider.tsx', 'utf8');
+assert.ok(provider.includes("equipment.rarity === 'relic'"), 'Provider must reject direct crafting attempts for Relic artifacts.');
+console.log('PASS: equipment emphasis preserves signs, shows actual equipped-item differences, presents Relic rarity, blocks reward-only relic crafting and never mutates gear.');
