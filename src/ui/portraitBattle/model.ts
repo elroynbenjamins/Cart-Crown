@@ -27,7 +27,7 @@ export function allyPortrait(unit: UnitDefinition): PortraitKey | null {
 }
 
 export function enemyPortrait(role: UnitRole, profile: EnemyArmyProfileId, name: string, boss: boolean, fantasyThreat?: EnemyFantasyThreatFamily): PortraitKey | null {
-  if (fantasyThreat) return null; // Preserve current magic/air/large/hybrid identity.
+  if (fantasyThreat) return null;
   if (boss) return null; // Named bosses retain their existing authored identity.
   if (role === 'cavalry') return /warg/i.test(name) ? 'warg_portrait' : null;
   if (profile === 'raider_pack' || profile === 'missile_company' || profile === 'shock_warband') {
@@ -43,39 +43,54 @@ export function healthFraction(hp: number, maximum: number): number {
   return Math.max(0, Math.min(1, hp / maximum));
 }
 
+export const ranks = ['front', 'middle', 'rear'] as const;
+export type Rank = typeof ranks[number];
+export const rankLabels: Record<Rank, string> = { front: 'Front', middle: 'Middle', rear: 'Rear' };
+
+function finite(value: number, fallback: number) { return Number.isFinite(value) ? value : fallback; }
+
+/** Uses the available battle viewport (after native insets), not the whole screen. */
 export function battleLayout(width: number, height: number, fontScale = 1) {
-  const w = Number.isFinite(width) ? Math.max(280, width) : 360;
-  const h = Number.isFinite(height) ? height : 640;
-  const stacked = w < 350 || fontScale > 1.25;
-  const railWidth = Math.floor(Math.min(112, Math.max(72, (w - 24) * .225)));
+  const w = Math.max(240, finite(width, 360));
+  const h = Math.max(240, finite(height, 640));
+  const scale = Math.max(1, Math.min(3, finite(fontScale, 1)));
+  const compact = h < 680 || w < 360;
+  const portraitSize = compact ? 48 : 56;
+  const railHeight = portraitSize + 18 * scale + 6;
+  const footerStacked = w < 340 && scale > 1.2;
+  const reserved = 46 * scale + 2 * railHeight + 44 * scale + 52 * scale + 26 + 32;
   return {
-    stacked,
-    railWidth,
-    stageHeight: Math.round(Math.max(340, Math.min(470, h - 445))),
-    // Stacked mode puts portraits in horizontal rails; the battlefield gains width.
-    stageWidth: Math.max(132, stacked ? w - 24 : w - 24 - railWidth * 2 - 8),
-    portraitSize: railWidth - 10,
+    compact, portraitSize, railHeight, footerStacked,
+    portraitWidth: Math.max(64, portraitSize + 16),
+    stageWidth: Math.max(220, w - 20),
+    stageHeight: Math.round(Math.max(264, Math.min(580, h - reserved))),
+    // Small/large-text screens scroll the content, never the outcome footer.
   };
 }
 
-/** Cinematic line-up, not a replacement formation editor or a second combat grid.
- * Preserve real slot IDs/rank labels; arrange only occupied squads into readable
- * opposing columns. Exact saved formation/counters remain in the details panel.
+export function rankForSlot(shape: FormationShapeDefinition, slot: number): Rank | null {
+  return ranks.find(row => shape.rows[row].includes(slot)) ?? null;
+}
+
+/** True formation geometry. Coordinates and size depend on SHAPE, not survivors.
+ * Slots retain their row index even when a neighbour is empty/routed. Both fronts
+ * face the centre; enemy left/right is mirrored into the player's perspective.
+ * The fixed five-slot pitch makes a 2-wide screen narrower than a 5-wide rank.
  */
 export function stageTokens(shape: FormationShapeDefinition, occupied: readonly number[], side: ArmySide, width: number, height: number): StageToken[] {
   const wanted = new Set(occupied);
-  const entries = (['front', 'middle', 'rear'] as const).flatMap(row =>
-    shape.rows[row].filter(slot => wanted.has(slot)).map(slot => ({ row, slot })));
-  const safeW = Math.max(120, width), safeH = Math.max(160, height);
-  const columns = entries.length > 5 ? 2 : 1;
-  const lines = Math.max(3, Math.ceil(entries.length / columns));
-  const size = Math.floor(Math.min(62, safeW * (columns === 1 ? .34 : .205), (safeH - 24) / lines * .82));
-  return entries.map((entry, index) => {
-    const lane = Math.floor(index / columns), column = index % columns;
-    const fraction = columns === 1 ? .255 : column === 0 ? .15 : .365;
-    const x = (side === 'ally' ? fraction : 1 - fraction) * safeW;
-    return { ...entry, x, y: 12 + (lane + .5) * (safeH - 24) / lines, size };
-  });
+  const safeW = Math.max(120, finite(width, 336));
+  const safeH = Math.max(160, finite(height, 320));
+  const pitch = (safeW - 32) / 5;
+  const fractions = side === 'enemy'
+    ? { rear: .105, middle: .25, front: .395 }
+    : { front: .605, middle: .75, rear: .895 };
+  const size = Math.max(8, Math.floor(Math.min(64, pitch * .82, safeH * .145 - 10)));
+  return ranks.flatMap(row => shape.rows[row].flatMap((slot, index, all) => {
+    if (!wanted.has(slot)) return [];
+    const offset = (index - (all.length - 1) / 2) * pitch;
+    return [{ slot, row, x: safeW / 2 + (side === 'enemy' ? -offset : offset), y: fractions[row] * safeH, size }];
+  }));
 }
 
 export function appendExchange(history: readonly ExchangeRecord[], record: ExchangeRecord): ExchangeRecord[] {

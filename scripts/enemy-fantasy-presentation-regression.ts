@@ -102,22 +102,20 @@ const battle = readFileSync(
   'src/screens/BattleScreen.tsx',
   'utf8'
 );
+const portraitBattle = readFileSync('src/ui/portraitBattle/PortraitBattleView.tsx', 'utf8');
 assert.ok(
-  battle.includes('EnemyFantasyThreatAura') &&
-    battle.includes('fantasyThreat={encounter.fantasyThreat}') &&
-    battle.includes('role={assignment?.role}'),
-  'Live Battle no longer forwards threat/role identity into enemy visuals.'
+  battle.includes('fantasyThreat={encounter.fantasyThreat}') && battle.includes('...assignment') &&
+    portraitBattle.includes('EnemyFantasyThreatAura') && portraitBattle.includes('fantasyThreat={p.fantasyThreat}') &&
+    portraitBattle.includes('role={item.role}'),
+  'Live controller/view no longer forward enemy threat and role identity.'
 );
 assert.ok(
-  battle.includes('EnemyFantasyStrikeVfx') &&
-    battle.includes('progress={impactPulse}'),
-  'Live Battle no longer drives threat-specific exchange VFX from the existing impact pulse.'
+  battle.includes('impactPulse={impactPulse}') && portraitBattle.includes('EnemyFantasyStrikeVfx') &&
+    portraitBattle.includes('progress={p.impactPulse}'),
+  'Threat-specific exchange VFX lost the existing impact pulse.'
 );
-assert.ok(
-  battle.includes('assignment?.label') &&
-    battle.includes('.slice(0, 4)'),
-  'Dense enemy rows no longer preserve authored fantasy-role identity.'
-);
+assert.ok(portraitBattle.includes('item.label') && portraitBattle.includes('item.boss ? p.enemyName'),
+  'Portraits must retain full authored role labels and named boss identity.');
 
 const prep = readFileSync(
   'src/screens/BattlePrepScreen.tsx',

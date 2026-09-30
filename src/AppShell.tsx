@@ -1873,6 +1873,7 @@ export function AppShell({
         backgroundColor={theme.colors.appBg}
       />
 
+      {flow !== 'battle' ? (
       <View
         style={[
           styles.topBar,
@@ -1966,7 +1967,9 @@ export function AppShell({
         ) : null}
       </View>
 
-      {battleFlowStage ? (
+      ) : null}
+
+      {battleFlowStage && flow !== 'battle' ? (
         <FlowProgress stage={battleFlowStage} faction={activeFaction} />
       ) : null}
 
