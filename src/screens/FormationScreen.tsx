@@ -3,7 +3,10 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
 import type { TacticalAdjustmentAdvice } from '../game/loadoutAnalysis';
-import type { FormationPresetSlotId } from '../game/types';
+import type {
+  EquipmentSlot,
+  FormationPresetSlotId
+} from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -27,6 +30,14 @@ const rowNotes = {
   middle: 'Flexible / reserve',
   rear: 'Ranged / support'
 } as const;
+
+const equipmentSlots: EquipmentSlot[] = [
+  'weapon',
+  'armor',
+  'shield',
+  'mount',
+  'artifact'
+];
 
 export type FormationGuide = {
   adjustment: TacticalAdjustmentAdvice;
@@ -64,6 +75,7 @@ export function FormationScreen({
     formationDoctrines,
     formationBonuses,
     formationPresets,
+    unitEquipment,
     setFormationShape,
     setFormationDoctrine,
     saveFormationPreset,
@@ -77,6 +89,8 @@ export function FormationScreen({
   const [guideStepComplete, setGuideStepComplete] = useState(false);
   const [guideMessage, setGuideMessage] = useState<string | null>(null);
   const [capacityMessage, setCapacityMessage] = useState<string | null>(null);
+  const [loadoutMessage, setLoadoutMessage] =
+    useState<string | null>(null);
 
   useEffect(() => {
     setGuideStepComplete(false);
@@ -129,15 +143,114 @@ export function FormationScreen({
     );
     if (!preset) return false;
 
-    return (
+    const formationMatches =
       preset.formationShapeId === formationShapeId &&
       preset.formationDoctrineId === formationDoctrineId &&
       Array.from({ length: 9 }).every(
         (_, index) =>
           (preset.formation[index] ?? null) ===
           (formation[index] ?? null)
+      );
+
+    if (
+      !formationMatches ||
+      !preset.unitEquipment
+    ) {
+      return formationMatches;
+    }
+
+    return preset.formation
+      .filter(
+        (unitId): unitId is string =>
+          Boolean(unitId)
       )
+      .every(unitId =>
+        equipmentSlots.every(
+          slot =>
+            (
+              preset.unitEquipment?.[unitId]?.[
+                slot
+              ] ?? null
+            ) ===
+            (
+              unitEquipment[unitId]?.[slot] ??
+              null
+            )
+        )
+      );
+  };
+
+  const currentSavedGearCount =
+    formation
+      .filter(
+        (unitId): unitId is string =>
+          Boolean(unitId)
+      )
+      .reduce(
+        (total, unitId) =>
+          total +
+          equipmentSlots.filter(
+            slot =>
+              Boolean(
+                unitEquipment[unitId]?.[slot]
+              )
+          ).length,
+        0
+      );
+
+  const handleSaveLoadout = (
+    slotId: FormationPresetSlotId
+  ) => {
+    const saved =
+      saveFormationPreset(slotId);
+    setLoadoutMessage(
+      saved
+        ? 'Army Loadout ' +
+            slotId +
+            ' saved with ' +
+            activeCount +
+            ' squads and ' +
+            currentSavedGearCount +
+            ' equipped items.'
+        : 'This Army Loadout could not be saved.'
     );
+  };
+
+  const handleApplyLoadout = (
+    slotId: FormationPresetSlotId
+  ) => {
+    const preset = formationPresets.find(
+      candidate =>
+        candidate.slotId === slotId
+    );
+    const applied =
+      applyFormationPreset(slotId);
+
+    setLoadoutMessage(
+      applied
+        ? preset?.unitEquipment
+          ? 'Army Loadout ' +
+            slotId +
+            ' applied. Saved gear was restored where owned and available.'
+          : 'Loadout ' +
+            slotId +
+            ' applied. This older preset is formation-only; overwrite it to include gear.'
+        : 'That loadout cannot be applied in the current progression state.'
+    );
+  };
+
+  const handleClearLoadout = (
+    slotId: FormationPresetSlotId
+  ) => {
+    const cleared =
+      clearFormationPreset(slotId);
+    if (cleared) {
+      setLoadoutMessage(
+        'Army Loadout ' +
+          slotId +
+          ' cleared.'
+      );
+    }
   };
 
   const guidePresetIsCurrent = guide
@@ -503,7 +616,7 @@ export function FormationScreen({
           <MetricTile
             label="LOADOUTS"
             value={formationPresets.length + '/3'}
-            caption="saved tactical presets"
+            caption="saved army setups"
             tone="info"
           />
         </View>
@@ -520,7 +633,17 @@ export function FormationScreen({
         </GameCard>
       ) : null}
 
-      <SectionTitle title="Tactical loadouts" trailing="3 presets" />
+      <SectionTitle title="Army loadouts" trailing="3 slots" />
+      {loadoutMessage ? (
+        <Text
+          style={[
+            styles.presetMessage,
+            { color: theme.colors.textMuted }
+          ]}
+        >
+          {loadoutMessage}
+        </Text>
+      ) : null}
       <View style={styles.presetList}>
         {presetSlots.map(slotId => {
           const preset = formationPresets.find(
@@ -543,6 +666,28 @@ export function FormationScreen({
           const presetCapacity = preset
             ? deploymentCapacityForFormation(preset.formation)
             : 0;
+          const savedGearCount =
+            preset?.unitEquipment
+              ? Object.values(
+                  preset.unitEquipment
+                ).reduce(
+                  (total, loadout) =>
+                    total +
+                    equipmentSlots.filter(
+                      slot =>
+                        Boolean(loadout[slot])
+                    ).length,
+                  0
+                )
+              : 0;
+          const savedRelicCount =
+            preset?.unitEquipment
+              ? Object.values(
+                  preset.unitEquipment
+                ).filter(loadout =>
+                  Boolean(loadout.artifact)
+                ).length
+              : 0;
 
           return (
             <GameCard
@@ -585,8 +730,25 @@ export function FormationScreen({
                         activeSquadCap +
                         ' cap · ' +
                         squadCount +
-                        ' squads'
-                      : 'Empty preset'}
+                        ' squads · ' +
+                        (
+                          preset.unitEquipment
+                            ? savedGearCount +
+                              ' gear' +
+                              (
+                                savedRelicCount > 0
+                                  ? ' · ' +
+                                    savedRelicCount +
+                                    (
+                                      savedRelicCount === 1
+                                        ? ' Relic'
+                                        : ' Relics'
+                                    )
+                                  : ''
+                              )
+                            : 'formation only'
+                        )
+                      : 'Empty loadout'}
                   </Text>
                 </View>
                 {active ? (
@@ -600,7 +762,7 @@ export function FormationScreen({
               <View style={styles.presetActions}>
                 {preset && !active ? (
                   <Pressable
-                    onPress={() => applyFormationPreset(slotId)}
+                    onPress={() => handleApplyLoadout(slotId)}
                     style={({ pressed }) => [
                       styles.presetAction,
                       {
@@ -621,7 +783,7 @@ export function FormationScreen({
                 ) : null}
 
                 <Pressable
-                  onPress={() => saveFormationPreset(slotId)}
+                  onPress={() => handleSaveLoadout(slotId)}
                   style={({ pressed }) => [
                     styles.presetAction,
                     {
@@ -642,7 +804,7 @@ export function FormationScreen({
 
                 {preset ? (
                   <Pressable
-                    onPress={() => clearFormationPreset(slotId)}
+                    onPress={() => handleClearLoadout(slotId)}
                     style={({ pressed }) => [
                       styles.presetAction,
                       {
@@ -667,7 +829,7 @@ export function FormationScreen({
         })}
       </View>
       <Text style={[styles.presetHint, { color: theme.colors.textMuted }]}>
-        Each loadout saves the formation shape, faction doctrine and exact squad positions.
+        New Army Loadouts save formation shape, doctrine, squad positions and all equipped gear for deployed squads, including Relics. Applying a loadout may move owned gear between squads; unavailable saved items are skipped safely.
       </Text>
 
       <SectionTitle title="Formation shape" trailing="9 positions · max 6 squads" />
@@ -1043,6 +1205,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   presetActionText: { fontSize: 9.5, fontWeight: '900' },
+  presetMessage: {
+    fontSize: 10.5,
+    lineHeight: 15,
+    marginTop: -4
+  },
   presetHint: {
     fontSize: 9.5,
     lineHeight: 14,
