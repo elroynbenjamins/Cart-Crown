@@ -118,6 +118,17 @@ for (const [buildingId, [x, y]] of Object.entries(settlementCells)) {
     failures.push('Settlement atlas mapping missing or moved for ' + buildingId + '.');
   }
 }
+const settlementAliases = [
+  "hall: 'elf_heartgrove_hall'",
+  "barracks: 'elf_warden_lodge'",
+  "wagonwright: 'elf_caravan_grove'",
+  "hall: 'orc_warhold'",
+  "barracks: 'orc_clan_yard'",
+  "wagonwright: 'orc_cartwright'"
+];
+for (const alias of settlementAliases) {
+  if (!gameArt.includes(alias)) failures.push('Settlement faction alias missing: ' + alias);
+}
 if (!registry.includes("'ui.settlement_anchor_atlas': require('../../assets/game/ui/settlement_anchor_atlas.png')")) {
   failures.push('Settlement anchor atlas is not registered as a production source.');
 }
