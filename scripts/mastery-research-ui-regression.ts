@@ -242,8 +242,18 @@ function testTrainingMatrix() {
       check(trained.className === template.className && trained.deploymentCapacity === (template.deploymentCapacity ?? 1), 'Provider must create the selected class with real capacity.');
       for (const key of Object.keys(game.resources)) check(game.resources[key] === 1000 - (template.cost[key as keyof typeof template.cost] ?? 0), 'Exact training debit: ' + key);
       check(protectedState(game) === before, 'Training must not deploy, heal, construct, equip or increase capacity.');
-      tree = h.render(); commit(tree).onConfirm();
-      check(game.units.length === count + 2, 'A new explicit training purchase after state refresh must remain possible.');
+      tree = h.render();
+      const canBuyAgain = Object.entries(template.cost).every(([key, cost]) => game.resources[key] >= (cost ?? 0));
+      check(Boolean(commit(tree).disabled) === !canBuyAgain, 'After spending, confirmation must follow the new wallet rather than assume a repeat purchase is affordable.');
+      if (!canBuyAgain) {
+        commit(tree).onConfirm();
+        check(game.units.length === count + 1, 'An unaffordable repeat purchase must not add a unit.');
+        // Model later earned materials explicitly before testing a second deliberate purchase.
+        game.resources = { gold: 1000, wood: 1000, iron: 1000, stone: 1000, provisions: 1000 };
+        tree = h.render();
+      }
+      commit(tree).onConfirm();
+      check(game.units.length === count + 2, 'A funded explicit training purchase after state refresh must remain possible.');
       h.dispose();
     }
   }
@@ -270,6 +280,12 @@ async function testGuards() {
   nodes(tree, 'SecondaryButton').find(item => String(item.props.label).startsWith('Watch ad'))!.props.onPress();
   await new Promise(resolve => setTimeout(resolve, 0));
   check(f.game.researchProgress[f.research.id].rewardedAdsWatched === 2, 'Ad failure must remain retryable.');
+  tree = h.render();
+  nodes(tree, 'SecondaryButton').find(item => String(item.props.label).startsWith('Watch ad'))!.props.onPress();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  tree = h.render();
+  check(state(tree) === 'complete' && f.research.unlocksClasses.every((name: string) => f.game.unlockedFantasyClasses.includes(name)), 'The last rewarded ad must preserve provider completion and class unlocks.');
+  check(nodes(tree, 'ResearchGemCost').length === 0 && f.game.gems === 100, 'Ad completion must neither charge Gems nor leave another paid finish visible.');
   h.dispose();
 
   for (const failure of ['return', 'throw'] as const) {
