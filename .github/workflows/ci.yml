@@ -78,6 +78,9 @@ jobs:
       - name: Decision UI regression
         run: npm run decision-ui:check
 
+      - name: Settings UI regression
+        run: npx --no-install tsx scripts/settings-ui-regression.ts
+
       - name: Equipment emphasis regression
         run: npx --no-install tsx scripts/equipment-emphasis-regression.ts
 
