@@ -53,7 +53,8 @@ export const rarityPresentation = {
   rare: { label: 'Rare', tone: 'blue' },
   epic: { label: 'Epic', tone: 'violet' },
   legendary: { label: 'Legendary', tone: 'currency' },
-  mythic: { label: 'Mythic', tone: 'rose' }
+  mythic: { label: 'Mythic', tone: 'rose' },
+  relic: { label: 'Relic', tone: 'cyan' }
 } as const;
 export type PresentedRarity = keyof typeof rarityPresentation;
 
