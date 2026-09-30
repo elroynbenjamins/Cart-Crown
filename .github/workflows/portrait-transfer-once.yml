@@ -16,18 +16,16 @@ jobs:
           ref: ui/portrait-combat-integration
       - name: Import exact approved source and PNG bytes
         env:
-          BUNDLE_URL: 'https://sdmntprdenmarkeast.oaiusercontent.com/files/00000000-d604-8210-8334-2c0824c612ea/raw?se=2026-09-30T11%3A47%3A24Z&sp=r&sv=2026-02-06&sr=b&scid=6ca789db-0011-5259-9cb2-aaded94f36ee&skoid=8981e47a-681f-4a6a-b86c-73d6347614b7&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-30T08%3A37%3A52Z&ske=2026-10-01T08%3A37%3A52Z&sks=b&skv=2026-02-06&sig=8p3Y%2ByBtB1NvFrCMBvTs%2BcGxUgVPOvNxI1%2BuoKmdrBE%3D'
+          BUNDLE_URL: 'https://sdmntprnortheu.oaiusercontent.com/files/00000000-8904-81f4-92be-d0fcd8418c52/raw?se=2026-09-30T11%3A49%3A13Z&sp=r&sv=2026-02-06&sr=b&scid=75be924d-bb4f-5400-aa68-7f506a4437e2&skoid=8981e47a-681f-4a6a-b86c-73d6347614b7&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-30T08%3A12%3A06Z&ske=2026-10-01T08%3A12%3A06Z&sks=b&skv=2026-02-06&sig=73oFbBEqSVk%2BNquEqdp6Jo5uFxXZp7rUDG0iSJ2O0YM%3D'
         run: |
           python3 - <<'PY'
           import hashlib, io, json, os, urllib.request, urllib.error, zipfile
           from pathlib import Path, PurePosixPath
           request = urllib.request.Request(os.environ['BUNDLE_URL'], headers={'User-Agent': 'Mozilla/5.0', 'Accept': 'application/zip,application/octet-stream,*/*'})
           try:
-              response = urllib.request.urlopen(request, timeout=30)
-              data = response.read(2000000)
+              data = urllib.request.urlopen(request, timeout=30).read(2000000)
           except urllib.error.HTTPError as error:
               print('Download status:', error.code)
-              print('Date:', error.headers.get('Date'))
               print('Download service response:', error.read(2048).decode('utf-8', errors='replace'))
               raise SystemExit('Transfer stopped; no repository files changed.')
           assert hashlib.sha256(data).hexdigest() == 'b5687ebefc1c5f4ebd77363e2601ff9e906a45e5d3d8e882ad84d9461eb3cf71', 'Bundle hash mismatch'
@@ -50,20 +48,21 @@ jobs:
                   assert digest in spec['allowed_before'] or previous == payload, 'Concurrent change at ' + name
               elif spec['allowed_before'] and not name.startswith('src/ui/portraitBattle/'):
                   raise AssertionError('Expected existing path is missing: ' + name)
-              pending[name] = payload
+              if not name.startswith('.github/workflows/'):
+                  pending[name] = payload
           for name, payload in pending.items():
               destination = Path(name)
               destination.parent.mkdir(parents=True, exist_ok=True)
               destination.write_bytes(payload)
-          Path('/tmp/portrait-import-report.json').write_text(json.dumps({'bundle_sha256': hashlib.sha256(data).hexdigest(), 'files': manifest}, indent=2))
-          print('Verified and installed', len(pending), 'files; original images were not re-encoded.')
+          Path('/tmp/portrait-import-report.json').write_text(json.dumps({'bundle_sha256': hashlib.sha256(data).hexdigest(), 'files': manifest, 'published_paths': list(pending)}, indent=2))
+          print('Verified and installed', len(pending), 'game files; workflow edits are handled separately.')
           PY
           node scripts/art-regression.mjs
-      - name: Commit only this integration to the existing draft branch
+      - name: Commit only game code and original assets to the existing draft branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/AppShell.tsx src/screens/BattleScreen.tsx src/ui/productionAssets.ts src/ui/portraitBattle assets/game/battle_portraits scripts/enemy-fantasy-presentation-regression.ts scripts/portrait-battle-regression.ts .github/workflows/ci.yml .github/workflows/android-native.yml docs/portrait-battle-implementation.md
+          git add src/AppShell.tsx src/screens/BattleScreen.tsx src/ui/productionAssets.ts src/ui/portraitBattle assets/game/battle_portraits scripts/enemy-fantasy-presentation-regression.ts scripts/portrait-battle-regression.ts docs/portrait-battle-implementation.md
           git commit -m 'Implement top and bottom portrait rails with stable three-rank combat formations'
           git push origin HEAD:ui/portrait-combat-integration
       - name: Keep transfer verification
