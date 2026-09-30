@@ -232,6 +232,8 @@ function testInvalidationAndFailures() {
   choice(failedPreference.h.render(), 'full').onPress();
   tree = failedPreference.h.render(); check(text(tree).includes('could not be changed') && choice(tree, 'standard').accessibilityState.checked, 'A failed setter cannot change the displayed preference.');
   failedPreference.preferences.setTacticalGuidance = realSet;
+  // The replaced context setter reaches a real consumer on its next render.
+  tree = failedPreference.h.render();
   choice(tree, 'full').onPress(); check(failedPreference.preferences.tacticalGuidance === 'full', 'Preference failures remain retryable.'); failedPreference.h.dispose();
 }
 function testPresentation() {
