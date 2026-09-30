@@ -26,6 +26,10 @@ import {
   formationShapes,
   getFactionDoctrines
 } from '../game/formation';
+import {
+  canUnitEquipEquipment,
+  getEquipment
+} from '../game/equipment';
 import { initialHumanPlacements } from '../game/settlement';
 import {
   CORE_TUTORIAL_KEYS,
@@ -68,11 +72,13 @@ import {
 } from '../game/factionStarts';
 import type {
   ChapterNode,
+  EquipmentSlot,
   FactionId,
   FormationPreset,
   FormationShapeId,
   ResourceWallet,
-  UnitDefinition
+  UnitDefinition,
+  UnitEquipmentLoadout
 } from '../game/types';
 import type {
   FactionGameState,
@@ -721,6 +727,13 @@ function sanitizePresets(
   );
   const cap = formationStageCap(stageId);
   const doctrines = getFactionDoctrines(faction);
+  const equipmentSlots: EquipmentSlot[] = [
+    'weapon',
+    'armor',
+    'shield',
+    'mount',
+    'artifact'
+  ];
   const bySlot = new Map<number, FormationPreset>();
 
   for (const raw of value) {
@@ -777,11 +790,80 @@ function sanitizePresets(
 
     if (usedCapacity === 0) continue;
 
+    const hasEquipmentSnapshot =
+      raw.unitEquipment &&
+      typeof raw.unitEquipment === 'object';
+    const unitEquipment: Record<
+      string,
+      UnitEquipmentLoadout
+    > = {};
+
+    if (hasEquipmentSnapshot) {
+      const rawEquipment =
+        raw.unitEquipment as Record<
+          string,
+          unknown
+        >;
+
+      for (const unitId of formation) {
+        if (!unitId) continue;
+        const unit = unitById.get(unitId);
+        if (!unit) continue;
+
+        const rawLoadout =
+          rawEquipment[unitId];
+        const loadout:
+          UnitEquipmentLoadout = {};
+
+        if (
+          rawLoadout &&
+          typeof rawLoadout === 'object'
+        ) {
+          const source =
+            rawLoadout as Record<
+              string,
+              unknown
+            >;
+
+          for (const slot of equipmentSlots) {
+            const equipmentId =
+              source[slot];
+            if (
+              typeof equipmentId !==
+              'string'
+            ) {
+              continue;
+            }
+
+            const equipment =
+              getEquipment(equipmentId);
+            if (
+              !equipment ||
+              equipment.slot !== slot ||
+              !canUnitEquipEquipment(
+                unit,
+                equipment
+              )
+            ) {
+              continue;
+            }
+
+            loadout[slot] = equipmentId;
+          }
+        }
+
+        unitEquipment[unitId] = loadout;
+      }
+    }
+
     bySlot.set(raw.slotId, {
       slotId: raw.slotId,
       formationShapeId: shape.id,
       formationDoctrineId: doctrine.id,
-      formation
+      formation,
+      ...(hasEquipmentSnapshot
+        ? { unitEquipment }
+        : {})
     });
   }
 
@@ -800,6 +882,29 @@ function sanitizeStringArray(value: unknown) {
       )
     )
   ];
+}
+
+function sanitizeEquipmentInventory(
+  value: unknown,
+  faction: FactionId
+) {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter(
+    (entry): entry is string => {
+      if (typeof entry !== 'string') {
+        return false;
+      }
+      const equipment = getEquipment(entry);
+      return Boolean(
+        equipment &&
+          (
+            equipment.faction === faction ||
+            equipment.faction === 'global'
+          )
+      );
+    }
+  );
 }
 
 function sanitizeResearchProgress(
@@ -1010,9 +1115,11 @@ export function sanitizeFactionGameState(
       chapterDefaults
     ),
     formationDoctrineId,
-    equipmentInventory: sanitizeStringArray(
-      stored.equipmentInventory
-    ),
+    equipmentInventory:
+      sanitizeEquipmentInventory(
+        stored.equipmentInventory,
+        faction
+      ),
     buildingLevels:
       stored.buildingLevels &&
       typeof stored.buildingLevels === 'object'

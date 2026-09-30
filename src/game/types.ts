@@ -56,6 +56,7 @@ export type FormationPreset = {
   formationShapeId: FormationShapeId;
   formationDoctrineId: string;
   formation: Array<string | null>;
+  unitEquipment?: Record<string, UnitEquipmentLoadout>;
 };
 export type SideModeId = 'war_table' | 'expeditions' | 'formation_trials' | 'kingdom_defense' | 'sieges' | 'relic_hunts';
 export type EquipmentSlot = 'weapon' | 'armor' | 'shield' | 'mount' | 'artifact';

@@ -127,6 +127,40 @@ function runBackwardCompatibleV13Defaults() {
   );
 }
 
+function runLegacyFormationPresetCompatibility() {
+  const record = createNewSaveRecord(1);
+  const human =
+    record.snapshot.factionStates.human;
+  check(human, 'Human state missing.');
+
+  human.formationPresets = [
+    {
+      slotId: 1,
+      formationShapeId: 'balanced_333',
+      formationDoctrineId: 'human_hold',
+      formation: [...human.formation]
+    }
+  ];
+
+  const normalized = normalize(record);
+  check(
+    normalized,
+    'Legacy formation-only preset failed normalization.'
+  );
+  const repaired =
+    normalized.snapshot.factionStates.human;
+  check(repaired, 'Repaired Human state missing.');
+
+  const preset =
+    repaired.formationPresets?.[0];
+  expect(
+    preset?.slotId === 1 &&
+      preset.unitEquipment === undefined,
+    'Legacy formation-only preset did not remain equipment-neutral.'
+  );
+}
+
+
 function runCorruptionRepair() {
   const record = createNewSaveRecord(1);
   const human =
@@ -206,7 +240,20 @@ function runCorruptionRepair() {
         null,
         null,
         null
-      ]
+      ],
+      unitEquipment: {
+        hum_recruit: {
+          weapon: 'hum_iron_sword',
+          artifact: 'orc_emberfang_relic',
+          armor: 'missing_armor'
+        },
+        hum_militia: {
+          shield: 'hum_wood_shield'
+        },
+        missing_unit: {
+          weapon: 'hum_iron_sword'
+        }
+      }
     },
     {
       slotId: 3,
@@ -253,6 +300,11 @@ function runCorruptionRepair() {
   human.unlockedResourceSites = [
     'greenkeep_farms',
     'greenkeep_farms'
+  ];
+  human.equipmentInventory = [
+    'hum_iron_sword',
+    'hum_iron_sword',
+    'missing_equipment'
   ];
 
   record.snapshot.shared = {
@@ -341,6 +393,19 @@ function runCorruptionRepair() {
       ).size === 2,
     'Surviving formation preset was not sanitized.'
   );
+  expect(
+    presets[0]?.unitEquipment?.hum_recruit
+      ?.weapon === 'hum_iron_sword' &&
+      presets[0]?.unitEquipment?.hum_recruit
+        ?.artifact === undefined &&
+      presets[0]?.unitEquipment?.hum_recruit
+        ?.armor === undefined &&
+      presets[0]?.unitEquipment?.hum_militia
+        ?.shield === 'hum_wood_shield' &&
+      presets[0]?.unitEquipment?.missing_unit ===
+        undefined,
+    'Army Loadout equipment snapshot was not sanitized to valid deployed-squad gear.'
+  );
 
   expect(
     repaired.expeditionTickets === 0 &&
@@ -363,6 +428,13 @@ function runCorruptionRepair() {
   expect(
     repaired.unlockedResourceSites.length === 1,
     'Duplicate unlocked resource sites were not deduplicated.'
+  );
+  expect(
+    repaired.equipmentInventory.length === 2 &&
+      repaired.equipmentInventory.every(
+        id => id === 'hum_iron_sword'
+      ),
+    'Equipment inventory did not preserve legitimate duplicate copies while filtering invalid IDs.'
   );
 
   expect(
@@ -626,6 +698,7 @@ function runMultiFactionMetadata() {
 function main() {
   runFreshRoundTrip();
   runBackwardCompatibleV13Defaults();
+  runLegacyFormationPresetCompatibility();
   runCorruptionRepair();
   runActiveFactionRepair();
   runUnrecoverableSaveRejection();
@@ -652,7 +725,7 @@ function main() {
   }
 
   console.log(
-    'PASS: fresh saves, older v13 optional fields, corruption repair, stage/chapter coherence, formation/preset sanitization, active-faction repair, faction switching, JSON round trips and metadata remain valid.'
+    'PASS: fresh saves, older v13 optional fields and formation-only presets, Army Loadout gear sanitization, duplicate equipment counts, corruption repair, stage/chapter coherence, active-faction repair, faction switching, JSON round trips and metadata remain valid.'
   );
 }
 

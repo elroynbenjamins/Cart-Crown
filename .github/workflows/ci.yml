@@ -72,6 +72,9 @@ jobs:
       - name: Activities hub regression
         run: npm run activity-hub:check
 
+      - name: Army Loadout regression
+        run: npm run army-loadout:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 
