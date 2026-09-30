@@ -1,11 +1,13 @@
 import {
   factionCrestProductionAsset,
+  buildingProductionAsset,
   equipmentProductionAsset,
   enemyProductionAsset,
   type ProductionAssetSpec,
   unitProductionAsset
 } from './productionAssets';
 import {
+  getBuildingVisualKind,
   getEquipmentVisualKind,
   getUnitVisualKind
 } from '../game/visualManifest';
@@ -177,12 +179,46 @@ export const advancedPromotionsProductionBatch: ProductionAssetBatch = {
   ]
 };
 
+export const settlementBuildingsProductionBatch: ProductionAssetBatch = {
+  id: 'settlement_buildings_v6',
+  name: 'Settlement Building Identity',
+  purpose:
+    'Gradual production-pixel replacement set for the authored Human, Elf and Orc settlement structures. The game can ship each PNG independently because BuildingSprite keeps its code-rendered fallback.',
+  assets: [
+    buildingProductionAsset('human', 'hall', getBuildingVisualKind('hall')),
+    buildingProductionAsset('human', 'barracks', getBuildingVisualKind('barracks')),
+    buildingProductionAsset('human', 'forge', getBuildingVisualKind('forge')),
+    buildingProductionAsset('human', 'wagonwright', getBuildingVisualKind('wagonwright')),
+    buildingProductionAsset('human', 'quartermaster', getBuildingVisualKind('quartermaster')),
+    buildingProductionAsset('human', 'war_room', getBuildingVisualKind('war_room')),
+    buildingProductionAsset('human', 'stable', getBuildingVisualKind('stable')),
+    buildingProductionAsset('human', 'signal_tower', getBuildingVisualKind('signal_tower')),
+    buildingProductionAsset('human', 'officer_academy', getBuildingVisualKind('officer_academy')),
+
+    buildingProductionAsset('elf', 'elf_heartgrove_hall', getBuildingVisualKind('elf_heartgrove_hall')),
+    buildingProductionAsset('elf', 'elf_warden_lodge', getBuildingVisualKind('elf_warden_lodge')),
+    buildingProductionAsset('elf', 'elf_moon_forge', getBuildingVisualKind('elf_moon_forge')),
+    buildingProductionAsset('elf', 'elf_caravan_grove', getBuildingVisualKind('elf_caravan_grove')),
+    buildingProductionAsset('elf', 'elf_council_glade', getBuildingVisualKind('elf_council_glade')),
+    buildingProductionAsset('elf', 'elf_ward_beacon', getBuildingVisualKind('elf_ward_beacon')),
+
+    buildingProductionAsset('orc', 'orc_warhold', getBuildingVisualKind('orc_warhold')),
+    buildingProductionAsset('orc', 'orc_clan_yard', getBuildingVisualKind('orc_clan_yard')),
+    buildingProductionAsset('orc', 'orc_bone_forge', getBuildingVisualKind('orc_bone_forge')),
+    buildingProductionAsset('orc', 'orc_cartwright', getBuildingVisualKind('orc_cartwright')),
+    buildingProductionAsset('orc', 'orc_smokehouse', getBuildingVisualKind('orc_smokehouse')),
+    buildingProductionAsset('orc', 'orc_war_council', getBuildingVisualKind('orc_war_council')),
+    buildingProductionAsset('orc', 'orc_warg_pens', getBuildingVisualKind('orc_warg_pens'))
+  ]
+};
+
 export const productionAssetBatches: ProductionAssetBatch[] = [
   starterProductionBatch,
   earlyProgressionProductionBatch,
   enemyIdentityProductionBatch,
   midgameUnitsProductionBatch,
-  advancedPromotionsProductionBatch
+  advancedPromotionsProductionBatch,
+  settlementBuildingsProductionBatch
 ];
 
 export function getProductionBatch(id: string) {
