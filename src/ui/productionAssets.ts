@@ -243,6 +243,33 @@ export function uiProductionAsset(id: string) {
 // Spiritwood Spear likewise uses its existing Elven spear renderer after the
 // all-category native audit found an unrecoverable compressed PNG payload.
 export const productionAssetSources: Partial<Record<string, ImageSourcePropType>> = {
+  // Human class portraits and figures from the approved generated sheets.
+  // Figures alias the same physical file as unit.human.*; no duplicate textures/files.
+  'battle_portrait.human_man_at_arms_portrait': require('../../assets/game/battle_portraits/human_v1/man_at_arms_portrait.png'),
+  'battle_portrait.human_man_at_arms_unit': require('../../assets/game/units/human/man_at_arms.png'),
+  'battle_portrait.human_ranger_portrait': require('../../assets/game/battle_portraits/human_v1/ranger_portrait.png'),
+  'battle_portrait.human_ranger_unit': require('../../assets/game/units/human/ranger.png'),
+  'battle_portrait.human_field_chaplain_portrait': require('../../assets/game/battle_portraits/human_v1/field_chaplain_portrait.png'),
+  'battle_portrait.human_field_chaplain_unit': require('../../assets/game/units/human/field_chaplain.png'),
+  'battle_portrait.human_lancer_portrait': require('../../assets/game/battle_portraits/human_v1/lancer_portrait.png'),
+  'battle_portrait.human_lancer_unit': require('../../assets/game/units/human/lancer.png'),
+  'battle_portrait.human_shield_infantry_portrait': require('../../assets/game/battle_portraits/human_v1/shield_infantry_portrait.png'),
+  'battle_portrait.human_shield_infantry_unit': require('../../assets/game/units/human/shield_infantry.png'),
+  'battle_portrait.human_spearman_portrait': require('../../assets/game/battle_portraits/human_v1/spearman_portrait.png'),
+  'battle_portrait.human_spearman_unit': require('../../assets/game/units/human/spearman.png'),
+  'battle_portrait.human_crossbowman_portrait': require('../../assets/game/battle_portraits/human_v1/crossbowman_portrait.png'),
+  'battle_portrait.human_crossbowman_unit': require('../../assets/game/units/human/crossbowman.png'),
+  'battle_portrait.human_field_medic_portrait': require('../../assets/game/battle_portraits/human_v1/field_medic_portrait.png'),
+  'battle_portrait.human_field_medic_unit': require('../../assets/game/units/human/field_medic.png'),
+  'battle_portrait.human_halberdier_portrait': require('../../assets/game/battle_portraits/human_v1/halberdier_portrait.png'),
+  'battle_portrait.human_halberdier_unit': require('../../assets/game/units/human/halberdier.png'),
+  'battle_portrait.human_banner_captain_portrait': require('../../assets/game/battle_portraits/human_v1/banner_captain_portrait.png'),
+  'battle_portrait.human_banner_captain_unit': require('../../assets/game/units/human/banner_captain.png'),
+  'battle_portrait.human_heavy_cavalry_portrait': require('../../assets/game/battle_portraits/human_v1/heavy_cavalry_portrait.png'),
+  'battle_portrait.human_heavy_cavalry_unit': require('../../assets/game/units/human/heavy_cavalry.png'),
+  'battle_portrait.human_royal_guard_portrait': require('../../assets/game/battle_portraits/human_v1/royal_guard_portrait.png'),
+  'battle_portrait.human_royal_guard_unit': require('../../assets/game/units/human/royal_guard.png'),
+
   'ui.settlement_anchor_atlas': require('../../assets/game/ui/settlement_anchor_atlas.png'),
 
   'unit.human.recruit': require('../../assets/game/units/human/recruit.png'),

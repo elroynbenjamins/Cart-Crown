@@ -135,3 +135,6 @@ check(controller.includes('setExchangeHistory(previous => appendExchange'),'Log 
 check(controller.includes('fantasyThreat={encounter.fantasyThreat}')&&file.includes('fantasyThreat={p.fantasyThreat} role={item.role}'),'Fantasy/role forwarding must survive integration');
 check(file.includes('EnemyFantasyStrikeVfx')&&file.includes('progress={p.impactPulse}'),'Retain fantasy strike effects');
 console.log(`PASS: ${checks} stable-slot, formation-rank, geometry, portrait-selection, control and real-TSX checks.`);
+
+// Class-art integration is part of the existing CI portrait gate.
+import './human-battle-art-regression';

@@ -5,7 +5,7 @@ import { getProductionAssetSource } from '../productionAssets';
 import type { ArtKey } from './model';
 
 // These frames exclude the transparent production padding. UI is always real text.
-const frames: Record<ArtKey, readonly [number, number, number, number]> = {
+const frames: Partial<Record<ArtKey, readonly [number, number, number, number]>> = {
   captain_unit: [0, 0, 256, 256], ranger_unit: [0, 0, 256, 256], priest_unit: [0, 0, 256, 256],
   raider_unit: [0, 0, 256, 256], missile_unit: [0, 0, 256, 256], warg_unit: [0, 0, 256, 256],
   captain_portrait: [8, 8, 240, 240], ranger_portrait: [8, 8, 240, 240],
@@ -21,7 +21,10 @@ export const ReferenceArt = memo(function ReferenceArt({ art, width, height = wi
   const [failedArt, setFailedArt] = useState<ArtKey | null>(null);
   const source = getProductionAssetSource('battle_portrait.' + art);
   if (!source || failedArt === art) return <View style={{ width, height }}>{fallback}</View>;
-  const [x, y, w, h] = frames[art];
+  // New Human portraits share the 8px inset; unit PNGs retain the whole canvas
+  // so long weapons and mounted silhouettes are never cropped by a portrait frame.
+  const [x, y, w, h] = frames[art] ?? (art.endsWith('_portrait')
+    ? [8, 8, 240, 240] : [0, 0, 256, 256]);
   const scale = Math.max(width / w, height / h);
   return (
     <View pointerEvents="none" accessible={false} style={{ width, height, overflow: 'hidden' }}>
