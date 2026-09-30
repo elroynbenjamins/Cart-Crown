@@ -1,0 +1,61 @@
+name: Finalize portrait integration (one shot)
+on:
+  push:
+    branches: [ui/portrait-combat-integration]
+    paths: [.github/workflows/portrait-finalize-once.yml]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.repository == 'elroynbenjamins/Cart-Crown' && github.ref == 'refs/heads/ui/portrait-combat-integration'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ui/portrait-combat-integration
+      - name: Apply verified minimal fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, re
+          expected = {'src/AppShell.tsx': '5542a8b2490b034a37db4eea01a64f0a89ba3ab6', 'src/ui/productionAssets.ts': 'f42b5cab11d5b2a0e93c36dd7785f9a412988bc6'}
+          target = {'src/AppShell.tsx': 'ac89fc1cdefbc782692eafa64cc6eb6a6bb4e5d6', 'src/ui/productionAssets.ts': '837536ea06d347c0a2884194a96ac226cb69e2c2'}
+          def blob(data):
+              return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+          for name, sha in expected.items():
+              assert blob(Path(name).read_bytes()) == sha, 'Concurrent source change: ' + name
+          p = Path('src/AppShell.tsx')
+          text = p.read_text()
+          start = "        {flow !== 'battle' ? (\n          <View style={styles.topActions}>"
+          end = "          </View>\n        ) : null}\n      </View>\n\n      ) : null}"
+          assert text.count(start) == text.count(end) == 1
+          text = text.replace(start, '        <View style={styles.topActions}>').replace(end, '        </View>\n      </View>\n\n      ) : null}')
+          assert blob(text.encode()) == target[str(p)]
+          p.write_text(text)
+          p = Path('src/ui/productionAssets.ts')
+          lines, seen, removed = [], {}, 0
+          for line in p.read_text().splitlines(keepends=True):
+              match = re.match(r"  '([^']+)': require\('([^']+)'\),?\s*$", line)
+              if match:
+                  key, value = match.groups()
+                  if key in seen:
+                      assert seen[key] == value, 'Conflicting asset registration: ' + key
+                      removed += 1
+                      continue
+                  seen[key] = value
+              lines.append(line)
+          assert removed == 84 and len(seen) == 99
+          text = ''.join(lines)
+          assert blob(text.encode()) == target[str(p)]
+          p.write_text(text)
+          print('Removed the redundant header condition and 84 identical duplicate registry entries; 99 unique assets retained.')
+          PY
+          node scripts/art-regression.mjs
+      - name: Commit only the two verified game files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/AppShell.tsx src/ui/productionAssets.ts
+          git commit -m 'Fix portrait integration typecheck without changing rendering or combat rules'
+          git push origin HEAD:ui/portrait-combat-integration
