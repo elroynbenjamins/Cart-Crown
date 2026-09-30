@@ -130,7 +130,8 @@ export function applyArmyLoadoutEquipment({
   );
   const targetIds = targetFormation.filter(
     (unitId): unitId is string =>
-      Boolean(unitId) && unitById.has(unitId)
+      typeof unitId === 'string' &&
+      unitById.has(unitId)
   );
   const targetSet = new Set(targetIds);
 
