@@ -1803,7 +1803,58 @@ function EnemyFantasyOverlay({
               opacity: 0.8
             }}
           />
-        ) : null}
+        ) : role === 'ranged' ? (
+          <>
+            <View
+              style={{
+                position: 'absolute',
+                left: size * 0.05,
+                top: size * 0.24,
+                width: size * 0.42,
+                height: Math.max(2, size * 0.035),
+                backgroundColor: palette.gold,
+                transform: [{ rotate: '-28deg' }]
+              }}
+            />
+            <View
+              style={{
+                position: 'absolute',
+                left: size * 0.22,
+                top: size * 0.12,
+                width: size * 0.05,
+                height: size * 0.4,
+                backgroundColor: palette.red,
+                transform: [{ rotate: '20deg' }]
+              }}
+            />
+          </>
+        ) : role === 'frontline' ? (
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.06,
+              top: size * 0.3,
+              width: size * 0.3,
+              height: size * 0.4,
+              borderWidth: Math.max(1, size * 0.025),
+              borderColor: palette.gold,
+              borderRadius: size * 0.07,
+              opacity: 0.85
+            }}
+          />
+        ) : (
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.08,
+              top: size * 0.42,
+              width: size * 0.42,
+              height: Math.max(2, size * 0.04),
+              backgroundColor: palette.red,
+              transform: [{ rotate: '-38deg' }]
+            }}
+          />
+        )}
       </>
     );
   }
@@ -1849,6 +1900,56 @@ function EnemyFantasyOverlay({
             opacity: 0.55
           }}
         />
+        {role === 'cavalry' ? (
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.02,
+              top: size * 0.48,
+              width: size * 0.52,
+              height: Math.max(2, size * 0.04),
+              backgroundColor: palette.gold,
+              transform: [{ rotate: '-18deg' }]
+            }}
+          />
+        ) : role === 'ranged' ? (
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.4,
+              top: size * 0.05,
+              width: size * 0.06,
+              height: size * 0.45,
+              backgroundColor: palette.gold,
+              transform: [{ rotate: '12deg' }]
+            }}
+          />
+        ) : (
+          <>
+            <View
+              style={{
+                position: 'absolute',
+                left: size * 0.08,
+                top: size * 0.54,
+                width: size * 0.18,
+                height: size * 0.08,
+                backgroundColor: palette.gold,
+                transform: [{ rotate: '-22deg' }]
+              }}
+            />
+            <View
+              style={{
+                position: 'absolute',
+                right: size * 0.08,
+                top: size * 0.54,
+                width: size * 0.18,
+                height: size * 0.08,
+                backgroundColor: palette.gold,
+                transform: [{ rotate: '22deg' }]
+              }}
+            />
+          </>
+        )}
       </>
     );
   }
@@ -1893,6 +1994,46 @@ function EnemyFantasyOverlay({
             opacity: 0.9
           }}
         />
+        {role === 'ranged' ? (
+          <View
+            style={{
+              position: 'absolute',
+              right: size * 0.04,
+              top: size * 0.08,
+              width: size * 0.24,
+              height: size * 0.24,
+              borderRadius: size,
+              backgroundColor: palette.stoneLight,
+              borderWidth: Math.max(1, size * 0.025),
+              borderColor: palette.gold
+            }}
+          />
+        ) : role === 'support' ? (
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.12,
+              right: size * 0.12,
+              bottom: size * 0.02,
+              height: size * 0.12,
+              borderRadius: size,
+              borderWidth: Math.max(1, size * 0.025),
+              borderColor: palette.gold
+            }}
+          />
+        ) : role === 'melee' ? (
+          <View
+            style={{
+              position: 'absolute',
+              left: size * 0.07,
+              top: size * 0.15,
+              width: size * 0.45,
+              height: Math.max(2, size * 0.045),
+              backgroundColor: palette.gold,
+              transform: [{ rotate: '-42deg' }]
+            }}
+          />
+        ) : null}
       </>
     );
   }
