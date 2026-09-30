@@ -166,11 +166,30 @@ export function applyArmyLoadoutEquipment({
     const unit = unitById.get(unitId);
     if (!unit) continue;
 
+    const hasSavedLoadout =
+      Object.prototype.hasOwnProperty.call(
+        savedUnitEquipment,
+        unitId
+      );
     const requested =
       savedUnitEquipment[unitId] ?? {};
     const current =
       currentUnitEquipment[unitId] ?? {};
     const next: UnitEquipmentLoadout = {};
+
+    if (!hasSavedLoadout) {
+      for (const slot of equipmentSlots) {
+        const currentId = current[slot];
+        if (
+          currentId &&
+          takeCount(pool, currentId)
+        ) {
+          next[slot] = currentId;
+        }
+      }
+      nextUnitEquipment[unitId] = next;
+      continue;
+    }
 
     for (const slot of equipmentSlots) {
       const requestedId = requested[slot];
