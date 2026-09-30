@@ -74,6 +74,64 @@ for (const sprite of spritePaths) {
 for (const sprite of registered) {
   if (!spritePaths.has(sprite)) failures.push(sprite + ' is registered but the file does not exist.');
 }
+
+// The first settlement-art batch intentionally uses one compact 3x3 atlas so the
+// nine faction anchors stay visually consistent and load as one production PNG.
+const settlementAtlasPath = path.join(root, 'assets/game/ui/settlement_anchor_atlas.png');
+if (!fs.existsSync(settlementAtlasPath)) {
+  failures.push('Settlement anchor atlas is missing.');
+} else {
+  try {
+    const atlas = validateSpritePng(fs.readFileSync(settlementAtlasPath));
+    const channels = atlas.colorType === 6 ? 4 : 2;
+    const origins = [0, 86, 172];
+    for (const y0 of origins) {
+      for (const x0 of origins) {
+        let visible = 0;
+        for (let y = y0; y < Math.min(256, y0 + 84); y++) {
+          for (let x = x0; x < Math.min(256, x0 + 84); x++) {
+            if (atlas.pixels[(y * 256 + x) * channels + channels - 1] > 0) visible++;
+          }
+        }
+        if (visible < 150) failures.push('Settlement atlas cell ' + x0 + ',' + y0 + ' is unexpectedly blank.');
+      }
+    }
+  } catch (error) {
+    failures.push('Settlement anchor atlas: ' + error.message);
+  }
+}
+
+const gameArt = fs.readFileSync(path.join(root, 'src/ui/gameArt.tsx'), 'utf8');
+const settlementCells = {
+  hall: [0, 0],
+  barracks: [86, 0],
+  wagonwright: [172, 0],
+  elf_heartgrove_hall: [0, 86],
+  elf_warden_lodge: [86, 86],
+  elf_caravan_grove: [172, 86],
+  orc_warhold: [0, 172],
+  orc_clan_yard: [86, 172],
+  orc_cartwright: [172, 172]
+};
+for (const [buildingId, [x, y]] of Object.entries(settlementCells)) {
+  if (!gameArt.includes(buildingId + ': { x: ' + x + ', y: ' + y + ' }')) {
+    failures.push('Settlement atlas mapping missing or moved for ' + buildingId + '.');
+  }
+}
+const settlementAliases = [
+  "hall: 'elf_heartgrove_hall'",
+  "barracks: 'elf_warden_lodge'",
+  "wagonwright: 'elf_caravan_grove'",
+  "hall: 'orc_warhold'",
+  "barracks: 'orc_clan_yard'",
+  "wagonwright: 'orc_cartwright'"
+];
+for (const alias of settlementAliases) {
+  if (!gameArt.includes(alias)) failures.push('Settlement faction alias missing: ' + alias);
+}
+if (!registry.includes("'ui.settlement_anchor_atlas': require('../../assets/game/ui/settlement_anchor_atlas.png')")) {
+  failures.push('Settlement anchor atlas is not registered as a production source.');
+}
 if (failures.length) {
   console.error('\nART REGRESSION FAILED');
   failures.forEach(failure => console.error('- ' + failure));

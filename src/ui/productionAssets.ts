@@ -243,6 +243,8 @@ export function uiProductionAsset(id: string) {
 // Spiritwood Spear likewise uses its existing Elven spear renderer after the
 // all-category native audit found an unrecoverable compressed PNG payload.
 export const productionAssetSources: Partial<Record<string, ImageSourcePropType>> = {
+  'ui.settlement_anchor_atlas': require('../../assets/game/ui/settlement_anchor_atlas.png'),
+
   'unit.human.recruit': require('../../assets/game/units/human/recruit.png'),
   'unit.elf.warden': require('../../assets/game/units/elf/warden.png'),
   'unit.orc.hunter': require('../../assets/game/units/orc/hunter.png'),

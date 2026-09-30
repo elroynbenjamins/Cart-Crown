@@ -1466,6 +1466,69 @@ function FactionBuildingSilhouette({
   );
 }
 
+const settlementAnchorAtlasCells: Record<string, { x: number; y: number }> = {
+  hall: { x: 0, y: 0 },
+  barracks: { x: 86, y: 0 },
+  wagonwright: { x: 172, y: 0 },
+  elf_heartgrove_hall: { x: 0, y: 86 },
+  elf_warden_lodge: { x: 86, y: 86 },
+  elf_caravan_grove: { x: 172, y: 86 },
+  orc_warhold: { x: 0, y: 172 },
+  orc_clan_yard: { x: 86, y: 172 },
+  orc_cartwright: { x: 172, y: 172 }
+};
+
+const settlementAnchorFactionAliases: Partial<Record<FactionId, Record<string, string>>> = {
+  elf: {
+    hall: 'elf_heartgrove_hall',
+    barracks: 'elf_warden_lodge',
+    wagonwright: 'elf_caravan_grove'
+  },
+  orc: {
+    hall: 'orc_warhold',
+    barracks: 'orc_clan_yard',
+    wagonwright: 'orc_cartwright'
+  }
+};
+
+function settlementAnchorAtlasBuildingId(buildingId: string, faction: FactionId) {
+  return settlementAnchorFactionAliases[faction]?.[buildingId]
+    ?? (settlementAnchorAtlasCells[buildingId] ? buildingId : null);
+}
+
+function SettlementAnchorAtlasSprite({
+  buildingId,
+  faction,
+  size
+}: {
+  buildingId: string;
+  faction: FactionId;
+  size: number;
+}) {
+  const source = getProductionAssetSource('ui.settlement_anchor_atlas');
+  const atlasBuildingId = settlementAnchorAtlasBuildingId(buildingId, faction);
+  const cell = atlasBuildingId ? settlementAnchorAtlasCells[atlasBuildingId] : null;
+  if (!source || !cell) return null;
+
+  const cellSize = 84;
+  const scale = size / cellSize;
+  return (
+    <View style={{ width: size, height: size, overflow: 'hidden' }}>
+      <Image
+        source={source}
+        resizeMode="stretch"
+        style={{
+          position: 'absolute',
+          left: -cell.x * scale,
+          top: -cell.y * scale,
+          width: 256 * scale,
+          height: 256 * scale
+        }}
+      />
+    </View>
+  );
+}
+
 export function BuildingSprite({
   buildingId,
   faction = 'human',
@@ -1477,6 +1540,13 @@ export function BuildingSprite({
 }) {
   const kind = getBuildingVisualKind(buildingId);
   const production = buildingProductionAsset(faction, buildingId, kind);
+  const individualSource = getProductionAssetSource(production.id);
+  if (individualSource) {
+    return <Image source={individualSource} resizeMode="contain" style={{ width: size, height: size }} />;
+  }
+  if (settlementAnchorAtlasBuildingId(buildingId, faction) && getProductionAssetSource('ui.settlement_anchor_atlas')) {
+    return <SettlementAnchorAtlasSprite buildingId={buildingId} faction={faction} size={size} />;
+  }
   const keyByKind: Record<ReturnType<typeof getBuildingVisualKind>, ArtKey> = {
     hall: 'building_hall',
     barracks: 'building_barracks',
