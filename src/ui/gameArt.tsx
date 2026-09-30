@@ -1478,15 +1478,36 @@ const settlementAnchorAtlasCells: Record<string, { x: number; y: number }> = {
   orc_cartwright: { x: 172, y: 172 }
 };
 
+const settlementAnchorFactionAliases: Partial<Record<FactionId, Record<string, string>>> = {
+  elf: {
+    hall: 'elf_heartgrove_hall',
+    barracks: 'elf_warden_lodge',
+    wagonwright: 'elf_caravan_grove'
+  },
+  orc: {
+    hall: 'orc_warhold',
+    barracks: 'orc_clan_yard',
+    wagonwright: 'orc_cartwright'
+  }
+};
+
+function settlementAnchorAtlasBuildingId(buildingId: string, faction: FactionId) {
+  return settlementAnchorFactionAliases[faction]?.[buildingId]
+    ?? (settlementAnchorAtlasCells[buildingId] ? buildingId : null);
+}
+
 function SettlementAnchorAtlasSprite({
   buildingId,
+  faction,
   size
 }: {
   buildingId: string;
+  faction: FactionId;
   size: number;
 }) {
   const source = getProductionAssetSource('ui.settlement_anchor_atlas');
-  const cell = settlementAnchorAtlasCells[buildingId];
+  const atlasBuildingId = settlementAnchorAtlasBuildingId(buildingId, faction);
+  const cell = atlasBuildingId ? settlementAnchorAtlasCells[atlasBuildingId] : null;
   if (!source || !cell) return null;
 
   const cellSize = 84;
@@ -1523,8 +1544,8 @@ export function BuildingSprite({
   if (individualSource) {
     return <Image source={individualSource} resizeMode="contain" style={{ width: size, height: size }} />;
   }
-  if (settlementAnchorAtlasCells[buildingId] && getProductionAssetSource('ui.settlement_anchor_atlas')) {
-    return <SettlementAnchorAtlasSprite buildingId={buildingId} size={size} />;
+  if (settlementAnchorAtlasBuildingId(buildingId, faction) && getProductionAssetSource('ui.settlement_anchor_atlas')) {
+    return <SettlementAnchorAtlasSprite buildingId={buildingId} faction={faction} size={size} />;
   }
   const keyByKind: Record<ReturnType<typeof getBuildingVisualKind>, ArtKey> = {
     hall: 'building_hall',
