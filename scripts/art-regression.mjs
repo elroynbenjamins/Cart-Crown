@@ -138,3 +138,6 @@ if (failures.length) {
   process.exit(1);
 }
 console.log('PASS: ' + sprites.length + ' game PNGs fully decoded: CRCs, zlib payload, scanline/filter integrity, real alpha, size, registration and exact duplicates.');
+
+// Verify the exported Human art pixels, not just their manifest metadata.
+import "./human-art-payload-regression.mjs";

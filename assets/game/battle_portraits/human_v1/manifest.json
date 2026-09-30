@@ -1,0 +1,608 @@
+{
+  "version": 1,
+  "method": "Six isolated alpha components per original sheet; retain associated fringe pixels within 12px; nearest-neighbour fit to 256px RGBA with transparent safe margins. No palette replacement, repaint or class substitution.",
+  "sources": {
+    "human_core_portraits": {
+      "sha256": "142f66063ab5e94e573bba66fc529a1b591bbe3675bc107a02bb44eaaded0ff5",
+      "width": 1448,
+      "height": 1086,
+      "reference_file": "human_core_portraits.png"
+    },
+    "human_core_figures": {
+      "sha256": "dd7572573a81a03dfd87a7cb663579e33bb94cedab96bf363b77c1230ff20a41",
+      "width": 1448,
+      "height": 1086,
+      "reference_file": "human_core_figures.png"
+    },
+    "human_advanced_portraits": {
+      "sha256": "720f36a8a8f76778b81fe78f1b42b46bc0f232ac6d6090d0ca40583ec57bd930",
+      "width": 1448,
+      "height": 1086,
+      "reference_file": "human_advanced_portraits.png"
+    },
+    "human_advanced_figures": {
+      "sha256": "cbd9fef91ac950254e5db698405c7764dd5c776072af859644df1bdfc7eaad77",
+      "width": 1448,
+      "height": 1086,
+      "reference_file": "human_advanced_figures.png"
+    }
+  },
+  "assets": {
+    "man_at_arms_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/man_at_arms_portrait.png",
+      "source": "human_core_portraits",
+      "source_bounds": [
+        12,
+        64,
+        491,
+        555
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        11,
+        8,
+        243,
+        248
+      ],
+      "sha256": "0223b10a273606d11cbf5456284a28776ab35d2655c5718fadb98e8bf3ad6865",
+      "bytes": 101801
+    },
+    "ranger_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/ranger_portrait.png",
+      "source": "human_core_portraits",
+      "source_bounds": [
+        491,
+        99,
+        949,
+        555
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        8,
+        8,
+        248,
+        247
+      ],
+      "sha256": "768d2470fbaacf664baf1fc46f7fe053c4e36a1eb3cf4ebd5886eb50a408db59",
+      "bytes": 101657
+    },
+    "field_chaplain_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/field_chaplain_portrait.png",
+      "source": "human_core_portraits",
+      "source_bounds": [
+        964,
+        66,
+        1434,
+        555
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        12,
+        8,
+        243,
+        248
+      ],
+      "sha256": "48b1e6755420a1c6051f177d833eba83f0ac6db4c92c957c9915fc13d523dd0a",
+      "bytes": 100076
+    },
+    "shield_infantry_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/shield_infantry_portrait.png",
+      "source": "human_core_portraits",
+      "source_bounds": [
+        13,
+        555,
+        488,
+        1058
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        14,
+        12,
+        241,
+        248
+      ],
+      "sha256": "759f0dedcb5ce60009f17a35d189f79b8abfda2786a1d6f5a562b1248a3c39fd",
+      "bytes": 96495
+    },
+    "spearman_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/spearman_portrait.png",
+      "source": "human_core_portraits",
+      "source_bounds": [
+        485,
+        546,
+        962,
+        1055
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        15,
+        8,
+        240,
+        248
+      ],
+      "sha256": "ad48f87463a3f1e72c80200cd4e0b2face829466695b31444fc434aab19b7196",
+      "bytes": 96464
+    },
+    "lancer_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/lancer_portrait.png",
+      "source": "human_core_portraits",
+      "source_bounds": [
+        957,
+        546,
+        1432,
+        1057
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        16,
+        8,
+        239,
+        247
+      ],
+      "sha256": "1256060619aad54a1fcd902d928de63a21bf81c92372a362035012a78be84f0c",
+      "bytes": 103930
+    },
+    "man_at_arms_unit": {
+      "path": "assets/game/units/human/man_at_arms.png",
+      "source": "human_core_figures",
+      "source_bounds": [
+        0,
+        129,
+        468,
+        567
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        16,
+        27,
+        244,
+        244
+      ],
+      "sha256": "55f2808aa28364c46d151df1af54c84bc373cc5440ad6c94c9185de8e11b83fb",
+      "bytes": 86074
+    },
+    "ranger_unit": {
+      "path": "assets/game/units/human/ranger.png",
+      "source": "human_core_figures",
+      "source_bounds": [
+        531,
+        63,
+        1001,
+        567
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        20,
+        12,
+        236,
+        244
+      ],
+      "sha256": "c7779188b923a181e1e262291a9cf486ee6f89e819cd7ac0d8b2ecd99dffce91",
+      "bytes": 65645
+    },
+    "field_chaplain_unit": {
+      "path": "assets/game/units/human/field_chaplain.png",
+      "source": "human_core_figures",
+      "source_bounds": [
+        1012,
+        47,
+        1447,
+        567
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        31,
+        12,
+        224,
+        244
+      ],
+      "sha256": "0cda447013fd96ec53d4a09cf188f58052858274b7ae536715804bb16a0477ec",
+      "bytes": 68967
+    },
+    "lancer_unit": {
+      "path": "assets/game/units/human/lancer.png",
+      "source": "human_core_figures",
+      "source_bounds": [
+        0,
+        565,
+        674,
+        1038
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        12,
+        81,
+        244,
+        244
+      ],
+      "sha256": "82b8a8f0dee8db36c896e7e577d8da65f53ab3b93aff0a7064dc1298ed2aecf6",
+      "bytes": 62686
+    },
+    "shield_infantry_unit": {
+      "path": "assets/game/units/human/shield_infantry.png",
+      "source": "human_core_figures",
+      "source_bounds": [
+        577,
+        632,
+        949,
+        1039
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        22,
+        12,
+        234,
+        244
+      ],
+      "sha256": "9a1e6f282778677989fb6c3aff9f5dc11c70fd0c0a42687327c8627033fc1df6",
+      "bytes": 90123
+    },
+    "spearman_unit": {
+      "path": "assets/game/units/human/spearman.png",
+      "source": "human_core_figures",
+      "source_bounds": [
+        1008,
+        582,
+        1447,
+        1039
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        16,
+        12,
+        239,
+        244
+      ],
+      "sha256": "77d47d0c339c2e1b740be885c91871fbd8f03968e8355252b6bb40a1cdd81eb8",
+      "bytes": 66757
+    },
+    "crossbowman_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/crossbowman_portrait.png",
+      "source": "human_advanced_portraits",
+      "source_bounds": [
+        0,
+        81,
+        487,
+        541
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        8,
+        14,
+        248,
+        241
+      ],
+      "sha256": "94e9a410ac7f6d3ef51866f508cfe570f195aa9fce0d264111e55602dc8f79d3",
+      "bytes": 103199
+    },
+    "field_medic_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/field_medic_portrait.png",
+      "source": "human_advanced_portraits",
+      "source_bounds": [
+        481,
+        79,
+        962,
+        541
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        8,
+        12,
+        248,
+        243
+      ],
+      "sha256": "a486676f36ee006f9f0237d2d4d2357349df12ea74838291f5379923ca3ed299",
+      "bytes": 107812
+    },
+    "halberdier_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/halberdier_portrait.png",
+      "source": "human_advanced_portraits",
+      "source_bounds": [
+        959,
+        6,
+        1448,
+        537
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        17,
+        8,
+        238,
+        248
+      ],
+      "sha256": "955992309d5909b78f3f8c6140a36cc5e5394b1cdc45c79973e9da659ede20ea",
+      "bytes": 91486
+    },
+    "banner_captain_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/banner_captain_portrait.png",
+      "source": "human_advanced_portraits",
+      "source_bounds": [
+        0,
+        536,
+        488,
+        1074
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        19,
+        8,
+        237,
+        248
+      ],
+      "sha256": "9a88ea3e50a7d6827a82064311e3462fb6bf07dc13e29f4bc4b8d6314174e5aa",
+      "bytes": 117487
+    },
+    "heavy_cavalry_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/heavy_cavalry_portrait.png",
+      "source": "human_advanced_portraits",
+      "source_bounds": [
+        486,
+        536,
+        962,
+        1074
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        22,
+        8,
+        234,
+        248
+      ],
+      "sha256": "f157f179a41a7a37046c1ae3894914437079667e71094e6ffcdee9a0a39077aa",
+      "bytes": 103755
+    },
+    "royal_guard_portrait": {
+      "path": "assets/game/battle_portraits/human_v1/royal_guard_portrait.png",
+      "source": "human_advanced_portraits",
+      "source_bounds": [
+        959,
+        600,
+        1448,
+        1074
+      ],
+      "frame": [
+        8,
+        8,
+        240,
+        240
+      ],
+      "visible_bounds": [
+        8,
+        11,
+        248,
+        244
+      ],
+      "sha256": "da1b6cd188dcca5acfec61b924a0d8832a917ef1a69c3404fb6c802d816c115e",
+      "bytes": 110150
+    },
+    "crossbowman_unit": {
+      "path": "assets/game/units/human/crossbowman.png",
+      "source": "human_advanced_figures",
+      "source_bounds": [
+        42,
+        112,
+        467,
+        554
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        16,
+        12,
+        239,
+        244
+      ],
+      "sha256": "7f0e07ea08ec59aa9e3cb4a16ad7c1cdc325bdb4269247ded55c08e0f9500424",
+      "bytes": 77077
+    },
+    "field_medic_unit": {
+      "path": "assets/game/units/human/field_medic.png",
+      "source": "human_advanced_figures",
+      "source_bounds": [
+        532,
+        46,
+        955,
+        554
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        31,
+        13,
+        224,
+        244
+      ],
+      "sha256": "9761beb091d6aa7419856629b8e49a0147a7bb32d326a66d681ec9a7559e0cb9",
+      "bytes": 76800
+    },
+    "halberdier_unit": {
+      "path": "assets/game/units/human/halberdier.png",
+      "source": "human_advanced_figures",
+      "source_bounds": [
+        1033,
+        3,
+        1448,
+        553
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        40,
+        13,
+        215,
+        244
+      ],
+      "sha256": "42a4d27967e635e9a2fc5cc7007acf327644d995edcd08ba8f0af0bac860b9d9",
+      "bytes": 55680
+    },
+    "banner_captain_unit": {
+      "path": "assets/game/units/human/banner_captain.png",
+      "source": "human_advanced_figures",
+      "source_bounds": [
+        0,
+        535,
+        420,
+        1072
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        37,
+        12,
+        217,
+        244
+      ],
+      "sha256": "6f150a9de97a8572b947be7949894f9ad4d210e02ee3e71e0dd89623e8fb906f",
+      "bytes": 85882
+    },
+    "heavy_cavalry_unit": {
+      "path": "assets/game/units/human/heavy_cavalry.png",
+      "source": "human_advanced_figures",
+      "source_bounds": [
+        434,
+        563,
+        1094,
+        1074
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        12,
+        64,
+        244,
+        244
+      ],
+      "sha256": "d7a6d5d6f34c278d8b61fbe0b99be40bb2625616ba3e876efe595e1de71818ed",
+      "bytes": 72317
+    },
+    "royal_guard_unit": {
+      "path": "assets/game/units/human/royal_guard.png",
+      "source": "human_advanced_figures",
+      "source_bounds": [
+        1012,
+        649,
+        1419,
+        1071
+      ],
+      "frame": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "visible_bounds": [
+        16,
+        13,
+        240,
+        244
+      ],
+      "sha256": "98bc52b2d23d545b242e9101665d6135863b3b8b4d2cc9c8ca566a5c2b8f23f4",
+      "bytes": 101915
+    }
+  }
+}

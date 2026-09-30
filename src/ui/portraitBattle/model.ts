@@ -1,9 +1,11 @@
 import type { EnemyFantasyThreatFamily, FactionId, FormationShapeDefinition, UnitDefinition, UnitRole } from '../../game/types';
 import type { EnemyArmyProfileId, EnemyRoleAssignment } from '../../game/encounters';
+import { humanClassPortrait } from './humanBattleArt';
+import type { HumanPortraitKey, HumanFigureKey } from './humanBattleArt';
 
 export type PortraitKey = 'captain_portrait' | 'ranger_portrait' | 'priest_portrait'
-  | 'raider_portrait' | 'missile_portrait' | 'warg_portrait';
-export type FigureKey = 'captain_unit' | 'ranger_unit' | 'priest_unit' | 'raider_unit' | 'missile_unit' | 'warg_unit';
+  | 'raider_portrait' | 'missile_portrait' | 'warg_portrait' | HumanPortraitKey;
+export type FigureKey = 'captain_unit' | 'ranger_unit' | 'priest_unit' | 'raider_unit' | 'missile_unit' | 'warg_unit' | HumanFigureKey;
 export function figureForPortrait(portrait: PortraitKey): FigureKey {
   return portrait.replace('_portrait', '_unit') as FigureKey;
 }
@@ -16,9 +18,11 @@ export const roleNames: Record<UnitRole, string> = {
   frontline: 'Frontline', melee: 'Melee', ranged: 'Ranged', support: 'Support', cavalry: 'Mounted', skirmish: 'Skirmish'
 };
 
-/** This is a small archetype portrait library, not art coverage for every promotion. */
+/** Exact generated Human classes first; preserve existing archetypes for uncovered classes. */
 export function allyPortrait(unit: UnitDefinition): PortraitKey | null {
   if (unit.faction !== 'human' || unit.battleTags?.some(tag => ['flying', 'large', 'construct', 'beast'].includes(tag))) return null;
+  const exactPortrait = humanClassPortrait(unit);
+  if (exactPortrait) return exactPortrait;
   if (unit.role === 'cavalry') return null; // Never disguise a mounted class as foot infantry.
   if (unit.battleTags?.includes('magic')) return null;
   if (unit.role === 'support') return 'priest_portrait';
