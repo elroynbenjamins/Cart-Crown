@@ -75,7 +75,7 @@ export function FormationScreen({
     formationDoctrines,
     formationBonuses,
     formationPresets,
-    unitEquipment,
+    unitEquipment = {},
     setFormationShape,
     setFormationDoctrine,
     saveFormationPreset,
