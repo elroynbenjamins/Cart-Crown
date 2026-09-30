@@ -118,7 +118,7 @@ export function FormationTrialScreen({ onEditFormation, onExit }: {
           <View accessibilityRole="progressbar" accessibilityLabel="Trial objectives met"
             accessibilityValue={{ min: 0, max: view.current.checks.length, now: view.passedCount }}
             style={[styles.progressTrack, { backgroundColor: theme.colors.surface3 }]}>
-            <View style={[styles.progressFill, { width: (100 * view.passedCount / Math.max(1, view.current.checks.length)) + '%', backgroundColor: semanticColor(theme, 'blue') }]} />
+            <View style={[styles.progressFill, { width: `${100 * view.passedCount / Math.max(1, view.current.checks.length)}%`, backgroundColor: semanticColor(theme, 'blue') }]} />
           </View>
           <Text style={[styles.note, { color: theme.colors.textMuted }]}>Live objectives · based on your current formation</Text>
           <View style={styles.objectives}>
