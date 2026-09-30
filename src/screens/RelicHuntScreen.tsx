@@ -298,7 +298,7 @@ export function RelicHuntScreen({
             {recommendedRelicUnit
               ? 'Best fit: ' +
                 recommendedRelicUnit.className +
-                '. This is your strongest deployed squad by current ATK + ARM + SPD.'
+                '. Ranked by current ATK + ARM + SPD, prioritizing deployed squads.'
               : 'No deployed squad is available. The Relic will stay safely in inventory.'}
           </Text>
 
