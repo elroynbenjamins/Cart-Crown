@@ -162,23 +162,62 @@ export function FactionOpeningCampaignScreen({
     if (id === 'kingdom_defense') onOpenKingdomDefense();
   };
 
+  const activityAttention = (id: SideModeId) => {
+    if (id === 'expeditions' && activeExpeditionRun) {
+      if (activeExpeditionRun.completed) {
+        return { label: 'NEW REWARD', tone: 'reward' as const };
+      }
+      if (activeExpeditionRun.failed) {
+        return { label: 'REVIEW', tone: 'review' as const };
+      }
+      return { label: 'RESUME', tone: 'resume' as const };
+    }
+    if (id === 'sieges' && activeSiegeRun) {
+      if (activeSiegeRun.completed) {
+        return { label: 'NEW REWARD', tone: 'reward' as const };
+      }
+      if (activeSiegeRun.failed) {
+        return { label: 'REVIEW', tone: 'review' as const };
+      }
+      return { label: 'RESUME', tone: 'resume' as const };
+    }
+    if (id === 'relic_hunts') {
+      if (activeRelicHuntRun) {
+        if (activeRelicHuntRun.completed) {
+          return {
+            label: relicHuntRewardClaimed ? 'RUN COMPLETE' : 'NEW RELIC',
+            tone: 'reward' as const
+          };
+        }
+        if (activeRelicHuntRun.failed) {
+          return { label: 'REVIEW', tone: 'review' as const };
+        }
+        return { label: 'RESUME', tone: 'resume' as const };
+      }
+      if (!relicHuntRewardClaimed) {
+        return { label: 'FIRST CLEAR', tone: 'unique' as const };
+      }
+    }
+    return null;
+  };
+
   const activityStatus = (id: SideModeId) => {
     if (id === 'war_table') {
       return 'Board ' +
         (warTableCycle + 1) +
         ' · ' +
         warTableCompletedContractIds.length +
-        '/3 cleared';
+        '/3';
     }
     if (id === 'expeditions') {
       return activeExpeditionRun
         ? activeExpeditionRun.completed
-          ? 'Boss defeated · loot ready'
+          ? 'Loot ready'
           : activeExpeditionRun.failed
-            ? 'Run failed'
-            : 'Run active · Stage ' +
+            ? 'Run ended'
+            : 'Stage ' +
               (activeExpeditionRun.stageIndex + 1) +
-              '/5'
+              '/5 · Active'
         : expeditionTickets +
           (expeditionTickets === 1 ? ' ticket' : ' tickets') +
           ' · ' +
@@ -188,27 +227,29 @@ export function FactionOpeningCampaignScreen({
     if (id === 'sieges') {
       return activeSiegeRun
         ? activeSiegeRun.completed
-          ? 'Fortress captured · reward ready'
+          ? 'Reward ready'
           : activeSiegeRun.failed
-            ? 'Assault failed'
-            : 'Siege active · Stage ' +
+            ? 'Assault ended'
+            : 'Stage ' +
               (activeSiegeRun.stageIndex + 1) +
-              '/4'
+              '/4 · Active'
         : siegeRunsCompleted +
           (siegeRunsCompleted === 1 ? ' clear' : ' clears');
     }
     if (id === 'relic_hunts') {
       return activeRelicHuntRun
         ? activeRelicHuntRun.completed
-          ? 'Relic secured · reward ready'
+          ? relicHuntRewardClaimed
+            ? 'Run complete'
+            : 'Relic ready'
           : activeRelicHuntRun.failed
-            ? 'Chain broken'
-            : 'Hunt active · Guardian ' +
+            ? 'Hunt ended'
+            : 'Guardian ' +
               (activeRelicHuntRun.stageIndex + 1) +
-              '/3'
+              '/3 · Active'
         : relicHuntRewardClaimed
-          ? relicHuntRunsCompleted + ' clears · relic claimed'
-          : 'Unique relic reward';
+          ? relicHuntRunsCompleted + ' clears · Claimed'
+          : 'First-clear Relic';
     }
     if (id === 'formation_trials') {
       return kingdomTrialCompletions.length + '/3 medals';
@@ -216,21 +257,20 @@ export function FactionOpeningCampaignScreen({
     return kingdomDefenseCompleted
       ? kingdomDefenseRuns +
         (kingdomDefenseRuns === 1 ? ' clear' : ' clears')
-      : 'Endurance defense';
+      : 'Endurance';
   };
 
-  const activityActionLabel = (id: SideModeId) =>
-    id === 'expeditions' && activeExpeditionRun
-      ? 'Resume Expedition'
-      : id === 'sieges' && activeSiegeRun
-        ? 'Resume Siege'
-        : id === 'relic_hunts' && activeRelicHuntRun
-          ? 'Resume Relic Hunt'
-          : 'Open ' +
-            (
-              sideModeDefinitions.find(mode => mode.id === id)?.name ??
-              'Activity'
-            );
+  const activityActionLabel = (id: SideModeId) => {
+    const attention = activityAttention(id);
+    if (attention?.tone === 'reward') {
+      return id === 'relic_hunts' && !relicHuntRewardClaimed
+        ? 'Claim Relic'
+        : 'Claim reward';
+    }
+    if (attention?.tone === 'review') return 'Review';
+    if (attention?.tone === 'resume') return 'Resume';
+    return 'Open';
+  };
 
   const faction = factions[activeFaction];
   const accent =
@@ -786,8 +826,14 @@ export function FactionOpeningCampaignScreen({
                           status={activityStatus(mode.id)}
                           actionLabel={activityActionLabel(mode.id)}
                           highlight={
-                            mode.id === 'relic_hunts' &&
-                            !relicHuntRewardClaimed
+                            activityAttention(mode.id)?.tone ===
+                            'reward'
+                          }
+                          attentionLabel={
+                            activityAttention(mode.id)?.label
+                          }
+                          attentionTone={
+                            activityAttention(mode.id)?.tone
                           }
                           onPress={() => {
                             if (tutorialActivityFocused) {
