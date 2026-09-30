@@ -10,8 +10,8 @@ import type { EquipmentDefinition, EquipmentSlot, ResourceWallet } from '../game
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, ResourceAmountRow, SectionTitle, StatusPill } from '../ui/components';
 import { EquipmentStatLine } from '../ui/EquipmentStatLine';
-import { RoleChip, SemanticChip, SemanticText, TierChip, UnitBadges } from '../ui/SemanticUI';
-import { rolePresentation, semanticColor, tierTone } from '../ui/semanticColors';
+import { RarityChip, RoleChip, SemanticChip, SemanticText, TierChip, UnitBadges } from '../ui/SemanticUI';
+import { getRarityPresentation, rolePresentation, semanticColor, tierTone } from '../ui/semanticColors';
 import { EquipmentSprite, UnitSprite } from '../ui/gameArt';
 
 type ViewMode = 'loadout' | 'forge' | 'promotion';
@@ -85,6 +85,7 @@ export function EquipmentManageScreen({
     item =>
       item.faction === activeFaction &&
       !item.upgradeFromId &&
+      item.rarity !== 'relic' &&
       item.requiredForgeLevel <= forgeLevel &&
       (item.requiredStableLevel ?? 0) <= stableLevel
   );
@@ -128,6 +129,10 @@ export function EquipmentManageScreen({
         : 'Upgrade requirements are not met.'
     );
   };
+
+  const equipmentTone = (item: EquipmentDefinition) =>
+    getRarityPresentation(item.rarity)?.tone ??
+    tierTone(item.tier);
 
   const renderComparison = (item: EquipmentDefinition) => {
     const current = getEquipment(loadout[item.slot] ?? '');
@@ -188,7 +193,7 @@ export function EquipmentManageScreen({
                   style={styles.slotCard}
                   faction={activeFaction}
                   state={item ? 'selected' : 'default'}
-                  accent={item ? semanticColor(theme, tierTone(item.tier)) : undefined}
+                  accent={item ? semanticColor(theme, equipmentTone(item)) : undefined}
                 >
                   <Text style={[styles.slotLabel, { color: theme.colors.textMuted }]}>{slotLabels[slot].toUpperCase()}</Text>
                   {item ? (
@@ -196,12 +201,15 @@ export function EquipmentManageScreen({
                       <EquipmentSprite equipmentId={item.id} faction={unit.faction} size={34} />
                     </View>
                   ) : null}
-                  <Text style={[styles.slotName, { color: item ? semanticColor(theme, tierTone(item.tier)) : theme.colors.text }]}>
+                  <Text style={[styles.slotName, { color: item ? semanticColor(theme, equipmentTone(item)) : theme.colors.text }]}>
                     {item?.name ?? 'Empty'}
                   </Text>
                   {item ? (
                     <>
-                      <View style={styles.badges}><TierChip tier={item.tier} compact /></View>
+                      <View style={styles.badges}>
+                        {item.rarity ? <RarityChip rarity={item.rarity} /> : null}
+                        <TierChip tier={item.tier} compact />
+                      </View>
                       <EquipmentStatLine item={item} />
                     </>
                   ) : null}
@@ -223,9 +231,9 @@ export function EquipmentManageScreen({
                 >
                   <View style={styles.itemHeader}>
                     <View style={styles.itemCopy}>
-                      <Text style={[styles.itemName, { color: semanticColor(theme, tierTone(item.tier)) }]}>{item.name}</Text>
+                      <Text style={[styles.itemName, { color: semanticColor(theme, equipmentTone(item)) }]}>{item.name}</Text>
                       <Text style={[styles.itemMeta, { color: theme.colors.textMuted }]}>
-                        Tier {item.tier} · {slotLabels[item.slot]}
+                        {item.rarity ? item.rarity.toUpperCase() + ' · ' : ''}Tier {item.tier} · {slotLabels[item.slot]}
                       </Text>
                     </View>
                     <SemanticChip label={compatible ? 'Compatible' : 'Incompatible'} tone={compatible ? 'positive' : 'warning'} />
@@ -292,7 +300,7 @@ export function EquipmentManageScreen({
                     <EquipmentSprite equipmentId={item.id} faction={item.faction} size={40} />
                   </View>
                   <View style={styles.itemCopy}>
-                    <Text style={[styles.itemName, { color: semanticColor(theme, tierTone(item.tier)) }]}>{item.name}</Text>
+                    <Text style={[styles.itemName, { color: semanticColor(theme, equipmentTone(item)) }]}>{item.name}</Text>
                     <Text style={[styles.itemMeta, { color: theme.colors.textMuted }]}>
                       Tier {item.tier} · {slotLabels[item.slot]}
                     </Text>
@@ -328,13 +336,13 @@ export function EquipmentManageScreen({
           {upgrades.length > 0 ? (
             <View style={styles.list}>
               {upgrades.map(item => (
-                <GameCard key={item.id} accent={semanticColor(theme, tierTone(item.tier))} faction={activeFaction} state="selected">
+                <GameCard key={item.id} accent={semanticColor(theme, equipmentTone(item))} faction={activeFaction} state="selected">
                   <View style={styles.itemHeader}>
                     <View style={styles.itemArt}>
                       <EquipmentSprite equipmentId={item.id} faction={item.faction} size={40} />
                     </View>
                     <View style={styles.itemCopy}>
-                      <Text style={[styles.itemName, { color: semanticColor(theme, tierTone(item.tier)) }]}>{item.name}</Text>
+                      <Text style={[styles.itemName, { color: semanticColor(theme, equipmentTone(item)) }]}>{item.name}</Text>
                       <Text style={[styles.itemMeta, { color: theme.colors.textMuted }]}>
                         Upgrade from {getEquipment(item.upgradeFromId ?? '')?.name}
                       </Text>

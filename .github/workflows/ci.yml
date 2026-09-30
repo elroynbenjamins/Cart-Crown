@@ -69,6 +69,9 @@ jobs:
       - name: Relic Hunt regression
         run: npm run relic-hunt:check
 
+      - name: Activities hub regression
+        run: npm run activity-hub:check
+
       - name: Decision UI regression
         run: npm run decision-ui:check
 
@@ -98,6 +101,9 @@ jobs:
 
       - name: Late Human event UI regression
         run: npx --no-install tsx scripts/late-human-event-ui-regression.ts
+
+      - name: Opening Human event UI regression
+        run: npx --no-install tsx scripts/early-human-event-ui-regression.ts
 
       - name: Three Seals UI regression
         run: npx --no-install tsx scripts/meta-campaign-ui-regression.ts

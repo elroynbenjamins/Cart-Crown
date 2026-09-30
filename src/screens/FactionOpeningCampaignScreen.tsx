@@ -16,6 +16,11 @@ import {
 } from '../ui/components';
 import { CampaignNodeSprite, FactionCrest, RegionMapBackdrop } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
+import { ActivityCard } from '../ui/ActivityCard';
+import {
+  activityGroups,
+  activityPresentation
+} from '../game/activityPresentation';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function FactionOpeningCampaignScreen({
@@ -155,6 +160,116 @@ export function FactionOpeningCampaignScreen({
     if (id === 'relic_hunts') onOpenRelicHunt();
     if (id === 'formation_trials') onOpenFormationTrial();
     if (id === 'kingdom_defense') onOpenKingdomDefense();
+  };
+
+  const activityAttention = (id: SideModeId) => {
+    if (id === 'expeditions' && activeExpeditionRun) {
+      if (activeExpeditionRun.completed) {
+        return { label: 'NEW REWARD', tone: 'reward' as const };
+      }
+      if (activeExpeditionRun.failed) {
+        return { label: 'REVIEW', tone: 'review' as const };
+      }
+      return { label: 'RESUME', tone: 'resume' as const };
+    }
+    if (id === 'sieges' && activeSiegeRun) {
+      if (activeSiegeRun.completed) {
+        return { label: 'NEW REWARD', tone: 'reward' as const };
+      }
+      if (activeSiegeRun.failed) {
+        return { label: 'REVIEW', tone: 'review' as const };
+      }
+      return { label: 'RESUME', tone: 'resume' as const };
+    }
+    if (id === 'relic_hunts') {
+      if (activeRelicHuntRun) {
+        if (activeRelicHuntRun.completed) {
+          return {
+            label: relicHuntRewardClaimed ? 'RUN COMPLETE' : 'NEW RELIC',
+            tone: 'reward' as const
+          };
+        }
+        if (activeRelicHuntRun.failed) {
+          return { label: 'REVIEW', tone: 'review' as const };
+        }
+        return { label: 'RESUME', tone: 'resume' as const };
+      }
+      if (!relicHuntRewardClaimed) {
+        return { label: 'FIRST CLEAR', tone: 'unique' as const };
+      }
+    }
+    return null;
+  };
+
+  const activityStatus = (id: SideModeId) => {
+    if (id === 'war_table') {
+      return 'Board ' +
+        (warTableCycle + 1) +
+        ' · ' +
+        warTableCompletedContractIds.length +
+        '/3';
+    }
+    if (id === 'expeditions') {
+      return activeExpeditionRun
+        ? activeExpeditionRun.completed
+          ? 'Loot ready'
+          : activeExpeditionRun.failed
+            ? 'Run ended'
+            : 'Stage ' +
+              (activeExpeditionRun.stageIndex + 1) +
+              '/5 · Active'
+        : expeditionTickets +
+          (expeditionTickets === 1 ? ' ticket' : ' tickets') +
+          ' · ' +
+          expeditionRunsCompleted +
+          ' clears';
+    }
+    if (id === 'sieges') {
+      return activeSiegeRun
+        ? activeSiegeRun.completed
+          ? 'Reward ready'
+          : activeSiegeRun.failed
+            ? 'Assault ended'
+            : 'Stage ' +
+              (activeSiegeRun.stageIndex + 1) +
+              '/4 · Active'
+        : siegeRunsCompleted +
+          (siegeRunsCompleted === 1 ? ' clear' : ' clears');
+    }
+    if (id === 'relic_hunts') {
+      return activeRelicHuntRun
+        ? activeRelicHuntRun.completed
+          ? relicHuntRewardClaimed
+            ? 'Run complete'
+            : 'Relic ready'
+          : activeRelicHuntRun.failed
+            ? 'Hunt ended'
+            : 'Guardian ' +
+              (activeRelicHuntRun.stageIndex + 1) +
+              '/3 · Active'
+        : relicHuntRewardClaimed
+          ? relicHuntRunsCompleted + ' clears · Claimed'
+          : 'First-clear Relic';
+    }
+    if (id === 'formation_trials') {
+      return kingdomTrialCompletions.length + '/3 medals';
+    }
+    return kingdomDefenseCompleted
+      ? kingdomDefenseRuns +
+        (kingdomDefenseRuns === 1 ? ' clear' : ' clears')
+      : 'Endurance';
+  };
+
+  const activityActionLabel = (id: SideModeId) => {
+    const attention = activityAttention(id);
+    if (attention?.tone === 'reward') {
+      return id === 'relic_hunts' && !relicHuntRewardClaimed
+        ? 'Claim Relic'
+        : 'Claim reward';
+    }
+    if (attention?.tone === 'review') return 'Review';
+    if (attention?.tone === 'resume') return 'Resume';
+    return 'Open';
   };
 
   const faction = factions[activeFaction];
@@ -651,124 +766,89 @@ export function FactionOpeningCampaignScreen({
 
       {availableSideModes.length > 0 ? (
         <>
-          <SectionTitle title="Activities" trailing="Recovery & tactics" />
-          <View style={styles.factionList}>
-            {availableSideModes.map(mode => {
-              const status =
-                mode.id === 'war_table'
-                  ? 'Board ' +
-                    (warTableCycle + 1) +
-                    ' · ' +
-                    warTableCompletedContractIds.length +
-                    '/3 cleared'
-                  : mode.id === 'expeditions'
-                    ? activeExpeditionRun
-                      ? activeExpeditionRun.completed
-                        ? 'Boss defeated · loot ready'
-                        : activeExpeditionRun.failed
-                          ? 'Run failed'
-                          : 'Run active · Stage ' +
-                            (activeExpeditionRun.stageIndex + 1) +
-                            '/5'
-                      : expeditionTickets + ' ticket' + (expeditionTickets === 1 ? '' : 's')
-                    : mode.id === 'sieges'
-                      ? activeSiegeRun
-                        ? activeSiegeRun.completed
-                          ? 'Fortress captured · reward ready'
-                          : activeSiegeRun.failed
-                            ? 'Assault failed'
-                            : 'Siege active · Stage ' +
-                              (activeSiegeRun.stageIndex + 1) +
-                              '/4'
-                        : siegeRunsCompleted +
-                          (siegeRunsCompleted === 1
-                            ? ' clear'
-                            : ' clears')
-                    : mode.id === 'relic_hunts'
-                      ? activeRelicHuntRun
-                        ? activeRelicHuntRun.completed
-                          ? 'Relic secured · reward ready'
-                          : activeRelicHuntRun.failed
-                            ? 'Chain broken'
-                            : 'Hunt active · Guardian ' +
-                              (activeRelicHuntRun.stageIndex + 1) +
-                              '/3'
-                        : relicHuntRewardClaimed
-                          ? relicHuntRunsCompleted +
-                            ' clears · relic claimed'
-                          : 'Unique relic reward'
-                    : mode.id === 'formation_trials'
-                      ? kingdomTrialCompletions.length +
-                        '/3 medals'
-                      : kingdomDefenseCompleted
-                        ? kingdomDefenseRuns +
-                          (kingdomDefenseRuns === 1
-                            ? ' clear'
-                            : ' clears')
-                        : 'Endurance defense';
-
-              const tutorialActivityFocused =
-                tutorialFocus?.kind === 'campaign-activities' &&
-                mode.id ===
-                  (tutorialFocus.modeId ??
-                    availableSideModes[0]?.id);
-
-              return (
-                <TutorialFocus
-                  key={mode.id}
-                  active={tutorialActivityFocused}
-                  label={tutorialActivityFocused ? tutorialFocus?.label : undefined}
-                >
-                  <GameCard
-                    faction={activeFaction}
-                    accent={accent}
-                  >
-                    <View style={styles.factionHeader}>
-                      <View style={styles.factionCopy}>
-                        <Text style={[styles.factionName, { color: theme.colors.text }]}>
-                          {mode.name}
-                        </Text>
-                        <Text style={[styles.factionSubtitle, { color: accent }]}>
-                          {status}
-                        </Text>
-                      </View>
-                      <StatusPill label="AVAILABLE" tone="available" />
-                    </View>
-                    <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-                      {mode.description}
-                    </Text>
-                    {mode.id === 'expeditions' ? (
-                      <Text style={[styles.factionSubtitle, { color: theme.colors.textMuted }]}>
-                        Completed runs: {expeditionRunsCompleted}
-                      </Text>
-                    ) : null}
-                    <View style={styles.switchButton}>
-                      <SecondaryButton
-                        label={
-                          mode.id === 'expeditions' &&
-                          activeExpeditionRun
-                            ? 'Resume Expedition'
-                            : mode.id === 'sieges' &&
-                                activeSiegeRun
-                              ? 'Resume Siege'
-                              : mode.id === 'relic_hunts' &&
-                                  activeRelicHuntRun
-                                ? 'Resume Relic Hunt'
-                                : 'Open ' + mode.name
-                        }
-                        onPress={() => {
-                          if (tutorialActivityFocused) {
-                            onTutorialFocusComplete?.();
-                          }
-                          openSideMode(mode.id);
-                        }}
-                      />
-                    </View>
-                  </GameCard>
-                </TutorialFocus>
+          <SectionTitle
+            title="Activities"
+            trailing={availableSideModes.length + ' unlocked'}
+          />
+          {activityGroups.map(group => {
+            const modes =
+              availableSideModes.filter(
+                mode =>
+                  activityPresentation[mode.id].group ===
+                  group.id
               );
-            })}
-          </View>
+            if (modes.length === 0) return null;
+
+            return (
+              <View
+                key={group.id}
+                style={styles.activityGroup}
+              >
+                <Text
+                  style={[
+                    styles.activityGroupTitle,
+                    { color: accent }
+                  ]}
+                >
+                  {group.title}
+                </Text>
+                <Text
+                  style={[
+                    styles.activityGroupSubtitle,
+                    { color: theme.colors.textMuted }
+                  ]}
+                >
+                  {group.subtitle}
+                </Text>
+                <View style={styles.factionList}>
+                  {modes.map(mode => {
+                    const tutorialActivityFocused =
+                      tutorialFocus?.kind ===
+                        'campaign-activities' &&
+                      mode.id ===
+                        (tutorialFocus.modeId ??
+                          availableSideModes[0]?.id);
+
+                    return (
+                      <TutorialFocus
+                        key={mode.id}
+                        active={tutorialActivityFocused}
+                        label={
+                          tutorialActivityFocused
+                            ? tutorialFocus?.label
+                            : undefined
+                        }
+                      >
+                        <ActivityCard
+                          mode={mode}
+                          faction={activeFaction}
+                          accent={accent}
+                          status={activityStatus(mode.id)}
+                          actionLabel={activityActionLabel(mode.id)}
+                          highlight={
+                            activityAttention(mode.id)?.tone ===
+                            'reward'
+                          }
+                          attentionLabel={
+                            activityAttention(mode.id)?.label
+                          }
+                          attentionTone={
+                            activityAttention(mode.id)?.tone
+                          }
+                          onPress={() => {
+                            if (tutorialActivityFocused) {
+                              onTutorialFocusComplete?.();
+                            }
+                            openSideMode(mode.id);
+                          }}
+                        />
+                      </TutorialFocus>
+                    );
+                  })}
+                </View>
+              </View>
+            );
+          })}
         </>
       ) : null}
 
@@ -906,6 +986,9 @@ const styles = StyleSheet.create({
   nodeType: { fontSize: 8.5, fontWeight: '800', marginTop: 2 },
   nodeButton: { marginTop: 10 },
   factionList: { gap: 8 },
+  activityGroup: { gap: 5, marginTop: 2 },
+  activityGroupTitle: { fontSize: 12, fontWeight: '900', textTransform: 'uppercase' },
+  activityGroupSubtitle: { fontSize: 10, lineHeight: 14, marginBottom: 3 },
   factionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   factionCopy: { flex: 1 },
   factionName: { fontSize: 15, fontWeight: '900' },

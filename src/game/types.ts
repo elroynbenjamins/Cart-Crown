@@ -59,6 +59,14 @@ export type FormationPreset = {
 };
 export type SideModeId = 'war_table' | 'expeditions' | 'formation_trials' | 'kingdom_defense' | 'sieges' | 'relic_hunts';
 export type EquipmentSlot = 'weapon' | 'armor' | 'shield' | 'mount' | 'artifact';
+export type EquipmentRarity =
+  | 'common'
+  | 'uncommon'
+  | 'rare'
+  | 'epic'
+  | 'legendary'
+  | 'mythic'
+  | 'relic';
 export type CommanderSkillEffectType =
   | 'single_damage'
   | 'bleed'
@@ -96,6 +104,7 @@ export type EquipmentDefinition = {
   faction: FactionId | 'global';
   slot: EquipmentSlot;
   tier: number;
+  rarity?: EquipmentRarity;
   tags: string[];
   attackBonus: number;
   armorBonus: number;
