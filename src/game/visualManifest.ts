@@ -16,7 +16,8 @@ export type EquipmentVisualKind =
   | 'bow'
   | 'shield'
   | 'armor'
-  | 'horse';
+  | 'horse'
+  | 'artifact';
 
 export type BuildingVisualKind =
   | 'hall'
@@ -213,7 +214,11 @@ export const equipmentVisuals: Record<string, EquipmentVisualKind> = {
   orc_reinforced_warhide: 'armor',
   orc_ironhide_plate: 'armor',
   orc_trained_warg: 'horse',
-  orc_veteran_warg: 'horse'
+  orc_veteran_warg: 'horse',
+
+  hum_oathglass_relic: 'artifact',
+  elf_moonroot_relic: 'artifact',
+  orc_emberfang_relic: 'artifact'
 };
 
 export const buildingVisuals: Record<string, BuildingVisualKind> = {
