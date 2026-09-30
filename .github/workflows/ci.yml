@@ -84,6 +84,9 @@ jobs:
       - name: Research UI regression
         run: npx --no-install tsx scripts/research-ui-regression.ts
 
+      - name: Late mastery UI regression
+        run: npx --no-install tsx scripts/mastery-research-ui-regression.ts
+
       - name: Settlement UI regression
         run: npx --no-install tsx scripts/settlement-ui-regression.ts
 
