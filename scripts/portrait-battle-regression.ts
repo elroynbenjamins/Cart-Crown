@@ -16,7 +16,14 @@ for (const width of [240, 320, 360, 412, 480, 768]) for (const height of [480, 5
     check(layout.stageHeight >= 264, 'Six ranks need a minimum readable field height');
     for (const shape of formationShapes) for (const side of ['ally', 'enemy'] as const) {
       const full = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], side, layout.stageWidth, layout.stageHeight);
-      check(full.length === 9, 'Every shape must retain nine actual slot anchors');
+      const expectedAnchors = shape.rows.front.length + shape.rows.middle.length + shape.rows.rear.length;
+      check(full.length === expectedAnchors, shape.name + ' must retain every authored slot anchor');
+      check(
+        ['forward_line_411', 'iron_wall_501', 'layered_core_231'].includes(shape.id)
+          ? expectedAnchors === 6
+          : expectedAnchors === 9,
+        shape.name + ' has an unexpected authored position count'
+      );
       for (let mask = 0; mask < 512; mask++) {
         const occupied = full.filter(p => mask & 1 << p.slot).map(p => p.slot);
         const sparse = model.stageTokens(shape, occupied, side, layout.stageWidth, layout.stageHeight);
@@ -37,8 +44,17 @@ for (const width of [240, 320, 360, 412, 480, 768]) for (const height of [480, 5
             'Squads overlap, including mount overscale and one active strike');
         }
       }
-      const y = (row: model.Rank) => full.find(p => p.row === row)!.y;
-      check(side === 'enemy' ? y('rear') < y('middle') && y('middle') < y('front') : y('front') < y('middle') && y('middle') < y('rear'), 'Both fronts must face the centre');
+      const rowOrder: model.Rank[] = side === 'enemy'
+        ? ['rear', 'middle', 'front']
+        : ['front', 'middle', 'rear'];
+      const rowYs = rowOrder.flatMap(row => {
+        const point = full.find(candidate => candidate.row === row);
+        return point ? [point.y] : [];
+      });
+      check(
+        rowYs.every((value, index) => index === 0 || rowYs[index - 1]! < value),
+        'Both fronts must face the centre, including shapes with an intentionally empty rank'
+      );
     }
   }
 }
