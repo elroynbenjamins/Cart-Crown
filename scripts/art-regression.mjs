@@ -101,6 +101,31 @@ if (!fs.existsSync(settlementAtlasPath)) {
   }
 }
 
+// Human settlement support buildings use a second compact atlas. These six
+// silhouettes come from the generated pixel-art visual pack and replace the
+// coarse code fallback without changing settlement gameplay.
+const settlementSupportAtlasPath = path.join(root, 'assets/game/ui/settlement_support_atlas.png');
+if (!fs.existsSync(settlementSupportAtlasPath)) {
+  failures.push('Settlement support atlas is missing.');
+} else {
+  try {
+    const atlas = validateSpritePng(fs.readFileSync(settlementSupportAtlasPath));
+    const channels = atlas.colorType === 6 ? 4 : 2;
+    const cells = [[0, 0], [86, 0], [172, 0], [0, 86], [86, 86], [172, 86]];
+    for (const [x0, y0] of cells) {
+      let visible = 0;
+      for (let y = y0; y < Math.min(256, y0 + 84); y++) {
+        for (let x = x0; x < Math.min(256, x0 + 84); x++) {
+          if (atlas.pixels[(y * 256 + x) * channels + channels - 1] > 0) visible++;
+        }
+      }
+      if (visible < 120) failures.push('Settlement support atlas cell ' + x0 + ',' + y0 + ' is unexpectedly blank.');
+    }
+  } catch (error) {
+    failures.push('Settlement support atlas: ' + error.message);
+  }
+}
+
 const gameArt = fs.readFileSync(path.join(root, 'src/ui/gameArt.tsx'), 'utf8');
 const settlementCells = {
   hall: [0, 0],
@@ -131,6 +156,25 @@ for (const alias of settlementAliases) {
 }
 if (!registry.includes("'ui.settlement_anchor_atlas': require('../../assets/game/ui/settlement_anchor_atlas.png')")) {
   failures.push('Settlement anchor atlas is not registered as a production source.');
+}
+const settlementSupportCells = {
+  forge: [0, 0],
+  quartermaster: [86, 0],
+  stable: [172, 0],
+  war_room: [0, 86],
+  signal_tower: [86, 86],
+  officer_academy: [172, 86]
+};
+for (const [buildingId, [x, y]] of Object.entries(settlementSupportCells)) {
+  if (!gameArt.includes(buildingId + ': { x: ' + x + ', y: ' + y + ' }')) {
+    failures.push('Settlement support atlas mapping missing or moved for ' + buildingId + '.');
+  }
+}
+if (!gameArt.includes("faction === 'human' && settlementSupportAtlasCells[buildingId]")) {
+  failures.push('Settlement support atlas must stay Human-only until Elf and Orc support art is authored.');
+}
+if (!registry.includes("'ui.settlement_support_atlas': require('../../assets/game/ui/settlement_support_atlas.png')")) {
+  failures.push('Settlement support atlas is not registered as a production source.');
 }
 if (failures.length) {
   console.error('\nART REGRESSION FAILED');
