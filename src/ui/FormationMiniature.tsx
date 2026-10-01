@@ -2,6 +2,23 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { FormationShapeDefinition } from '../game/types';
 
+export function getFormationMiniatureRows(
+  shape: FormationShapeDefinition,
+  side: 'ally' | 'enemy'
+) {
+  return side === 'enemy'
+    ? [
+        { key: 'rear' as const, slots: shape.rows.rear },
+        { key: 'middle' as const, slots: shape.rows.middle },
+        { key: 'front' as const, slots: shape.rows.front }
+      ]
+    : [
+        { key: 'front' as const, slots: shape.rows.front },
+        { key: 'middle' as const, slots: shape.rows.middle },
+        { key: 'rear' as const, slots: shape.rows.rear }
+      ];
+}
+
 export function FormationMiniature({
   shape,
   side,
@@ -15,17 +32,7 @@ export function FormationMiniature({
   muted: string;
   label: string;
 }) {
-  const rows = side === 'enemy'
-    ? [
-        { key: 'rear', slots: shape.rows.rear },
-        { key: 'middle', slots: shape.rows.middle },
-        { key: 'front', slots: shape.rows.front }
-      ]
-    : [
-        { key: 'front', slots: shape.rows.front },
-        { key: 'middle', slots: shape.rows.middle },
-        { key: 'rear', slots: shape.rows.rear }
-      ];
+  const rows = getFormationMiniatureRows(shape, side);
 
   return (
     <View style={styles.card}>
