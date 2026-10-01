@@ -81,9 +81,12 @@ export function stageTokens(shape: FormationShapeDefinition, occupied: readonly 
   const safeH = Math.max(160, finite(height, 320));
   const pitch = (safeW - 32) / 5;
   const fractions = side === 'enemy'
-    ? { rear: .105, middle: .25, front: .395 }
-    : { front: .605, middle: .75, rear: .895 };
-  const size = Math.max(8, Math.floor(Math.min(64, pitch * .82, safeH * .145 - 10)));
+    ? { rear: .095, middle: .255, front: .415 }
+    : { front: .585, middle: .745, rear: .905 };
+  // Use more of each slot while preserving movement clearance and the optional
+  // 1.12x small-mount fallback. The budget depends on the full shape, not losses.
+  const available = Math.min(72, pitch * .94, safeH * .16 - 8);
+  const size = Math.max(8, Math.floor(available <= 32 ? available / 1.12 : available));
   return ranks.flatMap(row => shape.rows[row].flatMap((slot, index, all) => {
     if (!wanted.has(slot)) return [];
     const offset = (index - (all.length - 1) / 2) * pitch;
