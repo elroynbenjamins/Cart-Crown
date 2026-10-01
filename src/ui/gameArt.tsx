@@ -2847,7 +2847,6 @@ export function SettlementTerrainBackdrop({
             <View style={{ position: 'absolute', right: '3%', top: '34%', width: 24, height: 17, backgroundColor: palette.food, opacity: 0.24 }} />
           </>
         )
-      )
       ) : faction === 'elf' ? (
         <>
           <View style={{ position: 'absolute', left: '8%', top: '17%', width: 7, height: 7, backgroundColor: palette.elfLight, opacity: 0.9 }} />
