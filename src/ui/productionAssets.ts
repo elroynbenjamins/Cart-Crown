@@ -270,6 +270,8 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'battle_portrait.human_royal_guard_unit': require('../../assets/game/battle_portraits/human/royal_guard_unit.png'),
 
   'ui.settlement_anchor_atlas': require('../../assets/game/ui/settlement_anchor_atlas.png'),
+  'ui.elf_support_atlas_256': require('../../assets/game/ui/elf_support_atlas_256.png'),
+  'ui.orc_support_atlas_256': require('../../assets/game/ui/orc_support_atlas_256.png'),
 
   'unit.human.recruit': require('../../assets/game/units/human/recruit.png'),
   'unit.elf.warden': require('../../assets/game/units/elf/warden.png'),

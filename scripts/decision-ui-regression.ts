@@ -101,6 +101,9 @@ function harness(file: string, exportName: string, game: Record<string, any>, pr
       if (request.endsWith('/components')) return components;
       if (request.endsWith('/gameArt')) return art;
       if (request.endsWith('/TutorialFocus')) return { TutorialFocus: host('TutorialFocus') };
+      if (request.endsWith('/FormationShapeMiniature')) {
+        return { FormationShapeMiniature: host('FormationShapeMiniature') };
+      }
       if (request.endsWith('/decisionPresentation')) return { getDecisionFooterLayout, signedStat };
       if (request.endsWith('/semanticColors')) return semantic;
       if (request.endsWith('/DecisionUI') || request.endsWith('/SemanticUI')) return load(resolve(dirname(absolute), request + '.tsx'));
