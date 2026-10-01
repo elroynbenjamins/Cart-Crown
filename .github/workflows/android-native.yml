@@ -19,17 +19,16 @@ on:
       - 'src/ui/components.tsx'
       - 'src/ui/semanticColors.ts'
       - 'src/ui/battleVisuals*.tsx'
-      - 'src/screens/BattleScreen.tsx'
-      - 'src/AppShell.tsx'
+      - 'src/ui/FormationShapeMiniature.tsx'
       - 'src/ui/portraitBattle/**'
+      - 'src/screens/BattleScreen.tsx'
+      - 'src/screens/BattlePrepScreen.tsx'
+      - 'src/screens/FormationScreen.tsx'
+      - 'src/game/encounters.ts'
       - 'src/game/formation.ts'
       - 'src/game/types.ts'
       - 'src/save/schema.ts'
-      - 'src/screens/FormationScreen.tsx'
-      - 'src/game/formation.ts'
-      - 'src/game/types.ts'
-      - 'src/save/schema.ts'
-      - 'src/screens/FormationScreen.tsx'
+      - 'src/AppShell.tsx'
   push:
     branches: [main]
     paths:
@@ -48,9 +47,16 @@ on:
       - 'src/ui/components.tsx'
       - 'src/ui/semanticColors.ts'
       - 'src/ui/battleVisuals*.tsx'
-      - 'src/screens/BattleScreen.tsx'
-      - 'src/AppShell.tsx'
+      - 'src/ui/FormationShapeMiniature.tsx'
       - 'src/ui/portraitBattle/**'
+      - 'src/screens/BattleScreen.tsx'
+      - 'src/screens/BattlePrepScreen.tsx'
+      - 'src/screens/FormationScreen.tsx'
+      - 'src/game/encounters.ts'
+      - 'src/game/formation.ts'
+      - 'src/game/types.ts'
+      - 'src/save/schema.ts'
+      - 'src/AppShell.tsx'
 
 permissions:
   contents: read
