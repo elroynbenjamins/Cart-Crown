@@ -22,6 +22,36 @@ export const formationShapes: FormationShapeDefinition[] = [
     risk: 'No specialized pressure'
   },
   {
+    id: 'forward_line_411',
+    name: 'Forward Line',
+    layout: '4–1–1',
+    rows: { front: [0, 1, 2, 3], middle: [4], rear: [5] },
+    unlock: 'Start',
+    summary: 'A compact six-squad attack line with four squads at first contact and one reserve in each deeper rank.',
+    strength: 'Fast pressure against narrow screens',
+    risk: 'Very little depth if the front stalls'
+  },
+  {
+    id: 'layered_core_231',
+    name: 'Layered Core',
+    layout: '2–3–1',
+    rows: { front: [0, 1], middle: [2, 3, 4], rear: [5] },
+    unlock: 'Settlement',
+    summary: 'A small frontline protects a flexible three-squad center with one dedicated rear position.',
+    strength: 'Flexible counters and mobile support',
+    risk: 'The two-squad screen can be overwhelmed'
+  },
+  {
+    id: 'iron_wall_501',
+    name: 'Iron Wall',
+    layout: '5–0–1',
+    rows: { front: [0, 1, 2, 3, 4], middle: [], rear: [5] },
+    unlock: 'Fort',
+    summary: 'Five squads hold one continuous line while a single protected rear squad supports from behind.',
+    strength: 'Maximum frontage and anti-charge control',
+    risk: 'No middle rank to contain a breakthrough'
+  },
+  {
     id: 'assault_432',
     name: 'Assault Line',
     layout: '4–3–2',
@@ -215,6 +245,24 @@ type FormationCounterRule = {
 };
 
 const formationCounterRules: FormationCounterRule[] = [
+  {
+    winner: 'iron_wall_501',
+    loser: 'forward_line_411',
+    winnerSummary: 'Five braced squads absorb the four-wide opening push and deny an easy lane through the line.',
+    loserSummary: 'The enemy wall has enough frontage to blunt your direct opening pressure.'
+  },
+  {
+    winner: 'layered_core_231',
+    loser: 'iron_wall_501',
+    winnerSummary: 'A three-squad middle rank can exploit the wall’s missing second line once the first contact is fixed in place.',
+    loserSummary: 'With no middle rank, your wall has little room to answer pressure that gets behind first contact.'
+  },
+  {
+    winner: 'forward_line_411',
+    loser: 'layered_core_231',
+    winnerSummary: 'Four squads hit the two-wide screen before the enemy center can rotate into every lane.',
+    loserSummary: 'Your narrow first line can be overwhelmed before the central reserve fully reinforces it.'
+  },
   {
     winner: 'assault_432',
     loser: 'protected_rear_225',
@@ -427,6 +475,50 @@ function edgeFirst(indices: number[]) {
     right -= 1;
   }
   return result;
+}
+
+export function getFormationVisibleSlots(
+  shapeId: FormationShapeId | string | null | undefined
+) {
+  const rows = getFormationRows(shapeId);
+  return [...rows.front, ...rows.middle, ...rows.rear];
+}
+
+export function reflowFormationToShape(
+  formation: readonly (string | null)[],
+  units: readonly UnitDefinition[],
+  shapeId: FormationShapeId | string | null | undefined
+) {
+  const visibleSlots = getFormationVisibleSlots(shapeId);
+  const visible = new Set(visibleSlots);
+  const next = Array.from({ length: 9 }, () => null as string | null);
+  const placed = new Set<string>();
+
+  // Keep squads that are already on positions that remain visible.
+  for (const slot of visibleSlots) {
+    const unitId = formation[slot] ?? null;
+    if (unitId && !placed.has(unitId)) {
+      next[slot] = unitId;
+      placed.add(unitId);
+    }
+  }
+
+  // Move only squads that would otherwise become hidden.
+  formation.forEach((unitId, oldSlot) => {
+    if (!unitId || placed.has(unitId) || visible.has(oldSlot)) return;
+    const unit = units.find(candidate => candidate.id === unitId) ?? null;
+    const preferred = unit
+      ? getPreferredFormationSlots(shapeId, unit.role)
+      : visibleSlots;
+    const target = preferred.find(slot => visible.has(slot) && next[slot] === null)
+      ?? visibleSlots.find(slot => next[slot] === null);
+    if (target !== undefined) {
+      next[target] = unitId;
+      placed.add(unitId);
+    }
+  });
+
+  return next;
 }
 
 export function getPreferredFormationSlots(
