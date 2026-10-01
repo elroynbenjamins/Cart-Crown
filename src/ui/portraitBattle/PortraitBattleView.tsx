@@ -7,7 +7,7 @@ import { EnemySprite, UnitSprite } from '../gameArt';
 import { BattleStatusMarker, BattleVfxStrip, EnemyFantasyStrikeVfx, EnemyFantasyThreatAura } from '../battleVisuals';
 import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop';
 import { ReferenceArt } from './Art';
-import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageTokens } from './model';
+import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageTokens } from './model';
 import type { ArmySide, EnemyToken, ExchangeRecord } from './model';
 
 export type PortraitBattleProps = {
@@ -174,11 +174,13 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
         const active = ongoing && position.slot === p.activeSlot;
         const support = ongoing && p.supportSlots.includes(position.slot);
         const chosen = selected?.side === 'ally' && selected.slot === position.slot;
+        const depth = stageDepthVisual(position.row);
         return <Animated.View key={`ally-${position.slot}`} testID={`ally-stage-slot-${position.slot}`}
           style={[s.actor, { left: position.x - position.size / 2, top: position.y - position.size / 2,
-            width: position.size, height: position.size,
+            width: position.size, height: position.size, zIndex: depth.zIndex,
             transform: [{ translateY: moving && active ? p.attackPulse.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) : 0 }] }]}>
-          <View style={[s.shadow, { backgroundColor: '#000000' }]} />
+          <View style={[s.shadow, { backgroundColor: '#000000',
+            width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
           {allyPortrait(item.unit) ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size}
             fallback={<UnitSprite preferHumanArt={false} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
             : <UnitSprite preferHumanArt={false} className={item.unit.className} faction={item.unit.faction} size={position.size} />}
@@ -190,11 +192,13 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
         const item = p.enemies.find(candidate => candidate.slot === position.slot)!;
         const targeted = ongoing && !item.down && p.enemySlot === item.slot;
         const chosen = selected?.side === 'enemy' && selected.slot === position.slot;
+        const depth = stageDepthVisual(position.row);
         return <Animated.View key={`enemy-${position.slot}`} testID={`enemy-stage-slot-${position.slot}`}
           style={[s.actor, { left: position.x - position.size / 2, top: position.y - position.size / 2,
-            width: position.size, height: position.size, opacity: item.down ? .2 : 1,
+            width: position.size, height: position.size, opacity: item.down ? .2 : 1, zIndex: depth.zIndex,
             transform: [{ translateY: moving && targeted ? p.impactPulse.interpolate({ inputRange: [0, .5, 1], outputRange: [0, 3, 0] }) : 0 }] }]}>
-          <View style={[s.shadow, { backgroundColor: '#000000' }]} />
+          <View style={[s.shadow, { backgroundColor: '#000000',
+            width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
           {enemyFigure(item, position.size)}
           {targeted || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : theme.colors.danger }]} /> : null}
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
@@ -298,9 +302,9 @@ const s = StyleSheet.create({
   stage: { alignSelf: 'center', borderWidth: 1, overflow: 'hidden', borderRadius: 6 }, fill: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
   guide: { position: 'absolute', left: 4, right: 4, borderTopWidth: .5, opacity: .24 }, rankMark: { position: 'absolute', top: -7, left: 0, fontSize: 8 },
   engagement: { position: 'absolute', left: '22%', right: '22%', borderTopWidth: 1, opacity: .3 },
-  actor: { position: 'absolute', justifyContent: 'center', alignItems: 'center' }, shadow: { position: 'absolute', bottom: 0, width: '72%', height: 6, borderRadius: 12, opacity: .65 },
+  actor: { position: 'absolute', justifyContent: 'center', alignItems: 'center' }, shadow: { position: 'absolute', bottom: 0, borderRadius: 12 },
   activeUnderline: { position: 'absolute', bottom: 0, height: 2, width: '80%', borderRadius: 2 }, selectionFrame: { position: 'absolute', left: -2, right: -2, bottom: -2, height: 10, borderWidth: 1.5, borderRadius: 99 },
-  vfx: { position: 'absolute', alignSelf: 'center' }, pauseOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000099', justifyContent: 'center', alignItems: 'center' },
+  vfx: { position: 'absolute', alignSelf: 'center', zIndex: 50 }, pauseOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000099', justifyContent: 'center', alignItems: 'center' },
   pauseCopy: { color: '#F3C461', fontSize: 16, fontWeight: '800', letterSpacing: 2 }, selectionCopy: { fontSize: 10, textAlign: 'center', minHeight: 15 },
   footer: { flexShrink: 0, borderTopWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 4 }, footerStack: { flexDirection: 'column', alignItems: 'stretch' },
   footerCopy: { flex: 1, minWidth: 0 }, footerStatus: { fontSize: 10, fontWeight: '800' }, formationLink: { minHeight: 44, justifyContent: 'center' }, linkText: { fontSize: 10 },
