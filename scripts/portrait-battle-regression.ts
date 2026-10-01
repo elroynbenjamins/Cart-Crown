@@ -74,6 +74,15 @@ const rowSpan = (tokens: model.StageToken[], row: model.Rank) => {
 };
 const rowY = (tokens: model.StageToken[], row: model.Rank) => tokens.find(token => token.row === row)!.y;
 const rowSize = (tokens: model.StageToken[], row: model.Rank) => tokens.find(token => token.row === row)!.size;
+const frontDepth = model.stageDepthVisual('front');
+const middleDepth = model.stageDepthVisual('middle');
+const rearDepth = model.stageDepthVisual('rear');
+check(frontDepth.scale > middleDepth.scale && middleDepth.scale > rearDepth.scale, 'Ranks must recede in perspective from front to rear');
+check(frontDepth.shadowScale > middleDepth.shadowScale && middleDepth.shadowScale > rearDepth.shadowScale, 'Ground shadows must narrow with reserve depth');
+check(frontDepth.shadowOpacity > middleDepth.shadowOpacity && middleDepth.shadowOpacity > rearDepth.shadowOpacity, 'Ground shadows must soften with reserve depth');
+check(frontDepth.zIndex > middleDepth.zIndex && middleDepth.zIndex > rearDepth.zIndex, 'Contact ranks must draw above supporting ranks');
+check(rowSize(balancedStage, 'front') > rowSize(balancedStage, 'middle'), 'Balanced frontline must carry more visual presence than its middle rank');
+check(rowSize(balancedStage, 'middle') > rowSize(balancedStage, 'rear'), 'Balanced rear reserve must visibly recede behind the middle rank');
 check(rowSpan(ironStage, 'front') > rowSpan(layeredStage, 'front') * 5, 'Iron Wall must read as a much broader packed line than Layered Core');
 check(rowY(ironStage, 'front') > rowY(balancedStage, 'front') + 5, 'Iron Wall frontline should visibly press toward first contact');
 check(rowY(layeredStage, 'front') < rowY(balancedStage, 'front') - 2, 'Layered Core screen should sit more cautiously behind first contact');
@@ -169,4 +178,7 @@ check(controller.includes('else onDefeated(summary)'),'Preserve defeat report ca
 check(controller.includes('setExchangeHistory(previous => appendExchange'),'Log must use live exchange telemetry');
 check(controller.includes('fantasyThreat={encounter.fantasyThreat}')&&file.includes('fantasyThreat={p.fantasyThreat} role={item.role}'),'Fantasy/role forwarding must survive integration');
 check(file.includes('EnemyFantasyStrikeVfx')&&file.includes('progress={p.impactPulse}'),'Retain fantasy strike effects');
-console.log(`PASS: ${checks} stable-slot, formation-rank, geometry, portrait-selection, control and real-TSX checks.`);
+check(file.includes('stageDepthVisual(position.row)'),'Battlefield actors must consume their rank-depth presentation');
+check(file.includes('zIndex: depth.zIndex'),'Rank depth must control battlefield draw order');
+check(file.includes('shadowScale')&&file.includes('shadowOpacity'),'Rank depth must alter shadow footprint and opacity');
+console.log(`PASS: ${checks} stable-slot, formation-rank, depth, geometry, portrait-selection, control and real-TSX checks.`);
