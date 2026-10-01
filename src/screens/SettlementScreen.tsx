@@ -9,7 +9,7 @@ import { canPayBuildingCost } from '../game/kingdom';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
-import { BuildingSprite, LockIcon, PlotTerrainSprite, ResourceSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
+import { BuildingSprite, LockIcon, PlotTerrainSprite, ResourceSprite, SettlementPopulationLayer, SettlementTerrainBackdrop, SettlementWorldPropSprite } from '../ui/gameArt';
 import { SemanticChip, SemanticText } from '../ui/SemanticUI';
 import { semanticColor } from '../ui/semanticColors';
 import { BuildingCosts, BuildingHeading, BuildingLevelPreview, DistrictEffects } from '../ui/SettlementUI';
@@ -216,6 +216,14 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   }
                 ]}
               />
+              {activeFaction === 'human' && unlocked ? (
+                <View pointerEvents="none" style={styles.generatedPlotArt}>
+                  <SettlementWorldPropSprite
+                    kind={building ? (landmark ? 'plot_stone' : 'plot_grass') : 'plot_fenced'}
+                    size={landmark ? 96 : 84}
+                  />
+                </View>
+              ) : null}
               {tutorialPlotFocused ? (
                 <View pointerEvents="none" style={[styles.plotGuideBadge, { backgroundColor: theme.colors.gold }]}>
                   <Text style={styles.plotGuideText}>{tutorialFocus?.kind === 'settlement-building' ? 'TAP EMPTY PLOT' : tutorialFocus?.label}</Text>
@@ -238,7 +246,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 <>
                   <Text style={[styles.emptyPlus, { color: selected || selectedBuildingId ? theme.colors.gold : semanticColor(theme, 'neutral') }]}>+</Text>
                   <SemanticText tone="neutral" style={styles.emptyText}>{selectedBuildingId ? 'Move here' : 'Empty'}</SemanticText>
-                  <View style={styles.terrain}><PlotTerrainSprite terrain={plot.terrain} color={theme.colors.textMuted} size={24} /></View>
+                  {activeFaction !== 'human' ? (
+                    <View style={styles.terrain}><PlotTerrainSprite terrain={plot.terrain} color={theme.colors.textMuted} size={24} /></View>
+                  ) : null}
                 </>
               ) : (
                 <>
@@ -249,6 +259,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             </Pressable>
           );
         })}
+        <SettlementPopulationLayer faction={activeFaction} stageId={currentWagonStage.id} />
         {['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
           <>
             <View pointerEvents="none" style={[styles.wallTop, { borderColor: theme.colors.gold }]} />
@@ -397,6 +408,7 @@ const styles = StyleSheet.create({
   plot: { position: 'absolute', width: '27%', height: '23%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'hidden' },
   landmarkPlot: { width: '32%', height: '27%', zIndex: 2 },
   plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 13 },
+  generatedPlotArt: { position: 'absolute', left: '50%', top: '50%', marginLeft: -42, marginTop: -42, opacity: 0.96 },
   buildingPad: { width: 70, height: 62, alignItems: 'center', justifyContent: 'flex-end' },
   landmarkBuildingPad: { width: 86, height: 78 },
   buildingFootprint: { position: 'absolute', left: 7, right: 7, bottom: 1, height: 16, borderRadius: 999, opacity: 0.18 },
