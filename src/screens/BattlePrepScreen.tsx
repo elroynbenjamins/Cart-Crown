@@ -1463,6 +1463,12 @@ export function BattlePrepScreen({
                   }
                 />
               </View>
+              <FormationShapeMiniature
+                shape={shape}
+                accent={selected ? theme.colors.gold : factionAccent}
+                muted={theme.colors.border}
+                compact
+              />
               <Text
                 style={[
                   styles.formationSwitchName,
@@ -1485,7 +1491,7 @@ export function BattlePrepScreen({
         })}
       </ScrollView>
       <Text style={[styles.switchHint, { color: theme.colors.textMuted }]}>
-        Switching here is immediate and saved. Squad slot assignments stay the same; only the formation geometry changes.
+        Switching here is immediate and saved. Squads on positions shared by both shapes stay put; squads on hidden positions move to suitable visible slots.
       </Text>
 
       <Pressable
