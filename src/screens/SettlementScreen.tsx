@@ -204,7 +204,6 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   transform: tutorialPlotFocused ? [{ scale: 1.05 }] : undefined
                 },
                 landmark ? styles.landmarkPlot : undefined
-                }
               ]}
             >
               <View
