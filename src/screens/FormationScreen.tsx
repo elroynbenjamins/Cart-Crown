@@ -5,7 +5,8 @@ import { useGame } from '../game/GameProvider';
 import type { TacticalAdjustmentAdvice } from '../game/loadoutAnalysis';
 import type {
   EquipmentSlot,
-  FormationPresetSlotId
+  FormationPresetSlotId,
+  FormationShapeDefinition
 } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
@@ -38,6 +39,55 @@ const equipmentSlots: EquipmentSlot[] = [
   'mount',
   'artifact'
 ];
+
+function FormationShapeMiniature({
+  shape,
+  accent,
+  muted
+}: {
+  shape: FormationShapeDefinition;
+  accent: string;
+  muted: string;
+}) {
+  const previewRows = [
+    shape.rows.front,
+    shape.rows.middle,
+    shape.rows.rear
+  ];
+  return (
+    <View
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+      style={styles.shapeMiniature}
+    >
+      {previewRows.map((slots, rowIndex) => (
+        <View key={rowIndex} style={styles.shapeMiniRow}>
+          {slots.length > 0 ? (
+            slots.map((slot, index) => (
+              <View
+                key={slot}
+                style={[
+                  styles.shapeMiniDot,
+                  {
+                    backgroundColor: accent,
+                    opacity: 1 - rowIndex * 0.16
+                  }
+                ]}
+              />
+            ))
+          ) : (
+            <View
+              style={[
+                styles.shapeMiniEmpty,
+                { backgroundColor: muted }
+              ]}
+            />
+          )}
+        </View>
+      ))}
+    </View>
+  );
+}
 
 export type FormationGuide = {
   adjustment: TacticalAdjustmentAdvice;
@@ -903,6 +953,11 @@ export function FormationScreen({
                   {selected ? 'ACTIVE' : unlocked ? shape.unlock.toUpperCase() : 'LOCKED · ' + shape.unlock.toUpperCase()}
                 </Text>
               </View>
+              <FormationShapeMiniature
+                shape={shape}
+                accent={selected ? theme.colors.gold : factionAccent}
+                muted={theme.colors.border}
+              />
               <Text style={[styles.shapeName, { color: theme.colors.text }]}>{shape.name}</Text>
               <Text style={[styles.shapeMeta, { color: theme.colors.textMuted }]} numberOfLines={2}>
                 {shape.strength}
@@ -1248,6 +1303,22 @@ const styles = StyleSheet.create({
     padding: 11
   },
   shapeTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  shapeMiniature: {
+    height: 34,
+    marginTop: 7,
+    gap: 3,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  shapeMiniRow: {
+    minHeight: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4
+  },
+  shapeMiniDot: { width: 7, height: 7, borderRadius: 4 },
+  shapeMiniEmpty: { width: 18, height: 1.5, borderRadius: 2, opacity: 0.7 },
   shapeLayout: { fontSize: 16, fontWeight: '900' },
   shapeUnlock: { fontSize: 7.5, fontWeight: '900', flexShrink: 1, textAlign: 'right' },
   shapeName: { fontSize: 12.5, fontWeight: '900', marginTop: 8 },
