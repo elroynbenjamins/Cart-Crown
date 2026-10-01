@@ -29,9 +29,10 @@ export const IllustratedBattlefieldBackdrop = memo(function IllustratedBattlefie
       <View style={[styles.horizon, { opacity: theme.dark ? .78 : .5 }]}>
         <ReferenceArt art="greenkeep_sky" width={layout.width} height={layout.horizonHeight} onError={() => setFailed(true)} />
       </View>
+      {/* Alternate vertically so adjoining rows share the same edge pixels. */}
       {layout.tiles.map(tile => <View key={tile.index} style={{
         position: 'absolute', left: 0, top: tile.y, width: layout.width, height: layout.tileHeight,
-        opacity: theme.dark ? .64 : .36, transform: [{ scaleX: tile.mirrored ? -1 : 1 }]
+        opacity: theme.dark ? .64 : .36, transform: [{ scaleY: tile.mirrored ? -1 : 1 }]
       }}>
         <ReferenceArt art="greenkeep_ground" width={layout.width} height={layout.tileHeight} onError={() => setFailed(true)} />
       </View>)}

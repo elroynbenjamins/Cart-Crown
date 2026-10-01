@@ -85,6 +85,10 @@ for (const theme of Object.values(themes)) {
   const images = tree.filter(n => n.type === 'ReferenceArt');
   assert.ok(images.length >= 2 && images.length <= 12);
   assert.equal(new Set(images.map(n => n.props.art)).size, 2, 'Only two cached image sources');
+  const tileViews = tree.filter(n => n.props.style?.transform?.[0]?.scaleY !== undefined);
+  assert.deepEqual(tileViews.map(n => n.props.style.transform[0].scaleY),
+    roadSceneryLayout(props.width, props.height).tiles.map(tile => tile.mirrored ? -1 : 1),
+    'Mirror vertically to join equal texture edges, not sideways across the road'); checks++;
   images[0]!.props.onError();
   tree = nodes(mod.exports.IllustratedBattlefieldBackdrop(props));
   assert.equal(tree.filter(n => n.type === 'ReferenceArt').length, 0, 'Failed scene must reveal existing backdrop');
