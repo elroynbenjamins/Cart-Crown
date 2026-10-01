@@ -7,7 +7,7 @@ import { EnemySprite, UnitSprite } from '../gameArt';
 import { BattleStatusMarker, BattleVfxStrip, EnemyFantasyStrikeVfx, EnemyFantasyThreatAura } from '../battleVisuals';
 import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop';
 import { ReferenceArt } from './Art';
-import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageTokens } from './model';
+import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageTokens } from './model';
 import type { ArmySide, EnemyToken, ExchangeRecord } from './model';
 
 export type PortraitBattleProps = {
@@ -175,10 +175,17 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
         const support = ongoing && p.supportSlots.includes(position.slot);
         const chosen = selected?.side === 'ally' && selected.slot === position.slot;
         const depth = stageDepthVisual(position.row);
+        const motion = stageExchangeMotion(p.shape, position.row);
+        const strikeShift = -(motion.advance + (active ? 3.5 : 0));
+        const impactShift = -(motion.reinforce - motion.brace);
         return <Animated.View key={`ally-${position.slot}`} testID={`ally-stage-slot-${position.slot}`}
           style={[s.actor, { left: position.x - position.size / 2, top: position.y - position.size / 2,
             width: position.size, height: position.size, zIndex: depth.zIndex,
-            transform: [{ translateY: moving && active ? p.attackPulse.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) : 0 }] }]}>
+            transform: [
+              { translateY: moving && strikeShift !== 0 ? p.attackPulse.interpolate({ inputRange: [0, 1], outputRange: [0, strikeShift] }) : 0 },
+              { translateY: moving && impactShift !== 0 ? p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [0, impactShift] }) : 0 },
+              { scaleY: moving && motion.impactScaleY !== 1 ? p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [1, motion.impactScaleY] }) : 1 }
+            ] }]}>
           <View style={[s.shadow, { backgroundColor: '#000000',
             width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
           {allyPortrait(item.unit) ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size}
@@ -193,12 +200,25 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
         const targeted = ongoing && !item.down && p.enemySlot === item.slot;
         const chosen = selected?.side === 'enemy' && selected.slot === position.slot;
         const depth = stageDepthVisual(position.row);
+        const motion = stageExchangeMotion(p.enemyShape, position.row);
+        const strikeShift = motion.advance;
+        const impactShift = (targeted ? 3 : 0) + (targeted ? 0 : motion.reinforce) - motion.brace;
+        const impactScaleY = targeted ? Math.min(.95, motion.impactScaleY) : motion.impactScaleY;
         return <Animated.View key={`enemy-${position.slot}`} testID={`enemy-stage-slot-${position.slot}`}
           style={[s.actor, { left: position.x - position.size / 2, top: position.y - position.size / 2,
             width: position.size, height: position.size, opacity: item.down ? .2 : 1, zIndex: depth.zIndex,
-            transform: [{ translateY: moving && targeted ? p.impactPulse.interpolate({ inputRange: [0, .5, 1], outputRange: [0, 3, 0] }) : 0 }] }]}>
+            transform: [
+              { translateY: moving && strikeShift !== 0 ? p.attackPulse.interpolate({ inputRange: [0, 1], outputRange: [0, strikeShift] }) : 0 },
+              { translateY: moving && impactShift !== 0 ? p.impactPulse.interpolate({ inputRange: [0, .5, 1], outputRange: [0, impactShift, 0] }) : 0 },
+              { scaleY: moving && impactScaleY !== 1 ? p.impactPulse.interpolate({ inputRange: [0, .5, 1], outputRange: [1, impactScaleY, 1] }) : 1 }
+            ] }]}>
           <View style={[s.shadow, { backgroundColor: '#000000',
             width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
+          {targeted ? <Animated.View style={[s.impactRing, {
+            borderColor: theme.colors.danger,
+            opacity: moving ? p.impactPulse : 0,
+            transform: [{ scale: moving ? p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [.78, 1.08] }) : 1 }]
+          }]} /> : null}
           {enemyFigure(item, position.size)}
           {targeted || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : theme.colors.danger }]} /> : null}
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
@@ -303,7 +323,8 @@ const s = StyleSheet.create({
   guide: { position: 'absolute', left: 4, right: 4, borderTopWidth: .5, opacity: .24 }, rankMark: { position: 'absolute', top: -7, left: 0, fontSize: 8 },
   engagement: { position: 'absolute', left: '22%', right: '22%', borderTopWidth: 1, opacity: .3 },
   actor: { position: 'absolute', justifyContent: 'center', alignItems: 'center' }, shadow: { position: 'absolute', bottom: 0, borderRadius: 12 },
-  activeUnderline: { position: 'absolute', bottom: 0, height: 2, width: '80%', borderRadius: 2 }, selectionFrame: { position: 'absolute', left: -2, right: -2, bottom: -2, height: 10, borderWidth: 1.5, borderRadius: 99 },
+  activeUnderline: { position: 'absolute', bottom: 0, height: 2, width: '80%', borderRadius: 2 }, impactRing: { position: 'absolute', left: -3, right: -3, bottom: -3, height: 12, borderWidth: 1.5, borderRadius: 99 },
+  selectionFrame: { position: 'absolute', left: -2, right: -2, bottom: -2, height: 10, borderWidth: 1.5, borderRadius: 99 },
   vfx: { position: 'absolute', alignSelf: 'center', zIndex: 50 }, pauseOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000099', justifyContent: 'center', alignItems: 'center' },
   pauseCopy: { color: '#F3C461', fontSize: 16, fontWeight: '800', letterSpacing: 2 }, selectionCopy: { fontSize: 10, textAlign: 'center', minHeight: 15 },
   footer: { flexShrink: 0, borderTopWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 4 }, footerStack: { flexDirection: 'column', alignItems: 'stretch' },
