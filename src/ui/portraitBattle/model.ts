@@ -132,6 +132,58 @@ export function stageDepthVisual(row: Rank): StageDepthVisual {
   return stageRankDepth[row];
 }
 
+export type StageExchangeMotion = Readonly<{
+  /** Whole-rank push toward first contact during the strike pulse. */
+  advance: number;
+  /** Supporting rank response toward first contact during the impact pulse. */
+  reinforce: number;
+  /** Defensive give away from first contact during the impact pulse. */
+  brace: number;
+  /** Vertical compression at peak impact; 1 keeps the authored silhouette. */
+  impactScaleY: number;
+}>;
+
+const neutralStageExchangeMotion: StageExchangeMotion = {
+  advance: 0,
+  reinforce: 0,
+  brace: 0,
+  impactScaleY: 1
+};
+
+/**
+ * Formation personality during one existing exchange pulse.
+ *
+ * These values never affect targeting, timing or combat math. They only reuse the
+ * already-running attack/impact animation so formation identity survives contact:
+ * Forward Line surges, Layered Core feeds its middle rank forward, and Iron Wall
+ * visibly absorbs the hit as one braced line.
+ */
+const stageFormationExchangeProfiles: Readonly<Record<string, StageFormationVisualProfile & {
+  front?: StageRankVisualProfile & Partial<StageExchangeMotion>;
+  middle?: StageRankVisualProfile & Partial<StageExchangeMotion>;
+  rear?: StageRankVisualProfile & Partial<StageExchangeMotion>;
+}>> = {
+  forward_line_411: {
+    front: { advance: 1.8 }
+  },
+  layered_core_231: {
+    middle: { reinforce: 1.8 }
+  },
+  iron_wall_501: {
+    front: { brace: .8, impactScaleY: .96 }
+  }
+};
+
+export function stageExchangeMotion(shape: FormationShapeDefinition, row: Rank): StageExchangeMotion {
+  const profile = stageFormationExchangeProfiles[shape.id]?.[row];
+  return {
+    advance: profile?.advance ?? neutralStageExchangeMotion.advance,
+    reinforce: profile?.reinforce ?? neutralStageExchangeMotion.reinforce,
+    brace: profile?.brace ?? neutralStageExchangeMotion.brace,
+    impactScaleY: profile?.impactScaleY ?? neutralStageExchangeMotion.impactScaleY
+  };
+}
+
 /** True formation geometry. Coordinates and size depend on SHAPE, not survivors.
  * Slots retain their row index even when a neighbour is empty/routed. Both fronts
  * face the centre; enemy left/right is mirrored into the player's perspective.
