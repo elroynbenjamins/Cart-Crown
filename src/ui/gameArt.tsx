@@ -2503,6 +2503,190 @@ export function FactionCampScene({
 }
 
 
+
+type SettlementWorldHumanKind =
+  | 'plot_grass'
+  | 'plot_stone'
+  | 'plot_fenced'
+  | 'road_straight'
+  | 'road_cross'
+  | 'fence_gate'
+  | 'supplies'
+  | 'torch_banner'
+  | 'target_sign';
+
+type SettlementPersonHumanKind =
+  | 'woman'
+  | 'worker'
+  | 'guard'
+  | 'knight'
+  | 'smith'
+  | 'merchant'
+  | 'farmer'
+  | 'porter'
+  | 'horse';
+
+type SettlementNatureHumanKind =
+  | 'tree_large'
+  | 'tree_dark'
+  | 'conifer'
+  | 'bush_flowers'
+  | 'bush_blue'
+  | 'hedge'
+  | 'rocks'
+  | 'fence'
+  | 'stone_wall';
+
+const settlementWorldHumanAtlasCells: Record<SettlementWorldHumanKind, { x: number; y: number }> = {
+  plot_grass: { x: 0, y: 0 },
+  plot_stone: { x: 86, y: 0 },
+  plot_fenced: { x: 172, y: 0 },
+  road_straight: { x: 0, y: 86 },
+  road_cross: { x: 86, y: 86 },
+  fence_gate: { x: 172, y: 86 },
+  supplies: { x: 0, y: 172 },
+  torch_banner: { x: 86, y: 172 },
+  target_sign: { x: 172, y: 172 }
+};
+
+const settlementPeopleHumanAtlasCells: Record<SettlementPersonHumanKind, { x: number; y: number }> = {
+  woman: { x: 0, y: 0 },
+  worker: { x: 86, y: 0 },
+  guard: { x: 172, y: 0 },
+  knight: { x: 0, y: 86 },
+  smith: { x: 86, y: 86 },
+  merchant: { x: 172, y: 86 },
+  farmer: { x: 0, y: 172 },
+  porter: { x: 86, y: 172 },
+  horse: { x: 172, y: 172 }
+};
+
+const settlementNatureHumanAtlasCells: Record<SettlementNatureHumanKind, { x: number; y: number }> = {
+  tree_large: { x: 0, y: 0 },
+  tree_dark: { x: 86, y: 0 },
+  conifer: { x: 172, y: 0 },
+  bush_flowers: { x: 0, y: 86 },
+  bush_blue: { x: 86, y: 86 },
+  hedge: { x: 172, y: 86 },
+  rocks: { x: 0, y: 172 },
+  fence: { x: 86, y: 172 },
+  stone_wall: { x: 172, y: 172 }
+};
+
+function SettlementAtlasCell({
+  assetId,
+  cell,
+  size
+}: {
+  assetId: string;
+  cell: { x: number; y: number };
+  size: number;
+}) {
+  const source = getProductionAssetSource(assetId);
+  if (!source) return null;
+  const cellSize = 84;
+  const scale = size / cellSize;
+  return (
+    <View style={{ width: size, height: size, overflow: 'hidden' }}>
+      <Image
+        source={source}
+        resizeMode="stretch"
+        style={{
+          position: 'absolute',
+          left: -cell.x * scale,
+          top: -cell.y * scale,
+          width: 256 * scale,
+          height: 256 * scale
+        }}
+      />
+    </View>
+  );
+}
+
+export function SettlementWorldPropSprite({
+  kind,
+  size = 72
+}: {
+  kind: SettlementWorldHumanKind;
+  size?: number;
+}) {
+  return (
+    <SettlementAtlasCell
+      assetId="ui.settlement_world_human_atlas"
+      cell={settlementWorldHumanAtlasCells[kind]}
+      size={size}
+    />
+  );
+}
+
+function SettlementNatureSprite({
+  kind,
+  size = 68
+}: {
+  kind: SettlementNatureHumanKind;
+  size?: number;
+}) {
+  return (
+    <SettlementAtlasCell
+      assetId="ui.settlement_nature_human_atlas"
+      cell={settlementNatureHumanAtlasCells[kind]}
+      size={size}
+    />
+  );
+}
+
+function SettlementPersonSprite({
+  kind,
+  size = 34
+}: {
+  kind: SettlementPersonHumanKind;
+  size?: number;
+}) {
+  return (
+    <SettlementAtlasCell
+      assetId="ui.settlement_people_human_atlas"
+      cell={settlementPeopleHumanAtlasCells[kind]}
+      size={size}
+    />
+  );
+}
+
+export function SettlementPopulationLayer({
+  faction = 'human',
+  stageId = 'camp'
+}: {
+  faction?: FactionId;
+  stageId?: WagonStage['id'];
+}) {
+  if (faction !== 'human' || !getProductionAssetSource('ui.settlement_people_human_atlas')) return null;
+  const rank = stageRanks[stageId] ?? 0;
+  const people = [
+    { kind: 'worker' as const, left: '27%', top: '47%', size: 30 },
+    { kind: 'guard' as const, left: '55%', top: '26%', size: 31 },
+    { kind: 'woman' as const, left: '17%', top: '61%', size: 30 },
+    { kind: 'smith' as const, left: '73%', top: '48%', size: 32 },
+    { kind: 'merchant' as const, left: '60%', top: '67%', size: 30 },
+    { kind: 'farmer' as const, left: '29%', top: '78%', size: 30 }
+  ];
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 8 }}>
+      {people.slice(0, Math.min(people.length, 2 + rank)).map((person, index) => (
+        <View
+          key={'settlement-person-' + String(index)}
+          style={{ position: 'absolute', left: person.left, top: person.top, opacity: 0.94 }}
+        >
+          <SettlementPersonSprite kind={person.kind} size={person.size} />
+        </View>
+      ))}
+      {rank >= 3 ? (
+        <View style={{ position: 'absolute', left: '43%', top: '61%', opacity: 0.92 }}>
+          <SettlementPersonSprite kind="horse" size={40} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 export function SettlementTerrainBackdrop({
   faction = 'human',
   stageId = 'camp'
@@ -2607,10 +2791,62 @@ export function SettlementTerrainBackdrop({
       ))}
 
       {faction === 'human' ? (
-        <>
-          <View style={{ position: 'absolute', left: '3%', bottom: '33%', width: 28, height: 20, borderWidth: 2, borderColor: palette.wood, opacity: 0.72 }} />
-          <View style={{ position: 'absolute', right: '3%', top: '34%', width: 24, height: 17, backgroundColor: palette.food, opacity: 0.24 }} />
-        </>
+        getProductionAssetSource('ui.settlement_world_human_atlas') && getProductionAssetSource('ui.settlement_nature_human_atlas') ? (
+          <>
+            <View style={{ position: 'absolute', left: '31%', top: '33%' }}>
+              <SettlementWorldPropSprite kind="road_cross" size={145} />
+            </View>
+            <View style={{ position: 'absolute', left: '37%', top: '7%', transform: [{ rotate: '90deg' }] }}>
+              <SettlementWorldPropSprite kind="road_straight" size={100} />
+            </View>
+            <View style={{ position: 'absolute', left: '37%', bottom: '5%', transform: [{ rotate: '90deg' }] }}>
+              <SettlementWorldPropSprite kind="road_straight" size={100} />
+            </View>
+            <View style={{ position: 'absolute', left: '5%', top: '3%' }}>
+              <SettlementNatureSprite kind="tree_large" size={74} />
+            </View>
+            <View style={{ position: 'absolute', right: '3%', top: '2%' }}>
+              <SettlementNatureSprite kind="conifer" size={68} />
+            </View>
+            <View style={{ position: 'absolute', left: '1%', bottom: '2%' }}>
+              <SettlementNatureSprite kind="tree_dark" size={68} />
+            </View>
+            <View style={{ position: 'absolute', right: '2%', bottom: '3%' }}>
+              <SettlementNatureSprite kind="rocks" size={62} />
+            </View>
+            <View style={{ position: 'absolute', left: '9%', top: '48%' }}>
+              <SettlementWorldPropSprite kind="torch_banner" size={54} />
+            </View>
+            <View style={{ position: 'absolute', right: '9%', top: '48%' }}>
+              <SettlementWorldPropSprite kind="supplies" size={58} />
+            </View>
+            {rank >= 1 ? (
+              <>
+                <View style={{ position: 'absolute', left: '3%', top: '30%' }}>
+                  <SettlementNatureSprite kind="fence" size={68} />
+                </View>
+                <View style={{ position: 'absolute', right: '2%', bottom: '29%' }}>
+                  <SettlementNatureSprite kind="hedge" size={62} />
+                </View>
+              </>
+            ) : null}
+            {rank >= 2 ? (
+              <View style={{ position: 'absolute', left: '37%', bottom: '1%' }}>
+                <SettlementWorldPropSprite kind="fence_gate" size={92} />
+              </View>
+            ) : null}
+            {rank >= 3 ? (
+              <View style={{ position: 'absolute', right: '4%', top: '29%' }}>
+                <SettlementWorldPropSprite kind="target_sign" size={53} />
+              </View>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <View style={{ position: 'absolute', left: '3%', bottom: '33%', width: 28, height: 20, borderWidth: 2, borderColor: palette.wood, opacity: 0.72 }} />
+            <View style={{ position: 'absolute', right: '3%', top: '34%', width: 24, height: 17, backgroundColor: palette.food, opacity: 0.24 }} />
+          </>
+        )
       ) : faction === 'elf' ? (
         <>
           <View style={{ position: 'absolute', left: '8%', top: '17%', width: 7, height: 7, backgroundColor: palette.elfLight, opacity: 0.9 }} />

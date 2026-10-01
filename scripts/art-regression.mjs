@@ -141,6 +141,44 @@ for (const [faction, relativePath, assetId] of settlementSupportAtlases) {
   }
 }
 
+
+const settlementLivingWorldAtlases = [
+  ['world', 'assets/game/ui/settlement_world_human_atlas.png', 'ui.settlement_world_human_atlas'],
+  ['people', 'assets/game/ui/settlement_people_human_atlas.png', 'ui.settlement_people_human_atlas'],
+  ['nature', 'assets/game/ui/settlement_nature_human_atlas.png', 'ui.settlement_nature_human_atlas']
+];
+const settlementLivingWorldCells = [
+  [0, 0], [86, 0], [172, 0],
+  [0, 86], [86, 86], [172, 86],
+  [0, 172], [86, 172], [172, 172]
+];
+for (const [label, relativePath, assetId] of settlementLivingWorldAtlases) {
+  const atlasPath = path.join(root, relativePath);
+  if (!fs.existsSync(atlasPath)) {
+    failures.push('Settlement living-world atlas is missing for ' + label + '.');
+    continue;
+  }
+  try {
+    const atlas = validateSpritePng(fs.readFileSync(atlasPath));
+    const channels = atlas.colorType === 6 ? 4 : 2;
+    for (const [x0, y0] of settlementLivingWorldCells) {
+      let visible = 0;
+      for (let y = y0; y < Math.min(256, y0 + 84); y++) {
+        for (let x = x0; x < Math.min(256, x0 + 84); x++) {
+          if (atlas.pixels[(y * 256 + x) * channels + channels - 1] > 0) visible++;
+        }
+      }
+      if (visible < 40) failures.push('Settlement living-world atlas ' + label + ' cell ' + x0 + ',' + y0 + ' is unexpectedly blank.');
+    }
+  } catch (error) {
+    failures.push('Settlement living-world atlas ' + label + ': ' + error.message);
+  }
+  const expectedRegistration = "'" + assetId + "': require('../../" + relativePath + "')";
+  if (!registry.includes(expectedRegistration)) {
+    failures.push('Settlement living-world atlas is not registered for ' + label + '.');
+  }
+}
+
 const gameArt = fs.readFileSync(path.join(root, 'src/ui/gameArt.tsx'), 'utf8');
 const settlementCells = {
   hall: [0, 0],
@@ -184,6 +222,21 @@ for (const faction of ['human', 'elf', 'orc']) {
 }
 if (!gameArt.includes('settlementSupportAtlasCells[kind]')) {
   failures.push('Settlement support renderer must route faction building visual kinds through the atlas.');
+}
+const settlementLivingWorldKeys = [
+  'plot_grass', 'plot_stone', 'plot_fenced', 'road_straight', 'road_cross',
+  'fence_gate', 'supplies', 'torch_banner', 'target_sign',
+  'woman', 'worker', 'guard', 'knight', 'smith', 'merchant', 'farmer', 'porter', 'horse',
+  'tree_large', 'tree_dark', 'conifer', 'bush_flowers', 'bush_blue', 'hedge', 'rocks', 'fence', 'stone_wall'
+];
+for (const key of settlementLivingWorldKeys) {
+  if (!gameArt.includes(key + ': { x: ')) failures.push('Settlement living-world renderer mapping missing for ' + key + '.');
+}
+if (!gameArt.includes('export function SettlementPopulationLayer')) {
+  failures.push('Settlement population layer is missing.');
+}
+if (!gameArt.includes('ui.settlement_world_human_atlas') || !gameArt.includes('ui.settlement_nature_human_atlas')) {
+  failures.push('Human settlement backdrop is not wired to the generated world/nature atlases.');
 }
 if (failures.length) {
   console.error('\nART REGRESSION FAILED');
