@@ -820,6 +820,27 @@ const enemyFormationProfiles: Record<FormationShapeId, Omit<EnemyFormationTactic
     attackMultiplier: 1.03,
     armorMultiplier: 0.95,
     speedMultiplier: 1.08
+  },
+  forward_line_411: {
+    name: 'Forward Line',
+    summary: 'Four squads press first contact while one middle reserve and one rear squad preserve minimal depth.',
+    attackMultiplier: 1.05,
+    armorMultiplier: 0.97,
+    speedMultiplier: 1.02
+  },
+  iron_wall_501: {
+    name: 'Iron Wall',
+    summary: 'Five squads lock the frontage with no second line behind them and only one protected rear position.',
+    attackMultiplier: 0.98,
+    armorMultiplier: 1.08,
+    speedMultiplier: 0.92
+  },
+  layered_core_231: {
+    name: 'Layered Core',
+    summary: 'A narrow screen protects a mobile three-squad center and one dedicated rear position.',
+    attackMultiplier: 1.01,
+    armorMultiplier: 1.02,
+    speedMultiplier: 1.03
   }
 };
 
@@ -1118,7 +1139,10 @@ const enemyArmyProfileByFormation: Record<FormationShapeId, EnemyArmyProfileId> 
   reinforced_center_252: 'elite_command',
   heavy_front_441: 'shock_warband',
   spear_wall_531: 'shield_host',
-  skirmish_screen_243: 'raider_pack'
+  skirmish_screen_243: 'raider_pack',
+  forward_line_411: 'shock_warband',
+  iron_wall_501: 'shield_host',
+  layered_core_231: 'elite_command'
 };
 
 const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>> = {
