@@ -63,6 +63,24 @@ const wide = formationShapes.find(s => s.id === 'wide_vanguard_522')!;
 const positions = model.stageTokens(wide, [0,1,2,3,4,5,6,7,8], 'ally', 340, 400);
 const span = (row: model.Rank) => { const xs = positions.filter(p => p.row === row).map(p => p.x); return Math.max(...xs) - Math.min(...xs); };
 check(span('front') > span('middle') * 3, 'Five-wide rank must look wider than two-wide ranks');
+
+const compactShape = (id: string) => formationShapes.find(candidate => candidate.id === id)!;
+const ironStage = model.stageTokens(compactShape('iron_wall_501'), [0,1,2,3,4,5], 'enemy', 340, 400);
+const layeredStage = model.stageTokens(compactShape('layered_core_231'), [0,1,2,3,4,5], 'enemy', 340, 400);
+const balancedStage = model.stageTokens(compactShape('balanced_333'), [0,1,2,3,4,5,6,7,8], 'enemy', 340, 400);
+const rowSpan = (tokens: model.StageToken[], row: model.Rank) => {
+  const xs = tokens.filter(token => token.row === row).map(token => token.x);
+  return xs.length > 1 ? Math.max(...xs) - Math.min(...xs) : 0;
+};
+const rowY = (tokens: model.StageToken[], row: model.Rank) => tokens.find(token => token.row === row)!.y;
+const rowSize = (tokens: model.StageToken[], row: model.Rank) => tokens.find(token => token.row === row)!.size;
+check(rowSpan(ironStage, 'front') > rowSpan(layeredStage, 'front') * 5, 'Iron Wall must read as a much broader packed line than Layered Core');
+check(rowY(ironStage, 'front') > rowY(balancedStage, 'front') + 5, 'Iron Wall frontline should visibly press toward first contact');
+check(rowY(layeredStage, 'front') < rowY(balancedStage, 'front') - 2, 'Layered Core screen should sit more cautiously behind first contact');
+check(rowY(layeredStage, 'middle') < rowY(balancedStage, 'middle') - 8, 'Layered Core middle rank should visibly read as a deeper reserve');
+check(rowY(layeredStage, 'rear') < rowY(balancedStage, 'rear') - 5, 'Layered Core rear rank should visibly read as protected depth');
+check(rowSize(ironStage, 'front') > rowSize(balancedStage, 'front'), 'Iron Wall frontline should carry the strongest silhouette weight');
+check(rowSize(layeredStage, 'rear') < rowSize(balancedStage, 'rear'), 'Layered Core reserve should recede visually rather than reading like another frontline');
 const mirror = model.stageTokens(wide, [0,1,2,3,4,5,6,7,8], 'enemy', 340, 400);
 for (const p of positions) {
   const enemy = mirror.find(e => e.slot === p.slot)!;
