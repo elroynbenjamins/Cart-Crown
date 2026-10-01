@@ -90,6 +90,26 @@ check(rowY(layeredStage, 'middle') < rowY(balancedStage, 'middle') - 8, 'Layered
 check(rowY(layeredStage, 'rear') < rowY(balancedStage, 'rear') - 5, 'Layered Core rear rank should visibly read as protected depth');
 check(rowSize(ironStage, 'front') > rowSize(balancedStage, 'front'), 'Iron Wall frontline should carry the strongest silhouette weight');
 check(rowSize(layeredStage, 'rear') < rowSize(balancedStage, 'rear'), 'Layered Core reserve should recede visually rather than reading like another frontline');
+
+const forwardMotion = model.stageExchangeMotion(compactShape('forward_line_411'), 'front');
+const layeredMiddleMotion = model.stageExchangeMotion(compactShape('layered_core_231'), 'middle');
+const ironMotion = model.stageExchangeMotion(compactShape('iron_wall_501'), 'front');
+const neutralMotion = model.stageExchangeMotion(compactShape('balanced_333'), 'front');
+check(forwardMotion.advance >= 1.5 && forwardMotion.reinforce === 0 && forwardMotion.brace === 0,
+  'Forward Line must surge as one front rank without borrowing reserve/brace motion');
+check(layeredMiddleMotion.reinforce >= 1.5 && layeredMiddleMotion.advance === 0,
+  'Layered Core middle rank must visibly feed forward after contact');
+check(ironMotion.brace > 0 && ironMotion.impactScaleY < 1,
+  'Iron Wall must visibly absorb impact as a braced compressed line');
+assert.deepEqual(neutralMotion, { advance: 0, reinforce: 0, brace: 0, impactScaleY: 1 });
+for (const shape of formationShapes) for (const row of model.ranks) {
+  const motion = model.stageExchangeMotion(shape, row);
+  check(motion.advance <= 2 && motion.reinforce <= 2 && motion.brace <= 1,
+    'Formation personality motion must stay subtle and inside contact-clearance budgets');
+  check(motion.impactScaleY >= .94 && motion.impactScaleY <= 1,
+    'Impact compression must stay readable without collapsing the sprite');
+}
+
 const mirror = model.stageTokens(wide, [0,1,2,3,4,5,6,7,8], 'enemy', 340, 400);
 for (const p of positions) {
   const enemy = mirror.find(e => e.slot === p.slot)!;
@@ -181,4 +201,12 @@ check(file.includes('EnemyFantasyStrikeVfx')&&file.includes('progress={p.impactP
 check(file.includes('stageDepthVisual(position.row)'),'Battlefield actors must consume their rank-depth presentation');
 check(file.includes('zIndex: depth.zIndex'),'Rank depth must control battlefield draw order');
 check(file.includes('shadowScale')&&file.includes('shadowOpacity'),'Rank depth must alter shadow footprint and opacity');
-console.log(`PASS: ${checks} stable-slot, formation-rank, depth, geometry, portrait-selection, control and real-TSX checks.`);
+check(file.includes('stageExchangeMotion(p.shape, position.row)')&&file.includes('stageExchangeMotion(p.enemyShape, position.row)'),
+  'Both armies must consume formation-specific contact motion');
+check(file.includes('impactRing')&&file.includes('opacity: moving ? p.impactPulse : 0'),
+  'Targeted hits need one restrained pulse-driven impact marker');
+check(file.includes('Math.min(.95, motion.impactScaleY)'),
+  'Targeted enemies need a stronger but bounded impact squash');
+check(!file.includes('Animated.loop(')&&!file.includes('setInterval('),
+  'Contact personality must reuse existing exchange pulses instead of adding animation clocks');
+console.log(`PASS: ${checks} stable-slot, formation-rank, depth, contact-motion, geometry, portrait-selection, control and real-TSX checks.`);
