@@ -144,8 +144,8 @@ export function stageTokens(shape: FormationShapeDefinition, occupied: readonly 
   const safeH = Math.max(160, finite(height, 320));
   const pitch = (safeW - 32) / 5;
   const fractions = side === 'enemy'
-    ? { rear: .095, middle: .255, front: .4 }
-    : { front: .6, middle: .745, rear: .905 };
+    ? { rear: .095, middle: .245, front: .397 }
+    : { front: .603, middle: .755, rear: .905 };
   // Use more of each slot while preserving movement clearance and the optional
   // 1.12x small-mount fallback. The budget depends on the full shape, not losses.
   const available = Math.min(72, pitch * .94, safeH * .16 - 8);
