@@ -100,6 +100,7 @@ function harness(file: string, exportName: string, game: Record<string, any>, pr
       if (request.endsWith('/equipment')) return { getEquipment: (id: string) => game.equipmentDefinitions?.find((item: any) => item.id === id) };
       if (request.endsWith('/components')) return components;
       if (request.endsWith('/gameArt')) return art;
+      if (request.endsWith('/FormationMiniature')) return { FormationMiniature: host('FormationMiniature') };
       if (request.endsWith('/TutorialFocus')) return { TutorialFocus: host('TutorialFocus') };
       if (request.endsWith('/decisionPresentation')) return { getDecisionFooterLayout, signedStat };
       if (request.endsWith('/semanticColors')) return semantic;
