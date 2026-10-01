@@ -2503,6 +2503,74 @@ export function FactionCampScene({
 }
 
 
+const settlementWorldHumanCells = {
+  plot_grass: { x: 0, y: 0 },
+  plot_stone: { x: 86, y: 0 },
+  plot_fenced: { x: 172, y: 0 },
+  road_straight: { x: 0, y: 86 },
+  road_cross: { x: 86, y: 86 },
+  fence_gate: { x: 172, y: 86 },
+  supplies: { x: 0, y: 172 },
+  torch_banner: { x: 86, y: 172 },
+  target_sign: { x: 172, y: 172 }
+} as const;
+
+const settlementPeopleHumanCells = {
+  farmer: { x: 0, y: 0 },
+  porter: { x: 86, y: 0 },
+  guard: { x: 172, y: 0 },
+  knight: { x: 0, y: 86 },
+  smith: { x: 86, y: 86 },
+  merchant: { x: 172, y: 86 },
+  worker: { x: 0, y: 172 },
+  woman: { x: 86, y: 172 },
+  horse: { x: 172, y: 172 }
+} as const;
+
+const settlementNatureHumanCells = {
+  tree_large: { x: 0, y: 0 },
+  tree_dark: { x: 86, y: 0 },
+  conifer: { x: 172, y: 0 },
+  bush_flowers: { x: 0, y: 86 },
+  bush_blue: { x: 86, y: 86 },
+  hedge: { x: 172, y: 86 },
+  rocks: { x: 0, y: 172 },
+  fence: { x: 86, y: 172 },
+  stone_wall: { x: 172, y: 172 }
+} as const;
+
+function SettlementDetailAtlasSprite({
+  assetId,
+  cell,
+  size,
+  opacity = 1
+}: {
+  assetId: string;
+  cell: { x: number; y: number };
+  size: number;
+  opacity?: number;
+}) {
+  const source = getProductionAssetSource(assetId);
+  if (!source) return null;
+  const cellSize = 84;
+  const scale = size / cellSize;
+  return (
+    <View style={{ width: size, height: size, overflow: 'hidden', opacity }}>
+      <Image
+        source={source}
+        resizeMode="stretch"
+        style={{
+          position: 'absolute',
+          left: -cell.x * scale,
+          top: -cell.y * scale,
+          width: 256 * scale,
+          height: 256 * scale
+        }}
+      />
+    </View>
+  );
+}
+
 export function SettlementTerrainBackdrop({
   faction = 'human',
   stageId = 'camp'
@@ -2554,6 +2622,80 @@ export function SettlementTerrainBackdrop({
       <View style={{ position: 'absolute', right: '3%', top: '7%', width: '30%', height: '23%', backgroundColor: clearing, opacity: 0.52 }} />
       <View style={{ position: 'absolute', left: '6%', bottom: '5%', width: '30%', height: '24%', backgroundColor: clearing, opacity: 0.47 }} />
       <View style={{ position: 'absolute', right: '5%', bottom: '5%', width: '31%', height: '25%', backgroundColor: clearing, opacity: 0.5 }} />
+
+      {faction === 'human' ? (
+        <>
+          <View key="settlement-world-road-cross" style={{ position: 'absolute', left: '37%', top: '38%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.road_cross} size={104} opacity={0.92} />
+          </View>
+          <View style={{ position: 'absolute', left: '8%', top: '40%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.road_straight} size={76} opacity={0.75} />
+          </View>
+          <View style={{ position: 'absolute', right: '8%', top: '48%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.road_straight} size={76} opacity={0.72} />
+          </View>
+          <View style={{ position: 'absolute', left: '8%', bottom: '7%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.fence_gate} size={62} opacity={0.9} />
+          </View>
+          <View style={{ position: 'absolute', left: '15%', top: '55%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={48} opacity={0.92} />
+          </View>
+          <View style={{ position: 'absolute', right: '12%', top: '57%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={44} opacity={0.92} />
+          </View>
+          {rank >= 1 ? (
+            <>
+              <View style={{ position: 'absolute', left: '43%', top: '5%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={46} opacity={0.95} />
+              </View>
+              <View style={{ position: 'absolute', left: '2%', top: '4%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.tree_large} size={64} opacity={0.95} />
+              </View>
+              <View style={{ position: 'absolute', right: '1%', top: '6%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.conifer} size={58} opacity={0.95} />
+              </View>
+              <View style={{ position: 'absolute', left: '1%', bottom: '3%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.rocks} size={52} opacity={0.9} />
+              </View>
+              <View style={{ position: 'absolute', right: '2%', bottom: '2%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.bush_flowers} size={50} opacity={0.95} />
+              </View>
+              <View style={{ position: 'absolute', left: '10%', bottom: '17%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.farmer} size={34} opacity={0.96} />
+              </View>
+              <View style={{ position: 'absolute', right: '12%', bottom: '18%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.worker} size={34} opacity={0.96} />
+              </View>
+            </>
+          ) : null}
+          {rank >= 2 ? (
+            <>
+              <View style={{ position: 'absolute', left: '23%', top: '31%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.guard} size={32} opacity={0.98} />
+              </View>
+              <View style={{ position: 'absolute', right: '24%', top: '31%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.merchant} size={32} opacity={0.98} />
+              </View>
+              <View style={{ position: 'absolute', left: '18%', bottom: '2%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.fence} size={58} opacity={0.9} />
+              </View>
+            </>
+          ) : null}
+          {rank >= 3 ? (
+            <>
+              <View style={{ position: 'absolute', left: '52%', bottom: '8%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.horse} size={40} opacity={0.98} />
+              </View>
+              <View style={{ position: 'absolute', right: '31%', top: '12%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.knight} size={34} opacity={0.98} />
+              </View>
+              <View style={{ position: 'absolute', left: '31%', top: '14%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.stone_wall} size={56} opacity={0.74} />
+              </View>
+            </>
+          ) : null}
+        </>
+      ) : null}
 
       <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: roadWidth + 6, backgroundColor: roadEdge, opacity: 0.78 }} />
       <View style={{ position: 'absolute', left: 0, right: 0, top: '47%', height: roadWidth, backgroundColor: road, opacity: 0.94 }} />
