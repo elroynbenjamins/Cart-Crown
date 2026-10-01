@@ -137,7 +137,13 @@ export function stageTokens(shape: FormationShapeDefinition, occupied: readonly 
     const offset = (index - (all.length - 1) / 2) * rowPitch;
     const rawSize = baseSize * (visual.scale ?? 1);
     const spacingLimit = all.length > 1 ? rowPitch * .9 : available * 1.04;
-    const size = Math.max(8, Math.floor(Math.min(rawSize, spacingLimit)));
+    let size = Math.max(8, Math.floor(Math.min(rawSize, spacingLimit)));
+    // Small mounted fallbacks can render at 1.12×. If compression pushes a
+    // row below that threshold, re-budget the authored slot gap for the
+    // rendered footprint so compact ranks still never overlap.
+    if (all.length > 1 && size <= 32 && size * 1.12 > rowPitch * .9) {
+      size = Math.max(8, Math.floor((rowPitch * .9) / 1.12));
+    }
     const y = (fractions[row] + (visual.engagement ?? 0) * towardCentre) * safeH;
 
     return [{
