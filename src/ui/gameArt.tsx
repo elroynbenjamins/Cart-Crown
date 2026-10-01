@@ -2697,10 +2697,10 @@ export function SettlementTerrainBackdrop({
         </>
       ) : null}
 
-      <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: roadWidth + 6, backgroundColor: roadEdge, opacity: 0.78 }} />
-      <View style={{ position: 'absolute', left: 0, right: 0, top: '47%', height: roadWidth, backgroundColor: road, opacity: 0.94 }} />
-      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '46%', width: roadWidth + 6, backgroundColor: roadEdge, opacity: 0.78 }} />
-      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '47%', width: roadWidth, backgroundColor: road, opacity: 0.94 }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: roadWidth + 6, backgroundColor: roadEdge, opacity: faction === 'human' ? 0.16 : 0.78 }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, top: '47%', height: roadWidth, backgroundColor: road, opacity: faction === 'human' ? 0.2 : 0.94 }} />
+      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '46%', width: roadWidth + 6, backgroundColor: roadEdge, opacity: faction === 'human' ? 0.16 : 0.78 }} />
+      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '47%', width: roadWidth, backgroundColor: road, opacity: faction === 'human' ? 0.2 : 0.94 }} />
 
       {rank >= 1 ? (
         <>
