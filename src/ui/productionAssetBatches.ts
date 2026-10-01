@@ -199,7 +199,9 @@ export const settlementBuildingsProductionBatch: ProductionAssetBatch = {
     buildingProductionAsset('elf', 'elf_warden_lodge', getBuildingVisualKind('elf_warden_lodge')),
     buildingProductionAsset('elf', 'elf_moon_forge', getBuildingVisualKind('elf_moon_forge')),
     buildingProductionAsset('elf', 'elf_caravan_grove', getBuildingVisualKind('elf_caravan_grove')),
+    buildingProductionAsset('elf', 'elf_spirit_stores', getBuildingVisualKind('elf_spirit_stores')),
     buildingProductionAsset('elf', 'elf_council_glade', getBuildingVisualKind('elf_council_glade')),
+    buildingProductionAsset('elf', 'elf_stag_enclosure', getBuildingVisualKind('elf_stag_enclosure')),
     buildingProductionAsset('elf', 'elf_ward_beacon', getBuildingVisualKind('elf_ward_beacon')),
 
     buildingProductionAsset('orc', 'orc_warhold', getBuildingVisualKind('orc_warhold')),
@@ -208,7 +210,8 @@ export const settlementBuildingsProductionBatch: ProductionAssetBatch = {
     buildingProductionAsset('orc', 'orc_cartwright', getBuildingVisualKind('orc_cartwright')),
     buildingProductionAsset('orc', 'orc_smokehouse', getBuildingVisualKind('orc_smokehouse')),
     buildingProductionAsset('orc', 'orc_war_council', getBuildingVisualKind('orc_war_council')),
-    buildingProductionAsset('orc', 'orc_warg_pens', getBuildingVisualKind('orc_warg_pens'))
+    buildingProductionAsset('orc', 'orc_warg_pens', getBuildingVisualKind('orc_warg_pens')),
+    buildingProductionAsset('orc', 'orc_watchfire', getBuildingVisualKind('orc_watchfire'))
   ]
 };
 

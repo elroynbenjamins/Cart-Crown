@@ -1539,6 +1539,53 @@ function SettlementAnchorAtlasSprite({
   );
 }
 
+const settlementSupportAtlasCells: Partial<Record<ReturnType<typeof getBuildingVisualKind>, { x: number; y: number }>> = {
+  forge: { x: 0, y: 0 },
+  quartermaster: { x: 86, y: 0 },
+  stable: { x: 172, y: 0 },
+  war_room: { x: 0, y: 86 },
+  signal_tower: { x: 86, y: 86 },
+  officer_academy: { x: 172, y: 86 }
+};
+
+const settlementSupportAtlasAssetIds: Record<FactionId, string> = {
+  human: 'ui.settlement_support_human_atlas',
+  elf: 'ui.settlement_support_elf_atlas',
+  orc: 'ui.settlement_support_orc_atlas'
+};
+
+function SettlementSupportAtlasSprite({
+  kind,
+  faction,
+  size
+}: {
+  kind: ReturnType<typeof getBuildingVisualKind>;
+  faction: FactionId;
+  size: number;
+}) {
+  const source = getProductionAssetSource(settlementSupportAtlasAssetIds[faction]);
+  const cell = settlementSupportAtlasCells[kind];
+  if (!source || !cell) return null;
+
+  const cellSize = 84;
+  const scale = size / cellSize;
+  return (
+    <View style={{ width: size, height: size, overflow: 'hidden' }}>
+      <Image
+        source={source}
+        resizeMode="stretch"
+        style={{
+          position: 'absolute',
+          left: -cell.x * scale,
+          top: -cell.y * scale,
+          width: 256 * scale,
+          height: 256 * scale
+        }}
+      />
+    </View>
+  );
+}
+
 export function BuildingSprite({
   buildingId,
   faction = 'human',
@@ -1556,6 +1603,9 @@ export function BuildingSprite({
   }
   if (settlementAnchorAtlasBuildingId(buildingId, faction) && getProductionAssetSource('ui.settlement_anchor_atlas')) {
     return <SettlementAnchorAtlasSprite buildingId={buildingId} faction={faction} size={size} />;
+  }
+  if (settlementSupportAtlasCells[kind] && getProductionAssetSource(settlementSupportAtlasAssetIds[faction])) {
+    return <SettlementSupportAtlasSprite kind={kind} faction={faction} size={size} />;
   }
   const keyByKind: Record<ReturnType<typeof getBuildingVisualKind>, ArtKey> = {
     hall: 'building_hall',

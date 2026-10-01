@@ -101,6 +101,46 @@ if (!fs.existsSync(settlementAtlasPath)) {
   }
 }
 
+const settlementSupportAtlases = [
+  ['human', 'assets/game/ui/settlement_support_human_atlas.png', 'ui.settlement_support_human_atlas'],
+  ['elf', 'assets/game/ui/settlement_support_elf_atlas.png', 'ui.settlement_support_elf_atlas'],
+  ['orc', 'assets/game/ui/settlement_support_orc_atlas.png', 'ui.settlement_support_orc_atlas']
+];
+const settlementSupportCells = {
+  forge: [0, 0],
+  quartermaster: [86, 0],
+  stable: [172, 0],
+  war_room: [0, 86],
+  signal_tower: [86, 86],
+  officer_academy: [172, 86]
+};
+for (const [faction, relativePath, assetId] of settlementSupportAtlases) {
+  const atlasPath = path.join(root, relativePath);
+  if (!fs.existsSync(atlasPath)) {
+    failures.push('Settlement support atlas is missing for ' + faction + '.');
+    continue;
+  }
+  try {
+    const atlas = validateSpritePng(fs.readFileSync(atlasPath));
+    const channels = atlas.colorType === 6 ? 4 : 2;
+    for (const [kind, [x0, y0]] of Object.entries(settlementSupportCells)) {
+      let visible = 0;
+      for (let y = y0; y < Math.min(256, y0 + 84); y++) {
+        for (let x = x0; x < Math.min(256, x0 + 84); x++) {
+          if (atlas.pixels[(y * 256 + x) * channels + channels - 1] > 0) visible++;
+        }
+      }
+      if (visible < 120) failures.push('Settlement support atlas ' + faction + ' cell ' + kind + ' is unexpectedly blank.');
+    }
+  } catch (error) {
+    failures.push('Settlement support atlas ' + faction + ': ' + error.message);
+  }
+  const expectedRegistration = "'" + assetId + "': require('../../" + relativePath + "')";
+  if (!registry.includes(expectedRegistration)) {
+    failures.push('Settlement support atlas is not registered for ' + faction + '.');
+  }
+}
+
 const gameArt = fs.readFileSync(path.join(root, 'src/ui/gameArt.tsx'), 'utf8');
 const settlementCells = {
   hall: [0, 0],
@@ -131,6 +171,19 @@ for (const alias of settlementAliases) {
 }
 if (!registry.includes("'ui.settlement_anchor_atlas': require('../../assets/game/ui/settlement_anchor_atlas.png')")) {
   failures.push('Settlement anchor atlas is not registered as a production source.');
+}
+for (const [kind, [x, y]] of Object.entries(settlementSupportCells)) {
+  if (!gameArt.includes(kind + ': { x: ' + x + ', y: ' + y + ' }')) {
+    failures.push('Settlement support renderer mapping missing or moved for ' + kind + '.');
+  }
+}
+for (const faction of ['human', 'elf', 'orc']) {
+  if (!gameArt.includes(faction + ": 'ui.settlement_support_" + faction + "_atlas'")) {
+    failures.push('Settlement support asset routing missing for ' + faction + '.');
+  }
+}
+if (!gameArt.includes('settlementSupportAtlasCells[kind]')) {
+  failures.push('Settlement support renderer must route faction building visual kinds through the atlas.');
 }
 if (failures.length) {
   console.error('\nART REGRESSION FAILED');
