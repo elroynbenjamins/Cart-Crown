@@ -32,7 +32,10 @@ export type FormationShapeId =
   | 'reinforced_center_252'
   | 'heavy_front_441'
   | 'spear_wall_531'
-  | 'skirmish_screen_243';
+  | 'skirmish_screen_243'
+  | 'forward_line_411'
+  | 'iron_wall_501'
+  | 'layered_core_231';
 
 export type FormationShapeDefinition = {
   id: FormationShapeId;
