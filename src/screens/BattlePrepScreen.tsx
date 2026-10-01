@@ -54,6 +54,7 @@ import {
   UnitPortrait
 } from '../ui/components';
 import { EnemySprite } from '../ui/gameArt';
+import { FormationShapeMiniature } from '../ui/FormationShapeMiniature';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
@@ -714,8 +715,94 @@ export function BattlePrepScreen({
             }
           />
         </View>
+        <View
+          style={[
+            styles.formationDuel,
+            {
+              borderColor:
+                formationMatchup.result === 'advantage'
+                  ? theme.colors.primary + '55'
+                  : formationMatchup.result === 'disadvantage'
+                    ? theme.colors.danger + '66'
+                    : theme.colors.border,
+              backgroundColor: theme.colors.surface2
+            }
+          ]}
+        >
+          <View style={styles.formationDuelSide}>
+            <Text style={[styles.formationDuelLabel, { color: factionAccent }]}>YOU</Text>
+            <Text style={[styles.formationDuelLayout, { color: theme.colors.text }]}>
+              {activeFormationShape.layout}
+            </Text>
+            <FormationShapeMiniature
+              shape={activeFormationShape}
+              accent={factionAccent}
+              muted={theme.colors.border}
+              facing="up"
+              compact
+            />
+          </View>
+          <View style={styles.formationDuelCenter}>
+            <Text style={[styles.formationDuelVs, { color: theme.colors.textMuted }]}>VS</Text>
+            <View
+              style={[
+                styles.formationEdgeChip,
+                {
+                  backgroundColor:
+                    formationMatchup.result === 'advantage'
+                      ? theme.colors.primary + '22'
+                      : formationMatchup.result === 'disadvantage'
+                        ? theme.colors.danger + '22'
+                        : theme.colors.surface1,
+                  borderColor:
+                    formationMatchup.result === 'advantage'
+                      ? theme.colors.primary + '55'
+                      : formationMatchup.result === 'disadvantage'
+                        ? theme.colors.danger + '66'
+                        : theme.colors.border
+                }
+              ]}
+            >
+              <Text
+                style={[
+                  styles.formationEdgeChipText,
+                  {
+                    color:
+                      formationMatchup.result === 'advantage'
+                        ? theme.colors.primary
+                        : formationMatchup.result === 'disadvantage'
+                          ? theme.colors.danger
+                          : theme.colors.textMuted
+                  }
+                ]}
+              >
+                {formationMatchup.result === 'advantage'
+                  ? 'EDGE'
+                  : formationMatchup.result === 'disadvantage'
+                    ? 'EXPOSED'
+                    : 'EVEN'}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.formationDuelSide}>
+            <Text style={[styles.formationDuelLabel, { color: theme.colors.danger }]}>ENEMY</Text>
+            <Text style={[styles.formationDuelLayout, { color: theme.colors.text }]}>
+              {enemyShape.layout}
+            </Text>
+            <FormationShapeMiniature
+              shape={enemyShape}
+              accent={theme.colors.danger}
+              muted={theme.colors.border}
+              facing="down"
+              compact
+            />
+          </View>
+        </View>
         <Text style={[styles.planMatchup, { color: theme.colors.textMuted }]}>
-          vs {enemyShape.layout} {enemyShape.name} · dealt ×{formationMatchup.outgoingDamageMultiplier.toFixed(2)} · received ×{formationMatchup.incomingDamageMultiplier.toFixed(2)}
+          {formationMatchup.summary}
+        </Text>
+        <Text style={[styles.formationDuelMath, { color: theme.colors.gold }]}>
+          Damage dealt ×{formationMatchup.outgoingDamageMultiplier.toFixed(2)} · received ×{formationMatchup.incomingDamageMultiplier.toFixed(2)}
         </Text>
         {tacticalGuidance !== 'off' ? (
           <View
@@ -2027,6 +2114,62 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   planHint: { fontSize: 9.5, lineHeight: 14, fontWeight: '900', marginTop: 9 },
+  formationDuel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 13,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginTop: 10
+  },
+  formationDuelSide: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 0
+  },
+  formationDuelLabel: {
+    fontSize: 7.5,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  formationDuelLayout: {
+    fontSize: 13,
+    fontWeight: '900',
+    marginTop: 1
+  },
+  formationDuelCenter: {
+    width: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5
+  },
+  formationDuelVs: {
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  formationEdgeChip: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 7,
+    paddingVertical: 3
+  },
+  formationEdgeChipText: {
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 0.7
+  },
+  formationDuelMath: {
+    fontSize: 9,
+    lineHeight: 13,
+    fontWeight: '900',
+    marginTop: 5,
+    textAlign: 'center'
+  },
   preparationSummary: {
     borderWidth: 1,
     borderRadius: 13,
