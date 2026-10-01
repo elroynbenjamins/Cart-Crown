@@ -3,9 +3,11 @@ import { Image, View } from 'react-native';
 import type { ReactNode } from 'react';
 import { getProductionAssetSource } from '../productionAssets';
 import type { ArtKey } from './model';
+import { humanArtFrames } from './humanArt';
 
 // These frames exclude the transparent production padding. UI is always real text.
 const frames: Record<ArtKey, readonly [number, number, number, number]> = {
+  ...humanArtFrames,
   captain_unit: [0, 0, 256, 256], ranger_unit: [0, 0, 256, 256], priest_unit: [0, 0, 256, 256],
   raider_unit: [0, 0, 256, 256], missile_unit: [0, 0, 256, 256], warg_unit: [0, 0, 256, 256],
   captain_portrait: [8, 8, 240, 240], ranger_portrait: [8, 8, 240, 240],

@@ -1,9 +1,11 @@
+import { humanPortraitForClass } from './humanArt';
+import type { HumanPortraitKey, HumanFigureKey } from './humanArt';
 import type { EnemyFantasyThreatFamily, FactionId, FormationShapeDefinition, UnitDefinition, UnitRole } from '../../game/types';
 import type { EnemyArmyProfileId, EnemyRoleAssignment } from '../../game/encounters';
 
 export type PortraitKey = 'captain_portrait' | 'ranger_portrait' | 'priest_portrait'
-  | 'raider_portrait' | 'missile_portrait' | 'warg_portrait';
-export type FigureKey = 'captain_unit' | 'ranger_unit' | 'priest_unit' | 'raider_unit' | 'missile_unit' | 'warg_unit';
+  | 'raider_portrait' | 'missile_portrait' | 'warg_portrait' | HumanPortraitKey;
+export type FigureKey = 'captain_unit' | 'ranger_unit' | 'priest_unit' | 'raider_unit' | 'missile_unit' | 'warg_unit' | HumanFigureKey;
 export function figureForPortrait(portrait: PortraitKey): FigureKey {
   return portrait.replace('_portrait', '_unit') as FigureKey;
 }
@@ -16,14 +18,10 @@ export const roleNames: Record<UnitRole, string> = {
   frontline: 'Frontline', melee: 'Melee', ranged: 'Ranged', support: 'Support', cavalry: 'Mounted', skirmish: 'Skirmish'
 };
 
-/** This is a small archetype portrait library, not art coverage for every promotion. */
+/** Only publish matching portrait/figure pairs for approved Human classes. */
 export function allyPortrait(unit: UnitDefinition): PortraitKey | null {
-  if (unit.faction !== 'human' || unit.battleTags?.some(tag => ['flying', 'large', 'construct', 'beast'].includes(tag))) return null;
-  if (unit.role === 'cavalry') return null; // Never disguise a mounted class as foot infantry.
-  if (unit.battleTags?.includes('magic')) return null;
-  if (unit.role === 'support') return 'priest_portrait';
-  if (unit.role === 'ranged' || unit.role === 'skirmish') return 'ranger_portrait';
-  return 'captain_portrait';
+  if (unit.battleTags?.some(tag => ['magic', 'flying', 'large', 'construct', 'beast'].includes(tag))) return null;
+  return humanPortraitForClass(unit.faction, unit.className, unit.role);
 }
 
 export function enemyPortrait(role: UnitRole, profile: EnemyArmyProfileId, name: string, boss: boolean, fantasyThreat?: EnemyFantasyThreatFamily): PortraitKey | null {

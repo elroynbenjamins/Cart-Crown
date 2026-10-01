@@ -56,7 +56,7 @@ assert.deepEqual(model.stageTokens(wide, [0,0,99,-1], 'ally', 340, 400).map(p =>
 for (const width of [NaN, Infinity, -10]) check(Number.isFinite(model.battleLayout(width, NaN).stageWidth), 'Invalid dimension leaked into Yoga');
 
 const unit: UnitDefinition = { id: 'test', name: 'Test', className: 'Archer', faction: 'human', role: 'ranged', tier: 1, level: 2, hp: 40, attack: 12, armor: 2, speed: 7 };
-assert.equal(model.allyPortrait(unit), 'ranger_portrait');
+assert.equal(model.allyPortrait(unit), 'human_ranger_portrait');
 for (const faction of ['elf','orc'] as const) assert.equal(model.allyPortrait({ ...unit, faction }), null);
 for (const battleTags of [['magic'],['flying'],['large'],['construct'],['beast']] as UnitDefinition['battleTags'][]) assert.equal(model.allyPortrait({ ...unit, role: 'support', battleTags }), null);
 for (const family of ['magic','flying','large','hybrid'] as const) assert.equal(model.enemyPortrait('melee','raider_pack','Raider',false,family), null);

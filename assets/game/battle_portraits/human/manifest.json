@@ -1,0 +1,631 @@
+{
+  "version": 1,
+  "source": "Generated Human sheets approved in the conversation, 2026-09-30",
+  "extraction": "Six largest alpha-connected subjects per sheet; nearby detached edge pixels retained within 4px. Nearest-neighbour downscale only, no recolour/redrawing. Separate RGBA files, 256x256.",
+  "assets": [
+    {
+      "key": "human_captain_portrait",
+      "path": "assets/game/battle_portraits/human/captain_portrait.png",
+      "sourceFileId": "file_00000000e5808210ae3e44e182a06003",
+      "sourceSha256": "142f66063ab5e94e573bba66fc529a1b591bbe3675bc107a02bb44eaaded0ff5",
+      "sourceBounds": [
+        15,
+        65,
+        483,
+        547
+      ],
+      "contentBounds": [
+        11,
+        8,
+        244,
+        248
+      ],
+      "anchor": [
+        11,
+        8
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "6ddecd9fd8b1c9eaa2a88205020e6ce80c0f65a11195162530aa3e9b9850322b",
+      "bytes": 104954
+    },
+    {
+      "key": "human_ranger_portrait",
+      "path": "assets/game/battle_portraits/human/ranger_portrait.png",
+      "sourceFileId": "file_00000000e5808210ae3e44e182a06003",
+      "sourceSha256": "142f66063ab5e94e573bba66fc529a1b591bbe3675bc107a02bb44eaaded0ff5",
+      "sourceBounds": [
+        496,
+        103,
+        949,
+        547
+      ],
+      "contentBounds": [
+        8,
+        13,
+        248,
+        248
+      ],
+      "anchor": [
+        8,
+        13
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "5b6728fcb3149e1303dd09329f8b5cbdd62b3e8859b24096adcc7ae963b5e959",
+      "bytes": 102523
+    },
+    {
+      "key": "human_priest_portrait",
+      "path": "assets/game/battle_portraits/human/priest_portrait.png",
+      "sourceFileId": "file_00000000e5808210ae3e44e182a06003",
+      "sourceSha256": "142f66063ab5e94e573bba66fc529a1b591bbe3675bc107a02bb44eaaded0ff5",
+      "sourceBounds": [
+        971,
+        70,
+        1434,
+        547
+      ],
+      "contentBounds": [
+        11,
+        8,
+        244,
+        248
+      ],
+      "anchor": [
+        11,
+        8
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "dbc4615a5dc74972a6907d8d0d08a5e0264b432be263ddce0e092888efa2630c",
+      "bytes": 103497
+    },
+    {
+      "key": "human_infantry_portrait",
+      "path": "assets/game/battle_portraits/human/infantry_portrait.png",
+      "sourceFileId": "file_00000000e5808210ae3e44e182a06003",
+      "sourceSha256": "142f66063ab5e94e573bba66fc529a1b591bbe3675bc107a02bb44eaaded0ff5",
+      "sourceBounds": [
+        15,
+        564,
+        484,
+        1057
+      ],
+      "contentBounds": [
+        14,
+        8,
+        242,
+        248
+      ],
+      "anchor": [
+        14,
+        8
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "8bfd57a98dc3d66311840834f1e16755582bafdca4a95ca19a5725e75714ea01",
+      "bytes": 99136
+    },
+    {
+      "key": "human_spearman_portrait",
+      "path": "assets/game/battle_portraits/human/spearman_portrait.png",
+      "sourceFileId": "file_00000000e5808210ae3e44e182a06003",
+      "sourceSha256": "142f66063ab5e94e573bba66fc529a1b591bbe3675bc107a02bb44eaaded0ff5",
+      "sourceBounds": [
+        487,
+        547,
+        959,
+        1055
+      ],
+      "contentBounds": [
+        16,
+        8,
+        239,
+        248
+      ],
+      "anchor": [
+        16,
+        8
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "348b8910c69819ecb6e90fa4767a65481ebab3b9e7fd425f44bfd524411a6054",
+      "bytes": 96407
+    },
+    {
+      "key": "human_lancer_portrait",
+      "path": "assets/game/battle_portraits/human/lancer_portrait.png",
+      "sourceFileId": "file_00000000e5808210ae3e44e182a06003",
+      "sourceSha256": "142f66063ab5e94e573bba66fc529a1b591bbe3675bc107a02bb44eaaded0ff5",
+      "sourceBounds": [
+        964,
+        546,
+        1432,
+        1057
+      ],
+      "contentBounds": [
+        18,
+        8,
+        238,
+        247
+      ],
+      "anchor": [
+        18,
+        8
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "3ba22517bce0b69b94898aecf3f9f9b45f16f25f4798a45172701889a6f1c403",
+      "bytes": 103305
+    },
+    {
+      "key": "human_captain_unit",
+      "path": "assets/game/battle_portraits/human/captain_unit.png",
+      "sourceFileId": "file_000000004d748210b0e78c7849b39fd7",
+      "sourceSha256": "dd7572573a81a03dfd87a7cb663579e33bb94cedab96bf363b77c1230ff20a41",
+      "sourceBounds": [
+        9,
+        129,
+        460,
+        562
+      ],
+      "contentBounds": [
+        12,
+        21,
+        244,
+        244
+      ],
+      "anchor": [
+        12,
+        21
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "4d752bfa8a7dd4254507a7679a85d3f675fbd6cdf4d52c5b6963afd739438316",
+      "bytes": 91525
+    },
+    {
+      "key": "human_ranger_unit",
+      "path": "assets/game/battle_portraits/human/ranger_unit.png",
+      "sourceFileId": "file_000000004d748210b0e78c7849b39fd7",
+      "sourceSha256": "dd7572573a81a03dfd87a7cb663579e33bb94cedab96bf363b77c1230ff20a41",
+      "sourceBounds": [
+        531,
+        63,
+        1001,
+        562
+      ],
+      "contentBounds": [
+        18,
+        13,
+        237,
+        244
+      ],
+      "anchor": [
+        18,
+        12
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "feac576d6d45ba35b20867e71af2232c516257c263ba607493966aab5239aec1",
+      "bytes": 66510
+    },
+    {
+      "key": "human_priest_unit",
+      "path": "assets/game/battle_portraits/human/priest_unit.png",
+      "sourceFileId": "file_000000004d748210b0e78c7849b39fd7",
+      "sourceSha256": "dd7572573a81a03dfd87a7cb663579e33bb94cedab96bf363b77c1230ff20a41",
+      "sourceBounds": [
+        1012,
+        47,
+        1440,
+        562
+      ],
+      "contentBounds": [
+        31,
+        12,
+        224,
+        244
+      ],
+      "anchor": [
+        31,
+        12
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "6e984f0d7193c5bea7c4f7dd66ff7faff36e32be515b87140345fb3eb5c947da",
+      "bytes": 69811
+    },
+    {
+      "key": "human_lancer_unit",
+      "path": "assets/game/battle_portraits/human/lancer_unit.png",
+      "sourceFileId": "file_000000004d748210b0e78c7849b39fd7",
+      "sourceSha256": "dd7572573a81a03dfd87a7cb663579e33bb94cedab96bf363b77c1230ff20a41",
+      "sourceBounds": [
+        8,
+        565,
+        672,
+        1038
+      ],
+      "contentBounds": [
+        12,
+        79,
+        244,
+        244
+      ],
+      "anchor": [
+        12,
+        79
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "6aba973c3858563457ed0eca73d13cba8d9cee70ce9ed3be1f3f130df6528397",
+      "bytes": 58039
+    },
+    {
+      "key": "human_infantry_unit",
+      "path": "assets/game/battle_portraits/human/infantry_unit.png",
+      "sourceFileId": "file_000000004d748210b0e78c7849b39fd7",
+      "sourceSha256": "dd7572573a81a03dfd87a7cb663579e33bb94cedab96bf363b77c1230ff20a41",
+      "sourceBounds": [
+        577,
+        632,
+        943,
+        1037
+      ],
+      "contentBounds": [
+        23,
+        12,
+        233,
+        244
+      ],
+      "anchor": [
+        23,
+        12
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "f17c240d0f299af99d2fd93678c3f5071aead401c140592aceb717b7dbf49b3f",
+      "bytes": 87706
+    },
+    {
+      "key": "human_spearman_unit",
+      "path": "assets/game/battle_portraits/human/spearman_unit.png",
+      "sourceFileId": "file_000000004d748210b0e78c7849b39fd7",
+      "sourceSha256": "dd7572573a81a03dfd87a7cb663579e33bb94cedab96bf363b77c1230ff20a41",
+      "sourceBounds": [
+        1008,
+        582,
+        1439,
+        1036
+      ],
+      "contentBounds": [
+        18,
+        12,
+        238,
+        244
+      ],
+      "anchor": [
+        18,
+        12
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "6b3df438cf52f44a5722da28ff463baa3cbbdbc5f6f5bf6417590733405ae8e3",
+      "bytes": 66890
+    },
+    {
+      "key": "human_crossbowman_portrait",
+      "path": "assets/game/battle_portraits/human/crossbowman_portrait.png",
+      "sourceFileId": "file_000000006c008210b9c5c07635038041",
+      "sourceSha256": "720f36a8a8f76778b81fe78f1b42b46bc0f232ac6d6090d0ca40583ec57bd930",
+      "sourceBounds": [
+        0,
+        86,
+        484,
+        537
+      ],
+      "contentBounds": [
+        8,
+        24,
+        248,
+        248
+      ],
+      "anchor": [
+        8,
+        24
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "ec61f68815e028f752d11ebd7e3a8d8f30f809229fb18e476c2190dbf9e556f6",
+      "bytes": 104089
+    },
+    {
+      "key": "human_field_medic_portrait",
+      "path": "assets/game/battle_portraits/human/field_medic_portrait.png",
+      "sourceFileId": "file_000000006c008210b9c5c07635038041",
+      "sourceSha256": "720f36a8a8f76778b81fe78f1b42b46bc0f232ac6d6090d0ca40583ec57bd930",
+      "sourceBounds": [
+        488,
+        79,
+        959,
+        537
+      ],
+      "contentBounds": [
+        8,
+        15,
+        248,
+        248
+      ],
+      "anchor": [
+        8,
+        15
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "c82181713ae76b2c67fe3b4e9234fdbb8ac84a055f3bad520600cb3825cacdf4",
+      "bytes": 110758
+    },
+    {
+      "key": "human_halberdier_portrait",
+      "path": "assets/game/battle_portraits/human/halberdier_portrait.png",
+      "sourceFileId": "file_000000006c008210b9c5c07635038041",
+      "sourceSha256": "720f36a8a8f76778b81fe78f1b42b46bc0f232ac6d6090d0ca40583ec57bd930",
+      "sourceBounds": [
+        964,
+        7,
+        1448,
+        537
+      ],
+      "contentBounds": [
+        18,
+        8,
+        237,
+        248
+      ],
+      "anchor": [
+        18,
+        8
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "0f5f61745ef64a9459a3fa4bc3501f805ff348b890da688d98af2c65a6811a09",
+      "bytes": 91367
+    },
+    {
+      "key": "human_banner_captain_portrait",
+      "path": "assets/game/battle_portraits/human/banner_captain_portrait.png",
+      "sourceFileId": "file_000000006c008210b9c5c07635038041",
+      "sourceSha256": "720f36a8a8f76778b81fe78f1b42b46bc0f232ac6d6090d0ca40583ec57bd930",
+      "sourceBounds": [
+        8,
+        536,
+        484,
+        1074
+      ],
+      "contentBounds": [
+        22,
+        8,
+        234,
+        248
+      ],
+      "anchor": [
+        22,
+        8
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "9e0c7e9404d51c1bdf85a91bc02082a7dd91594c705f06469b02120aa7d38384",
+      "bytes": 116807
+    },
+    {
+      "key": "human_heavy_cavalry_portrait",
+      "path": "assets/game/battle_portraits/human/heavy_cavalry_portrait.png",
+      "sourceFileId": "file_000000006c008210b9c5c07635038041",
+      "sourceSha256": "720f36a8a8f76778b81fe78f1b42b46bc0f232ac6d6090d0ca40583ec57bd930",
+      "sourceBounds": [
+        488,
+        536,
+        960,
+        1074
+      ],
+      "contentBounds": [
+        22,
+        8,
+        233,
+        248
+      ],
+      "anchor": [
+        22,
+        8
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "14b13c0dd6aa97865e7d4be62162bea49a41236d57ca24a77a1515bf1ca9c7a8",
+      "bytes": 103946
+    },
+    {
+      "key": "human_royal_guard_portrait",
+      "path": "assets/game/battle_portraits/human/royal_guard_portrait.png",
+      "sourceFileId": "file_000000006c008210b9c5c07635038041",
+      "sourceSha256": "720f36a8a8f76778b81fe78f1b42b46bc0f232ac6d6090d0ca40583ec57bd930",
+      "sourceBounds": [
+        964,
+        600,
+        1441,
+        1074
+      ],
+      "contentBounds": [
+        8,
+        10,
+        248,
+        248
+      ],
+      "anchor": [
+        8,
+        10
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "b3387b019dea0e6515070dd570aacbc604bce3ea8c506b428f0bd02ca0aa73d4",
+      "bytes": 113777
+    },
+    {
+      "key": "human_crossbowman_unit",
+      "path": "assets/game/battle_portraits/human/crossbowman_unit.png",
+      "sourceFileId": "file_00000000916081f4802f351b90d0681f",
+      "sourceSha256": "cbd9fef91ac950254e5db698405c7764dd5c776072af859644df1bdfc7eaad77",
+      "sourceBounds": [
+        42,
+        112,
+        467,
+        553
+      ],
+      "contentBounds": [
+        16,
+        12,
+        240,
+        244
+      ],
+      "anchor": [
+        16,
+        12
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "62374b07d03064aa06145d322abdc7fffe9d7d616b17fb03848ca3da15da36a3",
+      "bytes": 76999
+    },
+    {
+      "key": "human_field_medic_unit",
+      "path": "assets/game/battle_portraits/human/field_medic_unit.png",
+      "sourceFileId": "file_00000000916081f4802f351b90d0681f",
+      "sourceSha256": "cbd9fef91ac950254e5db698405c7764dd5c776072af859644df1bdfc7eaad77",
+      "sourceBounds": [
+        534,
+        46,
+        951,
+        553
+      ],
+      "contentBounds": [
+        32,
+        12,
+        223,
+        244
+      ],
+      "anchor": [
+        32,
+        12
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "d1538b1268906f7facc83bbfbb17b5b48c65afd222a2dfcc9b7285b4599a8c3f",
+      "bytes": 76135
+    },
+    {
+      "key": "human_halberdier_unit",
+      "path": "assets/game/battle_portraits/human/halberdier_unit.png",
+      "sourceFileId": "file_00000000916081f4802f351b90d0681f",
+      "sourceSha256": "cbd9fef91ac950254e5db698405c7764dd5c776072af859644df1bdfc7eaad77",
+      "sourceBounds": [
+        1035,
+        7,
+        1445,
+        553
+      ],
+      "contentBounds": [
+        41,
+        12,
+        215,
+        244
+      ],
+      "anchor": [
+        41,
+        12
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "38bccaf70cf14e5ac633761a2bae4004856daa30b0ddfca616ac73322f80d77c",
+      "bytes": 56027
+    },
+    {
+      "key": "human_banner_captain_unit",
+      "path": "assets/game/battle_portraits/human/banner_captain_unit.png",
+      "sourceFileId": "file_00000000916081f4802f351b90d0681f",
+      "sourceSha256": "cbd9fef91ac950254e5db698405c7764dd5c776072af859644df1bdfc7eaad77",
+      "sourceBounds": [
+        9,
+        538,
+        417,
+        1072
+      ],
+      "contentBounds": [
+        39,
+        12,
+        216,
+        244
+      ],
+      "anchor": [
+        39,
+        12
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "5cf72133619b3419ea6943ed055a934115387c83f5b3def1ca6f4b7cf3559bc4",
+      "bytes": 86010
+    },
+    {
+      "key": "human_heavy_cavalry_unit",
+      "path": "assets/game/battle_portraits/human/heavy_cavalry_unit.png",
+      "sourceFileId": "file_00000000916081f4802f351b90d0681f",
+      "sourceSha256": "cbd9fef91ac950254e5db698405c7764dd5c776072af859644df1bdfc7eaad77",
+      "sourceBounds": [
+        434,
+        570,
+        1094,
+        1073
+      ],
+      "contentBounds": [
+        12,
+        67,
+        244,
+        244
+      ],
+      "anchor": [
+        12,
+        67
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "ea001647c12d3936a849bedb3beca3eed5abc923d22ea6c70e3fe7b3a59c9ab3",
+      "bytes": 67894
+    },
+    {
+      "key": "human_royal_guard_unit",
+      "path": "assets/game/battle_portraits/human/royal_guard_unit.png",
+      "sourceFileId": "file_00000000916081f4802f351b90d0681f",
+      "sourceSha256": "cbd9fef91ac950254e5db698405c7764dd5c776072af859644df1bdfc7eaad77",
+      "sourceBounds": [
+        1015,
+        651,
+        1418,
+        1067
+      ],
+      "contentBounds": [
+        15,
+        12,
+        240,
+        244
+      ],
+      "anchor": [
+        15,
+        12
+      ],
+      "width": 256,
+      "height": 256,
+      "sha256": "f8e76e7d18f38a5bd7097f7e8873cd41a504b8af2c64ac9246bec959e1f8709b",
+      "bytes": 101931
+    }
+  ]
+}

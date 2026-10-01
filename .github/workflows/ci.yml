@@ -137,3 +137,6 @@ jobs:
 
       - name: Portrait formation battle regression
         run: npx --no-install tsx scripts/portrait-battle-regression.ts
+
+      - name: Generated Human artwork regression
+        run: npx --no-install tsx scripts/human-art-regression.ts

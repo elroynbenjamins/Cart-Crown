@@ -121,7 +121,7 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
     })) : roster.map(({ slot, unit }) => ({
       slot, title: unit.className, detail: `Lv. ${unit.level} · ${roleNames[unit.role]} · ${rankCopy(p.shape, slot)}`,
       art: allyPortrait(unit), active: ongoing && (p.activeSlot === slot || p.supportSlots.includes(slot)), down: false,
-      fallback: <UnitSprite className={unit.className} faction={unit.faction} size={layout.portraitSize} />
+      fallback: <UnitSprite preferHumanArt={false} className={unit.className} faction={unit.faction} size={layout.portraitSize} />
     }));
     return <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator={cards.length > 4}
       testID={enemy ? 'enemy-portrait-rail' : 'ally-portrait-rail'}
@@ -177,8 +177,8 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
             transform: [{ translateY: moving && active ? p.attackPulse.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) : 0 }] }]}>
           <View style={[s.shadow, { backgroundColor: '#000000' }]} />
           {allyPortrait(item.unit) ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size}
-            fallback={<UnitSprite className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
-            : <UnitSprite className={item.unit.className} faction={item.unit.faction} size={position.size} />}
+            fallback={<UnitSprite preferHumanArt={false} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
+            : <UnitSprite preferHumanArt={false} className={item.unit.className} faction={item.unit.faction} size={position.size} />}
           {active || support || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : support ? theme.colors.primary : theme.colors.human }]} /> : null}
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
         </Animated.View>;

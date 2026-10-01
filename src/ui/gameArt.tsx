@@ -1,3 +1,5 @@
+import { humanFigureForClass } from './portraitBattle/humanArt';
+import { ReferenceArt } from './portraitBattle/Art';
 import React from 'react';
 import { Image, View } from 'react-native';
 import type {
@@ -999,11 +1001,13 @@ function FantasyUnitOverlay({
 export function UnitSprite({
   className,
   faction = 'human',
-  size = 52
+  size = 52,
+  preferHumanArt = true
 }: {
   className: string;
   faction?: FactionId;
   size?: number;
+  preferHumanArt?: boolean;
 }) {
   const kind = getUnitVisualKind(className);
   const production = unitProductionAsset(faction, className, kind);
@@ -1038,17 +1042,9 @@ export function UnitSprite({
           : 1;
   const productionSize = size * productionScale;
 
-  return (
-    <View
-      style={{
-        width: size,
-        height: size,
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'visible'
-      }}
-    >
-      <ProductionAssetFrame
+  const humanArt = preferHumanArt ? humanFigureForClass(faction, className) : null;
+  const fallback = (
+    <ProductionAssetFrame
         assetId={production.id}
         width={productionSize}
         height={productionSize}
@@ -1059,6 +1055,20 @@ export function UnitSprite({
           <FantasyUnitOverlay className={className} faction={faction} size={size} />
         </View>
       </ProductionAssetFrame>
+  );
+
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'visible'
+      }}
+    >
+      {humanArt ? <ReferenceArt art={humanArt} width={productionSize} height={productionSize}
+        fallback={fallback} /> : fallback}
     </View>
   );
 }
