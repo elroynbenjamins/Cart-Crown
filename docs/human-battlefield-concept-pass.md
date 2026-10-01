@@ -1,17 +1,17 @@
 # Human battlefield concept pass
 
 ## Implemented
-- The 12 approved Human portrait/figure pairs are supplied by PR #110, with explicit mappings for 15 existing classes. This pass builds on that integration.
-- Six early Human road encounters use the existing cropped Greenkeep skyline and ground art. The floor repeats a small texture at its native aspect ratio, joining reflected vertical edges to avoid cut bands, with a neutral dimming layer; this is an initial illustrated surface, not a new full-scene painting.
-- Other factions, regions, all bosses and fantasy-threat encounters retain their previous regional/boss backdrops. Missing images or load errors reveal the underlying backdrop.
-- All nine formations retain their saved row/slot identities. Slightly tighter centre spacing gives more height to the ranks and allows larger figures, while geometry checks preserve mount/motion clearance even across opposing armies.
-- Allied portraits show actual levels; class captions increase from 10 to 11 points. Selection uses a ground ring rather than a full sprite box, and stronger contact shadows help ground the figures.
-- No new image assets, dependencies or animation clocks. No combat rules, statistics, rewards, persistence, orientation, safe-area handling or outcome-footer behavior changed.
+- The 12 approved Human portrait/figure pairs are supplied by PR #110, with explicit mappings for 15 existing classes.
+- Six early Human road encounters now use one full illustrated Greenkeep Road scene as the primary battlefield background. It is bundled as a 512×341 mobile JPEG and rendered once with `cover`, so there are no repeated ground seams.
+- The previous cropped-sky + reflected-ground treatment remains a second fallback. If that also fails, the established regional backdrop remains visible. Other factions, regions, bosses and fantasy-threat encounters are unaffected.
+- All nine formations retain their saved row/slot identities. Larger figures, actual allied level badges, clearer class captions, ground selection rings and stronger contact shadows remain from the first polish pass.
+- Pure Black, top enemy/bottom ally portrait rails, shared army HP, 1×/2× speed, pause gates and fixed outcome controls are unchanged.
+- No new dependency, animation clock, combat formula, progression rule, reward, save-schema or orientation change.
 
 ## Validation
-Local execution of every repository regression script passed. Portrait regression retains 4,682,140 checks; the new illustrated-field regression adds 248,948 checks covering encounter/faction/fantasy boundaries, texture count/aspect, both opposing formations, actual TSX scenery composition, all three themes, and load-error fallback. Full PNG decode passed for 124 registered game images.
+The illustrated-field regression now covers the full scene file contract, encounter/faction/fantasy gating, all opposing formation clearances, full-scene rendering across all themes, one-bitmap usage, `cover` scaling, legacy Greenkeep fallback and final regional fallback.
 
-Dependency-resolved CI and native Android verification are required before merging. Local TypeScript execution is not a substitute for a full typecheck. Native early-campaign tests do not imply all promoted Human classes, dense bosses, defeat flow or physical-device performance were tested.
+Dependency-resolved CI and native Android validation are required before merge. A successful early Human native route does not imply dense bosses, defeat flow, every promoted class or physical-device frame-rate has been profiled.
 
 ## Art still to do
-The live field reuses the supplied three-quarter figures and cropped scenery. Dedicated front/back-facing poses and seamless full-region battlefield illustrations are still needed to match the concept more closely. Unsupported classes and opening recruits keep their existing art; they are not silently given a different class's elite equipment.
+The next Human art pass is dedicated combat-facing figures: enemy-facing/front-facing and allied-facing/back/three-quarter poses for infantry, ranged, support and mounted archetypes. This will let the two armies visibly face the engagement centre instead of relying on the current three-quarter source figures. More bespoke promoted-class portraits can follow after those core directional silhouettes are stable.
