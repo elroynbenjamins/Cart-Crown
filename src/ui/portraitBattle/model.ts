@@ -109,6 +109,29 @@ function stageRankVisual(shape: FormationShapeDefinition, row: Rank): StageRankV
   return stageFormationProfiles[shape.id]?.[row] ?? {};
 }
 
+export type StageDepthVisual = Readonly<{
+  /** Perspective scale applied after the formation-specific silhouette scale. */
+  scale: number;
+  /** Ground-shadow width as a fraction of the final actor size. */
+  shadowScale: number;
+  /** Ground-shadow height in display points. */
+  shadowHeight: number;
+  /** Ground-shadow opacity; reserves recede into the field. */
+  shadowOpacity: number;
+  /** Draw order: contact ranks sit above their supporting ranks. */
+  zIndex: number;
+}>;
+
+const stageRankDepth: Readonly<Record<Rank, StageDepthVisual>> = {
+  front: { scale: 1.06, shadowScale: .82, shadowHeight: 7, shadowOpacity: .72, zIndex: 30 },
+  middle: { scale: .94, shadowScale: .68, shadowHeight: 5, shadowOpacity: .5, zIndex: 20 },
+  rear: { scale: .84, shadowScale: .56, shadowHeight: 4, shadowOpacity: .32, zIndex: 10 }
+};
+
+export function stageDepthVisual(row: Rank): StageDepthVisual {
+  return stageRankDepth[row];
+}
+
 /** True formation geometry. Coordinates and size depend on SHAPE, not survivors.
  * Slots retain their row index even when a neighbour is empty/routed. Both fronts
  * face the centre; enemy left/right is mirrored into the player's perspective.
@@ -135,7 +158,8 @@ export function stageTokens(shape: FormationShapeDefinition, occupied: readonly 
     const visual = stageRankVisual(shape, row);
     const rowPitch = pitch * (visual.spread ?? 1);
     const offset = (index - (all.length - 1) / 2) * rowPitch;
-    const rawSize = baseSize * (visual.scale ?? 1);
+    const depth = stageDepthVisual(row);
+    const rawSize = baseSize * (visual.scale ?? 1) * depth.scale;
     const spacingLimit = all.length > 1 ? rowPitch * .9 : available * 1.04;
     let size = Math.max(8, Math.floor(Math.min(rawSize, spacingLimit)));
     // Small mounted fallbacks can render at 1.12×. If compression pushes a
