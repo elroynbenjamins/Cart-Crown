@@ -107,7 +107,8 @@ import {
   formationShapes,
   getFactionDoctrines,
   getFormationShape,
-  getPreferredFormationSlots
+  getPreferredFormationSlots,
+  reflowFormationToShape
 } from './formation';
 import {
   applyArmyLoadoutEquipment
@@ -5980,6 +5981,9 @@ export function GameProvider({
     if (!shape) return false;
     const currentRank = stageRank[currentWagonStage.id] ?? 0;
     if (currentRank < formationShapeUnlockRank[shape.unlock]) return false;
+    setFormation(previous =>
+      reflowFormationToShape(previous, units, shapeId)
+    );
     setFormationShapeIdState(shapeId);
     return true;
   };
