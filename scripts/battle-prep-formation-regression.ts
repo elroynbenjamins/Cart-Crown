@@ -9,7 +9,7 @@ import {
 } from '../src/game/encounters';
 import {
   getFormationMiniatureRows
-} from '../src/ui/FormationMiniature';
+} from '../src/ui/formationMiniatureModel';
 
 const shape = (id: string) => {
   const found = formationShapes.find(candidate => candidate.id === id);
