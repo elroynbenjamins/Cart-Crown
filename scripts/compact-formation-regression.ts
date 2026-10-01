@@ -61,6 +61,19 @@ assert.equal(getFormationMatchup('layered_core_231', 'iron_wall_501').result, 'a
 assert.equal(getFormationMatchup('forward_line_411', 'layered_core_231').result, 'advantage');
 assert.equal(getFormationMatchup('forward_line_411', 'iron_wall_501').result, 'disadvantage');
 
+for (const { id } of compact) {
+  let advantages = 0;
+  let disadvantages = 0;
+  for (const opponent of formationShapes) {
+    if (opponent.id === id) continue;
+    const result = getFormationMatchup(id, opponent.id).result;
+    if (result === 'advantage') advantages += 1;
+    if (result === 'disadvantage') disadvantages += 1;
+  }
+  assert.ok(advantages >= 2, id + ' needs at least two meaningful advantages');
+  assert.ok(disadvantages >= 2, id + ' needs at least two meaningful disadvantages');
+}
+
 const roles: UnitRole[] = ['frontline', 'melee', 'ranged', 'support', 'cavalry', 'skirmish'];
 const units: UnitDefinition[] = roles.map((role, index) => ({
   id: 'compact_' + role,
