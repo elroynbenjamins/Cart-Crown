@@ -24,7 +24,8 @@ import { warTableContracts } from '../game/warTable';
 import { MAX_EXPEDITION_TICKETS } from '../game/sideModeBalance';
 import {
   formationShapes,
-  getFactionDoctrines
+  getFactionDoctrines,
+  reflowFormationToShape
 } from '../game/formation';
 import {
   canUnitEquipEquipment,
@@ -982,7 +983,7 @@ export function sanitizeFactionGameState(
     faction,
     defaults.units
   );
-  const formation = sanitizeFormation(
+  const sanitizedFormation = sanitizeFormation(
     stored.formation,
     units,
     stageId
@@ -990,6 +991,11 @@ export function sanitizeFactionGameState(
   const formationShapeId = validShapeForStage(
     stored.formationShapeId,
     stageId
+  );
+  const formation = reflowFormationToShape(
+    sanitizedFormation,
+    units,
+    formationShapeId
   );
   const formationDoctrineId = validDoctrineForStage(
     stored.formationDoctrineId,

@@ -22,6 +22,14 @@ on:
       - 'src/screens/BattleScreen.tsx'
       - 'src/AppShell.tsx'
       - 'src/ui/portraitBattle/**'
+      - 'src/game/formation.ts'
+      - 'src/game/types.ts'
+      - 'src/save/schema.ts'
+      - 'src/screens/FormationScreen.tsx'
+      - 'src/game/formation.ts'
+      - 'src/game/types.ts'
+      - 'src/save/schema.ts'
+      - 'src/screens/FormationScreen.tsx'
   push:
     branches: [main]
     paths:
