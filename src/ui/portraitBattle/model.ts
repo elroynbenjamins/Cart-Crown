@@ -158,11 +158,9 @@ const neutralStageExchangeMotion: StageExchangeMotion = {
  * Forward Line surges, Layered Core feeds its middle rank forward, and Iron Wall
  * visibly absorbs the hit as one braced line.
  */
-const stageFormationExchangeProfiles: Readonly<Record<string, StageFormationVisualProfile & {
-  front?: StageRankVisualProfile & Partial<StageExchangeMotion>;
-  middle?: StageRankVisualProfile & Partial<StageExchangeMotion>;
-  rear?: StageRankVisualProfile & Partial<StageExchangeMotion>;
-}>> = {
+type StageFormationExchangeProfile = Readonly<Partial<Record<Rank, Readonly<Partial<StageExchangeMotion>>>>>;
+
+const stageFormationExchangeProfiles: Readonly<Record<string, StageFormationExchangeProfile>> = {
   forward_line_411: {
     front: { advance: 1.8 }
   },
