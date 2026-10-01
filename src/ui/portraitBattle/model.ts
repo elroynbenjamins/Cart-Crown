@@ -70,10 +70,50 @@ export function rankForSlot(shape: FormationShapeDefinition, slot: number): Rank
   return ranks.find(row => shape.rows[row].includes(slot)) ?? null;
 }
 
+type StageRankVisualProfile = Readonly<{
+  /** Horizontal distance between authored slots in this rank. */
+  spread?: number;
+  /** Positive values move the rank toward the engagement line; negative values reserve it. */
+  engagement?: number;
+  /** Relative figure size for silhouette hierarchy. */
+  scale?: number;
+}>;
+
+type StageFormationVisualProfile = Readonly<Partial<Record<Rank, StageRankVisualProfile>>>;
+
+/**
+ * Battlefield silhouettes for the compact six-squad formations.
+ *
+ * Slot ownership remains authoritative; these values only strengthen the authored
+ * visual read. The same profile is mirrored for both armies so enemy tactics and
+ * player formations communicate the same geometry at a glance.
+ */
+const stageFormationProfiles: Readonly<Record<string, StageFormationVisualProfile>> = {
+  forward_line_411: {
+    front: { spread: .94, engagement: .012, scale: 1.03 },
+    middle: { spread: .5, engagement: -.006, scale: .88 },
+    rear: { spread: .5, engagement: -.004, scale: .82 }
+  },
+  layered_core_231: {
+    front: { spread: .62, engagement: -.01, scale: .92 },
+    middle: { spread: .86, engagement: -.03, scale: .94 },
+    rear: { spread: .5, engagement: -.02, scale: .78 }
+  },
+  iron_wall_501: {
+    front: { spread: 1.1, engagement: .018, scale: 1.08 },
+    rear: { spread: .5, engagement: -.004, scale: .8 }
+  }
+};
+
+function stageRankVisual(shape: FormationShapeDefinition, row: Rank): StageRankVisualProfile {
+  return stageFormationProfiles[shape.id]?.[row] ?? {};
+}
+
 /** True formation geometry. Coordinates and size depend on SHAPE, not survivors.
  * Slots retain their row index even when a neighbour is empty/routed. Both fronts
  * face the centre; enemy left/right is mirrored into the player's perspective.
- * The fixed five-slot pitch makes a 2-wide screen narrower than a 5-wide rank.
+ * Formation-specific staging strengthens silhouette identity without changing slots:
+ * Iron Wall sits broad and close to contact, while Layered Core stays compact/deep.
  */
 export function stageTokens(shape: FormationShapeDefinition, occupied: readonly number[], side: ArmySide, width: number, height: number): StageToken[] {
   const wanted = new Set(occupied);
@@ -86,11 +126,27 @@ export function stageTokens(shape: FormationShapeDefinition, occupied: readonly 
   // Use more of each slot while preserving movement clearance and the optional
   // 1.12x small-mount fallback. The budget depends on the full shape, not losses.
   const available = Math.min(72, pitch * .94, safeH * .16 - 8);
-  const size = Math.max(8, Math.floor(available <= 32 ? available / 1.12 : available));
+  const baseSize = Math.max(8, Math.floor(available <= 32 ? available / 1.12 : available));
+  const towardCentre = side === 'enemy' ? 1 : -1;
+
   return ranks.flatMap(row => shape.rows[row].flatMap((slot, index, all) => {
     if (!wanted.has(slot)) return [];
-    const offset = (index - (all.length - 1) / 2) * pitch;
-    return [{ slot, row, x: safeW / 2 + (side === 'enemy' ? -offset : offset), y: fractions[row] * safeH, size }];
+
+    const visual = stageRankVisual(shape, row);
+    const rowPitch = pitch * (visual.spread ?? 1);
+    const offset = (index - (all.length - 1) / 2) * rowPitch;
+    const rawSize = baseSize * (visual.scale ?? 1);
+    const spacingLimit = all.length > 1 ? rowPitch * .9 : available * 1.04;
+    const size = Math.max(8, Math.floor(Math.min(rawSize, spacingLimit)));
+    const y = (fractions[row] + (visual.engagement ?? 0) * towardCentre) * safeH;
+
+    return [{
+      slot,
+      row,
+      x: safeW / 2 + (side === 'enemy' ? -offset : offset),
+      y,
+      size
+    }];
   }));
 }
 
