@@ -54,6 +54,7 @@ import {
   UnitPortrait
 } from '../ui/components';
 import { EnemySprite } from '../ui/gameArt';
+import { FormationMiniature } from '../ui/FormationMiniature';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
@@ -714,8 +715,54 @@ export function BattlePrepScreen({
             }
           />
         </View>
+        <View
+          accessibilityLabel={
+            'Formation comparison. You ' +
+            activeFormationShape.layout +
+            ' versus enemy ' +
+            enemyShape.layout +
+            '. ' +
+            formationMatchup.title
+          }
+          style={styles.formationDuel}
+        >
+          <FormationMiniature
+            shape={activeFormationShape}
+            side="ally"
+            label="YOU"
+            accent={factionAccent}
+            muted={theme.colors.textMuted}
+          />
+          <View style={styles.formationVersus}>
+            <Text style={[styles.formationVersusText, { color: theme.colors.gold }]}>
+              VS
+            </Text>
+          </View>
+          <FormationMiniature
+            shape={enemyShape}
+            side="enemy"
+            label="ENEMY"
+            accent={theme.colors.danger}
+            muted={theme.colors.textMuted}
+          />
+        </View>
         <Text style={[styles.planMatchup, { color: theme.colors.textMuted }]}>
-          vs {enemyShape.layout} {enemyShape.name} · dealt ×{formationMatchup.outgoingDamageMultiplier.toFixed(2)} · received ×{formationMatchup.incomingDamageMultiplier.toFixed(2)}
+          {formationMatchup.title} · dealt ×{formationMatchup.outgoingDamageMultiplier.toFixed(2)} · received ×{formationMatchup.incomingDamageMultiplier.toFixed(2)}
+        </Text>
+        <Text
+          style={[
+            styles.formationRead,
+            {
+              color:
+                formationMatchup.result === 'advantage'
+                  ? theme.colors.primary
+                  : formationMatchup.result === 'disadvantage'
+                    ? theme.colors.danger
+                    : theme.colors.textMuted
+            }
+          ]}
+        >
+          {formationMatchup.summary}
         </Text>
         {tacticalGuidance !== 'off' ? (
           <View
@@ -2094,6 +2141,30 @@ const styles = StyleSheet.create({
   doctrineName: { fontSize: 16, fontWeight: '900', marginTop: 3 },
   doctrineBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
   matchupSummary: { fontSize: 11, lineHeight: 16, marginTop: 8, fontWeight: '700' },
+  formationDuel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 4
+  },
+  formationVersus: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  formationVersusText: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.9
+  },
+  formationRead: {
+    fontSize: 9.5,
+    lineHeight: 14,
+    fontWeight: '800',
+    marginTop: 5
+  },
   matchupEffect: { fontSize: 10, lineHeight: 15, marginTop: 7, fontWeight: '900' },
   matchupHint: { fontSize: 9.5, lineHeight: 14, marginTop: 7 },
   recommendationHeader: {
