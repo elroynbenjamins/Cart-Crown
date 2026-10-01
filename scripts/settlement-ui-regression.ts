@@ -93,7 +93,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
       if (request.endsWith('/SettlementUI')) return load(resolve(dirname(absolute), request + '.tsx'));
       if (request.endsWith('/SemanticUI')) return Object.fromEntries(['SemanticChip', 'SemanticText', 'EmphasisText'].map(name => [name, host(name)]));
       if (request.endsWith('/components')) return Object.fromEntries(['GameCard', 'PrimaryButton', 'SecondaryButton', 'SectionTitle'].map(name => [name, host(name)]));
-      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementTerrainBackdrop'].map(name => [name, host(name)]));
+      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementPopulationLayer', 'SettlementTerrainBackdrop', 'SettlementWorldPropSprite'].map(name => [name, host(name)]));
       if (request.endsWith('/TutorialFocus')) return { TutorialFocus: host('TutorialFocus') };
       throw new Error('Unexpected screen dependency: ' + request);
     };
@@ -189,6 +189,8 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'SettlementTerrainBackdrop')[0]?.props.stageId === 'fort', 'Settlement scenery must receive the live kingdom stage.');
     check(nodes(tree, 'BuildingSprite').some(node => Number(node.props.size) >= 50), 'Built structures must read as primary map objects rather than tiny card icons.');
     check(nodes(tree, 'ResourceSprite').length === 5, 'Portrait settlement HUD must expose the five core resources at first glance.');
+    check(nodes(tree, 'SettlementWorldPropSprite').length >= 3, 'Human settlement plots must use generated world-art surfaces rather than flat placeholders.');
+    check(nodes(tree, 'SettlementPopulationLayer').length === 1, 'Portrait settlement must render a non-interactive living world layer.');
     check(nodes(tree, 'BuildingSprite').some(node => Number(node.props.size) >= 78), 'The central settlement landmark must read larger than secondary buildings in portrait mode.');
     check(text(tree).includes('CART & CROWN · SETTLEMENT'), 'Portrait settlement header must use the final Cart & Crown identity.');
     check(plot(tree, 'plot_se').props.disabled, 'A Town plot must remain locked at Fort.');
