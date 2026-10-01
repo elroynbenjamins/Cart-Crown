@@ -433,6 +433,10 @@ export function FormationScreen({
     { key: 'middle' as const, label: 'MIDDLE', slots: activeFormationShape.rows.middle },
     { key: 'rear' as const, label: 'REAR', slots: activeFormationShape.rows.rear }
   ];
+  const visiblePositionCount = rows.reduce(
+    (total, row) => total + row.slots.length,
+    0
+  );
 
   const tutorialUnitFocusId =
     tutorialFocus?.kind === 'formation-unit' &&
@@ -832,7 +836,10 @@ export function FormationScreen({
         New Army Loadouts save formation shape, doctrine, squad positions and all equipped gear for deployed squads, including Relics. Applying a loadout may move owned gear between squads; unavailable saved items are skipped safely.
       </Text>
 
-      <SectionTitle title="Formation shape" trailing="9 positions · max 6 squads" />
+      <SectionTitle
+        title="Formation shape"
+        trailing={visiblePositionCount + ' positions · max ' + activeSquadCap + ' squads'}
+      />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -926,6 +933,21 @@ export function FormationScreen({
                   {rowNotes[row.key]} · {row.slots.length} slots
                 </Text>
               </View>
+              {row.slots.length === 0 ? (
+                <View
+                  style={[
+                    styles.emptyRank,
+                    {
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.surface2
+                    }
+                  ]}
+                >
+                  <Text style={[styles.emptyRankText, { color: theme.colors.textMuted }]}>
+                    No {row.label.toLowerCase()} positions in this shape
+                  </Text>
+                </View>
+              ) : (
               <View style={styles.boardRow}>
                 {row.slots.map(slot => {
                   const unitId = formation[slot] ?? null;
@@ -1013,6 +1035,7 @@ export function FormationScreen({
                   );
                 })}
               </View>
+              )}
             </View>
           );
         })}
@@ -1236,6 +1259,16 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
   rowNote: { fontSize: 9, fontWeight: '700' },
   boardRow: { flexDirection: 'row', gap: 6 },
+  emptyRank: {
+    minHeight: 46,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10
+  },
+  emptyRankText: { fontSize: 9.5, fontWeight: '800', textAlign: 'center' },
   slot: {
     flex: 1,
     minHeight: 82,
