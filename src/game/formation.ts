@@ -264,6 +264,42 @@ const formationCounterRules: FormationCounterRule[] = [
     loserSummary: 'Your narrow first line can be overwhelmed before the central reserve fully reinforces it.'
   },
   {
+    winner: 'forward_line_411',
+    loser: 'protected_rear_225',
+    winnerSummary: 'Four squads hit the thin screen before the large rear line can take control of the exchange.',
+    loserSummary: 'Your protected rear is dangerous if it settles, but the compact four-wide push can break the screen first.'
+  },
+  {
+    winner: 'spear_wall_531',
+    loser: 'forward_line_411',
+    winnerSummary: 'A five-wide braced line absorbs the compact assault and leaves the shallow formation with little follow-up.',
+    loserSummary: 'The broader braced wall can absorb your first push and expose how little depth sits behind it.'
+  },
+  {
+    winner: 'layered_core_231',
+    loser: 'protected_rear_225',
+    winnerSummary: 'Three flexible middle squads can reinforce the narrow contact and disrupt the protected rear before it dominates.',
+    loserSummary: 'The enemy center can keep feeding pressure through your thin screen and reach the protected rear.'
+  },
+  {
+    winner: 'wide_vanguard_522',
+    loser: 'layered_core_231',
+    winnerSummary: 'Five-wide pressure stretches the two-squad screen faster than the central reserve can cover every lane.',
+    loserSummary: 'Your flexible middle cannot reinforce every lane when a five-wide front stretches the screen at once.'
+  },
+  {
+    winner: 'iron_wall_501',
+    loser: 'skirmish_screen_243',
+    winnerSummary: 'Five continuous front positions close the maneuver lanes the mobile middle rank needs to work around the line.',
+    loserSummary: 'The enemy wall denies the open lanes your mobile middle rank normally exploits.'
+  },
+  {
+    winner: 'protected_rear_225',
+    loser: 'iron_wall_501',
+    winnerSummary: 'Sustained rear-line pressure punishes the slow wall while its missing middle rank cannot rotate into cover.',
+    loserSummary: 'With no middle rank, your wall struggles to answer sustained fire from a large protected rear.'
+  },
+  {
     winner: 'assault_432',
     loser: 'protected_rear_225',
     winnerSummary: 'Four squads hit the thin enemy screen before its large rear line can settle.',
