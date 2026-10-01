@@ -4,7 +4,8 @@ import type { CommanderSkillEffectType, EnemyFantasyThreatFamily, FactionId, For
 import type { EncounterId, EnemyArmyProfileId } from '../../game/encounters';
 import { useGameTheme } from '../../theme/ThemeProvider';
 import { EnemySprite, UnitSprite } from '../gameArt';
-import { BattlefieldBackdrop, BattleStatusMarker, BattleVfxStrip, EnemyFantasyStrikeVfx, EnemyFantasyThreatAura } from '../battleVisuals';
+import { BattleStatusMarker, BattleVfxStrip, EnemyFantasyStrikeVfx, EnemyFantasyThreatAura } from '../battleVisuals';
+import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop';
 import { ReferenceArt } from './Art';
 import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageTokens } from './model';
 import type { ArmySide, EnemyToken, ExchangeRecord } from './model';
@@ -113,13 +114,13 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
   function portraitRail(side: ArmySide) {
     const enemy = side === 'enemy';
     const cards = enemy ? p.enemies.map(item => ({
-      slot: item.slot, title: item.boss ? p.enemyName : item.label,
+      slot: item.slot, level: null as number | null, title: item.boss ? p.enemyName : item.label,
       detail: `${roleNames[item.role]} · ${rankCopy(p.enemyShape, item.slot)}`,
       art: enemyPortrait(item.role, p.enemyProfile, p.enemyName, item.boss, p.fantasyThreat),
       active: ongoing && !item.down && item.slot === p.enemySlot, down: item.down,
       fallback: enemyFigure(item, layout.portraitSize)
     })) : roster.map(({ slot, unit }) => ({
-      slot, title: unit.className, detail: `Lv. ${unit.level} · ${roleNames[unit.role]} · ${rankCopy(p.shape, slot)}`,
+      slot, level: unit.level, title: unit.className, detail: `Lv. ${unit.level} · ${roleNames[unit.role]} · ${rankCopy(p.shape, slot)}`,
       art: allyPortrait(unit), active: ongoing && (p.activeSlot === slot || p.supportSlots.includes(slot)), down: false,
       fallback: <UnitSprite preferHumanArt={false} className={unit.className} faction={unit.faction} size={layout.portraitSize} />
     }));
@@ -141,6 +142,7 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
             backgroundColor: theme.colors.surface1, opacity: card.down ? .38 : pressed ? .75 : 1 }]}>
           <View style={[s.portraitImage, { width: layout.portraitSize, height: layout.portraitSize }]}>
             {card.art ? <ReferenceArt art={card.art} width={layout.portraitSize} fallback={card.fallback} /> : card.fallback}
+            {card.level !== null ? <Text style={[s.levelBadge, { color: theme.colors.text, backgroundColor: theme.colors.appBg }]}>Lv. {card.level}</Text> : null}
             {card.down ? <Text style={s.routedMark}>×</Text> : null}
           </View>
           <Text style={[s.portraitName, { color: theme.colors.text }]} numberOfLines={1}>{card.title}</Text>
@@ -152,7 +154,8 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
   const battlefield = <View testID="portrait-battle-stage" style={[s.stage, {
     width: layout.stageWidth, height: layout.stageHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border
   }]}>
-    <BattlefieldBackdrop encounterId={p.encounterId} faction={p.faction} difficulty={p.difficulty} compact={layout.compact} />
+    <IllustratedBattlefieldBackdrop encounterId={p.encounterId} faction={p.faction} difficulty={p.difficulty}
+      fantasyThreat={p.fantasyThreat} compact={layout.compact} width={layout.stageWidth} height={layout.stageHeight} />
     <EnemyFantasyThreatAura fantasyThreat={p.fantasyThreat} compact={layout.compact} />
     <View pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={s.fill}>
       {(['enemy', 'ally'] as const).flatMap(side => {
@@ -288,14 +291,15 @@ const s = StyleSheet.create({
   actionLabel: { fontSize: 12, fontWeight: '700' }, railContent: { gap: 6, paddingVertical: 2 },
   portraitCard: { borderWidth: 1, borderRadius: 4, padding: 2, alignItems: 'center', overflow: 'hidden', minHeight: 44 },
   portraitImage: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderRadius: 2 },
-  portraitName: { fontSize: 10, lineHeight: 15, paddingTop: 1, textAlign: 'center' }, routedMark: { position: 'absolute', right: 1, top: 0, color: '#FFFFFF', backgroundColor: '#000000', fontSize: 16 },
+  levelBadge: { position: 'absolute', bottom: 0, right: 0, fontSize: 10, fontWeight: '700', paddingHorizontal: 3, borderTopLeftRadius: 3 },
+  portraitName: { fontSize: 11, lineHeight: 15, paddingTop: 1, textAlign: 'center' }, routedMark: { position: 'absolute', right: 1, top: 0, color: '#FFFFFF', backgroundColor: '#000000', fontSize: 16 },
   health: { gap: 2 }, healthHeading: { flexDirection: 'row', justifyContent: 'space-between', gap: 4 }, healthName: { fontSize: 9, fontWeight: '800' },
   healthValue: { fontSize: 10, fontWeight: '700' }, healthTrack: { height: 4, borderRadius: 2, overflow: 'hidden' },
   stage: { alignSelf: 'center', borderWidth: 1, overflow: 'hidden', borderRadius: 6 }, fill: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
   guide: { position: 'absolute', left: 4, right: 4, borderTopWidth: .5, opacity: .24 }, rankMark: { position: 'absolute', top: -7, left: 0, fontSize: 8 },
   engagement: { position: 'absolute', left: '22%', right: '22%', borderTopWidth: 1, opacity: .3 },
-  actor: { position: 'absolute', justifyContent: 'center', alignItems: 'center' }, shadow: { position: 'absolute', bottom: 0, width: '72%', height: 4, borderRadius: 8, opacity: .45 },
-  activeUnderline: { position: 'absolute', bottom: 0, height: 2, width: '80%', borderRadius: 2 }, selectionFrame: { position: 'absolute', left: -2, right: -2, top: -2, bottom: -2, borderWidth: 1, borderRadius: 4 },
+  actor: { position: 'absolute', justifyContent: 'center', alignItems: 'center' }, shadow: { position: 'absolute', bottom: 0, width: '72%', height: 6, borderRadius: 12, opacity: .65 },
+  activeUnderline: { position: 'absolute', bottom: 0, height: 2, width: '80%', borderRadius: 2 }, selectionFrame: { position: 'absolute', left: -2, right: -2, bottom: -2, height: 10, borderWidth: 1.5, borderRadius: 99 },
   vfx: { position: 'absolute', alignSelf: 'center' }, pauseOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000099', justifyContent: 'center', alignItems: 'center' },
   pauseCopy: { color: '#F3C461', fontSize: 16, fontWeight: '800', letterSpacing: 2 }, selectionCopy: { fontSize: 10, textAlign: 'center', minHeight: 15 },
   footer: { flexShrink: 0, borderTopWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 4 }, footerStack: { flexDirection: 'column', alignItems: 'stretch' },

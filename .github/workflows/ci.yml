@@ -140,3 +140,6 @@ jobs:
 
       - name: Generated Human artwork regression
         run: npx --no-install tsx scripts/human-art-regression.ts
+
+      - name: Illustrated battlefield regression
+        run: npx --no-install tsx scripts/illustrated-battlefield-regression.ts

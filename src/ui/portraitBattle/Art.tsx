@@ -17,8 +17,8 @@ const frames: Record<ArtKey, readonly [number, number, number, number]> = {
   greenkeep_location: [8, 59, 240, 138]
 };
 
-export const ReferenceArt = memo(function ReferenceArt({ art, width, height = width, fallback }: {
-  art: ArtKey; width: number; height?: number; fallback?: ReactNode;
+export const ReferenceArt = memo(function ReferenceArt({ art, width, height = width, fallback, onError }: {
+  art: ArtKey; width: number; height?: number; fallback?: ReactNode; onError?: () => void;
 }) {
   const [failedArt, setFailedArt] = useState<ArtKey | null>(null);
   const source = getProductionAssetSource('battle_portrait.' + art);
@@ -31,7 +31,7 @@ export const ReferenceArt = memo(function ReferenceArt({ art, width, height = wi
         source={source}
         resizeMode="stretch"
         fadeDuration={0}
-        onError={() => setFailedArt(art)}
+        onError={() => { setFailedArt(art); onError?.(); }}
         style={{ position: 'absolute', width: 256 * scale, height: 256 * scale,
           left: (width - w * scale) / 2 - x * scale,
           top: (height - h * scale) / 2 - y * scale }}
