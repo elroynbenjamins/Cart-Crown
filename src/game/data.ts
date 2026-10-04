@@ -8,6 +8,7 @@ import type {
   WagonItemDefinition,
   WagonStage
 } from './types';
+import { getEarlyCampaignNodes } from './earlyCampaign';
 
 export const starterResources: ResourceWallet = {
   gold: 120,
@@ -178,14 +179,7 @@ export const humanRegions: RegionDefinition[] = [
   { id: 'crownspire', name: 'Crownspire', faction: 'neutral', x: 58, y: 48, state: 'locked' }
 ];
 
-export const chapterOneNodes: ChapterNode[] = [
-  { id: 'node_1', name: 'The Last Two', type: 'story', completed: true },
-  { id: 'node_2', name: 'Hold the Road', type: 'battle', completed: false, current: true },
-  { id: 'node_3', name: 'Marked Raiders', type: 'event', completed: false },
-  { id: 'node_4', name: 'Mercenary Patrol', type: 'elite', completed: false },
-  { id: 'node_5', name: 'Refugee Camp', type: 'supply', completed: false },
-  { id: 'node_6', name: 'The Toll Captain', type: 'boss', completed: false }
-];
+export const chapterOneNodes: ChapterNode[] = getEarlyCampaignNodes('human', 1);
 
 export const holdTheRoadEncounter: EncounterDefinition = {
   id: 'hold_the_road',
