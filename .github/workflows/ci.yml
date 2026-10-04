@@ -39,6 +39,9 @@ jobs:
       - name: Tutorial and review regression
         run: npm run tutorial:check
 
+      - name: Campaign mission roadmap regression
+        run: npm run campaign-roadmap:check
+
       - name: Kingdom Trials regression
         run: npm run trials:check
 
