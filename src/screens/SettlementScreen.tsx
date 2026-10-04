@@ -44,7 +44,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   onTutorialFocusComplete?: () => void;
 }) {
   const { theme } = useGameTheme();
-  const { fontScale } = useWindowDimensions();
+  const { fontScale, height: viewportHeight } = useWindowDimensions();
   const {
     activeFaction, resources, currentWagonStage, buildings, buildingLevels,
     buildingPlacements, settlementAdjacencyBonuses, isBuildingUnlocked,
@@ -97,7 +97,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         : currentWagonStage.id === 'town' ? 'GREENKEEP TOWN'
         : currentWagonStage.id === 'fort' ? 'GREENKEEP FORT'
         : currentWagonStage.id === 'settlement' ? 'GREENKEEP SETTLEMENT' : 'REFUGEE CAMP';
-  const mapHeight = Math.max(520, Math.ceil(370 * Math.max(1, Number.isFinite(fontScale) ? fontScale : 1)));
+  const safeFontScale = Number.isFinite(fontScale) ? fontScale : 1;
+  const safeViewportHeight = Number.isFinite(viewportHeight) ? viewportHeight : 800;
+  const mapHeight = Math.max(
+    600,
+    Math.min(780, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 120))
+  );
   const fortificationWeight =
     currentWagonStage.id === 'grand' ? 5
       : currentWagonStage.id === 'capital' ? 4
@@ -107,21 +112,21 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <GameCard accent={factionAccent} ornament={false}>
+      <View style={[styles.hud, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
         <View style={styles.heroHeader}>
           <View style={styles.heroCopy}>
-            <Text style={[styles.eyebrow, { color: factionAccent }]}>CART & CROWN · SETTLEMENT</Text>
-            <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.text }]}>{stageLabel}</Text>
+            <Text style={[styles.eyebrow, { color: factionAccent }]}>CART & CROWN</Text>
+            <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.text }]} numberOfLines={1}>{stageLabel}</Text>
           </View>
           <View style={[styles.stageBadge, { borderColor: factionAccent, backgroundColor: theme.colors.surface2 }]}>
             <Text style={[styles.stageBadgeText, { color: factionAccent }]}>{currentWagonStage.id.toUpperCase()}</Text>
           </View>
         </View>
 
-        <View style={[styles.resourceStrip, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}>
+        <View style={[styles.resourceStrip, { backgroundColor: theme.colors.surface2 }]}>
           {settlementResourceOrder.map(resource => (
             <View key={resource} style={styles.resourceCell}>
-              <ResourceSprite resource={resource} size={20} />
+              <ResourceSprite resource={resource} size={18} />
               <View style={styles.resourceCopy}>
                 <Text style={[styles.resourceValue, { color: theme.colors.text }]}>{resources[resource]}</Text>
                 <Text style={[styles.resourceLabel, { color: theme.colors.textMuted }]}>{settlementResourceLabels[resource]}</Text>
@@ -130,25 +135,19 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           ))}
         </View>
 
-        <View style={styles.chips}>
-          <SemanticChip label={placedIds.length + ' built'} tone="neutral" compact />
-          <SemanticChip label={settlementAdjacencyBonuses.length + ' districts'} tone={settlementAdjacencyBonuses.length ? 'positive' : 'neutral'} compact />
-        </View>
-
-        {nextSuggestedBuilding && nextSuggestedPlot ? (
-          <View style={[styles.nextGoal, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}>
-            <View style={styles.nextGoalCopy}>
-              <Text style={[styles.nextGoalEyebrow, { color: theme.colors.textMuted }]}>NEXT BUILD</Text>
+        <View style={styles.hudFooter}>
+          <View style={styles.hudStats}>
+            <SemanticChip label={placedIds.length + ' built'} tone="neutral" compact />
+            <SemanticChip label={settlementAdjacencyBonuses.length + ' districts'} tone={settlementAdjacencyBonuses.length ? 'positive' : 'neutral'} compact />
+          </View>
+          {nextSuggestedBuilding && nextSuggestedPlot ? (
+            <View style={styles.nextGoalInline}>
+              <Text style={[styles.nextGoalEyebrow, { color: theme.colors.textMuted }]}>NEXT</Text>
               <Text style={[styles.nextGoalTitle, { color: theme.colors.text }]} numberOfLines={1}>{nextSuggestedBuilding.name}</Text>
             </View>
-            <SemanticChip label="Open plot ready" tone="currency" compact />
-          </View>
-        ) : null}
-
-        <Text style={[styles.heroHint, { color: theme.colors.textMuted }]}>
-          Tap a building to manage it. Tap open ground to expand.
-        </Text>
-      </GameCard>
+          ) : null}
+        </View>
+      </View>
 
       <View style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
         <View pointerEvents="none" style={styles.backdrop}>
@@ -302,25 +301,46 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </>
         ) : null}
       </View>
-      <View style={styles.mapLegend}>
-        <SemanticChip label="Tap buildings" tone="neutral" compact />
-        <SemanticChip label="Gold = selected" tone="currency" compact />
-        <SemanticChip label="Dashed = build plot" tone="blue" compact />
+      <View style={styles.sceneLegend}>
+        <Text style={[styles.sceneLegendText, { color: theme.colors.textMuted }]}>Tap structures · marked ground = build</Text>
+        <Text style={[styles.sceneLegendCount, { color: factionAccent }]}>{placedIds.length}/{buildings.length}</Text>
       </View>
 
       {selectedBuilding ? (
-        <GameCard accent={theme.colors.gold} ornament={false}>
-          <Text style={[styles.eyebrow, { color: theme.colors.textMuted }]}>SELECTED BUILDING</Text>
-          <View style={styles.section}><BuildingHeading building={selectedBuilding} level={buildingLevels[selectedBuilding.id] ?? 0} /></View>
-          <Text style={[styles.body, { color: theme.colors.textMuted }]}>Tap any empty unlocked plot to relocate. Levels and upgrades are preserved; district bonuses update immediately.</Text>
-          <View style={styles.button}><SecondaryButton label="Cancel move" onPress={() => setSelectedBuildingId(null)} /></View>
+        <View style={[styles.inspectorSheet, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+          <View style={[styles.inspectorHandle, { backgroundColor: theme.colors.border }]} />
+          <View style={styles.inspectorHeader}>
+            <View style={styles.inspectorCopy}>
+              <Text style={[styles.inspectorEyebrow, { color: theme.colors.textMuted }]}>BUILDING</Text>
+              <Text style={[styles.inspectorTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                {selectedBuilding.name} · Lv.{buildingLevels[selectedBuilding.id] ?? 0}
+              </Text>
+            </View>
+            <SemanticChip
+              label={buildingRolePresentation[selectedBuilding.role]?.label ?? selectedBuilding.role}
+              tone={buildingRolePresentation[selectedBuilding.role]?.tone ?? 'neutral'}
+              compact
+            />
+          </View>
+          <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>Tap an open plot to relocate for free.</Text>
+          <View style={styles.inspectorActions}>
+            <View style={styles.inspectorAction}><SecondaryButton label="Cancel move" onPress={() => setSelectedBuildingId(null)} /></View>
+            <View style={styles.inspectorAction}><SecondaryButton label="Kingdom upgrades" onPress={onExit} /></View>
+          </View>
           <BuildingLevelPreview building={selectedBuilding} level={buildingLevels[selectedBuilding.id] ?? 0} wallet={resources} />
-          <View style={styles.button}><SecondaryButton label="Review upgrades in Kingdom" onPress={onExit} /></View>
-        </GameCard>
+        </View>
       ) : selectedPlot ? (
         <>
-          <SectionTitle title="Construct Building" trailing={selectedPlot.id.replace('plot_', '').toUpperCase()}
-          />
+          <View style={[styles.inspectorSheet, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+            <View style={[styles.inspectorHandle, { backgroundColor: theme.colors.border }]} />
+            <View style={styles.inspectorHeader}>
+              <View style={styles.inspectorCopy}>
+                <Text style={[styles.inspectorEyebrow, { color: theme.colors.textMuted }]}>BUILD SITE</Text>
+                <Text style={[styles.inspectorTitle, { color: theme.colors.text }]}>Choose a blueprint</Text>
+              </View>
+              <SemanticChip label={selectedPlot.id.replace('plot_', '').toUpperCase()} tone="blue" compact />
+            </View>
+          </View>
           {availableBuildings.length ? (
             <View style={styles.list}>
               {availableBuildings.map(building => {
@@ -330,9 +350,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 const roleColor = semanticColor(theme, buildingRolePresentation[building.role]?.tone ?? 'neutral');
                 return (
                   <TutorialFocus key={building.id} active={tutorialBuildingFocused} label={tutorialBuildingFocused ? tutorialFocus.label : undefined}>
-                    <GameCard accent={roleColor} ornament={false}>
+                    <View style={[styles.constructionOption, { borderColor: roleColor, backgroundColor: theme.colors.surface1 }]}>
                       <BuildingHeading building={building} />
-                      <Text style={[styles.body, { color: theme.colors.textMuted }]}>{building.description}</Text>
+                      <Text style={[styles.optionDescription, { color: theme.colors.textMuted }]}>{building.description}</Text>
                       <View style={styles.chips}><SemanticChip label={affordable ? 'Materials available' : 'Materials missing'} tone={affordable ? 'positive' : 'warning'} compact /></View>
                       <BuildingCosts cost={building.constructionCost} wallet={resources} />
                       {potentialBonuses.length ? (
@@ -368,14 +388,16 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                           </View>
                         ) : null}
                       </View>
-                    </GameCard>
+                    </View>
                   </TutorialFocus>
                 );
               })}
             </View>
-          ) : <GameCard ornament={false}><Text style={[styles.body, { color: theme.colors.textMuted }]}>No unlocked unbuilt buildings are currently available.</Text></GameCard>}
+          ) : <Text style={[styles.sceneHelp, { color: theme.colors.textMuted }]}>No unlocked unbuilt buildings are currently available.</Text>}
         </>
-      ) : <GameCard ornament={false}><Text style={[styles.body, { color: theme.colors.textMuted }]}>Choose an empty plot to see construction costs and possible district bonuses, or select a built structure to inspect its levels and relocate it.</Text></GameCard>}
+      ) : (
+        <Text style={[styles.sceneHelp, { color: theme.colors.textMuted }]}>Tap a structure to manage it or marked ground to expand.</Text>
+      )}
 
       <SectionTitle title="Active District Bonuses" trailing={String(settlementAdjacencyBonuses.length)} />
       {settlementAdjacencyBonuses.length ? (
@@ -414,28 +436,31 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 12, paddingBottom: 32, gap: 11 },
-  heroHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  content: { padding: 10, paddingBottom: 30, gap: 8 },
+  hud: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 8 },
+  heroHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroCopy: { flex: 1, minWidth: 0 },
-  eyebrow: { fontSize: 9, lineHeight: 13, fontWeight: '900', letterSpacing: 1.05 },
-  title: { fontSize: 21, lineHeight: 26, fontWeight: '900', marginTop: 2 },
-  stageBadge: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, marginTop: 1 },
-  stageBadgeText: { fontSize: 9, lineHeight: 12, fontWeight: '900', letterSpacing: 0.7 },
-  resourceStrip: { flexDirection: 'row', borderWidth: 1, borderRadius: 12, paddingHorizontal: 6, paddingVertical: 7, marginTop: 11, gap: 2 },
-  resourceCell: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 3 },
+  eyebrow: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 1.1 },
+  title: { fontSize: 17, lineHeight: 21, fontWeight: '900', marginTop: 1 },
+  stageBadge: { borderWidth: 1, borderRadius: 9, paddingHorizontal: 7, paddingVertical: 4 },
+  stageBadgeText: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
+  resourceStrip: { flexDirection: 'row', borderRadius: 10, paddingHorizontal: 5, paddingVertical: 5, marginTop: 7, gap: 2 },
+  resourceCell: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 2 },
   resourceCopy: { flex: 1, minWidth: 0 },
-  resourceValue: { fontSize: 10, lineHeight: 13, fontWeight: '900' },
-  resourceLabel: { fontSize: 7.5, lineHeight: 10, fontWeight: '700' },
-  nextGoal: { marginTop: 9, borderWidth: 1, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  nextGoalCopy: { flex: 1, minWidth: 0 },
-  nextGoalEyebrow: { fontSize: 8, lineHeight: 10, fontWeight: '900', letterSpacing: 0.9 },
-  nextGoalTitle: { fontSize: 13, lineHeight: 17, fontWeight: '900', marginTop: 1 },
-  heroHint: { fontSize: 10.5, lineHeight: 15, marginTop: 9 },
+  resourceValue: { fontSize: 9.5, lineHeight: 12, fontWeight: '900' },
+  resourceLabel: { fontSize: 7, lineHeight: 9, fontWeight: '700' },
+  hudFooter: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 6 },
+  hudStats: { flexDirection: 'row', gap: 5, flexShrink: 1 },
+  nextGoalInline: { flex: 1, minWidth: 0, alignItems: 'flex-end' },
+  nextGoalEyebrow: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.85 },
+  nextGoalTitle: { fontSize: 10.5, lineHeight: 13, fontWeight: '900', maxWidth: '100%' },
   body: { fontSize: 13, lineHeight: 19, marginTop: 6 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
-  mapLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: -2 },
-  section: { gap: 8, marginTop: 12 },
-  map: { borderRadius: 22, borderWidth: 1, overflow: 'hidden', position: 'relative' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 7 },
+  sceneLegend: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 3, marginTop: -1 },
+  sceneLegendText: { fontSize: 9.5, lineHeight: 13, fontWeight: '700' },
+  sceneLegendCount: { fontSize: 10, lineHeight: 13, fontWeight: '900' },
+  section: { gap: 8, marginTop: 10 },
+  map: { borderRadius: 26, borderWidth: 1, overflow: 'hidden', position: 'relative' },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
   plot: { position: 'absolute', width: '27%', height: '23%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'visible' },
   landmarkPlot: { width: '32%', height: '27%' },
@@ -463,8 +488,20 @@ const styles = StyleSheet.create({
   wallTop: { position: 'absolute', left: '3%', right: '3%', top: 3, borderTopWidth: 2, opacity: 0.75 },
   wallBottom: { position: 'absolute', left: '3%', right: '3%', bottom: 3, borderBottomWidth: 2, opacity: 0.75 },
   gateLabel: { position: 'absolute', bottom: 7, alignSelf: 'center', fontSize: 9, lineHeight: 12, fontWeight: '900' },
-  list: { gap: 10 },
-  button: { marginTop: 10 },
+  inspectorSheet: { borderWidth: 1, borderRadius: 18, paddingHorizontal: 12, paddingTop: 7, paddingBottom: 11 },
+  inspectorHandle: { width: 34, height: 3, borderRadius: 999, alignSelf: 'center', opacity: 0.7, marginBottom: 7 },
+  inspectorHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  inspectorCopy: { flex: 1, minWidth: 0 },
+  inspectorEyebrow: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.9 },
+  inspectorTitle: { fontSize: 15, lineHeight: 19, fontWeight: '900', marginTop: 1 },
+  inspectorHint: { fontSize: 10.5, lineHeight: 15, marginTop: 5 },
+  inspectorActions: { flexDirection: 'row', gap: 7, marginTop: 8 },
+  inspectorAction: { flex: 1 },
+  constructionOption: { borderWidth: 1, borderRadius: 14, padding: 11 },
+  optionDescription: { fontSize: 11.5, lineHeight: 17, marginTop: 4 },
+  sceneHelp: { fontSize: 10.5, lineHeight: 15, textAlign: 'center', paddingVertical: 3 },
+  list: { gap: 8 },
+  button: { marginTop: 8 },
   bonusName: { fontSize: 16, lineHeight: 22, fontWeight: '900' },
   preview: { borderWidth: 1, borderRadius: 12, padding: 12 },
   recipe: { paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
