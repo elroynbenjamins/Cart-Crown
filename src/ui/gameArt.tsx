@@ -3,6 +3,7 @@ import { ReferenceArt } from './portraitBattle/Art';
 import React from 'react';
 import { Image, View } from 'react-native';
 import type {
+  BuildingRole,
   ChapterNode,
   EnemyFantasyThreatFamily,
   FactionId,
@@ -2594,6 +2595,124 @@ function SettlementDetailAtlasSprite({
           tintColor
         }}
       />
+    </View>
+  );
+}
+
+const settlementAmbientPeopleTint: Record<FactionId, string | undefined> = {
+  human: undefined,
+  elf: '#95DDBD',
+  orc: '#D27A5D'
+};
+
+const settlementAmbientGlow: Record<FactionId, string> = {
+  human: '#F0B45E',
+  elf: '#68E0D5',
+  orc: '#F06B3B'
+};
+
+const settlementAmbientPrimaryByRole: Record<BuildingRole, keyof typeof settlementPeopleHumanCells> = {
+  KINGDOM: 'guard',
+  ARMY: 'guard',
+  EQUIPMENT: 'smith',
+  LOGISTICS: 'worker',
+  SUPPLY: 'merchant',
+  COMMAND: 'knight',
+  MOUNT: 'worker',
+  SCOUT: 'guard'
+};
+
+const settlementAmbientSecondaryByRole: Record<BuildingRole, keyof typeof settlementPeopleHumanCells> = {
+  KINGDOM: 'knight',
+  ARMY: 'worker',
+  EQUIPMENT: 'worker',
+  LOGISTICS: 'porter',
+  SUPPLY: 'porter',
+  COMMAND: 'guard',
+  MOUNT: 'horse',
+  SCOUT: 'porter'
+};
+
+export function SettlementBuildingAmbience({
+  buildingId,
+  role,
+  faction = 'human',
+  level = 1,
+  size = 84
+}: {
+  buildingId: string;
+  role: BuildingRole;
+  faction?: FactionId;
+  level?: number;
+  size?: number;
+}) {
+  const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
+  const worldSource = getProductionAssetSource('ui.settlement_world_human_atlas');
+  const sceneSource = getProductionAssetSource(settlementSceneFactionAssetIds[faction]);
+  const tintColor = settlementAmbientPeopleTint[faction];
+  const glow = settlementAmbientGlow[faction];
+  const kind = getBuildingVisualKind(buildingId);
+  const primary = settlementAmbientPrimaryByRole[role];
+  const secondary = settlementAmbientSecondaryByRole[role];
+  const smoky = kind === 'forge' || buildingId.includes('smokehouse');
+  const showSecond = level >= 3 || role === 'KINGDOM' || role === 'MOUNT';
+
+  return (
+    <View style={{ width: size, height: size, position: 'relative' }}>
+      {worldSource && role === 'ARMY' ? (
+        <View style={{ position: 'absolute', right: 0, bottom: size * 0.03 }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={size * 0.34} opacity={0.82} tintColor={tintColor} />
+        </View>
+      ) : null}
+      {worldSource && (role === 'SUPPLY' || role === 'LOGISTICS') ? (
+        <View style={{ position: 'absolute', right: -size * 0.01, bottom: size * 0.04 }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={size * 0.36} opacity={0.86} tintColor={tintColor} />
+        </View>
+      ) : null}
+      {worldSource && (role === 'SCOUT' || role === 'COMMAND' || role === 'KINGDOM') ? (
+        <View style={{ position: 'absolute', right: size * 0.01, top: size * 0.04 }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={size * 0.3} opacity={0.82} tintColor={tintColor} />
+        </View>
+      ) : null}
+      {sceneSource && role === 'LOGISTICS' ? (
+        <View style={{ position: 'absolute', left: -size * 0.05, bottom: -size * 0.02 }}>
+          <SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.wagon} size={size * 0.38} opacity={0.78} tintColor={settlementSceneFactionTints[faction]} />
+        </View>
+      ) : null}
+      {worldSource && role === 'MOUNT' ? (
+        <View style={{ position: 'absolute', left: 0, bottom: size * 0.01 }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.fence_gate} size={size * 0.36} opacity={0.74} tintColor={tintColor} />
+        </View>
+      ) : null}
+      {peopleSource ? (
+        <View style={{ position: 'absolute', left: size * 0.02, bottom: 0 }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells[primary]} size={size * 0.29} opacity={0.94} tintColor={tintColor} />
+        </View>
+      ) : null}
+      {peopleSource && showSecond ? (
+        <View style={{ position: 'absolute', right: role === 'MOUNT' ? -size * 0.03 : size * 0.07, bottom: role === 'MOUNT' ? -size * 0.02 : size * 0.01 }}>
+          <SettlementDetailAtlasSprite
+            assetId="ui.settlement_people_human_atlas"
+            cell={settlementPeopleHumanCells[secondary]}
+            size={size * (role === 'MOUNT' ? 0.42 : 0.27)}
+            opacity={0.9}
+            tintColor={tintColor}
+          />
+        </View>
+      ) : null}
+      {smoky ? (
+        <>
+          <View style={{ position: 'absolute', right: size * 0.15, top: size * 0.12, width: size * 0.15, height: size * 0.15, borderRadius: size, backgroundColor: '#D8D1C3', opacity: 0.34 }} />
+          <View style={{ position: 'absolute', right: size * 0.09, top: size * 0.02, width: size * 0.11, height: size * 0.11, borderRadius: size, backgroundColor: '#E8E1D5', opacity: 0.25 }} />
+          <View style={{ position: 'absolute', right: size * 0.2, bottom: size * 0.11, width: size * 0.12, height: size * 0.09, borderRadius: size, backgroundColor: glow, opacity: 0.55 }} />
+        </>
+      ) : null}
+      {faction === 'elf' && role !== 'EQUIPMENT' ? (
+        <View style={{ position: 'absolute', left: size * 0.45, top: size * 0.08, width: size * 0.06, height: size * 0.06, borderRadius: size, backgroundColor: glow, opacity: 0.75 }} />
+      ) : null}
+      {faction === 'orc' && (role === 'ARMY' || role === 'COMMAND' || role === 'SCOUT') ? (
+        <View style={{ position: 'absolute', left: size * 0.47, top: size * 0.04, width: size * 0.07, height: size * 0.1, backgroundColor: glow, opacity: 0.65 }} />
+      ) : null}
     </View>
   );
 }
