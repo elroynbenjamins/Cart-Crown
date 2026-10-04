@@ -232,9 +232,15 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'District preview must connect the selected plot to its compatible neighbor before construction.');
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-preview-partner-plot_w'), 'District preview must identify the exact neighboring partner plot.');
     check(text(tree).includes(district.name), 'District preview must name the synergy being previewed.');
+    check(nodes(tree, 'View').some(node => node.props.testID === 'placement-quality-plot_nw'), 'Selected build sites must show a placement-quality badge.');
+    check(text(tree).includes('Good · 1 district'), 'One real district activation must rate as Good.');
     check(style(plot(tree, 'plot_nw').props.style).borderColor === themes.original.colors.gold, 'Selection must remain gold rather than use a role/benefit color.');
     check(JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels, placements: f.game.buildingPlacements }) === start, 'Selecting and previewing a plot must not change levels, placements or costs.');
-    const cost = nodes(tree, 'BuildingCosts').find(node => node.props.cost === forge.constructionCost);
+    const quartermasterId = faction === 'human' ? 'quartermaster' : faction === 'elf' ? 'elf_spirit_stores' : 'orc_smokehouse';
+    const neutralBlueprint = nodes(tree, 'View').find(node => node.props.testID === 'settlement-blueprint-' + quartermasterId);
+    check(Boolean(neutralBlueprint), 'A non-synergy blueprint row must remain available for comparison.');
+    check(text(neutralBlueprint).includes('Neutral · 0 districts'), 'Zero real district activations must rate as Neutral.');
+        const cost = nodes(tree, 'BuildingCosts').find(node => node.props.cost === forge.constructionCost);
     check(Boolean(cost) && cost!.props.wallet === f.game.resources, 'Construction must display the provider cost and current wallet unchanged.');
     check(nodes(tree, 'DistrictEffects').some(node => node.props.state === 'preview' && node.props.bonus.id === district.id), 'An adjacent construction must preview the real district.');
     const gold = f.game.resources.gold;
@@ -262,6 +268,36 @@ function testRecipesAndInteractions() {
     const map = nodes(largeTree, 'View').find(node => style(node.props.style).height === 720 && style(node.props.style).position === 'relative');
     check(Boolean(map), 'Larger text must expand the world viewport without changing plot geometry.');
   }
+}
+
+function testExcellentPlacementQuality() {
+  const f = fixture('human');
+  f.game.buildingPlacements = {
+    ...f.game.buildingPlacements,
+    plot_n: null,
+    plot_ne: 'signal_tower'
+  };
+  f.game.buildingLevels = {
+    ...f.game.buildingLevels,
+    signal_tower: 1
+  };
+  f.refresh();
+
+  let tree = f.h.render();
+  check(
+    nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_n'),
+    'A plot that can activate multiple real districts must remain discoverable in overview mode.'
+  );
+  check(text(tree).includes('EXCELLENT · 2'), 'Two real district activations must rate as Excellent in overview mode.');
+
+  choosePlot(tree, 'plot_n');
+  tree = f.h.render();
+  check(
+    nodes(tree, 'View').some(node => node.props.testID === 'placement-quality-plot_n'),
+    'Excellent placement quality must carry into focused plot preview.'
+  );
+  check(text(tree).includes('Excellent · 2 districts'), 'Focused placement quality must expose the exact real district count.');
+  check(text(tree).includes('Seat of Command') && text(tree).includes('Command Network'), 'Excellent scoring must be backed by the exact two authored district bonuses.');
 }
 
 function testTutorialAndCosts() {
@@ -311,5 +347,6 @@ check(settlementScreenSource.includes('UPGRADE MATERIALS READY'), 'Settlement up
 
 testEffects();
 testRecipesAndInteractions();
+testExcellentPlacementQuality();
 testTutorialAndCosts();
 console.log('PASS: ' + checks + ' settlement emphasis and interaction/model checks across all factions; native Android rendering remains separate.');
