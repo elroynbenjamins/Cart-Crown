@@ -50,7 +50,7 @@ const mission = (
   expectedActiveSquads: CampaignMissionBlueprint['expectedActiveSquads'],
   systemTags: string[]
 ): CampaignMissionBlueprint => ({
-  id: \`roadmap_ch\${chapter}_m\${String(chapterOrder).padStart(2, '0')}\`,
+  id: 'roadmap_ch' + chapter + '_m' + String(chapterOrder).padStart(2, '0'),
   chapter,
   chapterOrder,
   globalOrder,
