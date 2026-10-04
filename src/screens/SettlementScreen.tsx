@@ -160,6 +160,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     if (!candidates.length) return [];
 
     const preferred = candidates.find(candidate => candidate.affordable) ?? candidates[0];
+    if (!preferred) return [];
     const distinctBonusIds = new Set(candidates.map(candidate => candidate.bonus.id));
     return [{
       plotId: plot.id,
