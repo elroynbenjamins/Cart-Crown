@@ -147,6 +147,33 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       return [];
     })
   );
+  const districtOpportunities = settlementPlots.flatMap(plot => {
+    if (!isSettlementPlotUnlocked(plot, currentWagonStage.id) || buildingPlacements[plot.id]) return [];
+
+    const candidates = availableBuildings.flatMap(building =>
+      previewBonusesAtPlot(plot, building.id).map(bonus => ({
+        building,
+        bonus,
+        affordable: canPayBuildingCost(resources, building.constructionCost)
+      }))
+    );
+    if (!candidates.length) return [];
+
+    const preferred = candidates.find(candidate => candidate.affordable) ?? candidates[0];
+    const distinctBonusIds = new Set(candidates.map(candidate => candidate.bonus.id));
+    return [{
+      plotId: plot.id,
+      count: distinctBonusIds.size,
+      buildingId: preferred.building.id,
+      buildingName: preferred.building.name,
+      bonusName: preferred.bonus.name,
+      affordable: preferred.affordable
+    }];
+  });
+  const districtOpportunityByPlot = new Map(
+    districtOpportunities.map(opportunity => [opportunity.plotId, opportunity] as const)
+  );
+  const showDistrictOpportunities = !selectedPlotId && !selectedBuildingId && !unlockCelebration;
 
   const stageLabel = activeFaction === 'elf'
     ? currentWagonStage.id === 'capital' ? 'STARROOT CONCLAVE'
@@ -334,6 +361,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           <View style={styles.hudStats}>
             <SemanticChip label={placedIds.length + ' built'} tone="neutral" compact />
             <SemanticChip label={settlementAdjacencyBonuses.length + ' districts'} tone={settlementAdjacencyBonuses.length ? 'positive' : 'neutral'} compact />
+            {districtOpportunities.length ? <SemanticChip label={districtOpportunities.length + ' district spots'} tone="positive" compact /> : null}
             {constructionReadyCount ? <SemanticChip label={constructionReadyCount + ' build ready'} tone="currency" compact /> : null}
             {upgradeMaterialReadyIds.size ? <SemanticChip label={upgradeMaterialReadyIds.size + ' upgrade mats'} tone="positive" compact /> : null}
           </View>
@@ -413,6 +441,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             (Boolean(unlockCelebration?.buildingId) && building?.id === unlockCelebration?.buildingId);
           const districtPreviewPartner = previewPartnerPlotIds.has(plot.id);
           const districtPreviewSource = plotSelected && previewDistrictBonuses.length > 0;
+          const districtOpportunity = districtOpportunityByPlot.get(plot.id) ?? null;
+          const districtOpportunityVisible = Boolean(districtOpportunity) && showDistrictOpportunities;
           const buildReady = unlocked && !building && !selectedBuildingId && !plotSelected && constructionReadyCount > 0;
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
@@ -456,7 +486,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   setSelectedPlotId(null);
                   setPreviewBuildingId(null);
                 } else {
-                  const districtCandidate = availableBuildings.find(candidate => previewBonusesAtPlot(plot, candidate.id).length > 0);
+                  const opportunityCandidate = districtOpportunityByPlot.get(plot.id);
+                  const districtCandidate = opportunityCandidate
+                    ? availableBuildings.find(candidate => candidate.id === opportunityCandidate.buildingId) ?? null
+                    : availableBuildings.find(candidate => previewBonusesAtPlot(plot, candidate.id).length > 0) ?? null;
                   const previewCandidate = districtCandidate ?? affordableBuildings[0] ?? availableBuildings[0] ?? null;
                   setSelectedPlotId(plot.id);
                   setPreviewBuildingId(previewCandidate?.id ?? null);
@@ -473,12 +506,14 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     ? theme.colors.gold
                     : building
                       ? 'transparent'
-                      : recommendedBuildPlot
-                        ? theme.colors.gold
-                        : buildReady
-                          ? factionAccent
-                          : theme.colors.border,
-                  borderWidth: tutorialPlotFocused || selected ? 2.5 : building ? 0 : recommendedBuildPlot ? 2.25 : 1.5,
+                      : districtOpportunityVisible
+                        ? semanticColor(theme, 'positive')
+                        : recommendedBuildPlot
+                          ? theme.colors.gold
+                          : buildReady
+                            ? factionAccent
+                            : theme.colors.border,
+                  borderWidth: tutorialPlotFocused || selected ? 2.5 : building ? 0 : districtOpportunityVisible ? 2 : recommendedBuildPlot ? 2.25 : 1.5,
                   borderStyle: building || selected || tutorialPlotFocused || buildReady ? 'solid' : 'dashed',
                   zIndex: plotZIndex,
                   transform: tutorialPlotFocused ? [{ scale: 1.04 }] : selected ? [{ scale: 1.025 }] : undefined
@@ -511,6 +546,24 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               {districtPreviewSource ? (
                 <View pointerEvents="none" style={[styles.districtPreviewBadge, { backgroundColor: theme.colors.gold }]}>
                   <Text style={styles.districtPreviewBadgeText}>+ DISTRICT</Text>
+                </View>
+              ) : null}
+              {districtOpportunityVisible && districtOpportunity ? (
+                <View
+                  pointerEvents="none"
+                  testID={'district-opportunity-' + plot.id}
+                  style={[
+                    styles.districtOpportunityBadge,
+                    {
+                      backgroundColor: theme.colors.surface1,
+                      borderColor: semanticColor(theme, 'positive')
+                    }
+                  ]}
+                >
+                  <View style={[styles.districtOpportunityDot, { backgroundColor: semanticColor(theme, 'positive') }]} />
+                  <Text style={[styles.districtOpportunityText, { color: semanticColor(theme, 'positive') }]}>
+                    {districtOpportunity.count > 1 ? 'DISTRICT ×' + districtOpportunity.count : 'DISTRICT'}
+                  </Text>
                 </View>
               ) : null}
               {celebrationFocused ? (
@@ -561,7 +614,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 </>
               ) : unlocked ? (
                 <>
-                  {buildReady ? (
+                  {buildReady && !districtOpportunityVisible ? (
                     recommendedBuildPlot ? (
                       <View
                         pointerEvents="none"
@@ -805,6 +858,9 @@ const styles = StyleSheet.create({
   landmarkDistrictPreviewPartnerRing: { marginLeft: -48, marginTop: -40, width: 96, height: 80, borderRadius: 22 },
   districtPreviewBadge: { position: 'absolute', top: 4, alignSelf: 'center', zIndex: 10, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2 },
   districtPreviewBadgeText: { color: '#111318', fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
+  districtOpportunityBadge: { position: 'absolute', top: 4, left: 5, zIndex: 9, flexDirection: 'row', alignItems: 'center', gap: 3, borderWidth: 1, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2, opacity: 0.94 },
+  districtOpportunityDot: { width: 5, height: 5, borderRadius: 999 },
+  districtOpportunityText: { fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
   landmarkUnlockFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
 
   landmarkSelectionHalo: { marginLeft: -44, width: 88, height: 30, bottom: '22%' },
