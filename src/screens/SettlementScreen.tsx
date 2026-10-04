@@ -580,6 +580,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               {placementQualitySource ? (
                 <View
                   pointerEvents="none"
+                  accessible
+                  accessibilityLabel={previewPlacementQuality.label + ' placement, ' + previewPlacementQuality.summary}
                   testID={'placement-quality-' + plot.id}
                   style={[
                     styles.placementQualityBadge,
@@ -597,6 +599,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               {districtOpportunityVisible && districtOpportunity ? (
                 <View
                   pointerEvents="none"
+                  accessible
+                  accessibilityLabel={districtOpportunity.qualityLabel + ' placement, ' + districtOpportunity.qualitySummary}
                   testID={'district-opportunity-' + plot.id}
                   style={[
                     styles.districtOpportunityBadge,
