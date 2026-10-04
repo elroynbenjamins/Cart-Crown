@@ -777,7 +777,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 const placementQuality = settlementPlacementQuality(potentialBonuses.length);
                 return (
                   <TutorialFocus key={building.id} active={tutorialBuildingFocused} label={tutorialBuildingFocused ? tutorialFocus.label : undefined}>
-                    <View style={[styles.constructionOption, { borderColor: previewed ? theme.colors.gold : roleColor, borderWidth: previewed ? 2 : 1, backgroundColor: theme.colors.surface1 }]}>
+                    <View
+                      testID={'settlement-blueprint-' + building.id}
+                      style={[styles.constructionOption, { borderColor: previewed ? theme.colors.gold : roleColor, borderWidth: previewed ? 2 : 1, backgroundColor: theme.colors.surface1 }]}
+                    >
                       <BuildingHeading building={building} />
                       <Text style={[styles.optionDescription, { color: theme.colors.textMuted }]}>{building.description}</Text>
                       <View style={styles.chips}>
