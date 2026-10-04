@@ -614,7 +614,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 </>
               ) : unlocked ? (
                 <>
-                  {buildReady && !districtOpportunityVisible ? (
+                  {buildReady ? (
                     recommendedBuildPlot ? (
                       <View
                         pointerEvents="none"
