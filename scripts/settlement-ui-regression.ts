@@ -216,7 +216,9 @@ function testRecipesAndInteractions() {
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
     check(nodes(tree, 'SettlementBuildPlotSprite').length >= 1, faction + ' empty plots must render as production build sites.');
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
-    check(text(tree).includes('CART & CROWN · SETTLEMENT'), 'Portrait settlement header must use the final Cart & Crown identity.');
+    check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
+    const normalMap = nodes(tree, 'View').find(node => style(node.props.style).height === 600 && style(node.props.style).position === 'relative');
+    check(Boolean(normalMap), 'Reference portrait layout must devote 600px to the settlement world scene.');
     check(plot(tree, 'plot_se').props.disabled, 'A Town plot must remain locked at Fort.');
     choosePlot(tree, 'plot_se'); check(f.calls.length === 0, 'Locked plots must not trigger a transaction.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
@@ -245,8 +247,8 @@ function testRecipesAndInteractions() {
     press(tree, 'Return to Kingdom'); check(f.counts().exited === 1, 'Return navigation must preserve its callback.');
     f.h.dimensions.fontScale = 2;
     const largeTree = f.h.render();
-    const map = nodes(largeTree, 'View').find(node => style(node.props.style).height === 740);
-    check(Boolean(map), 'Larger text must receive more board height without changing plot geometry.');
+    const map = nodes(largeTree, 'View').find(node => style(node.props.style).height === 720 && style(node.props.style).position === 'relative');
+    check(Boolean(map), 'Larger text must expand the world viewport without changing plot geometry.');
   }
 }
 
