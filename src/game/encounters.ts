@@ -2,6 +2,18 @@ import type { EncounterDefinition, FormationShapeId, ResourceWallet, UnitRole } 
 
 export type EncounterId =
   | 'hold_the_road'
+  | 'early_banner_still_flies'
+  | 'early_hold_crossing'
+  | 'early_spears_at_dawn'
+  | 'early_cut_off_captain'
+  | 'early_broken_road'
+  | 'early_reclaim_outpost'
+  | 'early_strength_in_numbers'
+  | 'early_riders_on_road'
+  | 'early_no_army_fights_forever'
+  | 'early_long_way_around'
+  | 'early_iron_line'
+  | 'early_break_their_hold'
   | 'war_table_broken_spear'
   | 'war_table_blackwood_ambush'
   | 'war_table_red_banner'
@@ -89,6 +101,168 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 3,
     enemyHp: 128,
     difficulty: 'Normal'
+  },
+  early_banner_still_flies: {
+    id: 'early_banner_still_flies',
+    name: 'A Banner Still Flies',
+    subtitle: 'The remnant has been found before it is ready. Two squads must hold together long enough to prove the army still exists.',
+    enemyName: 'Scouting Raiders',
+    enemyCount: 2,
+    enemyHp: 82,
+    difficulty: 'Normal',
+    pressureMultiplier: 0.9
+  },
+  early_hold_crossing: {
+    id: 'early_hold_crossing',
+    name: 'Hold the Crossing',
+    subtitle: 'An aggressive attacker is probing for a route around the front line and toward the exposed rear.',
+    enemyName: 'Crossing Raiders',
+    enemyCount: 2,
+    enemyHp: 100,
+    difficulty: 'Normal',
+    pressureMultiplier: 0.94
+  },
+  early_spears_at_dawn: {
+    id: 'early_spears_at_dawn',
+    name: 'Spears at Dawn',
+    subtitle: 'Fast riders test whether the rebuilt force understands charge lanes and prepared counters.',
+    enemyName: 'Dawn Riders',
+    enemyCount: 3,
+    enemyHp: 122,
+    difficulty: 'Normal'
+  },
+  early_cut_off_captain: {
+    id: 'early_cut_off_captain',
+    name: 'Cut Off the Captain',
+    subtitle: 'A field captain is holding an otherwise ordinary line together from a protected position.',
+    enemyName: 'Captain\'s Company',
+    enemyCount: 3,
+    enemyHp: 140,
+    difficulty: 'Elite'
+  },
+  early_broken_road: {
+    id: 'early_broken_road',
+    name: 'The Broken Road',
+    subtitle: 'Mixed enemy roles turn the next stretch of road into the first battle where careless placement can cause serious attrition.',
+    enemyName: 'Broken Road Host',
+    enemyCount: 3,
+    enemyHp: 154,
+    difficulty: 'Normal'
+  },
+  early_reclaim_outpost: {
+    id: 'early_reclaim_outpost',
+    name: 'Reclaim the Outpost',
+    subtitle: 'A compact frontline protects the force occupying your first real foothold.',
+    enemyName: 'Outpost Guard',
+    enemyCount: 4,
+    enemyHp: 192,
+    difficulty: 'Boss',
+    pressureMultiplier: 1.02
+  },
+  early_strength_in_numbers: {
+    id: 'early_strength_in_numbers',
+    name: 'Strength in Numbers',
+    subtitle: 'A conventional enemy force gives the newly enlarged three-squad army room to learn a true front and rear.',
+    enemyName: 'Road Company',
+    enemyCount: 3,
+    enemyHp: 190,
+    difficulty: 'Normal'
+  },
+  early_riders_on_road: {
+    id: 'early_riders_on_road',
+    name: 'Riders on the Road',
+    subtitle: 'Mounted hunters are relying on opening momentum instead of a prolonged melee.',
+    enemyName: 'Road Riders',
+    enemyCount: 3,
+    enemyHp: 208,
+    difficulty: 'Normal'
+  },
+  early_no_army_fights_forever: {
+    id: 'early_no_army_fights_forever',
+    name: 'No Army Fights Forever',
+    subtitle: 'A stubborn field force is unlikely to destroy the army outright, but it can leave valuable squads badly worn down.',
+    enemyName: 'Attrition Company',
+    enemyCount: 3,
+    enemyHp: 225,
+    difficulty: 'Elite',
+    pressureMultiplier: 1.03
+  },
+  early_long_way_around: {
+    id: 'early_long_way_around',
+    name: 'The Long Way Around',
+    subtitle: 'A fast detachment is avoiding the strongest point of your line and hunting for an exposed wing.',
+    enemyName: 'Outer-Road Hunters',
+    enemyCount: 4,
+    enemyHp: 238,
+    difficulty: 'Normal'
+  },
+  early_iron_line: {
+    id: 'early_iron_line',
+    name: 'The Iron Line',
+    subtitle: 'A dense broad frontline is protecting a smaller rear element. Raw power alone is not the only way through.',
+    enemyName: 'Iron Line',
+    enemyCount: 4,
+    enemyHp: 272,
+    difficulty: 'Elite',
+    pressureMultiplier: 1.02
+  },
+  early_break_their_hold: {
+    id: 'early_break_their_hold',
+    name: 'Break Their Hold',
+    subtitle: 'The chapter-ending force combines a dense front, a protected threat and pressure on the wing.',
+    enemyName: 'Holdfast Command',
+    enemyCount: 5,
+    enemyHp: 332,
+    difficulty: 'Boss',
+    pressureMultiplier: 1.05
+  },
+  early_banner_still_flies: {
+    resources: { gold: 28, wood: 8, provisions: 3 },
+    storySummary: 'The first attackers break away. The survivors have proved that the remnant can still fight as a coordinated force.'
+  },
+  early_hold_crossing: {
+    resources: { gold: 34, wood: 8, iron: 2, provisions: 3 },
+    storySummary: 'The crossing holds. The army has enough breathing room to rebuild its first military works.'
+  },
+  early_spears_at_dawn: {
+    resources: { gold: 42, iron: 4, provisions: 3 },
+    storySummary: 'The riders lose their momentum against a prepared line. The army has learned that counters can matter more than a slightly larger Power number.'
+  },
+  early_cut_off_captain: {
+    resources: { gold: 58, wood: 6, iron: 4, provisions: 3 },
+    storySummary: 'The enemy captain is isolated and the line loses cohesion. The victory earns enough trust for a permanent Commander path to be chosen.'
+  },
+  early_broken_road: {
+    resources: { gold: 50, wood: 10, provisions: 5 },
+    storySummary: 'The mixed host abandons the road. From here onward the army will be expected to manage injuries and positioning without step-by-step guidance.'
+  },
+  early_reclaim_outpost: {
+    resources: { gold: 110, wood: 72, stone: 36, iron: 10, provisions: 8 },
+    storySummary: 'The outpost is reclaimed. The faction finally controls a defensible foothold and can begin a real settlement expansion.'
+  },
+  early_strength_in_numbers: {
+    resources: { gold: 48, wood: 8, provisions: 4 },
+    storySummary: 'The third squad proves its value. The army can now create a meaningful front and protected rear instead of fighting as two isolated groups.'
+  },
+  early_riders_on_road: {
+    resources: { gold: 58, iron: 5, provisions: 5 },
+    storySummary: 'The mounted pressure is stopped. Scouts record the charge pattern so future anti-cavalry deployments can be read before contact.'
+  },
+  early_no_army_fights_forever: {
+    resources: { gold: 62, wood: 8, provisions: 6 },
+    storySummary: 'The attrition force withdraws. The victory makes clear that winning a battle and leaving the army healthy are not the same thing.'
+  },
+  early_long_way_around: {
+    resources: { gold: 68, wood: 10, stone: 5, provisions: 4 },
+    storySummary: 'The outer-road hunters are caught before they can stay behind the line. Wider coverage and interception are now part of normal planning.'
+  },
+  early_iron_line: {
+    resources: { gold: 78, stone: 8, iron: 7, provisions: 4 },
+    storySummary: 'The Iron Line finally gives way. Its broad packed front becomes the first named enemy formation recorded by your scouts.'
+  },
+  early_break_their_hold: {
+    resources: { gold: 165, wood: 85, stone: 62, iron: 20, provisions: 10 },
+    storySummary: 'The holdfast collapses. The road into the next region opens, but future enemies will expect a prepared army rather than a collection of strong squads.'
   },
   war_table_broken_spear: {
     id: 'war_table_broken_spear',
@@ -846,6 +1020,18 @@ const enemyFormationProfiles: Record<FormationShapeId, Omit<EnemyFormationTactic
 
 const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   hold_the_road: 'skirmish_screen_243',
+  early_banner_still_flies: 'balanced_333',
+  early_hold_crossing: 'forward_line_411',
+  early_spears_at_dawn: 'skirmish_screen_243',
+  early_cut_off_captain: 'protected_rear_225',
+  early_broken_road: 'balanced_333',
+  early_reclaim_outpost: 'reinforced_center_252',
+  early_strength_in_numbers: 'balanced_333',
+  early_riders_on_road: 'skirmish_screen_243',
+  early_no_army_fights_forever: 'assault_432',
+  early_long_way_around: 'wide_vanguard_522',
+  early_iron_line: 'iron_wall_501',
+  early_break_their_hold: 'reinforced_center_252',
   war_table_broken_spear: 'wide_vanguard_522',
   war_table_blackwood_ambush: 'protected_rear_225',
   war_table_red_banner: 'forward_line_411',
@@ -1146,6 +1332,18 @@ const enemyArmyProfileByFormation: Record<FormationShapeId, EnemyArmyProfileId> 
 };
 
 const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>> = {
+  early_banner_still_flies: 'raider_pack',
+  early_hold_crossing: 'raider_pack',
+  early_spears_at_dawn: 'mounted_hunters',
+  early_cut_off_captain: 'mercenary_line',
+  early_broken_road: 'mercenary_line',
+  early_reclaim_outpost: 'shield_host',
+  early_strength_in_numbers: 'mercenary_line',
+  early_riders_on_road: 'mounted_hunters',
+  early_no_army_fights_forever: 'mercenary_line',
+  early_long_way_around: 'mounted_hunters',
+  early_iron_line: 'shield_host',
+  early_break_their_hold: 'elite_command',
   war_table_broken_spear: 'shield_host',
   war_table_blackwood_ambush: 'missile_company',
   war_table_red_banner: 'shock_warband',
