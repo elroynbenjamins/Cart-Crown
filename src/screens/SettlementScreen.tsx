@@ -9,7 +9,7 @@ import { canPayBuildingCost } from '../game/kingdom';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
-import { BuildingSprite, LockIcon, ResourceSprite, SettlementBuildPlotSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
+import { BuildingSprite, LockIcon, ResourceSprite, SettlementBuildingAmbience, SettlementBuildPlotSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
 import { SemanticChip, SemanticText } from '../ui/SemanticUI';
 import { semanticColor } from '../ui/semanticColors';
 import { BuildingCosts, BuildingHeading, BuildingLevelPreview, DistrictEffects } from '../ui/SettlementUI';
@@ -211,8 +211,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   styles.plotSurface,
                   {
-                    backgroundColor: building ? theme.colors.surface1 : unlocked && activeFaction === 'human' ? 'transparent' : unlocked ? theme.colors.appBg : theme.colors.surface3,
-                    opacity: building ? 0.36 : unlocked && activeFaction === 'human' ? 0.08 : unlocked ? 0.5 : 0.78
+                    backgroundColor: building ? theme.colors.surface1 : unlocked ? 'transparent' : theme.colors.surface3,
+                    opacity: building ? 0.22 : unlocked ? 0.08 : 0.78
                   }
                 ]}
               />
@@ -223,6 +223,15 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               ) : null}
               {building ? (
                 <>
+                  <View pointerEvents="none" style={[styles.buildingAmbience, landmark ? styles.landmarkAmbience : undefined]}>
+                    <SettlementBuildingAmbience
+                      buildingId={building.id}
+                      role={building.role}
+                      faction={building.faction}
+                      level={level}
+                      size={landmark ? 98 : 82}
+                    />
+                  </View>
                   <View style={[styles.buildingPad, landmark ? styles.landmarkBuildingPad : undefined]}>
                     <View pointerEvents="none" style={[styles.buildingFootprint, landmark ? styles.landmarkFootprint : undefined, { backgroundColor: roleColor }]} />
                     <BuildingSprite buildingId={building.id} faction={building.faction} size={landmark ? 78 : 62} />
@@ -408,6 +417,8 @@ const styles = StyleSheet.create({
   plot: { position: 'absolute', width: '27%', height: '23%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'hidden' },
   landmarkPlot: { width: '32%', height: '27%', zIndex: 2 },
   plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 13 },
+  buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -41, marginTop: -41, width: 82, height: 82, alignItems: 'center', justifyContent: 'center' },
+  landmarkAmbience: { marginLeft: -49, marginTop: -49, width: 98, height: 98 },
   buildingPad: { width: 70, height: 62, alignItems: 'center', justifyContent: 'flex-end' },
   landmarkBuildingPad: { width: 86, height: 78 },
   buildingFootprint: { position: 'absolute', left: 7, right: 7, bottom: 1, height: 16, borderRadius: 999, opacity: 0.18 },
