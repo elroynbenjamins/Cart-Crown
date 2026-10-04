@@ -294,14 +294,14 @@ function testExcellentPlacementQuality() {
     nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_n'),
     'A plot that can activate multiple real districts must remain discoverable in overview mode.'
   );
-  check(text(tree).includes('EXCELLENT · 2'), 'Two real district activations must rate as Excellent in overview mode.');
+  const excellentOverview = nodes(tree, 'View').find(node => node.props.testID === 'district-opportunity-plot_n');
+  check(excellentOverview?.props.accessibilityLabel === 'Excellent placement, 2 districts', 'Two real district activations must rate as Excellent in overview mode.');
 
   choosePlot(tree, 'plot_n');
   tree = f.h.render();
-  check(
-    nodes(tree, 'View').some(node => node.props.testID === 'placement-quality-plot_n'),
-    'Excellent placement quality must carry into focused plot preview.'
-  );
+  const excellentFocused = nodes(tree, 'View').find(node => node.props.testID === 'placement-quality-plot_n');
+  check(Boolean(excellentFocused), 'Excellent placement quality must carry into focused plot preview.');
+  check(excellentFocused?.props.accessibilityLabel === 'Excellent placement, 2 districts', 'Focused quality metadata must expose the exact real district count.');
   check(
     nodes(tree, 'SemanticChip').some(node => node.props.label === 'Excellent · 2 districts'),
     'Focused placement quality must expose the exact real district count.'
