@@ -33,9 +33,21 @@ campaignMissionRoadmap.forEach((mission, index) => {
     mission.expectedActiveSquads <= 6,
     mission.name + ' exceeds the permanent six-squad campaign cap'
   );
+  const expectedSquadsAtMission =
+    mission.globalOrder <= 7
+      ? 2
+      : mission.globalOrder <= 16
+        ? 3
+        : mission.globalOrder <= 27
+          ? 4
+          : mission.globalOrder <= 38
+            ? 5
+            : 6;
   assert(
-    mission.expectedActiveSquads === expectedActiveSquadsByChapter[mission.chapter],
-    mission.name + ' does not match Chapter ' + mission.chapter + ' squad cadence'
+    mission.expectedActiveSquads === expectedSquadsAtMission,
+    mission.name +
+      ' does not match the staged squad cadence at mission ' +
+      mission.globalOrder
   );
   missionNames.add(mission.name);
   missionIds.add(mission.id);
@@ -60,6 +72,11 @@ expectedCounts.forEach((count, zeroBasedChapter) => {
       'Chapter ' + chapter + ' mission order is not contiguous at ' + mission.name
     );
   });
+
+  assert(
+    missions[missions.length - 1]?.expectedActiveSquads === expectedActiveSquadsByChapter[chapter],
+    'Chapter ' + chapter + ' must end at its declared squad cap'
+  );
 });
 
 const unlockMission = (unlock: string) =>
