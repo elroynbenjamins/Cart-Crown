@@ -3,24 +3,11 @@ import type {
   RecruitOption,
   ResourceSiteDefinition
 } from './types';
+import { getEarlyCampaignNodes } from './earlyCampaign';
 
-export const elfChapterTwoNodes: ChapterNode[] = [
-  { id: 'elf2_node_1', name: 'Sanctuary Muster', type: 'event', completed: false, current: true },
-  { id: 'elf2_node_2', name: 'The Last Heartgrove', type: 'battle', completed: false },
-  { id: 'elf2_node_3', name: 'Moonwell Grove', type: 'event', completed: false },
-  { id: 'elf2_node_4', name: 'Ward Hunters', type: 'elite', completed: false },
-  { id: 'elf2_node_5', name: 'Root Council', type: 'event', completed: false },
-  { id: 'elf2_node_6', name: 'Ashroot Stalker', type: 'boss', completed: false }
-];
+export const elfChapterTwoNodes: ChapterNode[] = getEarlyCampaignNodes('elf', 2);
 
-export const orcChapterTwoNodes: ChapterNode[] = [
-  { id: 'orc2_node_1', name: 'Clan Muster', type: 'event', completed: false, current: true },
-  { id: 'orc2_node_2', name: 'Gather the Clans', type: 'battle', completed: false },
-  { id: 'orc2_node_3', name: 'Warg Pens', type: 'event', completed: false },
-  { id: 'orc2_node_4', name: 'Stonejaw Challengers', type: 'elite', completed: false },
-  { id: 'orc2_node_5', name: 'Warfire Council', type: 'event', completed: false },
-  { id: 'orc2_node_6', name: 'Clanbreaker', type: 'boss', completed: false }
-];
+export const orcChapterTwoNodes: ChapterNode[] = getEarlyCampaignNodes('orc', 2);
 
 export const elfChapterThreeNodes: ChapterNode[] = [
   { id: 'elf3_node_1', name: 'Moonlit Pass Muster', type: 'event', completed: false, current: true },
