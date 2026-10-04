@@ -187,6 +187,20 @@ function testRecipesAndInteractions() {
     check(f.calls.length === 0, 'Initial rendering cannot call construction or relocation.');
     check(nodes(tree, 'Pressable').filter(node => node.props.testID?.startsWith('settlement-')).length === 9, 'Settlement must keep all nine authored plot positions.');
     check(nodes(tree, 'SettlementTerrainBackdrop')[0]?.props.stageId === 'fort', 'Settlement scenery must receive the live kingdom stage.');
+    const expectedFactionAccent = faction === 'elf' ? themes.original.colors.elf : faction === 'orc' ? themes.original.colors.orc : themes.original.colors.human;
+    check(nodes(tree, 'View').some(node => {
+      const value = style(node.props.style);
+      return value.borderTopWidth === 2 && value.borderColor === expectedFactionAccent;
+    }), 'Fort fortification must use the active faction accent and light perimeter weight.');
+    f.game.currentWagonStage = { id: 'capital' };
+    tree = f.h.render();
+    check(nodes(tree, 'SettlementTerrainBackdrop')[0]?.props.stageId === 'capital', 'Settlement scenery must react immediately to stage growth.');
+    check(nodes(tree, 'View').some(node => {
+      const value = style(node.props.style);
+      return value.borderTopWidth === 4 && value.borderColor === expectedFactionAccent;
+    }), 'Capital fortification must render heavier than Fort.');
+    f.game.currentWagonStage = { id: 'fort' };
+    tree = f.h.render();
     check(nodes(tree, 'BuildingSprite').some(node => Number(node.props.size) >= 50), 'Built structures must read as primary map objects rather than tiny card icons.');
     check(nodes(tree, 'ResourceSprite').length === 5, 'Portrait settlement HUD must expose the five core resources at first glance.');
     check(nodes(tree, 'BuildingSprite').some(node => Number(node.props.size) >= 78), 'The central settlement landmark must read larger than secondary buildings in portrait mode.');

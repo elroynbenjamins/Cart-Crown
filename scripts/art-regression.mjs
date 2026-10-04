@@ -278,6 +278,27 @@ for (const faction of ['human', 'elf', 'orc']) {
 if (!gameArt.includes('settlementSupportAtlasCells[kind]')) {
   failures.push('Settlement support renderer must route faction building visual kinds through the atlas.');
 }
+if (!gameArt.includes('function SettlementGrowthLayer')) {
+  failures.push('Settlement stage growth layer is missing.');
+}
+if (!gameArt.includes('const settlementGrowthTint')) {
+  failures.push('Settlement stage growth must preserve faction-specific visual tinting.');
+}
+for (const rank of [1, 2, 3, 4, 5, 6]) {
+  if (!gameArt.includes('rank >= ' + rank)) {
+    failures.push('Settlement stage growth threshold missing for rank ' + rank + '.');
+  }
+}
+for (const token of [
+  'settlementWorldHumanCells.road_straight',
+  'settlementNatureHumanCells.stone_wall',
+  'settlementPeopleHumanCells.merchant',
+  'settlementSceneHumanV2Cells.market',
+  'settlementSceneHumanV2Cells.dock',
+  'settlementSceneHumanV2Cells.gate'
+]) {
+  if (!gameArt.includes(token)) failures.push('Settlement growth visual layer missing: ' + token + '.');
+}
 if (failures.length) {
   console.error('\nART REGRESSION FAILED');
   failures.forEach(failure => console.error('- ' + failure));

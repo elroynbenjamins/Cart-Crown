@@ -98,6 +98,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         : currentWagonStage.id === 'fort' ? 'GREENKEEP FORT'
         : currentWagonStage.id === 'settlement' ? 'GREENKEEP SETTLEMENT' : 'REFUGEE CAMP';
   const mapHeight = Math.max(520, Math.ceil(370 * Math.max(1, Number.isFinite(fontScale) ? fontScale : 1)));
+  const fortificationWeight =
+    currentWagonStage.id === 'grand' ? 5
+      : currentWagonStage.id === 'capital' ? 4
+        : currentWagonStage.id === 'stronghold' ? 3.5
+          : currentWagonStage.id === 'town' ? 3
+            : 2;
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -271,9 +277,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         })}
         {['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
           <>
-            <View pointerEvents="none" style={[styles.wallTop, { borderColor: theme.colors.gold }]} />
-            <View pointerEvents="none" style={[styles.wallBottom, { borderColor: theme.colors.gold }]} />
-            <Text pointerEvents="none" style={[styles.gateLabel, { color: theme.colors.textMuted }]}>
+            <View pointerEvents="none" style={[styles.wallTop, { borderColor: factionAccent, borderTopWidth: fortificationWeight }]} />
+            <View pointerEvents="none" style={[styles.wallBottom, { borderColor: factionAccent, borderBottomWidth: fortificationWeight }]} />
+            <Text pointerEvents="none" style={[styles.gateLabel, { color: factionAccent }]}>
               {currentWagonStage.id === 'grand' ? 'GRAND GATE' : currentWagonStage.id === 'capital' ? 'CAPITAL GATE' : currentWagonStage.id === 'stronghold' ? 'STRONGHOLD GATE' : currentWagonStage.id === 'town' ? 'TOWN GATE' : 'FORT GATE'}
             </Text>
           </>
