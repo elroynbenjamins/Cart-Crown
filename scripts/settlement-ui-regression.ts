@@ -226,6 +226,9 @@ function testRecipesAndInteractions() {
     choosePlot(tree, 'plot_se'); check(f.calls.length === 0, 'Locked plots must not trigger a transaction.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
     check(plot(tree, 'plot_nw').props.accessibilityState.selected, 'Plot selection must be exposed to assistive technology.');
+    check(nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'District preview must connect the selected plot to its compatible neighbor before construction.');
+    check(nodes(tree, 'View').some(node => node.props.testID === 'district-preview-partner-plot_w'), 'District preview must identify the exact neighboring partner plot.');
+    check(text(tree).includes(district.name), 'District preview must name the synergy being previewed.');
     check(style(plot(tree, 'plot_nw').props.style).borderColor === themes.original.colors.gold, 'Selection must remain gold rather than use a role/benefit color.');
     check(JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels, placements: f.game.buildingPlacements }) === start, 'Selecting and previewing a plot must not change levels, placements or costs.');
     const cost = nodes(tree, 'BuildingCosts').find(node => node.props.cost === forge.constructionCost);
@@ -238,6 +241,7 @@ function testRecipesAndInteractions() {
     check(state() === 'active', 'The real adjacency analysis must activate the built district.');
     tree = f.h.render();
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Active adjacent districts must draw an in-world connection.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'Committed construction must clear the temporary district preview.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
     check(nodes(tree, 'BuildingLevelPreview')[0]?.props.building.id === forge.id, 'Selected structure must expose its own upgrade preview.');
     const beforeMove = JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels });
