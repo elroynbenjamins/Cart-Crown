@@ -3,6 +3,10 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { factionOrder, factions } from '../game/factions';
 import { useGame } from '../game/GameProvider';
 import type { FactionId, SideModeId } from '../game/types';
+import {
+  earlyCommanderRequiredNodeId,
+  getEarlyCampaignMission
+} from '../game/earlyCampaign';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -24,6 +28,8 @@ import {
 import type { TutorialFocusTarget } from '../game/tutorial';
 
 export function FactionOpeningCampaignScreen({
+  onStartEarlyCampaignBattle,
+  onCompleteEarlyCampaignEvent,
   onStartOpeningBattle,
   onOpenInvestigation,
   onStartEliteBattle,
@@ -69,6 +75,8 @@ export function FactionOpeningCampaignScreen({
   tutorialFocus,
   onTutorialFocusComplete
 }: {
+  onStartEarlyCampaignBattle: (nodeId: string) => void;
+  onCompleteEarlyCampaignEvent: (nodeId: string) => void;
   onStartOpeningBattle: () => void;
   onOpenInvestigation: () => void;
   onStartEliteBattle: () => void;
@@ -137,7 +145,8 @@ export function FactionOpeningCampaignScreen({
     warTableCompletedContractIds,
     kingdomTrialCompletions,
     kingdomDefenseCompleted,
-    kingdomDefenseRuns
+    kingdomDefenseRuns,
+    commanderPathId
   } = useGame();
 
   const availableSideModes = sideModeDefinitions.filter(
@@ -517,6 +526,17 @@ export function FactionOpeningCampaignScreen({
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
+          const earlyMission = getEarlyCampaignMission(node.id);
+          const earlyBlocked =
+            Boolean(earlyMission) &&
+            node.id === earlyCommanderRequiredNodeId &&
+            !commanderPathId;
+          const earlyPlayable = Boolean(
+            earlyMission &&
+            node.current &&
+            !earlyBlocked
+          );
+
           const musterPlayable =
             (chapterTwo || chapterThree || chapterFour || chapterFive || chapterSix) &&
             node.current &&
@@ -532,6 +552,7 @@ export function FactionOpeningCampaignScreen({
           const bossPlayable =
             node.current && node.id === ids.boss;
           const playable =
+            earlyPlayable ||
             musterPlayable ||
             battlePlayable ||
             eventAPlayable ||
@@ -540,7 +561,11 @@ export function FactionOpeningCampaignScreen({
             bossPlayable;
           const status = node.completed
             ? 'DONE'
-            : bossPlayable
+            : earlyMission
+              ? earlyBlocked
+                ? 'CHOOSE COMMANDER'
+                : earlyMission.actionLabel
+              : bossPlayable
               ? 'BOSS'
               : elitePlayable
                 ? 'ELITE'
@@ -582,8 +607,16 @@ export function FactionOpeningCampaignScreen({
                           ? 'NEXT'
                           : 'LOCKED';
 
-          const action = musterPlayable
-            ? chapterSix
+          const action = earlyPlayable && earlyMission
+            ? () => {
+                if (earlyMission.mode === 'battle') {
+                  onStartEarlyCampaignBattle(node.id);
+                } else {
+                  onCompleteEarlyCampaignEvent(node.id);
+                }
+              }
+            : musterPlayable
+              ? chapterSix
               ? onOpenFactionMandate
               : chapterFive
                 ? onOpenChapterFiveMuster
