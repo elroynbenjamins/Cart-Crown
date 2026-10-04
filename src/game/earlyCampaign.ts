@@ -348,3 +348,17 @@ export function getNextEarlyCampaignNodeId(nodeId: string) {
 export function isEarlyCampaignNodeId(nodeId: string) {
   return nodeId.startsWith('early_ch1_') || nodeId.startsWith('early_ch2_');
 }
+
+
+export function getCampaignSquadCap(
+  chapterNumber: number,
+  stageFormationSlots: number
+) {
+  return Math.max(
+    2,
+    Math.min(
+      Math.max(2, stageFormationSlots),
+      Math.min(6, Math.max(2, chapterNumber + 1))
+    )
+  );
+}
