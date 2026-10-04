@@ -145,9 +145,7 @@ const settlementWorldDetailAtlases = [
   ['world', 'assets/game/ui/settlement_world_human_atlas.png'],
   ['people', 'assets/game/ui/settlement_people_human_atlas.png'],
   ['nature', 'assets/game/ui/settlement_nature_human_atlas.png'],
-  ['scene_v2_human', 'assets/game/ui/settlement_scene_human_v2_atlas.png'],
-  ['scene_v2_elf', 'assets/game/ui/settlement_scene_elf_v2_atlas.png'],
-  ['scene_v2_orc', 'assets/game/ui/settlement_scene_orc_v2_atlas.png']
+  ['scene_v2', 'assets/game/ui/settlement_scene_human_v2_atlas.png']
 ];
 for (const [label, relativePath] of settlementWorldDetailAtlases) {
   const atlasPath = path.join(root, relativePath);
@@ -178,9 +176,7 @@ for (const [assetId, relativePath] of [
   ['ui.settlement_world_human_atlas', 'assets/game/ui/settlement_world_human_atlas.png'],
   ['ui.settlement_people_human_atlas', 'assets/game/ui/settlement_people_human_atlas.png'],
   ['ui.settlement_nature_human_atlas', 'assets/game/ui/settlement_nature_human_atlas.png'],
-  ['ui.settlement_scene_human_v2_atlas', 'assets/game/ui/settlement_scene_human_v2_atlas.png'],
-  ['ui.settlement_scene_elf_v2_atlas', 'assets/game/ui/settlement_scene_elf_v2_atlas.png'],
-  ['ui.settlement_scene_orc_v2_atlas', 'assets/game/ui/settlement_scene_orc_v2_atlas.png']
+  ['ui.settlement_scene_human_v2_atlas', 'assets/game/ui/settlement_scene_human_v2_atlas.png']
 ]) {
   const expected = "'" + assetId + "': require('../../" + relativePath + "')";
   if (!registry.includes(expected)) failures.push('Settlement world-detail atlas is not registered: ' + assetId + '.');
@@ -245,12 +241,17 @@ if (!gameArt.includes('SettlementDetailAtlasSprite assetId="ui.settlement_nature
   failures.push('Human settlement backdrop must render nature details from the production atlas.');
 }
 for (const faction of ['human', 'elf', 'orc']) {
-  if (!gameArt.includes(faction + ": 'ui.settlement_scene_" + faction + "_v2_atlas'")) {
-    failures.push('Settlement scene atlas routing missing for ' + faction + '.');
+  if (!gameArt.includes(faction + ": 'ui.settlement_scene_human_v2_atlas'")) {
+    failures.push('Settlement shared scene atlas routing missing for ' + faction + '.');
   }
 }
-if (!gameArt.includes('assetId={sceneAssetId}')) {
-  failures.push('Settlement backdrop must route scene-detail art through the active faction atlas.');
+for (const faction of ['elf', 'orc']) {
+  if (!gameArt.includes(faction + ": '#")) {
+    failures.push('Settlement scene tint missing for ' + faction + '.');
+  }
+}
+if (!gameArt.includes('assetId={sceneAssetId}') || !gameArt.includes('tintColor={sceneTint}')) {
+  failures.push('Settlement backdrop must route and tint shared scene-detail art by faction.');
 }
 if (!gameArt.includes('export function SettlementBuildPlotSprite')) {
   failures.push('Settlement build plots must use the scene-detail production atlas when available.');
