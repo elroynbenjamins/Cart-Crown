@@ -1177,8 +1177,10 @@ export function shouldRequestChapterOneReview({
   return (
     activeFaction === 'human' &&
     activeView === 'kingdom' &&
-    lastBattleResultId ===
-      'toll_captain_result' &&
+    [
+      'toll_captain_result',
+      'early_reclaim_outpost_result'
+    ].includes(lastBattleResultId ?? '') &&
     !reviewPromptShown &&
     !tutorialActive
   );
