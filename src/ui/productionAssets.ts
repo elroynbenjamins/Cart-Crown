@@ -274,6 +274,8 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'ui.settlement_people_human_atlas': require('../../assets/game/ui/settlement_people_human_atlas.png'),
   'ui.settlement_nature_human_atlas': require('../../assets/game/ui/settlement_nature_human_atlas.png'),
   'ui.settlement_scene_human_v2_atlas': require('../../assets/game/ui/settlement_scene_human_v2_atlas.png'),
+  'ui.settlement_scene_elf_v2_atlas': require('../../assets/game/ui/settlement_scene_elf_v2_atlas.png'),
+  'ui.settlement_scene_orc_v2_atlas': require('../../assets/game/ui/settlement_scene_orc_v2_atlas.png'),
   'ui.settlement_support_human_atlas': require('../../assets/game/ui/settlement_support_human_atlas.png'),
   'ui.settlement_support_elf_atlas': require('../../assets/game/ui/settlement_support_elf_atlas.png'),
   'ui.settlement_support_orc_atlas': require('../../assets/game/ui/settlement_support_orc_atlas.png'),
