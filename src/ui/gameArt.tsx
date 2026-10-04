@@ -2868,7 +2868,7 @@ function SettlementGrowthLayer({
         </>
       ) : null}
 
-      {worldSource && rank >= 4 ? (
+      {natureSource && rank >= 4 ? (
         <>
           <View style={{ position: 'absolute', left: '1%', top: '1%' }}>
             <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.stone_wall} size={72} opacity={0.8} tintColor={tintColor} />
