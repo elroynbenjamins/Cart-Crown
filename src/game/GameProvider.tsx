@@ -98,6 +98,12 @@ import {
 } from './encounters';
 import type { EncounterId } from './encounters';
 import {
+  getCampaignSquadCap,
+  getEarlyCampaignMission,
+  getEarlyCampaignMissionByEncounter,
+  getNextEarlyCampaignNodeId
+} from './earlyCampaign';
+import {
   getCommanderPath,
   getCommanderPaths
 } from './commanders';
@@ -1490,7 +1496,10 @@ export function GameProvider({
   );
 
   const formationBonuses = formationAnalysis.bonuses;
-  const activeSquadCap = currentWagonStage.formationSlots;
+  const activeSquadCap = getCampaignSquadCap(
+    chapterNumber,
+    currentWagonStage.formationSlots
+  );
   const activeDeploymentCapacity = useMemo(
     () =>
       getArmyDeploymentCapacity(
