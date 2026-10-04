@@ -9,7 +9,7 @@ import { canPayBuildingCost } from '../game/kingdom';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
-import { BuildingSprite, LockIcon, PlotTerrainSprite, ResourceSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
+import { BuildingSprite, LockIcon, ResourceSprite, SettlementBuildPlotSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
 import { SemanticChip, SemanticText } from '../ui/SemanticUI';
 import { semanticColor } from '../ui/semanticColors';
 import { BuildingCosts, BuildingHeading, BuildingLevelPreview, DistrictEffects } from '../ui/SettlementUI';
@@ -211,8 +211,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   styles.plotSurface,
                   {
-                    backgroundColor: building ? theme.colors.surface1 : unlocked ? theme.colors.appBg : theme.colors.surface3,
-                    opacity: building ? 0.36 : unlocked ? 0.5 : 0.78
+                    backgroundColor: building ? theme.colors.surface1 : unlocked && activeFaction === 'human' ? 'transparent' : unlocked ? theme.colors.appBg : theme.colors.surface3,
+                    opacity: building ? 0.36 : unlocked && activeFaction === 'human' ? 0.08 : unlocked ? 0.5 : 0.78
                   }
                 ]}
               />
@@ -236,9 +236,20 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 </>
               ) : unlocked ? (
                 <>
-                  <Text style={[styles.emptyPlus, { color: selected || selectedBuildingId ? theme.colors.gold : semanticColor(theme, 'neutral') }]}>+</Text>
-                  <SemanticText tone="neutral" style={styles.emptyText}>{selectedBuildingId ? 'Move here' : 'Empty'}</SemanticText>
-                  <View style={styles.terrain}><PlotTerrainSprite terrain={plot.terrain} color={theme.colors.textMuted} size={24} /></View>
+                  <View pointerEvents="none" style={styles.buildPlotArt}>
+                    <SettlementBuildPlotSprite
+                      terrain={plot.terrain}
+                      faction={activeFaction}
+                      selected={plotSelected}
+                      moveTarget={Boolean(selectedBuildingId)}
+                      size={84}
+                      color={theme.colors.textMuted}
+                    />
+                  </View>
+                  <View pointerEvents="none" style={[styles.emptyBadge, { backgroundColor: theme.colors.surface1 }]}>
+                    <Text style={[styles.emptyPlusCompact, { color: selected || selectedBuildingId ? theme.colors.gold : semanticColor(theme, 'neutral') }]}>+</Text>
+                    <SemanticText tone="neutral" style={styles.emptyText}>{selectedBuildingId ? 'Move' : 'Build'}</SemanticText>
+                  </View>
                 </>
               ) : (
                 <>
@@ -407,7 +418,10 @@ const styles = StyleSheet.create({
   levelPill: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1, marginTop: 2 },
   plotLevel: { fontSize: 8.5, lineHeight: 11 },
   emptyPlus: { fontSize: 27, fontWeight: '600' },
-  emptyText: { fontSize: 11, lineHeight: 15, fontWeight: '800' },
+  buildPlotArt: { position: 'absolute', left: '50%', top: '50%', marginLeft: -42, marginTop: -42, width: 84, height: 84, alignItems: 'center', justifyContent: 'center' },
+  emptyBadge: { position: 'absolute', bottom: 5, alignSelf: 'center', borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 3, opacity: 0.9 },
+  emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
+  emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
   lockText: { fontSize: 10, lineHeight: 14, fontWeight: '800', textTransform: 'uppercase', marginTop: 3 },
   wallTop: { position: 'absolute', left: '3%', right: '3%', top: 3, borderTopWidth: 2, opacity: 0.75 },
