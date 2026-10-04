@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import {
@@ -60,6 +60,23 @@ const settlementResourceLabels: Record<(typeof settlementResourceOrder)[number],
   provisions: 'Food'
 };
 
+type SettlementUnlockSnapshot = {
+  stageId: string;
+  unlockedPlotIds: string[];
+  availableBuildingIds: string[];
+  upgradeMaterialReadyIds: string[];
+};
+
+type SettlementUnlockCelebration = {
+  kind: 'stage' | 'building' | 'plot' | 'upgrade';
+  label: string;
+  detail: string;
+  plotId?: string;
+  buildingId?: string;
+};
+
+const settlementUnlockSnapshots = new Map<string, SettlementUnlockSnapshot>();
+
 export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplete }: {
   onExit: () => void;
   tutorialFocus?: TutorialFocusTarget | null;
@@ -75,6 +92,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [unlockCelebration, setUnlockCelebration] = useState<SettlementUnlockCelebration | null>(null);
   const settlementPlots = getSettlementPlots(activeFaction);
   const adjacencyRecipes = getSettlementAdjacencyBonuses(activeFaction);
   const factionAccent = activeFaction === 'elf' ? theme.colors.elf : activeFaction === 'orc' ? theme.colors.orc : theme.colors.human;
@@ -132,6 +150,78 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         : currentWagonStage.id === 'town' ? 'GREENKEEP TOWN'
         : currentWagonStage.id === 'fort' ? 'GREENKEEP FORT'
         : currentWagonStage.id === 'settlement' ? 'GREENKEEP SETTLEMENT' : 'REFUGEE CAMP';
+  const unlockedPlotIds = settlementPlots
+    .filter(plot => isSettlementPlotUnlocked(plot, currentWagonStage.id))
+    .map(plot => plot.id)
+    .sort();
+  const availableBuildingIds = availableBuildings.map(building => building.id).sort();
+  const upgradeReadyIds = [...upgradeMaterialReadyIds].sort();
+
+  useEffect(() => {
+    const currentSnapshot: SettlementUnlockSnapshot = {
+      stageId: currentWagonStage.id,
+      unlockedPlotIds,
+      availableBuildingIds,
+      upgradeMaterialReadyIds: upgradeReadyIds
+    };
+    const previous = settlementUnlockSnapshots.get(activeFaction);
+    settlementUnlockSnapshots.set(activeFaction, currentSnapshot);
+
+    if (!previous) return;
+
+    const newBuildingId = availableBuildingIds.find(id => !previous.availableBuildingIds.includes(id));
+    const newPlotId = unlockedPlotIds.find(id => !previous.unlockedPlotIds.includes(id));
+    const newUpgradeId = upgradeReadyIds.find(id => !previous.upgradeMaterialReadyIds.includes(id));
+
+    let next: SettlementUnlockCelebration | null = null;
+    if (previous.stageId !== currentSnapshot.stageId) {
+      next = {
+        kind: 'stage',
+        label: 'KINGDOM EXPANDED',
+        detail: stageLabel,
+        plotId: 'plot_center'
+      };
+    } else if (newBuildingId) {
+      const building = buildings.find(candidate => candidate.id === newBuildingId);
+      next = {
+        kind: 'building',
+        label: 'NEW BLUEPRINT',
+        detail: (building?.name ?? 'Building') + ' unlocked',
+        plotId: nextSuggestedPlot?.id,
+        buildingId: newBuildingId
+      };
+    } else if (newPlotId) {
+      next = {
+        kind: 'plot',
+        label: 'NEW LAND',
+        detail: 'A new settlement plot is available',
+        plotId: newPlotId
+      };
+    } else if (newUpgradeId) {
+      const building = buildings.find(candidate => candidate.id === newUpgradeId);
+      const plotId = Object.entries(buildingPlacements).find(([, id]) => id === newUpgradeId)?.[0];
+      next = {
+        kind: 'upgrade',
+        label: 'UPGRADE MATERIALS READY',
+        detail: (building?.name ?? 'Building') + ' can be reviewed',
+        plotId,
+        buildingId: newUpgradeId
+      };
+    }
+
+    if (!next) return;
+
+    setUnlockCelebration(next);
+    const timer = setTimeout(() => setUnlockCelebration(null), 2600);
+    return () => clearTimeout(timer);
+  }, [
+    activeFaction,
+    currentWagonStage.id,
+    stageLabel,
+    unlockedPlotIds.join('|'),
+    availableBuildingIds.join('|'),
+    upgradeReadyIds.join('|')
+  ]);
   const safeFontScale = Number.isFinite(fontScale) ? fontScale : 1;
   const safeViewportHeight = Number.isFinite(viewportHeight) ? viewportHeight : 800;
   const mapHeight = Math.max(
@@ -220,6 +310,16 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         <View pointerEvents="none" style={styles.backdrop}>
           <SettlementTerrainBackdrop faction={activeFaction} stageId={currentWagonStage.id} />
         </View>
+        {unlockCelebration ? (
+          <View
+            pointerEvents="none"
+            testID="settlement-unlock-celebration"
+            style={[styles.unlockCelebration, { backgroundColor: theme.colors.surface1, borderColor: factionAccent }]}
+          >
+            <Text style={[styles.unlockCelebrationLabel, { color: factionAccent }]}>{unlockCelebration.label}</Text>
+            <Text style={[styles.unlockCelebrationDetail, { color: theme.colors.text }]} numberOfLines={1}>{unlockCelebration.detail}</Text>
+          </View>
+        ) : null}
         <View pointerEvents="none" style={styles.districtLayer}>
           {districtConnections.map(connection => (
             <React.Fragment key={connection.id}>
@@ -253,13 +353,16 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const roleColor = semanticColor(theme, roleTone);
           const selected = plotSelected || buildingSelected;
           const landmark = plot.id === 'plot_center';
+          const celebrationFocused =
+            unlockCelebration?.plotId === plot.id ||
+            (Boolean(unlockCelebration?.buildingId) && building?.id === unlockCelebration?.buildingId);
           const buildReady = unlocked && !building && !selectedBuildingId && constructionReadyCount > 0;
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
           const buildingSize = landmark ? 88 : Math.round(62 * depthScale);
           const ambienceSize = landmark ? 110 : Math.round(82 * depthScale);
-          const plotZIndex = tutorialPlotFocused || selected ? 30 : landmark ? 16 : 5 + plot.row * 5;
+          const plotZIndex = tutorialPlotFocused || selected ? 30 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
           const visualPosition = settlementPlotPositions[plot.id] ?? {
             left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
@@ -278,6 +381,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               disabled={!unlocked}
               onPress={() => {
                 setMessage(null);
+                setUnlockCelebration(null);
                 if (building) {
                   setSelectedBuildingId(buildingSelected ? null : building.id);
                   setSelectedPlotId(null);
@@ -329,6 +433,13 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 <View pointerEvents="none" style={[styles.plotGuideBadge, { backgroundColor: theme.colors.gold }]}>
                   <Text style={styles.plotGuideText}>{tutorialFocus?.kind === 'settlement-building' ? 'TAP EMPTY PLOT' : tutorialFocus?.label}</Text>
                 </View>
+              ) : null}
+              {celebrationFocused ? (
+                <View
+                  pointerEvents="none"
+                  testID={'settlement-new-focus-' + plot.id}
+                  style={[styles.unlockFocusRing, landmark ? styles.landmarkUnlockFocusRing : undefined, { borderColor: factionAccent }]}
+                />
               ) : null}
               {building ? (
                 <>
@@ -581,6 +692,10 @@ const styles = StyleSheet.create({
   section: { gap: 8, marginTop: 10 },
   map: { borderRadius: 26, borderWidth: 1, overflow: 'hidden', position: 'relative' },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
+  unlockCelebration: { position: 'absolute', top: 10, left: '20%', right: '20%', zIndex: 50, borderWidth: 1, borderRadius: 12, paddingHorizontal: 9, paddingVertical: 6, alignItems: 'center', opacity: 0.96 },
+  unlockCelebrationLabel: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.9 },
+  unlockCelebrationDetail: { fontSize: 11, lineHeight: 14, fontWeight: '900', marginTop: 1, maxWidth: '100%' },
+
   districtLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 3 },
   districtLinkGlow: { position: 'absolute', height: 7, borderRadius: 999 },
   districtLink: { position: 'absolute', height: 2.5, borderRadius: 999 },
@@ -588,6 +703,9 @@ const styles = StyleSheet.create({
   landmarkPlot: { width: '32%', height: '27%' },
   plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 13 },
   selectionHalo: { position: 'absolute', left: '50%', bottom: '24%', marginLeft: -35, width: 70, height: 24, borderRadius: 999, borderWidth: 2 },
+  unlockFocusRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -32, width: 76, height: 64, borderRadius: 18, borderWidth: 2, opacity: 0.72 },
+  landmarkUnlockFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
+
   landmarkSelectionHalo: { marginLeft: -44, width: 88, height: 30, bottom: '22%' },
   buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -41, marginTop: -41, width: 82, height: 82, alignItems: 'center', justifyContent: 'center' },
   landmarkAmbience: { marginLeft: -55, marginTop: -59, width: 110, height: 110, transform: [{ translateY: -3 }] },

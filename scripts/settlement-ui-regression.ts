@@ -53,6 +53,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
   } });
   const react: any = {
     __esModule: true, createElement: jsx,
+    useEffect: () => undefined,
     useMemo: (fn: () => unknown) => fn(),
     useState: (initial: any) => {
       const index = cursor++;
@@ -292,6 +293,12 @@ function testTutorialAndCosts() {
   const max = harness('src/ui/SettlementUI.tsx', 'BuildingLevelPreview', {}, { building: humanForge, level: humanForge.maxLevel, wallet }).render();
   check(nodes(max, 'SemanticChip').some(node => node.props.label === 'Maximum level'), 'Maximum level must be distinguished from missing upgrade metadata.');
 }
+
+const settlementScreenSource = readFileSync(resolve('src/screens/SettlementScreen.tsx'), 'utf8');
+check(settlementScreenSource.includes('settlementUnlockSnapshots'), 'Settlement unlock celebration must compare against an in-session baseline.');
+check(settlementScreenSource.includes('settlement-unlock-celebration'), 'Settlement unlock celebration must stay in-world instead of using a modal.');
+check(settlementScreenSource.includes('setTimeout(() => setUnlockCelebration(null), 2600)'), 'Settlement unlock celebration must auto-clear quickly.');
+check(settlementScreenSource.includes('UPGRADE MATERIALS READY'), 'Settlement upgrade celebration wording must remain resource-accurate.');
 
 testEffects();
 testRecipesAndInteractions();
