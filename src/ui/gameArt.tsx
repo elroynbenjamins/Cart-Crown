@@ -2539,6 +2539,18 @@ const settlementNatureHumanCells = {
   stone_wall: { x: 172, y: 172 }
 } as const;
 
+const settlementSceneHumanV2Cells = {
+  dock: { x: 0, y: 0 },
+  sailboat: { x: 86, y: 0 },
+  waterfall: { x: 172, y: 0 },
+  build_dirt: { x: 0, y: 86 },
+  build_banner: { x: 86, y: 86 },
+  market: { x: 172, y: 86 },
+  wagon: { x: 0, y: 172 },
+  fountain: { x: 86, y: 172 },
+  gate: { x: 172, y: 172 }
+} as const;
+
 function SettlementDetailAtlasSprite({
   assetId,
   cell,
@@ -2569,6 +2581,42 @@ function SettlementDetailAtlasSprite({
       />
     </View>
   );
+}
+
+export function SettlementBuildPlotSprite({
+  terrain,
+  faction = 'human',
+  selected = false,
+  moveTarget = false,
+  size = 76,
+  color = palette.stoneLight
+}: {
+  terrain: 'grass' | 'high_ground' | 'roadside' | 'square';
+  faction?: FactionId;
+  selected?: boolean;
+  moveTarget?: boolean;
+  size?: number;
+  color?: string;
+}) {
+  const source = faction === 'human'
+    ? getProductionAssetSource('ui.settlement_scene_human_v2_atlas')
+    : null;
+
+  if (source) {
+    const cell = selected || moveTarget
+      ? settlementSceneHumanV2Cells.build_banner
+      : settlementSceneHumanV2Cells.build_dirt;
+    return (
+      <SettlementDetailAtlasSprite
+        assetId="ui.settlement_scene_human_v2_atlas"
+        cell={cell}
+        size={size}
+        opacity={selected || moveTarget ? 1 : terrain === 'square' ? 0.96 : 0.9}
+      />
+    );
+  }
+
+  return <PlotTerrainSprite terrain={terrain} color={color} size={Math.max(24, size * 0.38)} />;
 }
 
 export function SettlementTerrainBackdrop({
@@ -2622,6 +2670,56 @@ export function SettlementTerrainBackdrop({
       <View style={{ position: 'absolute', right: '3%', top: '7%', width: '30%', height: '23%', backgroundColor: clearing, opacity: 0.52 }} />
       <View style={{ position: 'absolute', left: '6%', bottom: '5%', width: '30%', height: '24%', backgroundColor: clearing, opacity: 0.47 }} />
       <View style={{ position: 'absolute', right: '5%', bottom: '5%', width: '31%', height: '25%', backgroundColor: clearing, opacity: 0.5 }} />
+
+      {faction === 'human' ? (
+        <>
+          <View
+            key="settlement-v2-waterfront"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: rank >= 2 ? '17%' : '13%',
+              backgroundColor: '#245F78',
+              opacity: 0.9
+            }}
+          />
+          <View style={{ position: 'absolute', left: '2%', bottom: '-1%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas" cell={settlementSceneHumanV2Cells.dock} size={74} opacity={0.98} />
+          </View>
+          {rank >= 2 ? (
+            <>
+              <View style={{ position: 'absolute', left: '25%', bottom: '-1%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas" cell={settlementSceneHumanV2Cells.sailboat} size={72} opacity={0.98} />
+              </View>
+              <View style={{ position: 'absolute', right: '1%', bottom: '0%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas" cell={settlementSceneHumanV2Cells.waterfall} size={70} opacity={0.95} />
+              </View>
+            </>
+          ) : null}
+          {rank >= 1 ? (
+            <>
+              <View style={{ position: 'absolute', right: '7%', top: '57%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas" cell={settlementSceneHumanV2Cells.market} size={62} opacity={0.96} />
+              </View>
+              <View style={{ position: 'absolute', left: '22%', top: '61%' }}>
+                <SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas" cell={settlementSceneHumanV2Cells.wagon} size={58} opacity={0.94} />
+              </View>
+            </>
+          ) : null}
+          {rank >= 2 ? (
+            <View style={{ position: 'absolute', left: '43%', top: '51%' }}>
+              <SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas" cell={settlementSceneHumanV2Cells.fountain} size={48} opacity={0.94} />
+            </View>
+          ) : null}
+          {rank >= 3 ? (
+            <View style={{ position: 'absolute', right: '24%', bottom: '13%' }}>
+              <SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas" cell={settlementSceneHumanV2Cells.gate} size={58} opacity={0.94} />
+            </View>
+          ) : null}
+        </>
+      ) : null}
 
       {faction === 'human' ? (
         <>
