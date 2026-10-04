@@ -216,54 +216,6 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     difficulty: 'Boss',
     pressureMultiplier: 1.05
   },
-  early_banner_still_flies: {
-    resources: { gold: 28, wood: 8, provisions: 3 },
-    storySummary: 'The first attackers break away. The survivors have proved that the remnant can still fight as a coordinated force.'
-  },
-  early_hold_crossing: {
-    resources: { gold: 34, wood: 8, iron: 2, provisions: 3 },
-    storySummary: 'The crossing holds. The army has enough breathing room to rebuild its first military works.'
-  },
-  early_spears_at_dawn: {
-    resources: { gold: 42, iron: 4, provisions: 3 },
-    storySummary: 'The riders lose their momentum against a prepared line. The army has learned that counters can matter more than a slightly larger Power number.'
-  },
-  early_cut_off_captain: {
-    resources: { gold: 58, wood: 6, iron: 4, provisions: 3 },
-    storySummary: 'The enemy captain is isolated and the line loses cohesion. The victory earns enough trust for a permanent Commander path to be chosen.'
-  },
-  early_broken_road: {
-    resources: { gold: 50, wood: 10, provisions: 5 },
-    storySummary: 'The mixed host abandons the road. From here onward the army will be expected to manage injuries and positioning without step-by-step guidance.'
-  },
-  early_reclaim_outpost: {
-    resources: { gold: 110, wood: 72, stone: 36, iron: 10, provisions: 8 },
-    storySummary: 'The outpost is reclaimed. The faction finally controls a defensible foothold and can begin a real settlement expansion.'
-  },
-  early_strength_in_numbers: {
-    resources: { gold: 48, wood: 8, provisions: 4 },
-    storySummary: 'The third squad proves its value. The army can now create a meaningful front and protected rear instead of fighting as two isolated groups.'
-  },
-  early_riders_on_road: {
-    resources: { gold: 58, iron: 5, provisions: 5 },
-    storySummary: 'The mounted pressure is stopped. Scouts record the charge pattern so future anti-cavalry deployments can be read before contact.'
-  },
-  early_no_army_fights_forever: {
-    resources: { gold: 62, wood: 8, provisions: 6 },
-    storySummary: 'The attrition force withdraws. The victory makes clear that winning a battle and leaving the army healthy are not the same thing.'
-  },
-  early_long_way_around: {
-    resources: { gold: 68, wood: 10, stone: 5, provisions: 4 },
-    storySummary: 'The outer-road hunters are caught before they can stay behind the line. Wider coverage and interception are now part of normal planning.'
-  },
-  early_iron_line: {
-    resources: { gold: 78, stone: 8, iron: 7, provisions: 4 },
-    storySummary: 'The Iron Line finally gives way. Its broad packed front becomes the first named enemy formation recorded by your scouts.'
-  },
-  early_break_their_hold: {
-    resources: { gold: 165, wood: 85, stone: 62, iron: 20, provisions: 10 },
-    storySummary: 'The holdfast collapses. The road into the next region opens, but future enemies will expect a prepared army rather than a collection of strong squads.'
-  },
   war_table_broken_spear: {
     id: 'war_table_broken_spear',
     name: 'Broken Spear Company',
@@ -1557,6 +1509,54 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   hold_the_road: {
     resources: { gold: 45, wood: 12, iron: 3, provisions: 4 },
     storySummary: 'The raider patrol breaks. Refugees can finally reach the ruins of Greenkeep.'
+  },
+  early_banner_still_flies: {
+    resources: { gold: 28, wood: 8, provisions: 3 },
+    storySummary: 'The first attackers break away. The survivors have proved that the remnant can still fight as a coordinated force.'
+  },
+  early_hold_crossing: {
+    resources: { gold: 34, wood: 8, iron: 2, provisions: 3 },
+    storySummary: 'The crossing holds. The army has enough breathing room to rebuild its first military works.'
+  },
+  early_spears_at_dawn: {
+    resources: { gold: 42, iron: 4, provisions: 3 },
+    storySummary: 'The riders lose their momentum against a prepared line. The army has learned that counters can matter more than a slightly larger Power number.'
+  },
+  early_cut_off_captain: {
+    resources: { gold: 58, wood: 6, iron: 4, provisions: 3 },
+    storySummary: 'The enemy captain is isolated and the line loses cohesion. The victory earns enough trust for a permanent Commander path to be chosen.'
+  },
+  early_broken_road: {
+    resources: { gold: 50, wood: 10, provisions: 5 },
+    storySummary: 'The mixed host abandons the road. From here onward the army will be expected to manage injuries and positioning without step-by-step guidance.'
+  },
+  early_reclaim_outpost: {
+    resources: { gold: 110, wood: 72, stone: 36, iron: 10, provisions: 8 },
+    storySummary: 'The outpost is reclaimed. The faction finally controls a defensible foothold and can begin a real settlement expansion.'
+  },
+  early_strength_in_numbers: {
+    resources: { gold: 48, wood: 8, provisions: 4 },
+    storySummary: 'The third squad proves its value. The army can now create a meaningful front and protected rear instead of fighting as two isolated groups.'
+  },
+  early_riders_on_road: {
+    resources: { gold: 58, iron: 5, provisions: 5 },
+    storySummary: 'The mounted pressure is stopped. Scouts record the charge pattern so future anti-cavalry deployments can be read before contact.'
+  },
+  early_no_army_fights_forever: {
+    resources: { gold: 62, wood: 8, provisions: 6 },
+    storySummary: 'The attrition force withdraws. The victory makes clear that winning a battle and leaving the army healthy are not the same thing.'
+  },
+  early_long_way_around: {
+    resources: { gold: 68, wood: 10, stone: 5, provisions: 4 },
+    storySummary: 'The outer-road hunters are caught before they can stay behind the line. Wider coverage and interception are now part of normal planning.'
+  },
+  early_iron_line: {
+    resources: { gold: 78, stone: 8, iron: 7, provisions: 4 },
+    storySummary: 'The Iron Line finally gives way. Its broad packed front becomes the first named enemy formation recorded by your scouts.'
+  },
+  early_break_their_hold: {
+    resources: { gold: 165, wood: 85, stone: 62, iron: 20, provisions: 10 },
+    storySummary: 'The holdfast collapses. The road into the next region opens, but future enemies will expect a prepared army rather than a collection of strong squads.'
   },
   war_table_broken_spear: {
     resources: { gold: 30, iron: 3, provisions: 2 },
