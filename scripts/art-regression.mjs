@@ -144,7 +144,8 @@ for (const [faction, relativePath, assetId] of settlementSupportAtlases) {
 const settlementWorldDetailAtlases = [
   ['world', 'assets/game/ui/settlement_world_human_atlas.png'],
   ['people', 'assets/game/ui/settlement_people_human_atlas.png'],
-  ['nature', 'assets/game/ui/settlement_nature_human_atlas.png']
+  ['nature', 'assets/game/ui/settlement_nature_human_atlas.png'],
+  ['scene_v2', 'assets/game/ui/settlement_scene_human_v2_atlas.png']
 ];
 for (const [label, relativePath] of settlementWorldDetailAtlases) {
   const atlasPath = path.join(root, relativePath);
@@ -174,7 +175,8 @@ for (const [label, relativePath] of settlementWorldDetailAtlases) {
 for (const [assetId, relativePath] of [
   ['ui.settlement_world_human_atlas', 'assets/game/ui/settlement_world_human_atlas.png'],
   ['ui.settlement_people_human_atlas', 'assets/game/ui/settlement_people_human_atlas.png'],
-  ['ui.settlement_nature_human_atlas', 'assets/game/ui/settlement_nature_human_atlas.png']
+  ['ui.settlement_nature_human_atlas', 'assets/game/ui/settlement_nature_human_atlas.png'],
+  ['ui.settlement_scene_human_v2_atlas', 'assets/game/ui/settlement_scene_human_v2_atlas.png']
 ]) {
   const expected = "'" + assetId + "': require('../../" + relativePath + "')";
   if (!registry.includes(expected)) failures.push('Settlement world-detail atlas is not registered: ' + assetId + '.');
@@ -217,7 +219,15 @@ for (const expected of [
   "guard: { x: 172, y: 0 }",
   "horse: { x: 172, y: 172 }",
   "tree_large: { x: 0, y: 0 }",
-  "rocks: { x: 0, y: 172 }"
+  "rocks: { x: 0, y: 172 }",
+  "dock: { x: 0, y: 0 }",
+  "sailboat: { x: 86, y: 0 }",
+  "waterfall: { x: 172, y: 0 }",
+  "build_dirt: { x: 0, y: 86 }",
+  "market: { x: 172, y: 86 }",
+  "wagon: { x: 0, y: 172 }",
+  "fountain: { x: 86, y: 172 }",
+  "gate: { x: 172, y: 172 }"
 ]) {
   if (!gameArt.includes(expected)) failures.push('Settlement world-detail cell mapping missing: ' + expected);
 }
@@ -229,6 +239,12 @@ if (!gameArt.includes('SettlementDetailAtlasSprite assetId="ui.settlement_people
 }
 if (!gameArt.includes('SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas"')) {
   failures.push('Human settlement backdrop must render nature details from the production atlas.');
+}
+if (!gameArt.includes('SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas"')) {
+  failures.push('Human settlement backdrop must render scene-detail waterfront and market art.');
+}
+if (!gameArt.includes('export function SettlementBuildPlotSprite')) {
+  failures.push('Settlement build plots must use the scene-detail production atlas when available.');
 }
 for (const [kind, [x, y]] of Object.entries(settlementSupportCells)) {
   if (!gameArt.includes(kind + ': { x: ' + x + ', y: ' + y + ' }')) {
