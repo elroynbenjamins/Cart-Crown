@@ -357,7 +357,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   </View>
                   {upgradeMaterialsReady && !selected ? (
                     <View pointerEvents="none" style={[styles.upgradeReadyBadge, { backgroundColor: theme.colors.gold }]}>
-                      <Text style={styles.upgradeReadyText}>UP</Text>
+                      <Text style={styles.upgradeReadyText}>MATS</Text>
                     </View>
                   ) : null}
                   {selected || landmark ? (
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
   buildReadyText: { color: '#111318', fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.45 },
   buildReadyDot: { position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: 999, zIndex: 8 },
   upgradeReadyBadge: { position: 'absolute', top: 4, right: 5, zIndex: 9, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2 },
-  upgradeReadyText: { color: '#111318', fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.4 },
+  upgradeReadyText: { color: '#111318', fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.3 },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
