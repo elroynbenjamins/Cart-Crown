@@ -256,6 +256,15 @@ if (!gameArt.includes('assetId={sceneAssetId}') || !gameArt.includes('tintColor=
 if (!gameArt.includes('export function SettlementBuildPlotSprite')) {
   failures.push('Settlement build plots must use the scene-detail production atlas when available.');
 }
+if (!gameArt.includes('AccessibilityInfo.isReduceMotionEnabled()') || !gameArt.includes("'reduceMotionChanged'")) {
+  failures.push('Settlement ambient motion must respect reduced-motion accessibility.');
+}
+if (!gameArt.includes('useNativeDriver: true') || !gameArt.includes('Animated.loop(')) {
+  failures.push('Settlement ambient motion must use lightweight native-driver loops.');
+}
+for (const token of ['smokeLift', 'glowPulse', 'bannerSway', 'waterShift', 'boatBob']) {
+  if (!gameArt.includes(token)) failures.push('Settlement ambient motion signal missing: ' + token + '.');
+}
 for (const [kind, [x, y]] of Object.entries(settlementSupportCells)) {
   if (!gameArt.includes(kind + ': { x: ' + x + ', y: ' + y + ' }')) {
     failures.push('Settlement support renderer mapping missing or moved for ' + kind + '.');
