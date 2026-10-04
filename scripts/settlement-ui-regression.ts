@@ -216,6 +216,8 @@ function testRecipesAndInteractions() {
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
     check(nodes(tree, 'SettlementBuildPlotSprite').length >= 1, faction + ' empty plots must render as production build sites.');
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
+    check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
+    check(text(tree).includes('BUILD READY'), 'The recommended empty plot must show direct in-world readiness feedback.');
     check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
     const normalMap = nodes(tree, 'View').find(node => style(node.props.style).height === 600 && style(node.props.style).position === 'relative');
     check(Boolean(normalMap), 'Reference portrait layout must devote 600px to the settlement world scene.');
@@ -234,6 +236,7 @@ function testRecipesAndInteractions() {
     check(f.game.resources.gold === gold - (forge.constructionCost.gold ?? 0), 'Construction cost must not change.');
     check(state() === 'active', 'The real adjacency analysis must activate the built district.');
     tree = f.h.render();
+    check(nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Active adjacent districts must draw an in-world connection.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
     check(nodes(tree, 'BuildingLevelPreview')[0]?.props.building.id === forge.id, 'Selected structure must expose its own upgrade preview.');
     const beforeMove = JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels });
@@ -242,6 +245,7 @@ function testRecipesAndInteractions() {
     check(JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels }) === beforeMove, 'Relocation must stay free and preserve levels.');
     check(state() === 'separated', 'A diagonal pair must stay inactive and read Not adjacent.');
     check(nodes(tree, 'DistrictEffects').filter(node => node.props.bonus.id === district.id).every(node => node.props.state === 'inactive'), 'Separated districts must not present active or predicted bonuses.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Separated districts must remove their in-world connection.');
     f.game.buildingPlacements = { ...f.game.buildingPlacements, plot_n: null }; f.refresh();
     check(state() === 'unplaced', 'An unplaced built structure must not be called unbuilt.');
     press(tree, 'Return to Kingdom'); check(f.counts().exited === 1, 'Return navigation must preserve its callback.');
