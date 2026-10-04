@@ -1532,8 +1532,7 @@ function SettlementAnchorAtlasSprite({
           left: -cell.x * scale,
           top: -cell.y * scale,
           width: 256 * scale,
-          height: 256 * scale,
-          tintColor
+          height: 256 * scale
         }}
       />
     </View>
@@ -2591,7 +2590,8 @@ function SettlementDetailAtlasSprite({
           left: -cell.x * scale,
           top: -cell.y * scale,
           width: 256 * scale,
-          height: 256 * scale
+          height: 256 * scale,
+          tintColor
         }}
       />
     </View>
