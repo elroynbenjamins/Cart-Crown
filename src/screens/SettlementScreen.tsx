@@ -18,15 +18,15 @@ import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
 const settlementPlotPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
-  plot_nw: { left: '3%', top: '9%' },
-  plot_n: { left: '36%', top: '5%' },
-  plot_ne: { left: '69%', top: '10%' },
-  plot_w: { left: '2%', top: '38%' },
+  plot_nw: { left: '6%', top: '15%' },
+  plot_n: { left: '37%', top: '6%' },
+  plot_ne: { left: '68%', top: '15%' },
+  plot_w: { left: '0%', top: '40%' },
   plot_center: { left: '34%', top: '34%' },
-  plot_e: { left: '71%', top: '39%' },
-  plot_sw: { left: '4%', top: '70%' },
-  plot_s: { left: '37%', top: '72%' },
-  plot_se: { left: '70%', top: '69%' }
+  plot_e: { left: '72%', top: '40%' },
+  plot_sw: { left: '7%', top: '66%' },
+  plot_s: { left: '38%', top: '72%' },
+  plot_se: { left: '68%', top: '66%' }
 };
 
 const settlementResourceOrder = ['gold', 'wood', 'stone', 'iron', 'provisions'] as const;
@@ -166,6 +166,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const roleColor = semanticColor(theme, roleTone);
           const selected = plotSelected || buildingSelected;
           const landmark = plot.id === 'plot_center';
+          const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
+          const buildingSize = landmark ? 88 : Math.round(62 * depthScale);
+          const ambienceSize = landmark ? 110 : Math.round(82 * depthScale);
+          const plotZIndex = tutorialPlotFocused || selected ? 30 : landmark ? 16 : 5 + plot.row * 5;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
           const visualPosition = settlementPlotPositions[plot.id] ?? {
             left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
@@ -204,10 +208,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   left: visualPosition.left,
                   top: visualPosition.top,
                   backgroundColor: 'transparent',
-                  borderColor: tutorialPlotFocused || selected ? theme.colors.gold : building ? roleColor : theme.colors.border,
-                  borderWidth: tutorialPlotFocused || selected ? 3 : building ? 1 : 1.5,
+                  borderColor: tutorialPlotFocused || selected ? theme.colors.gold : building ? 'transparent' : theme.colors.border,
+                  borderWidth: tutorialPlotFocused || selected ? 2.5 : building ? 0 : 1.5,
                   borderStyle: building || selected || tutorialPlotFocused ? 'solid' : 'dashed',
-                  transform: tutorialPlotFocused ? [{ scale: 1.05 }] : undefined
+                  zIndex: plotZIndex,
+                  transform: tutorialPlotFocused ? [{ scale: 1.04 }] : undefined
                 },
                 landmark ? styles.landmarkPlot : undefined
               ]}
@@ -229,25 +234,37 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               ) : null}
               {building ? (
                 <>
+                  {selected ? (
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.selectionHalo,
+                        landmark ? styles.landmarkSelectionHalo : undefined,
+                        { borderColor: theme.colors.gold, backgroundColor: theme.colors.gold + '16' }
+                      ]}
+                    />
+                  ) : null}
                   <View pointerEvents="none" style={[styles.buildingAmbience, landmark ? styles.landmarkAmbience : undefined]}>
                     <SettlementBuildingAmbience
                       buildingId={building.id}
                       role={building.role}
                       faction={building.faction}
                       level={level}
-                      size={landmark ? 98 : 82}
+                      size={ambienceSize}
                     />
                   </View>
                   <View style={[styles.buildingPad, landmark ? styles.landmarkBuildingPad : undefined]}>
                     <View pointerEvents="none" style={[styles.buildingFootprint, landmark ? styles.landmarkFootprint : undefined, { backgroundColor: roleColor }]} />
-                    <BuildingSprite buildingId={building.id} faction={building.faction} size={landmark ? 78 : 62} />
+                    <BuildingSprite buildingId={building.id} faction={building.faction} size={buildingSize} />
                   </View>
                   {selected || landmark ? (
-                    <Text style={[styles.plotBuildingName, { color: roleColor, backgroundColor: theme.colors.surface1 }]} numberOfLines={1}>{building.name}</Text>
+                    <>
+                      <Text style={[styles.plotBuildingName, { color: roleColor, backgroundColor: theme.colors.surface1 }]} numberOfLines={1}>{building.name}</Text>
+                      <View style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+                        <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
+                      </View>
+                    </>
                   ) : null}
-                  <View style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
-                    <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
-                  </View>
                 </>
               ) : unlocked ? (
                 <>
@@ -420,15 +437,17 @@ const styles = StyleSheet.create({
   section: { gap: 8, marginTop: 12 },
   map: { borderRadius: 22, borderWidth: 1, overflow: 'hidden', position: 'relative' },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
-  plot: { position: 'absolute', width: '27%', height: '23%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'hidden' },
-  landmarkPlot: { width: '32%', height: '27%', zIndex: 2 },
+  plot: { position: 'absolute', width: '27%', height: '23%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'visible' },
+  landmarkPlot: { width: '32%', height: '27%' },
   plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 13 },
+  selectionHalo: { position: 'absolute', left: '50%', bottom: '24%', marginLeft: -35, width: 70, height: 24, borderRadius: 999, borderWidth: 2 },
+  landmarkSelectionHalo: { marginLeft: -44, width: 88, height: 30, bottom: '22%' },
   buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -41, marginTop: -41, width: 82, height: 82, alignItems: 'center', justifyContent: 'center' },
-  landmarkAmbience: { marginLeft: -49, marginTop: -49, width: 98, height: 98 },
-  buildingPad: { width: 70, height: 62, alignItems: 'center', justifyContent: 'flex-end' },
-  landmarkBuildingPad: { width: 86, height: 78 },
-  buildingFootprint: { position: 'absolute', left: 7, right: 7, bottom: 1, height: 16, borderRadius: 999, opacity: 0.18 },
-  landmarkFootprint: { left: 6, right: 6, height: 20, opacity: 0.22 },
+  landmarkAmbience: { marginLeft: -55, marginTop: -59, width: 110, height: 110, transform: [{ translateY: -3 }] },
+  buildingPad: { width: 72, height: 64, alignItems: 'center', justifyContent: 'flex-end' },
+  landmarkBuildingPad: { width: 94, height: 84, transform: [{ translateY: -5 }] },
+  buildingFootprint: { position: 'absolute', left: 7, right: 7, bottom: 1, height: 16, borderRadius: 999, opacity: 0.14 },
+  landmarkFootprint: { left: 4, right: 4, height: 22, opacity: 0.2 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
   plotGuideText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900' },
   plotBuildingName: { fontSize: 9.5, lineHeight: 13, fontWeight: '900', textAlign: 'center', marginTop: 0, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 5, maxWidth: '96%' },
