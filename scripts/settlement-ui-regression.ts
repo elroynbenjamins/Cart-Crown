@@ -217,6 +217,8 @@ function testRecipesAndInteractions() {
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
     check(nodes(tree, 'SettlementBuildPlotSprite').length >= 1, faction + ' empty plots must render as production build sites.');
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
+    check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')), 'District-completing plots must be summarized in the HUD.');
+    check(nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'A high-value empty plot must be marked before the player opens it.');
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
     check(text(tree).includes('BUILD READY'), 'The recommended empty plot must show direct in-world readiness feedback.');
     check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
@@ -226,6 +228,7 @@ function testRecipesAndInteractions() {
     choosePlot(tree, 'plot_se'); check(f.calls.length === 0, 'Locked plots must not trigger a transaction.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
     check(plot(tree, 'plot_nw').props.accessibilityState.selected, 'Plot selection must be exposed to assistive technology.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'At-a-glance opportunity markers must yield to focused plot planning.');
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'District preview must connect the selected plot to its compatible neighbor before construction.');
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-preview-partner-plot_w'), 'District preview must identify the exact neighboring partner plot.');
     check(text(tree).includes(district.name), 'District preview must name the synergy being previewed.');
@@ -278,7 +281,9 @@ function testTutorialAndCosts() {
   check(emptyPlot.counts().completed === 1, 'First-plot tutorial must still complete on plot selection.');
   const poor = fixture('orc');
   poor.game.resources = { gold: 0, wood: 0, stone: 0, iron: 0, provisions: 0 };
-  choosePlot(poor.h.render(), 'plot_nw'); tree = poor.h.render();
+  const poorOverview = poor.h.render();
+  check(nodes(poorOverview, 'View').some(node => String(node.props.testID ?? '').startsWith('district-opportunity-')), 'District opportunities must remain visible even when the missing blueprint is currently unaffordable.');
+  choosePlot(poorOverview, 'plot_nw'); tree = poor.h.render();
   const forge = poor.game.buildings.find((building: any) => building.role === 'EQUIPMENT');
   press(tree, 'Build ' + forge.name);
   check(poor.calls.length === 0, 'Unaffordable Build must remain disabled.');
