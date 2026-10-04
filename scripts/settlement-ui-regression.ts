@@ -233,13 +233,19 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-preview-partner-plot_w'), 'District preview must identify the exact neighboring partner plot.');
     check(text(tree).includes(district.name), 'District preview must name the synergy being previewed.');
     check(nodes(tree, 'View').some(node => node.props.testID === 'placement-quality-plot_nw'), 'Selected build sites must show a placement-quality badge.');
-    check(text(tree).includes('Good · 1 district'), 'One real district activation must rate as Good.');
+    check(
+      nodes(tree, 'SemanticChip').some(node => node.props.label === 'Good · 1 district'),
+      'One real district activation must rate as Good.'
+    );
     check(style(plot(tree, 'plot_nw').props.style).borderColor === themes.original.colors.gold, 'Selection must remain gold rather than use a role/benefit color.');
     check(JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels, placements: f.game.buildingPlacements }) === start, 'Selecting and previewing a plot must not change levels, placements or costs.');
     const quartermasterId = faction === 'human' ? 'quartermaster' : faction === 'elf' ? 'elf_spirit_stores' : 'orc_smokehouse';
     const neutralBlueprint = nodes(tree, 'View').find(node => node.props.testID === 'settlement-blueprint-' + quartermasterId);
     check(Boolean(neutralBlueprint), 'A non-synergy blueprint row must remain available for comparison.');
-    check(text(neutralBlueprint).includes('Neutral · 0 districts'), 'Zero real district activations must rate as Neutral.');
+    check(
+      nodes(neutralBlueprint, 'SemanticChip').some(node => node.props.label === 'Neutral · 0 districts'),
+      'Zero real district activations must rate as Neutral.'
+    );
         const cost = nodes(tree, 'BuildingCosts').find(node => node.props.cost === forge.constructionCost);
     check(Boolean(cost) && cost!.props.wallet === f.game.resources, 'Construction must display the provider cost and current wallet unchanged.');
     check(nodes(tree, 'DistrictEffects').some(node => node.props.state === 'preview' && node.props.bonus.id === district.id), 'An adjacent construction must preview the real district.');
@@ -296,7 +302,10 @@ function testExcellentPlacementQuality() {
     nodes(tree, 'View').some(node => node.props.testID === 'placement-quality-plot_n'),
     'Excellent placement quality must carry into focused plot preview.'
   );
-  check(text(tree).includes('Excellent · 2 districts'), 'Focused placement quality must expose the exact real district count.');
+  check(
+    nodes(tree, 'SemanticChip').some(node => node.props.label === 'Excellent · 2 districts'),
+    'Focused placement quality must expose the exact real district count.'
+  );
   check(text(tree).includes('Seat of Command') && text(tree).includes('Command Network'), 'Excellent scoring must be backed by the exact two authored district bonuses.');
 }
 
