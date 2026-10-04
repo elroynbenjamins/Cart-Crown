@@ -60,6 +60,28 @@ const settlementResourceLabels: Record<(typeof settlementResourceOrder)[number],
   provisions: 'Food'
 };
 
+function settlementPlacementQuality(districtCount: number) {
+  if (districtCount >= 2) {
+    return {
+      label: 'Excellent',
+      tone: 'positive' as const,
+      summary: districtCount + ' districts'
+    };
+  }
+  if (districtCount === 1) {
+    return {
+      label: 'Good',
+      tone: 'blue' as const,
+      summary: '1 district'
+    };
+  }
+  return {
+    label: 'Neutral',
+    tone: 'neutral' as const,
+    summary: '0 districts'
+  };
+}
+
 type SettlementUnlockSnapshot = {
   stageId: string;
   unlockedPlotIds: string[];
@@ -139,6 +161,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     ? availableBuildings.find(building => building.id === previewBuildingId) ?? null
     : null;
   const previewDistrictBonuses = previewBuilding ? previewBonuses(previewBuilding.id) : [];
+  const previewPlacementQuality = settlementPlacementQuality(previewDistrictBonuses.length);
   const previewPartnerPlotIds = new Set(
     previewDistrictBonuses.flatMap(bonus => {
       if (!selectedPlotId) return [];
@@ -150,24 +173,34 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const districtOpportunities = settlementPlots.flatMap(plot => {
     if (!isSettlementPlotUnlocked(plot, currentWagonStage.id) || buildingPlacements[plot.id]) return [];
 
-    const candidates = availableBuildings.flatMap(building =>
-      previewBonusesAtPlot(plot, building.id).map(bonus => ({
+    const candidates = availableBuildings
+      .map(building => ({
         building,
-        bonus,
+        bonuses: previewBonusesAtPlot(plot, building.id),
         affordable: canPayBuildingCost(resources, building.constructionCost)
       }))
-    );
+      .filter(candidate => candidate.bonuses.length > 0)
+      .sort((first, second) => {
+        const districtDifference = second.bonuses.length - first.bonuses.length;
+        if (districtDifference !== 0) return districtDifference;
+        return Number(second.affordable) - Number(first.affordable);
+      });
     if (!candidates.length) return [];
 
-    const preferred = candidates.find(candidate => candidate.affordable) ?? candidates[0];
+    const preferred = candidates[0];
     if (!preferred) return [];
-    const distinctBonusIds = new Set(candidates.map(candidate => candidate.bonus.id));
+    const distinctBonusIds = new Set(candidates.flatMap(candidate => candidate.bonuses.map(bonus => bonus.id)));
+    const quality = settlementPlacementQuality(preferred.bonuses.length);
     return [{
       plotId: plot.id,
       count: distinctBonusIds.size,
+      placementDistrictCount: preferred.bonuses.length,
+      qualityLabel: quality.label,
+      qualityTone: quality.tone,
+      qualitySummary: quality.summary,
       buildingId: preferred.building.id,
       buildingName: preferred.building.name,
-      bonusName: preferred.bonus.name,
+      bonusName: preferred.bonuses[0]?.name ?? 'District',
       affordable: preferred.affordable
     }];
   });
@@ -441,7 +474,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             unlockCelebration?.plotId === plot.id ||
             (Boolean(unlockCelebration?.buildingId) && building?.id === unlockCelebration?.buildingId);
           const districtPreviewPartner = previewPartnerPlotIds.has(plot.id);
-          const districtPreviewSource = plotSelected && previewDistrictBonuses.length > 0;
+          const placementQualitySource = plotSelected && Boolean(previewBuilding);
           const districtOpportunity = districtOpportunityByPlot.get(plot.id) ?? null;
           const districtOpportunityVisible = Boolean(districtOpportunity) && showDistrictOpportunities;
           const buildReady = unlocked && !building && !selectedBuildingId && !plotSelected && constructionReadyCount > 0;
@@ -544,26 +577,42 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   style={[styles.districtPreviewPartnerRing, landmark ? styles.landmarkDistrictPreviewPartnerRing : undefined, { borderColor: theme.colors.gold }]}
                 />
               ) : null}
-              {districtPreviewSource ? (
-                <View pointerEvents="none" style={[styles.districtPreviewBadge, { backgroundColor: theme.colors.gold }]}>
-                  <Text style={styles.districtPreviewBadgeText}>+ DISTRICT</Text>
+              {placementQualitySource ? (
+                <View
+                  pointerEvents="none"
+                  accessible
+                  accessibilityLabel={previewPlacementQuality.label + ' placement, ' + previewPlacementQuality.summary}
+                  testID={'placement-quality-' + plot.id}
+                  style={[
+                    styles.placementQualityBadge,
+                    {
+                      backgroundColor: theme.colors.surface1,
+                      borderColor: semanticColor(theme, previewPlacementQuality.tone)
+                    }
+                  ]}
+                >
+                  <Text style={[styles.placementQualityBadgeText, { color: semanticColor(theme, previewPlacementQuality.tone) }]}>
+                    {previewPlacementQuality.label.toUpperCase()} · {previewDistrictBonuses.length}
+                  </Text>
                 </View>
               ) : null}
               {districtOpportunityVisible && districtOpportunity ? (
                 <View
                   pointerEvents="none"
+                  accessible
+                  accessibilityLabel={districtOpportunity.qualityLabel + ' placement, ' + districtOpportunity.qualitySummary}
                   testID={'district-opportunity-' + plot.id}
                   style={[
                     styles.districtOpportunityBadge,
                     {
                       backgroundColor: theme.colors.surface1,
-                      borderColor: semanticColor(theme, 'positive')
+                      borderColor: semanticColor(theme, districtOpportunity.qualityTone)
                     }
                   ]}
                 >
-                  <View style={[styles.districtOpportunityDot, { backgroundColor: semanticColor(theme, 'positive') }]} />
-                  <Text style={[styles.districtOpportunityText, { color: semanticColor(theme, 'positive') }]}>
-                    {districtOpportunity.count > 1 ? 'DISTRICT ×' + districtOpportunity.count : 'DISTRICT'}
+                  <View style={[styles.districtOpportunityDot, { backgroundColor: semanticColor(theme, districtOpportunity.qualityTone) }]} />
+                  <Text style={[styles.districtOpportunityText, { color: semanticColor(theme, districtOpportunity.qualityTone) }]}>
+                    {districtOpportunity.qualityLabel.toUpperCase()} · {districtOpportunity.placementDistrictCount}
                   </Text>
                 </View>
               ) : null}
@@ -703,12 +752,21 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               </View>
               <View style={styles.inspectorPreviewChips}>
                 <SemanticChip label={selectedPlot.id.replace('plot_', '').toUpperCase()} tone="blue" compact />
-                {previewDistrictBonuses[0] ? <SemanticChip label={previewDistrictBonuses[0].name} tone="positive" compact /> : null}
+                {previewBuilding ? (
+                  <SemanticChip
+                    label={previewPlacementQuality.label + ' · ' + previewPlacementQuality.summary}
+                    tone={previewPlacementQuality.tone}
+                    compact
+                  />
+                ) : null}
               </View>
             </View>
             {previewBuilding ? (
               <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>
-                Previewing {previewBuilding.name}{previewDistrictBonuses[0] ? ' beside its district partner.' : ' on this plot.'}
+                {previewPlacementQuality.label} placement for {previewBuilding.name}
+                {previewDistrictBonuses.length
+                  ? ' · activates ' + previewDistrictBonuses.map(bonus => bonus.name).join(' + ') + '.'
+                  : ' · no district bonus activates here.'}
               </Text>
             ) : null}
           </View>
@@ -720,16 +778,27 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 const tutorialBuildingFocused = tutorialFocus?.kind === 'settlement-building' && tutorialFocus.buildingId === building.id;
                 const roleColor = semanticColor(theme, buildingRolePresentation[building.role]?.tone ?? 'neutral');
                 const previewed = previewBuildingId === building.id;
+                const placementQuality = settlementPlacementQuality(potentialBonuses.length);
                 return (
                   <TutorialFocus key={building.id} active={tutorialBuildingFocused} label={tutorialBuildingFocused ? tutorialFocus.label : undefined}>
-                    <View style={[styles.constructionOption, { borderColor: previewed ? theme.colors.gold : roleColor, borderWidth: previewed ? 2 : 1, backgroundColor: theme.colors.surface1 }]}>
+                    <View
+                      testID={'settlement-blueprint-' + building.id}
+                      style={[styles.constructionOption, { borderColor: previewed ? theme.colors.gold : roleColor, borderWidth: previewed ? 2 : 1, backgroundColor: theme.colors.surface1 }]}
+                    >
                       <BuildingHeading building={building} />
                       <Text style={[styles.optionDescription, { color: theme.colors.textMuted }]}>{building.description}</Text>
-                      <View style={styles.chips}><SemanticChip label={affordable ? 'Materials available' : 'Materials missing'} tone={affordable ? 'positive' : 'warning'} compact /></View>
+                      <View style={styles.chips}>
+                        <SemanticChip label={affordable ? 'Materials available' : 'Materials missing'} tone={affordable ? 'positive' : 'warning'} compact />
+                        <SemanticChip
+                          label={placementQuality.label + ' · ' + placementQuality.summary}
+                          tone={placementQuality.tone}
+                          compact
+                        />
+                      </View>
                       <BuildingCosts cost={building.constructionCost} wallet={resources} />
                       {potentialBonuses.length ? (
                         <View style={styles.section}>
-                          <SemanticChip label="Would activate on this plot" tone="blue" compact />
+                          <SemanticChip label={'Activates ' + potentialBonuses.length + (potentialBonuses.length === 1 ? ' district' : ' districts')} tone="blue" compact />
                           {potentialBonuses.map(bonus => (
                             <View key={bonus.id} style={[styles.preview, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}>
                               <Text style={[styles.bonusName, { color: theme.colors.text }]}>{bonus.name}</Text>
@@ -857,8 +926,8 @@ const styles = StyleSheet.create({
   unlockFocusRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -32, width: 76, height: 64, borderRadius: 18, borderWidth: 2, opacity: 0.72 },
   districtPreviewPartnerRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -36, marginTop: -30, width: 72, height: 60, borderRadius: 18, borderWidth: 2, borderStyle: 'dashed', opacity: 0.78 },
   landmarkDistrictPreviewPartnerRing: { marginLeft: -48, marginTop: -40, width: 96, height: 80, borderRadius: 22 },
-  districtPreviewBadge: { position: 'absolute', top: 4, alignSelf: 'center', zIndex: 10, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2 },
-  districtPreviewBadgeText: { color: '#111318', fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
+  placementQualityBadge: { position: 'absolute', top: 4, alignSelf: 'center', zIndex: 10, borderWidth: 1, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, opacity: 0.96 },
+  placementQualityBadgeText: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
   districtOpportunityBadge: { position: 'absolute', top: 4, left: 5, zIndex: 9, flexDirection: 'row', alignItems: 'center', gap: 3, borderWidth: 1, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2, opacity: 0.94 },
   districtOpportunityDot: { width: 5, height: 5, borderRadius: 999 },
   districtOpportunityText: { fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
