@@ -211,8 +211,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   styles.plotSurface,
                   {
-                    backgroundColor: building ? theme.colors.surface1 : unlocked && activeFaction === 'human' ? 'transparent' : unlocked ? theme.colors.appBg : theme.colors.surface3,
-                    opacity: building ? 0.22 : unlocked && activeFaction === 'human' ? 0.08 : unlocked ? 0.5 : 0.78
+                    backgroundColor: building ? theme.colors.surface1 : unlocked ? 'transparent' : theme.colors.surface3,
+                    opacity: building ? 0.22 : unlocked ? 0.08 : 0.78
                   }
                 ]}
               />
