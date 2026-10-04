@@ -14,6 +14,7 @@
     "save:check": "tsx scripts/save-regression.ts",
     "mobile:check": "tsx scripts/mobile-session-regression.ts",
     "tutorial:check": "tsx scripts/tutorial-regression.ts",
+    "campaign-roadmap:check": "tsx scripts/campaign-mission-roadmap-regression.ts",
     "trials:check": "tsx scripts/kingdom-trials-regression.ts",
     "defense:check": "tsx scripts/kingdom-defense-regression.ts",
     "expedition:check": "tsx scripts/expedition-regression.ts",
