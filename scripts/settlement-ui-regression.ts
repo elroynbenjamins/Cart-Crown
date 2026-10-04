@@ -204,6 +204,11 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'BuildingSprite').some(node => Number(node.props.size) >= 50), 'Built structures must read as primary map objects rather than tiny card icons.');
     check(nodes(tree, 'ResourceSprite').length === 5, 'Portrait settlement HUD must expose the five core resources at first glance.');
     check(nodes(tree, 'BuildingSprite').some(node => Number(node.props.size) >= 78), 'The central settlement landmark must read larger than secondary buildings in portrait mode.');
+    const centerPlotStyle = style(plot(tree, 'plot_center').props.style);
+    const westPlotStyle = style(plot(tree, 'plot_w').props.style);
+    check(centerPlotStyle.borderWidth === 0 && westPlotStyle.borderWidth === 0, 'Occupied settlement structures must not keep card-like plot borders.');
+    check(centerPlotStyle.zIndex > westPlotStyle.zIndex, 'The Great Hall must remain above same-row secondary structures in scene depth.');
+    check(nodes(tree, 'BuildingSprite').filter(node => Number(node.props.size) >= 80).length === 1, 'Only the central landmark should use oversized settlement scale at the initial layout.');
     const placedBuildingCount = Object.values(f.game.buildingPlacements).filter(Boolean).length;
     const ambience = nodes(tree, 'SettlementBuildingAmbience');
     check(ambience.length === placedBuildingCount, 'Placed buildings must carry ambient life and props.');
