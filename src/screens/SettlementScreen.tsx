@@ -91,6 +91,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   } = useGame();
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
+  const [previewBuildingId, setPreviewBuildingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [unlockCelebration, setUnlockCelebration] = useState<SettlementUnlockCelebration | null>(null);
   const settlementPlots = getSettlementPlots(activeFaction);
@@ -123,14 +124,29 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const activeBonusIds = new Set(settlementAdjacencyBonuses.map(bonus => bonus.id));
 
   // Read-only preview, using the same adjacency calculation as the game. No costs or levels are committed here.
-  const previewBonuses = (buildingId: string) => {
-    if (!selectedPlot) return [];
+  const previewBonusesAtPlot = (plot: (typeof settlementPlots)[number], buildingId: string) => {
     return analyzeSettlementAdjacency(
-      { ...buildingPlacements, [selectedPlot.id]: buildingId },
+      { ...buildingPlacements, [plot.id]: buildingId },
       { ...buildingLevels, [buildingId]: Math.max(1, buildingLevels[buildingId] ?? 0) },
       activeFaction
     ).bonuses.filter(bonus => !activeBonusIds.has(bonus.id));
   };
+  const previewBonuses = (buildingId: string) => {
+    if (!selectedPlot) return [];
+    return previewBonusesAtPlot(selectedPlot, buildingId);
+  };
+  const previewBuilding = previewBuildingId
+    ? availableBuildings.find(building => building.id === previewBuildingId) ?? null
+    : null;
+  const previewDistrictBonuses = previewBuilding ? previewBonuses(previewBuilding.id) : [];
+  const previewPartnerPlotIds = new Set(
+    previewDistrictBonuses.flatMap(bonus => {
+      if (!selectedPlotId) return [];
+      if (bonus.plotA === selectedPlotId) return [bonus.plotB];
+      if (bonus.plotB === selectedPlotId) return [bonus.plotA];
+      return [];
+    })
+  );
 
   const stageLabel = activeFaction === 'elf'
     ? currentWagonStage.id === 'capital' ? 'STARROOT CONCLAVE'
@@ -258,6 +274,30 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       } as ViewStyle
     }];
   });
+  const previewDistrictConnections = previewDistrictBonuses.flatMap(bonus => {
+    const first = settlementPlotCenters[bonus.plotA];
+    const second = settlementPlotCenters[bonus.plotB];
+    if (!first || !second) return [];
+
+    const x1 = first.x * mapWidth;
+    const y1 = first.y * mapHeight;
+    const x2 = second.x * mapWidth;
+    const y2 = second.y * mapHeight;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    return [{
+      id: bonus.id,
+      style: {
+        left: (x1 + x2) / 2 - length / 2,
+        top: (y1 + y2) / 2 - 1,
+        width: length,
+        transform: [{ rotate: angle + 'deg' }]
+      } as ViewStyle
+    }];
+  });
   const fortificationWeight =
     currentWagonStage.id === 'grand' ? 5
       : currentWagonStage.id === 'capital' ? 4
@@ -341,6 +381,21 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             </React.Fragment>
           ))}
         </View>
+        {previewDistrictConnections.length ? (
+          <View pointerEvents="none" style={styles.districtPreviewLayer}>
+            {previewDistrictConnections.map(connection => (
+              <View
+                key={connection.id}
+                testID={'district-preview-link-' + connection.id}
+                style={[
+                  connection.style,
+                  styles.districtPreviewLink,
+                  { borderTopColor: theme.colors.gold }
+                ]}
+              />
+            ))}
+          </View>
+        ) : null}
         {settlementPlots.map(plot => {
           const unlocked = isSettlementPlotUnlocked(plot, currentWagonStage.id);
           const buildingId = buildingPlacements[plot.id] ?? null;
@@ -356,13 +411,15 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const celebrationFocused =
             unlockCelebration?.plotId === plot.id ||
             (Boolean(unlockCelebration?.buildingId) && building?.id === unlockCelebration?.buildingId);
-          const buildReady = unlocked && !building && !selectedBuildingId && constructionReadyCount > 0;
+          const districtPreviewPartner = previewPartnerPlotIds.has(plot.id);
+          const districtPreviewSource = plotSelected && previewDistrictBonuses.length > 0;
+          const buildReady = unlocked && !building && !selectedBuildingId && !plotSelected && constructionReadyCount > 0;
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
           const buildingSize = landmark ? 88 : Math.round(62 * depthScale);
           const ambienceSize = landmark ? 110 : Math.round(82 * depthScale);
-          const plotZIndex = tutorialPlotFocused || selected ? 30 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
+          const plotZIndex = tutorialPlotFocused || selected ? 30 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
           const visualPosition = settlementPlotPositions[plot.id] ?? {
             left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
@@ -385,15 +442,25 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 if (building) {
                   setSelectedBuildingId(buildingSelected ? null : building.id);
                   setSelectedPlotId(null);
+                  setPreviewBuildingId(null);
                   return;
                 }
                 if (selectedBuildingId) {
                   const ok = moveBuilding(selectedBuildingId, plot.id);
                   setMessage(ok ? 'Building relocated. District bonuses recalculated.' : 'That building cannot be moved to this plot.');
                   if (ok) setSelectedBuildingId(null);
+                  setPreviewBuildingId(null);
                   return;
                 }
-                setSelectedPlotId(plotSelected ? null : plot.id);
+                if (plotSelected) {
+                  setSelectedPlotId(null);
+                  setPreviewBuildingId(null);
+                } else {
+                  const districtCandidate = availableBuildings.find(candidate => previewBonusesAtPlot(plot, candidate.id).length > 0);
+                  const previewCandidate = districtCandidate ?? affordableBuildings[0] ?? availableBuildings[0] ?? null;
+                  setSelectedPlotId(plot.id);
+                  setPreviewBuildingId(previewCandidate?.id ?? null);
+                }
                 if (tutorialPlotFocused && tutorialFocus?.kind === 'settlement-first-plot') onTutorialFocusComplete?.();
               }}
               style={[
@@ -432,6 +499,18 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               {tutorialPlotFocused ? (
                 <View pointerEvents="none" style={[styles.plotGuideBadge, { backgroundColor: theme.colors.gold }]}>
                   <Text style={styles.plotGuideText}>{tutorialFocus?.kind === 'settlement-building' ? 'TAP EMPTY PLOT' : tutorialFocus?.label}</Text>
+                </View>
+              ) : null}
+              {districtPreviewPartner ? (
+                <View
+                  pointerEvents="none"
+                  testID={'district-preview-partner-' + plot.id}
+                  style={[styles.districtPreviewPartnerRing, landmark ? styles.landmarkDistrictPreviewPartnerRing : undefined, { borderColor: theme.colors.gold }]}
+                />
+              ) : null}
+              {districtPreviewSource ? (
+                <View pointerEvents="none" style={[styles.districtPreviewBadge, { backgroundColor: theme.colors.gold }]}>
+                  <Text style={styles.districtPreviewBadgeText}>+ DISTRICT</Text>
                 </View>
               ) : null}
               {celebrationFocused ? (
@@ -568,8 +647,16 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 <Text style={[styles.inspectorEyebrow, { color: theme.colors.textMuted }]}>BUILD SITE</Text>
                 <Text style={[styles.inspectorTitle, { color: theme.colors.text }]}>Choose a blueprint</Text>
               </View>
-              <SemanticChip label={selectedPlot.id.replace('plot_', '').toUpperCase()} tone="blue" compact />
+              <View style={styles.inspectorPreviewChips}>
+                <SemanticChip label={selectedPlot.id.replace('plot_', '').toUpperCase()} tone="blue" compact />
+                {previewDistrictBonuses[0] ? <SemanticChip label={previewDistrictBonuses[0].name} tone="positive" compact /> : null}
+              </View>
             </View>
+            {previewBuilding ? (
+              <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>
+                Previewing {previewBuilding.name}{previewDistrictBonuses[0] ? ' beside its district partner.' : ' on this plot.'}
+              </Text>
+            ) : null}
           </View>
           {availableBuildings.length ? (
             <View style={styles.list}>
@@ -578,9 +665,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 const affordable = canPayBuildingCost(resources, building.constructionCost);
                 const tutorialBuildingFocused = tutorialFocus?.kind === 'settlement-building' && tutorialFocus.buildingId === building.id;
                 const roleColor = semanticColor(theme, buildingRolePresentation[building.role]?.tone ?? 'neutral');
+                const previewed = previewBuildingId === building.id;
                 return (
                   <TutorialFocus key={building.id} active={tutorialBuildingFocused} label={tutorialBuildingFocused ? tutorialFocus.label : undefined}>
-                    <View style={[styles.constructionOption, { borderColor: roleColor, backgroundColor: theme.colors.surface1 }]}>
+                    <View style={[styles.constructionOption, { borderColor: previewed ? theme.colors.gold : roleColor, borderWidth: previewed ? 2 : 1, backgroundColor: theme.colors.surface1 }]}>
                       <BuildingHeading building={building} />
                       <Text style={[styles.optionDescription, { color: theme.colors.textMuted }]}>{building.description}</Text>
                       <View style={styles.chips}><SemanticChip label={affordable ? 'Materials available' : 'Materials missing'} tone={affordable ? 'positive' : 'warning'} compact /></View>
@@ -596,6 +684,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                           ))}
                         </View>
                       ) : null}
+                      <View style={styles.previewAction}>
+                        <SecondaryButton
+                          label={previewed ? 'Previewing placement' : potentialBonuses.length ? 'Preview district' : 'Preview placement'}
+                          onPress={() => setPreviewBuildingId(building.id)}
+                        />
+                      </View>
                       <View style={styles.button}>
                         <PrimaryButton
                           label={'Build ' + building.name}
@@ -605,6 +699,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                             setMessage(ok ? building.name + ' constructed. District bonuses recalculated.' : 'This building cannot be constructed here yet.');
                             if (ok) {
                               setSelectedPlotId(null);
+                              setPreviewBuildingId(null);
                               if (tutorialBuildingFocused) onTutorialFocusComplete?.();
                             }
                           }}
@@ -699,11 +794,17 @@ const styles = StyleSheet.create({
   districtLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 3 },
   districtLinkGlow: { position: 'absolute', height: 7, borderRadius: 999 },
   districtLink: { position: 'absolute', height: 2.5, borderRadius: 999 },
+  districtPreviewLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 4 },
+  districtPreviewLink: { position: 'absolute', height: 1, borderTopWidth: 2, borderStyle: 'dashed', opacity: 0.9 },
   plot: { position: 'absolute', width: '27%', height: '23%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'visible' },
   landmarkPlot: { width: '32%', height: '27%' },
   plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 13 },
   selectionHalo: { position: 'absolute', left: '50%', bottom: '24%', marginLeft: -35, width: 70, height: 24, borderRadius: 999, borderWidth: 2 },
   unlockFocusRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -32, width: 76, height: 64, borderRadius: 18, borderWidth: 2, opacity: 0.72 },
+  districtPreviewPartnerRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -36, marginTop: -30, width: 72, height: 60, borderRadius: 18, borderWidth: 2, borderStyle: 'dashed', opacity: 0.78 },
+  landmarkDistrictPreviewPartnerRing: { marginLeft: -48, marginTop: -40, width: 96, height: 80, borderRadius: 22 },
+  districtPreviewBadge: { position: 'absolute', top: 4, alignSelf: 'center', zIndex: 10, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2 },
+  districtPreviewBadgeText: { color: '#111318', fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
   landmarkUnlockFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
 
   landmarkSelectionHalo: { marginLeft: -44, width: 88, height: 30, bottom: '22%' },
@@ -738,6 +839,7 @@ const styles = StyleSheet.create({
   inspectorHandle: { width: 34, height: 3, borderRadius: 999, alignSelf: 'center', opacity: 0.7, marginBottom: 7 },
   inspectorHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   inspectorCopy: { flex: 1, minWidth: 0 },
+  inspectorPreviewChips: { alignItems: 'flex-end', gap: 4 },
   inspectorEyebrow: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.9 },
   inspectorTitle: { fontSize: 15, lineHeight: 19, fontWeight: '900', marginTop: 1 },
   inspectorHint: { fontSize: 10.5, lineHeight: 15, marginTop: 5 },
@@ -745,6 +847,7 @@ const styles = StyleSheet.create({
   inspectorAction: { flex: 1 },
   constructionOption: { borderWidth: 1, borderRadius: 14, padding: 11 },
   optionDescription: { fontSize: 11.5, lineHeight: 17, marginTop: 4 },
+  previewAction: { marginTop: 7 },
   sceneHelp: { fontSize: 10.5, lineHeight: 15, textAlign: 'center', paddingVertical: 3 },
   list: { gap: 8 },
   button: { marginTop: 8 },
