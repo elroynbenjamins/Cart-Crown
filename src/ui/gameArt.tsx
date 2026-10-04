@@ -2793,6 +2793,17 @@ function SettlementGrowthLayer({
 
   return (
     <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
+      {worldSource ? (
+        <View key="settlement-central-plaza" style={{ position: 'absolute', left: '32%', top: '31%' }}>
+          <SettlementDetailAtlasSprite
+            assetId="ui.settlement_world_human_atlas"
+            cell={settlementWorldHumanCells.road_cross}
+            size={rank >= 4 ? 138 : rank >= 2 ? 128 : 118}
+            opacity={rank >= 4 ? 0.62 : rank >= 2 ? 0.52 : 0.42}
+            tintColor={tintColor}
+          />
+        </View>
+      ) : null}
       {worldSource && rank >= 1 ? (
         <>
           <View style={{ position: 'absolute', left: '5%', bottom: '21%' }}>
@@ -3122,9 +3133,6 @@ export function SettlementTerrainBackdrop({
 
       {faction === 'human' ? (
         <>
-          <View key="settlement-world-road-cross" style={{ position: 'absolute', left: '37%', top: '38%' }}>
-            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.road_cross} size={104} opacity={0.92} />
-          </View>
           <View style={{ position: 'absolute', left: '8%', top: '40%' }}>
             <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.road_straight} size={76} opacity={0.75} />
           </View>
@@ -3194,16 +3202,16 @@ export function SettlementTerrainBackdrop({
         </>
       ) : null}
 
-      <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: roadWidth + 6, backgroundColor: roadEdge, opacity: faction === 'human' ? 0.16 : 0.78 }} />
-      <View style={{ position: 'absolute', left: 0, right: 0, top: '47%', height: roadWidth, backgroundColor: road, opacity: faction === 'human' ? 0.2 : 0.94 }} />
-      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '46%', width: roadWidth + 6, backgroundColor: roadEdge, opacity: faction === 'human' ? 0.16 : 0.78 }} />
-      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '47%', width: roadWidth, backgroundColor: road, opacity: faction === 'human' ? 0.2 : 0.94 }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: roadWidth + 6, backgroundColor: roadEdge, opacity: rank >= 2 ? 0.1 : 0.18 }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, top: '47%', height: roadWidth, backgroundColor: road, opacity: rank >= 2 ? 0.14 : 0.22 }} />
+      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '46%', width: roadWidth + 6, backgroundColor: roadEdge, opacity: rank >= 2 ? 0.1 : 0.18 }} />
+      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '47%', width: roadWidth, backgroundColor: road, opacity: rank >= 2 ? 0.14 : 0.22 }} />
 
       {rank >= 1 ? (
         <>
-          <View style={{ position: 'absolute', left: '8%', top: '43%', width: '18%', height: 3, backgroundColor: palette.wood, opacity: 0.7 }} />
-          <View style={{ position: 'absolute', right: '8%', top: '56%', width: '18%', height: 3, backgroundColor: palette.wood, opacity: 0.7 }} />
-          <View style={{ position: 'absolute', left: '42%', top: '8%', width: 3, height: '17%', backgroundColor: palette.wood, opacity: 0.65 }} />
+          <View style={{ position: 'absolute', left: '8%', top: '43%', width: '18%', height: 3, backgroundColor: palette.wood, opacity: 0.34 }} />
+          <View style={{ position: 'absolute', right: '8%', top: '56%', width: '18%', height: 3, backgroundColor: palette.wood, opacity: 0.34 }} />
+          <View style={{ position: 'absolute', left: '42%', top: '8%', width: 3, height: '17%', backgroundColor: palette.wood, opacity: 0.3 }} />
         </>
       ) : null}
 
