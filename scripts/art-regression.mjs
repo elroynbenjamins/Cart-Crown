@@ -240,8 +240,18 @@ if (!gameArt.includes('SettlementDetailAtlasSprite assetId="ui.settlement_people
 if (!gameArt.includes('SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas"')) {
   failures.push('Human settlement backdrop must render nature details from the production atlas.');
 }
-if (!gameArt.includes('SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas"')) {
-  failures.push('Human settlement backdrop must render scene-detail waterfront and market art.');
+for (const faction of ['human', 'elf', 'orc']) {
+  if (!gameArt.includes(faction + ": 'ui.settlement_scene_human_v2_atlas'")) {
+    failures.push('Settlement shared scene atlas routing missing for ' + faction + '.');
+  }
+}
+for (const faction of ['elf', 'orc']) {
+  if (!gameArt.includes(faction + ": '#")) {
+    failures.push('Settlement scene tint missing for ' + faction + '.');
+  }
+}
+if (!gameArt.includes('assetId={sceneAssetId}') || !gameArt.includes('tintColor={sceneTint}')) {
+  failures.push('Settlement backdrop must route and tint shared scene-detail art by faction.');
 }
 if (!gameArt.includes('export function SettlementBuildPlotSprite')) {
   failures.push('Settlement build plots must use the scene-detail production atlas when available.');
