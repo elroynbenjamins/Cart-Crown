@@ -1,7 +1,7 @@
 import { humanFigureForClass } from './portraitBattle/humanArt';
 import { ReferenceArt } from './portraitBattle/Art';
 import React from 'react';
-import { Image, View } from 'react-native';
+import { AccessibilityInfo, Animated, Easing, Image, View } from 'react-native';
 import type {
   BuildingRole,
   ChapterNode,
@@ -2599,6 +2599,54 @@ function SettlementDetailAtlasSprite({
   );
 }
 
+function useSettlementAmbientMotion(duration = 2200) {
+  const progress = React.useRef(new Animated.Value(0)).current;
+  const [reduceMotion, setReduceMotion] = React.useState(false);
+
+  React.useEffect(() => {
+    let active = true;
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(value => {
+        if (active) setReduceMotion(value);
+      })
+      .catch(() => undefined);
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, []);
+
+  React.useEffect(() => {
+    progress.stopAnimation();
+    if (reduceMotion) {
+      progress.setValue(0);
+      return;
+    }
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(progress, {
+          toValue: 1,
+          duration,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true
+        }),
+        Animated.timing(progress, {
+          toValue: 0,
+          duration,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true
+        })
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [duration, progress, reduceMotion]);
+
+  return progress;
+}
+
 const settlementAmbientPeopleTint: Record<FactionId, string | undefined> = {
   human: undefined,
   elf: '#95DDBD',
@@ -2656,6 +2704,12 @@ export function SettlementBuildingAmbience({
   const secondary = settlementAmbientSecondaryByRole[role];
   const smoky = kind === 'forge' || buildingId.includes('smokehouse');
   const showSecond = level >= 3 || role === 'KINGDOM' || role === 'MOUNT';
+  const motion = useSettlementAmbientMotion(2200 + Math.max(0, level - 1) * 120);
+  const idleLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.5] });
+  const bannerSway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1.2deg', '1.2deg'] });
+  const smokeLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -5] });
+  const smokeFade = motion.interpolate({ inputRange: [0, 1], outputRange: [0.34, 0.14] });
+  const glowPulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.42, 0.72] });
 
   return (
     <View style={{ width: size, height: size, position: 'relative' }}>
@@ -2670,9 +2724,9 @@ export function SettlementBuildingAmbience({
         </View>
       ) : null}
       {worldSource && (role === 'SCOUT' || role === 'COMMAND' || role === 'KINGDOM') ? (
-        <View style={{ position: 'absolute', right: size * 0.01, top: size * 0.04 }}>
+        <Animated.View style={{ position: 'absolute', right: size * 0.01, top: size * 0.04, transform: [{ rotate: bannerSway }] }}>
           <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={size * 0.3} opacity={0.82} tintColor={tintColor} />
-        </View>
+        </Animated.View>
       ) : null}
       {sceneSource && role === 'LOGISTICS' ? (
         <View style={{ position: 'absolute', left: -size * 0.05, bottom: -size * 0.02 }}>
@@ -2685,12 +2739,12 @@ export function SettlementBuildingAmbience({
         </View>
       ) : null}
       {peopleSource ? (
-        <View style={{ position: 'absolute', left: size * 0.02, bottom: 0 }}>
+        <Animated.View style={{ position: 'absolute', left: size * 0.02, bottom: 0, transform: [{ translateY: idleLift }] }}>
           <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells[primary]} size={size * 0.29} opacity={0.94} tintColor={tintColor} />
-        </View>
+        </Animated.View>
       ) : null}
       {peopleSource && showSecond ? (
-        <View style={{ position: 'absolute', right: role === 'MOUNT' ? -size * 0.03 : size * 0.07, bottom: role === 'MOUNT' ? -size * 0.02 : size * 0.01 }}>
+        <Animated.View style={{ position: 'absolute', right: role === 'MOUNT' ? -size * 0.03 : size * 0.07, bottom: role === 'MOUNT' ? -size * 0.02 : size * 0.01, transform: [{ translateY: idleLift }] }}>
           <SettlementDetailAtlasSprite
             assetId="ui.settlement_people_human_atlas"
             cell={settlementPeopleHumanCells[secondary]}
@@ -2698,20 +2752,20 @@ export function SettlementBuildingAmbience({
             opacity={0.9}
             tintColor={tintColor}
           />
-        </View>
+        </Animated.View>
       ) : null}
       {smoky ? (
         <>
-          <View style={{ position: 'absolute', right: size * 0.15, top: size * 0.12, width: size * 0.15, height: size * 0.15, borderRadius: size, backgroundColor: '#D8D1C3', opacity: 0.34 }} />
-          <View style={{ position: 'absolute', right: size * 0.09, top: size * 0.02, width: size * 0.11, height: size * 0.11, borderRadius: size, backgroundColor: '#E8E1D5', opacity: 0.25 }} />
-          <View style={{ position: 'absolute', right: size * 0.2, bottom: size * 0.11, width: size * 0.12, height: size * 0.09, borderRadius: size, backgroundColor: glow, opacity: 0.55 }} />
+          <Animated.View style={{ position: 'absolute', right: size * 0.15, top: size * 0.12, width: size * 0.15, height: size * 0.15, borderRadius: size, backgroundColor: '#D8D1C3', opacity: smokeFade, transform: [{ translateY: smokeLift }] }} />
+          <Animated.View style={{ position: 'absolute', right: size * 0.09, top: size * 0.02, width: size * 0.11, height: size * 0.11, borderRadius: size, backgroundColor: '#E8E1D5', opacity: smokeFade, transform: [{ translateY: smokeLift }] }} />
+          <Animated.View style={{ position: 'absolute', right: size * 0.2, bottom: size * 0.11, width: size * 0.12, height: size * 0.09, borderRadius: size, backgroundColor: glow, opacity: glowPulse }} />
         </>
       ) : null}
       {faction === 'elf' && role !== 'EQUIPMENT' ? (
-        <View style={{ position: 'absolute', left: size * 0.45, top: size * 0.08, width: size * 0.06, height: size * 0.06, borderRadius: size, backgroundColor: glow, opacity: 0.75 }} />
+        <Animated.View style={{ position: 'absolute', left: size * 0.45, top: size * 0.08, width: size * 0.06, height: size * 0.06, borderRadius: size, backgroundColor: glow, opacity: glowPulse }} />
       ) : null}
       {faction === 'orc' && (role === 'ARMY' || role === 'COMMAND' || role === 'SCOUT') ? (
-        <View style={{ position: 'absolute', left: size * 0.47, top: size * 0.04, width: size * 0.07, height: size * 0.1, backgroundColor: glow, opacity: 0.65 }} />
+        <Animated.View style={{ position: 'absolute', left: size * 0.47, top: size * 0.04, width: size * 0.07, height: size * 0.1, backgroundColor: glow, opacity: glowPulse }} />
       ) : null}
     </View>
   );
@@ -2790,6 +2844,10 @@ export function SettlementTerrainBackdrop({
     { left: '16%', top: '64%' }, { left: '81%', top: '67%' },
     { left: '43%', top: '13%' }, { left: '53%', top: '82%' }
   ] as const;
+  const worldMotion = useSettlementAmbientMotion(3200);
+  const waterShift = worldMotion.interpolate({ inputRange: [0, 1], outputRange: [-6, 6] });
+  const shimmerOpacity = worldMotion.interpolate({ inputRange: [0, 1], outputRange: [0.12, 0.3] });
+  const boatBob = worldMotion.interpolate({ inputRange: [0, 1], outputRange: [0, -2] });
 
   return (
     <View
@@ -2823,14 +2881,38 @@ export function SettlementTerrainBackdrop({
               opacity: 0.9
             }}
           />
+          <Animated.View
+            style={{
+              position: 'absolute',
+              left: '-5%',
+              bottom: rank >= 2 ? '9%' : '7%',
+              width: '110%',
+              height: 2,
+              backgroundColor: '#B8E9F0',
+              opacity: shimmerOpacity,
+              transform: [{ translateX: waterShift }]
+            }}
+          />
+          <Animated.View
+            style={{
+              position: 'absolute',
+              left: '-8%',
+              bottom: rank >= 2 ? '5%' : '4%',
+              width: '116%',
+              height: 1,
+              backgroundColor: '#E2F7FA',
+              opacity: shimmerOpacity,
+              transform: [{ translateX: waterShift }]
+            }}
+          />
           <View style={{ position: 'absolute', left: '2%', bottom: '-1%' }}>
             <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.dock} tintColor={sceneTint} size={74} opacity={0.98} />
           </View>
           {rank >= 2 ? (
             <>
-              <View style={{ position: 'absolute', left: '25%', bottom: '-1%' }}>
+              <Animated.View style={{ position: 'absolute', left: '25%', bottom: '-1%', transform: [{ translateY: boatBob }] }}>
                 <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.sailboat} tintColor={sceneTint} size={72} opacity={0.98} />
-              </View>
+              </Animated.View>
               <View style={{ position: 'absolute', right: '1%', bottom: '0%' }}>
                 <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.waterfall} tintColor={sceneTint} size={70} opacity={0.95} />
               </View>
