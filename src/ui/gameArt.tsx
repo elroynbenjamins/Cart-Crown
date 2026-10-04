@@ -2771,6 +2771,184 @@ export function SettlementBuildingAmbience({
   );
 }
 
+const settlementGrowthTint: Record<FactionId, string | undefined> = {
+  human: undefined,
+  elf: '#83B89A',
+  orc: '#9E5944'
+};
+
+function SettlementGrowthLayer({
+  faction,
+  rank
+}: {
+  faction: FactionId;
+  rank: number;
+}) {
+  const worldSource = getProductionAssetSource('ui.settlement_world_human_atlas');
+  const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
+  const natureSource = getProductionAssetSource('ui.settlement_nature_human_atlas');
+  const sceneSource = getProductionAssetSource(settlementSceneFactionAssetIds[faction]);
+  const tintColor = settlementGrowthTint[faction];
+  const sceneTint = settlementSceneFactionTints[faction];
+
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
+      {worldSource && rank >= 1 ? (
+        <>
+          <View style={{ position: 'absolute', left: '5%', bottom: '21%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.fence_gate} size={54} opacity={0.68} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '5%', bottom: '22%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={44} opacity={0.72} tintColor={tintColor} />
+          </View>
+        </>
+      ) : null}
+
+      {worldSource && rank >= 2 ? (
+        <>
+          <View style={{ position: 'absolute', left: '6%', top: '30%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.road_straight} size={70} opacity={0.46} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '6%', top: '34%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.road_straight} size={70} opacity={0.46} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', left: '44%', top: '7%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={40} opacity={0.78} tintColor={tintColor} />
+          </View>
+        </>
+      ) : null}
+
+      {natureSource && rank >= 2 ? (
+        <>
+          <View style={{ position: 'absolute', left: '3%', top: '17%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.fence} size={56} opacity={0.66} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '3%', top: '18%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.fence} size={56} opacity={0.66} tintColor={tintColor} />
+          </View>
+        </>
+      ) : null}
+
+      {peopleSource && rank >= 2 ? (
+        <>
+          <View style={{ position: 'absolute', left: '18%', top: '29%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.guard} size={30} opacity={0.84} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '18%', top: '31%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.worker} size={29} opacity={0.82} tintColor={tintColor} />
+          </View>
+        </>
+      ) : null}
+
+      {sceneSource && rank >= 3 ? (
+        <>
+          <View style={{ position: 'absolute', right: '3%', top: '61%' }}>
+            <SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.market} size={70} opacity={0.82} tintColor={sceneTint} />
+          </View>
+          <View style={{ position: 'absolute', left: '4%', top: '61%' }}>
+            <SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.wagon} size={62} opacity={0.8} tintColor={sceneTint} />
+          </View>
+        </>
+      ) : null}
+
+      {natureSource && rank >= 3 ? (
+        <>
+          <View style={{ position: 'absolute', left: '2%', top: '3%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.tree_dark} size={62} opacity={0.76} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '1%', top: '5%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.conifer} size={60} opacity={0.76} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', left: '10%', bottom: '16%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.bush_blue} size={42} opacity={0.78} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '10%', bottom: '17%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.bush_flowers} size={42} opacity={0.78} tintColor={tintColor} />
+          </View>
+        </>
+      ) : null}
+
+      {worldSource && rank >= 4 ? (
+        <>
+          <View style={{ position: 'absolute', left: '1%', top: '1%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.stone_wall} size={72} opacity={0.8} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '1%', top: '1%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.stone_wall} size={72} opacity={0.8} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', left: '17%', top: '8%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={42} opacity={0.9} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '17%', top: '8%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={42} opacity={0.9} tintColor={tintColor} />
+          </View>
+        </>
+      ) : null}
+
+      {sceneSource && rank >= 4 ? (
+        <View style={{ position: 'absolute', left: '42%', top: '0%' }}>
+          <SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.gate} size={66} opacity={0.9} tintColor={sceneTint} />
+        </View>
+      ) : null}
+
+      {peopleSource && rank >= 4 ? (
+        <>
+          <View style={{ position: 'absolute', left: '31%', top: '22%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.knight} size={31} opacity={0.9} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '31%', top: '22%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.guard} size={31} opacity={0.9} tintColor={tintColor} />
+          </View>
+        </>
+      ) : null}
+
+      {sceneSource && rank >= 5 ? (
+        <>
+          <View style={{ position: 'absolute', left: '42%', top: '52%' }}>
+            <SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.fountain} size={58} opacity={0.92} tintColor={sceneTint} />
+          </View>
+          <View style={{ position: 'absolute', left: '12%', bottom: '3%' }}>
+            <SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.dock} size={82} opacity={0.86} tintColor={sceneTint} />
+          </View>
+        </>
+      ) : null}
+
+      {worldSource && rank >= 5 ? (
+        <>
+          <View style={{ position: 'absolute', left: '7%', top: '48%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={44} opacity={0.92} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '7%', top: '48%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={44} opacity={0.92} tintColor={tintColor} />
+          </View>
+        </>
+      ) : null}
+
+      {peopleSource && rank >= 5 ? (
+        <>
+          <View style={{ position: 'absolute', left: '10%', top: '50%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.merchant} size={30} opacity={0.9} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', right: '10%', top: '51%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.woman} size={30} opacity={0.9} tintColor={tintColor} />
+          </View>
+          <View style={{ position: 'absolute', left: '47%', bottom: '17%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.porter} size={29} opacity={0.88} tintColor={tintColor} />
+          </View>
+        </>
+      ) : null}
+
+      {rank >= 6 ? (
+        <>
+          <View style={{ position: 'absolute', left: '27%', top: '2%', width: '46%', height: 2, backgroundColor: faction === 'elf' ? palette.elfLight : faction === 'orc' ? palette.orcLight : palette.gold, opacity: 0.75 }} />
+          <View style={{ position: 'absolute', left: '10%', top: '12%', width: 5, height: 5, borderRadius: 99, backgroundColor: faction === 'elf' ? palette.elfLight : faction === 'orc' ? palette.red : palette.gold, opacity: 0.88 }} />
+          <View style={{ position: 'absolute', right: '10%', top: '12%', width: 5, height: 5, borderRadius: 99, backgroundColor: faction === 'elf' ? palette.elfLight : faction === 'orc' ? palette.red : palette.gold, opacity: 0.88 }} />
+        </>
+      ) : null}
+    </View>
+  );
+}
+
 export function SettlementBuildPlotSprite({
   terrain,
   faction = 'human',
@@ -2866,6 +3044,7 @@ export function SettlementTerrainBackdrop({
       <View style={{ position: 'absolute', right: '3%', top: '7%', width: '30%', height: '23%', backgroundColor: clearing, opacity: 0.52 }} />
       <View style={{ position: 'absolute', left: '6%', bottom: '5%', width: '30%', height: '24%', backgroundColor: clearing, opacity: 0.47 }} />
       <View style={{ position: 'absolute', right: '5%', bottom: '5%', width: '31%', height: '25%', backgroundColor: clearing, opacity: 0.5 }} />
+      <SettlementGrowthLayer faction={faction} rank={rank} />
 
       {getProductionAssetSource(sceneAssetId) ? (
         <>
@@ -2906,7 +3085,7 @@ export function SettlementTerrainBackdrop({
             }}
           />
           <View style={{ position: 'absolute', left: '2%', bottom: '-1%' }}>
-            <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.dock} tintColor={sceneTint} size={74} opacity={0.98} />
+            <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.dock} tintColor={sceneTint} size={rank >= 4 ? 84 : rank >= 2 ? 78 : 70} opacity={0.98} />
           </View>
           {rank >= 2 ? (
             <>
@@ -2921,7 +3100,7 @@ export function SettlementTerrainBackdrop({
           {rank >= 1 ? (
             <>
               <View style={{ position: 'absolute', right: '7%', top: '57%' }}>
-                <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.market} tintColor={sceneTint} size={62} opacity={0.96} />
+                <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.market} tintColor={sceneTint} size={rank >= 4 ? 74 : rank >= 2 ? 68 : 60} opacity={0.96} />
               </View>
               <View style={{ position: 'absolute', left: '22%', top: '61%' }}>
                 <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.wagon} tintColor={sceneTint} size={58} opacity={0.94} />
@@ -2935,7 +3114,7 @@ export function SettlementTerrainBackdrop({
           ) : null}
           {rank >= 3 ? (
             <View style={{ position: 'absolute', right: '24%', bottom: '13%' }}>
-              <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.gate} tintColor={sceneTint} size={58} opacity={0.94} />
+              <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.gate} tintColor={sceneTint} size={rank >= 5 ? 72 : rank >= 4 ? 66 : 58} opacity={0.94} />
             </View>
           ) : null}
         </>
