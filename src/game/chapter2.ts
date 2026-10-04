@@ -3,15 +3,9 @@ import type {
   RecruitOption,
   ResourceSiteDefinition
 } from './types';
+import { getEarlyCampaignNodes } from './earlyCampaign';
 
-export const chapterTwoNodes: ChapterNode[] = [
-  { id: 'ch2_node_1', name: 'Fort Muster', type: 'event', completed: false, current: true },
-  { id: 'ch2_node_2', name: 'Iron Road Skirmish', type: 'battle', completed: false },
-  { id: 'ch2_node_3', name: 'Timber Claim', type: 'event', completed: false },
-  { id: 'ch2_node_4', name: 'Kingdom Defense', type: 'elite', completed: false },
-  { id: 'ch2_node_5', name: 'Broken Signal Tower', type: 'event', completed: false },
-  { id: 'ch2_node_6', name: 'The Iron Provost', type: 'boss', completed: false }
-];
+export const chapterTwoNodes: ChapterNode[] = getEarlyCampaignNodes('human', 2);
 
 export const fortMusterOptions: RecruitOption[] = [
   {
