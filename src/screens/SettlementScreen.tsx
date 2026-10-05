@@ -44,6 +44,18 @@ const humanFortWorldPositions: Record<string, { left: ViewStyle['left']; top: Vi
   plot_se: { left: '66%', top: '62%' }
 };
 
+const humanFortWorldCenters: Record<string, { x: number; y: number }> = {
+  plot_nw: { x: 0.24, y: 0.33 },
+  plot_n: { x: 0.505, y: 0.22 },
+  plot_ne: { x: 0.785, y: 0.33 },
+  plot_w: { x: 0.19, y: 0.54 },
+  plot_center: { x: 0.5, y: 0.46 },
+  plot_e: { x: 0.84, y: 0.54 },
+  plot_sw: { x: 0.245, y: 0.74 },
+  plot_s: { x: 0.51, y: 0.82 },
+  plot_se: { x: 0.79, y: 0.74 }
+};
+
 const settlementPlotCenters: Record<string, { x: number; y: number }> = {
   plot_nw: { x: 0.195, y: 0.265 },
   plot_n: { x: 0.505, y: 0.175 },
@@ -603,9 +615,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const districtAnalysisVisible =
     !worldRebuildActive ||
     Boolean(selectedBuildingId || selectedDistrictId || selectedPlotId || blueprintPlannerOpen || relocationMode);
+  const activePlotCenters = worldRebuildActive ? humanFortWorldCenters : settlementPlotCenters;
   const districtConnections = settlementAdjacencyBonuses.flatMap(bonus => {
-    const first = settlementPlotCenters[bonus.plotA];
-    const second = settlementPlotCenters[bonus.plotB];
+    const first = activePlotCenters[bonus.plotA];
+    const second = activePlotCenters[bonus.plotB];
     if (!first || !second) return [];
 
     const x1 = first.x * mapWidth;
@@ -665,8 +678,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     Boolean(selectedBuildingId || selectedDistrictId) &&
     visibleDistrictConnections.some(connection => connection.focused);
   const previewDistrictConnections = previewDistrictBonuses.flatMap(bonus => {
-    const first = settlementPlotCenters[bonus.plotA];
-    const second = settlementPlotCenters[bonus.plotB];
+    const first = activePlotCenters[bonus.plotA];
+    const second = activePlotCenters[bonus.plotB];
     if (!first || !second) return [];
 
     const x1 = first.x * mapWidth;
@@ -689,8 +702,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     }];
   });
   const relocationGainConnections = (relocationTarget?.gainedBonuses ?? []).flatMap(bonus => {
-    const first = settlementPlotCenters[bonus.plotA];
-    const second = settlementPlotCenters[bonus.plotB];
+    const first = activePlotCenters[bonus.plotA];
+    const second = activePlotCenters[bonus.plotB];
     if (!first || !second) return [];
     const x1 = first.x * mapWidth;
     const y1 = first.y * mapHeight;
@@ -711,8 +724,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     }];
   });
   const relocationLossConnections = (relocationTarget?.lostBonuses ?? []).flatMap(bonus => {
-    const first = settlementPlotCenters[bonus.plotA];
-    const second = settlementPlotCenters[bonus.plotB];
+    const first = activePlotCenters[bonus.plotA];
+    const second = activePlotCenters[bonus.plotB];
     if (!first || !second) return [];
     const x1 = first.x * mapWidth;
     const y1 = first.y * mapHeight;
@@ -828,7 +841,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     setMessage(ok ? previewBuilding.name + ' constructed. District bonuses recalculated.'
       : 'This building cannot be constructed here yet. Recheck the plot, unlock and resources; nothing was built.');
   };
-  const constructionAnchor = (selectedPlot ? settlementPlotCenters[selectedPlot.id] : null) ?? { x: 0.5, y: 0.5 };
+  const constructionAnchor = (selectedPlot ? activePlotCenters[selectedPlot.id] : null) ?? { x: 0.5, y: 0.5 };
   // Keep a clear side of the selected plot; only the card content scrolls.
   const constructionMaxHeight = Math.max(180, Math.min(380,
     Math.max(constructionAnchor.y, 1 - constructionAnchor.y) * mapHeight - 74));
@@ -864,7 +877,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     setSelectedDistrictId(null);
   }, [activeFaction]);
   const actionAnchorId = relocationMode && relocationTarget ? relocationTarget.plotId : sourcePlotId;
-  const actionAnchor = (actionAnchorId ? settlementPlotCenters[actionAnchorId] : null) ?? { x: 0.5, y: 0.5 };
+  const actionAnchor = (actionAnchorId ? activePlotCenters[actionAnchorId] : null) ?? { x: 0.5, y: 0.5 };
   const actionLayout = settlementActionLayout(mapWidth, mapHeight, actionAnchor, measuredActionHeight);
   const actionDetailHeight = Math.max(64, Math.min(280,
     Math.max(actionAnchor.y, 1 - actionAnchor.y) * mapHeight - 74 - measuredActionChrome));
