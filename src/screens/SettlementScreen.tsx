@@ -582,8 +582,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const safeFontScale = Number.isFinite(fontScale) ? fontScale : 1;
   const safeViewportHeight = Number.isFinite(viewportHeight) ? viewportHeight : 800;
   const mapHeight = Math.max(
-    600,
-    Math.min(780, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 120))
+    650,
+    Math.min(860, Math.round(safeViewportHeight * 0.8 + Math.max(0, safeFontScale - 1) * 130))
   );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
@@ -1095,6 +1095,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         <View pointerEvents="none" style={styles.backdrop}>
           <SettlementTerrainBackdrop faction={activeFaction} stageId={currentWagonStage.id} />
         </View>
+        <View pointerEvents="none" style={[styles.sceneInnerFrame, { borderColor: factionAccent + '66' }]} />
+        <View pointerEvents="none" style={[styles.sceneShadeTop, { backgroundColor: theme.colors.surface1 }]} />
+        <View pointerEvents="none" style={[styles.sceneShadeBottom, { backgroundColor: theme.colors.surface1 }]} />
         {unlockCelebration ? (
           <View
             pointerEvents="none"
@@ -1282,8 +1285,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
-          const buildingSize = landmark ? 88 : Math.round(62 * depthScale);
-          const ambienceSize = landmark ? 110 : Math.round(82 * depthScale);
+          const buildingSize = landmark ? 104 : Math.round(70 * depthScale);
+          const ambienceSize = landmark ? 126 : Math.round(94 * depthScale);
           const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
           const visualPosition = settlementPlotPositions[plot.id] ?? {
@@ -1395,8 +1398,22 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   styles.plotSurface,
                   {
-                    backgroundColor: building ? theme.colors.surface1 : unlocked ? 'transparent' : theme.colors.surface3,
-                    opacity: building ? 0.22 : unlocked ? 0.08 : 0.78
+                    backgroundColor: building
+                      ? theme.colors.surface1
+                      : !unlocked
+                        ? theme.colors.surface3
+                        : relocationPlanVisible && relocationPlan
+                          ? semanticColor(theme, relocationPlan.tone)
+                          : blueprintPlanVisible && blueprintPlanRating
+                            ? semanticColor(theme, blueprintPlanRating.qualityTone)
+                            : districtOpportunityVisible
+                              ? semanticColor(theme, 'positive')
+                              : recommendedBuildPlot
+                                ? theme.colors.gold
+                                : buildReady
+                                  ? factionAccent
+                                  : theme.colors.surface2,
+                    opacity: building ? 0.12 : unlocked ? selected ? 0.18 : buildReady || blueprintPlanVisible || relocationPlanVisible || districtOpportunityVisible ? 0.14 : 0.06 : 0.72
                   }
                 ]}
               />
@@ -1568,7 +1585,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   ) : null}
                   {plotSelected && previewBuilding && constructionPlotAvailable ? (
                     <View pointerEvents="none" testID="construction-ghost-preview" style={styles.constructionGhost}>
-                      <BuildingSprite buildingId={previewBuilding.id} faction={activeFaction} size={62} />
+                      <BuildingSprite buildingId={previewBuilding.id} faction={activeFaction} size={70} />
                       <Text style={[styles.constructionGhostLabel, { color: theme.colors.gold, backgroundColor: theme.colors.surface1 }]}>PREVIEW</Text>
                     </View>
                   ) : null}
@@ -1578,7 +1595,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       faction={activeFaction}
                       selected={plotSelected}
                       moveTarget={relocationMode}
-                      size={84}
+                      size={94}
                       color={theme.colors.textMuted}
                     />
                   </View>
@@ -2066,8 +2083,11 @@ const styles = StyleSheet.create({
   networkHintDetail: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', marginTop: 1 },
   networkHintAction: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
   section: { gap: 8, marginTop: 10 },
-  map: { borderRadius: 26, borderWidth: 1, overflow: 'hidden', position: 'relative' },
+  map: { borderRadius: 28, borderWidth: 2, overflow: 'hidden', position: 'relative', elevation: 3 },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
+  sceneInnerFrame: { position: 'absolute', left: 5, right: 5, top: 5, bottom: 5, borderWidth: 1, borderRadius: 23, opacity: 0.72, zIndex: 1 },
+  sceneShadeTop: { position: 'absolute', left: 0, right: 0, top: 0, height: 34, opacity: 0.16, zIndex: 1 },
+  sceneShadeBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 48, opacity: 0.2, zIndex: 1 },
   unlockCelebration: { position: 'absolute', top: 10, left: '20%', right: '20%', zIndex: 50, borderWidth: 1, borderRadius: 12, paddingHorizontal: 9, paddingVertical: 6, alignItems: 'center', opacity: 0.96 },
   unlockCelebrationLabel: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.9 },
   unlockCelebrationDetail: { fontSize: 11, lineHeight: 14, fontWeight: '900', marginTop: 1, maxWidth: '100%' },
@@ -2085,10 +2105,10 @@ const styles = StyleSheet.create({
   districtPreviewLink: { position: 'absolute', height: 1, borderTopWidth: 2, borderStyle: 'dashed', opacity: 0.9 },
   relocationPreviewLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 5 },
   relocationPreviewLink: { position: 'absolute', height: 1, borderTopWidth: 2.5, borderStyle: 'dashed', opacity: 0.92 },
-  plot: { position: 'absolute', width: '27%', height: '23%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'visible' },
-  landmarkPlot: { width: '32%', height: '27%' },
-  plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 13 },
-  selectionHalo: { position: 'absolute', left: '50%', bottom: '24%', marginLeft: -35, width: 70, height: 24, borderRadius: 999, borderWidth: 2 },
+  plot: { position: 'absolute', width: '28%', height: '24%', borderRadius: 17, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'visible' },
+  landmarkPlot: { width: '34%', height: '29%' },
+  plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: '#FFFFFF18' },
+  selectionHalo: { position: 'absolute', left: '50%', bottom: '21%', marginLeft: -44, width: 88, height: 32, borderRadius: 999, borderWidth: 2.5, opacity: 0.96 },
   unlockFocusRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -32, width: 76, height: 64, borderRadius: 18, borderWidth: 2, opacity: 0.72 },
   districtPreviewPartnerRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -36, marginTop: -30, width: 72, height: 60, borderRadius: 18, borderWidth: 2, borderStyle: 'dashed', opacity: 0.78 },
   landmarkDistrictPreviewPartnerRing: { marginLeft: -48, marginTop: -40, width: 96, height: 80, borderRadius: 22 },
@@ -2128,24 +2148,24 @@ const styles = StyleSheet.create({
   sceneDetailText: { fontSize: 12, lineHeight: 18 },
   sceneFeedback: { fontSize: 12, lineHeight: 17, fontWeight: '700', padding: 6 },
 
-  landmarkSelectionHalo: { marginLeft: -44, width: 88, height: 30, bottom: '22%' },
-  buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -41, marginTop: -41, width: 82, height: 82, alignItems: 'center', justifyContent: 'center' },
-  landmarkAmbience: { marginLeft: -55, marginTop: -59, width: 110, height: 110, transform: [{ translateY: -3 }] },
-  buildingPad: { width: 72, height: 64, alignItems: 'center', justifyContent: 'flex-end' },
-  selectedBuildingPad: { transform: [{ scale: 1.045 }] },
-  landmarkBuildingPad: { width: 94, height: 84, transform: [{ translateY: -5 }] },
-  buildingFootprint: { position: 'absolute', left: 7, right: 7, bottom: 1, height: 16, borderRadius: 999, opacity: 0.14 },
-  landmarkFootprint: { left: 4, right: 4, height: 22, opacity: 0.2 },
+  landmarkSelectionHalo: { marginLeft: -54, width: 108, height: 38, bottom: '19%' },
+  buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
+  landmarkAmbience: { marginLeft: -63, marginTop: -67, width: 126, height: 126, transform: [{ translateY: -5 }] },
+  buildingPad: { width: 82, height: 74, alignItems: 'center', justifyContent: 'flex-end', elevation: 4 },
+  selectedBuildingPad: { transform: [{ scale: 1.075 }, { translateY: -2 }] },
+  landmarkBuildingPad: { width: 108, height: 96, transform: [{ translateY: -8 }], elevation: 6 },
+  buildingFootprint: { position: 'absolute', left: 5, right: 5, bottom: 0, height: 20, borderRadius: 999, opacity: 0.18, transform: [{ scaleX: 1.08 }] },
+  landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
   plotGuideText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900' },
   plotBuildingName: { fontSize: 9.5, lineHeight: 13, fontWeight: '900', textAlign: 'center', marginTop: 0, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 5, maxWidth: '96%' },
   levelPill: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1, marginTop: 2 },
   plotLevel: { fontSize: 8.5, lineHeight: 11 },
   emptyPlus: { fontSize: 27, fontWeight: '600' },
-  buildPlotArt: { position: 'absolute', left: '50%', top: '50%', marginLeft: -42, marginTop: -42, width: 84, height: 84, alignItems: 'center', justifyContent: 'center' },
-  emptyBadge: { position: 'absolute', bottom: 5, alignSelf: 'center', borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 3, opacity: 0.9 },
-  buildReadyBadge: { position: 'absolute', top: 4, alignSelf: 'center', zIndex: 8, borderWidth: 1, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2 },
-  buildReadyText: { color: '#111318', fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.45 },
+  buildPlotArt: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
+  emptyBadge: { position: 'absolute', bottom: 4, alignSelf: 'center', minHeight: 27, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.96, elevation: 2 },
+  buildReadyBadge: { position: 'absolute', top: 3, alignSelf: 'center', zIndex: 8, minHeight: 24, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, elevation: 2 },
+  buildReadyText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.5 },
   buildReadyDot: { position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: 999, zIndex: 8 },
   upgradeReadyBadge: { position: 'absolute', top: 4, right: 5, zIndex: 9, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2 },
   upgradeReadyText: { color: '#111318', fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.3 },
