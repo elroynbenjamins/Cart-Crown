@@ -12,6 +12,8 @@ on:
       - 'src/ui/SettlementUI.tsx'
       - 'src/ui/settlementActionLayout.ts'
       - 'src/ui/gameArt.tsx'
+      - 'src/ui/generated/humanSettlementAtlas.ts'
+      - 'src/ui/generated/humanSettlementAtlas.ts'
       - 'src/ui/components.tsx'
       - 'src/ui/semanticColors.ts'
       - 'src/theme/**'
