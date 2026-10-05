@@ -18,9 +18,9 @@ export type CampaignJourneyPoint = {
 };
 
 const mapSources: Record<FactionId, ImageSourcePropType> = {
-  human: require('../../assets/game/scenes/human/campaign_map.png'),
-  elf: require('../../assets/game/scenes/elf/campaign_map.png'),
-  orc: require('../../assets/game/scenes/orc/campaign_map.png')
+  human: require('../../assets/game/scenes/human/camp.png'),
+  elf: require('../../assets/game/scenes/elf/camp.png'),
+  orc: require('../../assets/game/scenes/orc/camp.png')
 };
 
 const statusLabels: Record<CampaignJourneyPoint['status'], string> = {
@@ -228,10 +228,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   art: {
-    ...StyleSheet.absoluteFillObject
+    ...StyleSheet.absoluteFill
   },
   artShade: {
-    ...StyleSheet.absoluteFillObject
+    ...StyleSheet.absoluteFill
   },
   routeLine: {
     position: 'absolute',
