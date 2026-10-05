@@ -1,0 +1,118 @@
+name: Android settlement portrait validation
+# Final-head settlement capture trigger.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/android-settlement-native.yml'
+      - 'scripts/android-native-settlement-fixture.tsx'
+      - 'scripts/android-native-settlement-smoke.py'
+      - 'scripts/android-native-probe/**'
+      - 'src/screens/SettlementScreen.tsx'
+      - 'src/ui/SettlementUI.tsx'
+      - 'src/ui/settlementActionLayout.ts'
+      - 'src/ui/gameArt.tsx'
+      - 'src/ui/generated/humanSettlementAtlas.ts'
+      - 'src/ui/generated/humanSettlementAtlas.ts'
+      - 'src/ui/components.tsx'
+      - 'src/ui/semanticColors.ts'
+      - 'src/theme/**'
+      - 'src/game/GameProvider.tsx'
+      - 'src/game/settlement.ts'
+      - 'src/game/kingdom.ts'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-settlement-native.yml'
+      - 'scripts/android-native-settlement-fixture.tsx'
+      - 'scripts/android-native-settlement-smoke.py'
+      - 'scripts/android-native-probe/**'
+      - 'src/screens/SettlementScreen.tsx'
+      - 'src/ui/SettlementUI.tsx'
+      - 'src/ui/settlementActionLayout.ts'
+      - 'src/ui/gameArt.tsx'
+      - 'src/ui/components.tsx'
+      - 'src/ui/semanticColors.ts'
+      - 'src/theme/**'
+      - 'src/game/GameProvider.tsx'
+      - 'src/game/settlement.ts'
+      - 'src/game/kingdom.ts'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-settlement-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  portrait-settlement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install dependencies and validate native smoke script
+        run: |
+          npm install --include=dev --no-audit --no-fund
+          python3 -m py_compile scripts/android-native-settlement-smoke.py
+          npm run typecheck
+          npx --no-install tsx scripts/settlement-ui-regression.ts
+      - name: Prepare deterministic settlement-only native app
+        run: |
+          mkdir -p artifacts/settlement-native
+          git rev-parse HEAD > artifacts/settlement-native/source-commit.txt
+          cp App.tsx artifacts/settlement-native/production-App.tsx
+          cp scripts/android-native-settlement-fixture.tsx App.tsx
+          npx --no-install expo config --type public --json > artifacts/settlement-native/expo-config.json
+          npx --no-install expo prebuild --platform android --no-install
+          cp -R scripts/android-native-probe android/nativeUiProbe
+          printf '\ninclude ":nativeUiProbe"\n' >> android/settings.gradle
+      - name: Compile release fixture and accessibility probe
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew :app:assembleRelease :nativeUiProbe:assembleDebug --no-daemon --max-workers=2             -PreactNativeArchitectures=x86_64             '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g'
+          cp nativeUiProbe/build/outputs/apk/debug/nativeUiProbe-debug.apk ../artifacts/settlement-native/ui-probe.apk
+      - name: Sign installable fixture APK
+        run: |
+          set -euo pipefail
+          APK=$(find android/app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -n 1)
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/cart-crown-settlement-ci.jks"             -storepass android -keypass android -alias androiddebugkey             -dname 'CN=Cart Crown Settlement CI, O=Testing, C=NL' -keyalg RSA -keysize 2048 -validity 30
+          "$BUILD_TOOLS/apksigner" sign --ks "$RUNNER_TEMP/cart-crown-settlement-ci.jks"             --ks-pass pass:android --key-pass pass:android             --out artifacts/settlement-native/cart-crown-settlement-ci.apk "$APK"
+          "$BUILD_TOOLS/apksigner" verify --verbose artifacts/settlement-native/cart-crown-settlement-ci.apk             > artifacts/settlement-native/signature-check.txt
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Exercise settlement on Android 15
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: python3 scripts/android-native-settlement-smoke.py --apk artifacts/settlement-native/cart-crown-settlement-ci.apk --probe artifacts/settlement-native/ui-probe.apk --out artifacts/settlement-native/smoke
+      - name: Upload settlement native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-settlement-${{ github.run_id }}
+          path: artifacts/settlement-native/
+          if-no-files-found: warn
+          retention-days: 7
