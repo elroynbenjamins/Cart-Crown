@@ -148,6 +148,12 @@ const treasuryAtlas = {
   // category or atlas receives this tolerance.
   maxMarginAlpha: 1, maxMarginPixels: 32
 };
+const settlementHumanV2Atlas = {
+  relativePath: 'assets/game/ui/settlement_buildings_human_v2_atlas.png',
+  assetId: 'ui.settlement_buildings_human_v2_atlas',
+  width: 768, height: 768, maxBytes: 1000000, columns: 3, rows: 3,
+  margin: 8, minCellCoverage: 0.1
+};
 const sprites = walk(path.join(root, 'assets/game')).filter(file => file.endsWith('.png')).sort();
 assert.ok(sprites.length > 0, 'No production PNGs found');
 const hashes = new Map();
@@ -157,6 +163,7 @@ for (const file of sprites) {
   try {
     const scene = campScenes.get(rel);
     if (rel === treasuryAtlas.relativePath) validateAlphaAtlasPng(bytes, treasuryAtlas);
+    else if (rel === settlementHumanV2Atlas.relativePath) validateAlphaAtlasPng(bytes, settlementHumanV2Atlas);
     else if (scene) {
       campSceneBytes += bytes.length;
       validateScenePng(bytes, scene);
@@ -195,6 +202,9 @@ for (const [relativePath, scene] of campScenes) {
 if (!spritePaths.has(treasuryAtlas.relativePath)) failures.push('Treasury atlas is missing.');
 const treasuryRegistration = "'" + treasuryAtlas.assetId + "': require('../../" + treasuryAtlas.relativePath + "')";
 if (!registry.includes(treasuryRegistration)) failures.push('Treasury atlas is not registered as ui.treasury_atlas.');
+if (!spritePaths.has(settlementHumanV2Atlas.relativePath)) failures.push('High-detail Human settlement atlas is missing.');
+const settlementHumanV2Registration = "'" + settlementHumanV2Atlas.assetId + "': require('../../" + settlementHumanV2Atlas.relativePath + "')";
+if (!registry.includes(settlementHumanV2Registration)) failures.push('High-detail Human settlement atlas is not registered.');
 
 // The first settlement-art batch intentionally uses one compact 3x3 atlas so the
 // nine faction anchors stay visually consistent and load as one production PNG.
@@ -304,6 +314,26 @@ for (const [assetId, relativePath] of [
 }
 
 const gameArt = fs.readFileSync(path.join(root, 'src/ui/gameArt.tsx'), 'utf8');
+const settlementHumanV2Cells = {
+  hall: [0, 0],
+  barracks: [256, 0],
+  wagonwright: [512, 0],
+  forge: [0, 256],
+  quartermaster: [256, 256],
+  stable: [512, 256],
+  war_room: [0, 512],
+  signal_tower: [256, 512],
+  officer_academy: [512, 512]
+};
+for (const [buildingId, [x, y]] of Object.entries(settlementHumanV2Cells)) {
+  if (!gameArt.includes(buildingId + ': { x: ' + x + ', y: ' + y + ' }')) {
+    failures.push('High-detail Human settlement atlas mapping missing or moved for ' + buildingId + '.');
+  }
+}
+if (!gameArt.includes("faction === 'human'") || !gameArt.includes("getProductionAssetSource('ui.settlement_buildings_human_v2_atlas')")) {
+  failures.push('Human BuildingSprite must prefer the high-detail settlement atlas.');
+}
+
 const settlementCells = {
   hall: [0, 0],
   barracks: [86, 0],
