@@ -116,6 +116,35 @@ function settlementDistrictTone(bonus: SettlementAdjacencyBonusDefinition): Sema
   return 'positive';
 }
 
+type DistrictOverlayFilter = 'all' | 'economy' | 'military' | 'command';
+
+function settlementDistrictCategory(bonus: SettlementAdjacencyBonusDefinition): Exclude<DistrictOverlayFilter, 'all'> {
+  const effects = bonus.effects;
+  if (
+    effects.expeditionWoodBonus !== undefined ||
+    effects.expeditionProvisionBonus !== undefined ||
+    effects.dailyProvisionBonus !== undefined
+  ) return 'economy';
+  if (
+    effects.commanderSkillPowerMultiplier !== undefined ||
+    effects.commanderRespecDiscount !== undefined ||
+    effects.commanderSkillEarlyTrigger !== undefined ||
+    effects.detailedIntel !== undefined
+  ) return 'command';
+  return 'military';
+}
+
+const settlementDistrictOverlayFilters: Array<{
+  id: DistrictOverlayFilter;
+  label: string;
+  tone: SemanticTone;
+}> = [
+  { id: 'all', label: 'All', tone: 'neutral' },
+  { id: 'economy', label: 'Economy', tone: 'green' },
+  { id: 'military', label: 'Military', tone: 'orange' },
+  { id: 'command', label: 'Command', tone: 'violet' }
+];
+
 type SettlementUnlockSnapshot = {
   stageId: string;
   unlockedPlotIds: string[];
@@ -151,6 +180,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [previewBuildingId, setPreviewBuildingId] = useState<string | null>(null);
   const [blueprintPlannerOpen, setBlueprintPlannerOpen] = useState(false);
   const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
+  const [districtOverlayFilter, setDistrictOverlayFilter] = useState<DistrictOverlayFilter>('all');
   const [message, setMessage] = useState<string | null>(null);
   const [unlockCelebration, setUnlockCelebration] = useState<SettlementUnlockCelebration | null>(null);
   const settlementPlots = getSettlementPlots(activeFaction);
@@ -503,6 +533,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       id: bonus.id,
       name: bonus.name,
       tone,
+      category: settlementDistrictCategory(bonus),
       color,
       focused,
       style: {
@@ -525,7 +556,18 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       } as ViewStyle
     }];
   });
-  const districtFocusActive = Boolean(selectedBuildingId);
+  const districtOverlayCounts: Record<DistrictOverlayFilter, number> = {
+    all: settlementAdjacencyBonuses.length,
+    economy: settlementAdjacencyBonuses.filter(bonus => settlementDistrictCategory(bonus) === 'economy').length,
+    military: settlementAdjacencyBonuses.filter(bonus => settlementDistrictCategory(bonus) === 'military').length,
+    command: settlementAdjacencyBonuses.filter(bonus => settlementDistrictCategory(bonus) === 'command').length
+  };
+  const visibleDistrictConnections = districtOverlayFilter === 'all'
+    ? districtConnections
+    : districtConnections.filter(connection => connection.category === districtOverlayFilter);
+  const districtFocusActive =
+    Boolean(selectedBuildingId) &&
+    visibleDistrictConnections.some(connection => connection.focused);
   const previewDistrictConnections = previewDistrictBonuses.flatMap(bonus => {
     const first = settlementPlotCenters[bonus.plotA];
     const second = settlementPlotCenters[bonus.plotB];
@@ -798,9 +840,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <Text style={[styles.unlockCelebrationDetail, { color: theme.colors.text }]} numberOfLines={1}>{unlockCelebration.detail}</Text>
           </View>
         ) : null}
-        {districtConnections.length ? (
+        {visibleDistrictConnections.length ? (
           <View pointerEvents="none" style={styles.districtZoneLayer}>
-            {districtConnections.map(connection => {
+            {visibleDistrictConnections.map(connection => {
               const dimmed = districtFocusActive && !connection.focused;
               const zoneFill = blendColor(
                 connection.color,
@@ -850,7 +892,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </View>
         ) : null}
         <View pointerEvents="none" style={styles.districtLayer}>
-          {districtConnections.map(connection => (
+          {visibleDistrictConnections.map(connection => (
             <React.Fragment key={connection.id}>
               <View
                 style={[
@@ -1222,8 +1264,51 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </>
         ) : null}
       </View>
+      {settlementAdjacencyBonuses.length ? (
+        <View
+          testID="district-overlay-controls"
+          accessibilityLabel="District overlay filters"
+          style={[styles.districtOverlayControls, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+        >
+          <Text style={[styles.districtOverlayLabel, { color: theme.colors.textMuted }]}>DISTRICT OVERLAY</Text>
+          <View style={styles.districtOverlayButtons}>
+            {settlementDistrictOverlayFilters.map(filter => {
+              const active = districtOverlayFilter === filter.id;
+              const toneColor = semanticColor(theme, filter.tone);
+              return (
+                <Pressable
+                  key={filter.id}
+                  testID={'district-overlay-filter-' + filter.id}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  accessibilityLabel={filter.label + ' district overlay, ' + districtOverlayCounts[filter.id] + ' active'}
+                  onPress={() => setDistrictOverlayFilter(filter.id)}
+                  style={[
+                    styles.districtOverlayButton,
+                    {
+                      borderColor: active ? toneColor : theme.colors.border,
+                      backgroundColor: active
+                        ? blendColor(toneColor, theme.colors.surface1, theme.dark ? 0.16 : 0.08)
+                        : theme.colors.surface2
+                    }
+                  ]}
+                >
+                  <Text style={[styles.districtOverlayButtonText, { color: active ? toneColor : theme.colors.textMuted }]}>
+                    {filter.label}
+                  </Text>
+                  <Text style={[styles.districtOverlayCount, { color: active ? toneColor : theme.colors.textMuted }]}>
+                    {districtOverlayCounts[filter.id]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      ) : null}
       <View style={styles.sceneLegend}>
-        <Text style={[styles.sceneLegendText, { color: theme.colors.textMuted }]}>Tap structures · marked ground = build</Text>
+        <Text style={[styles.sceneLegendText, { color: theme.colors.textMuted }]}>
+          {districtOverlayFilter === 'all' ? 'Tap structures · marked ground = build' : districtOverlayFilter.charAt(0).toUpperCase() + districtOverlayFilter.slice(1) + ' districts shown'}
+        </Text>
         <Text style={[styles.sceneLegendCount, { color: factionAccent }]}>{placedIds.length}/{buildings.length}</Text>
       </View>
 
@@ -1476,6 +1561,12 @@ const styles = StyleSheet.create({
   nextGoalTitle: { fontSize: 10.5, lineHeight: 13, fontWeight: '900', maxWidth: '100%' },
   body: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 7 },
+  districtOverlayControls: { borderWidth: 1, borderRadius: 13, paddingHorizontal: 7, paddingVertical: 6, gap: 5 },
+  districtOverlayLabel: { fontSize: 6.5, lineHeight: 8, fontWeight: '900', letterSpacing: 0.8 },
+  districtOverlayButtons: { flexDirection: 'row', gap: 4 },
+  districtOverlayButton: { flex: 1, minWidth: 0, borderWidth: 1, borderRadius: 9, paddingHorizontal: 4, paddingVertical: 4, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 3 },
+  districtOverlayButtonText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900' },
+  districtOverlayCount: { fontSize: 6.5, lineHeight: 9, fontWeight: '900' },
   sceneLegend: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 3, marginTop: -1 },
   sceneLegendText: { fontSize: 9.5, lineHeight: 13, fontWeight: '700' },
   sceneLegendCount: { fontSize: 10, lineHeight: 13, fontWeight: '900' },
