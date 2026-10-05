@@ -1575,7 +1575,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       ]}
                     />
                   ) : null}
-                  {districtCount > 0 && !selected ? (
+                  {districtCount > 0 ? (
                     <View
                       pointerEvents="none"
                       testID={'building-district-aura-' + building.id}
@@ -1584,7 +1584,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         landmark ? styles.landmarkDistrictAura : undefined,
                         {
                           borderColor: districtActivityColor,
-                          backgroundColor: districtActivityColor + (districtCount > 1 ? '22' : '16')
+                          backgroundColor: districtActivityColor + (districtCount > 1 ? '22' : '16'),
+                          opacity: selected ? 0.46 : districtCount > 1 ? 0.84 : 0.72
                         }
                       ]}
                     />
