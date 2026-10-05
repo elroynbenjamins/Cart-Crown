@@ -32,6 +32,18 @@ const settlementPlotPositions: Record<string, { left: ViewStyle['left']; top: Vi
   plot_se: { left: '68%', top: '66%' }
 };
 
+const humanFortWorldPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
+  plot_nw: { left: '10%', top: '21%' },
+  plot_n: { left: '37%', top: '10%' },
+  plot_ne: { left: '65%', top: '21%' },
+  plot_w: { left: '5%', top: '42%' },
+  plot_center: { left: '33%', top: '33%' },
+  plot_e: { left: '70%', top: '42%' },
+  plot_sw: { left: '11%', top: '62%' },
+  plot_s: { left: '38%', top: '70%' },
+  plot_se: { left: '66%', top: '62%' }
+};
+
 const settlementPlotCenters: Record<string, { x: number; y: number }> = {
   plot_nw: { x: 0.195, y: 0.265 },
   plot_n: { x: 0.505, y: 0.175 },
