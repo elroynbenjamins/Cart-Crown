@@ -314,7 +314,7 @@ function testDistrictCodexConsolidation() {
   check(Boolean(toggle), 'District Codex must expose one compact expand/collapse control.');
   check(toggle?.props.accessibilityState?.expanded === false, 'District Codex must be collapsed by default.');
   check(!nodes(tree, 'View').some(node => node.props.testID === 'district-codex-panel'), 'Collapsed District Codex must not permanently render recipe details.');
-  check(text(tree).includes('0/6 active'), 'Collapsed District Codex must summarize active versus authored recipes.');
+  check(toggle?.props.accessibilityLabel === 'District Codex, 0 of 6 active', 'Collapsed District Codex must summarize active versus authored recipes.');
   check(nodes(tree, 'SemanticChip').some(node => node.props.label === '6 developing'), 'Collapsed District Codex must summarize recipes still being developed.');
   check(nodes(tree, 'SectionTitle').length === 0, 'Legacy standalone district section headings must be removed.');
   check(nodes(tree, 'GameCard').length === 0, 'Legacy stacked district cards must be removed from the settlement screen.');
@@ -343,7 +343,8 @@ function testDistrictCodexConsolidation() {
   f.refresh();
   tree = f.h.render();
 
-  check(text(tree).includes('1/6 active'), 'District Codex summary must react immediately when a district activates.');
+  const updatedToggle = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-codex-toggle');
+  check(updatedToggle?.props.accessibilityLabel === 'District Codex, 1 of 6 active', 'District Codex summary must react immediately when a district activates.');
   const activeArsenal = nodes(tree, 'View').find(node => node.props.testID === 'district-codex-row-arsenal_district');
   check(
     nodes(activeArsenal, 'SemanticChip').some(node => node.props.label === 'Active'),
