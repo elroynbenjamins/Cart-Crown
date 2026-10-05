@@ -305,6 +305,63 @@ function testRecipesAndInteractions() {
   }
 }
 
+function testDistrictNetworkOptimizationHint() {
+  const f = fixture('human');
+  f.game.buildingPlacements = {
+    ...f.game.buildingPlacements,
+    plot_nw: 'war_room',
+    plot_n: null,
+    plot_ne: 'signal_tower'
+  };
+  f.game.buildingLevels = {
+    ...f.game.buildingLevels,
+    war_room: 1,
+    signal_tower: 1
+  };
+  f.refresh();
+
+  let tree = f.h.render();
+  check(f.game.settlementAdjacencyBonuses.length === 0, 'Optimization fixture must start with zero active districts.');
+  const hint = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-network-hint');
+  check(Boolean(hint), 'A strictly better single relocation must surface a district-network hint.');
+  const warRoom = f.game.buildings.find((building: any) => building.id === 'war_room')!;
+  check(
+    hint?.props.accessibilityLabel === 'Better layout available, 0 to 2 districts. Preview moving ' + warRoom.name + ' to North',
+    'Network hint must name the exact best building, destination and current-to-future district count.'
+  );
+  check(
+    nodes(tree, 'SemanticChip').some(node => node.props.label === '0→2 layout'),
+    'The HUD must summarize the best whole-network improvement without forcing the move.'
+  );
+
+  const callsBeforePreview = f.calls.length;
+  hint!.props.onPress();
+  tree = f.h.render();
+
+  check(f.calls.length === callsBeforePreview, 'Opening the network hint must preview rather than relocate immediately.');
+  check(
+    nodes(tree, 'SemanticChip').some(node => node.props.label === 'Network 0 → 2'),
+    'Best-layout preview must expose total district count before and after.'
+  );
+  check(nodes(tree, 'SemanticChip').some(node => node.props.label === 'Gain +2'), 'Best-layout preview must expose exact gained districts.');
+  check(nodes(tree, 'SemanticChip').some(node => node.props.label === 'Lose -0'), 'Best-layout preview must expose exact lost districts.');
+  check(nodes(tree, 'SemanticChip').some(node => node.props.label === 'Net +2'), 'Best-layout preview must expose exact net improvement.');
+  check(
+    nodes(tree, 'View').some(node => node.props.testID === 'relocation-gain-link-seat_of_command'),
+    'Network optimization preview must draw Seat of Command as a gained connection.'
+  );
+  check(
+    nodes(tree, 'View').some(node => node.props.testID === 'relocation-gain-link-command_network'),
+    'Network optimization preview must draw Command Network as a gained connection.'
+  );
+
+  press(tree, 'Confirm free move');
+  tree = f.h.render();
+  check(f.calls.at(-1)?.[0] === 'move' && f.calls.at(-1)?.[1] === 'war_room' && f.calls.at(-1)?.[2] === 'plot_n', 'Only explicit confirmation may apply the suggested network relocation.');
+  check(f.game.settlementAdjacencyBonuses.length === 2, 'Confirmed best-layout relocation must produce the predicted two active districts.');
+  check(!nodes(tree, 'Pressable').some(node => node.props.testID === 'district-network-hint'), 'Optimization hint must disappear when no strictly better single relocation remains.');
+}
+
 function testBlueprintFirstPlanner() {
   const f = fixture('human');
   let tree = f.h.render();
@@ -422,6 +479,7 @@ check(settlementScreenSource.includes('UPGRADE MATERIALS READY'), 'Settlement up
 
 testEffects();
 testRecipesAndInteractions();
+testDistrictNetworkOptimizationHint();
 testBlueprintFirstPlanner();
 testExcellentPlacementQuality();
 testTutorialAndCosts();
