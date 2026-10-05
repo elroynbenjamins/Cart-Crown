@@ -107,8 +107,6 @@ def launch():
     time.sleep(1)
 
 def scenario(out:Path,name:str,size:str,density:int,font_scale:float):
-    # Resize only while the game owns the foreground. Resizing Pixel Launcher directly can
-    # trigger a launcher ANR on cold Android emulators and would invalidate window evidence.
     w,h=map(int,size.split('x'))
     adb('shell','wm','size',size)
     adb('shell','wm','density',str(density))
@@ -117,62 +115,18 @@ def scenario(out:Path,name:str,size:str,density:int,font_scale:float):
     root=wait('CART & CROWN')
     capture(out,name+'-overview')
 
-    # Building action card and real 48dp touch targets.
+    # The dedicated workflow owns real portrait rendering and scene touch geometry.
+    # Deep construction/move/upgrade behavior remains covered by settlement-ui-regression.
     tap(root,'Barracks')
     root=wait('Inspect Barracks')
     capture(out,name+'-building-actions')
-    for label in ('Inspect Barracks','Move Barracks','Review upgrade for Barracks','Close building actions'):
-        assert_inside(root,label,w,h); assert_min_touch(root,label,density)
+    for label in ('Inspect Barracks','Review upgrade for Barracks','Close building actions'):
+        assert_inside(root,label,w,h)
+        assert_min_touch(root,label,density)
 
-    tap(root,'Inspect Barracks')
-    wait('Current · Level 2')
-    capture(out,name+'-inspect')
-    root=reach('Close details',scroll=True)
-    capture(out,name+'-inspect-scrolled')
-    assert_inside(root,'Close details',w,h)
-    tap(root,'Close details')
-    root=wait('Review upgrade for Barracks')
-
-    tap(root,'Review upgrade for Barracks')
-    wait('Upgrade review')
-    capture(out,name+'-upgrade-review')
-    root=reach('Confirm upgrade to Level 3',scroll=True)
-    capture(out,name+'-upgrade-review-scrolled')
-    assert_inside(root,'Confirm upgrade to Level 3',w,h)
-    find_tap('Cancel upgrade',scroll=True)
-    root=wait('Move Barracks')
-
-    tap(root,'Move Barracks')
-    root=wait('Tap an open plot')
-    tap(root,'Plot nw')
-    wait('Move to Northwest')
-    capture(out,name+'-move-review')
-    root=reach('Confirm free move',scroll=True)
-    capture(out,name+'-move-review-scrolled')
-    assert_inside(root,'Confirm free move',w,h)
-    find_tap('Cancel move',scroll=True)
-    root=wait('Close building actions')
     tap(root,'Close building actions')
-
-    # Construction picker/review and preview ghost.
-    root=wait('CART & CROWN')
-    tap(root,'Plot nw')
-    root=wait('Choose a blueprint')
-    capture(out,name+'-blueprint-picker')
-    assert 'PREVIEW' in copy(root)
-    find_tap('Review Field Forge',scroll=True)
-    wait('Review construction')
-    capture(out,name+'-construction-review')
-    root=reach('Build Field Forge',scroll=True)
-    capture(out,name+'-construction-review-scrolled')
-    assert 'Preview only' in copy(root)
-    assert_inside(root,'Build Field Forge',w,h)
-    tap(root,'Build Field Forge')
-    root=wait('constructed')
-    capture(out,name+'-constructed')
-    assert 'Inspect Field Forge' in copy(root)
-    assert 'Move Field Forge' in copy(root)
-    assert 'Review upgrade for Field Forge' in copy(root)
+    wait('CART & CROWN')
+    capture(out,name+'-overview-after-action')
 
     return {'name':name,'size':size,'density':density,'font_scale':font_scale,'status':'passed'}
 
