@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import { deflateSync } from 'node:zlib';
-import { crc32, validateScenePng, validateSpritePng } from './png-integrity.mjs';
+import { crc32, validateAlphaAtlasPng, validateScenePng, validateSpritePng } from './png-integrity.mjs';
 
 // Exercise the checker itself; a corrupted payload must never pass on its header.
 function chunk(type, payload) {
@@ -75,6 +75,50 @@ const keyedTransparentScene = Buffer.concat([opaqueSceneFixture.subarray(0, 33),
 assert.throws(() => validateScenePng(keyedTransparentScene, sceneFixtureContract), /transparency chunk/);
 assert.throws(() => validateSpritePng(opaqueSceneFixture), /256x256/);
 
+// Six separate icons must not bleed into a neighboring icon when cropped from
+// one source. Margins are exact by default; only the reviewed treasury contract
+// below permits a tightly capped amount of alpha-mask quantization roundoff.
+function atlasFixture({ blankCell = -1, spill = null, opaque = false } = {}) {
+  const width = 48, height = 32, stride = width * 4 + 1;
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0); ihdr.writeUInt32BE(height, 4); ihdr[8] = 8; ihdr[9] = 6;
+  const raw = Buffer.alloc(height * stride);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const cell = Math.floor(y / 16) * 3 + Math.floor(x / 16);
+      const inside = x % 16 >= 3 && x % 16 < 13 && y % 16 >= 3 && y % 16 < 13;
+      const offset = y * stride + 1 + x * 4;
+      raw[offset] = 50 + cell * 20; raw[offset + 1] = 100; raw[offset + 2] = 140;
+      raw[offset + 3] = opaque || (inside && cell !== blankCell) ? 255 : 0;
+    }
+  }
+  if (spill) for (const pixel of Array.isArray(spill) ? spill : [spill]) {
+    raw[pixel.y * stride + 1 + pixel.x * 4 + 3] = pixel.alpha ?? 1;
+  }
+  return Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
+}
+const atlasFixtureContract = { width: 48, height: 32, maxBytes: 1024, columns: 3, rows: 2, margin: 2, minCellCoverage: 0.1 };
+const validAtlasFixture = atlasFixture();
+assert.deepEqual(validateAlphaAtlasPng(validAtlasFixture, atlasFixtureContract).cells.map(cell => cell.visible), [100, 100, 100, 100, 100, 100]);
+assert.throws(() => validateAlphaAtlasPng(validAtlasFixture), /explicit dimensions/);
+assert.throws(() => validateAlphaAtlasPng(validAtlasFixture, { ...atlasFixtureContract, width: 49 }), /Atlas must be 49x32/);
+assert.throws(() => validateAlphaAtlasPng(validAtlasFixture, { ...atlasFixtureContract, maxBytes: validAtlasFixture.length - 1 }), /file size/);
+assert.throws(() => validateAlphaAtlasPng(validAtlasFixture, { ...atlasFixtureContract, margin: 0 }), /transparent margins/);
+assert.throws(() => validateAlphaAtlasPng(atlasFixture({ blankCell: 5 }), atlasFixtureContract), /cell 2,1.*blank/);
+assert.throws(() => validateAlphaAtlasPng(atlasFixture({ spill: { x: 0, y: 8 } }), atlasFixtureContract), /transparent margin/);
+assert.throws(() => validateAlphaAtlasPng(atlasFixture({ spill: { x: 16, y: 8 } }), atlasFixtureContract), /transparent margin/);
+assert.throws(() => validateAlphaAtlasPng(atlasFixture({ spill: { x: 8, y: 16 } }), atlasFixtureContract), /transparent margin/);
+assert.throws(() => validateAlphaAtlasPng(atlasFixture({ opaque: true }), atlasFixtureContract), /real transparency/);
+const atlasRoundoffContract = { ...atlasFixtureContract, maxMarginAlpha: 1, maxMarginPixels: 32 };
+const sparseRoundoff = Array.from({ length: 32 }, (_, x) => ({ x, y: 0, alpha: 1 }));
+assert.equal(validateAlphaAtlasPng(atlasFixture({ spill: sparseRoundoff }), atlasRoundoffContract).marginNoisePixels, 32);
+assert.throws(() => validateAlphaAtlasPng(atlasFixture({ spill: [...sparseRoundoff, { x: 32, y: 0, alpha: 1 }] }), atlasRoundoffContract), /margin roundoff budget/);
+assert.throws(() => validateAlphaAtlasPng(atlasFixture({ spill: { x: 16, y: 8, alpha: 2 } }), atlasRoundoffContract), /transparent margin/);
+assert.throws(() => validateAlphaAtlasPng(validAtlasFixture, { ...atlasRoundoffContract, maxMarginAlpha: 2 }), /roundoff allowance/);
+const corruptAtlasFixture = Buffer.from(validAtlasFixture); corruptAtlasFixture[45] ^= 1;
+assert.throws(() => validateAlphaAtlasPng(corruptAtlasFixture, atlasFixtureContract), /CRC mismatch/);
+assert.throws(() => validateSpritePng(validAtlasFixture), /256x256/);
+
 const root = process.cwd();
 const failures = [];
 function walk(dir) {
@@ -85,15 +129,25 @@ function walk(dir) {
   });
 }
 function relative(file) { return path.relative(root, file).split(path.sep).join('/'); }
-// Only these reviewed panorama files use the scene contract. Every other asset
-// retains the 256x256 alpha contract; unknown scene files fail instead of escaping
-// validation because they happen to live under a scenes directory.
+// Only these reviewed panorama files use the scene contract. Apart from the
+// explicit treasury atlas below, other assets retain the 256x256 alpha contract.
+// Unknown scene files fail rather than escaping checks through their directory.
 const campScenes = new Map([
   ['assets/game/scenes/human/camp.png', { assetId: 'scene.human.camp', width: 1672, height: 941, maxBytes: 3500000 }],
   ['assets/game/scenes/elf/camp.png', { assetId: 'scene.elf.camp', width: 1672, height: 941, maxBytes: 3500000 }],
   ['assets/game/scenes/orc/camp.png', { assetId: 'scene.orc.camp', width: 1672, height: 941, maxBytes: 3500000 }]
 ]);
 const campSceneByteBudget = 9000000;
+const treasuryAtlas = {
+  relativePath: 'assets/game/ui/treasury_atlas.png', assetId: 'ui.treasury_atlas',
+  width: 1536, height: 1024, maxBytes: 3000000, columns: 3, rows: 2,
+  margin: 8, minCellCoverage: 0.1,
+  // The reviewed unchanged source has exactly 15 isolated alpha-1 pixels in
+  // its gutters. Permit at most 32 of these 1/255 mask-roundoff pixels across
+  // the ENTIRE atlas; alpha >= 2 or a dense residue still fails. No other asset
+  // category or atlas receives this tolerance.
+  maxMarginAlpha: 1, maxMarginPixels: 32
+};
 const sprites = walk(path.join(root, 'assets/game')).filter(file => file.endsWith('.png')).sort();
 assert.ok(sprites.length > 0, 'No production PNGs found');
 const hashes = new Map();
@@ -102,7 +156,8 @@ for (const file of sprites) {
   const rel = relative(file), bytes = fs.readFileSync(file);
   try {
     const scene = campScenes.get(rel);
-    if (scene) {
+    if (rel === treasuryAtlas.relativePath) validateAlphaAtlasPng(bytes, treasuryAtlas);
+    else if (scene) {
       campSceneBytes += bytes.length;
       validateScenePng(bytes, scene);
     }
@@ -137,6 +192,9 @@ for (const [relativePath, scene] of campScenes) {
   const expected = "'" + scene.assetId + "': require('../../" + relativePath + "')";
   if (!registry.includes(expected)) failures.push('Camp scene is not registered for its faction: ' + scene.assetId + '.');
 }
+if (!spritePaths.has(treasuryAtlas.relativePath)) failures.push('Treasury atlas is missing.');
+const treasuryRegistration = "'" + treasuryAtlas.assetId + "': require('../../" + treasuryAtlas.relativePath + "')";
+if (!registry.includes(treasuryRegistration)) failures.push('Treasury atlas is not registered as ui.treasury_atlas.');
 
 // The first settlement-art batch intentionally uses one compact 3x3 atlas so the
 // nine faction anchors stay visually consistent and load as one production PNG.
@@ -367,4 +425,4 @@ if (failures.length) {
   failures.forEach(failure => console.error('- ' + failure));
   process.exit(1);
 }
-console.log('PASS: ' + sprites.length + ' game PNGs fully decoded: CRCs, zlib payload, scanline/filter integrity, sprite alpha / explicit opaque-scene contracts, size, registration and exact duplicates.');
+console.log('PASS: ' + sprites.length + ' game PNGs fully decoded: CRCs, zlib payload, scanline/filter integrity, sprite alpha / explicit scene opacity / atlas gutters, size, registration and exact duplicates.');

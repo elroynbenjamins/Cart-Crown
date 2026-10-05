@@ -168,6 +168,19 @@ def first_battle(out: Path, name: str, result: dict) -> None:
         time.sleep(.4)  # Let the dismissed coach's fade finish before visual review.
         capture(out, name + '-results-unobscured')
         result['results'] = True
+        # Fresh launch starts dark. The expected IDs follow ThemeProvider's cycle;
+        # the constant button label cannot verify appearance, so retain screenshots.
+        result['theme_captures'] = []
+        for theme_id, suffix in [('light', 'light'), ('original', 'charcoal'),
+                                 ('dark', 'dark-restored')]:
+            find_and_tap('Change theme')
+            time.sleep(.4)
+            wait_for_copy('Rewards secured')
+            capture_name = name + '-results-' + suffix
+            capture(out, capture_name)
+            result['theme_captures'].append({
+                'expected_theme_id': theme_id, 'screenshot': capture_name + '.png'
+            })
     finally:
         adb('shell', 'pkill', '-2', 'screenrecord', check=False)
         try:
@@ -226,6 +239,7 @@ def main() -> None:
                 report['passed'].append(name + ':background_resume')
                 first_battle(args.out, name, battle)
                 report['passed'].append(name + ':tutorial_battle_victory_results')
+                report['passed'].append(name + ':results_theme_cycle_captured')
                 adb('shell', 'am', 'force-stop', PACKAGE)
                 launch()
                 root = wait_for_copy('Choose a Save')
