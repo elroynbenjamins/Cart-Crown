@@ -303,7 +303,18 @@ function testRecipesAndInteractions() {
     const districtEnvironment = nodes(tree, 'View').find(node => node.props.testID === 'district-environment-' + district.id);
     check(Boolean(districtEnvironment), 'An active district must dress the world space between its two buildings.');
     const districtAmbience = nodes(districtEnvironment, 'SettlementDistrictAmbience')[0];
-    check(districtAmbience?.props.category === presentation.settlementDistrictCategory(district), 'District environment art must use the real authored district category.');
+    const expectedDistrictCategory =
+      district.effects.expeditionWoodBonus !== undefined ||
+      district.effects.expeditionProvisionBonus !== undefined ||
+      district.effects.dailyProvisionBonus !== undefined
+        ? 'economy'
+        : district.effects.commanderSkillPowerMultiplier !== undefined ||
+            district.effects.commanderRespecDiscount !== undefined ||
+            district.effects.commanderSkillEarlyTrigger !== undefined ||
+            district.effects.detailedIntel !== undefined
+          ? 'command'
+          : 'military';
+    check(districtAmbience?.props.category === expectedDistrictCategory, 'District environment art must use the real authored district category.');
     check(districtAmbience?.props.faction === faction, 'District environment art must stay faction-scoped.');
     check(districtEnvironment?.props.pointerEvents === undefined, 'District environment wrapper must remain non-interactive inside a pointerEvents=none layer.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'Committed construction must clear the temporary district preview.');
