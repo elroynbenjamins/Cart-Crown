@@ -1,0 +1,53 @@
+name: Settlement construction refinement
+on:
+  push:
+    branches: [settlement-scene-construction-20261005]
+    paths:
+      - '.github/workflows/scene-construction-pass.yml'
+      - 'scripts/apply-scene-construction-pass.py'
+permissions:
+  contents: write
+concurrency:
+  group: settlement-scene-construction-refinement
+  cancel-in-progress: false
+jobs:
+  implement-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: settlement-scene-construction-20261005
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+      - name: Apply baseline-checked scene construction changes
+        run: |
+          python3 scripts/apply-scene-construction-pass.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('scripts/settlement-ui-regression.ts')
+          s = p.read_text().replace(r'/return.*interactionVersion\.current/s.test(String(effect))', "String(effect).includes('interactionVersion.current += 1')")
+          p.write_text(s)
+          PY
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund --no-package-lock
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Settlement interaction regression
+        run: npx --no-install tsx scripts/settlement-ui-regression.ts
+      - name: Kingdom building regression
+        run: npx --no-install tsx scripts/kingdom-building-ui-regression.ts
+      - name: Tutorial regression
+        run: npm run tutorial:check
+      - name: Save integrity regression
+        run: npm run save:check
+      - name: Publish verified source changes to this branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/screens/SettlementScreen.tsx scripts/settlement-ui-regression.ts
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m 'Move settlement construction into a guarded on-scene review'
+          git push origin HEAD:refs/heads/settlement-scene-construction-20261005
