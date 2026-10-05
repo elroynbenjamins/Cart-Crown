@@ -1122,7 +1122,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 setDistrictCodexOpen(false);
                 if (building) {
                   setSelectedBuildingId(building.id);
-                  setSelectedBuildingAction(buildingSelected ? null : null);
+                  setSelectedBuildingAction(null);
                   setRelocationTargetPlotId(null);
                   setSelectedPlotId(null);
                   setPreviewBuildingId(null);
@@ -1399,32 +1399,32 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       <Pressable
                         testID={'building-action-upgrade-' + building.id}
                         accessibilityRole="button"
-                        accessibilityState={{ disabled: !upgradeLevelAvailable }}
+                        accessibilityState={{ disabled: !upgradeLevelAvailable || !upgradeMaterialsReady }}
                         accessibilityLabel={
-                          upgradeLevelAvailable
-                            ? 'Upgrade ' + building.name + ' toward Level ' + (level + 1)
-                            : building.name + ' cannot be upgraded at the current settlement tier'
+                          !upgradeLevelAvailable
+                            ? building.name + ' cannot be upgraded at the current settlement tier'
+                            : upgradeMaterialsReady
+                              ? 'Upgrade ' + building.name + ' to Level ' + (level + 1)
+                              : 'Upgrade unavailable for ' + building.name + ', materials are missing'
                         }
-                        accessibilityHint={upgradeMaterialsReady ? 'Upgrade materials are ready.' : 'If resources or progression are missing, no upgrade will be applied.'}
-                        disabled={!upgradeLevelAvailable}
+                        accessibilityHint={upgradeMaterialsReady ? 'Upgrade materials are ready. Progression requirements are checked when you activate this action.' : 'Inspect the building to review missing materials and progression requirements.'}
+                        disabled={!upgradeLevelAvailable || !upgradeMaterialsReady}
                         onPress={event => {
                           event.stopPropagation();
-                          if (!upgradeLevelAvailable) return;
+                          if (!upgradeLevelAvailable || !upgradeMaterialsReady) return;
                           setSelectedBuildingAction(null);
                           setRelocationTargetPlotId(null);
                           const ok = upgradeBuilding(building.id);
                           setMessage(ok
                             ? building.name + ' upgraded to Level ' + (level + 1) + '.'
-                            : upgradeMaterialsReady
-                              ? 'Upgrade not completed. A progression requirement is still blocking ' + building.name + '. Inspect it for details.'
-                              : 'Upgrade materials are not ready for ' + building.name + '. Inspect it for costs and requirements.');
+                            : 'Upgrade not completed. A progression requirement is still blocking ' + building.name + '. Inspect it for details.');
                         }}
                         style={[
                           styles.sceneActionButton,
                           upgradeMaterialsReady
                             ? { backgroundColor: blendColor(theme.colors.gold, theme.colors.surface1, theme.dark ? 0.2 : 0.1) }
                             : undefined,
-                          !upgradeLevelAvailable ? styles.sceneActionDisabled : undefined
+                          !upgradeLevelAvailable || !upgradeMaterialsReady ? styles.sceneActionDisabled : undefined
                         ]}
                       >
                         {upgradeMaterialsReady ? <View style={[styles.sceneActionReadyDot, { backgroundColor: theme.colors.gold }]} /> : null}
