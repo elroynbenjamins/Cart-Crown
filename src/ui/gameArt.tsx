@@ -3233,7 +3233,9 @@ export function SettlementTerrainBackdrop({
   faction?: FactionId;
   stageId?: WagonStage['id'];
 }) {
-  if (faction === 'human' && stageId === 'fort') return <HumanFortWorldBackdrop />;
+  if (faction === 'human' && ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(stageId)) {
+    return <HumanFortWorldBackdrop />;
+  }
   const rank = stageRanks[stageId] ?? 0;
   const accent = faction === 'elf' ? palette.elfLight : faction === 'orc' ? palette.orcLight : palette.humanLight;
   const sceneAssetId = settlementSceneFactionAssetIds[faction];
