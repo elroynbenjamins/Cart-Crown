@@ -217,7 +217,7 @@ function testRecipesAndInteractions() {
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
     check(nodes(tree, 'SettlementBuildPlotSprite').length >= 1, faction + ' empty plots must render as production build sites.');
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
-    check(nodes(tree, 'Pressable').some(node => node.props.testID === 'settlement-open-blueprint-planner'), 'Blueprint planner must be directly available from the settlement overview.');
+    check(nodes(tree, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'Blueprint planner must be directly available from the settlement overview.');
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')), 'District-completing plots must be summarized in the HUD.');
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'A high-value empty plot must be marked before the player opens it.');
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
@@ -281,14 +281,14 @@ function testBlueprintFirstPlanner() {
   const f = fixture('human');
   let tree = f.h.render();
 
-  const openPlanner = nodes(tree, 'Pressable').find(node => node.props.testID === 'settlement-open-blueprint-planner');
+  const openPlanner = nodes(tree, 'Pressable').find(node => node.props.testID === 'blueprint-planner-open');
   check(Boolean(openPlanner), 'Blueprint planner launcher must render while unbuilt blueprints remain.');
   openPlanner!.props.onPress();
   tree = f.h.render();
 
-  check(nodes(tree, 'View').some(node => node.props.testID === 'settlement-blueprint-planner'), 'Opening the planner must reveal the blueprint selector.');
+  check(nodes(tree, 'View').some(node => node.props.testID === 'blueprint-planner'), 'Opening the planner must reveal the blueprint selector.');
   const forge = f.game.buildings.find((building: any) => building.id === 'forge')!;
-  const chooseForge = nodes(tree, 'Pressable').find(node => node.props.testID === 'settlement-plan-blueprint-forge');
+  const chooseForge = nodes(tree, 'Pressable').find(node => node.props.testID === 'blueprint-planner-select-forge');
   check(Boolean(chooseForge), 'Every available blueprint must be selectable in planner mode.');
   chooseForge!.props.onPress();
   tree = f.h.render();
@@ -306,11 +306,11 @@ function testBlueprintFirstPlanner() {
   check(nodes(tree, 'SemanticChip').some(node => node.props.label === 'Good · 1 district'), 'Focused planner preview must keep the selected blueprint quality.');
   check(nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-arsenal_district'), 'Focused planner preview must draw the real district preview link.');
 
-  const closePlanner = nodes(tree, 'Pressable').find(node => node.props.testID === 'settlement-close-blueprint-planner');
+  const closePlanner = nodes(tree, 'Pressable').find(node => node.props.testID === 'blueprint-planner-close');
   check(Boolean(closePlanner), 'Planner mode must expose a compact close action.');
   closePlanner!.props.onPress();
   tree = f.h.render();
-  check(!nodes(tree, 'View').some(node => node.props.testID === 'settlement-blueprint-planner'), 'Closing the planner must remove the blueprint selector.');
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'blueprint-planner'), 'Closing the planner must remove the blueprint selector.');
   check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('blueprint-plan-quality-')), 'Closing planner mode must clear overview quality badges.');
 }
 
