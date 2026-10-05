@@ -2941,6 +2941,150 @@ export function SettlementBuildingAmbience({
   );
 }
 
+
+export function SettlementDistrictAmbience({
+  category,
+  faction = 'human',
+  focused = false,
+  size = 58
+}: {
+  category: 'economy' | 'military' | 'command';
+  faction?: FactionId;
+  focused?: boolean;
+  size?: number;
+}) {
+  const worldSource = getProductionAssetSource('ui.settlement_world_human_atlas');
+  const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
+  const sceneSource = getProductionAssetSource(settlementSceneFactionAssetIds[faction]);
+  const tintColor = settlementAmbientPeopleTint[faction];
+  const sceneTint = settlementSceneFactionTints[faction];
+  const motion = useSettlementAmbientMotion(category === 'economy' ? 2700 : category === 'military' ? 2400 : 3000);
+  const drift = motion.interpolate({ inputRange: [0, 1], outputRange: [-1.5, 1.5] });
+  const lift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.3] });
+  const sway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1deg', '1deg'] });
+  const pulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.62, focused ? 0.96 : 0.82] });
+  const person =
+    category === 'economy'
+      ? settlementPeopleHumanCells.merchant
+      : category === 'military'
+        ? settlementPeopleHumanCells.guard
+        : settlementPeopleHumanCells.knight;
+
+  return (
+    <View
+      testID={'settlement-district-environment-art-' + category}
+      style={{ width: size, height: size, position: 'relative', opacity: focused ? 1 : 0.86 }}
+    >
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left: size * 0.1,
+          right: size * 0.1,
+          bottom: size * 0.06,
+          height: Math.max(2, size * 0.045),
+          borderRadius: size,
+          backgroundColor: settlementAmbientGlow[faction],
+          opacity: pulse
+        }}
+      />
+      {category === 'economy' ? (
+        <>
+          {sceneSource ? (
+            <View style={{ position: 'absolute', left: size * 0.16, bottom: size * 0.04 }}>
+              <SettlementDetailAtlasSprite
+                assetId={settlementSceneFactionAssetIds[faction]}
+                cell={settlementSceneHumanV2Cells.market}
+                size={size * 0.58}
+                opacity={focused ? 0.86 : 0.68}
+                tintColor={sceneTint}
+              />
+            </View>
+          ) : null}
+          {worldSource ? (
+            <View style={{ position: 'absolute', right: 0, bottom: 0 }}>
+              <SettlementDetailAtlasSprite
+                assetId="ui.settlement_world_human_atlas"
+                cell={settlementWorldHumanCells.supplies}
+                size={size * 0.36}
+                opacity={0.84}
+                tintColor={tintColor}
+              />
+            </View>
+          ) : null}
+        </>
+      ) : category === 'military' ? (
+        <>
+          {worldSource ? (
+            <>
+              <View style={{ position: 'absolute', right: size * 0.03, bottom: 0 }}>
+                <SettlementDetailAtlasSprite
+                  assetId="ui.settlement_world_human_atlas"
+                  cell={settlementWorldHumanCells.target_sign}
+                  size={size * 0.43}
+                  opacity={0.86}
+                  tintColor={tintColor}
+                />
+              </View>
+              <Animated.View style={{ position: 'absolute', left: size * 0.02, top: size * 0.02, transform: [{ rotate: sway }] }}>
+                <SettlementDetailAtlasSprite
+                  assetId="ui.settlement_world_human_atlas"
+                  cell={settlementWorldHumanCells.torch_banner}
+                  size={size * 0.33}
+                  opacity={0.82}
+                  tintColor={tintColor}
+                />
+              </Animated.View>
+            </>
+          ) : null}
+        </>
+      ) : (
+        <>
+          {sceneSource ? (
+            <View style={{ position: 'absolute', left: size * 0.2, bottom: size * 0.02 }}>
+              <SettlementDetailAtlasSprite
+                assetId={settlementSceneFactionAssetIds[faction]}
+                cell={settlementSceneHumanV2Cells.fountain}
+                size={size * 0.54}
+                opacity={focused ? 0.82 : 0.64}
+                tintColor={sceneTint}
+              />
+            </View>
+          ) : null}
+          {worldSource ? (
+            <Animated.View style={{ position: 'absolute', right: 0, top: size * 0.02, transform: [{ rotate: sway }] }}>
+              <SettlementDetailAtlasSprite
+                assetId="ui.settlement_world_human_atlas"
+                cell={settlementWorldHumanCells.torch_banner}
+                size={size * 0.31}
+                opacity={0.8}
+                tintColor={tintColor}
+              />
+            </Animated.View>
+          ) : null}
+        </>
+      )}
+      {peopleSource ? (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            left: category === 'economy' ? size * 0.02 : size * 0.36,
+            bottom: -size * 0.01,
+            transform: [{ translateX: drift }, { translateY: lift }]
+          }}
+        >
+          <SettlementDetailAtlasSprite
+            assetId="ui.settlement_people_human_atlas"
+            cell={person}
+            size={size * 0.27}
+            opacity={0.92}
+            tintColor={tintColor}
+          />
+        </Animated.View>
+      ) : null}
+    </View>
+  );
+}
+
 const settlementGrowthTint: Record<FactionId, string | undefined> = {
   human: undefined,
   elf: '#83B89A',
