@@ -109,7 +109,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
       if (request.endsWith('/SettlementUI')) return load(resolve(dirname(absolute), request + '.tsx'));
       if (request.endsWith('/SemanticUI')) return Object.fromEntries(['SemanticChip', 'SemanticText', 'EmphasisText'].map(name => [name, host(name)]));
       if (request.endsWith('/components')) return Object.fromEntries(['GameCard', 'PrimaryButton', 'SecondaryButton', 'SectionTitle'].map(name => [name, host(name)]));
-      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementBuildingAmbience', 'SettlementBuildPlotSprite', 'SettlementTerrainBackdrop'].map(name => [name, host(name)]));
+      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementBuildingAmbience', 'SettlementBuildPlotSprite', 'SettlementDistrictAmbience', 'SettlementTerrainBackdrop'].map(name => [name, host(name)]));
       if (request.endsWith('/TutorialFocus')) return { TutorialFocus: host('TutorialFocus') };
       throw new Error('Unexpected screen dependency: ' + request);
     };
@@ -300,6 +300,23 @@ function testRecipesAndInteractions() {
     const forgeAmbience = nodes(tree, 'SettlementBuildingAmbience').find(node => node.props.buildingId === forge.id);
     check(forgeAmbience?.props.activeDistricts === 1, 'The newly linked building ambience must become busier from the real active district.');
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Active adjacent districts must draw an in-world connection.');
+    const districtEnvironment = nodes(tree, 'View').find(node => node.props.testID === 'district-environment-' + district.id);
+    check(Boolean(districtEnvironment), 'An active district must dress the world space between its two buildings.');
+    const districtAmbience = nodes(districtEnvironment, 'SettlementDistrictAmbience')[0];
+    const expectedDistrictCategory =
+      district.effects.expeditionWoodBonus !== undefined ||
+      district.effects.expeditionProvisionBonus !== undefined ||
+      district.effects.dailyProvisionBonus !== undefined
+        ? 'economy'
+        : district.effects.commanderSkillPowerMultiplier !== undefined ||
+            district.effects.commanderRespecDiscount !== undefined ||
+            district.effects.commanderSkillEarlyTrigger !== undefined ||
+            district.effects.detailedIntel !== undefined
+          ? 'command'
+          : 'military';
+    check(districtAmbience?.props.category === expectedDistrictCategory, 'District environment art must use the real authored district category.');
+    check(districtAmbience?.props.faction === faction, 'District environment art must stay faction-scoped.');
+    check(districtEnvironment?.props.pointerEvents === undefined, 'District environment wrapper must remain non-interactive inside a pointerEvents=none layer.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'Committed construction must clear the temporary district preview.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
     check(nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id), 'Selecting a structure must expose the anchored contextual action strip.');
@@ -349,6 +366,7 @@ function testRecipesAndInteractions() {
     check(!nodes(tree, 'View').some(node => node.props.testID === 'building-district-aura-' + forge.id), 'Breaking the district must remove its activity aura immediately.');
     check(!nodes(tree, 'Text').some(node => node.props.testID === 'building-district-count-' + forge.id), 'Breaking the district must remove the compact active-district count.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Separated districts must remove their in-world connection.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'district-environment-' + district.id), 'Breaking a district must remove its world-space props immediately.');
     check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'Confirmed relocation must clear destination ratings.');
 
     const levelBeforeContextUpgrade = f.game.buildingLevels[forge.id];
@@ -635,6 +653,7 @@ function testDistrictNetworkOptimizationHint() {
   tree = f.h.render();
   check(f.calls.at(-1)?.[0] === 'move' && f.calls.at(-1)?.[1] === 'war_room' && f.calls.at(-1)?.[2] === 'plot_n', 'Only explicit confirmation may apply the suggested network relocation.');
   check(f.game.settlementAdjacencyBonuses.length === 2, 'Confirmed best-layout relocation must produce the predicted two active districts.');
+  check(nodes(tree, 'SettlementDistrictAmbience').length === 2, 'Two active districts must create exactly two environmental activity clusters.');
   check(!nodes(tree, 'Pressable').some(node => node.props.testID === 'district-network-hint'), 'Optimization hint must disappear when no strictly better single relocation remains.');
 }
 
@@ -752,6 +771,10 @@ const gameArtSource = readFileSync(resolve('src/ui/gameArt.tsx'), 'utf8');
 check(gameArtSource.includes('activeDistricts = 0'), 'Settlement ambience must support live district intensity without changing game state.');
 check(gameArtSource.includes('settlement-district-worker'), 'District-connected buildings must gain an additional ambient worker at higher activity.');
 check(gameArtSource.includes('settlement-district-activity-glow'), 'District-connected buildings must expose a restrained ambient glow.');
+check(gameArtSource.includes('export function SettlementDistrictAmbience'), 'Active district space must use a dedicated non-gameplay ambience component.');
+check(gameArtSource.includes("category === 'economy'"), 'Economy districts must have distinct market/supply dressing.');
+check(gameArtSource.includes("category === 'military'"), 'Military districts must have distinct training dressing.');
+check(gameArtSource.includes('settlementSceneHumanV2Cells.fountain'), 'Command districts must have a distinct civic/command focal prop.');
 check(gameArtSource.includes('AccessibilityInfo.isReduceMotionEnabled'), 'Settlement ambience motion must continue respecting reduced-motion accessibility.');
 
 const settlementScreenSource = readFileSync(resolve('src/screens/SettlementScreen.tsx'), 'utf8');
