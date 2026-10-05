@@ -121,6 +121,8 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
   return { props, game, dimensions,
     render() { cursor = 0; effects = []; return component(props); },
     installBack() { return effects.find(effect => String(effect).includes('BackHandler.addEventListener'))?.(); },
+    installUnmountGuard() { return effects.find(effect => String(effect).includes('interactionVersion.current += 1') && !String(effect).includes('BackHandler'))?.(); },
+    resetFactionSelection() { return effects.find(effect => String(effect).includes('closeBuildingSelection();') && String(effect).includes('setSelectedPlotId(null)'))?.(); },
     back() { return back?.() ?? false; }
   };
 }
@@ -278,7 +280,8 @@ function testRecipesAndInteractions() {
       nodes(neutralBlueprint, 'SemanticChip').some(node => node.props.label === 'Neutral · 0 districts'),
       'Zero real district activations must rate as Neutral.'
     );
-        const cost = nodes(tree, 'BuildingCosts').find(node => node.props.cost === forge.constructionCost);
+    pressTestId(tree, 'construction-select-' + forge.id); tree = f.h.render();
+    const cost = nodes(tree, 'BuildingCosts').find(node => node.props.cost === forge.constructionCost);
     check(Boolean(cost) && cost!.props.wallet === f.game.resources, 'Construction must display the provider cost and current wallet unchanged.');
     check(nodes(tree, 'DistrictEffects').some(node => node.props.state === 'preview' && node.props.bonus.id === district.id), 'An adjacent construction must preview the real district.');
     const gold = f.game.resources.gold;
@@ -715,6 +718,7 @@ function testTutorialAndCosts() {
   check(nodes(poorOverview, 'View').some(node => String(node.props.testID ?? '').startsWith('district-opportunity-')), 'District opportunities must remain visible even when the missing blueprint is currently unaffordable.');
   choosePlot(poorOverview, 'plot_nw'); tree = poor.h.render();
   const forge = poor.game.buildings.find((building: any) => building.role === 'EQUIPMENT');
+  pressTestId(tree, 'construction-select-' + forge.id); tree = poor.h.render();
   press(tree, 'Build ' + forge.name);
   check(poor.calls.length === 0, 'Unaffordable Build must remain disabled.');
   const wallet: ResourceWallet = { gold: 20, wood: 7, stone: 0, iron: 0, provisions: 0 };
@@ -832,6 +836,136 @@ function testSceneActionsSafetyAndGeometry() {
   check(Object.values(fallback).every(Number.isFinite), 'Unmeasured or invalid geometry must have finite fallbacks.');
 }
 
+
+function testOnSceneConstruction() {
+  for (const faction of ['human', 'elf', 'orc'] as const) {
+    const f = fixture(faction);
+    const forge = f.game.buildings.find((building: any) => building.role === 'EQUIPMENT')!;
+    const other = f.game.buildings.find((building: any) => building.id !== forge.id && !Object.values(f.game.buildingPlacements).includes(building.id))!;
+    const snapshot = () => JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels, placements: f.game.buildingPlacements });
+    const original = snapshot();
+    let tree = f.h.render();
+    choosePlot(tree, 'plot_nw'); tree = f.h.render();
+    const scene = nodes(tree, 'View').find(node => node.props.testID === 'settlement-scene')!;
+    check(nodes(scene, 'View').some(node => node.props.testID === 'scene-construction-picker'), faction + ': picker must render inside the scene.');
+    check(nodes(tree, 'View').filter(node => node.props.testID === 'scene-construction-card').length === 1, 'There must be only one construction card.');
+    check(!nodes(tree, 'PrimaryButton').some(node => String(node.props.label).startsWith('Build ')), 'The picker must never expose a spending action before a blueprint review.');
+    check(snapshot() === original && f.calls.length === 0, 'Opening an empty plot must not change game state.');
+    const choices = nodes(tree, 'Pressable').filter(node => String(node.props.testID).startsWith('construction-select-'));
+    check(choices.length > 1, 'All unlocked unbuilt choices must remain available.');
+    for (const choice of choices) {
+      const box = style(choice.props.style({ pressed: false }));
+      check(box.minWidth >= 48 && box.minHeight >= 48, 'Blueprint choices need real accessible touch targets.');
+    }
+    const ghost = nodes(tree, 'View').find(node => node.props.testID === 'construction-ghost-preview')!;
+    check(Boolean(ghost) && ghost.props.pointerEvents === 'none', 'Preview art must not intercept the selected plot.');
+    const expectedDistrict = settlement.getSettlementAdjacencyBonuses(faction).find(bonus => bonus.buildingB === forge.id)!;
+    pressTestId(tree, 'construction-select-' + forge.id); tree = f.h.render();
+    const review = nodes(tree, 'View').find(node => node.props.testID === 'scene-construction-review')!;
+    check(Boolean(review) && !nodes(tree, 'View').some(node => node.props.testID === 'scene-construction-picker'), 'Review must replace the list instead of stacking large cards.');
+    check(nodes(review, 'BuildingCosts')[0]?.props.cost === forge.constructionCost, 'Review must use the live provider construction cost.');
+    check(nodes(review, 'DistrictEffects').some(node => node.props.bonus.id === expectedDistrict.id && node.props.state === 'preview'), 'Review must show exact predicted district effects.');
+    check(snapshot() === original && f.calls.length === 0, 'Review, including ghost art and district effects, must remain read-only.');
+    const staleReview = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Build ' + forge.name)!;
+    press(tree, 'Choose another blueprint');
+    staleReview.props.onPress();
+    tree = f.h.render();
+    check(f.calls.length === 0, 'Returning to the picker must invalidate a queued Build callback immediately.');
+    pressTestId(tree, 'construction-select-' + other.id); tree = f.h.render();
+    const otherBuild = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Build ' + other.name)!;
+    check(Boolean(otherBuild) && !nodes(tree, 'PrimaryButton').some(node => node.props.label === 'Build ' + forge.name), 'Only the reviewed blueprint may be built.');
+    staleReview.props.onPress();
+    check(f.calls.length === 0, 'A prior blueprint confirmation cannot build the old choice.');
+    choosePlot(tree, 'plot_n');
+    otherBuild.props.onPress();
+    tree = f.h.render();
+    check(f.calls.length === 0 && snapshot() === original, 'Changing the selected plot must invalidate old confirmations before render.');
+    check(text(tree).includes('BUILD SITE') && text(tree).includes('North'), 'The review must name its new destination plot.');
+
+    const cleanupBack = f.h.installBack();
+    check(f.h.back(), 'Back must return from construction review to the picker.');
+    cleanupBack?.(); tree = f.h.render();
+    check(nodes(tree, 'View').some(node => node.props.testID === 'scene-construction-picker'), 'Back should preserve the selected plot on the first dismissal.');
+    const cleanupPicker = f.h.installBack();
+    check(f.h.back(), 'A second Back must close the selected build site.');
+    cleanupPicker?.(); tree = f.h.render();
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'scene-construction-card'), 'Back must leave no hidden construction card.');
+
+    choosePlot(tree, 'plot_nw'); tree = f.h.render();
+    pressTestId(tree, 'construction-select-' + forge.id); tree = f.h.render();
+    const beforeClose = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Build ' + forge.name)!;
+    pressTestId(tree, 'construction-close'); beforeClose.props.onPress(); tree = f.h.render();
+    check(f.calls.length === 0 && !nodes(tree, 'View').some(node => node.props.testID === 'construction-ghost-preview'), 'Close must cancel confirmations and clear preview art.');
+
+    choosePlot(tree, 'plot_nw'); tree = f.h.render();
+    pressTestId(tree, 'construction-select-' + forge.id); tree = f.h.render();
+    const oldWalletBuild = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Build ' + forge.name)!;
+    f.game.resources = { gold: 0, wood: 0, stone: 0, iron: 0, provisions: 0 }; tree = f.h.render();
+    oldWalletBuild.props.onPress();
+    const poorBuild = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Build ' + forge.name)!;
+    poorBuild.props.onPress();
+    check(poorBuild.props.disabled && text(tree).includes('Materials missing') && f.calls.length === 0, 'Changed and insufficient resources must disable and guard construction.');
+    f.game.resources = { gold: 500, wood: 500, stone: 500, iron: 500, provisions: 500 };
+    f.locked.add(forge.id); tree = f.h.render();
+    check(!nodes(tree, 'PrimaryButton').some(node => String(node.props.label).startsWith('Build ')), 'A blueprint that becomes locked must lose its Build action.');
+    check(text(tree).includes('no longer available'), 'A newly unavailable blueprint must explain its state.');
+    f.locked.delete(forge.id); tree = f.h.render();
+    const beforeTaken = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Build ' + forge.name)!;
+    f.game.buildingPlacements = { ...f.game.buildingPlacements, plot_nw: other.id }; f.refresh(); tree = f.h.render();
+    beforeTaken.props.onPress();
+    check(f.calls.length === 0 && text(tree).includes('plot is no longer available'), 'A plot occupied during review must be blocked, never overwritten.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'construction-ghost-preview'), 'An invalid destination must not keep ghost art.');
+    f.game.buildingPlacements = { ...f.game.buildingPlacements, plot_nw: null }; f.refresh(); tree = f.h.render();
+    f.fail(true); press(tree, 'Build ' + forge.name); tree = f.h.render();
+    check(nodes(tree, 'Text').some(node => node.props.testID === 'scene-construction-feedback') && text(tree).includes('cannot be constructed'), 'A rejected provider transaction must leave the review and failure feedback on the scene.');
+    f.fail(false);
+    const attempts = f.calls.length;
+    const beforeSuccess = { ...f.game.resources };
+    const confirmation = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Build ' + forge.name)!;
+    confirmation.props.onPress(); confirmation.props.onPress(); tree = f.h.render();
+    check(f.calls.length === attempts + 1 && f.calls.at(-1)?.[0] === 'build', 'Repeated Build confirmation must dispatch only one construction transaction.');
+    check(f.game.buildingPlacements.plot_nw === forge.id && f.game.buildingLevels[forge.id] === 1, 'Successful construction must place exactly the reviewed blueprint at Level 1.');
+    for (const [resource, amount] of Object.entries(forge.constructionCost)) check(f.game.resources[resource] === beforeSuccess[resource] - Number(amount), 'Each authored material cost must be spent exactly once.');
+    check(nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id), 'Successful construction must hand off to the new building actions.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'scene-construction-card' || node.props.testID === 'construction-ghost-preview'), 'Successful construction must clear all temporary picker/review art.');
+    check(f.game.settlementAdjacencyBonuses.some((bonus: any) => bonus.id === expectedDistrict.id), 'Committed districts must match the construction preview.');
+  }
+
+  const none = fixture('human');
+  none.game.buildings.forEach((building: any) => none.locked.add(building.id));
+  choosePlot(none.h.render(), 'plot_nw'); let tree = none.h.render();
+  check(text(tree).includes('No unlocked unbuilt buildings'), 'An empty catalog needs an on-scene explanation.');
+  pressTestId(tree, 'settlement-clear-selection'); tree = none.h.render();
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'scene-construction-card'), 'Scenery dismissal must close an empty catalog.');
+
+  const tutorial = fixture('human', { kind: 'settlement-building', buildingId: 'quartermaster', label: 'BUILD SUPPLY' });
+  choosePlot(tutorial.h.render(), 'plot_nw'); tree = tutorial.h.render();
+  check(nodes(tree, 'BuildingHeading').some(node => node.props.building.id === 'quartermaster'), 'A first-time building tutorial must select its requested blueprint, not a more profitable district alternative.');
+  const staleTutorialBuild = nodes(tree, 'PrimaryButton').find(node => String(node.props.label).startsWith('Build '))!;
+  press(tree, 'Build later'); staleTutorialBuild.props.onPress();
+  check(tutorial.calls.length === 0 && tutorial.counts().completed === 1, 'Build later must invalidate queued construction and only finish the teaching step.');
+
+  const unmount = fixture('elf');
+  choosePlot(unmount.h.render(), 'plot_nw'); tree = unmount.h.render();
+  const candidate = unmount.game.buildings.find((building: any) => building.role === 'EQUIPMENT')!;
+  pressTestId(tree, 'construction-select-' + candidate.id); tree = unmount.h.render();
+  const retained = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Build ' + candidate.name)!;
+  const cleanup = unmount.h.installUnmountGuard();
+  check(typeof cleanup === 'function', 'The construction screen needs an unmount invalidation guard.');
+  cleanup?.(); retained.props.onPress();
+  check(unmount.calls.length === 0, 'Unmounted construction confirmations must not mutate a save.');
+
+  const switched = fixture('human');
+  choosePlot(switched.h.render(), 'plot_nw'); tree = switched.h.render();
+  pressTestId(tree, 'construction-select-forge'); tree = switched.h.render();
+  const previousFaction = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Build Field Forge')!;
+  switched.game.activeFaction = 'orc'; switched.game.buildings = kingdom.getBuildings('orc');
+  switched.game.buildingPlacements = settlement.getInitialSettlementPlacements('orc');
+  tree = switched.h.render(); switched.h.resetFactionSelection(); previousFaction.props.onPress(); tree = switched.h.render();
+  check(switched.calls.length === 0 && !nodes(tree, 'View').some(node => node.props.testID === 'scene-construction-card'), 'Faction change must clear construction and reject callbacks from the old faction.');
+}
+
+testOnSceneConstruction();
 testSceneActionsSafetyAndGeometry();
 testEffects();
 testRecipesAndInteractions();
