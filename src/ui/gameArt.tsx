@@ -3046,9 +3046,11 @@ export function SettlementTerrainBackdrop({
       : faction === 'orc'
         ? '#634738'
         : '#52684B';
-  const road = faction === 'orc' ? '#76563E' : '#846E50';
-  const roadEdge = faction === 'elf' ? '#557053' : faction === 'orc' ? '#553C30' : '#5B5946';
-  const roadWidth = rank >= 3 ? 30 : rank >= 1 ? 25 : 20;
+  const road = faction === 'orc' ? '#76563E' : faction === 'elf' ? '#7B7152' : '#8B7654';
+  const roadEdge = faction === 'elf' ? '#4E634A' : faction === 'orc' ? '#51382D' : '#555240';
+  const roadHighlight = faction === 'elf' ? '#A8A06E' : faction === 'orc' ? '#9A7250' : '#B19A6E';
+  const earthShadow = faction === 'elf' ? '#1D3326' : faction === 'orc' ? '#2E241F' : '#26372B';
+  const roadWidth = rank >= 3 ? 34 : rank >= 1 ? 29 : 24;
   const foliage = [
     { left: '2%', top: '7%' }, { left: '88%', top: '8%' },
     { left: '1%', top: '78%' }, { left: '90%', top: '75%' }
@@ -3076,10 +3078,27 @@ export function SettlementTerrainBackdrop({
         overflow: 'hidden'
       }}
     >
-      <View style={{ position: 'absolute', left: '3%', top: '5%', width: '32%', height: '25%', backgroundColor: clearing, opacity: 0.58 }} />
-      <View style={{ position: 'absolute', right: '3%', top: '7%', width: '30%', height: '23%', backgroundColor: clearing, opacity: 0.52 }} />
-      <View style={{ position: 'absolute', left: '6%', bottom: '5%', width: '30%', height: '24%', backgroundColor: clearing, opacity: 0.47 }} />
-      <View style={{ position: 'absolute', right: '5%', bottom: '5%', width: '31%', height: '25%', backgroundColor: clearing, opacity: 0.5 }} />
+      <View style={{ position: 'absolute', left: '3%', top: '5%', width: '32%', height: '25%', borderRadius: 42, backgroundColor: clearing, opacity: 0.58 }} />
+      <View style={{ position: 'absolute', right: '3%', top: '7%', width: '30%', height: '23%', borderRadius: 40, backgroundColor: clearing, opacity: 0.52 }} />
+      <View style={{ position: 'absolute', left: '6%', bottom: '5%', width: '30%', height: '24%', borderRadius: 44, backgroundColor: clearing, opacity: 0.47 }} />
+      <View style={{ position: 'absolute', right: '5%', bottom: '5%', width: '31%', height: '25%', borderRadius: 44, backgroundColor: clearing, opacity: 0.5 }} />
+
+      <View style={{ position: 'absolute', left: '-4%', top: '28%', width: '47%', height: roadWidth + 8, borderRadius: 999, backgroundColor: earthShadow, opacity: 0.5, transform: [{ rotate: '28deg' }] }} />
+      <View style={{ position: 'absolute', right: '-4%', top: '28%', width: '47%', height: roadWidth + 8, borderRadius: 999, backgroundColor: earthShadow, opacity: 0.5, transform: [{ rotate: '-28deg' }] }} />
+      <View style={{ position: 'absolute', left: '-4%', bottom: '28%', width: '48%', height: roadWidth + 8, borderRadius: 999, backgroundColor: earthShadow, opacity: 0.48, transform: [{ rotate: '-25deg' }] }} />
+      <View style={{ position: 'absolute', right: '-4%', bottom: '28%', width: '48%', height: roadWidth + 8, borderRadius: 999, backgroundColor: earthShadow, opacity: 0.48, transform: [{ rotate: '25deg' }] }} />
+
+      <View style={{ position: 'absolute', left: '-4%', top: '29%', width: '47%', height: roadWidth, borderRadius: 999, backgroundColor: road, opacity: 0.54, transform: [{ rotate: '28deg' }] }} />
+      <View style={{ position: 'absolute', right: '-4%', top: '29%', width: '47%', height: roadWidth, borderRadius: 999, backgroundColor: road, opacity: 0.54, transform: [{ rotate: '-28deg' }] }} />
+      <View style={{ position: 'absolute', left: '-4%', bottom: '29%', width: '48%', height: roadWidth, borderRadius: 999, backgroundColor: road, opacity: 0.5, transform: [{ rotate: '-25deg' }] }} />
+      <View style={{ position: 'absolute', right: '-4%', bottom: '29%', width: '48%', height: roadWidth, borderRadius: 999, backgroundColor: road, opacity: 0.5, transform: [{ rotate: '25deg' }] }} />
+
+      <View style={{ position: 'absolute', left: '34%', top: '34%', width: '32%', height: '24%', borderRadius: 32, borderWidth: 2, borderColor: roadEdge, backgroundColor: road, opacity: rank >= 2 ? 0.6 : 0.48, transform: [{ rotate: '45deg' }] }} />
+      <View style={{ position: 'absolute', left: '40%', top: '39%', width: '20%', height: '14%', borderRadius: 24, borderWidth: 1, borderColor: roadHighlight, backgroundColor: clearing, opacity: rank >= 2 ? 0.54 : 0.42, transform: [{ rotate: '45deg' }] }} />
+
+      <View style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '10%', backgroundColor: earthShadow, opacity: 0.22 }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '8%', backgroundColor: earthShadow, opacity: 0.18 }} />
+
       <SettlementGrowthLayer faction={faction} rank={rank} />
 
       {getProductionAssetSource(sceneAssetId) ? (
@@ -3227,10 +3246,12 @@ export function SettlementTerrainBackdrop({
         </>
       ) : null}
 
-      <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: roadWidth + 6, backgroundColor: roadEdge, opacity: rank >= 2 ? 0.1 : 0.18 }} />
-      <View style={{ position: 'absolute', left: 0, right: 0, top: '47%', height: roadWidth, backgroundColor: road, opacity: rank >= 2 ? 0.14 : 0.22 }} />
-      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '46%', width: roadWidth + 6, backgroundColor: roadEdge, opacity: rank >= 2 ? 0.1 : 0.18 }} />
-      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '47%', width: roadWidth, backgroundColor: road, opacity: rank >= 2 ? 0.14 : 0.22 }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', height: roadWidth + 7, backgroundColor: roadEdge, opacity: rank >= 2 ? 0.16 : 0.22 }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, top: '47%', height: roadWidth, backgroundColor: road, opacity: rank >= 2 ? 0.28 : 0.32 }} />
+      <View style={{ position: 'absolute', left: '7%', right: '7%', top: '48.2%', height: 2, backgroundColor: roadHighlight, opacity: rank >= 2 ? 0.18 : 0.12 }} />
+      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '46%', width: roadWidth + 7, backgroundColor: roadEdge, opacity: rank >= 2 ? 0.16 : 0.22 }} />
+      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '47%', width: roadWidth, backgroundColor: road, opacity: rank >= 2 ? 0.28 : 0.32 }} />
+      <View style={{ position: 'absolute', top: '8%', bottom: '8%', left: '49.1%', width: 2, backgroundColor: roadHighlight, opacity: rank >= 2 ? 0.18 : 0.12 }} />
 
       {rank >= 1 ? (
         <>
