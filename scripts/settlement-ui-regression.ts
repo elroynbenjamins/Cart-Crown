@@ -333,6 +333,14 @@ function testDenseDistrictZoneReadability() {
 
   let tree = f.h.render();
   check(f.game.settlementAdjacencyBonuses.length === 5, 'Dense district readability fixture must activate five real districts.');
+  const startingPlacements = JSON.stringify(f.game.buildingPlacements);
+  const startingBuildingSprites = nodes(tree, 'BuildingSprite').length;
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-overlay-controls'), 'Dense districts must expose compact overlay controls.');
+  check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-all')?.props.accessibilityLabel === 'All district overlay, 5 active', 'All filter must report the full active district count.');
+  check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-economy')?.props.accessibilityLabel === 'Economy district overlay, 1 active', 'Economy filter must count only supply-resource districts.');
+  check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-military')?.props.accessibilityLabel === 'Military district overlay, 2 active', 'Military filter must count equipment and mount districts.');
+  check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-command')?.props.accessibilityLabel === 'Command district overlay, 2 active', 'Command filter must count command/intel districts.');
+
   const zones = nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('district-zone-') && !String(node.props.testID).startsWith('district-zone-label-'));
   check(zones.length === 5, 'Every active district must receive exactly one grouped ground zone.');
   for (const id of ['arsenal_district', 'mounted_drill_yard', 'supply_yard', 'seat_of_command', 'command_network']) {
@@ -354,6 +362,50 @@ function testDenseDistrictZoneReadability() {
     0.44
   );
   check(style(supplyZone?.props.style).borderColor === expectedSupplyBorder, 'Supply districts must keep a distinct green visual family.');
+
+  const economyFilter = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-economy');
+  check(Boolean(economyFilter), 'Economy overlay control must be tappable.');
+  economyFilter!.props.onPress();
+  tree = f.h.render();
+  check(
+    nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('district-zone-') && !String(node.props.testID).startsWith('district-zone-label-')).length === 1,
+    'Economy overlay must show only one active district zone in the dense fixture.'
+  );
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-zone-supply_yard'), 'Economy overlay must retain Supply Yard.');
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-zone-arsenal_district'), 'Economy overlay must hide military district zones.');
+
+  const militaryFilter = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-military');
+  check(Boolean(militaryFilter), 'Military overlay control must remain tappable after filtering.');
+  militaryFilter!.props.onPress();
+  tree = f.h.render();
+  check(
+    nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('district-zone-') && !String(node.props.testID).startsWith('district-zone-label-')).length === 2,
+    'Military overlay must show the two active military districts.'
+  );
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-zone-arsenal_district'), 'Military overlay must retain Arsenal District.');
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-zone-mounted_drill_yard'), 'Military overlay must retain Mounted Drill Yard.');
+
+  const commandFilter = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-command');
+  check(Boolean(commandFilter), 'Command overlay control must remain tappable after filtering.');
+  commandFilter!.props.onPress();
+  tree = f.h.render();
+  check(
+    nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('district-zone-') && !String(node.props.testID).startsWith('district-zone-label-')).length === 2,
+    'Command overlay must show the two active command districts.'
+  );
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-zone-seat_of_command'), 'Command overlay must retain Seat of Command.');
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-zone-command_network'), 'Command overlay must retain Command Network.');
+  check(nodes(tree, 'BuildingSprite').length === startingBuildingSprites, 'District overlay filtering must never hide settlement buildings.');
+  check(JSON.stringify(f.game.buildingPlacements) === startingPlacements, 'District overlay filtering must never mutate placements.');
+
+  const allFilter = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-all');
+  check(Boolean(allFilter), 'All overlay control must remain available.');
+  allFilter!.props.onPress();
+  tree = f.h.render();
+  check(
+    nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('district-zone-') && !String(node.props.testID).startsWith('district-zone-label-')).length === 5,
+    'Returning to All must restore every active district zone.'
+  );
 
   choosePlot(tree, 'plot_nw');
   tree = f.h.render();
