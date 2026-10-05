@@ -114,6 +114,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [previewBuildingId, setPreviewBuildingId] = useState<string | null>(null);
+  const [blueprintPlannerOpen, setBlueprintPlannerOpen] = useState(false);
+  const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [unlockCelebration, setUnlockCelebration] = useState<SettlementUnlockCelebration | null>(null);
   const settlementPlots = getSettlementPlots(activeFaction);
@@ -170,6 +172,33 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       return [];
     })
   );
+  const planningBuilding = planningBuildingId
+    ? availableBuildings.find(building => building.id === planningBuildingId) ?? null
+    : null;
+  const blueprintPlanRatings = planningBuilding
+    ? settlementPlots.flatMap(plot => {
+        if (!isSettlementPlotUnlocked(plot, currentWagonStage.id) || buildingPlacements[plot.id]) return [];
+        const bonuses = previewBonusesAtPlot(plot, planningBuilding.id);
+        const quality = settlementPlacementQuality(bonuses.length);
+        return [{
+          plotId: plot.id,
+          districtCount: bonuses.length,
+          qualityLabel: quality.label,
+          qualityTone: quality.tone,
+          qualitySummary: quality.summary
+        }];
+      })
+    : [];
+  const blueprintPlanRatingByPlot = new Map(
+    blueprintPlanRatings.map(rating => [rating.plotId, rating] as const)
+  );
+  const bestPlacementQualityForBuilding = (buildingId: string) => {
+    const districtCount = settlementPlots.reduce((best, plot) => {
+      if (!isSettlementPlotUnlocked(plot, currentWagonStage.id) || buildingPlacements[plot.id]) return best;
+      return Math.max(best, previewBonusesAtPlot(plot, buildingId).length);
+    }, 0);
+    return settlementPlacementQuality(districtCount);
+  };
   const districtOpportunities = settlementPlots.flatMap(plot => {
     if (!isSettlementPlotUnlocked(plot, currentWagonStage.id) || buildingPlacements[plot.id]) return [];
 
@@ -207,7 +236,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const districtOpportunityByPlot = new Map(
     districtOpportunities.map(opportunity => [opportunity.plotId, opportunity] as const)
   );
-  const showDistrictOpportunities = !selectedPlotId && !selectedBuildingId && !unlockCelebration;
+  const showDistrictOpportunities = !selectedPlotId && !selectedBuildingId && !unlockCelebration && !blueprintPlannerOpen;
 
   const stageLabel = activeFaction === 'elf'
     ? currentWagonStage.id === 'capital' ? 'STARROOT CONCLAVE'
@@ -408,6 +437,95 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         </View>
       </View>
 
+      {availableBuildings.length && !selectedBuildingId ? (
+        blueprintPlannerOpen ? (
+          <View
+            testID="settlement-blueprint-planner"
+            style={[styles.blueprintPlanner, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+          >
+            <View style={styles.blueprintPlannerHeader}>
+              <View style={styles.blueprintPlannerCopy}>
+                <Text style={[styles.blueprintPlannerEyebrow, { color: theme.colors.textMuted }]}>PLAN BLUEPRINT</Text>
+                <Text style={[styles.blueprintPlannerTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                  {planningBuilding ? planningBuilding.name : 'Choose a building'}
+                </Text>
+              </View>
+              <Pressable
+                testID="settlement-close-blueprint-planner"
+                accessibilityRole="button"
+                accessibilityLabel="Close blueprint planner"
+                onPress={() => {
+                  setBlueprintPlannerOpen(false);
+                  setPlanningBuildingId(null);
+                  setPreviewBuildingId(null);
+                  setSelectedPlotId(null);
+                }}
+                style={[styles.blueprintPlannerClose, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}
+              >
+                <Text style={[styles.blueprintPlannerCloseText, { color: theme.colors.textMuted }]}>CLOSE</Text>
+              </Pressable>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.blueprintPlannerRow}>
+              {availableBuildings.map(building => {
+                const bestQuality = bestPlacementQualityForBuilding(building.id);
+                const active = planningBuildingId === building.id;
+                const affordable = canPayBuildingCost(resources, building.constructionCost);
+                return (
+                  <Pressable
+                    key={building.id}
+                    testID={'settlement-plan-blueprint-' + building.id}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    accessibilityLabel={'Plan ' + building.name + ', best placement ' + bestQuality.label + ', ' + bestQuality.summary}
+                    onPress={() => {
+                      setPlanningBuildingId(building.id);
+                      setPreviewBuildingId(selectedPlotId ? building.id : null);
+                      setUnlockCelebration(null);
+                    }}
+                    style={[
+                      styles.blueprintPlannerChip,
+                      {
+                        borderColor: active ? theme.colors.gold : semanticColor(theme, bestQuality.tone),
+                        backgroundColor: active ? theme.colors.surface2 : theme.colors.surface1
+                      }
+                    ]}
+                  >
+                    <Text style={[styles.blueprintPlannerChipName, { color: theme.colors.text }]} numberOfLines={1}>{building.name}</Text>
+                    <Text style={[styles.blueprintPlannerChipQuality, { color: semanticColor(theme, bestQuality.tone) }]}>
+                      {bestQuality.label}{affordable ? ' · ready' : ''}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        ) : (
+          <Pressable
+            testID="settlement-open-blueprint-planner"
+            accessibilityRole="button"
+            accessibilityLabel="Plan a building blueprint across all settlement plots"
+            onPress={() => {
+              const first = nextSuggestedBuilding ?? availableBuildings[0] ?? null;
+              setBlueprintPlannerOpen(true);
+              setPlanningBuildingId(first?.id ?? null);
+              setPreviewBuildingId(null);
+              setSelectedPlotId(null);
+              setSelectedBuildingId(null);
+              setUnlockCelebration(null);
+            }}
+            style={[styles.blueprintPlannerLauncher, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+          >
+            <View style={styles.blueprintPlannerLauncherCopy}>
+              <Text style={[styles.blueprintPlannerEyebrow, { color: theme.colors.textMuted }]}>PLAN BLUEPRINT</Text>
+              <Text style={[styles.blueprintPlannerLauncherText, { color: theme.colors.text }]} numberOfLines={1}>
+                Compare every open plot at once
+              </Text>
+            </View>
+            <Text style={[styles.blueprintPlannerLauncherAction, { color: theme.colors.gold }]}>PLAN</Text>
+          </Pressable>
+        )
+      ) : null}
+
       <View style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
         <View pointerEvents="none" style={styles.backdrop}>
           <SettlementTerrainBackdrop faction={activeFaction} stageId={currentWagonStage.id} />
@@ -477,7 +595,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const placementQualitySource = plotSelected && Boolean(previewBuilding);
           const districtOpportunity = districtOpportunityByPlot.get(plot.id) ?? null;
           const districtOpportunityVisible = Boolean(districtOpportunity) && showDistrictOpportunities;
-          const buildReady = unlocked && !building && !selectedBuildingId && !plotSelected && constructionReadyCount > 0;
+          const blueprintPlanRating = blueprintPlanRatingByPlot.get(plot.id) ?? null;
+          const blueprintPlanVisible = Boolean(blueprintPlanRating) && blueprintPlannerOpen && Boolean(planningBuilding) && !plotSelected;
+          const buildReady = unlocked && !building && !selectedBuildingId && !plotSelected && !blueprintPlannerOpen && constructionReadyCount > 0;
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
@@ -507,6 +627,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   setSelectedBuildingId(buildingSelected ? null : building.id);
                   setSelectedPlotId(null);
                   setPreviewBuildingId(null);
+                  setBlueprintPlannerOpen(false);
+                  setPlanningBuildingId(null);
                   return;
                 }
                 if (selectedBuildingId) {
@@ -524,7 +646,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   const districtCandidate = opportunityCandidate
                     ? availableBuildings.find(candidate => candidate.id === opportunityCandidate.buildingId) ?? null
                     : availableBuildings.find(candidate => previewBonusesAtPlot(plot, candidate.id).length > 0) ?? null;
-                  const previewCandidate = districtCandidate ?? affordableBuildings[0] ?? availableBuildings[0] ?? null;
+                  const previewCandidate = planningBuilding ?? districtCandidate ?? affordableBuildings[0] ?? availableBuildings[0] ?? null;
                   setSelectedPlotId(plot.id);
                   setPreviewBuildingId(previewCandidate?.id ?? null);
                 }
@@ -540,15 +662,17 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     ? theme.colors.gold
                     : building
                       ? 'transparent'
-                      : districtOpportunityVisible
-                        ? semanticColor(theme, 'positive')
-                        : recommendedBuildPlot
-                          ? theme.colors.gold
-                          : buildReady
-                            ? factionAccent
-                            : theme.colors.border,
-                  borderWidth: tutorialPlotFocused || selected ? 2.5 : building ? 0 : districtOpportunityVisible ? 2 : recommendedBuildPlot ? 2.25 : 1.5,
-                  borderStyle: building || selected || tutorialPlotFocused || buildReady ? 'solid' : 'dashed',
+                      : blueprintPlanVisible && blueprintPlanRating
+                        ? semanticColor(theme, blueprintPlanRating.qualityTone)
+                        : districtOpportunityVisible
+                          ? semanticColor(theme, 'positive')
+                          : recommendedBuildPlot
+                            ? theme.colors.gold
+                            : buildReady
+                              ? factionAccent
+                              : theme.colors.border,
+                  borderWidth: tutorialPlotFocused || selected ? 2.5 : building ? 0 : blueprintPlanVisible ? 2 : districtOpportunityVisible ? 2 : recommendedBuildPlot ? 2.25 : 1.5,
+                  borderStyle: building || selected || tutorialPlotFocused || buildReady || blueprintPlanVisible ? 'solid' : 'dashed',
                   zIndex: plotZIndex,
                   transform: tutorialPlotFocused ? [{ scale: 1.04 }] : selected ? [{ scale: 1.025 }] : undefined
                 },
@@ -576,6 +700,25 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   testID={'district-preview-partner-' + plot.id}
                   style={[styles.districtPreviewPartnerRing, landmark ? styles.landmarkDistrictPreviewPartnerRing : undefined, { borderColor: theme.colors.gold }]}
                 />
+              ) : null}
+              {blueprintPlanVisible && blueprintPlanRating ? (
+                <View
+                  pointerEvents="none"
+                  accessible
+                  accessibilityLabel={blueprintPlanRating.qualityLabel + ' placement, ' + blueprintPlanRating.qualitySummary + ', for ' + (planningBuilding?.name ?? 'planned building')}
+                  testID={'blueprint-plan-quality-' + plot.id}
+                  style={[
+                    styles.blueprintPlanQualityBadge,
+                    {
+                      backgroundColor: theme.colors.surface1,
+                      borderColor: semanticColor(theme, blueprintPlanRating.qualityTone)
+                    }
+                  ]}
+                >
+                  <Text style={[styles.blueprintPlanQualityText, { color: semanticColor(theme, blueprintPlanRating.qualityTone) }]}>
+                    {blueprintPlanRating.qualityLabel.toUpperCase()} · {blueprintPlanRating.districtCount}
+                  </Text>
+                </View>
               ) : null}
               {placementQualitySource ? (
                 <View
@@ -810,7 +953,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       <View style={styles.previewAction}>
                         <SecondaryButton
                           label={previewed ? 'Previewing placement' : potentialBonuses.length ? 'Preview district' : 'Preview placement'}
-                          onPress={() => setPreviewBuildingId(building.id)}
+                          onPress={() => {
+                            setPreviewBuildingId(building.id);
+                            if (blueprintPlannerOpen) setPlanningBuildingId(building.id);
+                          }}
                         />
                       </View>
                       <View style={styles.button}>
@@ -823,6 +969,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                             if (ok) {
                               setSelectedPlotId(null);
                               setPreviewBuildingId(null);
+                              setBlueprintPlannerOpen(false);
+                              setPlanningBuildingId(null);
                               if (tutorialBuildingFocused) onTutorialFocusComplete?.();
                             }
                           }}
@@ -907,6 +1055,21 @@ const styles = StyleSheet.create({
   sceneLegend: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 3, marginTop: -1 },
   sceneLegendText: { fontSize: 9.5, lineHeight: 13, fontWeight: '700' },
   sceneLegendCount: { fontSize: 10, lineHeight: 13, fontWeight: '900' },
+  blueprintPlannerLauncher: { minHeight: 48, borderWidth: 1, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  blueprintPlannerLauncherCopy: { flex: 1, minWidth: 0 },
+  blueprintPlannerLauncherText: { fontSize: 11.5, lineHeight: 15, fontWeight: '800', marginTop: 1 },
+  blueprintPlannerLauncherAction: { fontSize: 9, lineHeight: 12, fontWeight: '900', letterSpacing: 0.7 },
+  blueprintPlanner: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 9, paddingTop: 7, paddingBottom: 8 },
+  blueprintPlannerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  blueprintPlannerCopy: { flex: 1, minWidth: 0 },
+  blueprintPlannerEyebrow: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.85 },
+  blueprintPlannerTitle: { fontSize: 13, lineHeight: 17, fontWeight: '900', marginTop: 1 },
+  blueprintPlannerClose: { borderWidth: 1, borderRadius: 9, paddingHorizontal: 7, paddingVertical: 4 },
+  blueprintPlannerCloseText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.5 },
+  blueprintPlannerRow: { gap: 6, paddingTop: 7, paddingRight: 4 },
+  blueprintPlannerChip: { width: 112, borderWidth: 1, borderRadius: 11, paddingHorizontal: 8, paddingVertical: 6 },
+  blueprintPlannerChipName: { fontSize: 9.5, lineHeight: 12, fontWeight: '900' },
+  blueprintPlannerChipQuality: { fontSize: 7.5, lineHeight: 10, fontWeight: '800', marginTop: 2 },
   section: { gap: 8, marginTop: 10 },
   map: { borderRadius: 26, borderWidth: 1, overflow: 'hidden', position: 'relative' },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
@@ -928,6 +1091,8 @@ const styles = StyleSheet.create({
   landmarkDistrictPreviewPartnerRing: { marginLeft: -48, marginTop: -40, width: 96, height: 80, borderRadius: 22 },
   placementQualityBadge: { position: 'absolute', top: 4, alignSelf: 'center', zIndex: 10, borderWidth: 1, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, opacity: 0.96 },
   placementQualityBadgeText: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
+  blueprintPlanQualityBadge: { position: 'absolute', top: 4, alignSelf: 'center', zIndex: 10, borderWidth: 1, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, opacity: 0.96 },
+  blueprintPlanQualityText: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
   districtOpportunityBadge: { position: 'absolute', top: 4, left: 5, zIndex: 9, flexDirection: 'row', alignItems: 'center', gap: 3, borderWidth: 1, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2, opacity: 0.94 },
   districtOpportunityDot: { width: 5, height: 5, borderRadius: 999 },
   districtOpportunityText: { fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
