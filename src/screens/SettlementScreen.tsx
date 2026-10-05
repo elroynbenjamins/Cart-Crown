@@ -611,7 +611,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
-  const worldRebuildActive = activeFaction === 'human' && currentWagonStage.id === 'fort';
+  const worldRebuildActive =
+    activeFaction === 'human' &&
+    ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
   const districtAnalysisVisible =
     !worldRebuildActive ||
     Boolean(selectedBuildingId || selectedDistrictId || selectedPlotId || blueprintPlannerOpen || relocationMode);
