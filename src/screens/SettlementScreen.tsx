@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { ViewStyle } from 'react-native';
+import { settlementActionLayout } from '../ui/settlementActionLayout';
 import {
   analyzeSettlementAdjacency, getSettlementAdjacencyBonuses,
   getSettlementPlots, isSettlementPlotUnlocked
@@ -160,7 +161,7 @@ type SettlementUnlockCelebration = {
   buildingId?: string;
 };
 
-type SettlementBuildingAction = 'inspect' | 'move';
+type SettlementBuildingAction = 'inspect' | 'move' | 'upgrade';
 
 const settlementUnlockSnapshots = new Map<string, SettlementUnlockSnapshot>();
 
@@ -174,12 +175,26 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const {
     activeFaction, resources, currentWagonStage, buildings, buildingLevels,
     buildingPlacements, settlementAdjacencyBonuses, isBuildingUnlocked,
-    constructBuilding, moveBuilding, upgradeBuilding
+    constructBuilding, moveBuilding, upgradeBuilding, settlementUpgraded,
+    markedRaidersInvestigated, refugeeCampSecured, commanderPathId
   } = useGame();
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
-  const [selectedBuildingAction, setSelectedBuildingAction] = useState<SettlementBuildingAction | null>(null);
-  const [relocationTargetPlotId, setRelocationTargetPlotId] = useState<string | null>(null);
+  const [selectedBuildingAction, commitBuildingAction] = useState<SettlementBuildingAction | null>(null);
+  const [relocationTargetPlotId, commitRelocationTarget] = useState<string | null>(null);
+  // Invalidate old confirmation callbacks on action/target changes and on first use.
+  const interactionVersion = useRef(0);
+  const setSelectedBuildingAction = (action: SettlementBuildingAction | null) => {
+    interactionVersion.current += 1;
+    commitBuildingAction(action);
+  };
+  const setRelocationTargetPlotId = (plotId: string | null) => {
+    interactionVersion.current += 1;
+    commitRelocationTarget(plotId);
+  };
+  const [measuredMapWidth, setMeasuredMapWidth] = useState(0);
+  const [measuredActionHeight, setMeasuredActionHeight] = useState(112);
+  const [measuredActionChrome, setMeasuredActionChrome] = useState(112);
   const [previewBuildingId, setPreviewBuildingId] = useState<string | null>(null);
   const [blueprintPlannerOpen, setBlueprintPlannerOpen] = useState(false);
   const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
@@ -192,7 +207,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const adjacencyRecipes = getSettlementAdjacencyBonuses(activeFaction);
   const factionAccent = activeFaction === 'elf' ? theme.colors.elf : activeFaction === 'orc' ? theme.colors.orc : theme.colors.human;
   const selectedPlot = settlementPlots.find(plot => plot.id === selectedPlotId) ?? null;
-  const selectedBuilding = buildings.find(building => building.id === selectedBuildingId) ?? null;
+  const selectedBuilding = Object.values(buildingPlacements).includes(selectedBuildingId)
+    ? buildings.find(building => building.id === selectedBuildingId) ?? null
+    : null;
   const relocationMode = Boolean(selectedBuilding) && selectedBuildingAction === 'move';
   const selectedDistrict = settlementAdjacencyBonuses.find(bonus => bonus.id === selectedDistrictId) ?? null;
   const selectedDistrictBuildingA = selectedDistrict
@@ -550,7 +567,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     Math.min(780, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 120))
   );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
-  const mapWidth = Math.max(300, safeViewportWidth - 20);
+  const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
   const districtConnections = settlementAdjacencyBonuses.flatMap(bonus => {
     const first = settlementPlotCenters[bonus.plotA];
     const second = settlementPlotCenters[bonus.plotB];
@@ -686,6 +703,127 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         : currentWagonStage.id === 'stronghold' ? 3.5
           : currentWagonStage.id === 'town' ? 3
             : 2;
+
+  const selectedBuildingLevel = selectedBuilding ? buildingLevels[selectedBuilding.id] ?? 0 : 0;
+  const selectedNextUpgrade = selectedBuilding && selectedBuildingLevel < selectedBuilding.maxLevel
+    ? getBuildingLevelDefinition(selectedBuilding.id, selectedBuildingLevel + 1) : null;
+  const sourcePlotId = selectedBuilding
+    ? Object.entries(buildingPlacements).find(([, id]) => id === selectedBuilding.id)?.[0] : undefined;
+  const selectedCanMove = Boolean(selectedBuilding && selectedBuildingLevel > 0 && sourcePlotId) && settlementPlots.some(plot =>
+    isSettlementPlotUnlocked(plot, currentWagonStage.id) && !buildingPlacements[plot.id]
+  );
+  const humanUpgradeGate = activeFaction !== 'human' || !selectedBuilding ? null
+    : selectedBuilding.id === 'barracks' && !settlementUpgraded ? 'Establish the settlement first.'
+    : selectedBuilding.id === 'forge' && !markedRaidersInvestigated ? 'Complete the Marked Raiders investigation first.'
+    : selectedBuilding.id === 'quartermaster' && !refugeeCampSecured ? 'Secure the Refugee Camp first.'
+    : selectedBuilding.id === 'war_room' && !commanderPathId ? 'Choose a commander path first.' : null;
+  const selectedUpgradeBlocker = !selectedBuilding ? 'Select a building.'
+    : selectedBuilding.role === 'KINGDOM' ? 'Settlement expansion is managed through the current Kingdom goal.'
+    : selectedBuildingLevel <= 0 ? 'Construct this building first.'
+    : selectedBuildingLevel >= selectedBuilding.maxLevel ? 'Maximum building level reached.'
+    : !selectedNextUpgrade ? 'No direct next-level upgrade is listed.'
+    : !isBuildingUnlocked(selectedBuilding.id) ? selectedNextUpgrade.requirement
+    : selectedBuildingLevel >= maxBuildingLevelForStage ? 'Expand the settlement to unlock Level ' + (selectedBuildingLevel + 1) + '.'
+    : humanUpgradeGate
+    ? humanUpgradeGate
+    : !canPayBuildingCost(resources, selectedNextUpgrade.cost) ? 'Missing upgrade materials. The exact shortages are listed below.' : null;
+  const latestInteractionRender = useRef<object | null>(null);
+  const interactionRender = {};
+  latestInteractionRender.current = interactionRender;
+  const renderedInteractionVersion = interactionVersion.current;
+  const closeBuildingSelection = () => {
+    setSelectedBuildingId(null);
+    setSelectedBuildingAction(null);
+    setRelocationTargetPlotId(null);
+    setMessage(null);
+  };
+  const confirmSceneUpgrade = () => {
+    if (latestInteractionRender.current !== interactionRender || interactionVersion.current !== renderedInteractionVersion || selectedBuildingAction !== 'upgrade' ||
+        !selectedBuilding || !selectedNextUpgrade || selectedUpgradeBlocker) return;
+    interactionVersion.current += 1;
+    const ok = upgradeBuilding(selectedBuilding.id);
+    if (ok) setSelectedBuildingAction(null);
+    setMessage(ok ? selectedBuilding.name + ' upgraded to Level ' + selectedNextUpgrade.level + '.'
+      : 'Upgrade not completed. Recheck the current campaign requirement and resources; nothing was upgraded.');
+  };
+  const confirmSceneMove = () => {
+    if (latestInteractionRender.current !== interactionRender || interactionVersion.current !== renderedInteractionVersion || !relocationMode ||
+        !selectedBuilding || !relocationTargetPlotId || !relocationTarget) return;
+    interactionVersion.current += 1;
+    const ok = moveBuilding(selectedBuilding.id, relocationTargetPlotId);
+    if (ok) {
+      setSelectedBuildingAction(null);
+      setRelocationTargetPlotId(null);
+    }
+    setMessage(ok ? 'Building relocated. District bonuses recalculated.' : 'This destination is no longer available. Choose another unlocked empty plot.');
+  };
+  // Android Back dismisses details/move preview first, then the selected building.
+  useEffect(() => {
+    if (!selectedBuilding) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (selectedBuildingAction || relocationTargetPlotId) {
+        setSelectedBuildingAction(null);
+        setRelocationTargetPlotId(null);
+        setMessage(null);
+      } else closeBuildingSelection();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [selectedBuilding?.id, selectedBuildingAction, relocationTargetPlotId]);
+  useEffect(() => {
+    closeBuildingSelection();
+    setSelectedPlotId(null);
+    setPreviewBuildingId(null);
+    setBlueprintPlannerOpen(false);
+    setPlanningBuildingId(null);
+    setSelectedDistrictId(null);
+  }, [activeFaction]);
+  const actionAnchorId = relocationMode && relocationTarget ? relocationTarget.plotId : sourcePlotId;
+  const actionAnchor = (actionAnchorId ? settlementPlotCenters[actionAnchorId] : null) ?? { x: 0.5, y: 0.5 };
+  const actionLayout = settlementActionLayout(mapWidth, mapHeight, actionAnchor, measuredActionHeight);
+  const actionDetailHeight = Math.max(64, Math.min(280,
+    Math.max(actionAnchor.y, 1 - actionAnchor.y) * mapHeight - 74 - measuredActionChrome));
+  const buildingDetails = selectedBuilding && selectedBuildingAction === 'inspect' ? (
+    <View testID="scene-building-inspect" style={styles.sceneDetailsContent}>
+      <SemanticChip label={selectedBuildingCurrentBonuses.length + ' active districts'} tone={selectedBuildingCurrentBonuses.length ? 'positive' : 'neutral'} compact />
+      <BuildingLevelPreview building={selectedBuilding} level={selectedBuildingLevel} wallet={resources} />
+      <SecondaryButton label="Close details" onPress={() => setSelectedBuildingAction(null)} />
+    </View>
+  ) : selectedBuilding && selectedBuildingAction === 'upgrade' ? (
+    <View testID="scene-building-upgrade-review" style={styles.sceneDetailsContent}>
+      <Text style={[styles.sceneDetailTitle, { color: theme.colors.text }]}>Upgrade review · no resources spent yet</Text>
+      {selectedNextUpgrade ? <>
+        <SemanticChip label={'Level ' + selectedBuildingLevel + ' → ' + selectedNextUpgrade.level} tone="blue" compact />
+        <Text style={[styles.sceneDetailText, { color: theme.colors.text }]}>{selectedNextUpgrade.effect}</Text>
+        <Text style={[styles.sceneDetailText, { color: theme.colors.textMuted }]}>{selectedNextUpgrade.requirement}</Text>
+        <BuildingCosts cost={selectedNextUpgrade.cost} wallet={resources} title="Upgrade cost" />
+      </> : null}
+      {selectedUpgradeBlocker ? <Text accessibilityLiveRegion="polite" style={[styles.sceneDetailText, { color: semanticColor(theme, 'warning') }]}>{selectedUpgradeBlocker}</Text> : null}
+      {selectedNextUpgrade ? <PrimaryButton label={'Confirm upgrade to Level ' + selectedNextUpgrade.level} disabled={Boolean(selectedUpgradeBlocker)} onPress={confirmSceneUpgrade} /> : null}
+      <SecondaryButton label="Cancel upgrade" onPress={() => setSelectedBuildingAction(null)} />
+    </View>
+  ) : selectedBuilding && relocationMode ? (
+    <View testID="scene-building-move-review" style={styles.sceneDetailsContent}>
+      {relocationTarget ? <>
+        <Text style={[styles.sceneDetailTitle, { color: theme.colors.text }]}>Move to {settlementPlotLabels[relocationTarget.plotId] ?? relocationTarget.plotId} · free</Text>
+        <View style={styles.relocationSummaryRow}>
+          <SemanticChip label={'Gain +' + relocationTarget.gain} tone={relocationTarget.gain ? 'positive' : 'neutral'} compact />
+          <SemanticChip label={'Lose -' + relocationTarget.loss} tone={relocationTarget.loss ? 'warning' : 'neutral'} compact />
+          <SemanticChip label={'Net ' + (relocationTarget.net >= 0 ? '+' : '') + relocationTarget.net} tone={relocationTarget.tone} compact />
+          <SemanticChip label={'Network ' + settlementAdjacencyBonuses.length + ' → ' + (settlementAdjacencyBonuses.length + relocationTarget.net)} tone={relocationTarget.tone} compact />
+        </View>
+        <Text style={[styles.sceneDetailText, { color: theme.colors.textMuted }]}>
+          {relocationTarget.gainedBonuses.length ? 'Gains ' + relocationTarget.gainedBonuses.map(bonus => bonus.name).join(' + ') + '. ' : 'No new district gained. '}
+          {relocationTarget.lostBonuses.length ? 'Loses ' + relocationTarget.lostBonuses.map(bonus => bonus.name).join(' + ') + '.' : 'No current district lost.'}
+        </Text>
+        <PrimaryButton label="Confirm free move" onPress={confirmSceneMove} />
+        <SecondaryButton label="Choose another plot" onPress={() => setRelocationTargetPlotId(null)} />
+      </> : <Text style={[styles.sceneDetailText, { color: theme.colors.textMuted }]}>
+        {selectedCanMove ? 'Tap an open plot to preview a free move. Badges compare district gains and losses.' : 'No unlocked empty plot is available.'}
+      </Text>}
+      <SecondaryButton label="Cancel move" onPress={() => { setSelectedBuildingAction(null); setRelocationTargetPlotId(null); }} />
+    </View>
+  ) : null;
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -876,7 +1014,15 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         </Pressable>
       ) : null}
 
-      <View style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+      <View
+        testID="settlement-scene"
+        onLayout={event => {
+          const width = event.nativeEvent.layout.width;
+          if (Number.isFinite(width) && width > 0) setMeasuredMapWidth(previous => Math.abs(previous - width) < 0.5 ? previous : width);
+        }}
+        style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+      >
+        <Pressable testID="settlement-clear-selection" accessible={false} importantForAccessibility="no" disabled={!selectedBuilding} onPress={closeBuildingSelection} style={styles.sceneDismissSurface} />
         <View pointerEvents="none" style={styles.backdrop}>
           <SettlementTerrainBackdrop faction={activeFaction} stageId={currentWagonStage.id} />
         </View>
@@ -1066,18 +1212,6 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const buildReady = unlocked && !building && !selectedBuildingId && !plotSelected && !blueprintPlannerOpen && constructionReadyCount > 0;
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
-          const nextUpgradeDefinition = building ? getBuildingLevelDefinition(building.id, level + 1) : null;
-          const upgradeLevelAvailable = Boolean(
-            building &&
-            level > 0 &&
-            level < building.maxLevel &&
-            level < maxBuildingLevelForStage &&
-            nextUpgradeDefinition
-          );
-          const hasRelocationDestination = Boolean(building) && settlementPlots.some(candidate =>
-            isSettlementPlotUnlocked(candidate, currentWagonStage.id) &&
-            !buildingPlacements[candidate.id]
-          );
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
           const buildingSize = landmark ? 88 : Math.round(62 * depthScale);
           const ambienceSize = landmark ? 110 : Math.round(82 * depthScale);
@@ -1342,101 +1476,6 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       </View>
                     </>
                   ) : null}
-                  {buildingSelected ? (
-                    <View
-                      testID={'building-action-strip-' + building.id}
-                      style={[
-                        styles.sceneActionStrip,
-                        plot.column === 0
-                          ? styles.sceneActionStripLeft
-                          : plot.column === 2
-                            ? styles.sceneActionStripRight
-                            : styles.sceneActionStripCenter,
-                        {
-                          backgroundColor: theme.colors.surface1,
-                          borderColor: theme.colors.gold
-                        }
-                      ]}
-                    >
-                      <Pressable
-                        testID={'building-action-inspect-' + building.id}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: selectedBuildingAction === 'inspect' }}
-                        accessibilityLabel={'Inspect ' + building.name}
-                        onPress={event => {
-                          event.stopPropagation();
-                          setSelectedBuildingAction('inspect');
-                          setRelocationTargetPlotId(null);
-                          setMessage(null);
-                        }}
-                        style={[
-                          styles.sceneActionButton,
-                          selectedBuildingAction === 'inspect'
-                            ? { backgroundColor: blendColor(theme.colors.gold, theme.colors.surface1, theme.dark ? 0.22 : 0.12) }
-                            : undefined
-                        ]}
-                      >
-                        <Text style={[styles.sceneActionText, { color: selectedBuildingAction === 'inspect' ? theme.colors.gold : theme.colors.text }]}>Inspect</Text>
-                      </Pressable>
-                      <Pressable
-                        testID={'building-action-move-' + building.id}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: relocationMode, disabled: !hasRelocationDestination }}
-                        accessibilityLabel={'Move ' + building.name}
-                        accessibilityHint={hasRelocationDestination ? 'Show free relocation targets and district changes.' : 'No unlocked empty plot is available.'}
-                        disabled={!hasRelocationDestination}
-                        onPress={event => {
-                          event.stopPropagation();
-                          setSelectedBuildingAction('move');
-                          setRelocationTargetPlotId(null);
-                          setMessage(null);
-                        }}
-                        style={[
-                          styles.sceneActionButton,
-                          relocationMode
-                            ? { backgroundColor: blendColor(theme.colors.gold, theme.colors.surface1, theme.dark ? 0.22 : 0.12) }
-                            : undefined,
-                          !hasRelocationDestination ? styles.sceneActionDisabled : undefined
-                        ]}
-                      >
-                        <Text style={[styles.sceneActionText, { color: relocationMode ? theme.colors.gold : theme.colors.text }]}>Move</Text>
-                      </Pressable>
-                      <Pressable
-                        testID={'building-action-upgrade-' + building.id}
-                        accessibilityRole="button"
-                        accessibilityState={{ disabled: !upgradeLevelAvailable || !upgradeMaterialsReady }}
-                        accessibilityLabel={
-                          !upgradeLevelAvailable
-                            ? building.name + ' cannot be upgraded at the current settlement tier'
-                            : upgradeMaterialsReady
-                              ? 'Upgrade ' + building.name + ' to Level ' + (level + 1)
-                              : 'Upgrade unavailable for ' + building.name + ', materials are missing'
-                        }
-                        accessibilityHint={upgradeMaterialsReady ? 'Upgrade materials are ready. Progression requirements are checked when you activate this action.' : 'Inspect the building to review missing materials and progression requirements.'}
-                        disabled={!upgradeLevelAvailable || !upgradeMaterialsReady}
-                        onPress={event => {
-                          event.stopPropagation();
-                          if (!upgradeLevelAvailable || !upgradeMaterialsReady) return;
-                          setSelectedBuildingAction(null);
-                          setRelocationTargetPlotId(null);
-                          const ok = upgradeBuilding(building.id);
-                          setMessage(ok
-                            ? building.name + ' upgraded to Level ' + (level + 1) + '.'
-                            : 'Upgrade not completed. A progression requirement is still blocking ' + building.name + '. Inspect it for details.');
-                        }}
-                        style={[
-                          styles.sceneActionButton,
-                          upgradeMaterialsReady
-                            ? { backgroundColor: blendColor(theme.colors.gold, theme.colors.surface1, theme.dark ? 0.2 : 0.1) }
-                            : undefined,
-                          !upgradeLevelAvailable || !upgradeMaterialsReady ? styles.sceneActionDisabled : undefined
-                        ]}
-                      >
-                        {upgradeMaterialsReady ? <View style={[styles.sceneActionReadyDot, { backgroundColor: theme.colors.gold }]} /> : null}
-                        <Text style={[styles.sceneActionText, { color: upgradeMaterialsReady ? theme.colors.gold : theme.colors.text }]}>Upgrade</Text>
-                      </Pressable>
-                    </View>
-                  ) : null}
                 </>
               ) : unlocked ? (
                 <>
@@ -1481,6 +1520,64 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             </Pressable>
           );
         })}
+        {selectedBuilding ? (
+          <View testID="settlement-scene-actions-layer" pointerEvents="box-none" style={styles.sceneActionsLayer}>
+            <View
+              testID={'building-action-strip-' + selectedBuilding.id}
+              onLayout={event => {
+                const height = event.nativeEvent.layout.height;
+                if (Number.isFinite(height) && height > 0) setMeasuredActionHeight(previous => Math.abs(previous - height) < 0.5 ? previous : height);
+              }}
+              style={[styles.sceneActionStrip, { ...actionLayout, maxHeight: mapHeight - 16, backgroundColor: theme.colors.surface1, borderColor: theme.colors.gold }]}
+            >
+              <View onLayout={event => {
+                const height = event.nativeEvent.layout.height;
+                if (Number.isFinite(height) && height > 0) setMeasuredActionChrome(previous => Math.abs(previous - height) < 0.5 ? previous : height);
+              }}>
+                <View style={styles.sceneActionHeading}>
+                  <View style={styles.sceneActionHeadingCopy}>
+                    <Text style={[styles.sceneActionName, { color: theme.colors.text }]} numberOfLines={2}>{selectedBuilding.name}</Text>
+                    <Text style={[styles.sceneActionLevel, { color: theme.colors.textMuted }]}>Lv.{selectedBuildingLevel} · {buildingRolePresentation[selectedBuilding.role]?.label ?? selectedBuilding.role}</Text>
+                  </View>
+                  <Pressable testID="building-action-close" accessibilityRole="button" accessibilityLabel="Close building actions" onPress={closeBuildingSelection} style={styles.sceneActionClose}>
+                    <Text style={[styles.sceneCloseText, { color: theme.colors.text }]}>×</Text>
+                  </Pressable>
+                </View>
+                <View style={styles.sceneActionRow}>
+                  {(['inspect', 'move', 'upgrade'] as const).map(action => {
+                    const active = selectedBuildingAction === action;
+                    const disabled = action === 'move' && !selectedCanMove;
+                    const ready = action === 'upgrade' && !selectedUpgradeBlocker;
+                    const label = action === 'inspect' ? 'Inspect' : action === 'move' ? 'Move' : 'Upgrade';
+                    return <Pressable
+                      key={action}
+                      testID={'building-action-' + action + '-' + selectedBuilding.id}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active, disabled }}
+                      accessibilityLabel={(action === 'upgrade' ? 'Review upgrade for ' : label + ' ') + selectedBuilding.name}
+                      accessibilityHint={action === 'upgrade' ? 'Review benefits, requirements and cost before confirming. Opening this review never spends resources.' : disabled ? 'No unlocked empty plot is available.' : undefined}
+                      disabled={disabled}
+                      onPress={() => { setSelectedBuildingAction(action); setRelocationTargetPlotId(null); setMessage(null); }}
+                      style={({ pressed }) => [styles.sceneActionButton, {
+                        backgroundColor: active || ready ? blendColor(theme.colors.gold, theme.colors.surface1, 0.16) : theme.colors.surface2,
+                        borderColor: active ? theme.colors.gold : theme.colors.border,
+                        opacity: disabled ? 0.45 : pressed ? 0.75 : 1
+                      }]}
+                    >
+                      {ready ? <View pointerEvents="none" style={[styles.sceneActionReadyDot, { backgroundColor: theme.colors.gold }]} /> : null}
+                      <Text style={[styles.sceneActionText, { color: active || ready ? theme.colors.gold : theme.colors.text }]}>{label}</Text>
+                    </Pressable>;
+                  })}
+                </View>
+                {!selectedCanMove && !buildingDetails ? <Text style={[styles.sceneFeedback, { color: theme.colors.textMuted }]}>No unlocked empty plots for moving.</Text> : null}
+                {message ? <Text testID="scene-building-feedback" accessibilityLiveRegion="polite" style={[styles.sceneFeedback, { color: theme.colors.text }]}>{message}</Text> : null}
+              </View>
+              {buildingDetails ? <ScrollView testID="scene-building-details-scroll" nestedScrollEnabled style={{ maxHeight: actionDetailHeight }} contentContainerStyle={styles.sceneDetailsScroll}>
+                {buildingDetails}
+              </ScrollView> : null}
+            </View>
+          </View>
+        ) : null}
         {['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
           <>
             <View pointerEvents="none" style={[styles.wallTop, { borderColor: factionAccent, borderTopWidth: fortificationWeight }]} />
@@ -1538,7 +1635,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       ) : null}
       <View style={styles.sceneLegend}>
         <Text style={[styles.sceneLegendText, { color: theme.colors.textMuted }]}>
-          {districtOverlayFilter === 'all' ? 'Tap structures · marked ground = build' : districtOverlayFilter.charAt(0).toUpperCase() + districtOverlayFilter.slice(1) + ' districts shown'}
+          {districtOverlayFilter === 'all' ? 'Tap buildings for actions · marked ground = build' : districtOverlayFilter.charAt(0).toUpperCase() + districtOverlayFilter.slice(1) + ' districts shown'}
         </Text>
         <Text style={[styles.sceneLegendCount, { color: factionAccent }]}>{placedIds.length}/{buildings.length}</Text>
       </View>
@@ -1606,121 +1703,6 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </View>
           <View style={styles.button}>
             <SecondaryButton label="Close district" onPress={() => setSelectedDistrictId(null)} />
-          </View>
-        </View>
-      ) : selectedBuilding && selectedBuildingAction === 'move' ? (
-        <View style={[styles.inspectorSheet, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
-          <View style={[styles.inspectorHandle, { backgroundColor: theme.colors.border }]} />
-          <View style={styles.inspectorHeader}>
-            <View style={styles.inspectorCopy}>
-              <Text style={[styles.inspectorEyebrow, { color: theme.colors.textMuted }]}>RELOCATE BUILDING</Text>
-              <Text style={[styles.inspectorTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                {selectedBuilding.name} · Lv.{buildingLevels[selectedBuilding.id] ?? 0}
-              </Text>
-            </View>
-            <SemanticChip
-              label={selectedBuildingCurrentBonuses.length + ' current districts'}
-              tone={selectedBuildingCurrentBonuses.length ? 'positive' : 'neutral'}
-              compact
-            />
-          </View>
-          {relocationTarget ? (
-            <>
-              <View style={styles.relocationSummaryRow}>
-                <SemanticChip label={'Gain +' + relocationTarget.gain} tone={relocationTarget.gain ? 'positive' : 'neutral'} compact />
-                <SemanticChip label={'Lose -' + relocationTarget.loss} tone={relocationTarget.loss ? 'warning' : 'neutral'} compact />
-                <SemanticChip
-                  label={'Net ' + (relocationTarget.net >= 0 ? '+' : '') + relocationTarget.net}
-                  tone={relocationTarget.tone}
-                  compact
-                />
-                <SemanticChip
-                  label={'Network ' + settlementAdjacencyBonuses.length + ' → ' + (settlementAdjacencyBonuses.length + relocationTarget.net)}
-                  tone={relocationTarget.net > 0 ? 'positive' : relocationTarget.net < 0 ? 'warning' : 'neutral'}
-                  compact
-                />
-              </View>
-              <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>
-                {relocationTarget.gainedBonuses.length
-                  ? 'Gains ' + relocationTarget.gainedBonuses.map(bonus => bonus.name).join(' + ') + '. '
-                  : 'No new district gained. '}
-                {relocationTarget.lostBonuses.length
-                  ? 'Loses ' + relocationTarget.lostBonuses.map(bonus => bonus.name).join(' + ') + '.'
-                  : 'No current district lost.'}
-              </Text>
-              <View style={styles.inspectorActions}>
-                <View style={styles.inspectorAction}>
-                  <SecondaryButton label="Choose another plot" onPress={() => setRelocationTargetPlotId(null)} />
-                </View>
-                <View style={styles.inspectorAction}>
-                  <PrimaryButton
-                    label="Confirm free move"
-                    onPress={() => {
-                      if (!relocationTargetPlotId) return;
-                      const ok = moveBuilding(selectedBuilding.id, relocationTargetPlotId);
-                      setMessage(ok ? 'Building relocated. District bonuses recalculated.' : 'That building cannot be moved to this plot.');
-                      if (ok) {
-                        setSelectedBuildingAction(null);
-                        setRelocationTargetPlotId(null);
-                      }
-                    }}
-                  />
-                </View>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>
-                Compare every open plot first. Each badge shows district gains, losses and net change.
-              </Text>
-              <View style={styles.inspectorActions}>
-                <View style={styles.inspectorAction}>
-                  <SecondaryButton label="Cancel move" onPress={() => {
-                    setSelectedBuildingAction(null);
-                    setRelocationTargetPlotId(null);
-                  }} />
-                </View>
-                <View style={styles.inspectorAction}>
-                  <SecondaryButton label="Inspect" onPress={() => {
-                    setSelectedBuildingAction('inspect');
-                    setRelocationTargetPlotId(null);
-                  }} />
-                </View>
-              </View>
-            </>
-          )}
-          <BuildingLevelPreview building={selectedBuilding} level={buildingLevels[selectedBuilding.id] ?? 0} wallet={resources} />
-        </View>
-      ) : selectedBuilding && selectedBuildingAction === 'inspect' ? (
-        <View style={[styles.inspectorSheet, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
-          <View style={[styles.inspectorHandle, { backgroundColor: theme.colors.border }]} />
-          <View style={styles.inspectorHeader}>
-            <View style={styles.inspectorCopy}>
-              <Text style={[styles.inspectorEyebrow, { color: theme.colors.textMuted }]}>BUILDING DETAILS</Text>
-              <Text style={[styles.inspectorTitle, { color: theme.colors.text }]} numberOfLines={1}>
-                {selectedBuilding.name} · Lv.{buildingLevels[selectedBuilding.id] ?? 0}
-              </Text>
-            </View>
-            <SemanticChip
-              label={selectedBuildingCurrentBonuses.length + ' active districts'}
-              tone={selectedBuildingCurrentBonuses.length ? 'positive' : 'neutral'}
-              compact
-            />
-          </View>
-          <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>
-            Review current and next-level effects here. Use the anchored action strip on the settlement scene to move or upgrade this building.
-          </Text>
-          <BuildingLevelPreview building={selectedBuilding} level={buildingLevels[selectedBuilding.id] ?? 0} wallet={resources} />
-          <View style={styles.inspectorActions}>
-            <View style={styles.inspectorAction}>
-              <SecondaryButton label="Close details" onPress={() => setSelectedBuildingAction(null)} />
-            </View>
-            <View style={styles.inspectorAction}>
-              <SecondaryButton label="Move building" onPress={() => {
-                setSelectedBuildingAction('move');
-                setRelocationTargetPlotId(null);
-              }} />
-            </View>
           </View>
         </View>
       ) : selectedBuilding ? null : selectedPlot ? (
@@ -1925,7 +1907,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </View>
         ) : null}
       </View>
-      {message ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.text }]}>{message}</Text> : null}
+      {message && !selectedBuilding ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.text }]}>{message}</Text> : null}
       <SecondaryButton label="Return to Kingdom" onPress={onExit} />
     </ScrollView>
   );
@@ -2037,14 +2019,24 @@ const styles = StyleSheet.create({
   landmarkUnlockFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
   districtMemberFocusRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -32, width: 76, height: 64, borderRadius: 18, borderWidth: 2, borderStyle: 'dashed', opacity: 0.9 },
   landmarkDistrictMemberFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
-  sceneActionStrip: { position: 'absolute', top: -30, width: 172, minHeight: 29, zIndex: 45, borderWidth: 1, borderRadius: 999, paddingHorizontal: 4, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2, elevation: 8 },
-  sceneActionStripLeft: { left: -2 },
-  sceneActionStripCenter: { left: '50%', marginLeft: -86 },
-  sceneActionStripRight: { right: -2 },
-  sceneActionButton: { minWidth: 52, minHeight: 22, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 4, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 3 },
-  sceneActionDisabled: { opacity: 0.38 },
-  sceneActionText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.15 },
+  sceneDismissSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 1 },
+  sceneActionsLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 50 },
+  sceneActionStrip: { position: 'absolute', borderWidth: 1, borderRadius: 16, padding: 6, elevation: 12, overflow: 'hidden' },
+  sceneActionHeading: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  sceneActionHeadingCopy: { flex: 1, minWidth: 0, paddingLeft: 5 },
+  sceneActionName: { fontSize: 13, lineHeight: 18, fontWeight: '900' },
+  sceneActionLevel: { fontSize: 11, lineHeight: 16 },
+  sceneActionClose: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  sceneCloseText: { fontSize: 24, lineHeight: 28, fontWeight: '700' },
+  sceneActionRow: { flexDirection: 'row', gap: 5 },
+  sceneActionButton: { flex: 1, minWidth: 48, minHeight: 48, borderWidth: 1, borderRadius: 10, paddingHorizontal: 4, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 3 },
+  sceneActionText: { fontSize: 12, lineHeight: 17, fontWeight: '900', flexShrink: 1, textAlign: 'center' },
   sceneActionReadyDot: { width: 5, height: 5, borderRadius: 999 },
+  sceneDetailsScroll: { padding: 6, paddingTop: 10 },
+  sceneDetailsContent: { gap: 8 },
+  sceneDetailTitle: { fontSize: 12, lineHeight: 18, fontWeight: '900' },
+  sceneDetailText: { fontSize: 12, lineHeight: 18 },
+  sceneFeedback: { fontSize: 12, lineHeight: 17, fontWeight: '700', padding: 6 },
 
   landmarkSelectionHalo: { marginLeft: -44, width: 88, height: 30, bottom: '22%' },
   buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -41, marginTop: -41, width: 82, height: 82, alignItems: 'center', justifyContent: 'center' },

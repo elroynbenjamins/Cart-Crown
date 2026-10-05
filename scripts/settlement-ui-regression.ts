@@ -7,6 +7,7 @@ import * as kingdom from '../src/game/kingdom';
 import * as presentation from '../src/ui/settlementPresentation';
 import * as colors from '../src/ui/semanticColors';
 import * as requirements from '../src/ui/researchPresentation';
+import * as sceneLayout from '../src/ui/settlementActionLayout';
 import { themes } from '../src/theme/themes';
 import type { FactionId, ResourceWallet } from '../src/game/types';
 
@@ -52,13 +53,20 @@ function choosePlot(tree: any, id: string) {
 function harness(file: string, exportName: string, game: any = {}, props: Record<string, any> = {}) {
   let cursor = 0;
   const hooks: any[] = [];
+  let effects: Array<() => any> = [];
+  let back: (() => boolean) | null = null;
   const dimensions = { width: 360, height: 800, fontScale: 1, scale: 1 };
   const jsx = (type: Element['type'], supplied: any, ...children: any[]): Element => ({ type, props: {
     ...(supplied ?? {}), ...(children.length ? { children: children.length === 1 ? children[0] : children } : {})
   } });
   const react: any = {
     __esModule: true, createElement: jsx,
-    useEffect: () => undefined,
+    useEffect: (effect: () => any) => { effects.push(effect); },
+    useRef: (initial: any) => {
+      const index = cursor++;
+      if (!(index in hooks)) hooks[index] = { current: initial };
+      return hooks[index];
+    },
     useMemo: (fn: () => unknown) => fn(),
     useState: (initial: any) => {
       const index = cursor++;
@@ -86,6 +94,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
       if (request === 'react') return react;
       if (request === 'react-native') return {
         Pressable: 'Pressable', ScrollView: 'ScrollView', Text: 'Text', View: 'View',
+        BackHandler: { addEventListener: (_: string, handler: () => boolean) => { back = handler; return { remove: () => { back = null; } }; } },
         StyleSheet: { create: (styles: any) => styles, hairlineWidth: 1, absoluteFillObject: { position: 'absolute' } },
         useWindowDimensions: () => dimensions
       };
@@ -95,6 +104,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
       if (request.endsWith('/kingdom')) return kingdom;
       if (request.endsWith('/semanticColors')) return colors;
       if (request.endsWith('/settlementPresentation')) return presentation;
+      if (request.endsWith('/settlementActionLayout')) return sceneLayout;
       if (request.endsWith('/researchPresentation')) return requirements;
       if (request.endsWith('/SettlementUI')) return load(resolve(dirname(absolute), request + '.tsx'));
       if (request.endsWith('/SemanticUI')) return Object.fromEntries(['SemanticChip', 'SemanticText', 'EmphasisText'].map(name => [name, host(name)]));
@@ -108,7 +118,11 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
     return module.exports;
   }
   const component = load(file)[exportName];
-  return { props, game, dimensions, render() { cursor = 0; return component(props); } };
+  return { props, game, dimensions,
+    render() { cursor = 0; effects = []; return component(props); },
+    installBack() { return effects.find(effect => String(effect).includes('BackHandler.addEventListener'))?.(); },
+    back() { return back?.() ?? false; }
+  };
 }
 
 function fixture(faction: FactionId, focus?: any) {
@@ -123,6 +137,7 @@ function fixture(faction: FactionId, focus?: any) {
   const game: any = {
     activeFaction: faction, buildings, resources: { gold: 500, wood: 500, stone: 500, iron: 500, provisions: 500 },
     currentWagonStage: { id: 'fort' }, buildingLevels: levels, buildingPlacements: placements,
+    settlementUpgraded: true, markedRaidersInvestigated: true, refugeeCampSecured: true, commanderPathId: 'test-path',
     settlementAdjacencyBonuses: settlement.analyzeSettlementAdjacency(placements, levels, faction).bonuses,
     isBuildingUnlocked: (id: string) => buildings.some(building => building.id === id) && !locked.has(id),
     constructBuilding: (id: string, target: string) => {
@@ -202,7 +217,7 @@ function testRecipesAndInteractions() {
     let tree = f.h.render();
     const start = JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels, placements: f.game.buildingPlacements });
     check(f.calls.length === 0, 'Initial rendering cannot call construction or relocation.');
-    check(nodes(tree, 'Pressable').filter(node => node.props.testID?.startsWith('settlement-')).length === 9, 'Settlement must keep all nine authored plot positions.');
+    check(nodes(tree, 'Pressable').filter(node => node.props.testID?.startsWith('settlement-plot_')).length === 9, 'Settlement must keep all nine authored plot positions.');
     check(nodes(tree, 'SettlementTerrainBackdrop')[0]?.props.stageId === 'fort', 'Settlement scenery must receive the live kingdom stage.');
     const expectedFactionAccent = faction === 'elf' ? themes.original.colors.elf : faction === 'orc' ? themes.original.colors.orc : themes.original.colors.human;
     check(nodes(tree, 'View').some(node => {
@@ -327,6 +342,12 @@ function testRecipesAndInteractions() {
     const contextUpgrade = nodes(tree, 'Pressable').find(node => node.props.testID === 'building-action-upgrade-' + forge.id);
     check(Boolean(contextUpgrade) && contextUpgrade?.props.disabled === false, 'A selected building with ready materials must expose an enabled scene-level Upgrade action.');
     pressTestId(tree, 'building-action-upgrade-' + forge.id);
+    tree = f.h.render();
+    check(f.calls.length === callsBeforeContextUpgrade, 'Opening the scene Upgrade review must never spend resources.');
+    check(nodes(tree, 'BuildingCosts').some(node => node.props.title === 'Upgrade cost'), 'Upgrade review must expose the current cost before confirmation.');
+    const confirmation = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Confirm upgrade to Level ' + (levelBeforeContextUpgrade + 1))!;
+    confirmation.props.onPress();
+    confirmation.props.onPress();
     tree = f.h.render();
     check(f.calls.length === callsBeforeContextUpgrade + 1 && f.calls.at(-1)?.[0] === 'upgrade' && f.calls.at(-1)?.[1] === forge.id, 'Scene-level Upgrade must reuse the existing building upgrade transaction.');
     check(f.game.buildingLevels[forge.id] === levelBeforeContextUpgrade + 1, 'Successful contextual Upgrade must advance exactly one building level.');
@@ -718,6 +739,100 @@ check(settlementScreenSource.includes('settlement-unlock-celebration'), 'Settlem
 check(settlementScreenSource.includes('setTimeout(() => setUnlockCelebration(null), 2600)'), 'Settlement unlock celebration must auto-clear quickly.');
 check(settlementScreenSource.includes('UPGRADE MATERIALS READY'), 'Settlement upgrade celebration wording must remain resource-accurate.');
 
+
+function testSceneActionsSafetyAndGeometry() {
+  for (const faction of ['human', 'elf', 'orc'] as const) {
+    const f = fixture(faction);
+    const building = f.game.buildings.find((candidate: any) => candidate.role === 'ARMY')
+      ?? f.game.buildings.find((candidate: any) => candidate.id === f.game.buildingPlacements.plot_w)!;
+    const source = Object.keys(f.game.buildingPlacements).find(id => f.game.buildingPlacements[id] === building.id)!;
+    let tree = f.h.render();
+    plot(tree, source).props.onLongPress();
+    tree = f.h.render();
+    const map = nodes(tree, 'View').find(node => node.props.testID === 'settlement-scene')!;
+    const layer = nodes(map, 'View').find(node => node.props.testID === 'settlement-scene-actions-layer')!;
+    check(Boolean(layer) && layer.props.pointerEvents === 'box-none', 'Actions must live in a pass-through scene layer.');
+    for (const p of nodes(map, 'Pressable').filter(node => String(node.props.testID).startsWith('settlement-plot_'))) {
+      check(!nodes(p, 'View').some(node => String(node.props.testID).startsWith('building-action-strip-')), 'No action may be nested outside a building press target.');
+    }
+    const action = nodes(tree, 'Pressable').find(node => node.props.testID === 'building-action-inspect-' + building.id)!;
+    const actionStyle = style(action.props.style({ pressed: false }));
+    check(actionStyle.minHeight >= 48 && actionStyle.minWidth >= 48, 'Contextual controls must have real 48-point touch targets.');
+    check(f.calls.length === 0, 'Long-pressing a building must be read-only.');
+    map.props.onLayout({ nativeEvent: { layout: { width: 300 } } });
+    tree = f.h.render();
+    const stripStyle = style(nodes(tree, 'View').find(node => node.props.testID === 'building-action-strip-' + building.id)!.props.style);
+    check(stripStyle.left >= 8 && stripStyle.left + stripStyle.width <= 292, 'Measured map width, not the window, must bound the action card.');
+
+    pressTestId(tree, 'building-action-upgrade-' + building.id);
+    tree = f.h.render();
+    const oldUpgrade = nodes(tree, 'PrimaryButton').find(node => String(node.props.label).startsWith('Confirm upgrade'))!;
+    press(tree, 'Cancel upgrade');
+    oldUpgrade.props.onPress();
+    tree = f.h.render();
+    check(f.calls.length === 0, 'A canceled upgrade callback must not spend even before the next render.');
+
+    f.game.resources = { gold: 0, wood: 0, stone: 0, iron: 0, provisions: 0 };
+    pressTestId(tree, 'building-action-upgrade-' + building.id);
+    tree = f.h.render();
+    check(text(tree).includes('Missing upgrade materials'), 'Unavailable upgrades need visible shortage wording.');
+    check(nodes(tree, 'PrimaryButton').some(node => String(node.props.label).startsWith('Confirm upgrade') && node.props.disabled), 'Insufficient materials must disable confirmation, not the read-only review.');
+    f.game.resources = { gold: 1000, wood: 1000, stone: 1000, iron: 1000, provisions: 1000 };
+    f.game.currentWagonStage = { id: 'camp' };
+    tree = f.h.render();
+    check(text(tree).includes('Expand the settlement'), 'Tier-blocked upgrades must explain the blocker in-scene.');
+    f.game.currentWagonStage = { id: 'fort' };
+    f.game.buildingLevels = { ...f.game.buildingLevels, [building.id]: building.maxLevel };
+    tree = f.h.render();
+    check(text(tree).includes('Maximum building level'), 'Maximum level must be distinguished from affordability.');
+    f.game.buildingLevels = { ...f.game.buildingLevels, [building.id]: 1 };
+    f.game.currentWagonStage = { id: 'fort' };
+    tree = f.h.render();
+    pressTestId(tree, 'building-action-move-' + building.id);
+    tree = f.h.render();
+    const target = Object.keys(f.game.buildingPlacements).find(id => !f.game.buildingPlacements[id] && !plot(tree, id).props.disabled)!;
+    choosePlot(tree, target);
+    tree = f.h.render();
+    const staleMove = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Confirm free move')!;
+    const cleanup = f.h.installBack();
+    check(f.h.back(), 'Android Back must consume the move preview before navigation.');
+    staleMove.props.onPress();
+    cleanup?.();
+    tree = f.h.render();
+    check(f.calls.length === 0 && !nodes(tree, 'View').some(node => node.props.testID === 'scene-building-move-review'), 'Back cancels the preview without moving or spending.');
+    const cleanupSelection = f.h.installBack();
+    check(f.h.back(), 'A second Back must dismiss the selected building.');
+    cleanupSelection?.();
+    tree = f.h.render();
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'settlement-scene-actions-layer'), 'Dismissed selection must remove the scene action layer.');
+
+    choosePlot(tree, source);
+    tree = f.h.render();
+    pressTestId(tree, 'building-action-move-' + building.id);
+    tree = f.h.render();
+    choosePlot(tree, target);
+    tree = f.h.render();
+    const confirm = nodes(tree, 'PrimaryButton').find(node => node.props.label === 'Confirm free move')!;
+    confirm.props.onPress();
+    confirm.props.onPress();
+    tree = f.h.render();
+    check(f.calls.length === 1 && f.calls[0][0] === 'move', 'Rapid repeated move confirmation must dispatch exactly once.');
+    check(nodes(tree, 'Text').some(node => node.props.testID === 'scene-building-feedback'), 'Completed moves need feedback on the scene.');
+    pressTestId(tree, 'settlement-clear-selection');
+    tree = f.h.render();
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'settlement-scene-actions-layer'), 'Tapping scenery must dismiss only the selection.');
+  }
+  for (const width of [280, 300, 340, 392, 768]) for (const height of [600, 720, 780]) {
+    for (const x of [0, 0.135, 0.5, 0.855, 1]) for (const y of [0, 0.175, 0.475, 0.835, 1]) for (const measured of [112, 240, 360, 580]) {
+      const box = sceneLayout.settlementActionLayout(width, height, { x, y }, measured);
+      check(box.left >= 8 && box.top >= 8 && box.left + box.width <= width - 8 && box.top + Math.min(measured, height - 16) <= height - 8, 'Every action layout must stay inside its measured native map parent.');
+    }
+  }
+  const fallback = sceneLayout.settlementActionLayout(NaN, Infinity, { x: NaN, y: Infinity }, NaN);
+  check(Object.values(fallback).every(Number.isFinite), 'Unmeasured or invalid geometry must have finite fallbacks.');
+}
+
+testSceneActionsSafetyAndGeometry();
 testEffects();
 testRecipesAndInteractions();
 testDistrictCodexConsolidation();
