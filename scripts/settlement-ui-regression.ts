@@ -295,7 +295,9 @@ function testRecipesAndInteractions() {
     check(f.game.resources.gold === gold - (forge.constructionCost.gold ?? 0), 'Construction cost must not change.');
     check(state() === 'active', 'The real adjacency analysis must activate the built district.');
     tree = f.h.render();
-    check(nodes(tree, 'View').some(node => node.props.testID === 'building-district-aura-' + forge.id), 'An active district must add a subtle in-world activity aura to its new building.');
+    const selectedDistrictAura = nodes(tree, 'View').find(node => node.props.testID === 'building-district-aura-' + forge.id);
+    check(Boolean(selectedDistrictAura), 'An active district must add a subtle in-world activity aura to its new building.');
+    check(style(selectedDistrictAura?.props.style).opacity === 0.46, 'Selected buildings must keep a subdued district aura beneath the gold selection focus.');
     check(nodes(tree, 'Text').some(node => node.props.testID === 'building-district-count-' + forge.id && text(node) === '1'), 'The compact level status must expose one active district without adding another large badge.');
     const forgeAmbience = nodes(tree, 'SettlementBuildingAmbience').find(node => node.props.buildingId === forge.id);
     check(forgeAmbience?.props.activeDistricts === 1, 'The newly linked building ambience must become busier from the real active district.');
