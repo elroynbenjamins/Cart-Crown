@@ -6,6 +6,11 @@ import { factions, factionOrder } from '../game/factions';
 import { humanRegions } from '../game/data';
 import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
+import {
+  earlyCommanderRequiredNodeId,
+  earlyPromotionGateNodeId,
+  getEarlyCampaignMission
+} from '../game/earlyCampaign';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -30,6 +35,8 @@ import type { TutorialFocusTarget } from '../game/tutorial';
 type CampaignView = 'story' | 'activities' | 'factions';
 
 export function CampaignScreen({
+  onStartEarlyCampaignBattle,
+  onCompleteEarlyCampaignEvent,
   onStartBattle,
   onOpenMarkedRaiders,
   onStartMercenary,
@@ -109,6 +116,8 @@ export function CampaignScreen({
   tutorialFocus,
   onTutorialFocusComplete
 }: {
+  onStartEarlyCampaignBattle: (nodeId: string) => void;
+  onCompleteEarlyCampaignEvent: (nodeId: string) => void;
   onStartBattle: () => void;
   onOpenMarkedRaiders: () => void;
   onStartMercenary: () => void;
@@ -237,6 +246,8 @@ export function CampaignScreen({
   if (activeFaction !== 'human') {
     return (
       <FactionOpeningCampaignScreen
+        onStartEarlyCampaignBattle={onStartEarlyCampaignBattle}
+        onCompleteEarlyCampaignEvent={onCompleteEarlyCampaignEvent}
         onStartOpeningBattle={onStartFactionOpeningBattle}
         onOpenInvestigation={onOpenFactionInvestigation}
         onStartEliteBattle={onStartFactionEliteBattle}
@@ -324,7 +335,7 @@ export function CampaignScreen({
         <View style={styles.chapterMetrics}>
           <MetricTile
             label="OBJECTIVES"
-            value={completed + '/6'}
+            value={completed + '/' + chapterNodes.length}
             caption="completed this chapter"
             tone="positive"
           />
@@ -425,6 +436,25 @@ export function CampaignScreen({
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
+          const earlyMission = getEarlyCampaignMission(node.id);
+          const earlyBlocked =
+            Boolean(earlyMission) &&
+            (
+              (
+                node.id === earlyPromotionGateNodeId &&
+                !firstPromotionComplete
+              ) ||
+              (
+                node.id === earlyCommanderRequiredNodeId &&
+                !commanderPathId
+              )
+            );
+          const earlyPlayable = Boolean(
+            earlyMission &&
+            node.current &&
+            !earlyBlocked
+          );
+
           const chapterOneBattle =
             chapterNumber === 1 &&
             node.current &&
@@ -598,6 +628,7 @@ export function CampaignScreen({
             node.id === 'ch6_node_6';
 
           const playable =
+            earlyPlayable ||
             chapterOneBattle ||
             chapterOneStory ||
             mercenaryPlayable ||
@@ -636,7 +667,13 @@ export function CampaignScreen({
 
           const status = node.completed
             ? 'DONE'
-            : node.id === 'node_4' && node.current && !firstPromotionComplete
+            : earlyMission
+              ? earlyBlocked
+                ? node.id === earlyPromotionGateNodeId
+                  ? 'PROMOTE FIRST'
+                  : 'CHOOSE COMMANDER'
+                : earlyMission.actionLabel
+              : node.id === 'node_4' && node.current && !firstPromotionComplete
               ? 'PROMOTE FIRST'
               : node.id === 'node_5' && node.current && !commanderPathId
                 ? 'CHOOSE COMMANDER'
@@ -710,8 +747,16 @@ export function CampaignScreen({
                                 ? 'NEXT'
                                 : 'LOCKED';
 
-          const action = chapterOneBattle
-            ? onStartBattle
+          const action = earlyPlayable && earlyMission
+            ? () => {
+                if (earlyMission.mode === 'battle') {
+                  onStartEarlyCampaignBattle(node.id);
+                } else {
+                  onCompleteEarlyCampaignEvent(node.id);
+                }
+              }
+            : chapterOneBattle
+              ? onStartBattle
             : chapterOneStory
               ? onOpenMarkedRaiders
               : mercenaryPlayable

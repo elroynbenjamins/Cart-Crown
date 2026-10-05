@@ -5,6 +5,7 @@ import type {
   WagonItemDefinition
 } from './types';
 import { starterWagonItems } from './data';
+import { getEarlyCampaignNodes } from './earlyCampaign';
 
 export const elfStarterResources: ResourceWallet = {
   gold: 110,
@@ -43,14 +44,7 @@ export const elfStarterUnits: UnitDefinition[] = [
   }
 ];
 
-export const elfChapterOneNodes: ChapterNode[] = [
-  { id: 'elf_node_1', name: 'The Last Wardstone', type: 'story', completed: true },
-  { id: 'elf_node_2', name: 'Wardbreakers', type: 'battle', completed: false, current: true },
-  { id: 'elf_node_3', name: 'Whispering Roots', type: 'event', completed: false },
-  { id: 'elf_node_4', name: 'Ashen Tracks', type: 'elite', completed: false },
-  { id: 'elf_node_5', name: 'Wayfarer Camp', type: 'supply', completed: false },
-  { id: 'elf_node_6', name: 'The Hollow Warden', type: 'boss', completed: false }
-];
+export const elfChapterOneNodes: ChapterNode[] = getEarlyCampaignNodes('elf', 1);
 
 export const orcStarterResources: ResourceWallet = {
   gold: 95,
@@ -89,14 +83,7 @@ export const orcStarterUnits: UnitDefinition[] = [
   }
 ];
 
-export const orcChapterOneNodes: ChapterNode[] = [
-  { id: 'orc_node_1', name: 'The Accused Clan', type: 'story', completed: true },
-  { id: 'orc_node_2', name: 'Blood on the Red Road', type: 'battle', completed: false, current: true },
-  { id: 'orc_node_3', name: 'Broken Clan Marks', type: 'event', completed: false },
-  { id: 'orc_node_4', name: 'Invader Scouts', type: 'elite', completed: false },
-  { id: 'orc_node_5', name: 'Gathering Fire', type: 'supply', completed: false },
-  { id: 'orc_node_6', name: 'The Blamecaller', type: 'boss', completed: false }
-];
+export const orcChapterOneNodes: ChapterNode[] = getEarlyCampaignNodes('orc', 1);
 
 export function factionStarterWagonItems(): WagonItemDefinition[] {
   return starterWagonItems.map(item => ({ ...item }));

@@ -6,6 +6,7 @@ import {
   wagonStages
 } from '../game/data';
 import { clampArmyReadiness } from '../game/balance';
+import { getCampaignSquadCap } from '../game/earlyCampaign';
 import {
   expeditionStages,
   getExpeditionChoice
@@ -612,7 +613,50 @@ function sanitizeNodes(
     new Set(nodes.map(node => node.id)).size !==
       fallback.length
   ) {
-    return fallback.map(node => ({ ...node }));
+    const legacyNodes = value.filter(
+      (node): node is ChapterNode =>
+        Boolean(
+          node &&
+            typeof node === 'object' &&
+            typeof (node as Partial<ChapterNode>).id === 'string'
+        )
+    );
+
+    if (legacyNodes.length === 0) {
+      return fallback.map(node => ({ ...node }));
+    }
+
+    const completedCount = legacyNodes.filter(
+      node => Boolean(node.completed)
+    ).length;
+    const currentIndex = legacyNodes.findIndex(
+      node => Boolean(node.current)
+    );
+    const progressIndex =
+      completedCount >= legacyNodes.length
+        ? fallback.length
+        : Math.min(
+            fallback.length - 1,
+            Math.floor(
+              (
+                Math.max(
+                  completedCount,
+                  currentIndex >= 0 ? currentIndex : 0
+                ) /
+                Math.max(1, legacyNodes.length)
+              ) * fallback.length
+            )
+          );
+
+    return fallback.map((node, index) => ({
+      ...node,
+      completed:
+        progressIndex >= fallback.length ||
+        index < progressIndex,
+      current:
+        progressIndex < fallback.length &&
+        index === progressIndex
+    }));
   }
 
   let currentKept = false;
@@ -630,8 +674,12 @@ function sanitizeNodes(
   });
 }
 
-function formationStageCap(stageId: string) {
-  return (
+function formationStageCap(
+  stageId: string,
+  chapterNumber: number
+) {
+  return getCampaignSquadCap(
+    chapterNumber,
     wagonStages.find(stage => stage.id === stageId)
       ?.formationSlots ?? 2
   );
@@ -640,13 +688,14 @@ function formationStageCap(stageId: string) {
 function sanitizeFormation(
   value: unknown,
   units: UnitDefinition[],
-  stageId: string
+  stageId: string,
+  chapterNumber: number
 ): Array<string | null> {
   const unitById = new Map(
     units.map(unit => [unit.id, unit])
   );
   const seen = new Set<string>();
-  const cap = formationStageCap(stageId);
+  const cap = formationStageCap(stageId, chapterNumber);
   let usedCapacity = 0;
 
   return Array.from({ length: 9 }, (_, index) => {
@@ -986,7 +1035,8 @@ export function sanitizeFactionGameState(
   const sanitizedFormation = sanitizeFormation(
     stored.formation,
     units,
-    stageId
+    stageId,
+    chapterNumber
   );
   const formationShapeId = validShapeForStage(
     stored.formationShapeId,

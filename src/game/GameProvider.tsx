@@ -98,6 +98,12 @@ import {
 } from './encounters';
 import type { EncounterId } from './encounters';
 import {
+  getCampaignSquadCap,
+  getEarlyCampaignMission,
+  getEarlyCampaignMissionByEncounter,
+  getNextEarlyCampaignNodeId
+} from './earlyCampaign';
+import {
   getCommanderPath,
   getCommanderPaths
 } from './commanders';
@@ -422,6 +428,7 @@ type GameContextValue = {
     victory: boolean
   ) => number;
   restAndResupplyArmy: () => boolean;
+  completeEarlyCampaignEvent: (nodeId: string) => boolean;
   completeFactionChapterOneEvent: (
     stage: 'investigation' | 'supply'
   ) => boolean;
@@ -1490,7 +1497,10 @@ export function GameProvider({
   );
 
   const formationBonuses = formationAnalysis.bonuses;
-  const activeSquadCap = currentWagonStage.formationSlots;
+  const activeSquadCap = getCampaignSquadCap(
+    chapterNumber,
+    currentWagonStage.formationSlots
+  );
   const activeDeploymentCapacity = useMemo(
     () =>
       getArmyDeploymentCapacity(
@@ -1588,11 +1598,12 @@ export function GameProvider({
   }, [completedCampaigns, metaCampaignComplete]);
 
   const factionChapterOneBossWon =
-    activeFaction === 'elf'
-      ? Boolean(chapterNodes.find(node => node.id === 'elf_node_6')?.completed)
-      : activeFaction === 'orc'
-        ? Boolean(chapterNodes.find(node => node.id === 'orc_node_6')?.completed)
-        : false;
+    activeFaction !== 'human' &&
+    Boolean(
+      chapterNodes.find(
+        node => node.id === 'early_ch1_07'
+      )?.completed
+    );
 
   const canUpgradeSettlement =
     activeFaction === 'human'
@@ -1615,7 +1626,9 @@ export function GameProvider({
           resources.iron >= 4;
 
   const tollCaptainWon = Boolean(
-    chapterNodes.find(node => node.id === 'node_6')?.completed
+    chapterNodes.find(
+      node => node.id === 'early_ch1_07'
+    )?.completed
   );
   const fortUpgradeAvailable =
     activeFaction === 'human' &&
@@ -1629,11 +1642,12 @@ export function GameProvider({
     canAfford(resources, getExpansionCost('human', 'fort'));
 
   const factionChapterTwoBossWon =
-    activeFaction === 'elf'
-      ? Boolean(chapterNodes.find(node => node.id === 'elf2_node_6')?.completed)
-      : activeFaction === 'orc'
-        ? Boolean(chapterNodes.find(node => node.id === 'orc2_node_6')?.completed)
-        : false;
+    activeFaction !== 'human' &&
+    Boolean(
+      chapterNodes.find(
+        node => node.id === 'early_ch2_08'
+      )?.completed
+    );
 
   const factionFortUpgradeAvailable =
     activeFaction !== 'human' &&
@@ -2108,11 +2122,171 @@ export function GameProvider({
     return true;
   };
 
+  const advanceEarlyCampaignNode = (nodeId: string) => {
+    const nextNodeId = getNextEarlyCampaignNodeId(nodeId);
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            completed: true,
+            current: false
+          };
+        }
+        if (nextNodeId && node.id === nextNodeId) {
+          return {
+            ...node,
+            current: true
+          };
+        }
+        return {
+          ...node,
+          current: false
+        };
+      })
+    );
+  };
+
+  const applyEarlyCampaignUnlocks = (nodeId: string) => {
+    if (nodeId === 'early_ch1_03') {
+      setMarkedRaidersInvestigated(true);
+      setForgeUnlocked(true);
+      setBuildingLevels(previous =>
+        activeFaction === 'human'
+          ? {
+              ...previous,
+              barracks: Math.max(
+                1,
+                previous.barracks ?? 0
+              ),
+              forge: Math.max(
+                1,
+                previous.forge ?? 0
+              )
+            }
+          : {
+              ...previous,
+              [factionBuildingIds.army]: Math.max(
+                1,
+                previous[factionBuildingIds.army] ?? 0
+              ),
+              [factionBuildingIds.forge]: Math.max(
+                1,
+                previous[factionBuildingIds.forge] ?? 0
+              )
+            }
+      );
+    }
+
+    if (nodeId === 'early_ch1_05') {
+      setMercenaryPatrolWon(true);
+      setCommanderChoiceUnlocked(true);
+    }
+
+    if (nodeId === 'early_ch1_06') {
+      setRefugeeCampSecured(true);
+    }
+
+    if (nodeId === 'early_ch1_07') {
+      setHoldTheRoadWon(true);
+    }
+
+    if (nodeId === 'early_ch2_02') {
+      setForgeUnlocked(true);
+      setBuildingLevels(previous =>
+        activeFaction === 'human'
+          ? {
+              ...previous,
+              forge: Math.max(
+                2,
+                previous.forge ?? 0
+              )
+            }
+          : {
+              ...previous,
+              [factionBuildingIds.forge]: Math.max(
+                2,
+                previous[factionBuildingIds.forge] ?? 0
+              )
+            }
+      );
+    }
+
+    if (
+      nodeId === 'early_ch2_08' &&
+      activeFaction === 'human'
+    ) {
+      setIronProvostWon(true);
+    }
+  };
+
+  const completeEarlyCampaignEvent = (
+    nodeId: string
+  ) => {
+    const mission = getEarlyCampaignMission(nodeId);
+    if (
+      !mission ||
+      mission.mode !== 'event' ||
+      mission.chapter !== chapterNumber ||
+      !chapterNodes.find(
+        node => node.id === nodeId && node.current
+      )
+    ) {
+      return false;
+    }
+
+    if (mission.eventReward) {
+      setResources(previous =>
+        addResources(previous, mission.eventReward ?? {})
+      );
+    }
+    applyEarlyCampaignUnlocks(nodeId);
+    advanceEarlyCampaignNode(nodeId);
+    return true;
+  };
+
   const finishEncounter = (
     encounterId: EncounterId,
     battleSummary?: WarTableBattleSummary
   ) => {
     const reward = encounterRewards[encounterId];
+
+    const earlyMission =
+      getEarlyCampaignMissionByEncounter(encounterId);
+    if (earlyMission) {
+      const node = chapterNodes.find(
+        candidate =>
+          candidate.id === earlyMission.nodeId
+      );
+      if (
+        earlyMission.chapter !== chapterNumber ||
+        !node?.current
+      ) {
+        return;
+      }
+
+      setResources(previous =>
+        addResources(previous, reward.resources)
+      );
+      accrueRegionalProduction();
+      applyEarlyCampaignUnlocks(
+        earlyMission.nodeId
+      );
+      advanceEarlyCampaignNode(
+        earlyMission.nodeId
+      );
+      setLastBattleResult({
+        id: encounterId + '_result',
+        title:
+          earlyMission.names[activeFaction] +
+          ' Complete',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
 
     if (encounterId.startsWith('war_table_')) {
       if (!isSideModeUnlocked('war_table')) return;
@@ -5871,10 +6045,15 @@ export function GameProvider({
 
     setCommanderPathId(pathId);
 
-    if (activeFaction === 'human') {
+    if (
+      activeFaction === 'human' &&
+      chapterNodes.some(node => node.id === 'node_5')
+    ) {
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'node_5') return { ...node, current: true };
+          if (node.id === 'node_5') {
+            return { ...node, current: true };
+          }
           return { ...node, current: false };
         })
       );
@@ -7096,6 +7275,7 @@ export function GameProvider({
       finishEncounter,
       recordBattleWear,
       restAndResupplyArmy,
+      completeEarlyCampaignEvent,
       completeFactionChapterOneEvent,
       completeFactionChapterTwoEvent,
       completeFactionChapterThreeEvent,

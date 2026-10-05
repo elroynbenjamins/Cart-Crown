@@ -20,6 +20,7 @@ import {
 import type { TutorialFocusTarget } from './game/tutorial';
 import { getEncounter } from './game/encounters';
 import type { EncounterId } from './game/encounters';
+import { getEarlyCampaignMission } from './game/earlyCampaign';
 import type { SaveSlotId } from './save/types';
 import { useGame } from './game/GameProvider';
 import { ArmyScreen } from './screens/ArmyScreen';
@@ -247,6 +248,7 @@ export function AppShell({
   const {
     activeFaction,
     finishEncounter,
+    completeEarlyCampaignEvent,
     flushSnapshot,
     lastBattleResult,
     commanderPathId,
@@ -386,7 +388,8 @@ export function AppShell({
       [
         'mercenary_patrol_result',
         'elf_hollow_warden_result',
-        'orc_blamecaller_result'
+        'orc_blamecaller_result',
+        'early_cut_off_captain_result'
       ].includes(lastBattleResult?.id ?? '') &&
       !commanderPathId
     ) {
@@ -1302,6 +1305,15 @@ export function AppShell({
           <CampaignScreen
             tutorialFocus={tutorialFocus}
             onTutorialFocusComplete={completeTutorialFocus}
+            onStartEarlyCampaignBattle={nodeId => {
+              const mission = getEarlyCampaignMission(nodeId);
+              if (!mission?.encounterId) return;
+              setActiveEncounterId(mission.encounterId);
+              setFlow('battlePrep');
+            }}
+            onCompleteEarlyCampaignEvent={nodeId => {
+              completeEarlyCampaignEvent(nodeId);
+            }}
             onStartBattle={() => {
               setActiveEncounterId('hold_the_road');
               setFlow('battlePrep');
