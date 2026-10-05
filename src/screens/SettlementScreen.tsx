@@ -600,6 +600,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
   const worldRebuildActive = activeFaction === 'human' && currentWagonStage.id === 'fort';
+  const districtAnalysisVisible =
+    !worldRebuildActive ||
+    Boolean(selectedBuildingId || selectedDistrictId || selectedPlotId || blueprintPlannerOpen || relocationMode);
   const districtConnections = settlementAdjacencyBonuses.flatMap(bonus => {
     const first = settlementPlotCenters[bonus.plotA];
     const second = settlementPlotCenters[bonus.plotB];
