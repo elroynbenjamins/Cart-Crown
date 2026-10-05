@@ -345,7 +345,7 @@ function testDenseDistrictZoneReadability() {
   check(zones.length === 5, 'Every active district must receive exactly one grouped ground zone.');
   for (const id of ['arsenal_district', 'mounted_drill_yard', 'supply_yard', 'seat_of_command', 'command_network']) {
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-zone-' + id), 'Missing grouped ground zone for ' + id + '.');
-    check(nodes(tree, 'View').some(node => node.props.testID === 'district-zone-label-' + id), 'Missing readable district tag for ' + id + '.');
+    check(nodes(tree, 'Pressable').some(node => node.props.testID === 'district-zone-label-' + id), 'Missing interactive district tag for ' + id + '.');
   }
 
   const arsenalZone = nodes(tree, 'View').find(node => node.props.testID === 'district-zone-arsenal_district');
@@ -407,12 +407,45 @@ function testDenseDistrictZoneReadability() {
     'Returning to All must restore every active district zone.'
   );
 
+  const callsBeforeDistrictFocus = f.calls.length;
+  const arsenalTag = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-arsenal_district');
+  check(Boolean(arsenalTag), 'Arsenal District tag must be directly tappable.');
+  arsenalTag!.props.onPress();
+  tree = f.h.render();
+
+  check(f.calls.length === callsBeforeDistrictFocus, 'Focusing a district must never spend resources or move a building.');
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-inspector'), 'Tapping a district tag must open the compact district inspector.');
+  check(arsenalTag?.props.accessibilityRole === 'button', 'District tags must expose button semantics.');
+  const focusedTag = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-arsenal_district');
+  check(focusedTag?.props.accessibilityState?.selected === true, 'Focused district tag must expose selected state.');
+  check(
+    nodes(tree, 'DistrictEffects').some(node => node.props.bonus.id === 'arsenal_district' && node.props.state === 'active'),
+    'District inspector must show the exact active authored bonus.'
+  );
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-member-focus-plot_nw'), 'District focus must ring the Forge plot.');
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-member-focus-plot_w'), 'District focus must ring the Barracks plot.');
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-member-focus-plot_e'), 'District focus must not ring unrelated buildings.');
+
+  const focusedArsenal = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-arsenal_district');
+  const dimmedSupply = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-supply_yard');
+  check(style(focusedArsenal?.props.style).opacity === 1, 'Focusing a district must fully emphasize its neighborhood tag.');
+  check(style(dimmedSupply?.props.style).opacity === 0.42, 'Focusing a district must dim unrelated dense neighborhoods.');
+
+  const forge = f.game.buildings.find((building: any) => building.id === 'forge')!;
+  press(tree, 'Review ' + forge.name);
+  tree = f.h.render();
+  check(f.calls.length === callsBeforeDistrictFocus, 'Review placement from a district must remain preview-only.');
+  check(nodes(tree, 'BuildingLevelPreview')[0]?.props.building.id === forge.id, 'District review must jump directly into the chosen member placement review.');
+  check(nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'District review must expose relocation destination ratings.');
+  press(tree, 'Cancel move');
+  tree = f.h.render();
+
   choosePlot(tree, 'plot_nw');
   tree = f.h.render();
-  const focusedArsenal = nodes(tree, 'View').find(node => node.props.testID === 'district-zone-label-arsenal_district');
-  const dimmedSupply = nodes(tree, 'View').find(node => node.props.testID === 'district-zone-label-supply_yard');
-  check(style(focusedArsenal?.props.style).opacity === 1, 'Selecting a district member must fully emphasize its own neighborhood tag.');
-  check(style(dimmedSupply?.props.style).opacity === 0.42, 'Selecting a district member must dim unrelated dense neighborhoods.');
+  const focusedArsenalFromBuilding = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-arsenal_district');
+  const dimmedSupplyFromBuilding = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-supply_yard');
+  check(style(focusedArsenalFromBuilding?.props.style).opacity === 1, 'Selecting a district member must still emphasize its own neighborhood tag.');
+  check(style(dimmedSupplyFromBuilding?.props.style).opacity === 0.42, 'Selecting a district member must still dim unrelated dense neighborhoods.');
 }
 
 function testDistrictNetworkOptimizationHint() {
