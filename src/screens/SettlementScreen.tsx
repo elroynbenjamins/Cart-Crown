@@ -10,7 +10,7 @@ import { canPayBuildingCost, getBuildingLevelDefinition } from '../game/kingdom'
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { PrimaryButton, SecondaryButton } from '../ui/components';
-import { BuildingSprite, LockIcon, ResourceSprite, SettlementBuildingAmbience, SettlementBuildPlotSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
+import { BuildingSprite, LockIcon, ResourceSprite, SettlementBuildingAmbience, SettlementBuildPlotSprite, SettlementDistrictAmbience, SettlementTerrainBackdrop } from '../ui/gameArt';
 import { SemanticChip, SemanticText } from '../ui/SemanticUI';
 import { blendColor, semanticColor } from '../ui/semanticColors';
 import type { SemanticTone } from '../ui/semanticColors';
@@ -633,6 +633,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         left: horizontal ? midpointX - 52 : midpointX + 10,
         top: horizontal ? midpointY - 25 : midpointY - 10,
         width: 104
+      } as ViewStyle,
+      activityStyle: {
+        left: horizontal ? midpointX - 29 : midpointX - 68,
+        top: horizontal ? midpointY + 7 : midpointY - 29,
+        width: 58,
+        height: 58
       } as ViewStyle
     }];
   });
@@ -1211,6 +1217,30 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             </React.Fragment>
           ))}
         </View>
+        {visibleDistrictConnections.length ? (
+          <View pointerEvents="none" style={styles.districtEnvironmentLayer}>
+            {visibleDistrictConnections.map(connection => (
+              <View
+                key={'environment-' + connection.id}
+                testID={'district-environment-' + connection.id}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={[
+                  connection.activityStyle,
+                  styles.districtEnvironment,
+                  { opacity: connection.focused ? 1 : districtFocusActive ? 0.28 : 0.82 }
+                ]}
+              >
+                <SettlementDistrictAmbience
+                  category={connection.category}
+                  faction={activeFaction}
+                  focused={connection.focused}
+                  size={58}
+                />
+              </View>
+            ))}
+          </View>
+        ) : null}
         {previewDistrictConnections.length ? (
           <View pointerEvents="none" style={styles.districtPreviewLayer}>
             {previewDistrictConnections.map(connection => (
@@ -2142,6 +2172,8 @@ const styles = StyleSheet.create({
   districtZoneDot: { width: 5, height: 5, borderRadius: 999 },
   districtZoneText: { flex: 1, fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.25 },
   districtLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 3 },
+  districtEnvironmentLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 4 },
+  districtEnvironment: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
   districtLinkGlow: { position: 'absolute', height: 7, borderRadius: 999 },
   districtLink: { position: 'absolute', height: 2.5, borderRadius: 999 },
   districtPreviewLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 4 },
