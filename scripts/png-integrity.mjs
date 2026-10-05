@@ -25,7 +25,7 @@ function paeth(a, b, c) {
 function decodePng(bytes, contract) {
   requireValid(bytes.length >= 57 && bytes.length <= contract.maxBytes, 'Invalid ' + contract.label.toLowerCase() + ' file size');
   requireValid(bytes.subarray(0, 8).equals(SIGNATURE), 'Invalid PNG signature');
-  let cursor = 8, header = null, ended = false, idatEnded = false;
+  let cursor = 8, header = null, ended = false, idatEnded = false, palette = null, paletteAlpha = null;
   const idats = [];
   while (cursor < bytes.length) {
     requireValid(cursor + 12 <= bytes.length, 'Truncated PNG chunk');
@@ -41,6 +41,13 @@ function decodePng(bytes, contract) {
       requireValid(header.width === contract.width && header.height === contract.height, contract.label + ' must be ' + contract.width + 'x' + contract.height);
       requireValid(data[8] === 8 && contract.colorTypes.includes(header.colorType), contract.colorMessage);
       requireValid(data[10] === 0 && data[11] === 0 && data[12] === 0, 'Unsupported PNG compression/filter/interlace');
+    } else if (type === 'PLTE') {
+      requireValid(header && !idats.length && length > 0 && length <= 768 && length % 3 === 0, 'Invalid PLTE');
+      palette = Buffer.from(data);
+    } else if (type === 'tRNS') {
+      requireValid(header && !idats.length, 'Misordered tRNS');
+      requireValid(!contract.opaque, 'Scene must not include a transparency chunk');
+      if (header.colorType === 3) paletteAlpha = Buffer.from(data);
     } else if (type === 'IDAT') {
       requireValid(header && !idatEnded, 'Misordered IDAT');
       idats.push(data);
@@ -51,35 +58,54 @@ function decodePng(bytes, contract) {
       break;
     } else {
       requireValid(header, 'IHDR must be first');
-      requireValid(type === 'PLTE' || (type.charCodeAt(0) & 32), `Unknown critical chunk ${type}`);
-      requireValid(!contract.opaque || type !== 'tRNS', 'Scene must not include a transparency chunk');
+      requireValid(type.charCodeAt(0) & 32, `Unknown critical chunk ${type}`);
       if (idats.length) idatEnded = true;
     }
     cursor = end + 4;
   }
   requireValid(ended && cursor === bytes.length, 'Missing IEND or trailing PNG data');
-  const channels = header.colorType === 6 ? 4 : header.colorType === 2 ? 3 : 2;
-  const stride = header.width * channels;
-  const expected = (stride + 1) * header.height;
+
+  const rawChannels = header.colorType === 6 ? 4 : header.colorType === 2 ? 3 : header.colorType === 3 ? 1 : 2;
+  const rawStride = header.width * rawChannels;
+  const expected = (rawStride + 1) * header.height;
   const compressed = Buffer.concat(idats);
   const inflated = inflateSync(compressed, { maxOutputLength: expected + 1, info: true });
   const scanlines = inflated.buffer;
   requireValid(scanlines.length === expected, 'Decoded scanline size does not match dimensions');
   requireValid(inflated.engine.bytesWritten === compressed.length, 'Trailing compressed IDAT data');
-  const pixels = Buffer.alloc(stride * header.height);
+  const rawPixels = Buffer.alloc(rawStride * header.height);
   for (let y = 0; y < header.height; y++) {
-    const start = y * (stride + 1), filter = scanlines[start];
+    const start = y * (rawStride + 1), filter = scanlines[start];
     requireValid(filter <= 4, 'Invalid PNG row filter');
-    for (let x = 0; x < stride; x++) {
-      const index = y * stride + x;
-      const a = x >= channels ? pixels[index - channels] : 0;
-      const b = y > 0 ? pixels[index - stride] : 0;
-      const c = x >= channels && y > 0 ? pixels[index - stride - channels] : 0;
+    for (let x = 0; x < rawStride; x++) {
+      const index = y * rawStride + x;
+      const a = x >= rawChannels ? rawPixels[index - rawChannels] : 0;
+      const b = y > 0 ? rawPixels[index - rawStride] : 0;
+      const c = x >= rawChannels && y > 0 ? rawPixels[index - rawStride - rawChannels] : 0;
       const predictor = filter === 1 ? a : filter === 2 ? b : filter === 3
         ? Math.floor((a + b) / 2) : filter === 4 ? paeth(a, b, c) : 0;
-      pixels[index] = (scanlines[start + 1 + x] + predictor) & 255;
+      rawPixels[index] = (scanlines[start + 1 + x] + predictor) & 255;
     }
   }
+
+  let pixels = rawPixels, channels = rawChannels;
+  if (header.colorType === 3) {
+    requireValid(palette && palette.length >= 3, 'Indexed PNG requires a PLTE palette');
+    const entries = palette.length / 3;
+    requireValid(!paletteAlpha || paletteAlpha.length <= entries, 'tRNS has more entries than PLTE');
+    channels = 4;
+    pixels = Buffer.alloc(header.width * header.height * channels);
+    for (let i = 0; i < rawPixels.length; i++) {
+      const index = rawPixels[i];
+      requireValid(index < entries, 'Palette index exceeds PLTE entries');
+      const source = index * 3, target = i * channels;
+      pixels[target] = palette[source];
+      pixels[target + 1] = palette[source + 1];
+      pixels[target + 2] = palette[source + 2];
+      pixels[target + 3] = paletteAlpha && index < paletteAlpha.length ? paletteAlpha[index] : 255;
+    }
+  }
+
   let transparent = 0, visible = 0;
   if (header.colorType === 2) {
     visible = header.width * header.height;
@@ -89,7 +115,7 @@ function decodePng(bytes, contract) {
       if (pixels[i] > 0) visible++;
     }
   }
-  return { ...header, pixels, transparent, visible };
+  return { ...header, pixels, channels, transparent, visible };
 }
 
 /** Validate/decode the unchanged 256x256, 200KB, noninterlaced alpha-sprite contract. */
@@ -144,13 +170,17 @@ export function validateAlphaAtlasPng(bytes, contract) {
       (maxMarginAlpha > 0 || maxMarginPixels === 0),
     'Atlas margin roundoff allowance must be explicit and bounded to alpha 1 at 32 pixels'
   );
+  const allowPalette = contract.allowPalette === true;
   const decoded = decodePng(bytes, {
     label: 'Atlas', width: contract.width, height: contract.height, maxBytes: contract.maxBytes,
-    colorTypes: [4, 6], colorMessage: 'Atlas must use 8-bit alpha color type 4 or 6'
+    colorTypes: allowPalette ? [3, 4, 6] : [4, 6],
+    colorMessage: allowPalette
+      ? 'Atlas must use 8-bit indexed/alpha color type 3, 4 or 6'
+      : 'Atlas must use 8-bit alpha color type 4 or 6'
   });
   requireValid(decoded.transparent > 0, 'Atlas must contain real transparency');
   requireValid(decoded.visible > 0, 'Atlas contains no visible pixels');
-  const channels = decoded.colorType === 6 ? 4 : 2;
+  const channels = decoded.channels;
   const cells = [];
   let marginNoisePixels = 0;
   for (let row = 0; row < contract.rows; row++) {
