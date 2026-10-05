@@ -21,27 +21,27 @@ import type { TutorialFocusTarget } from '../game/tutorial';
 import type { SettlementAdjacencyBonusDefinition } from '../game/types';
 
 const settlementPlotPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
-  plot_nw: { left: '6%', top: '15%' },
-  plot_n: { left: '37%', top: '6%' },
-  plot_ne: { left: '68%', top: '15%' },
-  plot_w: { left: '0%', top: '40%' },
-  plot_center: { left: '34%', top: '34%' },
-  plot_e: { left: '72%', top: '40%' },
-  plot_sw: { left: '7%', top: '66%' },
-  plot_s: { left: '38%', top: '72%' },
-  plot_se: { left: '68%', top: '66%' }
+  plot_nw: { left: '8%', top: '17%' },
+  plot_n: { left: '37%', top: '9%' },
+  plot_ne: { left: '66%', top: '17%' },
+  plot_w: { left: '3%', top: '40%' },
+  plot_center: { left: '33%', top: '34%' },
+  plot_e: { left: '69%', top: '40%' },
+  plot_sw: { left: '8%', top: '65%' },
+  plot_s: { left: '37%', top: '71%' },
+  plot_se: { left: '66%', top: '65%' }
 };
 
 const settlementPlotCenters: Record<string, { x: number; y: number }> = {
-  plot_nw: { x: 0.195, y: 0.265 },
-  plot_n: { x: 0.505, y: 0.175 },
-  plot_ne: { x: 0.815, y: 0.265 },
-  plot_w: { x: 0.135, y: 0.515 },
+  plot_nw: { x: 0.215, y: 0.285 },
+  plot_n: { x: 0.505, y: 0.205 },
+  plot_ne: { x: 0.795, y: 0.285 },
+  plot_w: { x: 0.165, y: 0.515 },
   plot_center: { x: 0.5, y: 0.475 },
-  plot_e: { x: 0.855, y: 0.515 },
-  plot_sw: { x: 0.205, y: 0.775 },
-  plot_s: { x: 0.515, y: 0.835 },
-  plot_se: { x: 0.815, y: 0.775 }
+  plot_e: { x: 0.825, y: 0.515 },
+  plot_sw: { x: 0.215, y: 0.765 },
+  plot_s: { x: 0.505, y: 0.825 },
+  plot_se: { x: 0.795, y: 0.765 }
 };
 
 const settlementPlotLabels: Record<string, string> = {
@@ -1285,8 +1285,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
-          const buildingSize = landmark ? 104 : Math.round(70 * depthScale);
-          const ambienceSize = landmark ? 126 : Math.round(94 * depthScale);
+          const buildingSize = landmark ? 112 : Math.round(72 * depthScale);
+          const ambienceSize = landmark ? 118 : Math.round(82 * depthScale);
           const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
           const visualPosition = settlementPlotPositions[plot.id] ?? {
@@ -1553,25 +1553,29 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     <BuildingSprite buildingId={building.id} faction={building.faction} size={buildingSize} />
                   </View>
                   {upgradeMaterialsReady && !selected ? (
-                    <View pointerEvents="none" style={[styles.upgradeReadyBadge, { backgroundColor: theme.colors.gold }]}>
-                      <Text style={styles.upgradeReadyText}>UPGRADE</Text>
+                    <View
+                      pointerEvents="none"
+                      accessibilityElementsHidden
+                      style={[styles.upgradeReadyBadge, { backgroundColor: theme.colors.gold, borderColor: theme.colors.surface1 }]}
+                    >
+                      <Text style={styles.upgradeReadyText}>↑</Text>
                     </View>
                   ) : null}
-                  <>
-                    <Text
-                      style={[
-                        styles.plotBuildingName,
-                        !selected && !landmark ? styles.plotBuildingNameCompact : undefined,
-                        { color: roleColor, backgroundColor: theme.colors.surface1 }
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {building.name}
-                    </Text>
+                  <Text
+                    style={[
+                      styles.plotBuildingName,
+                      !selected && !landmark ? styles.plotBuildingNameCompact : undefined,
+                      { color: roleColor, backgroundColor: theme.colors.surface1 }
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {building.name}
+                  </Text>
+                  {selected || landmark ? (
                     <View style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }]}>
                       <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
                     </View>
-                  </>
+                  ) : null}
                 </>
               ) : unlocked ? (
                 <>
@@ -2165,8 +2169,8 @@ const styles = StyleSheet.create({
   landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
   plotGuideText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900' },
-  plotBuildingName: { fontSize: 9.5, lineHeight: 13, fontWeight: '900', textAlign: 'center', marginTop: 0, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 7, maxWidth: '96%', opacity: 0.98, elevation: 2 },
-  plotBuildingNameCompact: { fontSize: 8.3, lineHeight: 11, maxWidth: '92%' },
+  plotBuildingName: { fontSize: 9.5, lineHeight: 13, fontWeight: '900', textAlign: 'center', marginTop: 1, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 7, maxWidth: '94%', opacity: 0.96, elevation: 2 },
+  plotBuildingNameCompact: { fontSize: 8.1, lineHeight: 10.5, maxWidth: '88%', paddingHorizontal: 5, paddingVertical: 1.5, opacity: 0.92 },
   levelPill: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, marginTop: 2, opacity: 0.96 },
   plotLevel: { fontSize: 8.5, lineHeight: 11, fontWeight: '900' },
   emptyPlus: { fontSize: 27, fontWeight: '600' },
@@ -2175,8 +2179,8 @@ const styles = StyleSheet.create({
   buildReadyBadge: { position: 'absolute', top: 3, alignSelf: 'center', zIndex: 8, minHeight: 24, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, elevation: 2 },
   buildReadyText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.5 },
   buildReadyDot: { position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: 999, zIndex: 8 },
-  upgradeReadyBadge: { position: 'absolute', top: 3, right: 4, zIndex: 9, minHeight: 21, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 3, alignItems: 'center', justifyContent: 'center', elevation: 2 },
-  upgradeReadyText: { color: '#111318', fontSize: 6, lineHeight: 8, fontWeight: '900', letterSpacing: 0.25 },
+  upgradeReadyBadge: { position: 'absolute', top: 6, right: 7, zIndex: 9, width: 24, height: 24, borderWidth: 2, borderRadius: 999, alignItems: 'center', justifyContent: 'center', elevation: 3 },
+  upgradeReadyText: { color: '#111318', fontSize: 15, lineHeight: 17, fontWeight: '900' },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
