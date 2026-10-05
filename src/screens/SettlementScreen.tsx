@@ -623,10 +623,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         transform: [{ rotate: angle + 'deg' }]
       } as ViewStyle,
       zoneStyle: {
-        left: midpointX - length / 2 - 10,
-        top: midpointY - 14,
-        width: length + 20,
-        height: 28,
+        left: midpointX - length / 2 - 6,
+        top: midpointY - 10,
+        width: length + 12,
+        height: 20,
         transform: [{ rotate: angle + 'deg' }]
       } as ViewStyle,
       labelStyle: {
@@ -1116,12 +1116,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 const zoneFill = blendColor(
                   connection.color,
                   theme.colors.surface1,
-                  connection.focused ? 0.2 : dimmed ? 0.035 : 0.1
+                  connection.focused ? 0.14 : dimmed ? 0.015 : 0.045
                 );
                 const zoneBorder = blendColor(
                   connection.color,
                   theme.colors.surface1,
-                  connection.focused ? 0.72 : dimmed ? 0.2 : 0.44
+                  connection.focused ? 0.62 : dimmed ? 0.12 : 0.26
                 );
                 return (
                   <View
@@ -1145,7 +1145,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 const zoneBorder = blendColor(
                   connection.color,
                   theme.colors.surface1,
-                  connection.focused ? 0.72 : dimmed ? 0.2 : 0.44
+                  connection.focused ? 0.62 : dimmed ? 0.12 : 0.26
                 );
                 const selectedDistrictTag = selectedDistrictId === connection.id;
                 return (
@@ -1176,7 +1176,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         backgroundColor: theme.colors.surface1,
                         borderColor: selectedDistrictTag ? connection.color : zoneBorder,
                         borderWidth: selectedDistrictTag ? 2 : 1,
-                        opacity: connection.focused ? 1 : dimmed ? 0.42 : 0.76
+                        opacity: connection.focused ? 1 : dimmed ? 0.34 : 0.62
                       }
                     ]}
                   >
@@ -1197,7 +1197,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLinkGlow,
-                  { backgroundColor: connection.color, opacity: connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1 }
+                  { backgroundColor: connection.color, opacity: connection.focused ? 0.22 : districtFocusActive ? 0.025 : 0.045 }
                 ]}
               />
               <View
@@ -1205,7 +1205,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLink,
-                  { backgroundColor: connection.color, opacity: connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56 }
+                  { backgroundColor: connection.color, opacity: connection.focused ? 0.9 : districtFocusActive ? 0.18 : 0.32 }
                 ]}
               />
             </React.Fragment>
@@ -1413,7 +1413,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                                 : buildReady
                                   ? factionAccent
                                   : theme.colors.surface2,
-                    opacity: building ? 0.12 : unlocked ? selected ? 0.18 : buildReady || blueprintPlanVisible || relocationPlanVisible || districtOpportunityVisible ? 0.14 : 0.06 : 0.72
+                    opacity: building
+                      ? selected || districtMemberFocused ? 0.1 : 0
+                      : unlocked
+                        ? selected ? 0.16 : buildReady || blueprintPlanVisible || relocationPlanVisible || districtOpportunityVisible ? 0.12 : 0.035
+                        : 0.62
                   }
                 ]}
               />
@@ -2101,13 +2105,13 @@ const styles = StyleSheet.create({
 
   districtZoneLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 2 },
   districtTagLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 18 },
-  districtZone: { position: 'absolute', borderWidth: 1, borderRadius: 999 },
+  districtZone: { position: 'absolute', borderWidth: StyleSheet.hairlineWidth, borderRadius: 999 },
   districtZoneLabel: { position: 'absolute', minHeight: 18, borderWidth: 1, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 3 },
   districtZoneDot: { width: 5, height: 5, borderRadius: 999 },
   districtZoneText: { flex: 1, fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.25 },
   districtLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 3 },
-  districtLinkGlow: { position: 'absolute', height: 7, borderRadius: 999 },
-  districtLink: { position: 'absolute', height: 2.5, borderRadius: 999 },
+  districtLinkGlow: { position: 'absolute', height: 5, borderRadius: 999 },
+  districtLink: { position: 'absolute', height: 2, borderRadius: 999 },
   districtPreviewLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 4 },
   districtPreviewLink: { position: 'absolute', height: 1, borderTopWidth: 2, borderStyle: 'dashed', opacity: 0.9 },
   relocationPreviewLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 5 },
