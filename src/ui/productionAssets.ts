@@ -284,7 +284,6 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'battle_portrait.human_royal_guard_unit': require('../../assets/game/battle_portraits/human/royal_guard_unit.png'),
 
   'ui.settlement_anchor_atlas': require('../../assets/game/ui/settlement_anchor_atlas.png'),
-  'ui.settlement_buildings_human_v2_atlas': require('../../assets/game/ui/settlement_buildings_human_v2_atlas.png'),
   'ui.settlement_world_human_atlas': require('../../assets/game/ui/settlement_world_human_atlas.png'),
   'ui.settlement_people_human_atlas': require('../../assets/game/ui/settlement_people_human_atlas.png'),
   'ui.settlement_nature_human_atlas': require('../../assets/game/ui/settlement_nature_human_atlas.png'),
