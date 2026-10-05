@@ -1347,6 +1347,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       testID={'building-action-strip-' + building.id}
                       style={[
                         styles.sceneActionStrip,
+                        plot.column === 0
+                          ? styles.sceneActionStripLeft
+                          : plot.column === 2
+                            ? styles.sceneActionStripRight
+                            : styles.sceneActionStripCenter,
                         {
                           backgroundColor: theme.colors.surface1,
                           borderColor: theme.colors.gold
@@ -2032,7 +2037,10 @@ const styles = StyleSheet.create({
   landmarkUnlockFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
   districtMemberFocusRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -32, width: 76, height: 64, borderRadius: 18, borderWidth: 2, borderStyle: 'dashed', opacity: 0.9 },
   landmarkDistrictMemberFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
-  sceneActionStrip: { position: 'absolute', left: '50%', top: -30, marginLeft: -86, width: 172, minHeight: 29, zIndex: 45, borderWidth: 1, borderRadius: 999, paddingHorizontal: 4, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2, elevation: 8 },
+  sceneActionStrip: { position: 'absolute', top: -30, width: 172, minHeight: 29, zIndex: 45, borderWidth: 1, borderRadius: 999, paddingHorizontal: 4, paddingVertical: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2, elevation: 8 },
+  sceneActionStripLeft: { left: -2 },
+  sceneActionStripCenter: { left: '50%', marginLeft: -86 },
+  sceneActionStripRight: { right: -2 },
   sceneActionButton: { minWidth: 52, minHeight: 22, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 4, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 3 },
   sceneActionDisabled: { opacity: 0.38 },
   sceneActionText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.15 },
