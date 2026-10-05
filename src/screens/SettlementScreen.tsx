@@ -1574,7 +1574,14 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     />
                   </View>
                   <View style={[styles.buildingPad, landmark ? styles.landmarkBuildingPad : undefined, selected ? styles.selectedBuildingPad : undefined]}>
-                    <View pointerEvents="none" style={[styles.buildingFootprint, landmark ? styles.landmarkFootprint : undefined, { backgroundColor: roleColor }]} />
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.buildingFootprint,
+                        landmark ? styles.landmarkFootprint : undefined,
+                        { backgroundColor: roleColor, opacity: worldRebuildActive ? 0.07 : undefined }
+                      ]}
+                    />
                     <BuildingSprite buildingId={building.id} faction={building.faction} size={buildingSize} />
                   </View>
                   {upgradeMaterialsReady && !selected ? (
@@ -1632,22 +1639,30 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       <Text style={[styles.constructionGhostLabel, { color: theme.colors.gold, backgroundColor: theme.colors.surface1 }]}>PREVIEW</Text>
                     </View>
                   ) : null}
-                  <View pointerEvents="none" style={styles.buildPlotArt}>
+                  <View
+                    pointerEvents="none"
+                    style={[
+                      styles.buildPlotArt,
+                      worldRebuildActive && !buildReady && !plotSelected && !relocationMode ? { opacity: 0 } : undefined
+                    ]}
+                  >
                     <SettlementBuildPlotSprite
                       terrain={plot.terrain}
                       faction={activeFaction}
                       selected={plotSelected}
                       moveTarget={relocationMode}
-                      size={94}
+                      size={worldRebuildActive ? 76 : 94}
                       color={theme.colors.textMuted}
                     />
                   </View>
-                  <View pointerEvents="none" style={[styles.emptyBadge, { backgroundColor: theme.colors.surface1 }]}>
-                    <Text style={[styles.emptyPlusCompact, { color: selected || relocationMode ? theme.colors.gold : semanticColor(theme, 'neutral') }]}>+</Text>
-                    <SemanticText tone="neutral" style={styles.emptyText}>
-                      {relocationMode ? relocationTargetSelected ? 'Target' : 'Move' : 'Build'}
-                    </SemanticText>
-                  </View>
+                  {!worldRebuildActive || buildReady || plotSelected || relocationMode ? (
+                    <View pointerEvents="none" style={[styles.emptyBadge, worldRebuildActive ? styles.worldEmptyBadge : undefined, { backgroundColor: theme.colors.surface1 }]}>
+                      <Text style={[styles.emptyPlusCompact, { color: selected || relocationMode ? theme.colors.gold : semanticColor(theme, 'neutral') }]}>+</Text>
+                      <SemanticText tone="neutral" style={styles.emptyText}>
+                        {relocationMode ? relocationTargetSelected ? 'Target' : 'Move' : buildReady ? 'Build' : 'Plot'}
+                      </SemanticText>
+                    </View>
+                  ) : null}
                 </>
               ) : (
                 <>
@@ -1831,7 +1846,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             </View>
           </View>
         ) : null}
-        {['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
+        {!worldRebuildActive && ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
           <>
             <View pointerEvents="none" style={[styles.wallTop, { borderColor: factionAccent, borderTopWidth: fortificationWeight }]} />
             <View pointerEvents="none" style={[styles.wallBottom, { borderColor: factionAccent, borderBottomWidth: fortificationWeight }]} />
@@ -2208,6 +2223,7 @@ const styles = StyleSheet.create({
   emptyPlus: { fontSize: 27, fontWeight: '600' },
   buildPlotArt: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
   emptyBadge: { position: 'absolute', bottom: 4, alignSelf: 'center', minHeight: 27, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.96, elevation: 2 },
+  worldEmptyBadge: { minHeight: 24, paddingHorizontal: 7, paddingVertical: 3, opacity: 0.9 },
   buildReadyBadge: { position: 'absolute', top: 3, alignSelf: 'center', zIndex: 8, minHeight: 24, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, elevation: 2 },
   buildReadyText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.5 },
   buildReadyDot: { position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: 999, zIndex: 8 },
