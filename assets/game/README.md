@@ -13,7 +13,7 @@ The game currently uses code-rendered pixel art as a safe fallback. Final PNG ar
 - `resource_sites/<faction>/<site-id>.png` — 256×256 transparent
 - `resources/<resource-id>.png` — 128×128 transparent
 - `wagon_items/<item-id>.png` — 256×256 transparent
-- `scenes/<faction>/<scene-id>.png` — 768×432 opaque/background scene
+- `scenes/<faction>/<scene-id>.png` — opaque/background scene; camp panoramas use reviewed 1672×941 originals, other planned scenes use 768×432
 - `ui/<ui-id>.png` — 96×96 transparent
 
 ## Art rules
@@ -30,6 +30,8 @@ Human art should remain grounded medieval steel/wood/blue cloth. Elves use light
 2. Add a static `require(...)` entry to `productionAssetSources` in `src/ui/productionAssets.ts`.
 3. Run typecheck/CI.
 4. The existing renderer automatically uses the PNG; if the source is absent it keeps the code-rendered fallback.
+
+Opaque scenes have a separate, explicit size/opacity/file-budget contract in `scripts/art-regression.mjs`. They do not use or relax the 256×256 transparent sprite contract. See [the faction camp scene notes](scenes/README.md) for the current panorama set and generation prompts.
 
 This means final art can be introduced incrementally without changing screen layouts or gameplay/data IDs.
 

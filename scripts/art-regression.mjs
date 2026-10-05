@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import { deflateSync } from 'node:zlib';
-import { crc32, validateSpritePng } from './png-integrity.mjs';
+import { crc32, validateScenePng, validateSpritePng } from './png-integrity.mjs';
 
 // Exercise the checker itself; a corrupted payload must never pass on its header.
 function chunk(type, payload) {
@@ -36,6 +36,45 @@ assert.throws(() => validateSpritePng(fixture({ blank: true })), /no visible pix
 assert.throws(() => validateSpritePng(fixture({ short: true })), /scanline size/);
 assert.throws(() => validateSpritePng(fixture({ filter: 5 })), /row filter/);
 
+// Opaque scenery has a distinct contract; introducing it must not make opaque,
+// oversized, or incorrectly sized unit/equipment PNGs valid sprites.
+function sceneFixture({ alpha = false, transparent = false, filter = 0 } = {}) {
+  const width = 8, height = 4, channels = alpha ? 4 : 3;
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0); ihdr.writeUInt32BE(height, 4); ihdr[8] = 8; ihdr[9] = alpha ? 6 : 2;
+  const stride = width * channels + 1;
+  const raw = Buffer.alloc(height * stride);
+  for (let y = 0; y < height; y++) {
+    raw[y * stride] = filter;
+    for (let x = 0; x < width; x++) {
+      const offset = y * stride + 1 + x * channels;
+      raw[offset] = 40 + x; raw[offset + 1] = 90 + y; raw[offset + 2] = 120;
+      if (alpha) raw[offset + 3] = transparent && x === 0 && y === 0 ? 254 : 255;
+    }
+  }
+  return Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
+}
+const sceneFixtureContract = { width: 8, height: 4, maxBytes: 1024 };
+for (const alpha of [false, true]) {
+  const scene = validateScenePng(sceneFixture({ alpha }), sceneFixtureContract);
+  assert.equal(scene.visible, 32); assert.equal(scene.transparent, 0);
+  assert.deepEqual([...scene.pixels.subarray(0, 3)], [40, 90, 120]);
+}
+const opaqueSceneFixture = sceneFixture();
+assert.throws(() => validateScenePng(opaqueSceneFixture), /explicit dimensions/);
+assert.throws(() => validateScenePng(opaqueSceneFixture, { ...sceneFixtureContract, width: 9 }), /Scene must be 9x4/);
+assert.throws(() => validateScenePng(opaqueSceneFixture, { ...sceneFixtureContract, maxBytes: opaqueSceneFixture.length - 1 }), /file size/);
+assert.throws(() => validateScenePng(sceneFixture({ alpha: true, transparent: true }), sceneFixtureContract), /fully opaque/);
+assert.throws(() => validateScenePng(opaqueSceneFixture.subarray(0, -1), sceneFixtureContract), /Truncated/);
+const corruptSceneFixture = Buffer.from(opaqueSceneFixture); corruptSceneFixture[45] ^= 1;
+assert.throws(() => validateScenePng(corruptSceneFixture, sceneFixtureContract), /CRC mismatch/);
+assert.throws(() => validateScenePng(sceneFixture({ filter: 5 }), sceneFixtureContract), /row filter/);
+assert.throws(() => validateScenePng(Buffer.concat([opaqueSceneFixture, Buffer.from([0])]), sceneFixtureContract), /trailing/);
+// RGB PNGs can declare keyed transparency in tRNS despite having no alpha channel.
+const keyedTransparentScene = Buffer.concat([opaqueSceneFixture.subarray(0, 33), chunk('tRNS', Buffer.from([0, 40, 0, 90, 0, 120])), opaqueSceneFixture.subarray(33)]);
+assert.throws(() => validateScenePng(keyedTransparentScene, sceneFixtureContract), /transparency chunk/);
+assert.throws(() => validateSpritePng(opaqueSceneFixture), /256x256/);
+
 const root = process.cwd();
 const failures = [];
 function walk(dir) {
@@ -46,15 +85,31 @@ function walk(dir) {
   });
 }
 function relative(file) { return path.relative(root, file).split(path.sep).join('/'); }
-// All currently bundled game art shares the 256x256 alpha contract, including
-// equipment and faction crests. Do not silently exclude a category from decoding.
+// Only these reviewed panorama files use the scene contract. Every other asset
+// retains the 256x256 alpha contract; unknown scene files fail instead of escaping
+// validation because they happen to live under a scenes directory.
+const campScenes = new Map([
+  ['assets/game/scenes/human/camp.png', { assetId: 'scene.human.camp', width: 1672, height: 941, maxBytes: 3500000 }],
+  ['assets/game/scenes/elf/camp.png', { assetId: 'scene.elf.camp', width: 1672, height: 941, maxBytes: 3500000 }],
+  ['assets/game/scenes/orc/camp.png', { assetId: 'scene.orc.camp', width: 1672, height: 941, maxBytes: 3500000 }]
+]);
+const campSceneByteBudget = 9000000;
 const sprites = walk(path.join(root, 'assets/game')).filter(file => file.endsWith('.png')).sort();
 assert.ok(sprites.length > 0, 'No production PNGs found');
 const hashes = new Map();
+let campSceneBytes = 0;
 for (const file of sprites) {
   const rel = relative(file), bytes = fs.readFileSync(file);
   try {
-    validateSpritePng(bytes);
+    const scene = campScenes.get(rel);
+    if (scene) {
+      campSceneBytes += bytes.length;
+      validateScenePng(bytes, scene);
+    }
+    else {
+      assert.ok(!rel.startsWith('assets/game/scenes/'), 'Scene has no reviewed image contract.');
+      validateSpritePng(bytes);
+    }
   } catch (error) {
     failures.push(rel + ': ' + error.message);
   }
@@ -65,6 +120,9 @@ for (const file of sprites) {
 for (const matches of hashes.values()) {
   if (matches.length > 1) failures.push('Exact duplicate production PNGs: ' + matches.join(' | '));
 }
+if (campSceneBytes > campSceneByteBudget) {
+  failures.push('Camp scenes exceed the shared ' + campSceneByteBudget + '-byte budget: ' + campSceneBytes + ' bytes.');
+}
 const registry = fs.readFileSync(path.join(root, 'src/ui/productionAssets.ts'), 'utf8');
 const registered = new Set([...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/[^']+\.png)'\)/g)].map(match => match[1]));
 const spritePaths = new Set(sprites.map(relative));
@@ -73,6 +131,11 @@ for (const sprite of spritePaths) {
 }
 for (const sprite of registered) {
   if (!spritePaths.has(sprite)) failures.push(sprite + ' is registered but the file does not exist.');
+}
+for (const [relativePath, scene] of campScenes) {
+  if (!spritePaths.has(relativePath)) failures.push('Camp scene is missing: ' + relativePath + '.');
+  const expected = "'" + scene.assetId + "': require('../../" + relativePath + "')";
+  if (!registry.includes(expected)) failures.push('Camp scene is not registered for its faction: ' + scene.assetId + '.');
 }
 
 // The first settlement-art batch intentionally uses one compact 3x3 atlas so the
@@ -304,4 +367,4 @@ if (failures.length) {
   failures.forEach(failure => console.error('- ' + failure));
   process.exit(1);
 }
-console.log('PASS: ' + sprites.length + ' game PNGs fully decoded: CRCs, zlib payload, scanline/filter integrity, real alpha, size, registration and exact duplicates.');
+console.log('PASS: ' + sprites.length + ' game PNGs fully decoded: CRCs, zlib payload, scanline/filter integrity, sprite alpha / explicit opaque-scene contracts, size, registration and exact duplicates.');

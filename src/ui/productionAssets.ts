@@ -167,15 +167,20 @@ export function storySceneProductionAsset(
   scene: StorySceneVisualKind,
   faction: FactionId
 ) {
+  // Camp panoramas retain the reviewed generator output. Android downsamples
+  // these local sources to the displayed banner size in FactionCampScene.
+  const camp = scene === 'camp';
   return spec(
     'scene.' + faction + '.' + scene,
     'story_scene',
     PRODUCTION_ASSET_ROOT + '/scenes/' + faction + '/' + scene + '.png',
-    768,
-    432,
+    camp ? 1672 : 768,
+    camp ? 941 : 432,
     false,
     5,
-    '16:9 story scene with no text. Keep important subjects inside the central 80%.'
+    camp
+      ? 'Opaque faction camp panorama. Center-cover crop to a shallow banner; no baked text or UI.'
+      : '16:9 story scene with no text. Keep important subjects inside the central 80%.'
   );
 }
 
@@ -243,6 +248,10 @@ export function uiProductionAsset(id: string) {
 // Spiritwood Spear likewise uses its existing Elven spear renderer after the
 // all-category native audit found an unrecoverable compressed PNG payload.
 export const productionAssetSources: Partial<Record<string, ImageSourcePropType>> = {
+  'scene.human.camp': require('../../assets/game/scenes/human/camp.png'),
+  'scene.elf.camp': require('../../assets/game/scenes/elf/camp.png'),
+  'scene.orc.camp': require('../../assets/game/scenes/orc/camp.png'),
+
   // Generated Human portrait/figure pairs. Existing exact-class fallback art stays registered.
   'battle_portrait.human_captain_portrait': require('../../assets/game/battle_portraits/human/captain_portrait.png'),
   'battle_portrait.human_ranger_portrait': require('../../assets/game/battle_portraits/human/ranger_portrait.png'),

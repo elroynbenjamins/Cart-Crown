@@ -163,6 +163,18 @@ jobs:
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: python3 scripts/android-native-smoke.py --apk artifacts/android/cart-crown-ci.apk --probe artifacts/android/ui-probe.apk --out artifacts/android/smoke
+      - name: Retain lightweight screenshots and smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-visuals-${{ github.run_id }}
+          path: |
+            artifacts/android/source-commit.txt
+            artifacts/android/smoke/*.png
+            artifacts/android/smoke/smoke-report.json
+            artifacts/android/smoke/actions.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: Retain APK, build evidence and real emulator captures
         if: always()
         uses: actions/upload-artifact@v4
