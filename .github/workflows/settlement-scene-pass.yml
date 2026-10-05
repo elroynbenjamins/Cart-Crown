@@ -22,7 +22,23 @@ jobs:
         with:
           node-version: 22.13.0
       - name: Apply baseline-checked changes
-        run: python3 scripts/apply-settlement-scene-pass.py
+        run: |
+          python3 scripts/apply-settlement-scene-pass.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/screens/SettlementScreen.tsx')
+          s = p.read_text().replace('...StyleSheet.absoluteFillObject', "position: 'absolute', left: 0, right: 0, top: 0, bottom: 0")
+          s = s.replace('  const renderedInteractionVersion = interactionVersion.current;', '''  const latestInteractionRender = useRef<object | null>(null);
+            const interactionRender = {};
+            latestInteractionRender.current = interactionRender;
+            const renderedInteractionVersion = interactionVersion.current;''')
+          s = s.replace('if (interactionVersion.current !== renderedInteractionVersion ||', 'if (latestInteractionRender.current !== interactionRender || interactionVersion.current !== renderedInteractionVersion ||')
+          s = s.replace(": selectedBuildingLevel >= selectedBuilding.maxLevel ? 'Maximum building level reached.'", ": selectedBuildingLevel <= 0 ? 'Construct this building first.'\n    : selectedBuildingLevel >= selectedBuilding.maxLevel ? 'Maximum building level reached.'")
+          p.write_text(s)
+          p = Path('scripts/settlement-ui-regression.ts')
+          t = p.read_text().replace("nodes(tree, 'View').some(node => node.props.testID === 'scene-building-feedback')", "nodes(tree, 'Text').some(node => node.props.testID === 'scene-building-feedback')")
+          p.write_text(t)
+          PY
       - name: Install project dependencies
         run: npm install --no-audit --no-fund --no-package-lock
       - name: Typecheck
