@@ -1578,8 +1578,17 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     <BuildingSprite buildingId={building.id} faction={building.faction} size={buildingSize} />
                   </View>
                   {upgradeMaterialsReady && !selected ? (
-                    <View pointerEvents="none" style={[styles.upgradeReadyBadge, { backgroundColor: theme.colors.gold }]}>
-                      <Text style={styles.upgradeReadyText}>UPGRADE</Text>
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.upgradeReadyBadge,
+                        worldRebuildActive ? styles.worldUpgradeReadyBadge : undefined,
+                        { backgroundColor: theme.colors.gold, borderColor: worldRebuildActive ? theme.colors.surface1 : undefined }
+                      ]}
+                    >
+                      <Text style={[styles.upgradeReadyText, worldRebuildActive ? styles.worldUpgradeReadyText : undefined]}>
+                        {worldRebuildActive ? '↑' : 'UPGRADE'}
+                      </Text>
                     </View>
                   ) : null}
                   {!worldRebuildActive || selected ? (
@@ -2204,6 +2213,8 @@ const styles = StyleSheet.create({
   buildReadyDot: { position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: 999, zIndex: 8 },
   upgradeReadyBadge: { position: 'absolute', top: 3, right: 4, zIndex: 9, minHeight: 21, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 3, alignItems: 'center', justifyContent: 'center', elevation: 2 },
   upgradeReadyText: { color: '#111318', fontSize: 6, lineHeight: 8, fontWeight: '900', letterSpacing: 0.25 },
+  worldUpgradeReadyBadge: { top: 5, right: 7, width: 25, height: 25, minHeight: 25, paddingHorizontal: 0, paddingVertical: 0, borderWidth: 2, elevation: 4 },
+  worldUpgradeReadyText: { fontSize: 15, lineHeight: 18, letterSpacing: 0 },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
