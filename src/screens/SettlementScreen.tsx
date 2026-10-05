@@ -1430,7 +1430,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                                 : buildReady
                                   ? factionAccent
                                   : theme.colors.surface2,
-                    opacity: building ? 0.12 : unlocked ? selected ? 0.18 : buildReady || blueprintPlanVisible || relocationPlanVisible || districtOpportunityVisible ? 0.14 : 0.06 : 0.72
+                    opacity: worldRebuildActive
+                      ? building ? selected ? 0.08 : 0 : unlocked ? selected || buildReady || blueprintPlanVisible || relocationPlanVisible ? 0.12 : 0 : 0.34
+                      : building ? 0.12 : unlocked ? selected ? 0.18 : buildReady || blueprintPlanVisible || relocationPlanVisible || districtOpportunityVisible ? 0.14 : 0.06 : 0.72
                   }
                 ]}
               />
