@@ -2721,6 +2721,7 @@ export function SettlementBuildingAmbience({
 }) {
   const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
   const worldSource = getProductionAssetSource('ui.settlement_world_human_atlas');
+  const natureSource = getProductionAssetSource('ui.settlement_nature_human_atlas');
   const sceneSource = getProductionAssetSource(settlementSceneFactionAssetIds[faction]);
   const tintColor = settlementAmbientPeopleTint[faction];
   const glow = settlementAmbientGlow[faction];
@@ -2728,7 +2729,9 @@ export function SettlementBuildingAmbience({
   const primary = settlementAmbientPrimaryByRole[role];
   const secondary = settlementAmbientSecondaryByRole[role];
   const smoky = kind === 'forge' || buildingId.includes('smokehouse');
-  const showSecond = level >= 3 || role === 'KINGDOM' || role === 'MOUNT';
+  const showSecond = level >= 2 || role === 'KINGDOM' || role === 'MOUNT';
+  const established = level >= 2;
+  const veteran = level >= 4;
   const motion = useSettlementAmbientMotion(2200 + Math.max(0, level - 1) * 120);
   const idleLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.5] });
   const bannerSway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1.2deg', '1.2deg'] });
@@ -2739,19 +2742,38 @@ export function SettlementBuildingAmbience({
   return (
     <View style={{ width: size, height: size, position: 'relative' }}>
       {worldSource && role === 'ARMY' ? (
-        <View style={{ position: 'absolute', right: 0, bottom: size * 0.03 }}>
-          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={size * 0.34} opacity={0.82} tintColor={tintColor} />
+        <>
+          <View style={{ position: 'absolute', right: 0, bottom: size * 0.03 }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={size * 0.34} opacity={0.86} tintColor={tintColor} />
+          </View>
+          {established ? (
+            <View style={{ position: 'absolute', left: size * 0.02, top: size * 0.08 }}>
+              <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={size * 0.27} opacity={0.82} tintColor={tintColor} />
+            </View>
+          ) : null}
+        </>
+      ) : null}
+      {worldSource && (role === 'SUPPLY' || role === 'LOGISTICS' || role === 'EQUIPMENT') ? (
+        <View style={{ position: 'absolute', right: -size * 0.01, bottom: size * 0.04 }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={size * 0.36} opacity={0.9} tintColor={tintColor} />
         </View>
       ) : null}
-      {worldSource && (role === 'SUPPLY' || role === 'LOGISTICS') ? (
-        <View style={{ position: 'absolute', right: -size * 0.01, bottom: size * 0.04 }}>
-          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={size * 0.36} opacity={0.86} tintColor={tintColor} />
+      {sceneSource && role === 'SUPPLY' && established ? (
+        <View style={{ position: 'absolute', left: -size * 0.07, bottom: size * 0.02 }}>
+          <SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.market} size={size * 0.34} opacity={0.78} tintColor={settlementSceneFactionTints[faction]} />
         </View>
       ) : null}
       {worldSource && (role === 'SCOUT' || role === 'COMMAND' || role === 'KINGDOM') ? (
-        <Animated.View style={{ position: 'absolute', right: size * 0.01, top: size * 0.04, transform: [{ rotate: bannerSway }] }}>
-          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={size * 0.3} opacity={0.82} tintColor={tintColor} />
-        </Animated.View>
+        <>
+          <Animated.View style={{ position: 'absolute', right: size * 0.01, top: size * 0.04, transform: [{ rotate: bannerSway }] }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={size * 0.3} opacity={0.88} tintColor={tintColor} />
+          </Animated.View>
+          {(role === 'KINGDOM' || role === 'COMMAND') && established ? (
+            <Animated.View style={{ position: 'absolute', left: size * 0.01, top: size * 0.06, transform: [{ rotate: bannerSway }] }}>
+              <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={size * 0.27} opacity={0.82} tintColor={tintColor} />
+            </Animated.View>
+          ) : null}
+        </>
       ) : null}
       {sceneSource && role === 'LOGISTICS' ? (
         <View style={{ position: 'absolute', left: -size * 0.05, bottom: -size * 0.02 }}>
@@ -2759,8 +2781,28 @@ export function SettlementBuildingAmbience({
         </View>
       ) : null}
       {worldSource && role === 'MOUNT' ? (
-        <View style={{ position: 'absolute', left: 0, bottom: size * 0.01 }}>
-          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.fence_gate} size={size * 0.36} opacity={0.74} tintColor={tintColor} />
+        <>
+          <View style={{ position: 'absolute', left: 0, bottom: size * 0.01 }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.fence_gate} size={size * 0.4} opacity={0.84} tintColor={tintColor} />
+          </View>
+          {established ? (
+            <View style={{ position: 'absolute', right: -size * 0.04, bottom: size * 0.02 }}>
+              <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={size * 0.26} opacity={0.74} tintColor={tintColor} />
+            </View>
+          ) : null}
+        </>
+      ) : null}
+      {natureSource && established && role !== 'SCOUT' ? (
+        <View style={{ position: 'absolute', left: size * 0.12, right: size * 0.12, bottom: -size * 0.03, height: size * 0.22, overflow: 'hidden', opacity: veteran ? 0.88 : 0.62 }}>
+          <View style={{ position: 'absolute', left: 0, bottom: 0 }}>
+            <SettlementDetailAtlasSprite
+              assetId="ui.settlement_nature_human_atlas"
+              cell={veteran ? settlementNatureHumanCells.stone_wall : settlementNatureHumanCells.fence}
+              size={size * 0.54}
+              opacity={veteran ? 0.9 : 0.72}
+              tintColor={tintColor}
+            />
+          </View>
         </View>
       ) : null}
       {peopleSource ? (
