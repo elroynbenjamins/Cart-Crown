@@ -202,6 +202,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [blueprintPlannerOpen, setBlueprintPlannerOpen] = useState(false);
   const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
   const [districtOverlayFilter, setDistrictOverlayFilter] = useState<DistrictOverlayFilter>('all');
+  // Keep the kingdom unobstructed by default; analysis bands are opt-in planning UI.
   const [districtOverlayVisible, setDistrictOverlayVisible] = useState(false);
   const [selectedDistrictId, setSelectedDistrictId] = useState<string | null>(null);
   const [districtCodexOpen, setDistrictCodexOpen] = useState(false);
