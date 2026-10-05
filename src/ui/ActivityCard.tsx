@@ -14,9 +14,11 @@ import {
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
+  PrimaryButton,
   SecondaryButton,
   StatusPill
 } from './components';
+import { ActivityEmblem } from './ActivityEmblem';
 
 export function ActivityCard({
   mode,
@@ -60,14 +62,21 @@ export function ActivityCard({
       style={styles.card}
     >
       <View style={styles.header}>
+        <ActivityEmblem mode={mode.id} />
         <View style={styles.copy}>
+          <View style={styles.badgeRow}>
+            <StatusPill
+              label={presentation.badge}
+              tone={mode.id === 'relic_hunts' ? 'boss' : 'available'}
+            />
+          </View>
           <View style={styles.nameRow}>
             <Text
               style={[
                 styles.name,
                 { color: theme.colors.text }
               ]}
-              numberOfLines={1}
+              numberOfLines={2}
             >
               {mode.name}
             </Text>
@@ -91,55 +100,40 @@ export function ActivityCard({
             {presentation.purpose}
           </Text>
         </View>
-        <StatusPill
-          label={presentation.badge}
-          tone={
-            mode.id === 'relic_hunts'
-              ? 'boss'
-              : 'available'
-          }
-        />
       </View>
 
-      <View style={styles.metaRow}>
+      <View style={[styles.metaRow, { borderColor: theme.colors.border }]}>
         <View style={styles.statusRow}>
           <Text
             style={[
               styles.status,
               { color: accent }
             ]}
-            numberOfLines={1}
           >
             {status}
           </Text>
           {attentionLabel ? (
-            <Text
-              style={[
-                styles.attention,
-                { color: attentionColor }
-              ]}
-              numberOfLines={1}
-            >
-              {attentionLabel}
-            </Text>
+            <View style={[styles.attentionBadge, { backgroundColor: attentionColor + '16', borderColor: attentionColor + '60' }]}>
+              <Text style={[styles.attention, { color: attentionColor }]}>
+                {attentionLabel}
+              </Text>
+            </View>
           ) : null}
         </View>
-        <Text
-          style={[
-            styles.reward,
-            { color: theme.colors.gold }
-          ]}
-          numberOfLines={1}
-        >
-          {mode.rewardFocus}
-        </Text>
+        <View style={styles.rewardRow}>
+          <View style={[styles.rewardMark, { backgroundColor: theme.colors.gold }]} />
+          <Text style={[styles.reward, { color: theme.colors.gold }]}>
+            {mode.rewardFocus}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.button}>
-        <SecondaryButton
-          label={actionLabel}
-          onPress={onPress}
-        />
+        {highlight ? (
+          <PrimaryButton label={actionLabel} onPress={onPress} />
+        ) : (
+          <SecondaryButton label={actionLabel} onPress={onPress} />
+        )}
       </View>
     </GameCard>
   );
@@ -147,15 +141,21 @@ export function ActivityCard({
 
 const styles = StyleSheet.create({
   card: {
-    paddingVertical: 12
+    paddingVertical: 14
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 9
+    alignItems: 'center',
+    gap: 12
   },
   copy: {
-    flex: 1
+    flex: 1,
+    minWidth: 0
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 5
   },
   nameRow: {
     flexDirection: 'row',
@@ -164,7 +164,8 @@ const styles = StyleSheet.create({
   },
   name: {
     flexShrink: 1,
-    fontSize: 15,
+    fontSize: 17,
+    lineHeight: 21,
     fontWeight: '900'
   },
   notificationDot: {
@@ -173,39 +174,63 @@ const styles = StyleSheet.create({
     borderRadius: 4
   },
   purpose: {
-    fontSize: 10.5,
-    lineHeight: 15,
-    marginTop: 3
+    fontSize: 11.5,
+    lineHeight: 16,
+    marginTop: 4
   },
   metaRow: {
-    marginTop: 9,
-    gap: 3
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 11,
+    marginTop: 12,
+    gap: 8
   },
   statusRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8
   },
   status: {
-    flex: 1,
-    fontSize: 10,
-    lineHeight: 14,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 140,
+    fontSize: 12,
+    lineHeight: 17,
     fontWeight: '900'
   },
+  attentionBadge: {
+    maxWidth: '100%',
+    flexShrink: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1
+  },
   attention: {
-    flexShrink: 0,
-    fontSize: 8.5,
-    lineHeight: 12,
+    fontSize: 9,
+    lineHeight: 13,
     fontWeight: '900',
-    letterSpacing: 0.55
+    letterSpacing: 0.4
+  },
+  rewardRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 7
+  },
+  rewardMark: {
+    width: 5,
+    height: 5,
+    marginTop: 6,
+    transform: [{ rotate: '45deg' }]
   },
   reward: {
-    fontSize: 9.5,
-    lineHeight: 13,
+    flex: 1,
+    fontSize: 11,
+    lineHeight: 16,
     fontWeight: '800'
   },
   button: {
-    marginTop: 10
+    marginTop: 12
   }
 });

@@ -82,7 +82,7 @@ import { useGameTheme } from './theme/ThemeProvider';
 import { FlowProgress, ScreenAtmosphere } from './ui/components';
 import { TutorialCoach } from './ui/TutorialCoach';
 import { TutorialFocus } from './ui/TutorialFocus';
-import { AppNavIcon, ThemeModeIcon } from './ui/gameArt';
+import { AppNavIcon, FactionCrest, ThemeModeIcon } from './ui/gameArt';
 
 type FlowScreen =
   | 'battlePrep'
@@ -1893,10 +1893,14 @@ export function AppShell({
             >
               <Text style={[styles.backText, { color: theme.colors.text }]}>‹</Text>
             </Pressable>
-          ) : null}
-          <View>
+          ) : (
+            <View accessible={false} importantForAccessibility="no-hide-descendants" style={styles.headerCrest}>
+              <FactionCrest faction={activeFaction} size={34} />
+            </View>
+          )}
+          <View style={styles.titleCopy}>
             <Text style={[styles.brand, { color: theme.colors.gold }]}>CART & CROWN</Text>
-            <Text style={[styles.screenTitle, { color: theme.colors.text }]}>{title}</Text>
+            <Text style={[styles.screenTitle, { color: theme.colors.text }]} numberOfLines={1}>{title}</Text>
           </View>
         </View>
 
@@ -2002,6 +2006,7 @@ export function AppShell({
               <Pressable
                 key={item.id}
                 accessibilityRole="tab"
+                accessibilityLabel={item.label}
                 accessibilityState={{ selected }}
                 onPress={() => {
                   if (item.id !== 'formation') {
@@ -2018,7 +2023,10 @@ export function AppShell({
                   }
                   setActive(item.id);
                 }}
-                style={styles.navItem}
+                style={({ pressed }) => [
+                  styles.navItem,
+                  { opacity: pressed ? 0.78 : 1, transform: [{ translateY: pressed ? 1 : 0 }] }
+                ]}
               >
                 <TutorialFocus
                   active={tutorialNavFocused}
@@ -2032,13 +2040,16 @@ export function AppShell({
                     <View
                       style={[
                         styles.navIconWrap,
-                        selected ? { backgroundColor: factionAccent + '2F' } : undefined
+                        {
+                          backgroundColor: selected ? factionAccent + '24' : 'transparent',
+                          borderColor: selected ? factionAccent + '80' : 'transparent'
+                        }
                       ]}
                     >
                       <AppNavIcon
                         kind={item.id}
                         color={selected ? factionAccent : theme.colors.textMuted}
-                        size={21}
+                        size={26}
                       />
                     </View>
                     <Text
@@ -2050,6 +2061,13 @@ export function AppShell({
                     >
                       {item.label}
                     </Text>
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.navSelectionMark,
+                        { backgroundColor: selected ? factionAccent : 'transparent' }
+                      ]}
+                    />
                   </View>
                 </TutorialFocus>
               </Pressable>
@@ -2064,7 +2082,7 @@ export function AppShell({
 const styles = StyleSheet.create({
   safeArea: { flex: 1, position: 'relative', overflow: 'hidden' },
   topBar: {
-    height: 62,
+    height: 66,
     zIndex: 2,
     paddingHorizontal: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -2073,10 +2091,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   titleArea: { flexDirection: 'row', alignItems: 'center', gap: 9, minWidth: 0, flex: 1 },
+  titleCopy: { flex: 1, minWidth: 0 },
+  headerCrest: { width: 34, alignItems: 'center', justifyContent: 'center' },
   topActions: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 8 },
   backButton: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center'
@@ -2085,8 +2105,8 @@ const styles = StyleSheet.create({
   brand: { fontSize: 8, letterSpacing: 1.55, fontWeight: '900' },
   screenTitle: { fontSize: 19, lineHeight: 23, fontWeight: '900', marginTop: 1 },
   slotButton: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
@@ -2094,8 +2114,8 @@ const styles = StyleSheet.create({
   },
   slotButtonText: { fontSize: 11, fontWeight: '900' },
   settingsButton: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
@@ -2107,8 +2127,8 @@ const styles = StyleSheet.create({
     fontWeight: '900'
   },
   themeButton: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
@@ -2126,6 +2146,7 @@ const styles = StyleSheet.create({
   },
   navItem: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
   navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
-  navIconWrap: { width: 36, height: 30, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  navLabel: { fontSize: 8.5, fontWeight: '800', marginTop: 2 }
+  navIconWrap: { width: 42, height: 34, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  navLabel: { fontSize: 10, fontWeight: '900', marginTop: 3 },
+  navSelectionMark: { width: 14, height: 3, borderRadius: 2, marginTop: 4 }
 });

@@ -481,14 +481,20 @@ export function PrimaryButton({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled: Boolean(disabled) }}
       disabled={disabled}
       onPress={guardedPress}
       style={({ pressed }) => [
         styles.primaryButton,
         {
           backgroundColor: disabled ? theme.colors.surface3 : theme.colors.primary,
-          opacity: pressed ? 0.9 : 1,
-          transform: [{ scale: pressed && !disabled ? 0.985 : 1 }]
+          borderColor: disabled ? theme.colors.border : '#00000030',
+          borderTopColor: disabled ? theme.colors.border : '#FFFFFF55',
+          borderBottomColor: disabled ? theme.colors.border : '#00000065',
+          borderBottomWidth: pressed && !disabled ? 2 : 4,
+          paddingTop: pressed && !disabled ? 11 : 9,
+          opacity: pressed && !disabled ? 0.94 : 1,
+          transform: [{ translateY: pressed && !disabled ? 1 : 0 }]
         }
       ]}
     >
@@ -519,15 +525,18 @@ export function SecondaryButton({
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled: Boolean(disabled) }}
       disabled={disabled}
       onPress={guardedPress}
       style={({ pressed }) => [
         styles.secondaryButton,
         {
-          backgroundColor: theme.colors.surface2,
-          borderColor: theme.colors.border,
-          opacity: disabled ? 0.45 : pressed ? 0.86 : 1,
-          transform: [{ scale: pressed && !disabled ? 0.988 : 1 }]
+          backgroundColor: pressed && !disabled ? theme.colors.surface3 : theme.colors.surface2,
+          borderColor: pressed && !disabled ? theme.colors.textMuted : theme.colors.border,
+          borderBottomWidth: pressed && !disabled ? 1 : 3,
+          paddingTop: pressed && !disabled ? 10 : 8,
+          opacity: disabled ? 0.5 : 1,
+          transform: [{ translateY: pressed && !disabled ? 1 : 0 }]
         }
       ]}
     >
@@ -654,7 +663,11 @@ export function ProgressBar({
   const clamped = Math.max(0, Math.min(1, value));
 
   return (
-    <View style={[styles.progressTrack, { backgroundColor: theme.colors.surface3 }]}>
+    <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }}
+      style={[styles.progressTrack, { backgroundColor: theme.colors.surface3 }]}
+    >
       <View
         style={[
           styles.progressFill,
@@ -725,11 +738,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     lineHeight: 22,
-    fontWeight: '900'
+    fontWeight: '900',
+    flexShrink: 1
   },
   sectionTrailing: {
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '700',
+    flexShrink: 1,
+    maxWidth: '45%',
+    textAlign: 'right'
   },
   screenHero: {
     paddingVertical: 18,
@@ -886,13 +903,17 @@ const styles = StyleSheet.create({
   primaryButton: {
     minHeight: 52,
     borderRadius: 14,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 18
+    paddingHorizontal: 18,
+    paddingBottom: 9
   },
   primaryButtonText: {
     fontSize: 15,
-    fontWeight: '900'
+    fontWeight: '900',
+    textAlign: 'center',
+    flexShrink: 1
   },
   secondaryButton: {
     minHeight: 46,
@@ -900,11 +921,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16
+    paddingHorizontal: 16,
+    paddingBottom: 8
   },
   secondaryButtonText: {
     fontSize: 13,
-    fontWeight: '900'
+    fontWeight: '900',
+    textAlign: 'center',
+    flexShrink: 1
   },
   resourceChip: {
     minWidth: 96,
