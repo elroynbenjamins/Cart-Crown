@@ -41,6 +41,18 @@ const settlementPlotCenters: Record<string, { x: number; y: number }> = {
   plot_se: { x: 0.815, y: 0.775 }
 };
 
+const settlementPlotLabels: Record<string, string> = {
+  plot_nw: 'Northwest',
+  plot_n: 'North',
+  plot_ne: 'Northeast',
+  plot_w: 'West',
+  plot_center: 'Center',
+  plot_e: 'East',
+  plot_sw: 'Southwest',
+  plot_s: 'South',
+  plot_se: 'Southeast'
+};
+
 const settlementMaxBuildingLevelByStage: Record<string, number> = {
   camp: 1,
   settlement: 2,
@@ -294,6 +306,57 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const bestRelocationNet = relocationPlanRatings.length
     ? Math.max(...relocationPlanRatings.map(rating => rating.net))
     : 0;
+  const networkOptimizationCandidates = Object.entries(buildingPlacements).flatMap(([sourcePlotId, buildingId]) => {
+    if (!buildingId || (buildingLevels[buildingId] ?? 0) <= 0) return [];
+    const building = buildings.find(candidate => candidate.id === buildingId);
+    if (!building) return [];
+
+    return settlementPlots.flatMap(targetPlot => {
+      if (!isSettlementPlotUnlocked(targetPlot, currentWagonStage.id) || buildingPlacements[targetPlot.id]) return [];
+
+      const hypotheticalPlacements = {
+        ...buildingPlacements,
+        [sourcePlotId]: null,
+        [targetPlot.id]: buildingId
+      };
+      const futureBonuses = analyzeSettlementAdjacency(
+        hypotheticalPlacements,
+        buildingLevels,
+        activeFaction
+      ).bonuses;
+      const improvement = futureBonuses.length - settlementAdjacencyBonuses.length;
+      if (improvement <= 0) return [];
+
+      const futureIds = new Set(futureBonuses.map(bonus => bonus.id));
+      const gainedBonuses = futureBonuses.filter(bonus => !activeBonusIds.has(bonus.id));
+      const lostBonuses = settlementAdjacencyBonuses.filter(bonus => !futureIds.has(bonus.id));
+
+      return [{
+        buildingId,
+        buildingName: building.name,
+        sourcePlotId,
+        targetPlotId: targetPlot.id,
+        currentDistrictCount: settlementAdjacencyBonuses.length,
+        futureDistrictCount: futureBonuses.length,
+        improvement,
+        gainedBonuses,
+        lostBonuses
+      }];
+    });
+  }).sort((first, second) => {
+    const improvementDifference = second.improvement - first.improvement;
+    if (improvementDifference !== 0) return improvementDifference;
+    const futureDifference = second.futureDistrictCount - first.futureDistrictCount;
+    if (futureDifference !== 0) return futureDifference;
+    return first.buildingName.localeCompare(second.buildingName);
+  });
+  const bestNetworkOptimization = networkOptimizationCandidates[0] ?? null;
+  const showNetworkOptimizationHint =
+    Boolean(bestNetworkOptimization) &&
+    !selectedBuildingId &&
+    !selectedPlotId &&
+    !blueprintPlannerOpen &&
+    !unlockCelebration;
 
   const stageLabel = activeFaction === 'elf'
     ? currentWagonStage.id === 'capital' ? 'STARROOT CONCLAVE'
@@ -525,6 +588,13 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           <View style={styles.hudStats}>
             <SemanticChip label={placedIds.length + ' built'} tone="neutral" compact />
             <SemanticChip label={settlementAdjacencyBonuses.length + ' districts'} tone={settlementAdjacencyBonuses.length ? 'positive' : 'neutral'} compact />
+            {bestNetworkOptimization ? (
+              <SemanticChip
+                label={bestNetworkOptimization.currentDistrictCount + '→' + bestNetworkOptimization.futureDistrictCount + ' layout'}
+                tone="positive"
+                compact
+              />
+            ) : null}
             {districtOpportunities.length ? <SemanticChip label={districtOpportunities.length + ' district spots'} tone="positive" compact /> : null}
             {constructionReadyCount ? <SemanticChip label={constructionReadyCount + ' build ready'} tone="currency" compact /> : null}
             {upgradeMaterialReadyIds.size ? <SemanticChip label={upgradeMaterialReadyIds.size + ' upgrade mats'} tone="positive" compact /> : null}
@@ -625,6 +695,51 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <Text style={[styles.blueprintPlannerLauncherAction, { color: theme.colors.gold }]}>PLAN</Text>
           </Pressable>
         )
+      ) : null}
+
+      {showNetworkOptimizationHint && bestNetworkOptimization ? (
+        <Pressable
+          testID="district-network-hint"
+          accessibilityRole="button"
+          accessibilityLabel={
+            'Better layout available, ' +
+            bestNetworkOptimization.currentDistrictCount +
+            ' to ' +
+            bestNetworkOptimization.futureDistrictCount +
+            ' districts. Preview moving ' +
+            bestNetworkOptimization.buildingName +
+            ' to ' +
+            (settlementPlotLabels[bestNetworkOptimization.targetPlotId] ?? bestNetworkOptimization.targetPlotId)
+          }
+          onPress={() => {
+            setSelectedBuildingId(bestNetworkOptimization.buildingId);
+            setRelocationTargetPlotId(bestNetworkOptimization.targetPlotId);
+            setSelectedPlotId(null);
+            setPreviewBuildingId(null);
+            setBlueprintPlannerOpen(false);
+            setPlanningBuildingId(null);
+            setUnlockCelebration(null);
+            setMessage(null);
+          }}
+          style={[
+            styles.networkHint,
+            {
+              backgroundColor: theme.colors.surface1,
+              borderColor: semanticColor(theme, 'positive')
+            }
+          ]}
+        >
+          <View style={styles.networkHintCopy}>
+            <Text style={[styles.networkHintEyebrow, { color: semanticColor(theme, 'positive') }]}>BETTER LAYOUT AVAILABLE</Text>
+            <Text style={[styles.networkHintTitle, { color: theme.colors.text }]}>
+              {bestNetworkOptimization.currentDistrictCount} → {bestNetworkOptimization.futureDistrictCount} districts
+            </Text>
+            <Text style={[styles.networkHintDetail, { color: theme.colors.textMuted }]} numberOfLines={1}>
+              Preview {bestNetworkOptimization.buildingName} → {settlementPlotLabels[bestNetworkOptimization.targetPlotId] ?? bestNetworkOptimization.targetPlotId}
+            </Text>
+          </View>
+          <Text style={[styles.networkHintAction, { color: theme.colors.gold }]}>PREVIEW</Text>
+        </Pressable>
       ) : null}
 
       <View style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
@@ -1045,6 +1160,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   tone={relocationTarget.tone}
                   compact
                 />
+                <SemanticChip
+                  label={'Network ' + settlementAdjacencyBonuses.length + ' → ' + (settlementAdjacencyBonuses.length + relocationTarget.net)}
+                  tone={relocationTarget.net > 0 ? 'positive' : relocationTarget.net < 0 ? 'warning' : 'neutral'}
+                  compact
+                />
               </View>
               <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>
                 {relocationTarget.gainedBonuses.length
@@ -1278,6 +1398,12 @@ const styles = StyleSheet.create({
   blueprintPlannerChip: { width: 112, borderWidth: 1, borderRadius: 11, paddingHorizontal: 8, paddingVertical: 6 },
   blueprintPlannerChipName: { fontSize: 9.5, lineHeight: 12, fontWeight: '900' },
   blueprintPlannerChipQuality: { fontSize: 7.5, lineHeight: 10, fontWeight: '800', marginTop: 2 },
+  networkHint: { minHeight: 54, borderWidth: 1, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  networkHintCopy: { flex: 1, minWidth: 0 },
+  networkHintEyebrow: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.8 },
+  networkHintTitle: { fontSize: 12.5, lineHeight: 16, fontWeight: '900', marginTop: 1 },
+  networkHintDetail: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', marginTop: 1 },
+  networkHintAction: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
   section: { gap: 8, marginTop: 10 },
   map: { borderRadius: 26, borderWidth: 1, overflow: 'hidden', position: 'relative' },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
