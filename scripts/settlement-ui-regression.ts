@@ -305,6 +305,63 @@ function testRecipesAndInteractions() {
   }
 }
 
+function testDistrictCodexConsolidation() {
+  const f = fixture('human');
+  let tree = f.h.render();
+
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-codex'), 'District Codex summary must remain available below the settlement.');
+  const toggle = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-codex-toggle');
+  check(Boolean(toggle), 'District Codex must expose one compact expand/collapse control.');
+  check(toggle?.props.accessibilityState?.expanded === false, 'District Codex must be collapsed by default.');
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-codex-panel'), 'Collapsed District Codex must not permanently render recipe details.');
+  check(toggle?.props.accessibilityLabel === 'District Codex, 0 of 6 active', 'Collapsed District Codex must summarize active versus authored recipes.');
+  check(nodes(tree, 'SemanticChip').some(node => node.props.label === '6 developing'), 'Collapsed District Codex must summarize recipes still being developed.');
+  check(nodes(tree, 'SectionTitle').length === 0, 'Legacy standalone district section headings must be removed.');
+  check(nodes(tree, 'GameCard').length === 0, 'Legacy stacked district cards must be removed from the settlement screen.');
+
+  toggle!.props.onPress();
+  tree = f.h.render();
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-codex-panel'), 'Opening District Codex must reveal recipe details.');
+  check(
+    nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('district-codex-row-')).length === settlement.getSettlementAdjacencyBonuses('human').length,
+    'Open District Codex must preserve every authored district recipe.'
+  );
+
+  const arsenalRow = nodes(tree, 'View').find(node => node.props.testID === 'district-codex-row-arsenal_district');
+  check(Boolean(arsenalRow), 'District Codex must include Arsenal District.');
+  check(
+    nodes(arsenalRow, 'SemanticChip').some(node => node.props.label === 'Buildings needed'),
+    'Unbuilt district recipe state must remain exact inside the codex.'
+  );
+  check(
+    nodes(arsenalRow, 'DistrictEffects').some(node => node.props.state === 'inactive' && node.props.bonus.id === 'arsenal_district'),
+    'Inactive codex recipes must preserve their authored effects without presenting them as active.'
+  );
+
+  f.game.buildingPlacements = { ...f.game.buildingPlacements, plot_nw: 'forge' };
+  f.game.buildingLevels = { ...f.game.buildingLevels, forge: 1 };
+  f.refresh();
+  tree = f.h.render();
+
+  const updatedToggle = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-codex-toggle');
+  check(updatedToggle?.props.accessibilityLabel === 'District Codex, 1 of 6 active', 'District Codex summary must react immediately when a district activates.');
+  const activeArsenal = nodes(tree, 'View').find(node => node.props.testID === 'district-codex-row-arsenal_district');
+  check(
+    nodes(activeArsenal, 'SemanticChip').some(node => node.props.label === 'Active'),
+    'Active codex recipes must use the real active recipe state.'
+  );
+  check(
+    nodes(activeArsenal, 'DistrictEffects').some(node => node.props.state === 'active' && node.props.bonus.id === 'arsenal_district'),
+    'Active codex recipes must expose the exact authored active effect.'
+  );
+
+  const openToggle = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-codex-toggle');
+  check(openToggle?.props.accessibilityState?.expanded === true, 'Open District Codex must expose expanded accessibility state.');
+  openToggle!.props.onPress();
+  tree = f.h.render();
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-codex-panel'), 'Closing District Codex must remove detailed rows again.');
+}
+
 function testDenseDistrictZoneReadability() {
   const f = fixture('human');
   f.game.buildingPlacements = {
@@ -622,6 +679,7 @@ check(settlementScreenSource.includes('UPGRADE MATERIALS READY'), 'Settlement up
 
 testEffects();
 testRecipesAndInteractions();
+testDistrictCodexConsolidation();
 testDenseDistrictZoneReadability();
 testDistrictNetworkOptimizationHint();
 testBlueprintFirstPlanner();

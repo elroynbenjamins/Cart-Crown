@@ -8,7 +8,7 @@ import {
 import { canPayBuildingCost, getBuildingLevelDefinition } from '../game/kingdom';
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
-import { GameCard, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
+import { PrimaryButton, SecondaryButton } from '../ui/components';
 import { BuildingSprite, LockIcon, ResourceSprite, SettlementBuildingAmbience, SettlementBuildPlotSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
 import { SemanticChip, SemanticText } from '../ui/SemanticUI';
 import { blendColor, semanticColor } from '../ui/semanticColors';
@@ -182,6 +182,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
   const [districtOverlayFilter, setDistrictOverlayFilter] = useState<DistrictOverlayFilter>('all');
   const [selectedDistrictId, setSelectedDistrictId] = useState<string | null>(null);
+  const [districtCodexOpen, setDistrictCodexOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [unlockCelebration, setUnlockCelebration] = useState<SettlementUnlockCelebration | null>(null);
   const settlementPlots = getSettlementPlots(activeFaction);
@@ -221,6 +222,34 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     ? settlementPlots.find(plot => isSettlementPlotUnlocked(plot, currentWagonStage.id) && !buildingPlacements[plot.id])?.id ?? null
     : null;
   const activeBonusIds = new Set(settlementAdjacencyBonuses.map(bonus => bonus.id));
+  const districtCodexRows = adjacencyRecipes
+    .map(bonus => {
+      const state = districtRecipeState(
+        bonus,
+        activeBonusIds,
+        buildingLevels,
+        buildingPlacements,
+        isBuildingUnlocked
+      );
+      return {
+        bonus,
+        state,
+        tone: settlementDistrictTone(bonus),
+        category: settlementDistrictCategory(bonus),
+        first: buildings.find(building => building.id === bonus.buildingA) ?? null,
+        second: buildings.find(building => building.id === bonus.buildingB) ?? null
+      };
+    })
+    .sort((first, second) => {
+      const order = { active: 0, separated: 1, unplaced: 2, unbuilt: 3, locked: 4 } as const;
+      return order[first.state] - order[second.state];
+    });
+  const districtPlacementAttentionCount = districtCodexRows.filter(
+    row => row.state === 'separated' || row.state === 'unplaced'
+  ).length;
+  const districtDevelopingCount = districtCodexRows.filter(
+    row => row.state === 'unbuilt' || row.state === 'locked'
+  ).length;
 
   // Read-only preview, using the same adjacency calculation as the game. No costs or levels are committed here.
   const previewBonusesAtPlot = (plot: (typeof settlementPlots)[number], buildingId: string) => {
@@ -778,6 +807,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               setSelectedPlotId(null);
               setSelectedBuildingId(null);
               setSelectedDistrictId(null);
+              setDistrictCodexOpen(false);
               setUnlockCelebration(null);
             }}
             style={[styles.blueprintPlannerLauncher, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
@@ -809,6 +839,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           }
           onPress={() => {
             setSelectedDistrictId(null);
+            setDistrictCodexOpen(false);
             setSelectedBuildingId(bestNetworkOptimization.buildingId);
             setRelocationTargetPlotId(bestNetworkOptimization.targetPlotId);
             setSelectedPlotId(null);
@@ -903,6 +934,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     accessibilityHint="Show this district bonus and its two buildings."
                     onPress={() => {
                       setSelectedDistrictId(selectedDistrictTag ? null : connection.id);
+                      setDistrictCodexOpen(false);
                       setSelectedBuildingId(null);
                       setRelocationTargetPlotId(null);
                       setSelectedPlotId(null);
@@ -1053,6 +1085,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 setMessage(null);
                 setUnlockCelebration(null);
                 setSelectedDistrictId(null);
+                setDistrictCodexOpen(false);
                 if (building) {
                   setSelectedBuildingId(buildingSelected ? null : building.id);
                   setRelocationTargetPlotId(null);
@@ -1344,6 +1377,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   onPress={() => {
                     setDistrictOverlayFilter(filter.id);
                     setSelectedDistrictId(null);
+                    setDistrictCodexOpen(false);
                   }}
                   style={[
                     styles.districtOverlayButton,
@@ -1626,39 +1660,96 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         <Text style={[styles.sceneHelp, { color: theme.colors.textMuted }]}>Tap a structure to manage it or marked ground to expand.</Text>
       )}
 
-      <SectionTitle title="Active District Bonuses" trailing={String(settlementAdjacencyBonuses.length)} />
-      {settlementAdjacencyBonuses.length ? (
-        <View style={styles.list}>
-          {settlementAdjacencyBonuses.map(bonus => {
-            const tone = settlementDistrictTone(bonus);
-            return (
-              <GameCard key={bonus.id} accent={semanticColor(theme, tone)} ornament={false}>
-                <Text style={[styles.bonusName, { color: theme.colors.text }]}>{bonus.name}</Text>
-                <View style={styles.chips}><SemanticChip label="Active district" tone={tone} compact /></View>
-                <Text style={[styles.body, { color: theme.colors.textMuted }]}>{bonus.description}</Text>
-                <DistrictEffects bonus={bonus} state="active" />
-              </GameCard>
-            );
-          })}
-        </View>
-      ) : <GameCard ornament={false}><Text style={[styles.body, { color: theme.colors.textMuted }]}>No district synergy is active yet. Compatible buildings must be built and adjacent.</Text></GameCard>}
+      <View
+        testID="district-codex"
+        style={[styles.districtCodex, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+      >
+        <Pressable
+          testID="district-codex-toggle"
+          accessibilityRole="button"
+          accessibilityState={{ expanded: districtCodexOpen }}
+          accessibilityLabel={
+            'District Codex, ' +
+            settlementAdjacencyBonuses.length +
+            ' of ' +
+            adjacencyRecipes.length +
+            ' active'
+          }
+          onPress={() => {
+            setDistrictCodexOpen(open => !open);
+            if (!districtCodexOpen) {
+              setSelectedDistrictId(null);
+              setSelectedBuildingId(null);
+              setRelocationTargetPlotId(null);
+              setSelectedPlotId(null);
+              setPreviewBuildingId(null);
+              setBlueprintPlannerOpen(false);
+              setPlanningBuildingId(null);
+            }
+          }}
+          style={styles.districtCodexToggle}
+        >
+          <View style={styles.districtCodexCopy}>
+            <Text style={[styles.districtCodexEyebrow, { color: theme.colors.textMuted }]}>DISTRICT CODEX</Text>
+            <Text style={[styles.districtCodexTitle, { color: theme.colors.text }]}>
+              {settlementAdjacencyBonuses.length}/{adjacencyRecipes.length} active
+            </Text>
+          </View>
+          <View style={styles.districtCodexSummary}>
+            {districtPlacementAttentionCount ? (
+              <SemanticChip label={districtPlacementAttentionCount + ' placement'} tone="blue" compact />
+            ) : null}
+            {districtDevelopingCount ? (
+              <SemanticChip label={districtDevelopingCount + ' developing'} tone="neutral" compact />
+            ) : null}
+          </View>
+          <Text style={[styles.districtCodexAction, { color: theme.colors.gold }]}>
+            {districtCodexOpen ? 'CLOSE' : 'OPEN'}
+          </Text>
+        </Pressable>
 
-      <SectionTitle title="District Recipes" trailing="Orthogonal" />
-      <GameCard ornament={false}>
-        {adjacencyRecipes.map(bonus => {
-          const first = buildings.find(building => building.id === bonus.buildingA);
-          const second = buildings.find(building => building.id === bonus.buildingB);
-          const state = districtRecipeState(bonus, activeBonusIds, buildingLevels, buildingPlacements, isBuildingUnlocked);
-          return (
-            <View key={bonus.id} style={[styles.recipe, { borderBottomColor: theme.colors.border }]}>
-              <Text style={[styles.bonusName, { color: theme.colors.text }]}>{bonus.name}</Text>
-              <View style={styles.chips}><SemanticChip {...districtRecipePresentation[state]} compact /></View>
-              <Text style={[styles.body, { color: theme.colors.textMuted }]}>{first?.name ?? bonus.buildingA} + {second?.name ?? bonus.buildingB}</Text>
-              <DistrictEffects bonus={bonus} state={state === 'active' ? 'active' : 'inactive'} />
-            </View>
-          );
-        })}
-      </GameCard>
+        {districtCodexOpen ? (
+          <View testID="district-codex-panel" style={[styles.districtCodexPanel, { borderTopColor: theme.colors.border }]}>
+            {districtCodexRows.map((row, index) => {
+              const statePresentation = districtRecipePresentation[row.state];
+              return (
+                <View
+                  key={row.bonus.id}
+                  testID={'district-codex-row-' + row.bonus.id}
+                  style={[
+                    styles.districtCodexRow,
+                    index ? { borderTopColor: theme.colors.border, borderTopWidth: StyleSheet.hairlineWidth } : undefined
+                  ]}
+                >
+                  <View style={styles.districtCodexRowHeader}>
+                    <View style={styles.districtCodexRowCopy}>
+                      <Text style={[styles.districtCodexRowName, { color: theme.colors.text }]}>{row.bonus.name}</Text>
+                      <Text style={[styles.districtCodexPair, { color: theme.colors.textMuted }]}>
+                        {row.first?.name ?? row.bonus.buildingA} + {row.second?.name ?? row.bonus.buildingB}
+                      </Text>
+                    </View>
+                    <View style={styles.districtCodexRowChips}>
+                      <SemanticChip
+                        label={row.category.charAt(0).toUpperCase() + row.category.slice(1)}
+                        tone={row.tone}
+                        compact
+                      />
+                      <SemanticChip {...statePresentation} compact />
+                    </View>
+                  </View>
+                  <Text style={[styles.districtCodexDescription, { color: theme.colors.textMuted }]}>
+                    {row.bonus.description}
+                  </Text>
+                  <DistrictEffects
+                    bonus={row.bonus}
+                    state={row.state === 'active' ? 'active' : 'inactive'}
+                  />
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
+      </View>
       {message ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.text }]}>{message}</Text> : null}
       <SecondaryButton label="Return to Kingdom" onPress={onExit} />
     </ScrollView>
@@ -1695,6 +1786,21 @@ const styles = StyleSheet.create({
   sceneLegend: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 3, marginTop: -1 },
   sceneLegendText: { fontSize: 9.5, lineHeight: 13, fontWeight: '700' },
   sceneLegendCount: { fontSize: 10, lineHeight: 13, fontWeight: '900' },
+  districtCodex: { borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
+  districtCodexToggle: { minHeight: 52, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  districtCodexCopy: { flex: 1, minWidth: 0 },
+  districtCodexEyebrow: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.85 },
+  districtCodexTitle: { fontSize: 12, lineHeight: 15, fontWeight: '900', marginTop: 1 },
+  districtCodexSummary: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, justifyContent: 'flex-end', flexShrink: 1 },
+  districtCodexAction: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
+  districtCodexPanel: { borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 9, paddingBottom: 5 },
+  districtCodexRow: { paddingVertical: 8 },
+  districtCodexRowHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  districtCodexRowCopy: { flex: 1, minWidth: 0 },
+  districtCodexRowName: { fontSize: 11.5, lineHeight: 15, fontWeight: '900' },
+  districtCodexPair: { fontSize: 9, lineHeight: 12, fontWeight: '700', marginTop: 1 },
+  districtCodexRowChips: { alignItems: 'flex-end', gap: 3 },
+  districtCodexDescription: { fontSize: 9.5, lineHeight: 14, marginTop: 5 },
   blueprintPlannerLauncher: { minHeight: 48, borderWidth: 1, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 10 },
   blueprintPlannerLauncherCopy: { flex: 1, minWidth: 0 },
   blueprintPlannerLauncherText: { fontSize: 11.5, lineHeight: 15, fontWeight: '800', marginTop: 1 },
