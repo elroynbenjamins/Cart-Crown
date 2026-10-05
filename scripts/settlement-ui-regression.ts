@@ -305,6 +305,64 @@ function testRecipesAndInteractions() {
   }
 }
 
+function testDenseDistrictZoneReadability() {
+  const f = fixture('human');
+  f.game.buildingPlacements = {
+    plot_nw: 'forge',
+    plot_n: 'war_room',
+    plot_ne: 'signal_tower',
+    plot_w: 'barracks',
+    plot_center: 'hall',
+    plot_e: 'wagonwright',
+    plot_sw: 'stable',
+    plot_s: null,
+    plot_se: 'quartermaster'
+  };
+  f.game.buildingLevels = {
+    ...f.game.buildingLevels,
+    forge: 1,
+    war_room: 1,
+    signal_tower: 1,
+    barracks: 1,
+    hall: 1,
+    wagonwright: 1,
+    stable: 1,
+    quartermaster: 1
+  };
+  f.refresh();
+
+  let tree = f.h.render();
+  check(f.game.settlementAdjacencyBonuses.length === 5, 'Dense district readability fixture must activate five real districts.');
+  const zones = nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('district-zone-') && !String(node.props.testID).startsWith('district-zone-label-'));
+  check(zones.length === 5, 'Every active district must receive exactly one grouped ground zone.');
+  for (const id of ['arsenal_district', 'mounted_drill_yard', 'supply_yard', 'seat_of_command', 'command_network']) {
+    check(nodes(tree, 'View').some(node => node.props.testID === 'district-zone-' + id), 'Missing grouped ground zone for ' + id + '.');
+    check(nodes(tree, 'View').some(node => node.props.testID === 'district-zone-label-' + id), 'Missing readable district tag for ' + id + '.');
+  }
+
+  const arsenalZone = nodes(tree, 'View').find(node => node.props.testID === 'district-zone-arsenal_district');
+  const expectedArsenalBorder = colors.blendColor(
+    colors.semanticColor(themes.original, 'orange'),
+    themes.original.colors.surface1,
+    0.44
+  );
+  check(style(arsenalZone?.props.style).borderColor === expectedArsenalBorder, 'Equipment districts must keep a distinct orange visual family.');
+  const supplyZone = nodes(tree, 'View').find(node => node.props.testID === 'district-zone-supply_yard');
+  const expectedSupplyBorder = colors.blendColor(
+    colors.semanticColor(themes.original, 'green'),
+    themes.original.colors.surface1,
+    0.44
+  );
+  check(style(supplyZone?.props.style).borderColor === expectedSupplyBorder, 'Supply districts must keep a distinct green visual family.');
+
+  choosePlot(tree, 'plot_nw');
+  tree = f.h.render();
+  const focusedArsenal = nodes(tree, 'View').find(node => node.props.testID === 'district-zone-label-arsenal_district');
+  const dimmedSupply = nodes(tree, 'View').find(node => node.props.testID === 'district-zone-label-supply_yard');
+  check(style(focusedArsenal?.props.style).opacity === 1, 'Selecting a district member must fully emphasize its own neighborhood tag.');
+  check(style(dimmedSupply?.props.style).opacity === 0.42, 'Selecting a district member must dim unrelated dense neighborhoods.');
+}
+
 function testDistrictNetworkOptimizationHint() {
   const f = fixture('human');
   f.game.buildingPlacements = {
@@ -479,6 +537,7 @@ check(settlementScreenSource.includes('UPGRADE MATERIALS READY'), 'Settlement up
 
 testEffects();
 testRecipesAndInteractions();
+testDenseDistrictZoneReadability();
 testDistrictNetworkOptimizationHint();
 testBlueprintFirstPlanner();
 testExcellentPlacementQuality();

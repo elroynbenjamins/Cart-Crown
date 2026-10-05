@@ -11,11 +11,13 @@ import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, SectionTitle } from '../ui/components';
 import { BuildingSprite, LockIcon, ResourceSprite, SettlementBuildingAmbience, SettlementBuildPlotSprite, SettlementTerrainBackdrop } from '../ui/gameArt';
 import { SemanticChip, SemanticText } from '../ui/SemanticUI';
-import { semanticColor } from '../ui/semanticColors';
+import { blendColor, semanticColor } from '../ui/semanticColors';
+import type { SemanticTone } from '../ui/semanticColors';
 import { BuildingCosts, BuildingHeading, BuildingLevelPreview, DistrictEffects } from '../ui/SettlementUI';
 import { buildingRolePresentation, districtRecipePresentation, districtRecipeState } from '../ui/settlementPresentation';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
+import type { SettlementAdjacencyBonusDefinition } from '../game/types';
 
 const settlementPlotPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
   plot_nw: { left: '6%', top: '15%' },
@@ -92,6 +94,26 @@ function settlementPlacementQuality(districtCount: number) {
     tone: 'neutral' as const,
     summary: '0 districts'
   };
+}
+
+function settlementDistrictTone(bonus: SettlementAdjacencyBonusDefinition): SemanticTone {
+  const effects = bonus.effects;
+  if (effects.equipmentCostMultiplier !== undefined) return 'orange';
+  if (effects.mountCostMultiplier !== undefined) return 'cyan';
+  if (
+    effects.expeditionWoodBonus !== undefined ||
+    effects.expeditionProvisionBonus !== undefined ||
+    effects.dailyProvisionBonus !== undefined
+  ) return 'green';
+  if (
+    effects.commanderSkillPowerMultiplier !== undefined ||
+    effects.detailedIntel !== undefined
+  ) return 'violet';
+  if (
+    effects.commanderRespecDiscount !== undefined ||
+    effects.commanderSkillEarlyTrigger !== undefined
+  ) return 'rose';
+  return 'positive';
 }
 
 type SettlementUnlockSnapshot = {
@@ -456,7 +478,6 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = Math.max(300, safeViewportWidth - 20);
-  const districtColor = semanticColor(theme, 'positive');
   const districtConnections = settlementAdjacencyBonuses.flatMap(bonus => {
     const first = settlementPlotCenters[bonus.plotA];
     const second = settlementPlotCenters[bonus.plotB];
@@ -470,20 +491,41 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     const dy = y2 - y1;
     const length = Math.sqrt(dx * dx + dy * dy);
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    const horizontal = Math.abs(dx) >= Math.abs(dy);
+    const midpointX = (x1 + x2) / 2;
+    const midpointY = (y1 + y2) / 2;
     const focused =
       Boolean(selectedBuildingId) && (bonus.buildingA === selectedBuildingId || bonus.buildingB === selectedBuildingId);
+    const tone = settlementDistrictTone(bonus);
+    const color = semanticColor(theme, tone);
 
     return [{
       id: bonus.id,
+      name: bonus.name,
+      tone,
+      color,
       focused,
       style: {
-        left: (x1 + x2) / 2 - length / 2,
-        top: (y1 + y2) / 2 - 1,
+        left: midpointX - length / 2,
+        top: midpointY - 1,
         width: length,
         transform: [{ rotate: angle + 'deg' }]
+      } as ViewStyle,
+      zoneStyle: {
+        left: midpointX - length / 2 - 10,
+        top: midpointY - 14,
+        width: length + 20,
+        height: 28,
+        transform: [{ rotate: angle + 'deg' }]
+      } as ViewStyle,
+      labelStyle: {
+        left: horizontal ? midpointX - 52 : midpointX + 10,
+        top: horizontal ? midpointY - 25 : midpointY - 10,
+        width: 104
       } as ViewStyle
     }];
   });
+  const districtFocusActive = Boolean(selectedBuildingId);
   const previewDistrictConnections = previewDistrictBonuses.flatMap(bonus => {
     const first = settlementPlotCenters[bonus.plotA];
     const second = settlementPlotCenters[bonus.plotB];
@@ -756,6 +798,57 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <Text style={[styles.unlockCelebrationDetail, { color: theme.colors.text }]} numberOfLines={1}>{unlockCelebration.detail}</Text>
           </View>
         ) : null}
+        {districtConnections.length ? (
+          <View pointerEvents="none" style={styles.districtZoneLayer}>
+            {districtConnections.map(connection => {
+              const dimmed = districtFocusActive && !connection.focused;
+              const zoneFill = blendColor(
+                connection.color,
+                theme.colors.surface1,
+                connection.focused ? 0.2 : dimmed ? 0.035 : 0.1
+              );
+              const zoneBorder = blendColor(
+                connection.color,
+                theme.colors.surface1,
+                connection.focused ? 0.72 : dimmed ? 0.2 : 0.44
+              );
+              return (
+                <React.Fragment key={'zone-' + connection.id}>
+                  <View
+                    accessible
+                    accessibilityLabel={connection.name + ' district zone'}
+                    testID={'district-zone-' + connection.id}
+                    style={[
+                      connection.zoneStyle,
+                      styles.districtZone,
+                      {
+                        backgroundColor: zoneFill,
+                        borderColor: zoneBorder
+                      }
+                    ]}
+                  />
+                  <View
+                    testID={'district-zone-label-' + connection.id}
+                    style={[
+                      connection.labelStyle,
+                      styles.districtZoneLabel,
+                      {
+                        backgroundColor: theme.colors.surface1,
+                        borderColor: zoneBorder,
+                        opacity: connection.focused ? 1 : dimmed ? 0.42 : 0.76
+                      }
+                    ]}
+                  >
+                    <View style={[styles.districtZoneDot, { backgroundColor: connection.color }]} />
+                    <Text style={[styles.districtZoneText, { color: connection.color }]} numberOfLines={1}>
+                      {connection.name}
+                    </Text>
+                  </View>
+                </React.Fragment>
+              );
+            })}
+          </View>
+        ) : null}
         <View pointerEvents="none" style={styles.districtLayer}>
           {districtConnections.map(connection => (
             <React.Fragment key={connection.id}>
@@ -763,7 +856,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLinkGlow,
-                  { backgroundColor: districtColor, opacity: connection.focused ? 0.26 : 0.11 }
+                  { backgroundColor: connection.color, opacity: connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1 }
                 ]}
               />
               <View
@@ -771,7 +864,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLink,
-                  { backgroundColor: districtColor, opacity: connection.focused ? 0.94 : 0.62 }
+                  { backgroundColor: connection.color, opacity: connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56 }
                 ]}
               />
             </React.Fragment>
@@ -1326,14 +1419,17 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       <SectionTitle title="Active District Bonuses" trailing={String(settlementAdjacencyBonuses.length)} />
       {settlementAdjacencyBonuses.length ? (
         <View style={styles.list}>
-          {settlementAdjacencyBonuses.map(bonus => (
-            <GameCard key={bonus.id} accent={semanticColor(theme, 'positive')} ornament={false}>
-              <Text style={[styles.bonusName, { color: theme.colors.text }]}>{bonus.name}</Text>
-              <View style={styles.chips}><SemanticChip label="Active" tone="positive" compact /></View>
-              <Text style={[styles.body, { color: theme.colors.textMuted }]}>{bonus.description}</Text>
-              <DistrictEffects bonus={bonus} state="active" />
-            </GameCard>
-          ))}
+          {settlementAdjacencyBonuses.map(bonus => {
+            const tone = settlementDistrictTone(bonus);
+            return (
+              <GameCard key={bonus.id} accent={semanticColor(theme, tone)} ornament={false}>
+                <Text style={[styles.bonusName, { color: theme.colors.text }]}>{bonus.name}</Text>
+                <View style={styles.chips}><SemanticChip label="Active district" tone={tone} compact /></View>
+                <Text style={[styles.body, { color: theme.colors.textMuted }]}>{bonus.description}</Text>
+                <DistrictEffects bonus={bonus} state="active" />
+              </GameCard>
+            );
+          })}
         </View>
       ) : <GameCard ornament={false}><Text style={[styles.body, { color: theme.colors.textMuted }]}>No district synergy is active yet. Compatible buildings must be built and adjacent.</Text></GameCard>}
 
@@ -1411,6 +1507,11 @@ const styles = StyleSheet.create({
   unlockCelebrationLabel: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.9 },
   unlockCelebrationDetail: { fontSize: 11, lineHeight: 14, fontWeight: '900', marginTop: 1, maxWidth: '100%' },
 
+  districtZoneLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 2 },
+  districtZone: { position: 'absolute', borderWidth: 1, borderRadius: 999 },
+  districtZoneLabel: { position: 'absolute', minHeight: 18, borderWidth: 1, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 3 },
+  districtZoneDot: { width: 5, height: 5, borderRadius: 999 },
+  districtZoneText: { flex: 1, fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.25 },
   districtLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 3 },
   districtLinkGlow: { position: 'absolute', height: 7, borderRadius: 999 },
   districtLink: { position: 'absolute', height: 2.5, borderRadius: 999 },
