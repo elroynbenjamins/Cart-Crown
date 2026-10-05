@@ -202,6 +202,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [blueprintPlannerOpen, setBlueprintPlannerOpen] = useState(false);
   const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
   const [districtOverlayFilter, setDistrictOverlayFilter] = useState<DistrictOverlayFilter>('all');
+  const [districtOverlayVisible, setDistrictOverlayVisible] = useState(false);
   const [selectedDistrictId, setSelectedDistrictId] = useState<string | null>(null);
   const [districtCodexOpen, setDistrictCodexOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -642,9 +643,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     military: settlementAdjacencyBonuses.filter(bonus => settlementDistrictCategory(bonus) === 'military').length,
     command: settlementAdjacencyBonuses.filter(bonus => settlementDistrictCategory(bonus) === 'command').length
   };
-  const visibleDistrictConnections = districtOverlayFilter === 'all'
-    ? districtConnections
-    : districtConnections.filter(connection => connection.category === districtOverlayFilter);
+  const visibleDistrictConnections = !districtOverlayVisible
+    ? []
+    : districtOverlayFilter === 'all'
+      ? districtConnections
+      : districtConnections.filter(connection => connection.category === districtOverlayFilter);
   const districtFocusActive =
     Boolean(selectedBuildingId || selectedDistrictId) &&
     visibleDistrictConnections.some(connection => connection.focused);
@@ -1815,8 +1818,32 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           accessibilityLabel="District overlay filters"
           style={[styles.districtOverlayControls, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
         >
-          <Text style={[styles.districtOverlayLabel, { color: theme.colors.textMuted }]}>DISTRICT OVERLAY</Text>
-          <View style={styles.districtOverlayButtons}>
+          <View style={styles.districtOverlayHeader}>
+            <Text style={[styles.districtOverlayLabel, { color: theme.colors.textMuted }]}>DISTRICT OVERLAY</Text>
+            <Pressable
+              testID="district-overlay-toggle"
+              accessibilityRole="button"
+              accessibilityState={{ selected: districtOverlayVisible }}
+              accessibilityLabel={districtOverlayVisible ? 'Hide district overlay' : 'Show district overlay'}
+              onPress={() => {
+                setDistrictOverlayVisible(visible => !visible);
+                setSelectedDistrictId(null);
+                setDistrictCodexOpen(false);
+              }}
+              style={[
+                styles.districtOverlayToggle,
+                {
+                  borderColor: districtOverlayVisible ? factionAccent : theme.colors.border,
+                  backgroundColor: districtOverlayVisible ? blendColor(factionAccent, theme.colors.surface1, 0.14) : theme.colors.surface2
+                }
+              ]}
+            >
+              <Text style={[styles.districtOverlayToggleText, { color: districtOverlayVisible ? factionAccent : theme.colors.textMuted }]}>
+                {districtOverlayVisible ? 'HIDE' : 'SHOW'}
+              </Text>
+            </Pressable>
+          </View>
+          <View style={[styles.districtOverlayButtons, { opacity: districtOverlayVisible ? 1 : 0.55 }]}>
             {settlementDistrictOverlayFilters.map(filter => {
               const active = districtOverlayFilter === filter.id;
               const toneColor = semanticColor(theme, filter.tone);
@@ -1828,6 +1855,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   accessibilityState={{ selected: active }}
                   accessibilityLabel={filter.label + ' district overlay, ' + districtOverlayCounts[filter.id] + ' active'}
                   onPress={() => {
+                    setDistrictOverlayVisible(true);
                     setDistrictOverlayFilter(filter.id);
                     setSelectedDistrictId(null);
                     setDistrictCodexOpen(false);
@@ -1856,7 +1884,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       ) : null}
       <View style={styles.sceneLegend}>
         <Text style={[styles.sceneLegendText, { color: theme.colors.textMuted }]}>
-          {districtOverlayFilter === 'all' ? 'Tap buildings for actions · marked ground = build' : districtOverlayFilter.charAt(0).toUpperCase() + districtOverlayFilter.slice(1) + ' districts shown'}
+          {!districtOverlayVisible
+            ? 'Tap buildings for actions · district overlay hidden'
+            : districtOverlayFilter === 'all'
+              ? 'All active districts shown'
+              : districtOverlayFilter.charAt(0).toUpperCase() + districtOverlayFilter.slice(1) + ' districts shown'}
         </Text>
         <Text style={[styles.sceneLegendCount, { color: factionAccent }]}>{placedIds.length}/{buildings.length}</Text>
       </View>
@@ -2049,7 +2081,10 @@ const styles = StyleSheet.create({
   body: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 7 },
   districtOverlayControls: { borderWidth: 1, borderRadius: 13, paddingHorizontal: 7, paddingVertical: 6, gap: 5 },
+  districtOverlayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   districtOverlayLabel: { fontSize: 6.5, lineHeight: 8, fontWeight: '900', letterSpacing: 0.8 },
+  districtOverlayToggle: { minWidth: 52, minHeight: 28, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
+  districtOverlayToggleText: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.55 },
   districtOverlayButtons: { flexDirection: 'row', gap: 4 },
   districtOverlayButton: { flex: 1, minWidth: 0, borderWidth: 1, borderRadius: 9, paddingHorizontal: 4, paddingVertical: 4, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 3 },
   districtOverlayButtonText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900' },
