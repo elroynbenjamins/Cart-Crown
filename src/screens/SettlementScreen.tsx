@@ -1554,17 +1554,24 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   </View>
                   {upgradeMaterialsReady && !selected ? (
                     <View pointerEvents="none" style={[styles.upgradeReadyBadge, { backgroundColor: theme.colors.gold }]}>
-                      <Text style={styles.upgradeReadyText}>MATS</Text>
+                      <Text style={styles.upgradeReadyText}>UPGRADE</Text>
                     </View>
                   ) : null}
-                  {selected || landmark ? (
-                    <>
-                      <Text style={[styles.plotBuildingName, { color: roleColor, backgroundColor: theme.colors.surface1 }]} numberOfLines={1}>{building.name}</Text>
-                      <View style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
-                        <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
-                      </View>
-                    </>
-                  ) : null}
+                  <>
+                    <Text
+                      style={[
+                        styles.plotBuildingName,
+                        !selected && !landmark ? styles.plotBuildingNameCompact : undefined,
+                        { color: roleColor, backgroundColor: theme.colors.surface1 }
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {building.name}
+                    </Text>
+                    <View style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }]}>
+                      <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
+                    </View>
+                  </>
                 </>
               ) : unlocked ? (
                 <>
@@ -2158,17 +2165,18 @@ const styles = StyleSheet.create({
   landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
   plotGuideText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900' },
-  plotBuildingName: { fontSize: 9.5, lineHeight: 13, fontWeight: '900', textAlign: 'center', marginTop: 0, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 5, maxWidth: '96%' },
-  levelPill: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1, marginTop: 2 },
-  plotLevel: { fontSize: 8.5, lineHeight: 11 },
+  plotBuildingName: { fontSize: 9.5, lineHeight: 13, fontWeight: '900', textAlign: 'center', marginTop: 0, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 7, maxWidth: '96%', opacity: 0.98, elevation: 2 },
+  plotBuildingNameCompact: { fontSize: 8.3, lineHeight: 11, maxWidth: '92%' },
+  levelPill: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, marginTop: 2, opacity: 0.96 },
+  plotLevel: { fontSize: 8.5, lineHeight: 11, fontWeight: '900' },
   emptyPlus: { fontSize: 27, fontWeight: '600' },
   buildPlotArt: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
   emptyBadge: { position: 'absolute', bottom: 4, alignSelf: 'center', minHeight: 27, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.96, elevation: 2 },
   buildReadyBadge: { position: 'absolute', top: 3, alignSelf: 'center', zIndex: 8, minHeight: 24, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, elevation: 2 },
   buildReadyText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.5 },
   buildReadyDot: { position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: 999, zIndex: 8 },
-  upgradeReadyBadge: { position: 'absolute', top: 4, right: 5, zIndex: 9, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2 },
-  upgradeReadyText: { color: '#111318', fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.3 },
+  upgradeReadyBadge: { position: 'absolute', top: 3, right: 4, zIndex: 9, minHeight: 21, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 3, alignItems: 'center', justifyContent: 'center', elevation: 2 },
+  upgradeReadyText: { color: '#111318', fontSize: 6, lineHeight: 8, fontWeight: '900', letterSpacing: 0.25 },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
