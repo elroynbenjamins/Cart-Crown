@@ -644,11 +644,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     military: settlementAdjacencyBonuses.filter(bonus => settlementDistrictCategory(bonus) === 'military').length,
     command: settlementAdjacencyBonuses.filter(bonus => settlementDistrictCategory(bonus) === 'command').length
   };
-  const visibleDistrictConnections = !districtOverlayVisible
-    ? []
-    : districtOverlayFilter === 'all'
-      ? districtConnections
-      : districtConnections.filter(connection => connection.category === districtOverlayFilter);
+  const visibleDistrictConnections = districtOverlayFilter === 'all'
+    ? districtConnections
+    : districtConnections.filter(connection => connection.category === districtOverlayFilter);
   const districtFocusActive =
     Boolean(selectedBuildingId || selectedDistrictId) &&
     visibleDistrictConnections.some(connection => connection.focused);
@@ -1112,7 +1110,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <Text style={[styles.unlockCelebrationDetail, { color: theme.colors.text }]} numberOfLines={1}>{unlockCelebration.detail}</Text>
           </View>
         ) : null}
-        {visibleDistrictConnections.length ? (
+        {districtOverlayVisible && visibleDistrictConnections.length ? (
           <>
             <View pointerEvents="none" style={styles.districtZoneLayer}>
               {visibleDistrictConnections.map(connection => {
@@ -1201,7 +1199,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLinkGlow,
-                  { backgroundColor: connection.color, opacity: connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1 }
+                  { backgroundColor: connection.color, opacity: districtOverlayVisible ? (connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1) : 0.025 }
                 ]}
               />
               <View
@@ -1209,7 +1207,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLink,
-                  { backgroundColor: connection.color, opacity: connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56 }
+                  { backgroundColor: connection.color, opacity: districtOverlayVisible ? (connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56) : 0.18 }
                 ]}
               />
             </React.Fragment>
