@@ -72,6 +72,7 @@ export type CommanderVisualKind =
   | 'warcaller';
 
 export type StorySceneVisualKind =
+  | 'camp'
   | 'marcher_envoy'
   | 'refugee_camp'
   | 'broken_archives'

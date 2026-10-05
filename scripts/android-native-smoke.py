@@ -164,6 +164,9 @@ def first_battle(out: Path, name: str, result: dict) -> None:
         root = wait_for_copy('Show Continue')
         capture(out, name + '-results')
         tap_label(root, 'Show Continue')
+        wait_for_copy('Rewards secured')
+        time.sleep(.4)  # Let the dismissed coach's fade finish before visual review.
+        capture(out, name + '-results-unobscured')
         result['results'] = True
     finally:
         adb('shell', 'pkill', '-2', 'screenrecord', check=False)

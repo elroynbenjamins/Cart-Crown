@@ -2443,6 +2443,28 @@ export function FactionCampScene({
   faction: FactionId;
   size?: number;
 }) {
+  const [failedFactions, setFailedFactions] = React.useState<Partial<Record<FactionId, boolean>>>({});
+  const production = storySceneProductionAsset('camp', faction);
+  const productionSource = getProductionAssetSource(production.id);
+
+  if (productionSource && !failedFactions[faction]) {
+    return (
+      <Image
+        key={faction}
+        source={productionSource}
+        testID={'camp-panorama-' + faction}
+        resizeMode="cover"
+        resizeMethod="resize"
+        fadeDuration={0}
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        onError={() => setFailedFactions(previous => ({ ...previous, [faction]: true }))}
+        style={{ width: size, height: size * 0.48, borderRadius: 6 }}
+      />
+    );
+  }
+
   const accent =
     faction === 'elf'
       ? palette.elf

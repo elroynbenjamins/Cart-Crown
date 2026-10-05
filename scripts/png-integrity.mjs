@@ -20,9 +20,10 @@ function paeth(a, b, c) {
   return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
 }
 
-/** Validate/decode the repository's 8-bit, noninterlaced, alpha sprite contract. */
-export function validateSpritePng(bytes) {
-  requireValid(bytes.length >= 57 && bytes.length <= 200000, 'Invalid sprite file size');
+// Both image categories use the same complete decoder. Their dimensions,
+// permitted color types, byte limits and alpha requirements remain separate.
+function decodePng(bytes, contract) {
+  requireValid(bytes.length >= 57 && bytes.length <= contract.maxBytes, 'Invalid ' + contract.label.toLowerCase() + ' file size');
   requireValid(bytes.subarray(0, 8).equals(SIGNATURE), 'Invalid PNG signature');
   let cursor = 8, header = null, ended = false, idatEnded = false;
   const idats = [];
@@ -37,8 +38,8 @@ export function validateSpritePng(bytes) {
     if (type === 'IHDR') {
       requireValid(cursor === 8 && !header && length === 13, 'Invalid or repeated IHDR');
       header = { width: data.readUInt32BE(0), height: data.readUInt32BE(4), colorType: data[9] };
-      requireValid(header.width === 256 && header.height === 256, 'Sprite must be 256x256');
-      requireValid(data[8] === 8 && [4, 6].includes(header.colorType), 'Sprite must use 8-bit alpha color type 4 or 6');
+      requireValid(header.width === contract.width && header.height === contract.height, contract.label + ' must be ' + contract.width + 'x' + contract.height);
+      requireValid(data[8] === 8 && contract.colorTypes.includes(header.colorType), contract.colorMessage);
       requireValid(data[10] === 0 && data[11] === 0 && data[12] === 0, 'Unsupported PNG compression/filter/interlace');
     } else if (type === 'IDAT') {
       requireValid(header && !idatEnded, 'Misordered IDAT');
@@ -51,12 +52,13 @@ export function validateSpritePng(bytes) {
     } else {
       requireValid(header, 'IHDR must be first');
       requireValid(type === 'PLTE' || (type.charCodeAt(0) & 32), `Unknown critical chunk ${type}`);
+      requireValid(!contract.opaque || type !== 'tRNS', 'Scene must not include a transparency chunk');
       if (idats.length) idatEnded = true;
     }
     cursor = end + 4;
   }
   requireValid(ended && cursor === bytes.length, 'Missing IEND or trailing PNG data');
-  const channels = header.colorType === 6 ? 4 : 2;
+  const channels = header.colorType === 6 ? 4 : header.colorType === 2 ? 3 : 2;
   const stride = header.width * channels;
   const expected = (stride + 1) * header.height;
   const compressed = Buffer.concat(idats);
@@ -79,11 +81,40 @@ export function validateSpritePng(bytes) {
     }
   }
   let transparent = 0, visible = 0;
-  for (let i = channels - 1; i < pixels.length; i += channels) {
-    if (pixels[i] < 255) transparent++;
-    if (pixels[i] > 0) visible++;
+  if (header.colorType === 2) {
+    visible = header.width * header.height;
+  } else {
+    for (let i = channels - 1; i < pixels.length; i += channels) {
+      if (pixels[i] < 255) transparent++;
+      if (pixels[i] > 0) visible++;
+    }
   }
-  requireValid(transparent > 0, 'Alpha header is present but all pixels are opaque');
-  requireValid(visible > 0, 'Sprite contains no visible pixels');
   return { ...header, pixels, transparent, visible };
+}
+
+/** Validate/decode the unchanged 256x256, 200KB, noninterlaced alpha-sprite contract. */
+export function validateSpritePng(bytes) {
+  const decoded = decodePng(bytes, {
+    label: 'Sprite', width: 256, height: 256, maxBytes: 200000,
+    colorTypes: [4, 6], colorMessage: 'Sprite must use 8-bit alpha color type 4 or 6'
+  });
+  requireValid(decoded.transparent > 0, 'Alpha header is present but all pixels are opaque');
+  requireValid(decoded.visible > 0, 'Sprite contains no visible pixels');
+  return decoded;
+}
+
+/** Opaque scene images need an explicit reviewed size and file budget. */
+export function validateScenePng(bytes, contract) {
+  requireValid(
+    Number.isInteger(contract?.width) && contract.width > 0 && contract.width <= 2048 &&
+      Number.isInteger(contract?.height) && contract.height > 0 && contract.height <= 2048 &&
+      Number.isInteger(contract?.maxBytes) && contract.maxBytes >= 57 && contract.maxBytes <= 4000000,
+    'Scene requires explicit dimensions up to 2048x2048 and a file budget up to 4000000 bytes'
+  );
+  const decoded = decodePng(bytes, {
+    label: 'Scene', width: contract.width, height: contract.height, maxBytes: contract.maxBytes,
+    colorTypes: [2, 6], colorMessage: 'Scene must use 8-bit RGB or RGBA color type 2 or 6', opaque: true
+  });
+  requireValid(decoded.transparent === 0 && decoded.visible === decoded.width * decoded.height, 'Scene must be fully opaque');
+  return decoded;
 }

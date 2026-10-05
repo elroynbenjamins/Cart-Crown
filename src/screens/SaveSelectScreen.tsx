@@ -5,8 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View,
-  useWindowDimensions
+  View
 } from 'react-native';
 import type { SaveSlotId } from '../save/types';
 import { useSaveSystem } from '../save/SaveProvider';
@@ -27,10 +26,9 @@ function formatDate(value: string) {
 
 export function SaveSelectScreen() {
   const { theme } = useGameTheme();
-  const { width } = useWindowDimensions();
   const { ready, slots, selectSlot, createSlot, deleteSlot } = useSaveSystem();
   const [deleteArmed, setDeleteArmed] = useState<SaveSlotId | null>(null);
-  const sceneWidth = Math.min(Math.max(width - 68, 180), 300);
+  const [sceneWidth, setSceneWidth] = useState(0);
 
   if (!ready) {
     return (
@@ -50,10 +48,15 @@ export function SaveSelectScreen() {
             <Text style={[styles.brand, { color: theme.colors.gold }]}>CART & CROWN</Text>
             <View style={[styles.brandRule, { backgroundColor: theme.colors.gold }]} />
           </View>
-          <View style={[styles.introArt, { height: sceneWidth * 0.48 + 4 }]} pointerEvents="none" importantForAccessibility="no-hide-descendants">
-            <FactionCampScene faction="human" size={sceneWidth} />
+          <View
+            style={styles.introArt}
+            onLayout={({ nativeEvent }) => setSceneWidth(nativeEvent.layout.width)}
+            pointerEvents="none"
+            importantForAccessibility="no-hide-descendants"
+          >
+            {sceneWidth > 0 ? <FactionCampScene faction="human" size={sceneWidth} /> : null}
             <View style={[styles.introCrest, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.gold }]}>
-              <FactionCrest faction="human" size={42} />
+              <FactionCrest faction="human" size={32} />
             </View>
           </View>
           <Text style={[styles.title, { color: theme.colors.text }]}>Choose a Save</Text>
@@ -183,8 +186,8 @@ const styles = StyleSheet.create({
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'stretch' },
   brandRule: { flex: 1, height: 1, opacity: 0.45 },
   brand: { flexShrink: 1, fontSize: 17, fontWeight: '900', letterSpacing: 2, textAlign: 'center' },
-  introArt: { alignItems: 'center', justifyContent: 'flex-end', marginTop: 2, marginBottom: 15 },
-  introCrest: { position: 'absolute', bottom: -7, width: 52, height: 52, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  introArt: { width: '100%', maxWidth: 300, aspectRatio: 1 / 0.48, alignItems: 'center', justifyContent: 'flex-end', marginTop: 2, marginBottom: 15 },
+  introCrest: { position: 'absolute', right: 6, bottom: 6, width: 40, height: 40, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 28, lineHeight: 34, fontWeight: '900', textAlign: 'center' },
   subtitle: { fontSize: 12.5, lineHeight: 19, marginTop: 6, maxWidth: 350, textAlign: 'center' },
   slots: { gap: 12 },

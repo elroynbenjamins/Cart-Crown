@@ -19,6 +19,7 @@ export function FactionCampScreen({
   onOpenCommander: () => void;
 }) {
   const { theme } = useGameTheme();
+  const [sceneWidth, setSceneWidth] = React.useState(0);
   const {
     activeFaction,
     resources,
@@ -69,8 +70,8 @@ export function FactionCampScreen({
           </View>
           <FactionCrest faction={activeFaction} size={54} />
         </View>
-        <View style={styles.sceneWrap}>
-          <FactionCampScene faction={activeFaction} size={230} />
+        <View style={styles.sceneWrap} onLayout={({ nativeEvent }) => setSceneWidth(nativeEvent.layout.width)}>
+          {sceneWidth > 0 ? <FactionCampScene faction={activeFaction} size={sceneWidth} /> : null}
         </View>
       </GameCard>
 
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 32, gap: 14 },
   heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   heroCopy: { flex: 1 },
-  sceneWrap: { alignItems: 'center', marginTop: 10 },
+  sceneWrap: { alignSelf: 'center', width: '100%', maxWidth: 520, aspectRatio: 1 / 0.48, alignItems: 'center', marginTop: 10 },
   eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
   title: { fontSize: 28, fontWeight: '900', marginTop: 4 },
   body: { fontSize: 12.5, lineHeight: 19, marginTop: 6 },
