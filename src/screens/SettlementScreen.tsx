@@ -1859,11 +1859,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             </View>
           </View>
         ) : null}
-        {!worldRebuildActive && ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
+        {['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
           <>
-            <View pointerEvents="none" style={[styles.wallTop, { borderColor: factionAccent, borderTopWidth: fortificationWeight }]} />
-            <View pointerEvents="none" style={[styles.wallBottom, { borderColor: factionAccent, borderBottomWidth: fortificationWeight }]} />
-            <Text pointerEvents="none" style={[styles.gateLabel, { color: factionAccent }]}>
+            <View pointerEvents="none" style={[styles.wallTop, { borderColor: factionAccent, borderTopWidth: fortificationWeight, opacity: worldRebuildActive ? 0 : 0.75 }]} />
+            <View pointerEvents="none" style={[styles.wallBottom, { borderColor: factionAccent, borderBottomWidth: fortificationWeight, opacity: worldRebuildActive ? 0 : 0.75 }]} />
+            <Text pointerEvents="none" style={[styles.gateLabel, { color: factionAccent, opacity: worldRebuildActive ? 0 : 1 }]}>
               {currentWagonStage.id === 'grand' ? 'GRAND GATE' : currentWagonStage.id === 'capital' ? 'CAPITAL GATE' : currentWagonStage.id === 'stronghold' ? 'STRONGHOLD GATE' : currentWagonStage.id === 'town' ? 'TOWN GATE' : 'FORT GATE'}
             </Text>
           </>
