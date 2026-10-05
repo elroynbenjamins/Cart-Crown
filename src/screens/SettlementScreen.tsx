@@ -440,7 +440,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       {availableBuildings.length && !selectedBuildingId ? (
         blueprintPlannerOpen ? (
           <View
-            testID="settlement-blueprint-planner"
+            testID="blueprint-planner"
             style={[styles.blueprintPlanner, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
           >
             <View style={styles.blueprintPlannerHeader}>
@@ -451,7 +451,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 </Text>
               </View>
               <Pressable
-                testID="settlement-close-blueprint-planner"
+                testID="blueprint-planner-close"
                 accessibilityRole="button"
                 accessibilityLabel="Close blueprint planner"
                 onPress={() => {
@@ -473,7 +473,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 return (
                   <Pressable
                     key={building.id}
-                    testID={'settlement-plan-blueprint-' + building.id}
+                    testID={'blueprint-planner-select-' + building.id}
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}
                     accessibilityLabel={'Plan ' + building.name + ', best placement ' + bestQuality.label + ', ' + bestQuality.summary}
@@ -501,7 +501,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </View>
         ) : (
           <Pressable
-            testID="settlement-open-blueprint-planner"
+            testID="blueprint-planner-open"
             accessibilityRole="button"
             accessibilityLabel="Plan a building blueprint across all settlement plots"
             onPress={() => {
