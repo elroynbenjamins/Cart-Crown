@@ -1316,7 +1316,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
           const buildingSize = worldRebuildActive
-            ? landmark ? 138 : Math.round(88 * depthScale)
+            ? landmark ? 138 : Math.round(74 * depthScale)
             : landmark ? 104 : Math.round(70 * depthScale);
           const ambienceSize = worldRebuildActive
             ? landmark ? 118 : Math.round(78 * depthScale)
@@ -1586,7 +1586,14 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       size={ambienceSize}
                     />
                   </View>
-                  <View style={[styles.buildingPad, landmark ? styles.landmarkBuildingPad : undefined, selected ? styles.selectedBuildingPad : undefined]}>
+                  <View
+                    style={[
+                      styles.buildingPad,
+                      landmark ? styles.landmarkBuildingPad : undefined,
+                      worldRebuildActive ? landmark ? styles.worldLandmarkBuildingPad : styles.worldBuildingPad : undefined,
+                      selected ? styles.selectedBuildingPad : undefined
+                    ]}
+                  >
                     <View
                       pointerEvents="none"
                       style={[
@@ -2225,6 +2232,8 @@ const styles = StyleSheet.create({
   buildingPad: { width: 82, height: 74, alignItems: 'center', justifyContent: 'flex-end', elevation: 4 },
   selectedBuildingPad: { transform: [{ scale: 1.075 }, { translateY: -2 }] },
   landmarkBuildingPad: { width: 108, height: 96, transform: [{ translateY: -8 }], elevation: 6 },
+  worldBuildingPad: { transform: [{ scale: 1.12 }], elevation: 5 },
+  worldLandmarkBuildingPad: { width: 132, height: 116, transform: [{ translateY: -12 }], elevation: 8 },
   buildingFootprint: { position: 'absolute', left: 5, right: 5, bottom: 0, height: 20, borderRadius: 999, opacity: 0.18, transform: [{ scaleX: 1.08 }] },
   landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
