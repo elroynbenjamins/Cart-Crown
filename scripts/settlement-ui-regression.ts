@@ -248,6 +248,11 @@ function testRecipesAndInteractions() {
     check(ambience.length === placedBuildingCount, 'Placed buildings must carry ambient life and props.');
     check(ambience.every(node => node.props.faction === faction), 'Building ambience must remain faction-scoped.');
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
+    check(ambience.every(node => {
+      const buildingId = node.props.buildingId;
+      const expected = f.game.settlementAdjacencyBonuses.filter((bonus: any) => bonus.buildingA === buildingId || bonus.buildingB === buildingId).length;
+      return node.props.activeDistricts === expected;
+    }), 'Building ambience must receive the live active-district count rather than decorative guessed activity.');
     check(nodes(tree, 'SettlementBuildPlotSprite').length >= 1, faction + ' empty plots must render as production build sites.');
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
     check(nodes(tree, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'Blueprint planner must be directly available from the settlement overview.');
@@ -290,6 +295,10 @@ function testRecipesAndInteractions() {
     check(f.game.resources.gold === gold - (forge.constructionCost.gold ?? 0), 'Construction cost must not change.');
     check(state() === 'active', 'The real adjacency analysis must activate the built district.');
     tree = f.h.render();
+    check(nodes(tree, 'View').some(node => node.props.testID === 'building-district-aura-' + forge.id), 'An active district must add a subtle in-world activity aura to its new building.');
+    check(nodes(tree, 'Text').some(node => node.props.testID === 'building-district-count-' + forge.id && text(node) === '1'), 'The compact level status must expose one active district without adding another large badge.');
+    const forgeAmbience = nodes(tree, 'SettlementBuildingAmbience').find(node => node.props.buildingId === forge.id);
+    check(forgeAmbience?.props.activeDistricts === 1, 'The newly linked building ambience must become busier from the real active district.');
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Active adjacent districts must draw an in-world connection.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'Committed construction must clear the temporary district preview.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
@@ -337,6 +346,8 @@ function testRecipesAndInteractions() {
     check(JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels }) === beforeMove, 'Relocation must stay free and preserve levels.');
     check(state() === 'separated', 'A diagonal pair must stay inactive and read Not adjacent.');
     check(nodes(tree, 'DistrictEffects').filter(node => node.props.bonus.id === district.id).every(node => node.props.state === 'inactive'), 'Separated districts must not present active or predicted bonuses.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'building-district-aura-' + forge.id), 'Breaking the district must remove its activity aura immediately.');
+    check(!nodes(tree, 'Text').some(node => node.props.testID === 'building-district-count-' + forge.id), 'Breaking the district must remove the compact active-district count.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Separated districts must remove their in-world connection.');
     check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'Confirmed relocation must clear destination ratings.');
 
@@ -736,6 +747,12 @@ function testTutorialAndCosts() {
   const max = harness('src/ui/SettlementUI.tsx', 'BuildingLevelPreview', {}, { building: humanForge, level: humanForge.maxLevel, wallet }).render();
   check(nodes(max, 'SemanticChip').some(node => node.props.label === 'Maximum level'), 'Maximum level must be distinguished from missing upgrade metadata.');
 }
+
+const gameArtSource = readFileSync(resolve('src/ui/gameArt.tsx'), 'utf8');
+check(gameArtSource.includes('activeDistricts = 0'), 'Settlement ambience must support live district intensity without changing game state.');
+check(gameArtSource.includes('settlement-district-worker'), 'District-connected buildings must gain an additional ambient worker at higher activity.');
+check(gameArtSource.includes('settlement-district-activity-glow'), 'District-connected buildings must expose a restrained ambient glow.');
+check(gameArtSource.includes('AccessibilityInfo.isReduceMotionEnabled'), 'Settlement ambience motion must continue respecting reduced-motion accessibility.');
 
 const settlementScreenSource = readFileSync(resolve('src/screens/SettlementScreen.tsx'), 'utf8');
 check(settlementScreenSource.includes('settlementUnlockSnapshots'), 'Settlement unlock celebration must compare against an in-session baseline.');

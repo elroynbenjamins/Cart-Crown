@@ -2755,17 +2755,30 @@ const settlementAmbientSecondaryByRole: Record<BuildingRole, keyof typeof settle
   SCOUT: 'porter'
 };
 
+const settlementAmbientTertiaryByRole: Record<BuildingRole, keyof typeof settlementPeopleHumanCells> = {
+  KINGDOM: 'woman',
+  ARMY: 'guard',
+  EQUIPMENT: 'porter',
+  LOGISTICS: 'merchant',
+  SUPPLY: 'woman',
+  COMMAND: 'knight',
+  MOUNT: 'porter',
+  SCOUT: 'worker'
+};
+
 export function SettlementBuildingAmbience({
   buildingId,
   role,
   faction = 'human',
   level = 1,
+  activeDistricts = 0,
   size = 84
 }: {
   buildingId: string;
   role: BuildingRole;
   faction?: FactionId;
   level?: number;
+  activeDistricts?: number;
   size?: number;
 }) {
   const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
@@ -2777,16 +2790,21 @@ export function SettlementBuildingAmbience({
   const kind = getBuildingVisualKind(buildingId);
   const primary = settlementAmbientPrimaryByRole[role];
   const secondary = settlementAmbientSecondaryByRole[role];
+  const tertiary = settlementAmbientTertiaryByRole[role];
   const smoky = kind === 'forge' || buildingId.includes('smokehouse');
   const showSecond = level >= 2 || role === 'KINGDOM' || role === 'MOUNT';
   const established = level >= 2;
   const veteran = level >= 4;
+  const districtActive = activeDistricts > 0;
+  const bustling = activeDistricts > 1 || level >= 3;
   const motion = useSettlementAmbientMotion(2200 + Math.max(0, level - 1) * 120);
   const idleLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.5] });
   const bannerSway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1.2deg', '1.2deg'] });
   const smokeLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -5] });
   const smokeFade = motion.interpolate({ inputRange: [0, 1], outputRange: [0.34, 0.14] });
   const glowPulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.42, 0.72] });
+  const districtDrift = motion.interpolate({ inputRange: [0, 1], outputRange: [-1.6, 1.6] });
+  const districtScale = motion.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1.06] });
 
   return (
     <View style={{ width: size, height: size, position: 'relative' }}>
@@ -2869,6 +2887,42 @@ export function SettlementBuildingAmbience({
             tintColor={tintColor}
           />
         </Animated.View>
+      ) : null}
+      {peopleSource && bustling ? (
+        <Animated.View
+          testID="settlement-district-worker"
+          style={{
+            position: 'absolute',
+            left: size * 0.38,
+            bottom: -size * 0.015,
+            opacity: districtActive ? 0.92 : 0.7,
+            transform: [{ translateX: districtDrift }, { translateY: idleLift }]
+          }}
+        >
+          <SettlementDetailAtlasSprite
+            assetId="ui.settlement_people_human_atlas"
+            cell={settlementPeopleHumanCells[tertiary]}
+            size={size * 0.22}
+            opacity={0.9}
+            tintColor={tintColor}
+          />
+        </Animated.View>
+      ) : null}
+      {districtActive ? (
+        <Animated.View
+          testID="settlement-district-activity-glow"
+          style={{
+            position: 'absolute',
+            left: size * 0.19,
+            right: size * 0.19,
+            bottom: size * 0.015,
+            height: Math.max(2, size * 0.045),
+            borderRadius: size,
+            backgroundColor: glow,
+            opacity: glowPulse,
+            transform: [{ scaleX: districtScale }]
+          }}
+        />
       ) : null}
       {smoky ? (
         <>
