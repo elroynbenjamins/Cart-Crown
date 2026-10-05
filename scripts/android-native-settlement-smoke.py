@@ -101,12 +101,13 @@ def launch():
     time.sleep(1)
 
 def scenario(out:Path,name:str,size:str,density:int,font_scale:float):
+    # Resize only while the game owns the foreground. Resizing Pixel Launcher directly can
+    # trigger a launcher ANR on cold Android emulators and would invalidate window evidence.
     w,h=map(int,size.split('x'))
     adb('shell','wm','size',size)
     adb('shell','wm','density',str(density))
     adb('shell','settings','put','system','font_scale',str(font_scale),check=False)
-    adb('shell','am','force-stop',PACKAGE)
-    launch()
+    time.sleep(.8)
     root=wait('CART & CROWN')
     capture(out,name+'-overview')
 
@@ -169,7 +170,19 @@ def main():
     try:
         assert adb('shell','getprop','ro.kernel.qemu')=='1' or adb('shell','getprop','ro.boot.qemu')=='1'
         adb('install','-r',str(a.apk.resolve()),timeout=120); adb('install','-r',str(a.probe.resolve()),timeout=120)
-        for spec in [('compact-360x640','720x1280',320,1.0),('regular-large-text','1080x2400',420,1.35)]:
+        # Bring the game to foreground at the emulator's default configuration first.
+        launch(); wait('CART & CROWN')
+        specs=[('compact-360x640','720x1280',320,1.0),('regular-large-text','1080x2400',420,1.35)]
+        for index,spec in enumerate(specs):
+            if index:
+                # Restore while the game is foregrounded, then reinstall to reset the in-memory
+                # deterministic fixture without touching production persistence code.
+                adb('shell','wm','size','reset',check=False)
+                adb('shell','wm','density','reset',check=False)
+                adb('shell','settings','delete','system','font_scale',check=False)
+                time.sleep(.8)
+                adb('install','-r',str(a.apk.resolve()),timeout=120)
+                launch(); wait('CART & CROWN')
             report['scenarios'].append(scenario(a.out,*spec))
         report['status']='passed'
     except Exception as e:
