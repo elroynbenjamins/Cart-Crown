@@ -74,7 +74,7 @@ export function BuildingLevelPreview({ building, level, wallet }: {
           <Text style={[styles.requirementLabel, { color: theme.colors.textMuted }]}>Progression requirement</Text>
           <SemanticText tone="warning" style={styles.body}>{next.requirement}</SemanticText>
           <BuildingCosts cost={next.cost} wallet={wallet} title="Next upgrade cost" />
-          <Text style={[styles.note, { color: theme.colors.textMuted }]}>Preview only. Review the upgrade in Kingdom; resources alone do not satisfy progression requirements.</Text>
+          <Text style={[styles.note, { color: theme.colors.textMuted }]}>Preview only. Resource availability does not satisfy progression requirements by itself.</Text>
         </View>
       ) : (
         <SemanticChip label={level >= building.maxLevel ? 'Maximum level' : 'No direct upgrade listed'} tone="neutral" compact />

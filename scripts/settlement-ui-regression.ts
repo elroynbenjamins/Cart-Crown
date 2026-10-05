@@ -34,6 +34,11 @@ function press(tree: any, label: string) {
   assert.ok(button, 'Missing action: ' + label);
   if (!button.props.disabled) button.props.onPress?.();
 }
+function pressTestId(tree: any, id: string) {
+  const button = nodes(tree, 'Pressable').find(node => node.props.testID === id);
+  assert.ok(button, 'Missing contextual action: ' + id);
+  if (!button.props.disabled) button.props.onPress?.({ stopPropagation: () => undefined });
+}
 function plot(tree: any, id: string) {
   const node = nodes(tree, 'Pressable').find(candidate => candidate.props.testID === 'settlement-' + id);
   assert.ok(node, 'Missing plot ' + id);
@@ -136,6 +141,17 @@ function fixture(faction: FactionId, focus?: any) {
       const previous = Object.keys(game.buildingPlacements).find(key => game.buildingPlacements[key] === id);
       if (!previous) return false;
       game.buildingPlacements = { ...game.buildingPlacements, [previous]: null, [target]: id };
+      refresh(); return true;
+    },
+    upgradeBuilding: (id: string) => {
+      calls.push(['upgrade', id]);
+      if (!success) return false;
+      const currentLevel = game.buildingLevels[id] ?? 0;
+      const next = kingdom.getBuildingLevelDefinition(id, currentLevel + 1);
+      if (!next || !kingdom.canPayBuildingCost(game.resources, next.cost)) return false;
+      game.resources = { ...game.resources };
+      for (const [resource, amount] of Object.entries(next.cost)) game.resources[resource] -= amount ?? 0;
+      game.buildingLevels = { ...game.buildingLevels, [id]: currentLevel + 1 };
       refresh(); return true;
     }
   };
@@ -259,11 +275,21 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Active adjacent districts must draw an in-world connection.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'Committed construction must clear the temporary district preview.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
-    check(nodes(tree, 'BuildingLevelPreview')[0]?.props.building.id === forge.id, 'Selected structure must expose its own upgrade preview.');
+    check(nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id), 'Selecting a structure must expose the anchored contextual action strip.');
+    check(!nodes(tree, 'BuildingLevelPreview').length, 'Selecting a structure alone must not push a large inspector below the map.');
+    check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'Selecting a structure alone must not enter relocation mode.');
+
+    pressTestId(tree, 'building-action-inspect-' + forge.id);
+    tree = f.h.render();
+    check(nodes(tree, 'BuildingLevelPreview')[0]?.props.building.id === forge.id, 'Inspect must expose the selected structure upgrade preview.');
+    check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'Inspect must remain read-only and must not expose relocation targets.');
+
+    pressTestId(tree, 'building-action-move-' + forge.id);
+    tree = f.h.render();
     const beforeMove = JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels });
     const callsBeforeDestinationPreview = f.calls.length;
     const northRelocation = nodes(tree, 'View').find(node => node.props.testID === 'relocation-plan-plot_n');
-    check(Boolean(northRelocation), 'Relocation mode must rate every empty destination before the player chooses one.');
+    check(Boolean(northRelocation), 'Explicit Move must rate every empty destination before the player chooses one.');
     check(
       northRelocation?.props.accessibilityLabel === 'Relocation Loss -1, gain 0, lose 1, net -1',
       'A destination that breaks Arsenal District must expose the exact district loss.'
@@ -295,6 +321,17 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'DistrictEffects').filter(node => node.props.bonus.id === district.id).every(node => node.props.state === 'inactive'), 'Separated districts must not present active or predicted bonuses.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Separated districts must remove their in-world connection.');
     check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'Confirmed relocation must clear destination ratings.');
+
+    const levelBeforeContextUpgrade = f.game.buildingLevels[forge.id];
+    const callsBeforeContextUpgrade = f.calls.length;
+    const contextUpgrade = nodes(tree, 'Pressable').find(node => node.props.testID === 'building-action-upgrade-' + forge.id);
+    check(Boolean(contextUpgrade) && contextUpgrade?.props.disabled === false, 'A selected building with ready materials must expose an enabled scene-level Upgrade action.');
+    pressTestId(tree, 'building-action-upgrade-' + forge.id);
+    tree = f.h.render();
+    check(f.calls.length === callsBeforeContextUpgrade + 1 && f.calls.at(-1)?.[0] === 'upgrade' && f.calls.at(-1)?.[1] === forge.id, 'Scene-level Upgrade must reuse the existing building upgrade transaction.');
+    check(f.game.buildingLevels[forge.id] === levelBeforeContextUpgrade + 1, 'Successful contextual Upgrade must advance exactly one building level.');
+    check(text(tree).includes(forge.name + ' upgraded to Level ' + (levelBeforeContextUpgrade + 1)), 'Successful contextual Upgrade needs immediate visible feedback.');
+
     f.game.buildingPlacements = { ...f.game.buildingPlacements, plot_n: null }; f.refresh();
     check(state() === 'unplaced', 'An unplaced built structure must not be called unbuilt.');
     press(tree, 'Return to Kingdom'); check(f.counts().exited === 1, 'Return navigation must preserve its callback.');
@@ -492,8 +529,12 @@ function testDenseDistrictZoneReadability() {
   press(tree, 'Review ' + forge.name);
   tree = f.h.render();
   check(f.calls.length === callsBeforeDistrictFocus, 'Review placement from a district must remain preview-only.');
-  check(nodes(tree, 'BuildingLevelPreview')[0]?.props.building.id === forge.id, 'District review must jump directly into the chosen member placement review.');
-  check(nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'District review must expose relocation destination ratings.');
+  check(nodes(tree, 'BuildingLevelPreview')[0]?.props.building.id === forge.id, 'District review must jump directly into the chosen member inspection.');
+  check(nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id), 'District review must keep the selected building action strip visible in-scene.');
+  check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'District review must not enter relocation mode until Move is chosen.');
+  pressTestId(tree, 'building-action-move-' + forge.id);
+  tree = f.h.render();
+  check(nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'Choosing Move from a district-reviewed building must expose relocation destination ratings.');
   press(tree, 'Cancel move');
   tree = f.h.render();
 
