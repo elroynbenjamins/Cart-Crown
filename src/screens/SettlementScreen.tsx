@@ -599,6 +599,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
+  const worldRebuildActive = activeFaction === 'human' && currentWagonStage.id === 'fort';
   const districtConnections = settlementAdjacencyBonuses.flatMap(bonus => {
     const first = settlementPlotCenters[bonus.plotA];
     const second = settlementPlotCenters[bonus.plotB];
@@ -1301,7 +1302,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const ambienceSize = landmark ? 126 : Math.round(94 * depthScale);
           const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
-          const visualPosition = settlementPlotPositions[plot.id] ?? {
+          const visualPosition = (worldRebuildActive ? humanFortWorldPositions[plot.id] : settlementPlotPositions[plot.id]) ?? {
             left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
             top: (String(7 + plot.row * 31) + '%') as ViewStyle['top']
           };
