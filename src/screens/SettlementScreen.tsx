@@ -113,6 +113,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   } = useGame();
   const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
+  const [relocationTargetPlotId, setRelocationTargetPlotId] = useState<string | null>(null);
   const [previewBuildingId, setPreviewBuildingId] = useState<string | null>(null);
   const [blueprintPlannerOpen, setBlueprintPlannerOpen] = useState(false);
   const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
@@ -237,6 +238,62 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     districtOpportunities.map(opportunity => [opportunity.plotId, opportunity] as const)
   );
   const showDistrictOpportunities = !selectedPlotId && !selectedBuildingId && !unlockCelebration && !blueprintPlannerOpen;
+  const selectedBuildingCurrentBonuses = selectedBuilding
+    ? settlementAdjacencyBonuses.filter(
+        bonus => bonus.buildingA === selectedBuilding.id || bonus.buildingB === selectedBuilding.id
+      )
+    : [];
+  const selectedBuildingCurrentBonusIds = new Set(selectedBuildingCurrentBonuses.map(bonus => bonus.id));
+  const relocationPlanRatings = selectedBuilding
+    ? settlementPlots.flatMap(plot => {
+        if (!isSettlementPlotUnlocked(plot, currentWagonStage.id) || buildingPlacements[plot.id]) return [];
+
+        const placementsWithoutSelected = Object.fromEntries(
+          Object.entries(buildingPlacements).map(([plotId, buildingId]) => [
+            plotId,
+            buildingId === selectedBuilding.id ? null : buildingId
+          ])
+        ) as Record<string, string | null>;
+        const hypotheticalPlacements = {
+          ...placementsWithoutSelected,
+          [plot.id]: selectedBuilding.id
+        };
+        const futureBonuses = analyzeSettlementAdjacency(
+          hypotheticalPlacements,
+          buildingLevels,
+          activeFaction
+        ).bonuses.filter(
+          bonus => bonus.buildingA === selectedBuilding.id || bonus.buildingB === selectedBuilding.id
+        );
+        const futureIds = new Set(futureBonuses.map(bonus => bonus.id));
+        const gainedBonuses = futureBonuses.filter(bonus => !selectedBuildingCurrentBonusIds.has(bonus.id));
+        const lostBonuses = selectedBuildingCurrentBonuses.filter(bonus => !futureIds.has(bonus.id));
+        const net = gainedBonuses.length - lostBonuses.length;
+        const tone = net > 0 ? 'positive' as const : net < 0 ? 'warning' as const : 'neutral' as const;
+        const label = net > 0 ? 'Gain +' + net : net < 0 ? 'Loss ' + net : gainedBonuses.length ? 'Trade' : 'Same';
+
+        return [{
+          plotId: plot.id,
+          gainedBonuses,
+          lostBonuses,
+          futureBonuses,
+          gain: gainedBonuses.length,
+          loss: lostBonuses.length,
+          net,
+          tone,
+          label
+        }];
+      })
+    : [];
+  const relocationPlanByPlot = new Map(
+    relocationPlanRatings.map(rating => [rating.plotId, rating] as const)
+  );
+  const relocationTarget = relocationTargetPlotId
+    ? relocationPlanByPlot.get(relocationTargetPlotId) ?? null
+    : null;
+  const bestRelocationNet = relocationPlanRatings.length
+    ? Math.max(...relocationPlanRatings.map(rating => rating.net))
+    : 0;
 
   const stageLabel = activeFaction === 'elf'
     ? currentWagonStage.id === 'capital' ? 'STARROOT CONCLAVE'
@@ -378,6 +435,50 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     const length = Math.sqrt(dx * dx + dy * dy);
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
+    return [{
+      id: bonus.id,
+      style: {
+        left: (x1 + x2) / 2 - length / 2,
+        top: (y1 + y2) / 2 - 1,
+        width: length,
+        transform: [{ rotate: angle + 'deg' }]
+      } as ViewStyle
+    }];
+  });
+  const relocationGainConnections = (relocationTarget?.gainedBonuses ?? []).flatMap(bonus => {
+    const first = settlementPlotCenters[bonus.plotA];
+    const second = settlementPlotCenters[bonus.plotB];
+    if (!first || !second) return [];
+    const x1 = first.x * mapWidth;
+    const y1 = first.y * mapHeight;
+    const x2 = second.x * mapWidth;
+    const y2 = second.y * mapHeight;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    return [{
+      id: bonus.id,
+      style: {
+        left: (x1 + x2) / 2 - length / 2,
+        top: (y1 + y2) / 2 - 1,
+        width: length,
+        transform: [{ rotate: angle + 'deg' }]
+      } as ViewStyle
+    }];
+  });
+  const relocationLossConnections = (relocationTarget?.lostBonuses ?? []).flatMap(bonus => {
+    const first = settlementPlotCenters[bonus.plotA];
+    const second = settlementPlotCenters[bonus.plotB];
+    if (!first || !second) return [];
+    const x1 = first.x * mapWidth;
+    const y1 = first.y * mapHeight;
+    const x2 = second.x * mapWidth;
+    const y2 = second.y * mapHeight;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
     return [{
       id: bonus.id,
       style: {
@@ -576,6 +677,32 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             ))}
           </View>
         ) : null}
+        {relocationGainConnections.length || relocationLossConnections.length ? (
+          <View pointerEvents="none" style={styles.relocationPreviewLayer}>
+            {relocationGainConnections.map(connection => (
+              <View
+                key={'gain-' + connection.id}
+                testID={'relocation-gain-link-' + connection.id}
+                style={[
+                  connection.style,
+                  styles.relocationPreviewLink,
+                  { borderTopColor: semanticColor(theme, 'positive') }
+                ]}
+              />
+            ))}
+            {relocationLossConnections.map(connection => (
+              <View
+                key={'loss-' + connection.id}
+                testID={'relocation-loss-link-' + connection.id}
+                style={[
+                  connection.style,
+                  styles.relocationPreviewLink,
+                  { borderTopColor: semanticColor(theme, 'warning') }
+                ]}
+              />
+            ))}
+          </View>
+        ) : null}
         {settlementPlots.map(plot => {
           const unlocked = isSettlementPlotUnlocked(plot, currentWagonStage.id);
           const buildingId = buildingPlacements[plot.id] ?? null;
@@ -586,7 +713,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const tutorialPlotFocused = guidedPlotId === plot.id;
           const roleTone = building ? buildingRolePresentation[building.role]?.tone ?? 'neutral' : 'neutral';
           const roleColor = semanticColor(theme, roleTone);
-          const selected = plotSelected || buildingSelected;
+          const relocationTargetSelected = relocationTargetPlotId === plot.id;
+          const selected = plotSelected || buildingSelected || relocationTargetSelected;
           const landmark = plot.id === 'plot_center';
           const celebrationFocused =
             unlockCelebration?.plotId === plot.id ||
@@ -597,13 +725,15 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const districtOpportunityVisible = Boolean(districtOpportunity) && showDistrictOpportunities;
           const blueprintPlanRating = blueprintPlanRatingByPlot.get(plot.id) ?? null;
           const blueprintPlanVisible = Boolean(blueprintPlanRating) && blueprintPlannerOpen && Boolean(planningBuilding) && !plotSelected;
+          const relocationPlan = relocationPlanByPlot.get(plot.id) ?? null;
+          const relocationPlanVisible = Boolean(relocationPlan) && Boolean(selectedBuildingId) && !building;
           const buildReady = unlocked && !building && !selectedBuildingId && !plotSelected && !blueprintPlannerOpen && constructionReadyCount > 0;
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
           const buildingSize = landmark ? 88 : Math.round(62 * depthScale);
           const ambienceSize = landmark ? 110 : Math.round(82 * depthScale);
-          const plotZIndex = tutorialPlotFocused || selected ? 30 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
+          const plotZIndex = tutorialPlotFocused || selected ? 30 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
           const visualPosition = settlementPlotPositions[plot.id] ?? {
             left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
@@ -617,14 +747,17 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               accessibilityState={{ selected, disabled: !unlocked }}
               accessibilityLabel={building
                 ? building.name + ', ' + (buildingRolePresentation[building.role]?.label ?? building.role) + ', Level ' + level + ', ' + districtCount + ' active districts'
-                : plot.id.replace('plot_', 'Plot ') + (unlocked ? ', empty' : ', locked until ' + plot.unlockStage)}
-              accessibilityHint={!unlocked ? undefined : building ? 'Inspect levels or select this building to relocate.' : selectedBuildingId ? 'Move the selected building here for free.' : 'Show construction choices. Selecting a plot does not spend resources.'}
+                : relocationPlan
+                  ? plot.id.replace('plot_', 'Plot ') + ', relocation preview, gain ' + relocationPlan.gain + ', lose ' + relocationPlan.loss + ', net ' + (relocationPlan.net >= 0 ? '+' : '') + relocationPlan.net
+                  : plot.id.replace('plot_', 'Plot ') + (unlocked ? ', empty' : ', locked until ' + plot.unlockStage)}
+              accessibilityHint={!unlocked ? undefined : building ? 'Inspect levels or select this building to relocate.' : selectedBuildingId ? 'Preview this free relocation destination before confirming.' : 'Show construction choices. Selecting a plot does not spend resources.'}
               disabled={!unlocked}
               onPress={() => {
                 setMessage(null);
                 setUnlockCelebration(null);
                 if (building) {
                   setSelectedBuildingId(buildingSelected ? null : building.id);
+                  setRelocationTargetPlotId(null);
                   setSelectedPlotId(null);
                   setPreviewBuildingId(null);
                   setBlueprintPlannerOpen(false);
@@ -632,10 +765,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   return;
                 }
                 if (selectedBuildingId) {
-                  const ok = moveBuilding(selectedBuildingId, plot.id);
-                  setMessage(ok ? 'Building relocated. District bonuses recalculated.' : 'That building cannot be moved to this plot.');
-                  if (ok) setSelectedBuildingId(null);
+                  setRelocationTargetPlotId(relocationTargetSelected ? null : plot.id);
                   setPreviewBuildingId(null);
+                  setSelectedPlotId(null);
                   return;
                 }
                 if (plotSelected) {
@@ -662,17 +794,19 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     ? theme.colors.gold
                     : building
                       ? 'transparent'
-                      : blueprintPlanVisible && blueprintPlanRating
-                        ? semanticColor(theme, blueprintPlanRating.qualityTone)
-                        : districtOpportunityVisible
-                          ? semanticColor(theme, 'positive')
-                          : recommendedBuildPlot
-                            ? theme.colors.gold
-                            : buildReady
-                              ? factionAccent
-                              : theme.colors.border,
-                  borderWidth: tutorialPlotFocused || selected ? 2.5 : building ? 0 : blueprintPlanVisible ? 2 : districtOpportunityVisible ? 2 : recommendedBuildPlot ? 2.25 : 1.5,
-                  borderStyle: building || selected || tutorialPlotFocused || buildReady || blueprintPlanVisible ? 'solid' : 'dashed',
+                      : relocationPlanVisible && relocationPlan
+                        ? semanticColor(theme, relocationPlan.tone)
+                        : blueprintPlanVisible && blueprintPlanRating
+                          ? semanticColor(theme, blueprintPlanRating.qualityTone)
+                          : districtOpportunityVisible
+                            ? semanticColor(theme, 'positive')
+                            : recommendedBuildPlot
+                              ? theme.colors.gold
+                              : buildReady
+                                ? factionAccent
+                                : theme.colors.border,
+                  borderWidth: tutorialPlotFocused || selected ? 2.5 : building ? 0 : relocationPlanVisible ? 2 : blueprintPlanVisible ? 2 : districtOpportunityVisible ? 2 : recommendedBuildPlot ? 2.25 : 1.5,
+                  borderStyle: building || selected || tutorialPlotFocused || buildReady || blueprintPlanVisible || relocationPlanVisible ? 'solid' : 'dashed',
                   zIndex: plotZIndex,
                   transform: tutorialPlotFocused ? [{ scale: 1.04 }] : selected ? [{ scale: 1.025 }] : undefined
                 },
@@ -700,6 +834,28 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   testID={'district-preview-partner-' + plot.id}
                   style={[styles.districtPreviewPartnerRing, landmark ? styles.landmarkDistrictPreviewPartnerRing : undefined, { borderColor: theme.colors.gold }]}
                 />
+              ) : null}
+              {relocationPlanVisible && relocationPlan ? (
+                <View
+                  pointerEvents="none"
+                  accessible
+                  accessibilityLabel={'Relocation ' + relocationPlan.label + ', gain ' + relocationPlan.gain + ', lose ' + relocationPlan.loss + ', net ' + (relocationPlan.net >= 0 ? '+' : '') + relocationPlan.net}
+                  testID={'relocation-plan-' + plot.id}
+                  style={[
+                    styles.relocationPlanBadge,
+                    {
+                      backgroundColor: theme.colors.surface1,
+                      borderColor: semanticColor(theme, relocationPlan.tone)
+                    }
+                  ]}
+                >
+                  <Text style={[styles.relocationPlanText, { color: semanticColor(theme, relocationPlan.tone) }]}>
+                    +{relocationPlan.gain} / -{relocationPlan.loss} · {relocationPlan.net >= 0 ? '+' : ''}{relocationPlan.net}
+                  </Text>
+                  {relocationPlan.net === bestRelocationNet && relocationPlanRatings.length > 1 ? (
+                    <Text style={[styles.relocationPlanBest, { color: theme.colors.gold }]}>BEST</Text>
+                  ) : null}
+                </View>
               ) : null}
               {blueprintPlanVisible && blueprintPlanRating ? (
                 <View
@@ -834,7 +990,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   </View>
                   <View pointerEvents="none" style={[styles.emptyBadge, { backgroundColor: theme.colors.surface1 }]}>
                     <Text style={[styles.emptyPlusCompact, { color: selected || selectedBuildingId ? theme.colors.gold : semanticColor(theme, 'neutral') }]}>+</Text>
-                    <SemanticText tone="neutral" style={styles.emptyText}>{selectedBuildingId ? 'Move' : 'Build'}</SemanticText>
+                    <SemanticText tone="neutral" style={styles.emptyText}>
+                      {selectedBuildingId ? relocationTargetSelected ? 'Target' : 'Move' : 'Build'}
+                    </SemanticText>
                   </View>
                 </>
               ) : (
@@ -866,22 +1024,72 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           <View style={[styles.inspectorHandle, { backgroundColor: theme.colors.border }]} />
           <View style={styles.inspectorHeader}>
             <View style={styles.inspectorCopy}>
-              <Text style={[styles.inspectorEyebrow, { color: theme.colors.textMuted }]}>BUILDING</Text>
+              <Text style={[styles.inspectorEyebrow, { color: theme.colors.textMuted }]}>RELOCATE BUILDING</Text>
               <Text style={[styles.inspectorTitle, { color: theme.colors.text }]} numberOfLines={1}>
                 {selectedBuilding.name} · Lv.{buildingLevels[selectedBuilding.id] ?? 0}
               </Text>
             </View>
             <SemanticChip
-              label={buildingRolePresentation[selectedBuilding.role]?.label ?? selectedBuilding.role}
-              tone={buildingRolePresentation[selectedBuilding.role]?.tone ?? 'neutral'}
+              label={selectedBuildingCurrentBonuses.length + ' current districts'}
+              tone={selectedBuildingCurrentBonuses.length ? 'positive' : 'neutral'}
               compact
             />
           </View>
-          <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>Tap an open plot to relocate for free.</Text>
-          <View style={styles.inspectorActions}>
-            <View style={styles.inspectorAction}><SecondaryButton label="Cancel move" onPress={() => setSelectedBuildingId(null)} /></View>
-            <View style={styles.inspectorAction}><SecondaryButton label="Kingdom upgrades" onPress={onExit} /></View>
-          </View>
+          {relocationTarget ? (
+            <>
+              <View style={styles.relocationSummaryRow}>
+                <SemanticChip label={'Gain +' + relocationTarget.gain} tone={relocationTarget.gain ? 'positive' : 'neutral'} compact />
+                <SemanticChip label={'Lose -' + relocationTarget.loss} tone={relocationTarget.loss ? 'warning' : 'neutral'} compact />
+                <SemanticChip
+                  label={'Net ' + (relocationTarget.net >= 0 ? '+' : '') + relocationTarget.net}
+                  tone={relocationTarget.tone}
+                  compact
+                />
+              </View>
+              <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>
+                {relocationTarget.gainedBonuses.length
+                  ? 'Gains ' + relocationTarget.gainedBonuses.map(bonus => bonus.name).join(' + ') + '. '
+                  : 'No new district gained. '}
+                {relocationTarget.lostBonuses.length
+                  ? 'Loses ' + relocationTarget.lostBonuses.map(bonus => bonus.name).join(' + ') + '.'
+                  : 'No current district lost.'}
+              </Text>
+              <View style={styles.inspectorActions}>
+                <View style={styles.inspectorAction}>
+                  <SecondaryButton label="Choose another plot" onPress={() => setRelocationTargetPlotId(null)} />
+                </View>
+                <View style={styles.inspectorAction}>
+                  <PrimaryButton
+                    label="Confirm free move"
+                    onPress={() => {
+                      if (!relocationTargetPlotId) return;
+                      const ok = moveBuilding(selectedBuilding.id, relocationTargetPlotId);
+                      setMessage(ok ? 'Building relocated. District bonuses recalculated.' : 'That building cannot be moved to this plot.');
+                      if (ok) {
+                        setSelectedBuildingId(null);
+                        setRelocationTargetPlotId(null);
+                      }
+                    }}
+                  />
+                </View>
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>
+                Compare every open plot first. Each badge shows district gains, losses and net change.
+              </Text>
+              <View style={styles.inspectorActions}>
+                <View style={styles.inspectorAction}>
+                  <SecondaryButton label="Cancel move" onPress={() => {
+                    setSelectedBuildingId(null);
+                    setRelocationTargetPlotId(null);
+                  }} />
+                </View>
+                <View style={styles.inspectorAction}><SecondaryButton label="Kingdom upgrades" onPress={onExit} /></View>
+              </View>
+            </>
+          )}
           <BuildingLevelPreview building={selectedBuilding} level={buildingLevels[selectedBuilding.id] ?? 0} wallet={resources} />
         </View>
       ) : selectedPlot ? (
@@ -1082,6 +1290,8 @@ const styles = StyleSheet.create({
   districtLink: { position: 'absolute', height: 2.5, borderRadius: 999 },
   districtPreviewLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 4 },
   districtPreviewLink: { position: 'absolute', height: 1, borderTopWidth: 2, borderStyle: 'dashed', opacity: 0.9 },
+  relocationPreviewLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 5 },
+  relocationPreviewLink: { position: 'absolute', height: 1, borderTopWidth: 2.5, borderStyle: 'dashed', opacity: 0.92 },
   plot: { position: 'absolute', width: '27%', height: '23%', borderRadius: 14, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'visible' },
   landmarkPlot: { width: '32%', height: '27%' },
   plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 13 },
@@ -1093,6 +1303,9 @@ const styles = StyleSheet.create({
   placementQualityBadgeText: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
   blueprintPlanQualityBadge: { position: 'absolute', top: 4, alignSelf: 'center', zIndex: 10, borderWidth: 1, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, opacity: 0.96 },
   blueprintPlanQualityText: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
+  relocationPlanBadge: { position: 'absolute', top: 3, alignSelf: 'center', zIndex: 11, minWidth: 64, borderWidth: 1, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, alignItems: 'center', opacity: 0.97 },
+  relocationPlanText: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.3 },
+  relocationPlanBest: { fontSize: 5.5, lineHeight: 7, fontWeight: '900', letterSpacing: 0.5, marginTop: 1 },
   districtOpportunityBadge: { position: 'absolute', top: 4, left: 5, zIndex: 9, flexDirection: 'row', alignItems: 'center', gap: 3, borderWidth: 1, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2, opacity: 0.94 },
   districtOpportunityDot: { width: 5, height: 5, borderRadius: 999 },
   districtOpportunityText: { fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
@@ -1136,6 +1349,7 @@ const styles = StyleSheet.create({
   inspectorHint: { fontSize: 10.5, lineHeight: 15, marginTop: 5 },
   inspectorActions: { flexDirection: 'row', gap: 7, marginTop: 8 },
   inspectorAction: { flex: 1 },
+  relocationSummaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 8 },
   constructionOption: { borderWidth: 1, borderRadius: 14, padding: 11 },
   optionDescription: { fontSize: 11.5, lineHeight: 17, marginTop: 4 },
   previewAction: { marginTop: 7 },

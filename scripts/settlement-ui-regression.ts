@@ -261,12 +261,40 @@ function testRecipesAndInteractions() {
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
     check(nodes(tree, 'BuildingLevelPreview')[0]?.props.building.id === forge.id, 'Selected structure must expose its own upgrade preview.');
     const beforeMove = JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels });
-    choosePlot(tree, 'plot_n'); tree = f.h.render();
-    check(f.calls.at(-1)?.[0] === 'move', 'Selecting an empty destination must preserve relocation.');
+    const callsBeforeDestinationPreview = f.calls.length;
+    const northRelocation = nodes(tree, 'View').find(node => node.props.testID === 'relocation-plan-plot_n');
+    check(Boolean(northRelocation), 'Relocation mode must rate every empty destination before the player chooses one.');
+    check(
+      northRelocation?.props.accessibilityLabel === 'Relocation Loss -1, gain 0, lose 1, net -1',
+      'A destination that breaks Arsenal District must expose the exact district loss.'
+    );
+    const southwestRelocation = nodes(tree, 'View').find(node => node.props.testID === 'relocation-plan-plot_sw');
+    check(
+      southwestRelocation?.props.accessibilityLabel === 'Relocation Same, gain 0, lose 0, net +0',
+      'A destination that preserves the same district must be shown as strategically even.'
+    );
+
+    choosePlot(tree, 'plot_n');
+    tree = f.h.render();
+    check(f.calls.length === callsBeforeDestinationPreview, 'Tapping a relocation destination must preview rather than move immediately.');
+    check(nodes(tree, 'SemanticChip').some(node => node.props.label === 'Gain +0'), 'Relocation preview must show exact district gains.');
+    check(nodes(tree, 'SemanticChip').some(node => node.props.label === 'Lose -1'), 'Relocation preview must show exact district losses.');
+    check(nodes(tree, 'SemanticChip').some(node => node.props.label === 'Net -1'), 'Relocation preview must show the exact net district change.');
+    check(
+      nodes(tree, 'View').some(node => node.props.testID === 'relocation-loss-link-' + district.id),
+      'Relocation preview must draw the district connection that would be lost.'
+    );
+    check(JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels }) === beforeMove, 'Previewing relocation must preserve resources and levels.');
+
+    press(tree, 'Confirm free move');
+    tree = f.h.render();
+    check(f.calls.at(-1)?.[0] === 'move', 'Only relocation confirmation may call the move transaction.');
+    check(f.calls.at(-1)?.[1] === forge.id && f.calls.at(-1)?.[2] === 'plot_n', 'Confirmed relocation must use the exact building and destination IDs.');
     check(JSON.stringify({ resources: f.game.resources, levels: f.game.buildingLevels }) === beforeMove, 'Relocation must stay free and preserve levels.');
     check(state() === 'separated', 'A diagonal pair must stay inactive and read Not adjacent.');
     check(nodes(tree, 'DistrictEffects').filter(node => node.props.bonus.id === district.id).every(node => node.props.state === 'inactive'), 'Separated districts must not present active or predicted bonuses.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-link-' + district.id), 'Separated districts must remove their in-world connection.');
+    check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'Confirmed relocation must clear destination ratings.');
     f.game.buildingPlacements = { ...f.game.buildingPlacements, plot_n: null }; f.refresh();
     check(state() === 'unplaced', 'An unplaced built structure must not be called unbuilt.');
     press(tree, 'Return to Kingdom'); check(f.counts().exited === 1, 'Return navigation must preserve its callback.');
