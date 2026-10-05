@@ -478,7 +478,6 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = Math.max(300, safeViewportWidth - 20);
-  const districtColor = semanticColor(theme, 'positive');
   const districtConnections = settlementAdjacencyBonuses.flatMap(bonus => {
     const first = settlementPlotCenters[bonus.plotA];
     const second = settlementPlotCenters[bonus.plotB];
