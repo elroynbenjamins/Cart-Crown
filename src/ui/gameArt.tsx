@@ -1,6 +1,7 @@
 import { humanFigureForClass } from './portraitBattle/humanArt';
 import { ReferenceArt } from './portraitBattle/Art';
 import { TreasurySprite } from './TreasuryArt';
+import { humanSettlementAtlasBase64 } from './generated/humanSettlementAtlas';
 import React from 'react';
 import { AccessibilityInfo, Animated, Easing, Image, View } from 'react-native';
 import type {
@@ -1480,15 +1481,16 @@ function FactionBuildingSilhouette({
 
 const settlementHumanV2BuildingCells: Record<string, { x: number; y: number }> = {
   hall: { x: 0, y: 0 },
-  barracks: { x: 256, y: 0 },
-  wagonwright: { x: 512, y: 0 },
-  forge: { x: 0, y: 256 },
-  quartermaster: { x: 256, y: 256 },
-  stable: { x: 512, y: 256 },
-  war_room: { x: 0, y: 512 },
-  signal_tower: { x: 256, y: 512 },
-  officer_academy: { x: 512, y: 512 }
+  barracks: { x: 110, y: 0 },
+  wagonwright: { x: 220, y: 0 },
+  forge: { x: 0, y: 110 },
+  quartermaster: { x: 110, y: 110 },
+  stable: { x: 220, y: 110 },
+  war_room: { x: 0, y: 220 },
+  signal_tower: { x: 110, y: 220 },
+  officer_academy: { x: 220, y: 220 }
 };
+const settlementHumanV2AtlasUri = 'data:image/png;base64,' + humanSettlementAtlasBase64;
 
 function SettlementHumanV2BuildingSprite({
   buildingId,
@@ -1497,23 +1499,22 @@ function SettlementHumanV2BuildingSprite({
   buildingId: string;
   size: number;
 }) {
-  const source = getProductionAssetSource('ui.settlement_buildings_human_v2_atlas');
   const cell = settlementHumanV2BuildingCells[buildingId];
-  if (!source || !cell) return null;
+  if (!cell) return null;
 
-  const cellSize = 256;
+  const cellSize = 110;
   const scale = size / cellSize;
   return (
     <View style={{ width: size, height: size, overflow: 'hidden' }}>
       <Image
-        source={source}
+        source={{ uri: settlementHumanV2AtlasUri }}
         resizeMode="stretch"
         style={{
           position: 'absolute',
           left: -cell.x * scale,
           top: -cell.y * scale,
-          width: 768 * scale,
-          height: 768 * scale
+          width: 330 * scale,
+          height: 330 * scale
         }}
       />
     </View>
@@ -1643,8 +1644,7 @@ export function BuildingSprite({
   const production = buildingProductionAsset(faction, buildingId, kind);
   if (
     faction === 'human' &&
-    settlementHumanV2BuildingCells[buildingId] &&
-    getProductionAssetSource('ui.settlement_buildings_human_v2_atlas')
+    settlementHumanV2BuildingCells[buildingId]
   ) {
     return <SettlementHumanV2BuildingSprite buildingId={buildingId} size={size} />;
   }
