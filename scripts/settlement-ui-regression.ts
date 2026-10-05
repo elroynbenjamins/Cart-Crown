@@ -298,7 +298,7 @@ function testBlueprintFirstPlanner() {
   const northwest = nodes(tree, 'View').find(node => node.props.testID === 'blueprint-plan-quality-plot_nw');
   check(northwest?.props.accessibilityLabel === 'Good placement, 1 district, for Field Forge', 'Forge planning must rate plot_nw from the real Arsenal District adjacency.');
   const north = nodes(tree, 'View').find(node => node.props.testID === 'blueprint-plan-quality-plot_n');
-  check(northwest?.props.accessibilityLabel !== north?.props.accessibilityLabel || Boolean(north), 'Planner mode must expose plot-by-plot quality rather than one global score.');
+  check(north?.props.accessibilityLabel === 'Neutral placement, 0 districts, for Field Forge', 'Planner mode must expose plot-by-plot quality rather than one global score.');
 
   choosePlot(tree, 'plot_nw');
   tree = f.h.render();
