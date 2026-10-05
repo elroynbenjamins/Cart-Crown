@@ -713,6 +713,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const tutorialPlotFocused = guidedPlotId === plot.id;
           const roleTone = building ? buildingRolePresentation[building.role]?.tone ?? 'neutral' : 'neutral';
           const roleColor = semanticColor(theme, roleTone);
+          const relocationTargetSelected = relocationTargetPlotId === plot.id;
           const selected = plotSelected || buildingSelected || relocationTargetSelected;
           const landmark = plot.id === 'plot_center';
           const celebrationFocused =
@@ -726,7 +727,6 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const blueprintPlanVisible = Boolean(blueprintPlanRating) && blueprintPlannerOpen && Boolean(planningBuilding) && !plotSelected;
           const relocationPlan = relocationPlanByPlot.get(plot.id) ?? null;
           const relocationPlanVisible = Boolean(relocationPlan) && Boolean(selectedBuildingId) && !building;
-          const relocationTargetSelected = relocationTargetPlotId === plot.id;
           const buildReady = unlocked && !building && !selectedBuildingId && !plotSelected && !blueprintPlannerOpen && constructionReadyCount > 0;
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
