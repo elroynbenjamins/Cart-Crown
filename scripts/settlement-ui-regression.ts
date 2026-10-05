@@ -34,6 +34,11 @@ function press(tree: any, label: string) {
   assert.ok(button, 'Missing action: ' + label);
   if (!button.props.disabled) button.props.onPress?.();
 }
+function pressTestId(tree: any, id: string) {
+  const button = nodes(tree, 'Pressable').find(node => node.props.testID === id);
+  assert.ok(button, 'Missing contextual action: ' + id);
+  if (!button.props.disabled) button.props.onPress?.({ stopPropagation: () => undefined });
+}
 function plot(tree: any, id: string) {
   const node = nodes(tree, 'Pressable').find(candidate => candidate.props.testID === 'settlement-' + id);
   assert.ok(node, 'Missing plot ' + id);
@@ -136,6 +141,17 @@ function fixture(faction: FactionId, focus?: any) {
       const previous = Object.keys(game.buildingPlacements).find(key => game.buildingPlacements[key] === id);
       if (!previous) return false;
       game.buildingPlacements = { ...game.buildingPlacements, [previous]: null, [target]: id };
+      refresh(); return true;
+    },
+    upgradeBuilding: (id: string) => {
+      calls.push(['upgrade', id]);
+      if (!success) return false;
+      const currentLevel = game.buildingLevels[id] ?? 0;
+      const next = kingdom.getBuildingLevelDefinition(id, currentLevel + 1);
+      if (!next || !kingdom.canPayBuildingCost(game.resources, next.cost)) return false;
+      game.resources = { ...game.resources };
+      for (const [resource, amount] of Object.entries(next.cost)) game.resources[resource] -= amount ?? 0;
+      game.buildingLevels = { ...game.buildingLevels, [id]: currentLevel + 1 };
       refresh(); return true;
     }
   };
