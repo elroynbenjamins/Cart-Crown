@@ -1478,6 +1478,48 @@ function FactionBuildingSilhouette({
   );
 }
 
+const settlementHumanV2BuildingCells: Record<string, { x: number; y: number }> = {
+  hall: { x: 0, y: 0 },
+  barracks: { x: 256, y: 0 },
+  wagonwright: { x: 512, y: 0 },
+  forge: { x: 0, y: 256 },
+  quartermaster: { x: 256, y: 256 },
+  stable: { x: 512, y: 256 },
+  war_room: { x: 0, y: 512 },
+  signal_tower: { x: 256, y: 512 },
+  officer_academy: { x: 512, y: 512 }
+};
+
+function SettlementHumanV2BuildingSprite({
+  buildingId,
+  size
+}: {
+  buildingId: string;
+  size: number;
+}) {
+  const source = getProductionAssetSource('ui.settlement_buildings_human_v2_atlas');
+  const cell = settlementHumanV2BuildingCells[buildingId];
+  if (!source || !cell) return null;
+
+  const cellSize = 256;
+  const scale = size / cellSize;
+  return (
+    <View style={{ width: size, height: size, overflow: 'hidden' }}>
+      <Image
+        source={source}
+        resizeMode="stretch"
+        style={{
+          position: 'absolute',
+          left: -cell.x * scale,
+          top: -cell.y * scale,
+          width: 768 * scale,
+          height: 768 * scale
+        }}
+      />
+    </View>
+  );
+}
+
 const settlementAnchorAtlasCells: Record<string, { x: number; y: number }> = {
   hall: { x: 0, y: 0 },
   barracks: { x: 86, y: 0 },
@@ -1599,6 +1641,13 @@ export function BuildingSprite({
 }) {
   const kind = getBuildingVisualKind(buildingId);
   const production = buildingProductionAsset(faction, buildingId, kind);
+  if (
+    faction === 'human' &&
+    settlementHumanV2BuildingCells[buildingId] &&
+    getProductionAssetSource('ui.settlement_buildings_human_v2_atlas')
+  ) {
+    return <SettlementHumanV2BuildingSprite buildingId={buildingId} size={size} />;
+  }
   const individualSource = getProductionAssetSource(production.id);
   if (individualSource) {
     return <Image source={individualSource} resizeMode="contain" style={{ width: size, height: size }} />;
