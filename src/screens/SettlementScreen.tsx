@@ -1402,7 +1402,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                               : buildReady
                                 ? factionAccent
                                 : theme.colors.border,
-                  borderWidth: tutorialPlotFocused || selected ? 2.5 : building ? 0 : relocationPlanVisible ? 2 : blueprintPlanVisible ? 2 : districtOpportunityVisible ? 2 : recommendedBuildPlot ? 2.25 : 1.5,
+                  borderWidth: worldRebuildActive
+                    ? tutorialPlotFocused || selected ? 2.5 : relocationPlanVisible || blueprintPlanVisible || districtOpportunityVisible || recommendedBuildPlot ? 2 : 0
+                    : tutorialPlotFocused || selected ? 2.5 : building ? 0 : relocationPlanVisible ? 2 : blueprintPlanVisible ? 2 : districtOpportunityVisible ? 2 : recommendedBuildPlot ? 2.25 : 1.5,
                   borderStyle: building || selected || tutorialPlotFocused || buildReady || blueprintPlanVisible || relocationPlanVisible ? 'solid' : 'dashed',
                   zIndex: plotZIndex,
                   transform: tutorialPlotFocused ? [{ scale: 1.04 }] : selected ? [{ scale: 1.025 }] : undefined
@@ -1576,21 +1578,23 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       <Text style={styles.upgradeReadyText}>UPGRADE</Text>
                     </View>
                   ) : null}
-                  <>
-                    <Text
-                      style={[
-                        styles.plotBuildingName,
-                        !selected && !landmark ? styles.plotBuildingNameCompact : undefined,
-                        { color: roleColor, backgroundColor: theme.colors.surface1 }
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {building.name}
-                    </Text>
-                    <View style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }]}>
-                      <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
-                    </View>
-                  </>
+                  {!worldRebuildActive || selected ? (
+                    <>
+                      <Text
+                        style={[
+                          styles.plotBuildingName,
+                          !selected && !landmark ? styles.plotBuildingNameCompact : undefined,
+                          { color: roleColor, backgroundColor: theme.colors.surface1 }
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {building.name}
+                      </Text>
+                      <View style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }]}>
+                        <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
+                      </View>
+                    </>
+                  ) : null}
                 </>
               ) : unlocked ? (
                 <>
