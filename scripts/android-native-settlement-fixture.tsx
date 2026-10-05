@@ -1,7 +1,6 @@
 import React from 'react';
 import { GameProvider } from './src/game/GameProvider';
 import { createHumanFactionState, createInitialGameSnapshot } from './src/save/schema';
-import { getInitialSettlementPlacements } from './src/game/settlement';
 import { SettlementScreen } from './src/screens/SettlementScreen';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { AndroidWindowFrame } from './src/ui/AndroidWindowFrame';
@@ -10,8 +9,8 @@ const snapshot = createInitialGameSnapshot();
 const human = createHumanFactionState();
 
 Object.assign(human, {
-  chapterNumber: 2,
-  wagonStageId: 'fort',
+  chapterNumber: 6,
+  wagonStageId: 'grand',
   resources: { gold: 1200, wood: 1200, stone: 1200, iron: 1200, provisions: 1200 },
   holdTheRoadWon: true,
   settlementUpgraded: true,
@@ -28,15 +27,25 @@ Object.assign(human, {
     ...human.buildingLevels,
     hall: 3,
     barracks: 2,
-    wagonwright: 2,
-    forge: 0,
-    quartermaster: 0,
-    war_room: 0,
-    stable: 0,
-    signal_tower: 0,
-    officer_academy: 0
+    wagonwright: 3,
+    forge: 3,
+    quartermaster: 3,
+    war_room: 3,
+    stable: 3,
+    signal_tower: 3,
+    officer_academy: 3
   },
-  buildingPlacements: getInitialSettlementPlacements('human')
+  buildingPlacements: {
+    plot_nw: 'forge',
+    plot_n: 'barracks',
+    plot_ne: 'wagonwright',
+    plot_w: 'quartermaster',
+    plot_center: 'hall',
+    plot_e: 'stable',
+    plot_sw: 'war_room',
+    plot_s: 'signal_tower',
+    plot_se: 'officer_academy'
+  }
 });
 
 snapshot.activeFaction = 'human';
