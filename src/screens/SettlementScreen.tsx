@@ -181,6 +181,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [blueprintPlannerOpen, setBlueprintPlannerOpen] = useState(false);
   const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
   const [districtOverlayFilter, setDistrictOverlayFilter] = useState<DistrictOverlayFilter>('all');
+  const [selectedDistrictId, setSelectedDistrictId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [unlockCelebration, setUnlockCelebration] = useState<SettlementUnlockCelebration | null>(null);
   const settlementPlots = getSettlementPlots(activeFaction);
@@ -188,6 +189,15 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const factionAccent = activeFaction === 'elf' ? theme.colors.elf : activeFaction === 'orc' ? theme.colors.orc : theme.colors.human;
   const selectedPlot = settlementPlots.find(plot => plot.id === selectedPlotId) ?? null;
   const selectedBuilding = buildings.find(building => building.id === selectedBuildingId) ?? null;
+  const selectedDistrict = settlementAdjacencyBonuses.find(bonus => bonus.id === selectedDistrictId) ?? null;
+  const selectedDistrictBuildingA = selectedDistrict
+    ? buildings.find(building => building.id === selectedDistrict.buildingA) ?? null
+    : null;
+  const selectedDistrictBuildingB = selectedDistrict
+    ? buildings.find(building => building.id === selectedDistrict.buildingB) ?? null
+    : null;
+  const selectedDistrictTone = selectedDistrict ? settlementDistrictTone(selectedDistrict) : 'neutral' as const;
+  const selectedDistrictCategory = selectedDistrict ? settlementDistrictCategory(selectedDistrict) : null;
   const placedIds = useMemo(() => Object.values(buildingPlacements).filter((value): value is string => Boolean(value)), [buildingPlacements]);
   const availableBuildings = buildings.filter(building => isBuildingUnlocked(building.id) && !placedIds.includes(building.id));
   const affordableBuildings = availableBuildings.filter(building => canPayBuildingCost(resources, building.constructionCost));
@@ -525,7 +535,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     const midpointX = (x1 + x2) / 2;
     const midpointY = (y1 + y2) / 2;
     const focused =
-      Boolean(selectedBuildingId) && (bonus.buildingA === selectedBuildingId || bonus.buildingB === selectedBuildingId);
+      selectedDistrictId === bonus.id ||
+      (Boolean(selectedBuildingId) && (bonus.buildingA === selectedBuildingId || bonus.buildingB === selectedBuildingId));
     const tone = settlementDistrictTone(bonus);
     const color = semanticColor(theme, tone);
 
@@ -566,7 +577,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     ? districtConnections
     : districtConnections.filter(connection => connection.category === districtOverlayFilter);
   const districtFocusActive =
-    Boolean(selectedBuildingId) &&
+    Boolean(selectedBuildingId || selectedDistrictId) &&
     visibleDistrictConnections.some(connection => connection.focused);
   const previewDistrictConnections = previewDistrictBonuses.flatMap(bonus => {
     const first = settlementPlotCenters[bonus.plotA];
@@ -766,6 +777,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               setPreviewBuildingId(null);
               setSelectedPlotId(null);
               setSelectedBuildingId(null);
+              setSelectedDistrictId(null);
               setUnlockCelebration(null);
             }}
             style={[styles.blueprintPlannerLauncher, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
@@ -796,6 +808,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             (settlementPlotLabels[bestNetworkOptimization.targetPlotId] ?? bestNetworkOptimization.targetPlotId)
           }
           onPress={() => {
+            setSelectedDistrictId(null);
             setSelectedBuildingId(bestNetworkOptimization.buildingId);
             setRelocationTargetPlotId(bestNetworkOptimization.targetPlotId);
             setSelectedPlotId(null);
@@ -841,24 +854,23 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </View>
         ) : null}
         {visibleDistrictConnections.length ? (
-          <View pointerEvents="none" style={styles.districtZoneLayer}>
-            {visibleDistrictConnections.map(connection => {
-              const dimmed = districtFocusActive && !connection.focused;
-              const zoneFill = blendColor(
-                connection.color,
-                theme.colors.surface1,
-                connection.focused ? 0.2 : dimmed ? 0.035 : 0.1
-              );
-              const zoneBorder = blendColor(
-                connection.color,
-                theme.colors.surface1,
-                connection.focused ? 0.72 : dimmed ? 0.2 : 0.44
-              );
-              return (
-                <React.Fragment key={'zone-' + connection.id}>
+          <>
+            <View pointerEvents="none" style={styles.districtZoneLayer}>
+              {visibleDistrictConnections.map(connection => {
+                const dimmed = districtFocusActive && !connection.focused;
+                const zoneFill = blendColor(
+                  connection.color,
+                  theme.colors.surface1,
+                  connection.focused ? 0.2 : dimmed ? 0.035 : 0.1
+                );
+                const zoneBorder = blendColor(
+                  connection.color,
+                  theme.colors.surface1,
+                  connection.focused ? 0.72 : dimmed ? 0.2 : 0.44
+                );
+                return (
                   <View
-                    accessible
-                    accessibilityLabel={connection.name + ' district zone'}
+                    key={'zone-' + connection.id}
                     testID={'district-zone-' + connection.id}
                     style={[
                       connection.zoneStyle,
@@ -869,14 +881,44 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       }
                     ]}
                   />
-                  <View
+                );
+              })}
+            </View>
+            <View pointerEvents="box-none" style={styles.districtTagLayer}>
+              {visibleDistrictConnections.map(connection => {
+                const dimmed = districtFocusActive && !connection.focused;
+                const zoneBorder = blendColor(
+                  connection.color,
+                  theme.colors.surface1,
+                  connection.focused ? 0.72 : dimmed ? 0.2 : 0.44
+                );
+                const selectedDistrictTag = selectedDistrictId === connection.id;
+                return (
+                  <Pressable
+                    key={'tag-' + connection.id}
                     testID={'district-zone-label-' + connection.id}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: selectedDistrictTag }}
+                    accessibilityLabel={'Focus ' + connection.name + ' district'}
+                    accessibilityHint="Show this district bonus and its two buildings."
+                    onPress={() => {
+                      setSelectedDistrictId(selectedDistrictTag ? null : connection.id);
+                      setSelectedBuildingId(null);
+                      setRelocationTargetPlotId(null);
+                      setSelectedPlotId(null);
+                      setPreviewBuildingId(null);
+                      setBlueprintPlannerOpen(false);
+                      setPlanningBuildingId(null);
+                      setUnlockCelebration(null);
+                      setMessage(null);
+                    }}
                     style={[
                       connection.labelStyle,
                       styles.districtZoneLabel,
                       {
                         backgroundColor: theme.colors.surface1,
-                        borderColor: zoneBorder,
+                        borderColor: selectedDistrictTag ? connection.color : zoneBorder,
+                        borderWidth: selectedDistrictTag ? 2 : 1,
                         opacity: connection.focused ? 1 : dimmed ? 0.42 : 0.76
                       }
                     ]}
@@ -885,11 +927,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     <Text style={[styles.districtZoneText, { color: connection.color }]} numberOfLines={1}>
                       {connection.name}
                     </Text>
-                  </View>
-                </React.Fragment>
-              );
-            })}
-          </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
         ) : null}
         <View pointerEvents="none" style={styles.districtLayer}>
           {visibleDistrictConnections.map(connection => (
@@ -964,6 +1006,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const roleTone = building ? buildingRolePresentation[building.role]?.tone ?? 'neutral' : 'neutral';
           const roleColor = semanticColor(theme, roleTone);
           const relocationTargetSelected = relocationTargetPlotId === plot.id;
+          const districtMemberFocused = Boolean(
+            building &&
+            selectedDistrict &&
+            (building.id === selectedDistrict.buildingA || building.id === selectedDistrict.buildingB)
+          );
           const selected = plotSelected || buildingSelected || relocationTargetSelected;
           const landmark = plot.id === 'plot_center';
           const celebrationFocused =
@@ -983,7 +1030,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
           const buildingSize = landmark ? 88 : Math.round(62 * depthScale);
           const ambienceSize = landmark ? 110 : Math.round(82 * depthScale);
-          const plotZIndex = tutorialPlotFocused || selected ? 30 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
+          const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
           const visualPosition = settlementPlotPositions[plot.id] ?? {
             left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
@@ -1005,6 +1052,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               onPress={() => {
                 setMessage(null);
                 setUnlockCelebration(null);
+                setSelectedDistrictId(null);
                 if (building) {
                   setSelectedBuildingId(buildingSelected ? null : building.id);
                   setRelocationTargetPlotId(null);
@@ -1172,6 +1220,17 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   style={[styles.unlockFocusRing, landmark ? styles.landmarkUnlockFocusRing : undefined, { borderColor: factionAccent }]}
                 />
               ) : null}
+              {districtMemberFocused && selectedDistrict ? (
+                <View
+                  pointerEvents="none"
+                  testID={'district-member-focus-' + plot.id}
+                  style={[
+                    styles.districtMemberFocusRing,
+                    landmark ? styles.landmarkDistrictMemberFocusRing : undefined,
+                    { borderColor: semanticColor(theme, selectedDistrictTone) }
+                  ]}
+                />
+              ) : null}
               {building ? (
                 <>
                   {selected ? (
@@ -1282,7 +1341,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}
                   accessibilityLabel={filter.label + ' district overlay, ' + districtOverlayCounts[filter.id] + ' active'}
-                  onPress={() => setDistrictOverlayFilter(filter.id)}
+                  onPress={() => {
+                    setDistrictOverlayFilter(filter.id);
+                    setSelectedDistrictId(null);
+                  }}
                   style={[
                     styles.districtOverlayButton,
                     {
@@ -1312,7 +1374,70 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         <Text style={[styles.sceneLegendCount, { color: factionAccent }]}>{placedIds.length}/{buildings.length}</Text>
       </View>
 
-      {selectedBuilding ? (
+      {selectedDistrict ? (
+        <View
+          testID="district-inspector"
+          style={[styles.inspectorSheet, { backgroundColor: theme.colors.surface1, borderColor: semanticColor(theme, selectedDistrictTone) }]}
+        >
+          <View style={[styles.inspectorHandle, { backgroundColor: theme.colors.border }]} />
+          <View style={styles.inspectorHeader}>
+            <View style={styles.inspectorCopy}>
+              <Text style={[styles.inspectorEyebrow, { color: semanticColor(theme, selectedDistrictTone) }]}>ACTIVE DISTRICT</Text>
+              <Text style={[styles.inspectorTitle, { color: theme.colors.text }]} numberOfLines={1}>{selectedDistrict.name}</Text>
+            </View>
+            <View style={styles.inspectorPreviewChips}>
+              <SemanticChip
+                label={(selectedDistrictCategory?.charAt(0).toUpperCase() ?? '') + (selectedDistrictCategory?.slice(1) ?? '')}
+                tone={selectedDistrictTone}
+                compact
+              />
+              <SemanticChip label="Active" tone="positive" compact />
+            </View>
+          </View>
+          <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>{selectedDistrict.description}</Text>
+          <View style={[styles.districtMemberSummary, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}>
+            <Text style={[styles.districtMemberSummaryText, { color: theme.colors.text }]}>
+              {selectedDistrictBuildingA?.name ?? selectedDistrict.buildingA} · Lv.{buildingLevels[selectedDistrict.buildingA] ?? 0}
+            </Text>
+            <Text style={[styles.districtMemberSummaryJoin, { color: semanticColor(theme, selectedDistrictTone) }]}>+</Text>
+            <Text style={[styles.districtMemberSummaryText, { color: theme.colors.text }]}>
+              {selectedDistrictBuildingB?.name ?? selectedDistrict.buildingB} · Lv.{buildingLevels[selectedDistrict.buildingB] ?? 0}
+            </Text>
+          </View>
+          <View style={styles.section}>
+            <DistrictEffects bonus={selectedDistrict} state="active" />
+          </View>
+          <View style={styles.inspectorActions}>
+            {selectedDistrictBuildingA ? (
+              <View style={styles.inspectorAction}>
+                <SecondaryButton
+                  label={'Review ' + selectedDistrictBuildingA.name}
+                  onPress={() => {
+                    setSelectedDistrictId(null);
+                    setSelectedBuildingId(selectedDistrictBuildingA.id);
+                    setRelocationTargetPlotId(null);
+                  }}
+                />
+              </View>
+            ) : null}
+            {selectedDistrictBuildingB ? (
+              <View style={styles.inspectorAction}>
+                <SecondaryButton
+                  label={'Review ' + selectedDistrictBuildingB.name}
+                  onPress={() => {
+                    setSelectedDistrictId(null);
+                    setSelectedBuildingId(selectedDistrictBuildingB.id);
+                    setRelocationTargetPlotId(null);
+                  }}
+                />
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.button}>
+            <SecondaryButton label="Close district" onPress={() => setSelectedDistrictId(null)} />
+          </View>
+        </View>
+      ) : selectedBuilding ? (
         <View style={[styles.inspectorSheet, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
           <View style={[styles.inspectorHandle, { backgroundColor: theme.colors.border }]} />
           <View style={styles.inspectorHeader}>
@@ -1599,6 +1724,7 @@ const styles = StyleSheet.create({
   unlockCelebrationDetail: { fontSize: 11, lineHeight: 14, fontWeight: '900', marginTop: 1, maxWidth: '100%' },
 
   districtZoneLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 2 },
+  districtTagLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 18 },
   districtZone: { position: 'absolute', borderWidth: 1, borderRadius: 999 },
   districtZoneLabel: { position: 'absolute', minHeight: 18, borderWidth: 1, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 3 },
   districtZoneDot: { width: 5, height: 5, borderRadius: 999 },
@@ -1628,6 +1754,8 @@ const styles = StyleSheet.create({
   districtOpportunityDot: { width: 5, height: 5, borderRadius: 999 },
   districtOpportunityText: { fontSize: 6.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.35 },
   landmarkUnlockFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
+  districtMemberFocusRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -32, width: 76, height: 64, borderRadius: 18, borderWidth: 2, borderStyle: 'dashed', opacity: 0.9 },
+  landmarkDistrictMemberFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
 
   landmarkSelectionHalo: { marginLeft: -44, width: 88, height: 30, bottom: '22%' },
   buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -41, marginTop: -41, width: 82, height: 82, alignItems: 'center', justifyContent: 'center' },
@@ -1667,6 +1795,9 @@ const styles = StyleSheet.create({
   inspectorHint: { fontSize: 10.5, lineHeight: 15, marginTop: 5 },
   inspectorActions: { flexDirection: 'row', gap: 7, marginTop: 8 },
   inspectorAction: { flex: 1 },
+  districtMemberSummary: { borderWidth: 1, borderRadius: 11, marginTop: 8, paddingHorizontal: 8, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  districtMemberSummaryText: { flex: 1, fontSize: 9, lineHeight: 12, fontWeight: '900', textAlign: 'center' },
+  districtMemberSummaryJoin: { fontSize: 12, lineHeight: 15, fontWeight: '900' },
   relocationSummaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 8 },
   constructionOption: { borderWidth: 1, borderRadius: 14, padding: 11 },
   optionDescription: { fontSize: 11.5, lineHeight: 17, marginTop: 4 },
