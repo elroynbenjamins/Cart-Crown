@@ -178,7 +178,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     constructBuilding, moveBuilding, upgradeBuilding, settlementUpgraded,
     markedRaidersInvestigated, refugeeCampSecured, commanderPathId
   } = useGame();
-  const [selectedPlotId, setSelectedPlotId] = useState<string | null>(null);
+  const [selectedPlotId, commitSelectedPlot] = useState<string | null>(null);
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
   const [selectedBuildingAction, commitBuildingAction] = useState<SettlementBuildingAction | null>(null);
   const [relocationTargetPlotId, commitRelocationTarget] = useState<string | null>(null);
@@ -195,7 +195,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [measuredMapWidth, setMeasuredMapWidth] = useState(0);
   const [measuredActionHeight, setMeasuredActionHeight] = useState(112);
   const [measuredActionChrome, setMeasuredActionChrome] = useState(112);
-  const [previewBuildingId, setPreviewBuildingId] = useState<string | null>(null);
+  const [previewBuildingId, commitPreviewBuilding] = useState<string | null>(null);
+  const [constructionReviewOpen, commitConstructionReview] = useState(false);
+  const [measuredConstructionHeight, setMeasuredConstructionHeight] = useState(250);
+  const [measuredConstructionHeader, setMeasuredConstructionHeader] = useState(64);
   const [blueprintPlannerOpen, setBlueprintPlannerOpen] = useState(false);
   const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
   const [districtOverlayFilter, setDistrictOverlayFilter] = useState<DistrictOverlayFilter>('all');
@@ -203,6 +206,20 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [districtCodexOpen, setDistrictCodexOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [unlockCelebration, setUnlockCelebration] = useState<SettlementUnlockCelebration | null>(null);
+  // Changing a construction input invalidates even a queued handler from the same render.
+  const setSelectedPlotId = (id: string | null) => {
+    interactionVersion.current += 1;
+    commitSelectedPlot(id);
+    commitConstructionReview(false);
+  };
+  const setPreviewBuildingId = (id: string | null) => {
+    interactionVersion.current += 1;
+    commitPreviewBuilding(id);
+  };
+  const setConstructionReviewOpen = (open: boolean) => {
+    interactionVersion.current += 1;
+    commitConstructionReview(open);
+  };
   const settlementPlots = getSettlementPlots(activeFaction);
   const adjacencyRecipes = getSettlementAdjacencyBonuses(activeFaction);
   const factionAccent = activeFaction === 'elf' ? theme.colors.elf : activeFaction === 'orc' ? theme.colors.orc : theme.colors.human;
@@ -221,7 +238,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const selectedDistrictTone = selectedDistrict ? settlementDistrictTone(selectedDistrict) : 'neutral' as const;
   const selectedDistrictCategory = selectedDistrict ? settlementDistrictCategory(selectedDistrict) : null;
   const placedIds = useMemo(() => Object.values(buildingPlacements).filter((value): value is string => Boolean(value)), [buildingPlacements]);
-  const availableBuildings = buildings.filter(building => isBuildingUnlocked(building.id) && !placedIds.includes(building.id));
+  const availableBuildings = buildings.filter(building =>
+    isBuildingUnlocked(building.id) && !placedIds.includes(building.id) && (buildingLevels[building.id] ?? 0) <= 0
+  );
   const affordableBuildings = availableBuildings.filter(building => canPayBuildingCost(resources, building.constructionCost));
   const constructionReadyCount = affordableBuildings.length;
   const nextSuggestedBuilding = affordableBuildings[0] ?? availableBuildings[0] ?? null;
@@ -281,7 +300,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     ).bonuses.filter(bonus => !activeBonusIds.has(bonus.id));
   };
   const previewBonuses = (buildingId: string) => {
-    if (!selectedPlot) return [];
+    if (!selectedPlot || buildingPlacements[selectedPlot.id] || !isSettlementPlotUnlocked(selectedPlot, currentWagonStage.id)) return [];
     return previewBonusesAtPlot(selectedPlot, buildingId);
   };
   const previewBuilding = previewBuildingId
@@ -757,10 +776,60 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     }
     setMessage(ok ? 'Building relocated. District bonuses recalculated.' : 'This destination is no longer available. Choose another unlocked empty plot.');
   };
-  // Android Back dismisses details/move preview first, then the selected building.
+  const closeConstruction = () => {
+    setSelectedPlotId(null);
+    setPreviewBuildingId(null);
+    setBlueprintPlannerOpen(false);
+    setPlanningBuildingId(null);
+    setMessage(null);
+  };
+  const dismissSceneSelection = () => {
+    closeBuildingSelection();
+    closeConstruction();
+  };
+  const constructionPlotAvailable = Boolean(selectedPlot && !buildingPlacements[selectedPlot.id] &&
+    isSettlementPlotUnlocked(selectedPlot, currentWagonStage.id));
+  const constructionBlocker = !constructionPlotAvailable ? 'This plot is no longer available. Choose another unlocked empty plot.'
+    : !previewBuilding ? 'Choose an unlocked, unbuilt blueprint.'
+    : !canPayBuildingCost(resources, previewBuilding.constructionCost) ? 'Materials missing. Review the exact shortages below.' : null;
+  const tutorialConstructionFocused = tutorialFocus?.kind === 'settlement-building' &&
+    tutorialFocus.buildingId === previewBuilding?.id;
+  const confirmSceneConstruction = () => {
+    if (latestInteractionRender.current !== interactionRender || interactionVersion.current !== renderedInteractionVersion ||
+        !constructionReviewOpen || !selectedPlot || !previewBuilding || constructionBlocker || selectedBuilding) return;
+    interactionVersion.current += 1;
+    const ok = constructBuilding(previewBuilding.id, selectedPlot.id);
+    if (ok) {
+      setSelectedPlotId(null);
+      setPreviewBuildingId(null);
+      setBlueprintPlannerOpen(false);
+      setPlanningBuildingId(null);
+      setSelectedBuildingId(previewBuilding.id);
+      setSelectedBuildingAction(null);
+      setRelocationTargetPlotId(null);
+      if (tutorialConstructionFocused) onTutorialFocusComplete?.();
+    }
+    setMessage(ok ? previewBuilding.name + ' constructed. District bonuses recalculated.'
+      : 'This building cannot be constructed here yet. Recheck the plot, unlock and resources; nothing was built.');
+  };
+  const constructionAnchor = (selectedPlot ? settlementPlotCenters[selectedPlot.id] : null) ?? { x: 0.5, y: 0.5 };
+  // Keep a clear side of the selected plot; only the card content scrolls.
+  const constructionMaxHeight = Math.max(180, Math.min(380,
+    Math.max(constructionAnchor.y, 1 - constructionAnchor.y) * mapHeight - 74));
+  const constructionLayout = settlementActionLayout(mapWidth, mapHeight, constructionAnchor,
+    Math.min(measuredConstructionHeight, constructionMaxHeight));
+  const constructionScrollHeight = Math.max(64, constructionMaxHeight - measuredConstructionHeader - 16);
+  // Invalidate any retained confirmation callback when the screen leaves the tree.
+  useEffect(() => () => { interactionVersion.current += 1; }, []);
+  // Android Back leaves a review first, then dismisses the selected plot/building.
   useEffect(() => {
-    if (!selectedBuilding) return;
+    if (!selectedBuilding && !selectedPlot) return;
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (selectedPlot && !selectedBuilding) {
+        if (constructionReviewOpen) { setConstructionReviewOpen(false); setMessage(null); }
+        else closeConstruction();
+        return true;
+      }
       if (selectedBuildingAction || relocationTargetPlotId) {
         setSelectedBuildingAction(null);
         setRelocationTargetPlotId(null);
@@ -769,7 +838,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       return true;
     });
     return () => subscription.remove();
-  }, [selectedBuilding?.id, selectedBuildingAction, relocationTargetPlotId]);
+  }, [selectedBuilding?.id, selectedBuildingAction, relocationTargetPlotId, selectedPlot?.id, constructionReviewOpen]);
   useEffect(() => {
     closeBuildingSelection();
     setSelectedPlotId(null);
@@ -1022,7 +1091,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         }}
         style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
       >
-        <Pressable testID="settlement-clear-selection" accessible={false} importantForAccessibility="no" disabled={!selectedBuilding} onPress={closeBuildingSelection} style={styles.sceneDismissSurface} />
+        <Pressable testID="settlement-clear-selection" accessible={false} importantForAccessibility="no" disabled={!selectedBuilding && !selectedPlot} onPress={dismissSceneSelection} style={styles.sceneDismissSurface} />
         <View pointerEvents="none" style={styles.backdrop}>
           <SettlementTerrainBackdrop faction={activeFaction} stageId={currentWagonStage.id} />
         </View>
@@ -1283,9 +1352,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   const districtCandidate = opportunityCandidate
                     ? availableBuildings.find(candidate => candidate.id === opportunityCandidate.buildingId) ?? null
                     : availableBuildings.find(candidate => previewBonusesAtPlot(plot, candidate.id).length > 0) ?? null;
-                  const previewCandidate = planningBuilding ?? districtCandidate ?? affordableBuildings[0] ?? availableBuildings[0] ?? null;
+                  const tutorialCandidate = tutorialFocus?.kind === 'settlement-building'
+                    ? availableBuildings.find(candidate => candidate.id === tutorialFocus.buildingId) ?? null : null;
+                  const previewCandidate = planningBuilding ?? tutorialCandidate ?? previewBuilding ?? districtCandidate ?? affordableBuildings[0] ?? availableBuildings[0] ?? null;
                   setSelectedPlotId(plot.id);
                   setPreviewBuildingId(previewCandidate?.id ?? null);
+                  setConstructionReviewOpen(Boolean(previewCandidate && (planningBuilding || tutorialCandidate || constructionReviewOpen)));
                 }
                 if (tutorialPlotFocused && tutorialFocus?.kind === 'settlement-first-plot') onTutorialFocusComplete?.();
               }}
@@ -1494,6 +1566,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       />
                     )
                   ) : null}
+                  {plotSelected && previewBuilding && constructionPlotAvailable ? (
+                    <View pointerEvents="none" testID="construction-ghost-preview" style={styles.constructionGhost}>
+                      <BuildingSprite buildingId={previewBuilding.id} faction={activeFaction} size={62} />
+                      <Text style={[styles.constructionGhostLabel, { color: theme.colors.gold, backgroundColor: theme.colors.surface1 }]}>PREVIEW</Text>
+                    </View>
+                  ) : null}
                   <View pointerEvents="none" style={styles.buildPlotArt}>
                     <SettlementBuildPlotSprite
                       terrain={plot.terrain}
@@ -1520,6 +1598,121 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             </Pressable>
           );
         })}
+        {selectedPlot && !selectedBuilding ? (
+          <View testID="settlement-construction-layer" pointerEvents="box-none" style={styles.sceneActionsLayer}>
+            <View
+              testID="scene-construction-card"
+              onLayout={event => {
+                const height = event.nativeEvent.layout.height;
+                if (Number.isFinite(height) && height > 0) setMeasuredConstructionHeight(previous => Math.abs(previous - height) < 0.5 ? previous : height);
+              }}
+              style={[styles.sceneActionStrip, { ...constructionLayout, maxHeight: constructionMaxHeight,
+                backgroundColor: theme.colors.surface1, borderColor: factionAccent }]}
+            >
+              <View onLayout={event => {
+                const height = event.nativeEvent.layout.height;
+                if (Number.isFinite(height) && height > 0) setMeasuredConstructionHeader(previous => Math.abs(previous - height) < 0.5 ? previous : height);
+              }} style={styles.sceneActionHeading}>
+                <View style={styles.sceneActionHeadingCopy}>
+                  <Text style={[styles.sceneActionLevel, { color: factionAccent }]}>BUILD SITE · {settlementPlotLabels[selectedPlot.id] ?? selectedPlot.id}</Text>
+                  <Text accessibilityRole="header" style={[styles.sceneActionName, { color: theme.colors.text }]}>
+                    {constructionReviewOpen ? 'Review construction' : 'Choose a blueprint'}
+                  </Text>
+                </View>
+                <Pressable testID="construction-close" accessibilityRole="button" accessibilityLabel="Close construction without building" onPress={closeConstruction} style={styles.sceneActionClose}>
+                  <Text style={[styles.sceneCloseText, { color: theme.colors.text }]}>×</Text>
+                </Pressable>
+              </View>
+              <ScrollView
+                key={(constructionReviewOpen ? 'review:' : 'picker:') + (previewBuildingId ?? '')}
+                testID="scene-construction-scroll"
+                nestedScrollEnabled
+                showsVerticalScrollIndicator
+                style={{ maxHeight: constructionScrollHeight }}
+                contentContainerStyle={styles.sceneDetailsScroll}
+              >
+                {message ? <Text testID="scene-construction-feedback" accessibilityLiveRegion="polite" style={[styles.sceneFeedback, { color: theme.colors.text }]}>{message}</Text> : null}
+                {!constructionPlotAvailable ? (
+                  <Text accessibilityLiveRegion="polite" style={[styles.sceneDetailText, { color: semanticColor(theme, 'warning') }]}>{constructionBlocker}</Text>
+                ) : constructionReviewOpen ? (
+                  <View testID="scene-construction-review" style={styles.sceneDetailsContent}>
+                    {previewBuilding ? (
+                      <TutorialFocus active={tutorialConstructionFocused} label={tutorialConstructionFocused ? tutorialFocus?.label : undefined}>
+                        <View style={styles.sceneDetailsContent}>
+                          <BuildingHeading building={previewBuilding} />
+                          <Text style={[styles.sceneDetailText, { color: theme.colors.textMuted }]}>Preview only · nothing built or spent yet.</Text>
+                          <Text style={[styles.sceneDetailText, { color: theme.colors.text }]}>{getBuildingLevelDefinition(previewBuilding.id, 1)?.effect ?? previewBuilding.description}</Text>
+                          <SemanticChip label={previewPlacementQuality.label + ' · ' + previewPlacementQuality.summary} tone={previewPlacementQuality.tone} compact />
+                          <Text style={[styles.sceneDetailText, { color: theme.colors.textMuted }]}>
+                            {previewDistrictBonuses.length ? 'Activates ' + previewDistrictBonuses.map(bonus => bonus.name).join(' + ') + '.' : 'No district bonus activates here.'}
+                          </Text>
+                          {previewDistrictBonuses.map(bonus => <View key={bonus.id} style={[styles.preview, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}>
+                            <Text style={[styles.sceneDetailTitle, { color: theme.colors.text }]}>{bonus.name}</Text>
+                            <DistrictEffects bonus={bonus} state="preview" />
+                          </View>)}
+                          {constructionBlocker ? <Text accessibilityLiveRegion="polite" style={[styles.sceneDetailText, { color: semanticColor(theme, 'warning') }]}>{constructionBlocker}</Text> : null}
+                          <BuildingCosts cost={previewBuilding.constructionCost} wallet={resources} />
+                          <Text style={[styles.sceneDetailText, { color: theme.colors.textMuted }]}>Build places this blueprint on the {settlementPlotLabels[selectedPlot.id] ?? selectedPlot.id} plot and spends the listed construction cost once.</Text>
+                          <PrimaryButton label={'Build ' + previewBuilding.name} disabled={Boolean(constructionBlocker)} onPress={confirmSceneConstruction} />
+                          {tutorialConstructionFocused ? <SecondaryButton label="Build later" onPress={() => {
+                            setConstructionReviewOpen(false);
+                            onTutorialFocusComplete?.();
+                            setMessage('Blueprint learned. Build it when the resources and timing suit your plan.');
+                          }} /> : null}
+                        </View>
+                      </TutorialFocus>
+                    ) : <Text style={[styles.sceneDetailText, { color: semanticColor(theme, 'warning') }]}>This blueprint is no longer available. Choose another blueprint.</Text>}
+                    <SecondaryButton label="Choose another blueprint" onPress={() => { setConstructionReviewOpen(false); setMessage(null); }} />
+                  </View>
+                ) : (
+                  <View testID="scene-construction-picker" style={styles.sceneDetailsContent}>
+                    <Text style={[styles.sceneDetailText, { color: theme.colors.textMuted }]}>Select a blueprint to review its cost. Selection never spends resources.</Text>
+                    {previewBuilding ? <View style={styles.sceneDetailsContent}>
+                      <Text style={[styles.sceneDetailTitle, { color: theme.colors.text }]}>Preview: {previewBuilding.name}</Text>
+                      <Text style={[styles.sceneDetailText, { color: theme.colors.textMuted }]}>{previewDistrictBonuses.length ? 'Activates ' + previewDistrictBonuses.map(bonus => bonus.name).join(' + ') + '.' : 'No district bonus activates here.'}</Text>
+                    </View> : null}
+                    {availableBuildings.map(building => {
+                      const quality = settlementPlacementQuality(previewBonuses(building.id).length);
+                      const affordable = canPayBuildingCost(resources, building.constructionCost);
+                      const focused = tutorialFocus?.kind === 'settlement-building' && tutorialFocus.buildingId === building.id;
+                      const previewed = previewBuildingId === building.id;
+                      const role = buildingRolePresentation[building.role];
+                      return <TutorialFocus key={building.id} active={focused} label={focused ? tutorialFocus?.label : undefined}>
+                        <View testID={'settlement-blueprint-' + building.id}>
+                          <Pressable
+                            testID={'construction-select-' + building.id}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: previewed }}
+                            accessibilityLabel={'Review ' + building.name + ', ' + quality.label + ' placement, ' + (affordable ? 'materials available' : 'materials missing')}
+                            accessibilityHint="Shows construction benefits and cost; no resources are spent."
+                            onPress={() => { setPreviewBuildingId(building.id); setConstructionReviewOpen(true); setMessage(null); if (blueprintPlannerOpen) setPlanningBuildingId(building.id); }}
+                            style={({ pressed }) => [styles.constructionChoice, {
+                              borderColor: previewed ? theme.colors.gold : theme.colors.border,
+                              backgroundColor: theme.colors.surface2, opacity: pressed ? 0.75 : 1
+                            }]}
+                          >
+                            <View pointerEvents="none" style={styles.constructionChoiceHeading}>
+                              <BuildingSprite buildingId={building.id} faction={activeFaction} size={32} />
+                              <View style={styles.sceneActionHeadingCopy}>
+                                <Text style={[styles.sceneActionName, { color: theme.colors.text }]}>{building.name}</Text>
+                                <Text style={[styles.sceneActionLevel, { color: semanticColor(theme, role?.tone ?? 'neutral') }]}>{role?.label ?? building.role}</Text>
+                              </View>
+                            </View>
+                            <View pointerEvents="none" style={styles.chips}>
+                              <SemanticChip label={affordable ? 'Materials available' : 'Materials missing'} tone={affordable ? 'positive' : 'warning'} compact />
+                              <SemanticChip label={quality.label + ' · ' + quality.summary} tone={quality.tone} compact />
+                            </View>
+                          </Pressable>
+                        </View>
+                      </TutorialFocus>;
+                    })}
+                    {!availableBuildings.length ? <Text style={[styles.sceneDetailText, { color: theme.colors.textMuted }]}>No unlocked unbuilt buildings are currently available.</Text> : null}
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          </View>
+        ) : null}
         {selectedBuilding ? (
           <View testID="settlement-scene-actions-layer" pointerEvents="box-none" style={styles.sceneActionsLayer}>
             <View
@@ -1705,114 +1898,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <SecondaryButton label="Close district" onPress={() => setSelectedDistrictId(null)} />
           </View>
         </View>
-      ) : selectedBuilding ? null : selectedPlot ? (
-        <>
-          <View style={[styles.inspectorSheet, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
-            <View style={[styles.inspectorHandle, { backgroundColor: theme.colors.border }]} />
-            <View style={styles.inspectorHeader}>
-              <View style={styles.inspectorCopy}>
-                <Text style={[styles.inspectorEyebrow, { color: theme.colors.textMuted }]}>BUILD SITE</Text>
-                <Text style={[styles.inspectorTitle, { color: theme.colors.text }]}>Choose a blueprint</Text>
-              </View>
-              <View style={styles.inspectorPreviewChips}>
-                <SemanticChip label={selectedPlot.id.replace('plot_', '').toUpperCase()} tone="blue" compact />
-                {previewBuilding ? (
-                  <SemanticChip
-                    label={previewPlacementQuality.label + ' · ' + previewPlacementQuality.summary}
-                    tone={previewPlacementQuality.tone}
-                    compact
-                  />
-                ) : null}
-              </View>
-            </View>
-            {previewBuilding ? (
-              <Text style={[styles.inspectorHint, { color: theme.colors.textMuted }]}>
-                {previewPlacementQuality.label} placement for {previewBuilding.name}
-                {previewDistrictBonuses.length
-                  ? ' · activates ' + previewDistrictBonuses.map(bonus => bonus.name).join(' + ') + '.'
-                  : ' · no district bonus activates here.'}
-              </Text>
-            ) : null}
-          </View>
-          {availableBuildings.length ? (
-            <View style={styles.list}>
-              {availableBuildings.map(building => {
-                const potentialBonuses = previewBonuses(building.id);
-                const affordable = canPayBuildingCost(resources, building.constructionCost);
-                const tutorialBuildingFocused = tutorialFocus?.kind === 'settlement-building' && tutorialFocus.buildingId === building.id;
-                const roleColor = semanticColor(theme, buildingRolePresentation[building.role]?.tone ?? 'neutral');
-                const previewed = previewBuildingId === building.id;
-                const placementQuality = settlementPlacementQuality(potentialBonuses.length);
-                return (
-                  <TutorialFocus key={building.id} active={tutorialBuildingFocused} label={tutorialBuildingFocused ? tutorialFocus.label : undefined}>
-                    <View
-                      testID={'settlement-blueprint-' + building.id}
-                      style={[styles.constructionOption, { borderColor: previewed ? theme.colors.gold : roleColor, borderWidth: previewed ? 2 : 1, backgroundColor: theme.colors.surface1 }]}
-                    >
-                      <BuildingHeading building={building} />
-                      <Text style={[styles.optionDescription, { color: theme.colors.textMuted }]}>{building.description}</Text>
-                      <View style={styles.chips}>
-                        <SemanticChip label={affordable ? 'Materials available' : 'Materials missing'} tone={affordable ? 'positive' : 'warning'} compact />
-                        <SemanticChip
-                          label={placementQuality.label + ' · ' + placementQuality.summary}
-                          tone={placementQuality.tone}
-                          compact
-                        />
-                      </View>
-                      <BuildingCosts cost={building.constructionCost} wallet={resources} />
-                      {potentialBonuses.length ? (
-                        <View style={styles.section}>
-                          <SemanticChip label={'Activates ' + potentialBonuses.length + (potentialBonuses.length === 1 ? ' district' : ' districts')} tone="blue" compact />
-                          {potentialBonuses.map(bonus => (
-                            <View key={bonus.id} style={[styles.preview, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}>
-                              <Text style={[styles.bonusName, { color: theme.colors.text }]}>{bonus.name}</Text>
-                              <DistrictEffects bonus={bonus} state="preview" />
-                            </View>
-                          ))}
-                        </View>
-                      ) : null}
-                      <View style={styles.previewAction}>
-                        <SecondaryButton
-                          label={previewed ? 'Previewing placement' : potentialBonuses.length ? 'Preview district' : 'Preview placement'}
-                          onPress={() => {
-                            setPreviewBuildingId(building.id);
-                            if (blueprintPlannerOpen) setPlanningBuildingId(building.id);
-                          }}
-                        />
-                      </View>
-                      <View style={styles.button}>
-                        <PrimaryButton
-                          label={'Build ' + building.name}
-                          disabled={!affordable}
-                          onPress={() => {
-                            const ok = constructBuilding(building.id, selectedPlot.id);
-                            setMessage(ok ? building.name + ' constructed. District bonuses recalculated.' : 'This building cannot be constructed here yet.');
-                            if (ok) {
-                              setSelectedPlotId(null);
-                              setPreviewBuildingId(null);
-                              setBlueprintPlannerOpen(false);
-                              setPlanningBuildingId(null);
-                              if (tutorialBuildingFocused) onTutorialFocusComplete?.();
-                            }
-                          }}
-                        />
-                        {tutorialBuildingFocused ? (
-                          <View style={styles.button}>
-                            <SecondaryButton label="Build later" onPress={() => {
-                              onTutorialFocusComplete?.();
-                              setMessage('Blueprint learned. Build it when the resources and timing suit your plan.');
-                            }} />
-                          </View>
-                        ) : null}
-                      </View>
-                    </View>
-                  </TutorialFocus>
-                );
-              })}
-            </View>
-          ) : <Text style={[styles.sceneHelp, { color: theme.colors.textMuted }]}>No unlocked unbuilt buildings are currently available.</Text>}
-        </>
-      ) : (
+      ) : selectedBuilding || selectedPlot ? null : (
         <Text style={[styles.sceneHelp, { color: theme.colors.textMuted }]}>Tap a structure to manage it or marked ground to expand.</Text>
       )}
 
@@ -1907,7 +1993,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </View>
         ) : null}
       </View>
-      {message && !selectedBuilding ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.text }]}>{message}</Text> : null}
+      {message && !selectedBuilding && !selectedPlot ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.text }]}>{message}</Text> : null}
       <SecondaryButton label="Return to Kingdom" onPress={onExit} />
     </ScrollView>
   );
@@ -2034,6 +2120,10 @@ const styles = StyleSheet.create({
   sceneActionReadyDot: { width: 5, height: 5, borderRadius: 999 },
   sceneDetailsScroll: { padding: 6, paddingTop: 10 },
   sceneDetailsContent: { gap: 8 },
+  constructionChoice: { minWidth: 48, minHeight: 48, borderWidth: 1, borderRadius: 12, padding: 9, gap: 5 },
+  constructionChoiceHeading: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  constructionGhost: { position: 'absolute', left: '50%', top: '50%', marginLeft: -36, marginTop: -42, width: 72, alignItems: 'center', opacity: 0.65, zIndex: 7 },
+  constructionGhostLabel: { fontSize: 9, lineHeight: 13, fontWeight: '900', paddingHorizontal: 5, borderRadius: 4 },
   sceneDetailTitle: { fontSize: 12, lineHeight: 18, fontWeight: '900' },
   sceneDetailText: { fontSize: 12, lineHeight: 18 },
   sceneFeedback: { fontSize: 12, lineHeight: 17, fontWeight: '700', padding: 6 },
