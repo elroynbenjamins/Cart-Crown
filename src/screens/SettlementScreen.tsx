@@ -1298,8 +1298,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
-          const buildingSize = landmark ? 104 : Math.round(70 * depthScale);
-          const ambienceSize = landmark ? 126 : Math.round(94 * depthScale);
+          const buildingSize = worldRebuildActive
+            ? landmark ? 138 : Math.round(88 * depthScale)
+            : landmark ? 104 : Math.round(70 * depthScale);
+          const ambienceSize = worldRebuildActive
+            ? landmark ? 118 : Math.round(78 * depthScale)
+            : landmark ? 126 : Math.round(94 * depthScale);
           const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
           const visualPosition = (worldRebuildActive ? humanFortWorldPositions[plot.id] : settlementPlotPositions[plot.id]) ?? {
