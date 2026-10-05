@@ -34,9 +34,11 @@ jobs:
             const renderedInteractionVersion = interactionVersion.current;''')
           s = s.replace('if (interactionVersion.current !== renderedInteractionVersion ||', 'if (latestInteractionRender.current !== interactionRender || interactionVersion.current !== renderedInteractionVersion ||')
           s = s.replace(": selectedBuildingLevel >= selectedBuilding.maxLevel ? 'Maximum building level reached.'", ": selectedBuildingLevel <= 0 ? 'Construct this building first.'\n    : selectedBuildingLevel >= selectedBuilding.maxLevel ? 'Maximum building level reached.'")
+          s = s.replace('setSelectedBuildingId(buildingSelected ? null : building.id);', 'setSelectedBuildingId(building.id);')
           p.write_text(s)
           p = Path('scripts/settlement-ui-regression.ts')
           t = p.read_text().replace("nodes(tree, 'View').some(node => node.props.testID === 'scene-building-feedback')", "nodes(tree, 'Text').some(node => node.props.testID === 'scene-building-feedback')")
+          t = t.replace("node.props.testID?.startsWith('settlement-')", "node.props.testID?.startsWith('settlement-plot_')")
           p.write_text(t)
           PY
       - name: Install project dependencies
