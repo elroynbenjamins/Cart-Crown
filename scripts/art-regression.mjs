@@ -150,7 +150,7 @@ const treasuryAtlas = {
 };
 const settlementHumanV2Atlas = {
   width: 330, height: 330, maxBytes: 200000, columns: 3, rows: 3,
-  margin: 2, minCellCoverage: 0.1, allowPalette: true
+  margin: 2, minCellCoverage: 0.1
 };
 const sprites = walk(path.join(root, 'assets/game')).filter(file => file.endsWith('.png')).sort();
 assert.ok(sprites.length > 0, 'No production PNGs found');
