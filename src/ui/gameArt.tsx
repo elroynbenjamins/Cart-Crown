@@ -3114,6 +3114,7 @@ export function SettlementBuildPlotSprite({
 }
 
 
+// Human Fort uses a layered world canvas; gameplay plots remain invisible anchors above it.
 function HumanFortWorldBackdrop() {
   const worldMotion = useSettlementAmbientMotion(3600);
   const waterShift = worldMotion.interpolate({ inputRange: [0, 1], outputRange: [-8, 8] });
