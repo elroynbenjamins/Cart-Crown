@@ -63,10 +63,12 @@ def tap(root,label:str):
     adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2))
     time.sleep(.25)
 
-def find_tap(label:str, scroll:bool=False):
+def reach(label:str, scroll:bool=False):
     for _ in range(12 if scroll else 5):
         root,_=hierarchy()
-        try: tap(root,label); return
+        try:
+            clickable_bounds(root,label)
+            return root
         except RuntimeError:
             if scroll:
                 size=adb('shell','wm','size').splitlines()[-1]
@@ -74,6 +76,10 @@ def find_tap(label:str, scroll:bool=False):
                 adb('shell','input','swipe',str(w//2),str(int(h*.72)),str(w//2),str(int(h*.42)),'260')
             time.sleep(.2)
     raise RuntimeError('Could not reach '+label)
+
+def find_tap(label:str, scroll:bool=False):
+    root=reach(label,scroll=scroll)
+    tap(root,label)
 
 def capture(out:Path,name:str):
     png=subprocess.run(['adb','exec-out','screencap','-p'],capture_output=True,check=True,timeout=20).stdout
@@ -119,15 +125,19 @@ def scenario(out:Path,name:str,size:str,density:int,font_scale:float):
         assert_inside(root,label,w,h); assert_min_touch(root,label,density)
 
     tap(root,'Inspect Barracks')
-    root=wait('Close details')
+    wait('Current · Level 2')
     capture(out,name+'-inspect')
+    root=reach('Close details',scroll=True)
+    capture(out,name+'-inspect-scrolled')
     assert_inside(root,'Close details',w,h)
-    find_tap('Close details',scroll=True)
+    tap(root,'Close details')
     root=wait('Review upgrade for Barracks')
 
     tap(root,'Review upgrade for Barracks')
-    root=wait('Confirm upgrade to Level 3')
+    wait('Upgrade review')
     capture(out,name+'-upgrade-review')
+    root=reach('Confirm upgrade to Level 3',scroll=True)
+    capture(out,name+'-upgrade-review-scrolled')
     assert_inside(root,'Confirm upgrade to Level 3',w,h)
     find_tap('Cancel upgrade',scroll=True)
     root=wait('Move Barracks')
@@ -135,8 +145,10 @@ def scenario(out:Path,name:str,size:str,density:int,font_scale:float):
     tap(root,'Move Barracks')
     root=wait('Tap an open plot')
     tap(root,'Plot nw')
-    root=wait('Confirm free move')
+    wait('Move to Northwest')
     capture(out,name+'-move-review')
+    root=reach('Confirm free move',scroll=True)
+    capture(out,name+'-move-review-scrolled')
     assert_inside(root,'Confirm free move',w,h)
     find_tap('Cancel move',scroll=True)
     root=wait('Close building actions')
@@ -149,11 +161,13 @@ def scenario(out:Path,name:str,size:str,density:int,font_scale:float):
     capture(out,name+'-blueprint-picker')
     assert 'PREVIEW' in copy(root)
     find_tap('Review Field Forge',scroll=True)
-    root=wait('Build Field Forge')
+    wait('Review construction')
     capture(out,name+'-construction-review')
+    root=reach('Build Field Forge',scroll=True)
+    capture(out,name+'-construction-review-scrolled')
     assert 'Preview only' in copy(root)
     assert_inside(root,'Build Field Forge',w,h)
-    find_tap('Build Field Forge',scroll=True)
+    tap(root,'Build Field Forge')
     root=wait('constructed')
     capture(out,name+'-constructed')
     assert 'Inspect Field Forge' in copy(root)
