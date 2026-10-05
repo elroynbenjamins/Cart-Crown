@@ -1110,7 +1110,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <Text style={[styles.unlockCelebrationDetail, { color: theme.colors.text }]} numberOfLines={1}>{unlockCelebration.detail}</Text>
           </View>
         ) : null}
-        {districtOverlayVisible && visibleDistrictConnections.length ? (
+        {visibleDistrictConnections.length ? (
           <>
             <View pointerEvents="none" style={styles.districtZoneLayer}>
               {visibleDistrictConnections.map(connection => {
@@ -1134,14 +1134,15 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       styles.districtZone,
                       {
                         backgroundColor: zoneFill,
-                        borderColor: zoneBorder
+                        borderColor: zoneBorder,
+                        opacity: districtOverlayVisible ? 1 : 0
                       }
                     ]}
                   />
                 );
               })}
             </View>
-            <View pointerEvents="box-none" style={styles.districtTagLayer}>
+            <View pointerEvents={districtOverlayVisible ? "box-none" : "none"} style={styles.districtTagLayer}>
               {visibleDistrictConnections.map(connection => {
                 const dimmed = districtFocusActive && !connection.focused;
                 const zoneBorder = blendColor(
@@ -1154,8 +1155,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   <Pressable
                     key={'tag-' + connection.id}
                     testID={'district-zone-label-' + connection.id}
+                    accessible={districtOverlayVisible}
+                    disabled={!districtOverlayVisible}
                     accessibilityRole="button"
-                    accessibilityState={{ selected: selectedDistrictTag }}
+                    accessibilityState={{ selected: selectedDistrictTag, disabled: !districtOverlayVisible }}
                     accessibilityLabel={'Focus ' + connection.name + ' district'}
                     accessibilityHint="Show this district bonus and its two buildings."
                     onPress={() => {
@@ -1178,7 +1181,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         backgroundColor: theme.colors.surface1,
                         borderColor: selectedDistrictTag ? connection.color : zoneBorder,
                         borderWidth: selectedDistrictTag ? 2 : 1,
-                        opacity: connection.focused ? 1 : dimmed ? 0.42 : 0.76
+                        opacity: districtOverlayVisible ? (connection.focused ? 1 : dimmed ? 0.42 : 0.76) : 0
                       }
                     ]}
                   >
