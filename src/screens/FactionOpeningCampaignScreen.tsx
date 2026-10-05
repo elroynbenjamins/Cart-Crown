@@ -14,7 +14,8 @@ import {
   SectionTitle,
   StatusPill
 } from '../ui/components';
-import { CampaignNodeSprite, FactionCrest, RegionMapBackdrop } from '../ui/gameArt';
+import { CampaignNodeSprite, FactionCrest } from '../ui/gameArt';
+import { CampaignJourneyMap } from '../ui/CampaignJourneyMap';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import { ActivityCard } from '../ui/ActivityCard';
 import {
@@ -504,16 +505,24 @@ export function FactionOpeningCampaignScreen({
         trailing="Current region"
       />
 
-      <View style={[styles.regionPreview, { borderColor: accent }]}>
-        <RegionMapBackdrop faction={activeFaction} chapter={chapterNumber} />
-        <View style={styles.regionRoute}>
-          <View style={[styles.routeDot, { backgroundColor: accent }]} />
-          <View style={[styles.routeLine, { backgroundColor: accent }]} />
-          <View style={[styles.routeDot, { backgroundColor: chapterNumber >= 2 ? accent : theme.colors.border }]} />
-          <View style={[styles.routeLine, { backgroundColor: chapterNumber >= 2 ? accent : theme.colors.border }]} />
-          <View style={[styles.routeDot, { backgroundColor: chapterNumber >= 3 ? accent : theme.colors.border }]} />
-        </View>
-      </View>
+      <CampaignJourneyMap
+        faction={activeFaction}
+        accent={accent}
+        points={chapterNodes.map(node => ({
+          id: node.id,
+          name: node.name,
+          status: node.completed
+            ? ('done' as const)
+            : node.current
+              ? ('current' as const)
+              : ('locked' as const),
+          detail: node.completed
+            ? node.type.toUpperCase() + ' cleared'
+            : node.current
+              ? 'Current ' + node.type.toLowerCase() + ' objective'
+              : 'Complete the previous objective to unlock'
+        }))}
+      />
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
