@@ -1,4 +1,5 @@
 name: Android settlement portrait validation
+# Final-head settlement capture trigger.
 
 on:
   workflow_dispatch:
