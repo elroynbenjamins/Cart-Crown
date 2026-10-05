@@ -1,0 +1,34 @@
+{
+  "generationMethod": "Built-in image_gen tool",
+  "date": "2026-10-05",
+  "useCase": "stylized-concept",
+  "asset": "assets/game/ui/treasury_atlas.png",
+  "dimensions": {
+    "width": 1536,
+    "height": 1024,
+    "columns": 3,
+    "rows": 2,
+    "cellWidth": 512,
+    "cellHeight": 512
+  },
+  "transparentBackground": true,
+  "bytes": 1790691,
+  "sha256": "d0150de8abb3950324bb3fd2f621ba1009dc83306f6d00ead0ed2d707aed0648",
+  "cells": [
+    [
+      "gold",
+      "wood",
+      "stone"
+    ],
+    [
+      "iron",
+      "provisions",
+      "victory_cache"
+    ]
+  ],
+  "notes": "The final generator cleanup output is preserved byte-for-byte. The PNG contains real alpha transparency; the reviewed 8px per-cell gutters have 15 isolated alpha-1/255 pixels and no pixels with alpha >= 2. The atlas-specific art gate permits no more than 32 such roundoff pixels across all gutters. No CLI or programmatic pixel edits were applied.",
+  "prompts": {
+    "initial": "Use case: stylized-concept. Production pixel-art sprite atlas for Cart & Crown, a portrait mobile medieval strategy game. Create ONE complete transparent spritesheet containing exactly SIX separate object sprites arranged in a strict equal-cell 3-column by 2-row grid. Target canvas1536 by1024 pixels, landscape3:2. Each cell is square and exactly one third of the canvas width by one half of the canvas height.\n\nCELL ORDER, which must be followed exactly:\nTOP LEFT: GOLD — three small stacks of round golden coins, plus two loose coins. No pouch.\nTOP MIDDLE: WOOD — three sturdy cut timber logs tied together with a short rope; bright circular cut ends clearly visible.\nTOP RIGHT: STONE — a compact pile of three rough grey stone blocks, visibly rock rather than metal.\nBOTTOM LEFT: IRON — three heavy refined iron ingots stacked neatly, cool silver-blue faces and unmistakable trapezoidal ingot shape.\nBOTTOM MIDDLE: PROVISIONS — one small open wooden food crate containing a large golden bread loaf, one red apple and a few green leaves. Food must be instantly identifiable.\nBOTTOM RIGHT: VICTORY CACHE — a handsome open wooden treasure chest with brass bands and a modest pile of gold coins inside, lid tilted back, heroic but practical. This is a decorative earned-reward illustration.\n\nART STYLE: crisp, professionally authored16-bit pixel art with large intentional square pixel clusters, as if each object were drawn at64 by64 then enlarged with nearest-neighbour. Simple bold readable silhouettes, limited harmonious colors, confident dark outlines with a subtle light edge so sprites read on black or pale parchment. Restrained clustered highlights from upper left, three-quarter/isometric-ish view. Rich material colors: amber gold, warm brown timber, neutral stone, cool steel, appetizing golden bread and green leaf accents. Every sprite should still read when displayed at24–48 pixels. No painterly texture, no photorealism, no smooth3D gradients, no blur, no elaborate tiny decoration.\n\nLAYOUT: place each sprite exactly in the center of its own grid cell, at a consistent visual scale. Keep the entire object INCLUDING coin piles, leaves, open chest lid and any tiny contact shadow inside the central72% of each cell. Generous truly transparent gutters all around every icon. Objects must not touch or overlap any other cell, and no part should touch the outer canvas edge. No soft drop shadows, no glow outside the silhouette, no floor or scene.\n\nBACKGROUND MUST BE ACTUAL ALPHA TRANSPARENCY, not a drawn checkerboard or a solid color. No captions, text, letters, numbers, grid lines, arrows, badges, borders, frames, logos, UI, cards, watermarks or presentation mockup.",
+    "cleanup": "Edit the attached treasury sprite atlas for production use. This is a precise background-extraction and cleanup pass.\n\nKEEP the same six pixel-art objects, their material colors, bold outlines, 3-by-2 cell order, overall art style and1536x1024 canvas. Top row gold coins / bundled wood logs / stone blocks. Bottom row iron ingots / food provisions crate / open victory treasure chest.\n\nREMOVE EVERY colored halo, aura, background gradient, soft shadow, black backdrop, and stray semi-transparent background pixel. The result must be six clean isolated pixel-art cutouts on REAL alpha transparency. Outside each object's deliberate hard dark outline the pixel should be completely transparent, alpha0; inside the solid object it should be fully opaque. Keep crisp stepped pixel edges. No faint glows, haze or low-opacity fringe.\n\nIn each512x512 cell, keep all nontransparent art inside the inner420x420 region, leaving at least46px of completely empty transparent gutter on every side. If necessary, reduce an object slightly as a whole within its own cell to respect that margin, especially the iron and chest. Do not crop a coin, log, leaf, chest lid or other object part. Center each full object in its cell. The gutter must remain completely transparent even near cell boundaries and outer canvas edges.\n\nNo text, grid lines, captions, frame, checkerboard pattern, extra objects, floor or UI. Preserve transparency in the delivered PNG."
+  }
+}

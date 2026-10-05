@@ -228,15 +228,18 @@ export function wagonItemProductionAsset(itemId: string, kind: WagonItemVisualKi
 }
 
 export function uiProductionAsset(id: string) {
+  const treasury = id === 'treasury_atlas';
   return spec(
     'ui.' + id,
     'ui',
     PRODUCTION_ASSET_ROOT + '/ui/' + slug(id) + '.png',
-    96,
-    96,
+    treasury ? 1536 : 96,
+    treasury ? 1024 : 96,
     true,
-    14,
-    'Small UI glyph. Must stay legible around 20–32 px.'
+    treasury ? 1.5625 : 14,
+    treasury
+      ? 'Transparent 3-by-2 treasury atlas: gold, wood, stone / iron, provisions, victory cache. Render one reviewed 512px square cell at a time; safe margin is per cell (8px).'
+      : 'Small UI glyph. Must stay legible around 20–32 px.'
   );
 }
 
@@ -248,6 +251,8 @@ export function uiProductionAsset(id: string) {
 // Spiritwood Spear likewise uses its existing Elven spear renderer after the
 // all-category native audit found an unrecoverable compressed PNG payload.
 export const productionAssetSources: Partial<Record<string, ImageSourcePropType>> = {
+  'ui.treasury_atlas': require('../../assets/game/ui/treasury_atlas.png'),
+
   'scene.human.camp': require('../../assets/game/scenes/human/camp.png'),
   'scene.elf.camp': require('../../assets/game/scenes/elf/camp.png'),
   'scene.orc.camp': require('../../assets/game/scenes/orc/camp.png'),

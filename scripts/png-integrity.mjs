@@ -20,7 +20,7 @@ function paeth(a, b, c) {
   return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
 }
 
-// Both image categories use the same complete decoder. Their dimensions,
+// All image categories use the same complete decoder. Their dimensions,
 // permitted color types, byte limits and alpha requirements remain separate.
 function decodePng(bytes, contract) {
   requireValid(bytes.length >= 57 && bytes.length <= contract.maxBytes, 'Invalid ' + contract.label.toLowerCase() + ' file size');
@@ -117,4 +117,67 @@ export function validateScenePng(bytes, contract) {
   });
   requireValid(decoded.transparent === 0 && decoded.visible === decoded.width * decoded.height, 'Scene must be fully opaque');
   return decoded;
+}
+
+/** An explicitly sized alpha atlas must keep every icon inside its own cell. */
+export function validateAlphaAtlasPng(bytes, contract) {
+  requireValid(
+    Number.isInteger(contract?.width) && contract.width > 0 && contract.width <= 2048 &&
+      Number.isInteger(contract?.height) && contract.height > 0 && contract.height <= 2048 &&
+      Number.isInteger(contract?.maxBytes) && contract.maxBytes >= 57 && contract.maxBytes <= 3000000,
+    'Atlas requires explicit dimensions up to 2048x2048 and a file budget up to 3000000 bytes'
+  );
+  requireValid(
+    Number.isInteger(contract.columns) && contract.columns > 0 && contract.columns <= 8 &&
+      Number.isInteger(contract.rows) && contract.rows > 0 && contract.rows <= 8 &&
+      Number.isInteger(contract.margin) && contract.margin > 0 &&
+      contract.margin * 2 < Math.floor(contract.width / contract.columns) &&
+      contract.margin * 2 < Math.floor(contract.height / contract.rows) &&
+      Number.isFinite(contract.minCellCoverage) && contract.minCellCoverage > 0 && contract.minCellCoverage <= 1,
+    'Atlas requires an explicit cell grid, positive transparent margins and minimum cell coverage'
+  );
+  const maxMarginAlpha = contract.maxMarginAlpha ?? 0;
+  const maxMarginPixels = contract.maxMarginPixels ?? 0;
+  requireValid(
+    Number.isInteger(maxMarginAlpha) && maxMarginAlpha >= 0 && maxMarginAlpha <= 1 &&
+      Number.isInteger(maxMarginPixels) && maxMarginPixels >= 0 && maxMarginPixels <= 32 &&
+      (maxMarginAlpha > 0 || maxMarginPixels === 0),
+    'Atlas margin roundoff allowance must be explicit and bounded to alpha 1 at 32 pixels'
+  );
+  const decoded = decodePng(bytes, {
+    label: 'Atlas', width: contract.width, height: contract.height, maxBytes: contract.maxBytes,
+    colorTypes: [4, 6], colorMessage: 'Atlas must use 8-bit alpha color type 4 or 6'
+  });
+  requireValid(decoded.transparent > 0, 'Atlas must contain real transparency');
+  requireValid(decoded.visible > 0, 'Atlas contains no visible pixels');
+  const channels = decoded.colorType === 6 ? 4 : 2;
+  const cells = [];
+  let marginNoisePixels = 0;
+  for (let row = 0; row < contract.rows; row++) {
+    for (let column = 0; column < contract.columns; column++) {
+      const left = Math.floor(column * decoded.width / contract.columns);
+      const right = Math.floor((column + 1) * decoded.width / contract.columns);
+      const top = Math.floor(row * decoded.height / contract.rows);
+      const bottom = Math.floor((row + 1) * decoded.height / contract.rows);
+      let visible = 0;
+      for (let y = top; y < bottom; y++) {
+        for (let x = left; x < right; x++) {
+          const alpha = decoded.pixels[(y * decoded.width + x) * channels + channels - 1];
+          const margin = x < left + contract.margin || x >= right - contract.margin ||
+            y < top + contract.margin || y >= bottom - contract.margin;
+          if (margin) {
+            requireValid(alpha <= maxMarginAlpha, 'Atlas cell ' + column + ',' + row + ' has visible pixels in its transparent margin at ' + x + ',' + y);
+            if (alpha > 0) {
+              marginNoisePixels++;
+              requireValid(marginNoisePixels <= maxMarginPixels, 'Atlas exceeds its margin roundoff budget of ' + maxMarginPixels + ' pixels');
+            }
+          } else if (alpha > 0) visible++;
+        }
+      }
+      const innerArea = (right - left - contract.margin * 2) * (bottom - top - contract.margin * 2);
+      requireValid(visible >= Math.ceil(innerArea * contract.minCellCoverage), 'Atlas cell ' + column + ',' + row + ' is unexpectedly blank or too sparse');
+      cells.push({ column, row, visible });
+    }
+  }
+  return { ...decoded, cells, marginNoisePixels };
 }

@@ -13,6 +13,7 @@ import type { FactionId, ResourceWallet } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, SectionTitle } from './components';
 import { FactionCrest, ResourceSprite, StoryScene } from './gameArt';
+import { TreasurySprite } from './TreasuryArt';
 
 /** A single decorative entrance. Resource amounts are always fully visible. */
 function useRewardEntrance() {
@@ -85,6 +86,7 @@ export function VictoryHeader({
   scene: 'victory' | 'crownspire';
 }) {
   const { theme } = useGameTheme();
+  const showVictoryCache = scene === 'victory';
 
   return (
     <GameCard faction={faction} accent={theme.colors.gold}>
@@ -103,12 +105,25 @@ export function VictoryHeader({
           accessible={false}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
-          style={[styles.scene, { borderColor: theme.colors.border }]}
+          style={[
+            styles.scene,
+            { borderColor: theme.colors.border },
+            showVictoryCache && [
+              styles.cacheScene,
+              { backgroundColor: theme.colors.surface2, borderColor: theme.colors.gold + '55' }
+            ]
+          ]}
         >
-          <StoryScene scene={scene} faction={faction} size={102} />
+          {showVictoryCache ? (
+            <TreasurySprite kind="victory_cache" size={64}>
+              <StoryScene scene="victory" faction={faction} size={64} />
+            </TreasurySprite>
+          ) : (
+            <StoryScene scene={scene} faction={faction} size={102} />
+          )}
         </View>
       </View>
-      <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
+      <Text style={[styles.title, showVictoryCache && styles.cacheTitle, { color: theme.colors.text }]}>{title}</Text>
       <Text style={[styles.summary, { color: theme.colors.textMuted }]}>{summary}</Text>
     </GameCard>
   );
@@ -120,6 +135,7 @@ export function VictoryRewards({ rewards }: { rewards: Partial<ResourceWallet> }
   const progress = useRewardEntrance();
   const entries = (Object.entries(rewards) as Array<[keyof ResourceWallet, number]>)
     .filter(([, value]) => Boolean(value));
+  const pairedRewards = entries.length === 4;
   const colors: Record<keyof ResourceWallet, string> = {
     gold: theme.colors.gold,
     wood: theme.dark ? '#D6A875' : '#925D2B',
@@ -154,6 +170,7 @@ export function VictoryRewards({ rewards }: { rewards: Partial<ResourceWallet> }
                   accessibilityLabel={'+' + value + ' ' + labels[resource]}
                   style={[
                     styles.reward,
+                    pairedRewards && styles.pairedReward,
                     {
                       minWidth: Math.min(150, 84 * fontScale),
                       backgroundColor: theme.colors.surface2,
@@ -168,6 +185,7 @@ export function VictoryRewards({ rewards }: { rewards: Partial<ResourceWallet> }
                     importantForAccessibility="no-hide-descendants"
                     style={[
                       styles.rewardIcon,
+                      pairedRewards && styles.pairedRewardIcon,
                       {
                         backgroundColor: color + (theme.dark ? '18' : '12'),
                         transform: [
@@ -191,7 +209,7 @@ export function VictoryRewards({ rewards }: { rewards: Partial<ResourceWallet> }
                   >
                     <ResourceSprite resource={resource} size={38} />
                   </Animated.View>
-                  <Text style={[styles.rewardValue, { color }]}>+{value}</Text>
+                  <Text style={[styles.rewardValue, pairedRewards && styles.pairedRewardValue, { color }]}>+{value}</Text>
                   <Text style={[styles.rewardLabel, { color: theme.colors.text }]}>{labels[resource]}</Text>
                 </View>
               );
@@ -214,14 +232,19 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 9, fontWeight: '800', letterSpacing: 1.3 },
   victory: { fontSize: 25, fontWeight: '900', letterSpacing: 1, marginTop: 1 },
   scene: { borderWidth: 1, borderRadius: 10, overflow: 'hidden' },
+  cacheScene: { width: 88, height: 64, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 19, fontWeight: '900', marginTop: 12 },
+  cacheTitle: { marginTop: 8 },
   summary: { fontSize: 12, lineHeight: 18, marginTop: 6 },
   rewardsSection: { gap: 8 },
   rewards: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   reward: { flexBasis: '30%', flexGrow: 1, borderWidth: 1, borderRadius: 13, padding: 10, paddingTop: 12, alignItems: 'center', overflow: 'hidden' },
+  pairedReward: { flexBasis: '46%', padding: 8, paddingTop: 8 },
   rewardEdge: { position: 'absolute', top: 0, left: 15, right: 15, height: 2, borderBottomLeftRadius: 2, borderBottomRightRadius: 2 },
   rewardIcon: { width: 46, height: 46, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  rewardValue: { fontSize: 21, fontWeight: '900', fontVariant: ['tabular-nums'], marginTop: 5 },
-  rewardLabel: { fontSize: 11, fontWeight: '700', textAlign: 'center', marginTop: 2 },
+  pairedRewardIcon: { width: 40, height: 40, borderRadius: 10 },
+  rewardValue: { fontSize: 21, fontWeight: '900', fontVariant: ['tabular-nums'], marginTop: 5, alignSelf: 'stretch', textAlign: 'center' },
+  pairedRewardValue: { marginTop: 3 },
+  rewardLabel: { fontSize: 11, fontWeight: '700', alignSelf: 'stretch', textAlign: 'center', marginTop: 2 },
   emptyRewards: { fontSize: 12, lineHeight: 18 }
 });

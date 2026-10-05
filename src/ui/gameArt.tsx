@@ -1,5 +1,6 @@
 import { humanFigureForClass } from './portraitBattle/humanArt';
 import { ReferenceArt } from './portraitBattle/Art';
+import { TreasurySprite } from './TreasuryArt';
 import React from 'react';
 import { AccessibilityInfo, Animated, Easing, Image, View } from 'react-native';
 import type {
@@ -1646,7 +1647,9 @@ export function ResourceSprite({
   const production = resourceProductionAsset(resource);
   return (
     <ProductionAssetFrame assetId={production.id} width={size}>
-      <PixelSprite artKey={keyByResource[resource]} size={size} />
+      <TreasurySprite kind={resource} size={size}>
+        <PixelSprite artKey={keyByResource[resource]} size={size} />
+      </TreasurySprite>
     </ProductionAssetFrame>
   );
 }
