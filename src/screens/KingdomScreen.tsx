@@ -46,10 +46,11 @@ export function KingdomScreen({
         : currentWagonStage.id === 'town' ? 'Greenkeep Town'
           : currentWagonStage.id === 'fort' ? 'Greenkeep Fort'
             : settlementUpgraded ? 'Greenkeep Settlement' : 'Refugee Camp';
-  const progress = holdTheRoadWon ? 1 : 0.34;
   const dailySupplyClaimed = (rewardedAdClaims.daily_supply ?? 0) >= 1;
-  const unlockedCount = buildings.filter(building => isBuildingUnlocked(building.id)).length;
-  const builtCount = buildings.filter(building => (buildingLevels[building.id] ?? 0) > 0).length;
+  const unlockedBuildings = buildings.filter(building => isBuildingUnlocked(building.id));
+  const unlockedCount = unlockedBuildings.length;
+  const builtCount = unlockedBuildings.filter(building => (buildingLevels[building.id] ?? 0) > 0).length;
+  const developmentProgress = unlockedCount > 0 ? builtCount / unlockedCount : 0;
   const productionTotal = productionStock.gold + productionStock.wood + productionStock.stone + productionStock.iron + productionStock.provisions;
 
   let milestoneTitle = 'Establish a permanent settlement';
@@ -182,11 +183,12 @@ export function KingdomScreen({
           </View>
           <View style={styles.heroMetrics}>
             <MetricTile label="DEVELOPMENT" value={builtCount + '/' + unlockedCount} caption="built / unlocked" tone="gold" />
-            <MetricTile label="ACTIVE SQUADS" value={currentWagonStage.formationSlots} caption={currentWagonStage.width + '×' + currentWagonStage.height + ' wagon'} tone="positive" />
+            <MetricTile label="SQUAD CAPACITY" value={currentWagonStage.formationSlots} caption={currentWagonStage.width + '×' + currentWagonStage.height + ' wagon'} tone="positive" />
           </View>
         </View>
         <View style={styles.heroProgress}>
-          <ProgressBar value={settlementUpgraded ? 0.34 : progress} color={theme.colors.human} />
+          <Text style={[styles.developmentLabel, { color: theme.colors.textMuted }]}>Available buildings constructed</Text>
+          <ProgressBar value={developmentProgress} color={theme.colors.human} />
         </View>
       </ScreenHero>
 
@@ -313,6 +315,7 @@ const styles = StyleSheet.create({
   heroContent: { flexDirection: 'row', alignItems: 'stretch', gap: 9 },
   heroMetrics: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   heroProgress: { marginTop: 10 },
+  developmentLabel: { fontSize: 10, lineHeight: 14, marginBottom: 6 },
   eyebrow: { fontSize: 9.5, letterSpacing: 1.05, fontWeight: '900' },
   keepMark: { width: 72, minHeight: 72, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },

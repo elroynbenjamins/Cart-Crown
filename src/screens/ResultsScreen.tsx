@@ -7,12 +7,11 @@ import {
   GameCard,
   MetricTile,
   PrimaryButton,
-  ScreenHero,
   SecondaryButton,
   SectionTitle,
   StatusPill
 } from '../ui/components';
-import { ResourceSprite, StoryScene } from '../ui/gameArt';
+import { VictoryHeader, VictoryRewards } from '../ui/VictoryPresentation';
 import type { BattleCombatSummary } from './BattleScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
@@ -38,13 +37,6 @@ export function ResultsScreen({
     rewardedAdClaims,
     rewardedAdMessage
   } = useGame();
-  const factionAccent =
-    activeFaction === 'elf'
-      ? theme.colors.elf
-      : activeFaction === 'orc'
-        ? theme.colors.orc
-        : theme.colors.human;
-
   if (!lastBattleResult) {
     return (
       <View style={styles.fallback}>
@@ -54,7 +46,6 @@ export function ResultsScreen({
     );
   }
 
-  const rewards = Object.entries(lastBattleResult.rewards).filter(([, value]) => Boolean(value));
   const readinessProfile = getArmyReadinessProfile(armyReadiness);
   const salvageClaimed = (rewardedAdClaims.salvage_boost ?? 0) >= 1;
   const mercenaryResult = lastBattleResult.id === 'mercenary_patrol_result';
@@ -176,21 +167,14 @@ export function ResultsScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <ScreenHero
-        eyebrow="AFTER ACTION"
+      <VictoryHeader
         title={lastBattleResult.title}
-        body={lastBattleResult.summary}
-        accent={factionAccent}
-        status={<StatusPill label="VICTORY" tone="done" />}
-      >
-        <View style={styles.resultScene}>
-          <StoryScene
-            scene={resultScene}
-            faction={activeFaction}
-            size={210}
-          />
-        </View>
-      </ScreenHero>
+        summary={lastBattleResult.summary}
+        faction={activeFaction}
+        scene={resultScene}
+      />
+
+      <VictoryRewards key={lastBattleResult.id} rewards={lastBattleResult.rewards} />
 
       {battleSummary ? (
         <>
@@ -236,25 +220,6 @@ export function ResultsScreen({
           </GameCard>
         </>
       ) : null}
-
-      <SectionTitle
-        title="Rewards"
-        trailing={String(rewards.length) + ' resources'}
-      />
-      <GameCard faction={activeFaction} state="ready">
-        <View style={styles.rewards}>
-          {rewards.map(([key, value]) => (
-            <View key={key} style={[styles.reward, { backgroundColor: theme.colors.surface2 }]}>
-              <ResourceSprite
-                resource={key as 'gold' | 'wood' | 'stone' | 'iron' | 'provisions'}
-                size={30}
-              />
-              <Text style={[styles.rewardValue, { color: theme.colors.text }]}>+{value}</Text>
-              <Text style={[styles.rewardLabel, { color: theme.colors.textMuted }]}>{key}</Text>
-            </View>
-          ))}
-        </View>
-      </GameCard>
 
       <SectionTitle title="Army condition" trailing={String(armyReadiness) + '%'} />
       <GameCard
@@ -1080,15 +1045,6 @@ export function ResultsScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 30, gap: 14 },
-  rewards: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  reward: { minWidth: '47%', flexGrow: 1, borderRadius: 16, padding: 12, alignItems: 'center' },
-  resultScene: {
-    alignItems: 'center',
-    marginTop: 2,
-    marginBottom: -4
-  },
-  rewardValue: { fontSize: 18, fontWeight: '900', marginTop: 5 },
-  rewardLabel: { fontSize: 10, textTransform: 'capitalize', marginTop: 2 },
   reportGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   conditionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   conditionTitle: { fontSize: 16, fontWeight: '900' },

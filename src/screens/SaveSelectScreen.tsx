@@ -5,13 +5,14 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
+  useWindowDimensions
 } from 'react-native';
 import type { SaveSlotId } from '../save/types';
 import { useSaveSystem } from '../save/SaveProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, StatusPill } from '../ui/components';
-import { FactionCrest } from '../ui/gameArt';
+import { FactionCampScene, FactionCrest } from '../ui/gameArt';
 
 const slotIds: SaveSlotId[] = [1, 2];
 
@@ -26,8 +27,10 @@ function formatDate(value: string) {
 
 export function SaveSelectScreen() {
   const { theme } = useGameTheme();
+  const { width } = useWindowDimensions();
   const { ready, slots, selectSlot, createSlot, deleteSlot } = useSaveSystem();
   const [deleteArmed, setDeleteArmed] = useState<SaveSlotId | null>(null);
+  const sceneWidth = Math.min(Math.max(width - 68, 180), 300);
 
   if (!ready) {
     return (
@@ -41,76 +44,93 @@ export function SaveSelectScreen() {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.appBg }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={[styles.brand, { color: theme.colors.gold }]}>CART & CROWN</Text>
+        <GameCard accent={theme.colors.gold} ornament={false} style={styles.intro}>
+          <View style={styles.brandRow}>
+            <View style={[styles.brandRule, { backgroundColor: theme.colors.gold }]} />
+            <Text style={[styles.brand, { color: theme.colors.gold }]}>CART & CROWN</Text>
+            <View style={[styles.brandRule, { backgroundColor: theme.colors.gold }]} />
+          </View>
+          <View style={[styles.introArt, { height: sceneWidth * 0.48 + 4 }]} pointerEvents="none" importantForAccessibility="no-hide-descendants">
+            <FactionCampScene faction="human" size={sceneWidth} />
+            <View style={[styles.introCrest, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.gold }]}>
+              <FactionCrest faction="human" size={42} />
+            </View>
+          </View>
           <Text style={[styles.title, { color: theme.colors.text }]}>Choose a Save</Text>
           <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-            Two independent worlds. Each save begins with Humans, then later stores separate Human, Elf and Orc kingdom states inside the same slot.
+            From two survivors to a kingdom. Choose where your story continues.
           </Text>
-        </View>
+        </GameCard>
 
         <View style={styles.slots}>
           {slotIds.map((slotId, index) => {
             const metadata = slots[index];
+            const faction = metadata?.faction ?? 'human';
+            const accent = theme.colors[faction];
 
             return (
               <GameCard
                 key={slotId}
-                accent={metadata ? theme.colors.human : undefined}
-                faction={metadata?.faction ?? 'human'}
-                state={metadata ? 'default' : 'locked'}
+                accent={metadata ? accent : theme.colors.primary}
+                faction={faction}
+                state={metadata ? 'default' : 'ready'}
+                ornament={Boolean(metadata)}
               >
                 <View style={styles.slotHeader}>
-                  <View>
-                    <Text style={[styles.slotLabel, { color: theme.colors.textMuted }]}>SAVE {slotId}</Text>
-                    <Text style={[styles.slotTitle, { color: theme.colors.text }]}>
-                      {metadata ? metadata.kingdomName : 'Empty Slot'}
+                  <View style={[styles.slotCrest, { backgroundColor: theme.colors.surface2, borderColor: accent + '66' }]}>
+                    <FactionCrest faction={faction} size={38} />
+                  </View>
+                  <View style={styles.slotCopy}>
+                    <View style={styles.slotEyebrow}>
+                      <Text style={[styles.slotLabel, { color: metadata ? accent : theme.colors.textMuted }]}>SAVE {slotId}</Text>
+                      <StatusPill
+                        label={metadata ? metadata.faction.toUpperCase() : 'NEW'}
+                        tone={metadata ? 'current' : 'available'}
+                      />
+                    </View>
+                    <Text style={[styles.slotTitle, { color: theme.colors.text }]} numberOfLines={2}>
+                      {metadata ? metadata.kingdomName : 'A new beginning'}
                     </Text>
                   </View>
-                  {metadata ? (
-                    <View style={styles.slotFaction}>
-                      <FactionCrest faction={metadata.faction} size={34} />
-                      <StatusPill label={metadata.faction.toUpperCase()} tone="current" />
-                    </View>
-                  ) : (
-                    <StatusPill label="NEW" tone="available" />
-                  )}
                 </View>
 
                 {metadata ? (
                   <>
-                    <Text style={[styles.chapter, { color: theme.colors.textMuted }]}>
-                      {metadata.chapterLabel}
-                    </Text>
-                    <View style={styles.metaRow}>
-                      <Text style={[styles.metaText, { color: theme.colors.text }]}>
-                        {metadata.activeSquads} active squads
+                    <View style={[styles.progressPanel, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
+                      <Text style={[styles.progressLabel, { color: accent }]}>CAMPAIGN PROGRESS</Text>
+                      <Text style={[styles.chapter, { color: theme.colors.text }]}>
+                        {metadata.chapterLabel}
                       </Text>
-                      <Text style={[styles.metaText, { color: theme.colors.textMuted }]}>
-                        {formatDate(metadata.updatedAt)}
-                      </Text>
-                    </View>
-                    <View style={styles.unlockRow}>
-                      <View style={styles.unlockFaction}>
-                        <FactionCrest faction="elf" size={28} />
-                        <StatusPill
-                          label={metadata.elfCampaignUnlocked ? 'ELVES READY' : 'ELVES LOCKED'}
-                          tone={metadata.elfCampaignUnlocked ? 'available' : 'locked'}
-                        />
+                      <View style={styles.metaRow}>
+                        <Text style={[styles.metaText, { color: theme.colors.text }]}>
+                          {metadata.activeSquads} active squads
+                        </Text>
+                        <Text style={[styles.metaText, { color: theme.colors.textMuted }]}>
+                          Saved {formatDate(metadata.updatedAt)}
+                        </Text>
                       </View>
-                      <View style={styles.unlockFaction}>
-                        <FactionCrest faction="orc" size={28} />
-                        <StatusPill
-                          label={metadata.orcCampaignUnlocked ? 'ORCS READY' : 'ORCS LOCKED'}
-                          tone={metadata.orcCampaignUnlocked ? 'available' : 'locked'}
-                        />
+                      <View style={styles.unlockRow}>
+                        <View style={styles.unlockFaction}>
+                          <FactionCrest faction="elf" size={24} />
+                          <StatusPill
+                            label={metadata.elfCampaignUnlocked ? 'ELVES READY' : 'ELVES LOCKED'}
+                            tone={metadata.elfCampaignUnlocked ? 'available' : 'locked'}
+                          />
+                        </View>
+                        <View style={styles.unlockFaction}>
+                          <FactionCrest faction="orc" size={24} />
+                          <StatusPill
+                            label={metadata.orcCampaignUnlocked ? 'ORCS READY' : 'ORCS LOCKED'}
+                            tone={metadata.orcCampaignUnlocked ? 'available' : 'locked'}
+                          />
+                        </View>
                       </View>
                     </View>
                     <View style={styles.actions}>
                       <View style={styles.actionGrow}>
                         <PrimaryButton label="Continue" onPress={() => void selectSlot(slotId)} />
                       </View>
-                      <View style={styles.actionGrow}>
+                      <View style={styles.deleteAction}>
                         <SecondaryButton
                           label={deleteArmed === slotId ? 'Confirm Delete' : 'Delete'}
                           onPress={() => {
@@ -133,7 +153,7 @@ export function SaveSelectScreen() {
                 ) : (
                   <>
                     <Text style={[styles.emptyBody, { color: theme.colors.textMuted }]}>
-                      Start with two Human survivors, a 4×4 Supply Wagon and the road to Greenkeep.
+                      Two Human survivors. A 4×4 Supply Wagon. Your road to Greenkeep starts here.
                     </Text>
                     <PrimaryButton label="Start Human Campaign" onPress={() => void createSlot(slotId)} />
                   </>
@@ -143,12 +163,12 @@ export function SaveSelectScreen() {
           })}
         </View>
 
-        <GameCard>
-          <Text style={[styles.noteTitle, { color: theme.colors.text }]}>How faction saves work</Text>
+        <View style={[styles.note, { borderColor: theme.colors.border }]}>
+          <Text style={[styles.noteTitle, { color: theme.colors.text }]}>Two saves. Three factions to discover.</Text>
           <Text style={[styles.noteBody, { color: theme.colors.textMuted }]}>
-            Once Humans are completed, the same save can hold a separate Elf kingdom and Orc kingdom. Switching faction never deletes the completed Human state, so you can always return to it.
+            Complete the Human campaign to unlock Elves and Orcs. Each faction keeps its own kingdom within your save, so you can return to any of them.
           </Text>
-        </GameCard>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -158,25 +178,35 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   loadingText: { fontSize: 12, fontWeight: '700' },
-  content: { padding: 18, paddingBottom: 34, gap: 16 },
-  header: { paddingTop: 16, paddingBottom: 4 },
-  brand: { fontSize: 11, fontWeight: '900', letterSpacing: 2 },
-  title: { fontSize: 32, lineHeight: 38, fontWeight: '900', marginTop: 7 },
-  subtitle: { fontSize: 13, lineHeight: 19, marginTop: 7, maxWidth: 360 },
+  content: { width: '100%', maxWidth: 540, alignSelf: 'center', padding: 18, paddingBottom: 34, gap: 16 },
+  intro: { alignItems: 'center', paddingTop: 20, paddingBottom: 20 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'stretch' },
+  brandRule: { flex: 1, height: 1, opacity: 0.45 },
+  brand: { flexShrink: 1, fontSize: 17, fontWeight: '900', letterSpacing: 2, textAlign: 'center' },
+  introArt: { alignItems: 'center', justifyContent: 'flex-end', marginTop: 2, marginBottom: 15 },
+  introCrest: { position: 'absolute', bottom: -7, width: 52, height: 52, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 28, lineHeight: 34, fontWeight: '900', textAlign: 'center' },
+  subtitle: { fontSize: 12.5, lineHeight: 19, marginTop: 6, maxWidth: 350, textAlign: 'center' },
   slots: { gap: 12 },
-  slotHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, alignItems: 'center' },
-  slotFaction: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  slotHeader: { flexDirection: 'row', gap: 11, alignItems: 'center' },
+  slotCrest: { width: 50, height: 54, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  slotCopy: { flex: 1, minWidth: 0 },
+  slotEyebrow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
   slotLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
-  slotTitle: { fontSize: 20, fontWeight: '900', marginTop: 3 },
-  chapter: { fontSize: 12, lineHeight: 17, marginTop: 8 },
-  metaRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, marginTop: 12 },
-  metaText: { fontSize: 10.5, fontWeight: '700' },
-  unlockRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
-  unlockFaction: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  actions: { flexDirection: 'row', gap: 8, marginTop: 14 },
-  actionGrow: { flex: 1 },
+  slotTitle: { fontSize: 19, lineHeight: 24, fontWeight: '900', marginTop: 4 },
+  progressPanel: { borderWidth: 1, borderRadius: 10, padding: 11, marginTop: 13 },
+  progressLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  chapter: { fontSize: 13, lineHeight: 19, fontWeight: '800', marginTop: 5 },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', columnGap: 10, rowGap: 5, marginTop: 9 },
+  metaText: { fontSize: 11, lineHeight: 16, fontWeight: '700' },
+  unlockRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 10, rowGap: 8, marginTop: 10 },
+  unlockFaction: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
+  actionGrow: { flex: 1, minWidth: 140 },
+  deleteAction: { minWidth: 100, maxWidth: '100%' },
   deleteWarning: { fontSize: 10, lineHeight: 15, textAlign: 'center', marginTop: 8, fontWeight: '800' },
-  emptyBody: { fontSize: 12, lineHeight: 18, marginVertical: 12 },
-  noteTitle: { fontSize: 14, fontWeight: '900' },
-  noteBody: { fontSize: 11, lineHeight: 17, marginTop: 5 }
+  emptyBody: { fontSize: 12, lineHeight: 18, marginVertical: 14 },
+  note: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 16, paddingHorizontal: 3 },
+  noteTitle: { fontSize: 12, lineHeight: 18, fontWeight: '900' },
+  noteBody: { fontSize: 11.5, lineHeight: 18, marginTop: 5 }
 });
