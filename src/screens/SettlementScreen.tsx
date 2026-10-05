@@ -582,8 +582,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const safeFontScale = Number.isFinite(fontScale) ? fontScale : 1;
   const safeViewportHeight = Number.isFinite(viewportHeight) ? viewportHeight : 800;
   const mapHeight = Math.max(
-    650,
-    Math.min(860, Math.round(safeViewportHeight * 0.8 + Math.max(0, safeFontScale - 1) * 130))
+    600,
+    Math.min(780, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 120))
   );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
