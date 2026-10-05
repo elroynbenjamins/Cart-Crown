@@ -1288,7 +1288,13 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const buildingSize = landmark ? 104 : Math.round(70 * depthScale);
           const ambienceSize = landmark ? 126 : Math.round(94 * depthScale);
           const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
-          const districtCount = building ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id).length : 0;
+          const buildingDistrictBonuses = building
+            ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id)
+            : [];
+          const districtCount = buildingDistrictBonuses.length;
+          const districtActivityColor = buildingDistrictBonuses[0]
+            ? semanticColor(theme, settlementDistrictTone(buildingDistrictBonuses[0]))
+            : roleColor;
           const visualPosition = settlementPlotPositions[plot.id] ?? {
             left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
             top: (String(7 + plot.row * 31) + '%') as ViewStyle['top']
@@ -1539,12 +1545,27 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       ]}
                     />
                   ) : null}
+                  {districtCount > 0 && !selected ? (
+                    <View
+                      pointerEvents="none"
+                      testID={'building-district-aura-' + building.id}
+                      style={[
+                        styles.buildingDistrictAura,
+                        landmark ? styles.landmarkDistrictAura : undefined,
+                        {
+                          borderColor: districtActivityColor,
+                          backgroundColor: districtActivityColor + (districtCount > 1 ? '22' : '16')
+                        }
+                      ]}
+                    />
+                  ) : null}
                   <View pointerEvents="none" style={[styles.buildingAmbience, landmark ? styles.landmarkAmbience : undefined]}>
                     <SettlementBuildingAmbience
                       buildingId={building.id}
                       role={building.role}
                       faction={building.faction}
                       level={level}
+                      activeDistricts={districtCount}
                       size={ambienceSize}
                     />
                   </View>
@@ -1568,8 +1589,23 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     >
                       {building.name}
                     </Text>
-                    <View style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }]}>
+                    <View
+                      testID={'building-level-status-' + building.id}
+                      style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }]}
+                    >
                       <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
+                      {districtCount > 0 ? (
+                        <>
+                          <View style={[styles.levelDistrictDot, { backgroundColor: districtActivityColor }]} />
+                          <Text
+                            testID={'building-district-count-' + building.id}
+                            accessible={false}
+                            style={[styles.levelDistrictCount, { color: districtActivityColor }]}
+                          >
+                            {districtCount}
+                          </Text>
+                        </>
+                      ) : null}
                     </View>
                   </>
                 </>
@@ -2156,6 +2192,8 @@ const styles = StyleSheet.create({
   sceneFeedback: { fontSize: 12, lineHeight: 17, fontWeight: '700', padding: 6 },
 
   landmarkSelectionHalo: { marginLeft: -54, width: 108, height: 38, bottom: '19%' },
+  buildingDistrictAura: { position: 'absolute', left: 9, right: 9, bottom: 13, height: 22, borderRadius: 999, borderWidth: 1, opacity: 0.78, transform: [{ scaleX: 1.08 }] },
+  landmarkDistrictAura: { left: 3, right: 3, bottom: 15, height: 30, borderWidth: 1.5, opacity: 0.82 },
   buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
   landmarkAmbience: { marginLeft: -63, marginTop: -67, width: 126, height: 126, transform: [{ translateY: -5 }] },
   buildingPad: { width: 82, height: 74, alignItems: 'center', justifyContent: 'flex-end', elevation: 4 },
@@ -2167,8 +2205,10 @@ const styles = StyleSheet.create({
   plotGuideText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900' },
   plotBuildingName: { fontSize: 9.5, lineHeight: 13, fontWeight: '900', textAlign: 'center', marginTop: 0, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 7, maxWidth: '96%', opacity: 0.98, elevation: 2 },
   plotBuildingNameCompact: { fontSize: 8.3, lineHeight: 11, maxWidth: '92%' },
-  levelPill: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, marginTop: 2, opacity: 0.96 },
+  levelPill: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, marginTop: 2, opacity: 0.96, flexDirection: 'row', alignItems: 'center', gap: 3 },
   plotLevel: { fontSize: 8.5, lineHeight: 11, fontWeight: '900' },
+  levelDistrictDot: { width: 4, height: 4, borderRadius: 999 },
+  levelDistrictCount: { fontSize: 7.5, lineHeight: 10, fontWeight: '900' },
   emptyPlus: { fontSize: 27, fontWeight: '600' },
   buildPlotArt: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
   emptyBadge: { position: 'absolute', bottom: 4, alignSelf: 'center', minHeight: 27, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.96, elevation: 2 },
