@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { ViewStyle } from 'react-native';
 import { rewardedAdPlacements } from '../ads/rewardedAds';
 import { factions, factionOrder } from '../game/factions';
 import { humanRegions } from '../game/data';
@@ -17,7 +16,8 @@ import {
   SectionTitle,
   StatusPill
 } from '../ui/components';
-import { CampaignNodeSprite, FactionCrest, LockIcon, RegionMapBackdrop } from '../ui/gameArt';
+import { CampaignNodeSprite, FactionCrest, LockIcon } from '../ui/gameArt';
+import { CampaignJourneyMap } from '../ui/CampaignJourneyMap';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import { ActivityCard } from '../ui/ActivityCard';
@@ -288,6 +288,33 @@ export function CampaignScreen({
   const campaignById = (id: CampaignId) =>
     campaignAvailability.find(campaign => campaign.id === id);
 
+  const currentHumanRegionIndex =
+    chapterNumber >= 5
+      ? 4
+      : chapterNumber >= 3
+        ? 3
+        : chapterNumber >= 2
+          ? 2
+          : settlementUpgraded
+            ? 1
+            : 0;
+  const humanJourney = humanRegions.map((region, index) => ({
+    id: region.id,
+    name: region.name,
+    status:
+      index < currentHumanRegionIndex
+        ? ('done' as const)
+        : index === currentHumanRegionIndex
+          ? ('current' as const)
+          : ('locked' as const),
+    detail:
+      index < currentHumanRegionIndex
+        ? 'Route secured'
+        : index === currentHumanRegionIndex
+          ? 'Current campaign region'
+          : 'Advance the story to reveal this route'
+  }));
+
   const renderStory = () => (
     <>
       <ScreenHero
@@ -339,72 +366,11 @@ export function CampaignScreen({
 
       <SectionTitle title="Caelora" trailing="Western frontier" />
 
-      <View style={[styles.map, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
-        <RegionMapBackdrop faction="human" chapter={chapterNumber} />
-        <View style={[styles.humanTerritory, { backgroundColor: theme.colors.human + '24' }]} />
-        <View style={[styles.neutralTerritory, { backgroundColor: theme.colors.gold + '18' }]} />
-
-        {humanRegions.map(region => {
-          const greenkeepUnlocked = region.id === 'greenkeep_vale' && settlementUpgraded;
-          const ironRoadUnlocked = region.id === 'iron_hills' && chapterNumber >= 2;
-          const borderUnlocked =
-            region.id === 'border_marches' && chapterNumber >= 3;
-          const crownspireUnlocked =
-            region.id === 'crownspire' && chapterNumber >= 5;
-          const active =
-            region.state === 'current' ||
-            greenkeepUnlocked ||
-            ironRoadUnlocked ||
-            borderUnlocked ||
-            crownspireUnlocked;
-          const locked =
-            region.state === 'locked' &&
-            !greenkeepUnlocked &&
-            !ironRoadUnlocked &&
-            !borderUnlocked &&
-            !crownspireUnlocked;
-          const accent = region.faction === 'neutral' ? theme.colors.gold : theme.colors.human;
-
-          return (
-            <View
-              key={region.id}
-              style={[
-                styles.region,
-                {
-                  left: (String(region.x) + '%') as ViewStyle['left'],
-                  top: (String(region.y) + '%') as ViewStyle['top']
-                }
-              ]}
-            >
-              <View
-                style={[
-                  styles.regionDot,
-                  {
-                    borderColor: accent,
-                    backgroundColor: active ? accent : theme.colors.surface2,
-                    opacity: locked ? 0.5 : 1
-                  }
-                ]}
-              >
-                <Text style={[styles.regionDotText, { color: active ? '#FFFFFF' : accent }]}>
-                  {active ? '●' : locked ? '×' : '○'}
-                </Text>
-              </View>
-              <Text
-                style={[
-                  styles.regionName,
-                  { color: locked ? theme.colors.textMuted : theme.colors.text }
-                ]}
-                numberOfLines={2}
-              >
-                {region.name}
-              </Text>
-            </View>
-          );
-        })}
-
-        <View style={[styles.route, { backgroundColor: theme.colors.human }]} />
-      </View>
+      <CampaignJourneyMap
+        faction="human"
+        accent={theme.colors.human}
+        points={humanJourney}
+      />
 
       <SectionTitle
         title={

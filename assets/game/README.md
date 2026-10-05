@@ -179,3 +179,7 @@ Orc mounted branch:
 - Warg Lancer
 
 Mounted sprites include the mount in the exact class PNG, so horse/stag/warg progression remains visually obvious even when the unit is rendered at small battle-token size. The assets keep the same 256×256 transparent, nearest-neighbour production contract and require no extra battle animation sheets.
+## Campaign journey maps
+
+Campaign journey routes reuse each faction's reviewed opaque `scenes/<faction>/camp.png` panorama as the offline backdrop. Do not add duplicate campaign-map PNGs unless they receive a separate production-art contract and registration.
+
