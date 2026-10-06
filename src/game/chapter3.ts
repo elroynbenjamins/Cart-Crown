@@ -21,12 +21,17 @@ export type MarcherWarningChoice = {
 };
 
 export const chapterThreeNodes: ChapterNode[] = [
-  { id: 'ch3_node_1', name: 'Marcher Envoy', type: 'event', completed: false, current: true },
-  { id: 'ch3_node_2', name: 'Border Fort', type: 'battle', completed: false },
-  { id: 'ch3_node_3', name: 'Three Warnings', type: 'event', completed: false },
-  { id: 'ch3_node_4', name: 'Siege Road', type: 'elite', completed: false },
-  { id: 'ch3_node_5', name: 'The Divided March', type: 'event', completed: false },
-  { id: 'ch3_node_6', name: 'Lord Marshal Veyr', type: 'boss', completed: false }
+  { id: 'ch3_node_1', name: 'Into Frostmarch', type: 'story', completed: false, current: true },
+  { id: 'ch3_node_2', name: 'A Wider Front', type: 'battle', completed: false },
+  { id: 'ch3_node_3', name: 'Frozen Steel', type: 'event', completed: false },
+  { id: 'ch3_node_4', name: 'Hooves in the Snow', type: 'battle', completed: false },
+  { id: 'ch3_node_5', name: 'Choose Your Rider', type: 'event', completed: false },
+  { id: 'ch3_node_6', name: 'The Line Buckles', type: 'battle', completed: false },
+  { id: 'ch3_node_7', name: 'Through the Gap', type: 'battle', completed: false },
+  { id: 'ch3_node_8', name: 'Wolves on the Wing', type: 'elite', completed: false },
+  { id: 'ch3_node_9', name: 'The Layered Host', type: 'battle', completed: false },
+  { id: 'ch3_node_10', name: 'Cold Roads', type: 'supply', completed: false },
+  { id: 'ch3_node_11', name: 'Battle for Frostgate', type: 'boss', completed: false }
 ];
 
 export const marcherAuxiliaryOptions: RecruitOption[] = [
