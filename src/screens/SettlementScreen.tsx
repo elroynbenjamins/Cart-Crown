@@ -1323,7 +1323,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLinkGlow,
-                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1) : 0.015 }
+                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1) : 0 }
                 ]}
               />
               <View
@@ -1331,13 +1331,13 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLink,
-                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56) : 0.12 }
+                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56) : 0 }
                 ]}
               />
             </React.Fragment>
           ))}
         </View>
-        {visibleDistrictConnections.length ? (
+        {districtAnalysisVisible && visibleDistrictConnections.length ? (
           <View pointerEvents="none" style={styles.districtEnvironmentLayer}>
             {visibleDistrictConnections.map(connection => (
               <View
@@ -1756,25 +1756,25 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       ]}
                     />
                   ) : null}
-                  <View
-                    pointerEvents="none"
-                    style={[
-                      styles.buildingAmbience,
-                      landmark ? styles.landmarkAmbience : undefined,
-                      humanStagePlateActive
-                        ? { opacity: selected ? 0.48 : districtAnalysisVisible && districtCount > 0 ? 0.2 : 0 }
-                        : undefined
-                    ]}
-                  >
-                    <SettlementBuildingAmbience
-                      buildingId={building.id}
-                      role={building.role}
-                      faction={building.faction}
-                      level={level}
-                      activeDistricts={districtCount}
-                      size={ambienceSize}
-                    />
-                  </View>
+                  {!humanStagePlateActive || selected || (districtAnalysisVisible && districtCount > 0) ? (
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.buildingAmbience,
+                        landmark ? styles.landmarkAmbience : undefined,
+                        humanStagePlateActive ? { opacity: selected ? 0.48 : 0.2 } : undefined
+                      ]}
+                    >
+                      <SettlementBuildingAmbience
+                        buildingId={building.id}
+                        role={building.role}
+                        faction={building.faction}
+                        level={level}
+                        activeDistricts={districtCount}
+                        size={ambienceSize}
+                      />
+                    </View>
+                  ) : null}
                   <View
                     style={[
                       styles.buildingPad,
