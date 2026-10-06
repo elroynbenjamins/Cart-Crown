@@ -1493,7 +1493,7 @@ export function GameProvider({
   const formationBonuses = formationAnalysis.bonuses;
   const activeSquadCap = Math.min(
     currentWagonStage.formationSlots,
-    getCampaignActiveSquadCap(chapterNumber)
+    getCampaignActiveSquadCap(chapterNumber, chapterNodes)
   );
   const activeDeploymentCapacity = useMemo(
     () =>
