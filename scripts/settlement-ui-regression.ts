@@ -769,8 +769,8 @@ function testExcellentPlacementQuality() {
     'Rebuilt world overview must not cover an Excellent plot with a permanent placement badge.'
   );
   check(
-    nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')),
-    'High-value placement opportunities must remain discoverable through the overview HUD.'
+    nodes(tree, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'),
+    'High-value placement opportunities must remain discoverable through the blueprint planner without adding overview badges.'
   );
 
   choosePlot(tree, 'plot_n');
@@ -803,7 +803,7 @@ function testTutorialAndCosts() {
   const poor = fixture('orc');
   poor.game.resources = { gold: 0, wood: 0, stone: 0, iron: 0, provisions: 0 };
   const poorOverview = poor.h.render();
-  check(nodes(poorOverview, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')), 'District opportunities must remain visible in the HUD even when the missing blueprint is currently unaffordable.');
+  check(nodes(poorOverview, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'District placement opportunities must remain reachable through the planner even when the missing blueprint is currently unaffordable.');
   choosePlot(poorOverview, 'plot_nw'); tree = poor.h.render();
   const forge = poor.game.buildings.find((building: any) => building.role === 'EQUIPMENT');
   pressTestId(tree, 'construction-select-' + forge.id); tree = poor.h.render();
