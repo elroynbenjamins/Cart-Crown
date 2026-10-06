@@ -42,6 +42,9 @@ jobs:
       - name: Campaign mission roadmap regression
         run: npm run campaign-roadmap:check
 
+      - name: Live early campaign regression
+        run: npm run early-campaign:check
+
       - name: Kingdom Trials regression
         run: npm run trials:check
 
