@@ -1482,6 +1482,10 @@ export function AppShell({
               setActiveEncounterId('return_to_crownspire');
               setFlow('battlePrep');
             }}
+            onStartChapterSevenBattle={encounterId => {
+              setActiveEncounterId(encounterId);
+              setFlow('battlePrep');
+            }}
             onStartFactionOpeningBattle={() => {
               setActiveEncounterId(
                 activeFaction === 'elf'
