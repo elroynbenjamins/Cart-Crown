@@ -538,7 +538,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyName: 'Ashen Field Cohort',
     enemyCount: 6,
     enemyHp: 1380,
-    difficulty: 'Elite'
+    difficulty: 'Elite',
+    fantasyThreat: 'magic'
   },
   ch6_first_ward: {
     id: 'ch6_first_ward',
