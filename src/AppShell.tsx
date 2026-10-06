@@ -1316,6 +1316,10 @@ export function AppShell({
               setActiveEncounterId('toll_captain');
               setFlow('battlePrep');
             }}
+            onStartReclaimOutpost={() => {
+              setActiveEncounterId('reclaim_outpost');
+              setFlow('battlePrep');
+            }}
             onOpenFortMuster={() => setFlow('fortMuster')}
             onStartIronRoad={() => {
               setActiveEncounterId('iron_road_skirmish');
