@@ -88,8 +88,10 @@ function plotPositionFromCenter(
   center: { x: number; y: number },
   landmark: boolean
 ): { left: ViewStyle['left']; top: ViewStyle['top'] } {
-  const halfWidth = landmark ? 0.17 : 0.14;
-  const halfHeight = landmark ? 0.145 : 0.12;
+  // Authored Human hitboxes follow the physical pad footprint rather than the
+  // older oversized generic grid rectangles.
+  const halfWidth = landmark ? 0.13 : 0.12;
+  const halfHeight = landmark ? 0.09 : 0.07;
   return {
     left: ((center.x - halfWidth) * 100).toFixed(2) + '%' as ViewStyle['left'],
     top: ((center.y - halfHeight) * 100).toFixed(2) + '%' as ViewStyle['top']
@@ -1598,7 +1600,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   zIndex: plotZIndex,
                   transform: tutorialPlotFocused ? [{ scale: 1.04 }] : selected ? [{ scale: 1.025 }] : undefined
                 },
-                landmark ? styles.landmarkPlot : undefined
+                landmark ? styles.landmarkPlot : undefined,
+                humanStagePlateActive
+                  ? landmark ? styles.humanLandmarkPlot : styles.humanPlot
+                  : undefined
               ]}
             >
               <View
@@ -2529,6 +2534,8 @@ const styles = StyleSheet.create({
   relocationPreviewLink: { position: 'absolute', height: 1, borderTopWidth: 2.5, borderStyle: 'dashed', opacity: 0.92 },
   plot: { position: 'absolute', width: '28%', height: '24%', borderRadius: 17, alignItems: 'center', justifyContent: 'center', padding: 4, overflow: 'visible' },
   landmarkPlot: { width: '34%', height: '29%' },
+  humanPlot: { width: '24%', height: '14%', borderRadius: 14 },
+  humanLandmarkPlot: { width: '26%', height: '18%', borderRadius: 16 },
   plotSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: '#FFFFFF18' },
   selectionHalo: { position: 'absolute', left: '50%', bottom: '21%', marginLeft: -44, width: 88, height: 32, borderRadius: 999, borderWidth: 2.5, opacity: 0.96 },
   unlockFocusRing: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -32, width: 76, height: 64, borderRadius: 18, borderWidth: 2, opacity: 0.72 },
