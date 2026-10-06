@@ -3414,12 +3414,64 @@ export function GameProvider({
       return;
     }
 
+    if (encounterId === 'riders_on_the_road') {
+      if (
+        chapterNumber !== 2 ||
+        !chapterNodes.find(node => node.id === 'ch2_node_3')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch2_node_3') return { ...node, completed: true, current: false };
+          if (node.id === 'ch2_node_4') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'riders_on_the_road_result',
+        title: 'Riders Driven Off',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'the_iron_line') {
+      if (
+        chapterNumber !== 2 ||
+        !chapterNodes.find(node => node.id === 'ch2_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch2_node_6') return { ...node, completed: true, current: false };
+          if (node.id === 'ch2_node_7') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'the_iron_line_result',
+        title: 'Iron Wall Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
     if (encounterId === 'iron_provost') {
       if (
         chapterNumber !== 2 ||
         ironProvostWon ||
         !signalTowerUnlocked ||
-        !chapterNodes.find(node => node.id === 'ch2_node_6')?.current
+        !chapterNodes.find(node => node.id === 'ch2_node_8')?.current
       ) {
         return;
       }
@@ -3429,7 +3481,7 @@ export function GameProvider({
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node =>
-          node.id === 'ch2_node_6'
+          node.id === 'ch2_node_8'
             ? { ...node, completed: true, current: false }
             : { ...node, current: false }
         )
@@ -5298,7 +5350,7 @@ export function GameProvider({
     if (
       chapterNumber !== 2 ||
       unlockedResourceSites.includes('greenwood_camp') ||
-      !chapterNodes.find(node => node.id === 'ch2_node_3')?.current
+      !chapterNodes.find(node => node.id === 'ch2_node_7')?.current
     ) {
       return false;
     }
@@ -5306,8 +5358,8 @@ export function GameProvider({
     setUnlockedResourceSites(previous => [...previous, 'greenwood_camp']);
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch2_node_3') return { ...node, completed: true, current: false };
-        if (node.id === 'ch2_node_4') return { ...node, current: true };
+        if (node.id === 'ch2_node_7') return { ...node, completed: true, current: false };
+        if (node.id === 'ch2_node_8') return { ...node, current: true };
         return { ...node, current: false };
       })
     );
