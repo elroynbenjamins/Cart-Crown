@@ -134,7 +134,7 @@ def first_battle(out: Path, name: str, result: dict) -> None:
     find_and_tap('Campaign')
     tap_label(wait_for_copy('Show the first objective'), 'Show the first objective')
     capture(out, name + '-campaign')
-    find_and_tap('Hold the Road', scroll=True)
+    find_and_tap('Hold the Crossing', scroll=True)
     tap_label(wait_for_copy('Show Begin Battle'), 'Show Begin Battle')
     capture(out, name + '-battle-prep')
     find_and_tap('Begin Battle', scroll=True)
