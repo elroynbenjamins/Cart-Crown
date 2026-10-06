@@ -1178,7 +1178,7 @@ export function shouldRequestChapterOneReview({
     activeFaction === 'human' &&
     activeView === 'kingdom' &&
     lastBattleResultId ===
-      'toll_captain_result' &&
+      'ch1_reclaim_outpost_result' &&
     !reviewPromptShown &&
     !tutorialActive
   );
