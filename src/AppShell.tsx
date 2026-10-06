@@ -2117,6 +2117,7 @@ export function AppShell({
                       style={[
                         styles.navIconWrap,
                         settlementChrome ? styles.settlementNavIconWrap : undefined,
+                        settlementChrome && selected ? styles.settlementNavIconSelected : undefined,
                         {
                           backgroundColor: settlementChrome
                             ? settlementHudNavyRaised
@@ -2130,7 +2131,7 @@ export function AppShell({
                       <AppNavIcon
                         kind={item.id}
                         color={settlementChrome ? selected ? settlementHudGold : settlementHudMuted : selected ? factionAccent : theme.colors.textMuted}
-                        size={settlementChrome ? 24 : 26}
+                        size={settlementChrome ? selected ? 27 : 23 : 26}
                       />
                     </View>
                     <Text
@@ -2228,19 +2229,20 @@ const styles = StyleSheet.create({
     paddingBottom: 3
   },
   settlementBottomNav: {
-    height: 82,
+    height: 84,
     borderTopWidth: 1,
-    paddingHorizontal: 6,
-    paddingTop: 4,
+    paddingHorizontal: 5,
+    paddingTop: 5,
     paddingBottom: 5,
     elevation: 10
   },
   navItem: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
   navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
   navIconWrap: { width: 42, height: 34, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  settlementNavIconWrap: { width: 44, height: 44, borderRadius: 999, borderWidth: 1.5 },
+  settlementNavIconWrap: { width: 43, height: 43, borderRadius: 999, borderWidth: 1.25 },
+  settlementNavIconSelected: { width: 50, height: 50, borderWidth: 2, elevation: 5, transform: [{ translateY: -2 }] },
   navLabel: { fontSize: 10, fontWeight: '900', marginTop: 3 },
-  settlementNavLabel: { fontSize: 9.5, letterSpacing: 0.1, marginTop: 2 },
+  settlementNavLabel: { fontSize: 9, lineHeight: 11, letterSpacing: 0.15, marginTop: 1 },
   navSelectionMark: { width: 14, height: 3, borderRadius: 2, marginTop: 4 },
   settlementNavSelectionMark: { width: 18, height: 2, marginTop: 2 }
 });
