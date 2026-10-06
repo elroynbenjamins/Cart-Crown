@@ -160,7 +160,7 @@ export function EquipmentManageScreen({
         <EquipmentLoadoutScene
           className={unit.className}
           faction={unit.faction}
-          equipmentIds={slotOrder.map(slot => loadout[slot]).filter((id): id is string => Boolean(id))}
+          equipmentIds={slotOrder.map(slot => loadout[slot])}
           accent={factionAccent}
         />
       </GameCard>
