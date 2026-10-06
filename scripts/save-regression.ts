@@ -127,6 +127,62 @@ function runBackwardCompatibleV13Defaults() {
   );
 }
 
+function runLegacyHumanEarlyMissionMigration() {
+  const chapterOneRecord = createNewSaveRecord(1);
+  const chapterOne =
+    chapterOneRecord.snapshot.factionStates.human;
+  check(chapterOne, 'Human state missing for Chapter 1 migration test.');
+
+  chapterOne.chapterNodes = [
+    { id: 'node_1', name: 'The Last Two', type: 'story', completed: true, current: false },
+    { id: 'node_2', name: 'Hold the Road', type: 'battle', completed: true, current: false },
+    { id: 'node_3', name: 'Marked Raiders', type: 'event', completed: true, current: false },
+    { id: 'node_4', name: 'Mercenary Patrol', type: 'elite', completed: true, current: false },
+    { id: 'node_5', name: 'Refugee Camp', type: 'supply', completed: false, current: true },
+    { id: 'node_6', name: 'The Toll Captain', type: 'boss', completed: false, current: false }
+  ];
+
+  const migratedOne = normalize(chapterOneRecord);
+  check(migratedOne, 'Legacy Chapter 1 save failed normalization.');
+  const migratedOneState =
+    migratedOne.snapshot.factionStates.human;
+  check(migratedOneState, 'Migrated Chapter 1 Human state missing.');
+
+  expect(
+    migratedOneState.chapterNodes.find(node => node.id === 'ch1_m06')?.current === true &&
+      migratedOneState.chapterNodes.find(node => node.id === 'ch1_m05')?.completed === true,
+    'Legacy Chapter 1 progress was not moved near the equivalent Broken Road step.'
+  );
+
+  const chapterTwoRecord = createNewSaveRecord(1);
+  const chapterTwo =
+    chapterTwoRecord.snapshot.factionStates.human;
+  check(chapterTwo, 'Human state missing for Chapter 2 migration test.');
+
+  chapterTwo.wagonStageId = 'fort';
+  chapterTwo.chapterNumber = 2;
+  chapterTwo.chapterNodes = [
+    { id: 'ch2_node_1', name: 'Fort Muster', type: 'event', completed: true, current: false },
+    { id: 'ch2_node_2', name: 'Iron Road Skirmish', type: 'battle', completed: true, current: false },
+    { id: 'ch2_node_3', name: 'Timber Claim', type: 'event', completed: false, current: true },
+    { id: 'ch2_node_4', name: 'Kingdom Defense', type: 'elite', completed: false, current: false },
+    { id: 'ch2_node_5', name: 'Broken Signal Tower', type: 'event', completed: false, current: false },
+    { id: 'ch2_node_6', name: 'The Iron Provost', type: 'boss', completed: false, current: false }
+  ];
+
+  const migratedTwo = normalize(chapterTwoRecord);
+  check(migratedTwo, 'Legacy Chapter 2 save failed normalization.');
+  const migratedTwoState =
+    migratedTwo.snapshot.factionStates.human;
+  check(migratedTwoState, 'Migrated Chapter 2 Human state missing.');
+
+  expect(
+    migratedTwoState.chapterNodes.find(node => node.id === 'ch2_m04')?.current === true &&
+      migratedTwoState.chapterNodes.find(node => node.id === 'ch2_m03')?.completed === true,
+    'Legacy Chapter 2 progress was not moved near the equivalent recovery lesson.'
+  );
+}
+
 function runLegacyFormationPresetCompatibility() {
   const record = createNewSaveRecord(1);
   const human =
@@ -340,7 +396,7 @@ function runCorruptionRepair() {
   );
   expect(
     repaired.chapterNodes.some(
-      node => node.id === 'node_1'
+      node => node.id === 'ch1_m01'
     ) &&
       !repaired.chapterNodes.some(
         node => node.id === 'ch6_node_1'
@@ -698,6 +754,7 @@ function runMultiFactionMetadata() {
 function main() {
   runFreshRoundTrip();
   runBackwardCompatibleV13Defaults();
+  runLegacyHumanEarlyMissionMigration();
   runLegacyFormationPresetCompatibility();
   runCorruptionRepair();
   runActiveFactionRepair();
