@@ -1621,9 +1621,9 @@ export function GameProvider({
   const reclaimOutpostWon = humanChapterOneComplete;
   const fortUpgradeAvailable =
     activeFaction === 'human' &&
-    reclaimOutpostWon &&
+    ironProvostWon &&
     currentWagonStage.id === 'settlement' &&
-    chapterNumber >= 2;
+    chapterNumber === 2;
   const canUpgradeToFort =
     fortUpgradeAvailable &&
     (buildingLevels.barracks ?? 0) >= 2 &&
@@ -4500,8 +4500,11 @@ export function GameProvider({
       }));
       setSettlementUpgraded(true);
       setBuildingLevels(previous => ({ ...previous, hall: 2 }));
-      setRecruitChoiceAvailable(true);
+      setRecruitChoiceAvailable(previous => previous || !recruitChosen);
       setWagonStageId('settlement');
+      setChapterNumber(2);
+      setChapterNodes(cloneNodes(chapterTwoNodes));
+      setFourthRecruitChoiceAvailable(true);
       return true;
     }
 
