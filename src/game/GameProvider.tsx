@@ -1072,14 +1072,14 @@ export function GameProvider({
   );
 
   useEffect(() => {
-    if (!magicFamilyUnlock || chapterNumber < 4) return;
+    if (!magicFamilyUnlock || chapterNumber < 6) return;
 
     const discoveryNodeId =
       activeFaction === 'human'
-        ? 'ch4_node_3'
+        ? 'ch6_node_3'
         : activeFaction === 'elf'
-          ? 'elf4_node_3'
-          : 'orc4_node_3';
+          ? 'elf6_node_3'
+          : 'orc6_node_3';
     const discoveryComplete =
       chapterNumber > 4 ||
       Boolean(
@@ -1126,7 +1126,7 @@ export function GameProvider({
 
     const discoveryNodeId =
       activeFaction === 'human'
-        ? 'ch5_node_3'
+        ? 'ch5_node_4'
         : activeFaction === 'elf'
           ? 'elf5_node_3'
           : 'orc5_node_3';
