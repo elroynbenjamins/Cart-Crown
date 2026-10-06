@@ -1696,8 +1696,8 @@ export function GameProvider({
   const canUpgradeToFort =
     fortUpgradeAvailable &&
     (buildingLevels.barracks ?? 0) >= 2 &&
-    (buildingLevels.forge ?? 0) >= 2 &&
-    (buildingLevels.wagonwright ?? 0) >= 2 &&
+    (buildingLevels.forge ?? 0) >= 1 &&
+    (buildingLevels.wagonwright ?? 0) >= 1 &&
     canAfford(resources, getExpansionCost('human', 'fort'));
 
   const factionChapterTwoBossWon =
@@ -4521,7 +4521,10 @@ export function GameProvider({
     if (!node?.current) return false;
 
     if (nodeId === 'ch1_m03') {
-      if (!settlementUpgraded) return false;
+      if (
+        !settlementUpgraded ||
+        (buildingLevels.barracks ?? 0) < 2
+      ) return false;
       setMarkedRaidersInvestigated(true);
       setForgeUnlocked(true);
       setResources(previous => ({
@@ -4530,6 +4533,7 @@ export function GameProvider({
         iron: previous.iron + 2
       }));
     } else if (nodeId === 'ch2_m02') {
+      if ((buildingLevels.forge ?? 0) < 2) return false;
       setForgeUnlocked(true);
       setResources(previous => ({
         ...previous,
