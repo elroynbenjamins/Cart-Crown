@@ -109,7 +109,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
       if (request.endsWith('/SettlementUI')) return load(resolve(dirname(absolute), request + '.tsx'));
       if (request.endsWith('/SemanticUI')) return Object.fromEntries(['SemanticChip', 'SemanticText', 'EmphasisText'].map(name => [name, host(name)]));
       if (request.endsWith('/components')) return Object.fromEntries(['GameCard', 'PrimaryButton', 'SecondaryButton', 'SectionTitle'].map(name => [name, host(name)]));
-      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementBuildingAmbience', 'SettlementBuildPlotSprite', 'SettlementDistrictAmbience', 'SettlementSceneAtmosphere', 'SettlementTerrainBackdrop'].map(name => [name, host(name)]));
+      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'FactionCrest', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementBuildingAmbience', 'SettlementBuildPlotSprite', 'SettlementDistrictAmbience', 'SettlementSceneAtmosphere', 'SettlementTerrainBackdrop'].map(name => [name, host(name)]));
       if (request.endsWith('/TutorialFocus')) return { TutorialFocus: host('TutorialFocus') };
       throw new Error('Unexpected screen dependency: ' + request);
     };
@@ -296,6 +296,10 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
     check(nodes(tree, 'View').some(node => node.props.testID === 'world-build-ready-plot_nw'), 'The recommended world plot must use one compact in-world build marker.');
     check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
+    if (faction === 'human') {
+      check(nodes(tree, 'FactionCrest').length === 1, 'Authored Human settlement HUD must carry the faction crest.');
+      check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('world-building-label-')).length === placedBuildingCount, 'Authored Human settlement must give every placed building a compact world label.');
+    }
     const normalMap = nodes(tree, 'View').find(node => style(node.props.style).height === 600 && style(node.props.style).position === 'relative');
     check(Boolean(normalMap), 'Reference portrait layout must devote 600px to the settlement world scene.');
     check(plot(tree, 'plot_se').props.disabled, 'A Town plot must remain locked at Fort.');
