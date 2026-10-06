@@ -5,12 +5,14 @@ import type {
 } from './types';
 
 export const chapterTwoNodes: ChapterNode[] = [
-  { id: 'ch2_node_1', name: 'Fort Muster', type: 'event', completed: false, current: true },
-  { id: 'ch2_node_2', name: 'Iron Road Skirmish', type: 'battle', completed: false },
-  { id: 'ch2_node_3', name: 'Timber Claim', type: 'event', completed: false },
-  { id: 'ch2_node_4', name: 'Kingdom Defense', type: 'elite', completed: false },
-  { id: 'ch2_node_5', name: 'Broken Signal Tower', type: 'event', completed: false },
-  { id: 'ch2_node_6', name: 'The Iron Provost', type: 'boss', completed: false }
+  { id: 'ch2_m01', name: 'Strength in Numbers', type: 'battle', completed: false, current: true },
+  { id: 'ch2_m02', name: 'Tools of War', type: 'event', completed: false },
+  { id: 'ch2_m03', name: 'Riders on the Road', type: 'battle', completed: false },
+  { id: 'ch2_m04', name: 'No Army Fights Forever', type: 'battle', completed: false },
+  { id: 'ch2_m05', name: 'The Long Way Around', type: 'battle', completed: false },
+  { id: 'ch2_m06', name: 'The Iron Line', type: 'elite', completed: false },
+  { id: 'ch2_m07', name: 'Supplies for War', type: 'event', completed: false },
+  { id: 'ch2_m08', name: 'Break Their Hold', type: 'boss', completed: false }
 ];
 
 export const fortMusterOptions: RecruitOption[] = [
