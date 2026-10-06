@@ -1316,9 +1316,21 @@ export function AppShell({
               setActiveEncounterId('toll_captain');
               setFlow('battlePrep');
             }}
+            onStartReclaimOutpost={() => {
+              setActiveEncounterId('reclaim_outpost');
+              setFlow('battlePrep');
+            }}
             onOpenFortMuster={() => setFlow('fortMuster')}
             onStartIronRoad={() => {
               setActiveEncounterId('iron_road_skirmish');
+              setFlow('battlePrep');
+            }}
+            onStartChapterTwoRiders={() => {
+              setActiveEncounterId('ch2_brace');
+              setFlow('battlePrep');
+            }}
+            onStartChapterTwoIronLine={() => {
+              setActiveEncounterId('ch2_beyond_fires');
               setFlow('battlePrep');
             }}
             onOpenTimberClaim={() => setFlow('timberClaim')}

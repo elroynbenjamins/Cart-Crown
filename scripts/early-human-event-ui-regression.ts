@@ -89,8 +89,8 @@ function providerAction(name: string, scope: Record<string, any>) {
 }
 const cases = [
   ['MarkedRaidersScreen', 'marked_raiders', 'node_3', 'node_4', 'completeMarkedRaiders', { wood: 5, iron: 2 }],
-  ['RefugeeCampScreen', 'refugee_camp', 'node_5', 'node_6', 'completeRefugeeCamp', { wood: 45, iron: 8, provisions: 20 }],
-  ['TimberClaimScreen', 'timber_claim', 'ch2_node_3', 'ch2_node_4', 'unlockTimberCamp', {}]
+  ['RefugeeCampScreen', 'refugee_camp', 'node_6', 'node_7', 'completeRefugeeCamp', { wood: 45, iron: 8, provisions: 20 }],
+  ['TimberClaimScreen', 'timber_claim', 'ch2_node_7', 'ch2_node_8', 'unlockTimberCamp', {}]
 ] as const;
 const screenPath = 'src/screens/EarlyHumanEventScreen.tsx';
 function fixture(id: EarlyHumanEventId) {
@@ -103,7 +103,7 @@ function fixture(id: EarlyHumanEventId) {
     mercenaryPatrolWon: true, commanderPathId: 'existing_commander', refugeeCampSecured: false,
     resources: { gold: 12, wood: 15, stone: 6, iron: 3, provisions: 9 },
     unlockedResourceSites: [], sharedProgress: { lore: [], achievements: [] },
-    buildingLevels: { hall: 1 }, buildingPlacements: { center: 'hall' },
+    buildingLevels: { hall: 1 }, buildingPlacements: { center: 'hall' }, recruitChoiceAvailable: false, recruitChosen: false,
     units: [{ id: 'hum_recruit', className: 'Recruit', hp: 100 }], formation: ['hum_recruit', null, null, null, null, null, null, null, null],
     equipmentInventory: ['already_owned'], unitEquipment: {}, armyReadiness: 42,
     activeSquadCap: 3, wagonItems: [{ id: 'medicine' }], expeditionTickets: 1,
@@ -113,15 +113,16 @@ function fixture(id: EarlyHumanEventId) {
   for (const [setter, field] of Object.entries({
     setMarkedRaidersInvestigated: 'markedRaidersInvestigated', setForgeUnlocked: 'forgeUnlocked',
     setRefugeeCampSecured: 'refugeeCampSecured', setResources: 'resources', setChapterNodes: 'chapterNodes',
-    setUnlockedResourceSites: 'unlockedResourceSites', setSharedProgress: 'sharedProgress'
+    setUnlockedResourceSites: 'unlockedResourceSites', setSharedProgress: 'sharedProgress',
+    setRecruitChoiceAvailable: 'recruitChoiceAvailable', setBuildingLevels: 'buildingLevels'
   })) game[setter] = (value: any) => { game[field] = typeof value === 'function' ? value(game[field]) : value; };
   for (const entry of cases) game[entry[4]] = () => { calls.push(entry[4]); return providerAction(entry[4], game)(); };
   return { game, calls, row };
 }
-function protectedState(game: any) {
+function protectedState(game: any, includeBuildingLevels = true) {
   return JSON.stringify([
     game.units, game.formation, game.equipmentInventory, game.unitEquipment, game.armyReadiness,
-    game.buildingLevels, game.buildingPlacements, game.currentWagonStage, game.wagonItems,
+    includeBuildingLevels ? game.buildingLevels : null, game.buildingPlacements, game.currentWagonStage, game.wagonItems,
     game.expeditionTickets, game.productionStock, game.activeSquadCap, game.commanderPathId, game.tutorialSeen
   ]);
 }
@@ -157,19 +158,26 @@ function testActions() {
       check(panel.kind === 'production' && panel.note.includes('not an immediate Wood payout') && panel.note.includes('Kingdom'), 'Timber must describe delayed eligible production, not an unconditional payout.');
     }
     const before = { ...game.resources };
-    const protectedBefore = protectedState(game);
+    const protectedBefore = protectedState(game, id !== 'marked_raiders');
     nodes(tree, 'SecondaryButton').find(node => node.props.label === 'Return without completing')!.props.onPress();
     check(exited === 1 && calls.length === 0, 'Return from preview must not resolve an event.');
     const resolve = one(tree, 'DecisionCommit').onConfirm;
     resolve(); resolve();
-    check(calls.length === 1 && calls[0] === actionName, 'One confirmation must dispatch one correct provider action.');
+    check(calls.length === 1 && calls[0] === actionName, 'One confirmation must dispatch one correct provider action for ' + id + '.');
     for (const key of Object.keys(before)) check(game.resources[key] - before[key] === (reward as Record<string, number>)[key] || game.resources[key] - before[key] === 0 && !(key in reward), 'Displayed reward must match the current provider for ' + id + ' / ' + key);
     check(game.chapterNodes.find((node: any) => node.id === nodeId).completed, 'Event completion must come from the provider.');
     check(game.chapterNodes.find((node: any) => node.id === nextId).current, 'Original next objective must remain unchanged.');
     assert.deepEqual(game.sharedProgress.lore, id === 'marked_raiders' ? ['false_flag_forging'] : []);
     assert.deepEqual(game.unlockedResourceSites, id === 'timber_claim' ? ['greenwood_camp'] : []);
     check(game.forgeUnlocked === (id === 'marked_raiders'), 'Only Marked Raiders should unlock the Forge flag.');
-    check(protectedState(game) === protectedBefore, 'Events must not build, equip, resupply, add tickets, grant production stock, or complete tutorials.');
+    check(
+      protectedState(game, id !== 'marked_raiders') === protectedBefore,
+      'Events must not equip, resupply, add tickets, grant production stock, or complete tutorials outside their authored mission side effects.'
+    );
+    if (id === 'marked_raiders') {
+      check(game.buildingLevels.barracks >= 1, 'Rebuild the Barracks must establish Barracks Lv.1.');
+      check(game.recruitChoiceAvailable, 'Rebuild the Barracks must expose the first recruit choice.');
+    }
     tree = screen.render();
     check(labels(tree).includes('Event recorded'), 'The result must be a recorded report.');
     const after = rewardState(game);

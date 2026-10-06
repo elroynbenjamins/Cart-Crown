@@ -1272,9 +1272,10 @@ function runDefense(
   countsAsRecovery: boolean
 ) {
   invariant(
-    stageRank[state.stage] >=
-      stageRank.fort,
-    'Kingdom Defense used before Fort tier.'
+    stageRank[state.stage] >= stageRank.fort ||
+      (state.faction === 'human' &&
+        state.stage === 'settlement'),
+    'Kingdom Defense used before its campaign unlock.'
   );
 
   state.resources = add(
@@ -1848,26 +1849,6 @@ function playHumanChapterOne(
   state: EconomyState
 ) {
   addEncounter(state, 'hold_the_road');
-
-  const settlementCost = {
-    wood: 90,
-    stone: 20
-  };
-
-  invariant(
-    canAffordCost(
-      state.resources,
-      settlementCost
-    ),
-    'Human starter Settlement is not affordable after Hold the Road.'
-  );
-  state.resources = payResourceCost(
-    state.resources,
-    settlementCost
-  );
-  state.stage = 'settlement';
-  state.levels.hall = 2;
-
   addEvent(state, { wood: 5, iron: 2 });
 
   ensureBuildingLevel(
@@ -1879,12 +1860,32 @@ function playHumanChapterOne(
   spendGearPackage(state, 1);
 
   addEncounter(state, 'mercenary_patrol');
+  addEncounter(state, 'toll_captain');
   addEvent(state, {
     wood: 45,
     iron: 8,
     provisions: 20
   });
-  addEncounter(state, 'toll_captain');
+  addEncounter(state, 'reclaim_outpost');
+
+  const settlementCost = {
+    wood: 90,
+    stone: 20
+  };
+
+  invariant(
+    canAffordCost(
+      state.resources,
+      settlementCost
+    ),
+    'Human Chapter 1 completion rewards cannot establish the Chapter 2 Settlement.'
+  );
+  state.resources = payResourceCost(
+    state.resources,
+    settlementCost
+  );
+  state.stage = 'settlement';
+  state.levels.hall = 2;
 }
 
 function playHumanChapter(
@@ -1908,14 +1909,16 @@ function playHumanChapter(
     state.unlockedSites.add(
       'iron_hills_mine'
     );
-    state.unlockedSites.add(
-      'greenwood_camp'
-    );
 
+    addEncounter(state, 'ch2_brace');
     runDefense(state, false);
 
     state.unlockedSites.add('old_quarry');
+    addEncounter(state, 'ch2_beyond_fires');
 
+    state.unlockedSites.add(
+      'greenwood_camp'
+    );
     addEncounter(state, 'iron_provost');
     return;
   }
@@ -2122,20 +2125,19 @@ function runHumanPath() {
   const state = newHumanState();
 
   playHumanChapterOne(state);
-  prepareTransition(state, 1, 'fort');
-  state.unlockedSites.add('greenkeep_farms');
 
   playHumanChapter(state, 2);
-  prepareTransition(state, 2, 'town');
+  prepareTransition(state, 2, 'fort');
+  state.unlockedSites.add('greenkeep_farms');
 
   playHumanChapter(state, 3);
-  prepareTransition(state, 3, 'stronghold');
+  prepareTransition(state, 3, 'town');
 
   playHumanChapter(state, 4);
-  prepareTransition(state, 4, 'capital');
+  prepareTransition(state, 4, 'stronghold');
 
   playHumanChapter(state, 5);
-  prepareTransition(state, 5, 'grand');
+  prepareTransition(state, 5, 'capital');
   playHumanChapter(state, 6);
 
   expect(
