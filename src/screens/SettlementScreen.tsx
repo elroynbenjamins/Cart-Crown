@@ -1176,12 +1176,19 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
         blueprintPlannerOpen ? (
           <View
             testID="blueprint-planner"
-            style={[styles.blueprintPlanner, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+            style={[
+              styles.blueprintPlanner,
+              worldRebuildActive ? styles.conceptBlueprintPlanner : undefined,
+              {
+                backgroundColor: worldRebuildActive ? SETTLEMENT_HUD_NAVY : theme.colors.surface1,
+                borderColor: worldRebuildActive ? SETTLEMENT_HUD_GOLD_DARK : theme.colors.border
+              }
+            ]}
           >
             <View style={styles.blueprintPlannerHeader}>
               <View style={styles.blueprintPlannerCopy}>
-                <Text style={[styles.blueprintPlannerEyebrow, { color: theme.colors.textMuted }]}>PLAN BLUEPRINT</Text>
-                <Text style={[styles.blueprintPlannerTitle, { color: theme.colors.text }]} numberOfLines={1}>
+                <Text style={[styles.blueprintPlannerEyebrow, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : theme.colors.textMuted }]}>PLAN BLUEPRINT</Text>
+                <Text style={[styles.blueprintPlannerTitle, { color: worldRebuildActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]} numberOfLines={1}>
                   {planningBuilding ? planningBuilding.name : 'Choose a building'}
                 </Text>
               </View>
@@ -1195,9 +1202,12 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
                   setPreviewBuildingId(null);
                   setSelectedPlotId(null);
                 }}
-                style={[styles.blueprintPlannerClose, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}
+                style={[styles.blueprintPlannerClose, {
+                  borderColor: worldRebuildActive ? SETTLEMENT_HUD_GOLD_DARK : theme.colors.border,
+                  backgroundColor: worldRebuildActive ? SETTLEMENT_HUD_NAVY_DEEP : theme.colors.surface2
+                }]}
               >
-                <Text style={[styles.blueprintPlannerCloseText, { color: theme.colors.textMuted }]}>CLOSE</Text>
+                <Text style={[styles.blueprintPlannerCloseText, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : theme.colors.textMuted }]}>CLOSE</Text>
               </Pressable>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.blueprintPlannerRow}>
@@ -1220,12 +1230,16 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
                     style={[
                       styles.blueprintPlannerChip,
                       {
-                        borderColor: active ? theme.colors.gold : semanticColor(theme, bestQuality.tone),
-                        backgroundColor: active ? theme.colors.surface2 : theme.colors.surface1
+                        borderColor: worldRebuildActive
+                          ? active ? SETTLEMENT_HUD_GOLD : semanticColor(theme, bestQuality.tone)
+                          : active ? theme.colors.gold : semanticColor(theme, bestQuality.tone),
+                        backgroundColor: worldRebuildActive
+                          ? active ? SETTLEMENT_HUD_NAVY_RAISED : SETTLEMENT_HUD_NAVY_DEEP
+                          : active ? theme.colors.surface2 : theme.colors.surface1
                       }
                     ]}
                   >
-                    <Text style={[styles.blueprintPlannerChipName, { color: theme.colors.text }]} numberOfLines={1}>{building.name}</Text>
+                    <Text style={[styles.blueprintPlannerChipName, { color: worldRebuildActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]} numberOfLines={1}>{building.name}</Text>
                     <Text style={[styles.blueprintPlannerChipQuality, { color: semanticColor(theme, bestQuality.tone) }]}>
                       {bestQuality.label}{affordable ? ' · ready' : ''}
                     </Text>
@@ -2689,6 +2703,7 @@ const styles = StyleSheet.create({
   blueprintPlannerLauncherText: { fontSize: 11.5, lineHeight: 15, fontWeight: '800', marginTop: 1 },
   blueprintPlannerLauncherAction: { fontSize: 9, lineHeight: 12, fontWeight: '900', letterSpacing: 0.7 },
   blueprintPlanner: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 9, paddingTop: 7, paddingBottom: 8 },
+  conceptBlueprintPlanner: { borderRadius: 12, borderWidth: 1.25, elevation: 5 },
   blueprintPlannerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   blueprintPlannerCopy: { flex: 1, minWidth: 0 },
   blueprintPlannerEyebrow: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.85 },
