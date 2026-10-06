@@ -428,7 +428,13 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const districtOpportunityByPlot = new Map(
     districtOpportunities.map(opportunity => [opportunity.plotId, opportunity] as const)
   );
-  const showDistrictOpportunities = !worldRebuildActive && !selectedPlotId && !selectedBuildingId && !unlockCelebration && !blueprintPlannerOpen;
+  const showDistrictOpportunities =
+    activeFaction !== 'human' &&
+    !['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) &&
+    !selectedPlotId &&
+    !selectedBuildingId &&
+    !unlockCelebration &&
+    !blueprintPlannerOpen;
   const selectedBuildingCurrentBonuses = selectedBuilding
     ? settlementAdjacencyBonuses.filter(
         bonus => bonus.buildingA === selectedBuilding.id || bonus.buildingB === selectedBuilding.id
