@@ -97,9 +97,9 @@ export const marcherAuxiliaryOptions: RecruitOption[] = [
 export const marcherWarningChoices: MarcherWarningChoice[] = [
   {
     id: 'fortify_route',
-    name: 'Fortify the Supply Route',
-    description: 'Assume the roads are compromised and move behind reinforced wagon guards.',
-    effectText: '+10% armor in Chapter 3 campaign battles',
+    name: 'Lancer Doctrine',
+    description: 'Commit the rider to a disciplined lance charge built around impact and breakthrough timing.',
+    effectText: '+10% armor while the Chapter 3 rider doctrine is active',
     attackMultiplier: 1,
     armorMultiplier: 1.1,
     speedMultiplier: 1,
@@ -107,8 +107,8 @@ export const marcherWarningChoices: MarcherWarningChoice[] = [
   },
   {
     id: 'hunt_couriers',
-    name: 'Hunt the False Couriers',
-    description: 'Move aggressively against messengers carrying contradictory orders between forts.',
+    name: 'Sword Rider Doctrine',
+    description: 'Favor sustained mounted melee and faster exploitation after a line has already opened.',
     effectText: '+8% attack and +3% speed in Chapter 3 campaign battles',
     attackMultiplier: 1.08,
     armorMultiplier: 1,
@@ -117,8 +117,8 @@ export const marcherWarningChoices: MarcherWarningChoice[] = [
   },
   {
     id: 'verify_beacons',
-    name: 'Verify Every Beacon',
-    description: 'Slow the advance long enough to confirm which warning fires are genuine.',
+    name: 'Scout Rider Doctrine',
+    description: 'Keep the rider light and mobile, using superior scouting to expose flank threats before committing.',
     effectText: 'Detailed intel and +5% speed in Chapter 3 campaign battles',
     attackMultiplier: 1,
     armorMultiplier: 1,
