@@ -240,20 +240,20 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   ch2_beyond_fires: {
     id: 'ch2_beyond_fires',
-    name: 'Beyond the Fires',
-    subtitle: 'Greenkeep pushes past the camp perimeter and meets a disciplined patrol controlling the first approaches.',
-    enemyName: 'Approach Patrol',
-    enemyCount: 6,
-    enemyHp: 370,
-    difficulty: 'Normal'
+    name: 'The Iron Line',
+    subtitle: 'A dense shield line protects the enemy rear and introduces the first named formation problem.',
+    enemyName: 'Iron Line Company',
+    enemyCount: 5,
+    enemyHp: 360,
+    difficulty: 'Elite'
   },
   ch2_brace: {
     id: 'ch2_brace',
-    name: 'Brace!',
-    subtitle: 'Mounted raiders try to shatter Greenkeep before its newly trained cavalry doctrine can stabilize.',
+    name: 'Riders on the Road',
+    subtitle: 'Mounted raiders test the young warband and make anti-charge positioning matter for the first time.',
     enemyName: 'Road Lancers',
-    enemyCount: 6,
-    enemyHp: 455,
+    enemyCount: 5,
+    enemyHp: 330,
     difficulty: 'Elite'
   },
   ch2_take_watch: {
@@ -276,7 +276,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   iron_road_skirmish: {
     id: 'iron_road_skirmish',
-    name: 'Iron Road Skirmish',
+    name: 'Tools of War',
     subtitle: 'Greenkeep’s first Fort patrol runs into mercenaries guarding an abandoned roadside mine.',
     enemyName: 'Iron Road Mercenaries',
     enemyCount: 5,
@@ -285,7 +285,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   iron_provost: {
     id: 'iron_provost',
-    name: 'The Iron Provost',
+    name: 'Break Their Hold',
     subtitle: 'The Crown-trained officer controlling the Iron Road has fortified the old mine headquarters.',
     enemyName: 'Iron Provost Guard',
     enemyCount: 6,
