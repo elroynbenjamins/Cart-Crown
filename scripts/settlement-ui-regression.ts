@@ -911,6 +911,7 @@ function testSceneActionsSafetyAndGeometry() {
     for (const x of [0, 0.135, 0.5, 0.855, 1]) for (const y of [0, 0.175, 0.475, 0.835, 1]) for (const measured of [112, 240, 360, 580]) {
       const box = sceneLayout.settlementActionLayout(width, height, { x, y }, measured);
       check(box.left >= 8 && box.top >= 8 && box.left + box.width <= width - 8 && box.top + Math.min(measured, height - 16) <= height - 8, 'Every action layout must stay inside its measured native map parent.');
+      check(box.width <= 288, 'Contextual settlement cards must stay compact instead of spanning the whole portrait map.');
     }
   }
   const fallback = sceneLayout.settlementActionLayout(NaN, Infinity, { x: NaN, y: Infinity }, NaN);
