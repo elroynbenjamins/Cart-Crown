@@ -274,7 +274,7 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
     check(nodes(tree, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'Blueprint planner must be directly available from the settlement overview.');
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')), 'District-completing plots must be summarized in the HUD.');
-    check(nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'A high-value empty plot must be marked before the player opens it.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'Rebuilt world canvases must keep district-opportunity detail in the HUD/planner instead of covering the terrain.');
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
     check(text(tree).includes('BUILD READY'), 'The recommended empty plot must show direct in-world readiness feedback.');
     check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
