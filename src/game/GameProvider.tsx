@@ -1,3 +1,4 @@
+import { getCampaignActiveSquadCap } from './campaignMissionRoadmap';
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
@@ -1490,7 +1491,10 @@ export function GameProvider({
   );
 
   const formationBonuses = formationAnalysis.bonuses;
-  const activeSquadCap = currentWagonStage.formationSlots;
+  const activeSquadCap = Math.min(
+    currentWagonStage.formationSlots,
+    getCampaignActiveSquadCap(chapterNumber)
+  );
   const activeDeploymentCapacity = useMemo(
     () =>
       getArmyDeploymentCapacity(
