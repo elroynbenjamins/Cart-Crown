@@ -980,7 +980,14 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </View>
         </View>
 
-        <View style={[styles.resourceStrip, compactHud ? styles.resourceStripCompact : undefined, { backgroundColor: theme.colors.surface2 }]}>
+        <View
+          style={[
+            styles.resourceStrip,
+            compactHud ? styles.resourceStripCompact : undefined,
+            worldRebuildActive ? styles.worldResourceStrip : undefined,
+            { backgroundColor: worldRebuildActive ? 'transparent' : theme.colors.surface2 }
+          ]}
+        >
           {settlementResourceOrder.map(resource => (
             <View
               key={resource}
@@ -1185,16 +1192,33 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const width = event.nativeEvent.layout.width;
           if (Number.isFinite(width) && width > 0) setMeasuredMapWidth(previous => Math.abs(previous - width) < 0.5 ? previous : width);
         }}
-        style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+        style={[
+          styles.map,
+          humanStagePlateActive ? styles.authoredWorldMap : undefined,
+          {
+            height: mapHeight,
+            backgroundColor: theme.colors.surface1,
+            borderColor: humanStagePlateActive ? factionAccent + '55' : theme.colors.border
+          }
+        ]}
       >
         <Pressable testID="settlement-clear-selection" accessible={false} importantForAccessibility="no" disabled={!selectedBuilding && !selectedPlot} onPress={dismissSceneSelection} style={styles.sceneDismissSurface} />
         <View pointerEvents="none" style={styles.backdrop}>
           <SettlementTerrainBackdrop faction={activeFaction} stageId={currentWagonStage.id} />
         </View>
         <SettlementSceneAtmosphere faction={activeFaction} stageId={currentWagonStage.id} />
-        <View pointerEvents="none" style={[styles.sceneInnerFrame, { borderColor: factionAccent + '66' }]} />
-        <View pointerEvents="none" style={[styles.sceneShadeTop, { backgroundColor: theme.colors.surface1 }]} />
-        <View pointerEvents="none" style={[styles.sceneShadeBottom, { backgroundColor: theme.colors.surface1 }]} />
+        <View
+          pointerEvents="none"
+          style={[styles.sceneInnerFrame, { borderColor: factionAccent + '66', opacity: humanStagePlateActive ? 0.12 : 0.72 }]}
+        />
+        <View
+          pointerEvents="none"
+          style={[styles.sceneShadeTop, { backgroundColor: theme.colors.surface1, opacity: humanStagePlateActive ? 0.04 : 0.16 }]}
+        />
+        <View
+          pointerEvents="none"
+          style={[styles.sceneShadeBottom, { backgroundColor: theme.colors.surface1, opacity: humanStagePlateActive ? 0.06 : 0.2 }]}
+        />
         {unlockCelebration ? (
           <View
             pointerEvents="none"
@@ -1679,7 +1703,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       landmark ? styles.landmarkBuildingGroundShadow : undefined,
                       worldRebuildActive ? styles.worldBuildingGroundShadow : undefined,
                       {
-                        opacity: selected ? 0.26 : humanStagePlateActive ? 0.1 : worldRebuildActive ? 0.22 : 0.2,
+                        opacity: humanStagePlateActive
+                          ? selected ? 0.08 : 0.035
+                          : selected ? 0.26 : worldRebuildActive ? 0.22 : 0.2,
                         transform: [
                           { scaleX: depthScale * (landmark ? 1.08 : 1) },
                           { scaleY: landmark ? 1.08 : 1 }
@@ -1694,7 +1720,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       styles.buildingContactShadow,
                       landmark ? styles.landmarkBuildingContactShadow : undefined,
                       {
-                        opacity: selected ? 0.34 : humanStagePlateActive ? 0.16 : worldRebuildActive ? 0.28 : 0.28,
+                        opacity: humanStagePlateActive
+                          ? selected ? 0.16 : 0.08
+                          : selected ? 0.34 : worldRebuildActive ? 0.28 : 0.28,
                         transform: [{ scaleX: depthScale }]
                       }
                     ]}
@@ -2291,6 +2319,7 @@ const styles = StyleSheet.create({
   stageBadgeText: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
   resourceStrip: { flexDirection: 'row', borderRadius: 10, paddingHorizontal: 5, paddingVertical: 5, marginTop: 7, gap: 2 },
   resourceStripCompact: { borderRadius: 9, paddingHorizontal: 4, paddingVertical: 3, marginTop: 5 },
+  worldResourceStrip: { borderRadius: 0, paddingHorizontal: 0, paddingVertical: 3 },
   resourceCell: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 2 },
   resourceCellCompact: { justifyContent: 'center', gap: 1 },
   resourceCopy: { flex: 1, minWidth: 0 },
@@ -2353,6 +2382,7 @@ const styles = StyleSheet.create({
   networkHintAction: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
   section: { gap: 8, marginTop: 10 },
   map: { borderRadius: 28, borderWidth: 2, overflow: 'hidden', position: 'relative', elevation: 3 },
+  authoredWorldMap: { borderRadius: 24, borderWidth: 1, elevation: 1 },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
   sceneInnerFrame: { position: 'absolute', left: 5, right: 5, top: 5, bottom: 5, borderWidth: 1, borderRadius: 23, opacity: 0.72, zIndex: 1 },
   sceneShadeTop: { position: 'absolute', left: 0, right: 0, top: 0, height: 34, opacity: 0.16, zIndex: 1 },
