@@ -42,6 +42,9 @@ jobs:
       - name: Campaign mission roadmap regression
         run: npm run campaign-roadmap:check
 
+      - name: Commander battle order regression
+        run: npm run battle-orders:check
+
       - name: Kingdom Trials regression
         run: npm run trials:check
 
