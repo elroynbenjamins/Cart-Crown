@@ -775,7 +775,7 @@ export function AppShell({
           onComplete={() => {
             markTutorialSeen('system:commander');
             setFlow(null);
-            setActive('army');
+            setActive(commanderChoiceReturn);
           }}
         />
       );
