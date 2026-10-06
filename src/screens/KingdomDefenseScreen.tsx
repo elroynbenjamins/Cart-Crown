@@ -36,6 +36,7 @@ import {
   SectionTitle,
   StatusPill
 } from '../ui/components';
+import { KingdomDefenseScene } from '../ui/gameArt';
 
 export function KingdomDefenseScreen({
   onEditFormation,
@@ -406,6 +407,15 @@ export function KingdomDefenseScreen({
             }
           />
         }
+      />
+      <KingdomDefenseScene
+        faction={activeFaction}
+        waveIndex={waveIndex}
+        waveCount={waves.length}
+        started={started}
+        completed={complete}
+        failed={failed}
+        readiness={runReadiness}
       />
 
       <GameCard
