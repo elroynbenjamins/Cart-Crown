@@ -1480,7 +1480,20 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const ambienceSize = worldRebuildActive
             ? landmark ? humanStagePlateActive ? 96 : 118 : Math.round(78 * depthScale)
             : landmark ? 126 : Math.round(94 * depthScale);
-          const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
+          const naturalPlotDepth = humanStagePlateActive
+            ? 5 + Math.round((activePlotCenters[plot.id]?.y ?? 0.5) * 20)
+            : landmark ? 16 : 5 + plot.row * 5;
+          const plotZIndex = tutorialPlotFocused || selected
+            ? 30
+            : districtMemberFocused
+              ? 29
+              : relocationPlanVisible
+                ? 27
+                : districtPreviewPartner
+                  ? 26
+                  : celebrationFocused
+                    ? 24
+                    : naturalPlotDepth;
           const buildingDistrictBonuses = building
             ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id)
             : [];
