@@ -977,7 +977,7 @@ export function CampaignScreen({
                                                                                                   ? onStartAshenCourt
                                                                                                   : returnToCrownspirePlayable
                                                                                                     ? onStartReturnToCrownspire
-                                                                                : undefined;
+                                                                                : undefined);
 
           return (
             <Pressable
