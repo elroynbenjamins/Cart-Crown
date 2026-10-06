@@ -12,7 +12,7 @@ import { GameCard, PrimaryButton, ResourceAmountRow, SectionTitle, StatusPill } 
 import { EquipmentStatLine } from '../ui/EquipmentStatLine';
 import { RarityChip, RoleChip, SemanticChip, SemanticText, TierChip, UnitBadges } from '../ui/SemanticUI';
 import { getRarityPresentation, rolePresentation, semanticColor, tierTone } from '../ui/semanticColors';
-import { EquipmentSprite, UnitSprite } from '../ui/gameArt';
+import { EquipmentLoadoutScene, EquipmentSprite, ForgeWorkshopScene, UnitSprite } from '../ui/gameArt';
 
 type ViewMode = 'loadout' | 'forge' | 'promotion';
 
@@ -157,6 +157,12 @@ export function EquipmentManageScreen({
           </View>
         </View>
         <View style={styles.badges}><UnitBadges role={unit.role} tier={unit.tier} battleTags={unit.battleTags} /></View>
+        <EquipmentLoadoutScene
+          className={unit.className}
+          faction={unit.faction}
+          equipmentIds={slotOrder.map(slot => loadout[slot]).filter((id): id is string => Boolean(id))}
+          accent={factionAccent}
+        />
       </GameCard>
 
       <View style={[styles.segment, { backgroundColor: theme.colors.surface1 }]}>
@@ -269,6 +275,12 @@ export function EquipmentManageScreen({
           <SectionTitle
             title={forgeName + ' Lv.' + forgeLevel}
             trailing={forgeLevel >= 3 ? 'Tier III unlocked' : forgeLevel >= 2 ? 'Tier II unlocked' : 'Tier I'}
+          />
+          <ForgeWorkshopScene
+            faction={unit.faction}
+            buildingId={factionBuildingIds.forge}
+            level={forgeLevel}
+            equipmentId={upgrades[0]?.id ?? craftableBaseItems[0]?.id ?? null}
           />
 
           {settlementAdjacencyBonuses.some(
