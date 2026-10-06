@@ -34,14 +34,23 @@ assert(
   'Hold the Breach must unlock Reinforce'
 );
 assert(
-  getUnlockedBattleOrders(5, 'old_royal_lands').length === 4,
-  'Chapter 5 should retain all four pre-Rally orders'
+  !getUnlockedBattleOrders(5, 'old_royal_lands').includes('rally'),
+  'Too Many Fronts must occur before Rally unlocks'
+);
+assert(
+  getUnlockedBattleOrders(5, 'ch5_rally_line').includes('rally'),
+  'Rally the Line must unlock Rally'
+);
+assert(
+  getUnlockedBattleOrders(6, 'sundered_fields').includes('rally'),
+  'Chapter 6 must retain Rally'
 );
 
 const hold = battleOrderDefinitions.hold;
 const focus = battleOrderDefinitions.focus;
 const push = battleOrderDefinitions.push;
 const reinforce = battleOrderDefinitions.reinforce;
+const rally = battleOrderDefinitions.rally;
 
 assert(
   hold.effects.incomingDamageMultiplier < 1 &&
@@ -65,6 +74,12 @@ assert(
     reinforce.effects.incomingDamageMultiplier < 1 &&
     reinforce.effects.attackMultiplier < 1,
   'Reinforce must restore/stabilize the line at an offensive opportunity cost'
+);
+assert(
+  rally.effects.immediateIntegrityRestore > reinforce.effects.immediateIntegrityRestore &&
+    rally.effects.partyIntegrityLossMultiplier < reinforce.effects.partyIntegrityLossMultiplier &&
+    rally.cooldownExchanges > reinforce.cooldownExchanges,
+  'Rally must be the stronger emergency stabilization order with a longer cooldown'
 );
 
 const cooldowns = decrementBattleOrderCooldowns({

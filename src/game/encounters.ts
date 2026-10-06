@@ -41,9 +41,20 @@ export type EncounterId =
   | 'ch4_hunters_rear'
   | 'pretender_general'
   | 'old_royal_lands'
+  | 'ch5_rally_line'
+  | 'ch5_above_shieldwall'
   | 'ashen_envoy'
+  | 'ch5_hammer_wing'
+  | 'ch5_strongest_army'
+  | 'ch5_crowns_muster'
   | 'gate_of_crownspire'
   | 'sundered_fields'
+  | 'ch6_first_ward'
+  | 'ch6_power_price'
+  | 'ch6_break_spell'
+  | 'ch6_fire_from_above'
+  | 'ch6_silent_ground'
+  | 'ch6_wards_steel'
   | 'ashen_court'
   | 'return_to_crownspire'
   | 'elf_wardbreakers'
@@ -448,25 +459,72 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   old_royal_lands: {
     id: 'old_royal_lands',
-    name: 'Old Royal Lands',
+    name: 'Too Many Fronts',
     subtitle: 'Greenkeep’s Capital army enters the abandoned royal estates where patrols still enforce obsolete Crown decrees.',
     enemyName: 'Royal Estate Patrol',
     enemyCount: 6,
     enemyHp: 930,
     difficulty: 'Elite'
   },
+  ch5_rally_line: {
+    id: 'ch5_rally_line',
+    name: 'Rally the Line',
+    subtitle: 'Multiple sections of Greenkeep’s line come under simultaneous pressure and must be stabilized before one collapses.',
+    enemyName: 'Crownroad Pressure Host',
+    enemyCount: 6,
+    enemyHp: 700,
+    difficulty: 'Elite'
+  },
+  ch5_above_shieldwall: {
+    id: 'ch5_above_shieldwall',
+    name: 'Above the Shieldwall',
+    subtitle: 'Flying raiders ignore the normal frontage and dive directly toward exposed ranged and support squads.',
+    enemyName: 'Ashen Sky Lancers',
+    enemyCount: 6,
+    enemyHp: 760,
+    difficulty: 'Elite',
+    fantasyThreat: 'flying'
+  },
   ashen_envoy: {
     id: 'ashen_envoy',
-    name: 'Ashen Envoy',
+    name: 'Three Lines Deep',
     subtitle: 'A masked delegation offers Greenkeep recognition in exchange for ending the investigation into the old royal records.',
     enemyName: 'Ashen Envoy Retinue',
     enemyCount: 6,
     enemyHp: 1180,
     difficulty: 'Elite'
   },
+  ch5_hammer_wing: {
+    id: 'ch5_hammer_wing',
+    name: 'Hammer and Wing',
+    subtitle: 'Heavy breakthrough troops hammer the center while fast cavalry attacks the wing at the same time.',
+    enemyName: 'Hammerwing Host',
+    enemyCount: 6,
+    enemyHp: 820,
+    difficulty: 'Elite'
+  },
+  ch5_strongest_army: {
+    id: 'ch5_strongest_army',
+    name: 'The Strongest Army?',
+    subtitle: 'A deliberately counter-built enemy force punishes the highest-Power default loadout and rewards better matching.',
+    enemyName: 'Countermarch Veterans',
+    enemyCount: 6,
+    enemyHp: 850,
+    difficulty: 'Elite',
+    fantasyThreat: 'flying'
+  },
+  ch5_crowns_muster: {
+    id: 'ch5_crowns_muster',
+    name: "Crown's Muster",
+    subtitle: 'Three threat groups converge in sequence, testing roster depth and whether the army can endure without one perfect six-squad lineup.',
+    enemyName: 'Crownroad Muster',
+    enemyCount: 6,
+    enemyHp: 900,
+    difficulty: 'Elite'
+  },
   gate_of_crownspire: {
     id: 'gate_of_crownspire',
-    name: 'Gate of Crownspire',
+    name: 'Battle for the Crownroad',
     subtitle: 'Ashen Court forces hold the western gate while Greenkeep’s Capital army pushes toward the neutral fortress.',
     enemyName: 'Ashen Gate Vanguard',
     enemyCount: 6,
@@ -475,16 +533,77 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   sundered_fields: {
     id: 'sundered_fields',
-    name: 'Sundered Fields',
+    name: 'Strange Fire',
     subtitle: 'The Grand Campaign crosses the battlefield where the first Crownfall evacuation collapsed.',
     enemyName: 'Ashen Field Cohort',
     enemyCount: 6,
     enemyHp: 1380,
-    difficulty: 'Elite'
+    difficulty: 'Elite',
+    fantasyThreat: 'magic'
+  },
+  ch6_first_ward: {
+    id: 'ch6_first_ward',
+    name: 'The First Ward',
+    subtitle: 'A defensive caster protects a vulnerable rear squad with arcane cohesion and resistance.',
+    enemyName: 'Warded Cohort',
+    enemyCount: 6,
+    enemyHp: 920,
+    difficulty: 'Elite',
+    fantasyThreat: 'magic'
+  },
+  ch6_power_price: {
+    id: 'ch6_power_price',
+    name: 'Power Has a Price',
+    subtitle: 'Fast attackers punish an exposed caster and prove that magical strength still depends on conventional protection.',
+    enemyName: 'Arcane Pursuit',
+    enemyCount: 6,
+    enemyHp: 960,
+    difficulty: 'Elite',
+    fantasyThreat: 'magic'
+  },
+  ch6_break_spell: {
+    id: 'ch6_break_spell',
+    name: 'Break the Spell',
+    subtitle: 'A protected caster prepares a major spell that can be pressured, bypassed or interrupted before it lands.',
+    enemyName: 'Spellguard Circle',
+    enemyCount: 6,
+    enemyHp: 1000,
+    difficulty: 'Elite',
+    fantasyThreat: 'magic'
+  },
+  ch6_fire_from_above: {
+    id: 'ch6_fire_from_above',
+    name: 'Fire from Above',
+    subtitle: 'Flying attackers and battlefield magic combine to disrupt anti-air protection and threaten the rear line.',
+    enemyName: 'Ashen Sky Circle',
+    enemyCount: 6,
+    enemyHp: 1040,
+    difficulty: 'Elite',
+    fantasyThreat: 'flying'
+  },
+  ch6_silent_ground: {
+    id: 'ch6_silent_ground',
+    name: 'The Silent Ground',
+    subtitle: 'Arcane control zones slow repositioning and weaken charge lanes without replacing the normal formation battle.',
+    enemyName: 'Silent Ground Adepts',
+    enemyCount: 6,
+    enemyHp: 1080,
+    difficulty: 'Elite',
+    fantasyThreat: 'magic'
+  },
+  ch6_wards_steel: {
+    id: 'ch6_wards_steel',
+    name: 'Wards and Steel',
+    subtitle: 'Heavy guards protect a warding caster that in turn shelters a ranged core.',
+    enemyName: 'Warded Steel Host',
+    enemyCount: 6,
+    enemyHp: 1140,
+    difficulty: 'Elite',
+    fantasyThreat: 'magic'
   },
   ashen_court: {
     id: 'ashen_court',
-    name: 'Ashen Court',
+    name: 'The Arcane General',
     subtitle: 'Greenkeep assaults the Court district inside Crownspire before the Beacon chamber can be sealed.',
     enemyName: 'Ashen Court Inner Guard',
     enemyCount: 6,
@@ -493,7 +612,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   return_to_crownspire: {
     id: 'return_to_crownspire',
-    name: 'Return to Crownspire',
+    name: 'Siege of the Glass Keep',
     subtitle: 'The final Human assault reaches the Concord chamber and the Ashen commander holding the Oath Seal.',
     enemyName: 'Ashen Court Regent',
     enemyCount: 6,
@@ -994,11 +1113,22 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   ch4_wrong_army: 'spear_wall_531',
   ch4_hunters_rear: 'skirmish_screen_243',
   pretender_general: 'layered_core_231',
-  old_royal_lands: 'balanced_333',
-  ashen_envoy: 'protected_rear_225',
-  gate_of_crownspire: 'heavy_front_441',
-  sundered_fields: 'skirmish_screen_243',
-  ashen_court: 'protected_rear_225',
+  old_royal_lands: 'wide_vanguard_522',
+  ch5_rally_line: 'reinforced_center_252',
+  ch5_above_shieldwall: 'skirmish_screen_243',
+  ashen_envoy: 'layered_core_231',
+  ch5_hammer_wing: 'assault_432',
+  ch5_strongest_army: 'spear_wall_531',
+  ch5_crowns_muster: 'balanced_333',
+  gate_of_crownspire: 'reinforced_center_252',
+  sundered_fields: 'protected_rear_225',
+  ch6_first_ward: 'protected_rear_225',
+  ch6_power_price: 'skirmish_screen_243',
+  ch6_break_spell: 'layered_core_231',
+  ch6_fire_from_above: 'skirmish_screen_243',
+  ch6_silent_ground: 'deep_234',
+  ch6_wards_steel: 'reinforced_center_252',
+  ashen_court: 'layered_core_231',
   return_to_crownspire: 'heavy_front_441',
 
   elf_wardbreakers: 'skirmish_screen_243',
@@ -1632,6 +1762,50 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   pretender_general: {
     resources: { gold: 360, wood: 210, stone: 160, iron: 48, provisions: 15 },
     storySummary: 'Greywatch falls after Greenkeep prepares the right Commander, formation and roster for a layered combined-arms defense.'
+  },
+  ch5_rally_line: {
+    resources: { gold: 125, stone: 8, provisions: 6 },
+    storySummary: 'Greenkeep stabilizes the pressured line and proves Rally can recover cohesion without erasing the cost of a bad position.'
+  },
+  ch5_above_shieldwall: {
+    resources: { gold: 140, iron: 8, provisions: 7 },
+    storySummary: 'The flying assault is driven off. Greenkeep now understands that rear protection needs a direct answer to air threats.'
+  },
+  ch5_hammer_wing: {
+    resources: { gold: 150, iron: 10, provisions: 8 },
+    storySummary: 'The hammer-and-wing attack fails after Greenkeep balances center pressure against the threatened flank.'
+  },
+  ch5_strongest_army: {
+    resources: { gold: 160, stone: 9, iron: 9, provisions: 6 },
+    storySummary: 'The counter-built enemy force is defeated by matchup quality rather than raw Army Power.'
+  },
+  ch5_crowns_muster: {
+    resources: { gold: 175, wood: 12, iron: 10, provisions: 10 },
+    storySummary: 'The operation survives three different threat groups and proves the wider roster can carry the army through attrition.'
+  },
+  ch6_first_ward: {
+    resources: { gold: 150, stone: 10, provisions: 6 },
+    storySummary: 'The first ward is broken and Greenkeep learns that magical protection strengthens cohesion without replacing ordinary defense.'
+  },
+  ch6_power_price: {
+    resources: { gold: 155, iron: 8, provisions: 7 },
+    storySummary: 'The exposed caster is punished, proving that magic still depends on conventional protection and positioning.'
+  },
+  ch6_break_spell: {
+    resources: { gold: 165, iron: 10, stone: 6 },
+    storySummary: 'The major spell is interrupted before release. Pressure and timing can answer dangerous casters without a mandatory counter.'
+  },
+  ch6_fire_from_above: {
+    resources: { gold: 175, iron: 10, provisions: 8 },
+    storySummary: 'Greenkeep survives coordinated magic and flying pressure by protecting the anti-air response and controlling the rear line.'
+  },
+  ch6_silent_ground: {
+    resources: { gold: 180, stone: 12, provisions: 8 },
+    storySummary: 'The army crosses the control zone without losing formation discipline and records how arcane terrain affects movement.'
+  },
+  ch6_wards_steel: {
+    resources: { gold: 190, stone: 12, iron: 12 },
+    storySummary: 'The linked Guard, Ward and ranged core is dismantled by breaking the protection chain rather than brute force.'
   },
   old_royal_lands: {
     resources: { gold: 175, wood: 28, stone: 22, iron: 16, provisions: 8 },

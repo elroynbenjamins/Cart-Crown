@@ -65,8 +65,8 @@ function runCampaignCurveCoverage() {
   });
 
   const expectedFamilies = new Map([
-    [4, 'magic'],
     [5, 'flying'],
+    [6, 'magic'],
     [7, 'large'],
     [8, 'hybrid']
   ]);
@@ -199,7 +199,7 @@ function runChapterTwoCoverage() {
 
 function runFamilyGateCoverage() {
   const expectedChapter = {
-    magic: 4,
+    magic: 6,
     flying: 5,
     large: 7,
     hybrid: 8
@@ -464,7 +464,7 @@ function runPlayableMagicCoverage() {
     fantasyRecruitTemplates.filter(
       template => template.family === 'magic'
     ).length === 6,
-    'Chapter 4 needs exactly two repeatable magic branches per faction.'
+    'Chapter 6 needs exactly two repeatable magic branches per faction.'
   );
 
   for (const faction of ['human', 'elf', 'orc'] as const) {
@@ -475,7 +475,7 @@ function runPlayableMagicCoverage() {
     expect(
       templates.length === 2,
       faction +
-        ' must expose two repeatable Chapter 4 magic branches.'
+        ' must expose two repeatable Chapter 6 magic branches.'
     );
 
     for (const template of templates) {
