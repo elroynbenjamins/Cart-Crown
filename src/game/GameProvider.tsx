@@ -5439,13 +5439,18 @@ export function GameProvider({
   };
 
   const completeKingdomDefense = () => {
-    if (chapterNumber < 2 || ['camp', 'settlement'].includes(currentWagonStage.id)) {
-      return false;
-    }
-
     const storyDefenseActive = Boolean(
+      chapterNumber === 2 &&
       chapterNodes.find(node => node.id === 'ch2_node_4')?.current
     );
+
+    if (
+      chapterNumber < 2 ||
+      currentWagonStage.id === 'camp' ||
+      (currentWagonStage.id === 'settlement' && !storyDefenseActive)
+    ) {
+      return false;
+    }
     const firstClear = !kingdomDefenseCompleted;
     const fullStoryClear =
       firstClear && storyDefenseActive;
