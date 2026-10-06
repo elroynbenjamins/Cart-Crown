@@ -15,25 +15,25 @@ export function DividedMarchScreen({ onComplete }: { onComplete: () => void }) {
 
   return (
     <EventResolution
-      key="human-divided-march"
-      title="Unite the Marcher Captains"
+      key="human-cold-roads"
+      title="Prepare the Cold Roads"
       completed={dividedMarchResolved}
-      canResolve={activeFaction === 'human' && chapterNumber === 3 && Boolean(chapterNodes.find(node => node.id === 'ch3_node_5')?.current)}
-      label="Unite the Marcher Captains"
-      continueLabel="Confront Lord Marshal Veyr"
+      canResolve={activeFaction === 'human' && chapterNumber === 3 && Boolean(chapterNodes.find(node => node.id === 'ch3_node_10')?.current)}
+      label="Prepare the Cold Roads"
+      continueLabel="March to Frostgate"
       onResolve={completeDividedMarch}
       onContinue={onComplete}
     >
       <DecisionIntro
-        eyebrow="BORDER EVENT · CHAPTER 3"
-        title="The Divided March"
-        body="With Siege Road open, the marcher captains finally compare their orders. The seals are genuine, but the instructions were deliberately issued to make every house distrust the others."
+        eyebrow="FROSTMARCH EVENT · CHAPTER 3"
+        title="Cold Roads"
+        body="With the Layered Host defeated, Greenkeep secures the cold-road depots before the Frostgate assault. The army can now recover supplies without turning this preparation beat into mandatory grinding."
         accent={theme.colors.human}
       />
       <GameCard ornament={false}>
         <StoryCharacterPortrait role="delegate" size={46} />
-        <Text style={[styles.heading, { color: theme.colors.text }]}>Shared evidence</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>Greenkeep distributes copies of the contradictory orders to all three houses, preventing one faction from controlling the narrative.</Text>
+        <Text style={[styles.heading, { color: theme.colors.text }]}>Shared stores</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>Quartermasters consolidate provisions and regional stores so the final Frostmarch battle begins with a prepared roster instead of an exhausted one.</Text>
       </GameCard>
       <EventRewardPanel
         title="Campaign stores"
@@ -55,8 +55,8 @@ export function DividedMarchScreen({ onComplete }: { onComplete: () => void }) {
         />
       ) : null}
       <GameCard ornament={false}>
-        <Text style={[styles.heading, { color: theme.colors.text }]}>The real enemy steps forward</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>Lord Marshal Veyr orders every marcher fort to ignore Greenkeep’s evidence and rally under his personal standard. The division was not an accident.</Text>
+        <Text style={[styles.heading, { color: theme.colors.text }]}>Frostgate is next</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>The remaining Frostmarch host has withdrawn behind Frostgate. Its final defense combines layered depth, mounted pressure and protected ranged units.</Text>
       </GameCard>
       <EventIllustration><StoryScene scene="grand_council" size={192} /></EventIllustration>
     </EventResolution>
