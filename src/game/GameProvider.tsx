@@ -3796,7 +3796,7 @@ export function GameProvider({
     if (encounterId === 'ch4_broken_ground') {
       if (
         chapterNumber !== 4 ||
-        !chapterNodes.find(node => node.id === 'ch4_node_10')?.current
+        !chapterNodes.find(node => node.id === 'ch4_node_4')?.current
       ) return;
 
       setResources(previous => addResources(previous, reward.resources));
@@ -3822,7 +3822,7 @@ export function GameProvider({
     if (encounterId === 'crownroad_ambush') {
       if (
         chapterNumber !== 4 ||
-        !chapterNodes.find(node => node.id === 'ch4_node_4')?.current
+        !chapterNodes.find(node => node.id === 'ch4_node_5')?.current
       ) {
         return;
       }
@@ -5091,6 +5091,7 @@ export function GameProvider({
     if (!choice) return false;
 
     setUnits(previous => [...previous, { ...choice.unit }]);
+    setSixthRecruitChosen(true);
     setFormation(previous => {
       const next = [...previous];
       const preferredSlots = getPreferredFormationSlots(formationShapeId, choice.unit.role);
@@ -5364,7 +5365,7 @@ export function GameProvider({
     if (
       chapterNumber !== 4 ||
       lastLoyalistsChoiceId ||
-      !chapterNodes.find(node => node.id === 'ch4_node_5')?.current
+      !chapterNodes.find(node => node.id === 'ch4_node_10')?.current
     ) {
       return false;
     }
@@ -5522,7 +5523,7 @@ export function GameProvider({
     if (
       chapterNumber !== 3 ||
       marcherWarningChoiceId ||
-      !chapterNodes.find(node => node.id === 'ch3_node_3')?.current
+      !chapterNodes.find(node => node.id === 'ch3_node_5')?.current
     ) {
       return false;
     }
@@ -5533,10 +5534,10 @@ export function GameProvider({
     setMarcherWarningChoiceId(choiceId);
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch3_node_10') {
+        if (node.id === 'ch3_node_5') {
           return { ...node, completed: true, current: false };
         }
-        if (node.id === 'ch3_node_11') {
+        if (node.id === 'ch3_node_6') {
           return { ...node, current: true };
         }
         return { ...node, current: false };
@@ -5549,7 +5550,7 @@ export function GameProvider({
     if (
       chapterNumber !== 3 ||
       dividedMarchResolved ||
-      !chapterNodes.find(node => node.id === 'ch3_node_5')?.current
+      !chapterNodes.find(node => node.id === 'ch3_node_10')?.current
     ) {
       return false;
     }
@@ -5567,10 +5568,10 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch3_node_5') {
+        if (node.id === 'ch3_node_10') {
           return { ...node, completed: true, current: false };
         }
-        if (node.id === 'ch3_node_6') {
+        if (node.id === 'ch3_node_11') {
           return { ...node, current: true };
         }
         return { ...node, current: false };
@@ -6166,7 +6167,15 @@ export function GameProvider({
     const path = commanderPaths.find(candidate => candidate.id === pathId);
     if (!path) return false;
 
-    const cost = commanderPathId ? commanderRespecCost : 0;
+    const chapterFourDoctrineMission =
+      activeFaction === 'human' &&
+      chapterNumber === 4 &&
+      Boolean(chapterNodes.find(node => node.id === 'ch4_node_3')?.current);
+    const cost = chapterFourDoctrineMission
+      ? 0
+      : commanderPathId
+        ? commanderRespecCost
+        : 0;
     if (resources.gold < cost) return false;
 
     if (cost > 0) {
@@ -6178,10 +6187,22 @@ export function GameProvider({
 
     setCommanderPathId(pathId);
 
-    if (activeFaction === 'human') {
+    if (activeFaction === 'human' && chapterNumber === 1) {
       setChapterNodes(previous =>
         previous.map(node => {
           if (node.id === 'node_6') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+    } else if (chapterFourDoctrineMission) {
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch4_node_3') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'ch4_node_4') {
+            return { ...node, current: true };
+          }
           return { ...node, current: false };
         })
       );
