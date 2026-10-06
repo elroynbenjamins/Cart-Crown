@@ -5805,7 +5805,7 @@ export function GameProvider({
       setChapterNodes(previous =>
         previous.map(node => {
           if (node.id === 'node_4') return { ...node, completed: true, current: false };
-          if (node.id === 'node_6') return { ...node, current: true };
+          if (node.id === 'node_5') return { ...node, current: true };
           return { ...node, current: false };
         })
       );
@@ -5891,7 +5891,7 @@ export function GameProvider({
     if (activeFaction === 'human') {
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'node_5') return { ...node, current: true };
+          if (node.id === 'node_6') return { ...node, current: true };
           return { ...node, current: false };
         })
       );
