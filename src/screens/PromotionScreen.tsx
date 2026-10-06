@@ -8,7 +8,7 @@ import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionOption, Decision
 import { RoleChip, SemanticText } from '../ui/SemanticUI';
 import { rolePresentation } from '../ui/semanticColors';
 import { signedStat } from '../ui/decisionPresentation';
-import { EquipmentSprite, UnitSprite } from '../ui/gameArt';
+import { EquipmentSprite, PromotionPathScene, UnitSprite } from '../ui/gameArt';
 
 export function PromotionScreen({ onOpenForge, onComplete }: {
   onOpenForge: () => void;
@@ -63,6 +63,14 @@ export function PromotionScreen({ onOpenForge, onComplete }: {
           : 'A weapon unlocks a class branch. Compare the class bonuses, then confirm your choice.'}
         accent={theme.colors.human}
       />
+      {mira ? (
+        <PromotionPathScene
+          faction={mira.faction}
+          fromClass={mira.className}
+          toClass={firstPromotionComplete ? mira.className : selected?.toClass}
+          equipmentId={firstPromotionComplete ? null : selected?.requiredEquipmentId}
+        />
+      ) : null}
       {mira && !firstPromotionComplete ? recruitPromotions.map(promotion => {
         const equipment = getEquipment(promotion.requiredEquipmentId);
         const owned = equipmentInventory.includes(promotion.requiredEquipmentId);
