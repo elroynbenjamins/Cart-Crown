@@ -109,7 +109,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
       if (request.endsWith('/SettlementUI')) return load(resolve(dirname(absolute), request + '.tsx'));
       if (request.endsWith('/SemanticUI')) return Object.fromEntries(['SemanticChip', 'SemanticText', 'EmphasisText'].map(name => [name, host(name)]));
       if (request.endsWith('/components')) return Object.fromEntries(['GameCard', 'PrimaryButton', 'SecondaryButton', 'SectionTitle'].map(name => [name, host(name)]));
-      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementBuildingAmbience', 'SettlementBuildPlotSprite', 'SettlementDistrictAmbience', 'SettlementTerrainBackdrop'].map(name => [name, host(name)]));
+      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementBuildingAmbience', 'SettlementBuildPlotSprite', 'SettlementDistrictAmbience', 'SettlementSceneAtmosphere', 'SettlementTerrainBackdrop'].map(name => [name, host(name)]));
       if (request.endsWith('/TutorialFocus')) return { TutorialFocus: host('TutorialFocus') };
       throw new Error('Unexpected screen dependency: ' + request);
     };
@@ -221,6 +221,9 @@ function testRecipesAndInteractions() {
     check(f.calls.length === 0, 'Initial rendering cannot call construction or relocation.');
     check(nodes(tree, 'Pressable').filter(node => node.props.testID?.startsWith('settlement-plot_')).length === 9, 'Settlement must keep all nine authored plot positions.');
     check(nodes(tree, 'SettlementTerrainBackdrop')[0]?.props.stageId === 'fort', 'Settlement scenery must receive the live kingdom stage.');
+    check(nodes(tree, 'SettlementSceneAtmosphere').length === 1, 'Settlement world must layer exactly one atmosphere pass behind interactive buildings.');
+    check(nodes(tree, 'SettlementSceneAtmosphere')[0]?.props.faction === faction, 'Settlement atmosphere must remain scoped to the active faction.');
+    check(nodes(tree, 'SettlementSceneAtmosphere')[0]?.props.stageId === 'fort', 'Settlement atmosphere must receive the live kingdom stage.');
     const expectedFactionAccent = faction === 'elf' ? themes.original.colors.elf : faction === 'orc' ? themes.original.colors.orc : themes.original.colors.human;
     check(nodes(tree, 'View').some(node => {
       const value = style(node.props.style);
@@ -229,6 +232,7 @@ function testRecipesAndInteractions() {
     f.game.currentWagonStage = { id: 'capital' };
     tree = f.h.render();
     check(nodes(tree, 'SettlementTerrainBackdrop')[0]?.props.stageId === 'capital', 'Settlement scenery must react immediately to stage growth.');
+    check(nodes(tree, 'SettlementSceneAtmosphere')[0]?.props.stageId === 'capital', 'Settlement atmosphere must react immediately to stage growth.');
     check(nodes(tree, 'View').some(node => {
       const value = style(node.props.style);
       return value.borderTopWidth === 4 && value.borderColor === expectedFactionAccent;
@@ -245,6 +249,8 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'BuildingSprite').filter(node => Number(node.props.size) >= 80).length === 1, 'Only the central landmark should use oversized settlement scale at the initial layout.');
     const placedBuildingCount = Object.values(f.game.buildingPlacements).filter(Boolean).length;
     const ambience = nodes(tree, 'SettlementBuildingAmbience');
+    check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-ground-shadow-')).length === placedBuildingCount, 'Every placed building must receive a world-grounding shadow.');
+    check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-contact-shadow-')).length === placedBuildingCount, 'Every placed building must receive a tight contact shadow.');
     check(ambience.length === placedBuildingCount, 'Placed buildings must carry ambient life and props.');
     check(ambience.every(node => node.props.faction === faction), 'Building ambience must remain faction-scoped.');
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
