@@ -728,11 +728,13 @@ function testExcellentPlacementQuality() {
 
   let tree = f.h.render();
   check(
-    nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_n'),
-    'A plot that can activate multiple real districts must remain discoverable in overview mode.'
+    !nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_n'),
+    'Rebuilt world overview must not cover an Excellent plot with a permanent placement badge.'
   );
-  const excellentOverview = nodes(tree, 'View').find(node => node.props.testID === 'district-opportunity-plot_n');
-  check(excellentOverview?.props.accessibilityLabel === 'Excellent placement, 2 districts', 'Two real district activations must rate as Excellent in overview mode.');
+  check(
+    nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')),
+    'High-value placement opportunities must remain discoverable through the overview HUD.'
+  );
 
   choosePlot(tree, 'plot_n');
   tree = f.h.render();
