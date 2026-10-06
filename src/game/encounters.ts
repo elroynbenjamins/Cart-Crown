@@ -380,7 +380,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'The Frostgate host combines layered defense, mounted pressure and a protected rear line in one final Chapter 3 test.',
     enemyName: 'Frostgate Host',
     enemyCount: 6,
-    enemyHp: 760,
+    enemyHp: 900,
     difficulty: 'Boss'
   },
   ch4_long_front: {
@@ -443,7 +443,7 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     subtitle: 'Greywatch combines layered defense, an elite guard, a cavalry wing and protected ranged pressure under one experienced commander.',
     enemyName: 'Greywatch Host',
     enemyCount: 6,
-    enemyHp: 960,
+    enemyHp: 1280,
     difficulty: 'Boss'
   },
   old_royal_lands: {
