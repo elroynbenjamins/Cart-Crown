@@ -3538,7 +3538,7 @@ export function GameProvider({
     if (encounterId === 'ch3_frozen_steel') {
       if (
         chapterNumber !== 3 ||
-        !chapterNodes.find(node => node.id === 'ch3_node_10')?.current
+        !chapterNodes.find(node => node.id === 'ch3_node_3')?.current
       ) return;
 
       setResources(previous => addResources(previous, reward.resources));
@@ -3738,7 +3738,7 @@ export function GameProvider({
     if (encounterId === 'ch4_long_front') {
       if (
         chapterNumber !== 4 ||
-        !chapterNodes.find(node => node.id === 'ch4_node_8')?.current
+        !chapterNodes.find(node => node.id === 'ch4_node_1')?.current
       ) return;
 
       setResources(previous => addResources(previous, reward.resources));
@@ -5292,7 +5292,7 @@ export function GameProvider({
     if (
       chapterNumber !== 4 ||
       sixthRecruitChosen ||
-      !chapterNodes.find(node => node.id === 'ch4_node_1')?.current
+      !chapterNodes.find(node => node.id === 'ch4_node_8')?.current
     ) {
       return false;
     }
