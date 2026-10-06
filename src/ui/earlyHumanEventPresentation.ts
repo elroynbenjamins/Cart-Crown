@@ -19,10 +19,10 @@ type EventDefinition = {
 
 const events: Record<EarlyHumanEventId, EventDefinition> = {
   marked_raiders: {
-    id: 'marked_raiders', chapter: 1, nodeId: 'node_3', title: 'Marked Raiders',
-    body: 'The road is secure, but the weapons left behind do not match the story everyone expects. Someone wants the attack to look Orcish.',
-    purpose: { label: 'Evidence', tone: 'violet' },
-    action: 'completeMarkedRaiders', actionLabel: 'Recover materials & record the clue',
+    id: 'marked_raiders', chapter: 1, nodeId: 'node_3', title: 'Rebuild the Barracks',
+    body: 'With the crossing secure, Greenkeep can reopen its military stores. Salvaged tools and suspiciously mismatched weapons provide enough material to restore the army supply chain and expose evidence of a staged raid.',
+    purpose: { label: 'Army infrastructure', tone: 'blue' },
+    action: 'completeMarkedRaiders', actionLabel: 'Recover tools & reopen the stores',
     resources: { wood: 5, iron: 2 },
     building: {
       id: 'forge', name: 'Field Forge',
@@ -77,8 +77,8 @@ export function getEarlyHumanEventView(id: EarlyHumanEventId, state: EarlyHumanE
     Boolean(node?.current) && prerequisites;
   const requirement = inconsistent ? 'This event node is recorded, but its completion marker needs review. No rewards can be claimed again from this report.'
     : state.chapterNumber !== event.chapter || !node?.current ? 'Reach ' + event.title + ' in Chapter ' + event.chapter + ' before completing this event.'
-      : id === 'marked_raiders' && !state.holdTheRoadWon ? 'Win Hold the Road before recovering this evidence.'
-        : id === 'refugee_camp' && !state.mercenaryPatrolWon ? 'Win Mercenary Patrol before welcoming the refugees.'
+      : id === 'marked_raiders' && !state.holdTheRoadWon ? 'Win Hold the Crossing before rebuilding the military stores.'
+        : id === 'refugee_camp' && !state.mercenaryPatrolWon ? 'Win Cut Off the Captain before welcoming the refugees.'
           : id === 'refugee_camp' && !state.commanderPathId ? 'Choose a commander specialization before welcoming the refugees.'
             : null;
   const buildingUnlocked = id === 'marked_raiders' ? state.forgeUnlocked : id === 'refugee_camp' ? state.refugeeCampSecured : false;
