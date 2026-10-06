@@ -21,12 +21,17 @@ export type LastLoyalistsChoice = {
 };
 
 export const chapterFourNodes: ChapterNode[] = [
-  { id: 'ch4_node_1', name: 'Stronghold Muster', type: 'event', completed: false, current: true },
-  { id: 'ch4_node_2', name: 'Broken Standards', type: 'battle', completed: false },
-  { id: 'ch4_node_3', name: 'The Empty Throne', type: 'event', completed: false },
-  { id: 'ch4_node_4', name: 'Crownroad Ambush', type: 'elite', completed: false },
-  { id: 'ch4_node_5', name: 'The Last Loyalists', type: 'event', completed: false },
-  { id: 'ch4_node_6', name: 'The Pretender General', type: 'boss', completed: false }
+  { id: 'ch4_node_1', name: 'The Long Front', type: 'battle', completed: false, current: true },
+  { id: 'ch4_node_2', name: 'Raise Another Banner', type: 'battle', completed: false },
+  { id: 'ch4_node_3', name: 'Two Ways to War', type: 'event', completed: false },
+  { id: 'ch4_node_4', name: 'Broken Ground', type: 'battle', completed: false },
+  { id: 'ch4_node_5', name: 'Hold the Breach', type: 'elite', completed: false },
+  { id: 'ch4_node_6', name: 'Prepare for Battle', type: 'event', completed: false },
+  { id: 'ch4_node_7', name: 'The Wrong Army', type: 'battle', completed: false },
+  { id: 'ch4_node_8', name: 'Veteran Steel', type: 'event', completed: false },
+  { id: 'ch4_node_9', name: 'Hunters in the Rear', type: 'battle', completed: false },
+  { id: 'ch4_node_10', name: 'The Forked Banner', type: 'event', completed: false },
+  { id: 'ch4_node_11', name: 'Siege of Greywatch', type: 'boss', completed: false }
 ];
 
 export const strongholdMusterOptions: RecruitOption[] = [
