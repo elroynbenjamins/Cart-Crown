@@ -3255,7 +3255,18 @@ function FactionFortWorldBackdrop({ faction }: { faction: FactionId }) {
   const waterfront = isElf ? '#1F6671' : isOrc ? '#324C55' : '#245F78';
   const waterHighlight = isElf ? '#BEEFF0' : isOrc ? '#9FC8D0' : '#B8E9F0';
 
-  const trees = isElf
+  type FortWorldPlacement = {
+    left: `${number}%`;
+    top: `${number}%`;
+    cell: { x: number; y: number };
+    size: number;
+  };
+  type FortificationPlacement = FortWorldPlacement & {
+    rotate: `${number}deg`;
+    opacity: number;
+  };
+
+  const trees: readonly FortWorldPlacement[] = isElf
     ? [
         { left: '1%', top: '4%', cell: settlementNatureHumanCells.tree_large, size: 84 },
         { left: '18%', top: '6%', cell: settlementNatureHumanCells.tree_dark, size: 70 },
@@ -3287,7 +3298,7 @@ function FactionFortWorldBackdrop({ faction }: { faction: FactionId }) {
           { left: '76%', top: '79%', cell: settlementNatureHumanCells.conifer, size: 66 }
         ];
 
-  const fortifications = isElf
+  const fortifications: readonly FortificationPlacement[] = isElf
     ? [
         { left: '2%', top: '20%', rotate: '-7deg', cell: settlementNatureHumanCells.hedge, size: 102, opacity: 0.82 },
         { left: '72%', top: '20%', rotate: '7deg', cell: settlementNatureHumanCells.hedge, size: 102, opacity: 0.82 },
