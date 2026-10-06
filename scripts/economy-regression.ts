@@ -1272,9 +1272,10 @@ function runDefense(
   countsAsRecovery: boolean
 ) {
   invariant(
-    stageRank[state.stage] >=
-      stageRank.fort,
-    'Kingdom Defense used before Fort tier.'
+    stageRank[state.stage] >= stageRank.fort ||
+      (state.faction === 'human' &&
+        state.stage === 'settlement'),
+    'Kingdom Defense used before its campaign unlock.'
   );
 
   state.resources = add(
