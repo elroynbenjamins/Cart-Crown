@@ -89,8 +89,8 @@ function providerAction(name: string, scope: Record<string, any>) {
 }
 const cases = [
   ['MarkedRaidersScreen', 'marked_raiders', 'node_3', 'node_4', 'completeMarkedRaiders', { wood: 5, iron: 2 }],
-  ['RefugeeCampScreen', 'refugee_camp', 'node_5', 'node_6', 'completeRefugeeCamp', { wood: 45, iron: 8, provisions: 20 }],
-  ['TimberClaimScreen', 'timber_claim', 'ch2_node_3', 'ch2_node_4', 'unlockTimberCamp', {}]
+  ['RefugeeCampScreen', 'refugee_camp', 'node_6', 'node_7', 'completeRefugeeCamp', { wood: 45, iron: 8, provisions: 20 }],
+  ['TimberClaimScreen', 'timber_claim', 'ch2_node_7', 'ch2_node_8', 'unlockTimberCamp', {}]
 ] as const;
 const screenPath = 'src/screens/EarlyHumanEventScreen.tsx';
 function fixture(id: EarlyHumanEventId) {
