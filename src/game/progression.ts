@@ -119,15 +119,15 @@ export const campaignProgression: CampaignProgressionStage[] = [
   },
   {
     chapter: 4,
-    theme: 'The age of magic',
+    theme: 'Fortifying the realm',
     startSquadCap: 4,
     endSquadCap: 5,
     startRosterCap: 8,
     endRosterCap: 10,
     wagon: 'Supply Cart',
     settlementStage: 'stronghold',
-    newFamily: 'magic',
-    difficultyLesson: 'Area pressure, caster protection and magic counterplay'
+    newFamily: null,
+    difficultyLesson: 'Commander doctrine, Reinforce, loadouts, elite branches and smarter rear pressure'
   },
   {
     chapter: 5,
@@ -143,15 +143,15 @@ export const campaignProgression: CampaignProgressionStage[] = [
   },
   {
     chapter: 6,
-    theme: 'Combined arms',
+    theme: 'Arcane warfare',
     startSquadCap: 6,
     endSquadCap: 6,
     startRosterCap: 12,
     endRosterCap: 14,
     wagon: 'Wagon → Kingdom Caravan',
     settlementStage: 'grand',
-    newFamily: null,
-    difficultyLesson: 'Mixed enemy doctrines, reserves and attrition'
+    newFamily: 'magic',
+    difficultyLesson: 'Caster protection, wards, interruption, control zones and magical combined arms'
   },
   {
     chapter: 7,
