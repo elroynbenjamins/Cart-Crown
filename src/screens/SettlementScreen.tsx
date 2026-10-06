@@ -2550,8 +2550,6 @@ const styles = StyleSheet.create({
   worldBuildReadyPlus: { color: '#111318', fontSize: 17, lineHeight: 19, fontWeight: '900' },
   upgradeReadyBadge: { position: 'absolute', top: 3, right: 4, zIndex: 9, minHeight: 21, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 3, alignItems: 'center', justifyContent: 'center', elevation: 2 },
   upgradeReadyText: { color: '#111318', fontSize: 6, lineHeight: 8, fontWeight: '900', letterSpacing: 0.25 },
-  worldUpgradeReadyBadge: { top: 7, right: 8, width: 20, height: 20, minHeight: 20, paddingHorizontal: 0, paddingVertical: 0, borderWidth: 1.5, elevation: 4, opacity: 0.94 },
-  worldUpgradeReadyText: { fontSize: 12, lineHeight: 14, letterSpacing: 0 },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
