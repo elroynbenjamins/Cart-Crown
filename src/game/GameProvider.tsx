@@ -1618,7 +1618,6 @@ export function GameProvider({
           resources.stone >= 15 &&
           resources.iron >= 4;
 
-  const reclaimOutpostWon = humanChapterOneComplete;
   const fortUpgradeAvailable =
     activeFaction === 'human' &&
     ironProvostWon &&
