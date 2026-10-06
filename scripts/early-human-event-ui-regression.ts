@@ -119,10 +119,10 @@ function fixture(id: EarlyHumanEventId) {
   for (const entry of cases) game[entry[4]] = () => { calls.push(entry[4]); return providerAction(entry[4], game)(); };
   return { game, calls, row };
 }
-function protectedState(game: any) {
+function protectedState(game: any, includeBuildingLevels = true) {
   return JSON.stringify([
     game.units, game.formation, game.equipmentInventory, game.unitEquipment, game.armyReadiness,
-    game.buildingLevels, game.buildingPlacements, game.currentWagonStage, game.wagonItems,
+    includeBuildingLevels ? game.buildingLevels : null, game.buildingPlacements, game.currentWagonStage, game.wagonItems,
     game.expeditionTickets, game.productionStock, game.activeSquadCap, game.commanderPathId, game.tutorialSeen
   ]);
 }
@@ -158,7 +158,7 @@ function testActions() {
       check(panel.kind === 'production' && panel.note.includes('not an immediate Wood payout') && panel.note.includes('Kingdom'), 'Timber must describe delayed eligible production, not an unconditional payout.');
     }
     const before = { ...game.resources };
-    const protectedBefore = protectedState(game);
+    const protectedBefore = protectedState(game, id !== 'marked_raiders');
     nodes(tree, 'SecondaryButton').find(node => node.props.label === 'Return without completing')!.props.onPress();
     check(exited === 1 && calls.length === 0, 'Return from preview must not resolve an event.');
     const resolve = one(tree, 'DecisionCommit').onConfirm;
@@ -170,7 +170,14 @@ function testActions() {
     assert.deepEqual(game.sharedProgress.lore, id === 'marked_raiders' ? ['false_flag_forging'] : []);
     assert.deepEqual(game.unlockedResourceSites, id === 'timber_claim' ? ['greenwood_camp'] : []);
     check(game.forgeUnlocked === (id === 'marked_raiders'), 'Only Marked Raiders should unlock the Forge flag.');
-    check(protectedState(game) === protectedBefore, 'Events must not build, equip, resupply, add tickets, grant production stock, or complete tutorials.');
+    check(
+      protectedState(game, id !== 'marked_raiders') === protectedBefore,
+      'Events must not equip, resupply, add tickets, grant production stock, or complete tutorials outside their authored mission side effects.'
+    );
+    if (id === 'marked_raiders') {
+      check(game.buildingLevels.barracks >= 1, 'Rebuild the Barracks must establish Barracks Lv.1.');
+      check(game.recruitChoiceAvailable, 'Rebuild the Barracks must expose the first recruit choice.');
+    }
     tree = screen.render();
     check(labels(tree).includes('Event recorded'), 'The result must be a recorded report.');
     const after = rewardState(game);
