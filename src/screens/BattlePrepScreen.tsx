@@ -105,6 +105,7 @@ export function BattlePrepScreen({
     formationShapes,
     activeFormationShape,
     formationPresets,
+    armyLoadoutsUnlocked,
     activeSquadCap,
     activeDeploymentCapacity,
     currentWagonStage,
@@ -441,46 +442,48 @@ export function BattlePrepScreen({
     ])
   );
 
-  const formationPresetOptions = [...formationPresets].sort(
-    (a, b) => {
-      const aActive = presetMatchesCurrent(a.slotId);
-      const bActive = presetMatchesCurrent(b.slotId);
-      if (aActive && !bActive) return -1;
-      if (bActive && !aActive) return 1;
+  const formationPresetOptions = armyLoadoutsUnlocked
+    ? [...formationPresets].sort(
+        (a, b) => {
+          const aActive = presetMatchesCurrent(a.slotId);
+          const bActive = presetMatchesCurrent(b.slotId);
+          if (aActive && !bActive) return -1;
+          if (bActive && !aActive) return 1;
 
-      if (
-        scoutReport &&
-        guidanceFeatures.sortLoadoutsByFit
-      ) {
-        const aScore = presetEvaluations.get(a.slotId)?.score ?? 0;
-        const bScore = presetEvaluations.get(b.slotId)?.score ?? 0;
-        if (aScore !== bScore) return bScore - aScore;
-      }
+          if (
+            scoutReport &&
+            guidanceFeatures.sortLoadoutsByFit
+          ) {
+            const aScore = presetEvaluations.get(a.slotId)?.score ?? 0;
+            const bScore = presetEvaluations.get(b.slotId)?.score ?? 0;
+            if (aScore !== bScore) return bScore - aScore;
+          }
 
-      if (!guidanceFeatures.sortLoadoutsByFit) {
-        return a.slotId - b.slotId;
-      }
+          if (!guidanceFeatures.sortLoadoutsByFit) {
+            return a.slotId - b.slotId;
+          }
 
-      const rank = {
-        advantage: 0,
-        even: 1,
-        disadvantage: 2
-      };
-      const aResult = getFormationMatchup(
-        a.formationShapeId,
-        enemyShape.id
-      ).result;
-      const bResult = getFormationMatchup(
-        b.formationShapeId,
-        enemyShape.id
-      ).result;
+          const rank = {
+            advantage: 0,
+            even: 1,
+            disadvantage: 2
+          };
+          const aResult = getFormationMatchup(
+            a.formationShapeId,
+            enemyShape.id
+          ).result;
+          const bResult = getFormationMatchup(
+            b.formationShapeId,
+            enemyShape.id
+          ).result;
 
-      if (rank[aResult] !== rank[bResult]) {
-        return rank[aResult] - rank[bResult];
-      }
-      return a.slotId - b.slotId;
-    }
-  );
+          if (rank[aResult] !== rank[bResult]) {
+            return rank[aResult] - rank[bResult];
+          }
+          return a.slotId - b.slotId;
+        }
+      )
+    : [];
 
   const recommendedPreset =
     scoutReport &&
@@ -960,6 +963,17 @@ export function BattlePrepScreen({
         ) : null}
       </GameCard>
         </>
+      ) : null}
+
+      {!armyLoadoutsUnlocked && activeFaction === 'human' ? (
+        <GameCard ornament={false}>
+          <Text style={[styles.doctrineLabel, { color: theme.colors.textMuted }]}>
+            ARMY LOADOUTS LOCKED
+          </Text>
+          <Text style={[styles.recommendationHint, { color: theme.colors.textMuted }]}>
+            Complete Chapter 4 mission 6, Prepare for Battle, to save and switch full army loadouts from Battle Prep.
+          </Text>
+        </GameCard>
       ) : null}
 
       {formationPresetOptions.length > 0 ? (
