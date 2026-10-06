@@ -1757,72 +1757,11 @@ export function metadataFromSnapshot(
                     : 'Orc Chapter 1 · Blood on the Red Road';
   } else if (humanComplete) {
     chapterLabel = 'Human Campaign Complete · Oath Seal';
-  } else if (current.chapterNumber >= 6) {
-    chapterLabel = current.chapterNodes.find(node => node.id === 'ch6_node_6')?.current
-      ? 'Chapter 6 · Return to Crownspire'
-      : current.chapterNodes.find(node => node.id === 'ch6_node_5')?.current
-        ? 'Chapter 6 · The Forced Beacon'
-        : current.chapterNodes.find(node => node.id === 'ch6_node_4')?.current
-          ? 'Chapter 6 · Ashen Court'
-          : current.chapterNodes.find(node => node.id === 'ch6_node_3')?.current
-            ? 'Chapter 6 · Concord Vault'
-            : current.chapterNodes.find(node => node.id === 'ch6_node_2')?.current
-              ? 'Chapter 6 · Sundered Fields'
-              : 'Chapter 6 · Grand Council';
-  } else if (current.chapterNumber === 5) {
-    chapterLabel = current.chapterNodes.find(node => node.id === 'ch5_node_6')?.current
-      ? 'Chapter 5 · Gate of Crownspire'
-      : current.chapterNodes.find(node => node.id === 'ch5_node_5')?.current
-        ? 'Chapter 5 · The Royal Ledger'
-        : current.chapterNodes.find(node => node.id === 'ch5_node_4')?.current
-          ? 'Chapter 5 · Ashen Envoy'
-          : current.chapterNodes.find(node => node.id === 'ch5_node_3')?.current
-            ? 'Chapter 5 · Broken Archives'
-            : current.chapterNodes.find(node => node.id === 'ch5_node_2')?.current
-              ? 'Chapter 5 · Old Royal Lands'
-              : 'Chapter 5 · Capital Council';
-  } else if (current.chapterNumber === 4) {
-    chapterLabel = current.pretenderGeneralWon
-      ? 'Chapter 4 · Raise Greenkeep Capital'
-      : current.chapterNodes.find(node => node.id === 'ch4_node_6')?.current
-        ? 'Chapter 4 · The Pretender General'
-        : current.chapterNodes.find(node => node.id === 'ch4_node_5')?.current
-          ? 'Chapter 4 · The Last Loyalists'
-          : current.chapterNodes.find(node => node.id === 'ch4_node_4')?.current
-            ? 'Chapter 4 · Crownroad Ambush'
-            : current.chapterNodes.find(node => node.id === 'ch4_node_3')?.current
-              ? 'Chapter 4 · The Empty Throne'
-              : current.chapterNodes.find(node => node.id === 'ch4_node_2')?.current
-                ? 'Chapter 4 · Broken Standards'
-                : 'Chapter 4 · Stronghold Muster';
-  } else if (current.chapterNumber === 3) {
-    chapterLabel = current.lordMarshalWon
-      ? 'Chapter 3 · Raise Greenkeep Stronghold'
-      : current.chapterNodes.find(node => node.id === 'ch3_node_6')?.current
-        ? 'Chapter 3 · Lord Marshal Veyr'
-        : current.chapterNodes.find(node => node.id === 'ch3_node_5')?.current
-          ? 'Chapter 3 · The Divided March'
-          : current.chapterNodes.find(node => node.id === 'ch3_node_4')?.current
-            ? 'Chapter 3 · Siege Road'
-            : current.chapterNodes.find(node => node.id === 'ch3_node_3')?.current
-              ? 'Chapter 3 · Three Warnings'
-              : current.chapterNodes.find(node => node.id === 'ch3_node_2')?.current
-                ? 'Chapter 3 · Border Fort'
-                : 'Chapter 3 · Marcher Envoy';
-  } else if (current.chapterNumber === 2) {
-    chapterLabel = current.ironProvostWon
-      ? 'Chapter 2 · Raise Greenkeep Town'
-      : current.signalTowerUnlocked
-        ? 'Chapter 2 · The Iron Provost'
-        : current.kingdomDefenseCompleted
-          ? 'Chapter 2 · Broken Signal Tower'
-          : current.unlockedResourceSites.includes('greenwood_camp')
-            ? 'Chapter 2 · Kingdom Defense'
-            : current.unlockedResourceSites.includes('iron_hills_mine')
-              ? 'Chapter 2 · Timber Claim'
-              : current.fourthRecruitChosen
-                ? 'Chapter 2 · Iron Road Skirmish'
-                : 'Chapter 2 · Fort Muster';
+  } else if (current.chapterNumber >= 2) {
+    const currentNode = current.chapterNodes.find(node => node.current);
+    chapterLabel = currentNode
+      ? 'Chapter ' + current.chapterNumber + ' · ' + currentNode.name
+      : 'Chapter ' + current.chapterNumber + ' Complete';
   } else if (current.refugeeCampSecured) {
     chapterLabel = 'Chapter 1 · The Toll Captain';
   } else if (current.mercenaryPatrolWon && !current.commanderPathId) {
