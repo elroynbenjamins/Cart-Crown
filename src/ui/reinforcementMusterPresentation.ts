@@ -26,7 +26,11 @@ export function getReinforcementMusterView(kind: ReinforcementMusterKind, state:
   if (human ? faction !== 'human' : faction !== 'elf' && faction !== 'orc') return null;
 
   const chapter = kind === 'fort' || kind === 'faction_third' ? 2 : kind === 'faction_fourth' ? 3 : 4;
-  const nodeId = human ? 'ch' + chapter + '_node_1' : faction + chapter + '_node_1';
+  const nodeId = kind === 'stronghold'
+    ? 'ch4_node_8'
+    : human
+      ? 'ch' + chapter + '_node_1'
+      : faction + chapter + '_node_1';
   const options = (kind === 'fort' ? state.fortMusterOptions
     : kind === 'stronghold' ? state.strongholdMusterOptions
       : kind === 'faction_third' ? state.recruitOptions
@@ -48,12 +52,12 @@ export function getReinforcementMusterView(kind: ReinforcementMusterKind, state:
     Boolean(node?.current) && choiceAvailable && options.length > 0;
   const rosterUnit = recorded && rosterMatches.length === 1 ? rosterMatches[0]! : null;
   const title = kind === 'fort' ? 'Strength in Numbers'
-    : kind === 'stronghold' ? 'Stronghold reinforcements'
+    : kind === 'stronghold' ? 'Veteran Steel'
       : kind === 'faction_third' ? faction === 'elf' ? 'Sanctuary muster' : 'Clan muster'
         : kind === 'faction_fourth' ? faction === 'elf' ? 'Moonlit Pass muster' : 'Stonejaw muster'
           : faction === 'elf' ? 'Ashen Grove muster' : 'Warhold muster';
   const continueLabel = kind === 'fort' ? 'Continue to Tools of War'
-    : kind === 'stronghold' ? 'Advance toward the Broken Crown'
+    : kind === 'stronghold' ? 'Continue to Hunters in the Rear'
       : kind === 'faction_third' ? 'Continue Chapter 2'
         : kind === 'faction_fourth' ? faction === 'elf' ? 'Enter Moonlit Pass' : 'Begin the Stonejaw Trial'
           : faction === 'elf' ? 'Enter the Ashen Groves' : 'Fight on Two Fronts';
