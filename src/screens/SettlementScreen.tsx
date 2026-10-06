@@ -44,28 +44,32 @@ const fortWorldPositions: Record<string, { left: ViewStyle['left']; top: ViewSty
   plot_se: { left: '66%', top: '62%' }
 };
 
+// The authored Human plates use an isometric ground plane rather than a
+// rectangular screen-space grid. These hitboxes are centered on the actual
+// painted build pads, and the building sprite's bottom-center is locked to the
+// matching anchor below.
 const humanSettlementBackgroundPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
-  plot_nw: { left: '8%', top: '18%' },
-  plot_n: { left: '36%', top: '14%' },
-  plot_ne: { left: '62%', top: '8%' },
-  plot_w: { left: '4%', top: '28%' },
-  plot_center: { left: '36%', top: '30%' },
-  plot_e: { left: '62%', top: '26%' },
-  plot_sw: { left: '4%', top: '40%' },
-  plot_s: { left: '36%', top: '45%' },
-  plot_se: { left: '62%', top: '42%' }
+  plot_nw: { left: '34.7%', top: '14.6%' },
+  plot_n: { left: '55.7%', top: '9.0%' },
+  plot_ne: { left: '59.6%', top: '20.4%' },
+  plot_w: { left: '5.4%', top: '19.7%' },
+  plot_center: { left: '33.0%', top: '24.0%' },
+  plot_e: { left: '65.7%', top: '33.1%' },
+  plot_sw: { left: '4.9%', top: '32.2%' },
+  plot_s: { left: '40.3%', top: '39.4%' },
+  plot_se: { left: '64.1%', top: '47.6%' }
 };
 
 const humanSettlementBackgroundCenters: Record<string, { x: number; y: number }> = {
-  plot_nw: { x: 0.22, y: 0.30 },
-  plot_n: { x: 0.50, y: 0.26 },
-  plot_ne: { x: 0.76, y: 0.20 },
-  plot_w: { x: 0.18, y: 0.40 },
-  plot_center: { x: 0.50, y: 0.42 },
-  plot_e: { x: 0.76, y: 0.38 },
-  plot_sw: { x: 0.18, y: 0.52 },
-  plot_s: { x: 0.50, y: 0.57 },
-  plot_se: { x: 0.76, y: 0.54 }
+  plot_nw: { x: 0.487, y: 0.266 },
+  plot_n: { x: 0.697, y: 0.210 },
+  plot_ne: { x: 0.736, y: 0.324 },
+  plot_w: { x: 0.194, y: 0.317 },
+  plot_center: { x: 0.500, y: 0.385 },
+  plot_e: { x: 0.797, y: 0.451 },
+  plot_sw: { x: 0.189, y: 0.442 },
+  plot_s: { x: 0.543, y: 0.514 },
+  plot_se: { x: 0.781, y: 0.596 }
 };
 
 const fortWorldCenters: Record<string, { x: number; y: number }> = {
