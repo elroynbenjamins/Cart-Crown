@@ -846,6 +846,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             : 2;
 
   const selectedBuildingLevel = selectedBuilding ? buildingLevels[selectedBuilding.id] ?? 0 : 0;
+  const selectedCurrentLevel = selectedBuilding && selectedBuildingLevel > 0
+    ? getBuildingLevelDefinition(selectedBuilding.id, selectedBuildingLevel) : null;
   const selectedNextUpgrade = selectedBuilding && selectedBuildingLevel < selectedBuilding.maxLevel
     ? getBuildingLevelDefinition(selectedBuilding.id, selectedBuildingLevel + 1) : null;
   const sourcePlotId = selectedBuilding
@@ -2203,12 +2205,25 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     <Text style={[styles.sceneCloseText, { color: humanStagePlateActive ? SETTLEMENT_HUD_GOLD : theme.colors.text }]}>×</Text>
                   </Pressable>
                 </View>
+                {humanStagePlateActive ? (
+                  <View style={styles.conceptBuildingStats}>
+                    <Text style={styles.conceptBuildingEffect} numberOfLines={2}>
+                      {selectedCurrentLevel?.effect ?? selectedBuilding.description}
+                    </Text>
+                    <Text style={[styles.conceptBuildingDistrict, { color: selectedBuildingCurrentBonuses.length ? '#8ED17F' : SETTLEMENT_HUD_MUTED }]}>
+                      {selectedBuildingCurrentBonuses.length
+                        ? selectedBuildingCurrentBonuses.length + ' district bonus' + (selectedBuildingCurrentBonuses.length === 1 ? '' : 'es') + ' active'
+                        : 'No active district bonus'}
+                    </Text>
+                  </View>
+                ) : null}
                 <View style={styles.sceneActionRow}>
                   {(['inspect', 'move', 'upgrade'] as const).map(action => {
                     const active = selectedBuildingAction === action;
                     const disabled = action === 'move' && !selectedCanMove;
                     const ready = action === 'upgrade' && !selectedUpgradeBlocker;
                     const label = action === 'inspect' ? 'Inspect' : action === 'move' ? 'Move' : 'Upgrade';
+                    const glyph = action === 'inspect' ? '⌕' : action === 'move' ? '↔' : '↑';
                     return <Pressable
                       key={action}
                       testID={'building-action-' + action + '-' + selectedBuilding.id}
@@ -2232,7 +2247,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         }
                       ]}
                     >
-                      {ready ? <View pointerEvents="none" style={[styles.sceneActionReadyDot, { backgroundColor: theme.colors.gold }]} /> : null}
+                      {humanStagePlateActive ? (
+                        <Text style={[styles.sceneActionGlyph, { color: active || ready ? SETTLEMENT_HUD_GOLD : SETTLEMENT_HUD_MUTED }]}>{glyph}</Text>
+                      ) : ready ? (
+                        <View pointerEvents="none" style={[styles.sceneActionReadyDot, { backgroundColor: theme.colors.gold }]} />
+                      ) : null}
                       <Text style={[styles.sceneActionText, { color: humanStagePlateActive ? (active || ready ? SETTLEMENT_HUD_GOLD : SETTLEMENT_HUD_TEXT) : (active || ready ? theme.colors.gold : theme.colors.text) }]}>{label}</Text>
                     </Pressable>;
                   })}
@@ -2673,7 +2692,11 @@ const styles = StyleSheet.create({
   sceneActionButton: { flex: 1, minWidth: 48, minHeight: 48, borderWidth: 1, borderRadius: 10, paddingHorizontal: 4, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 3 },
   conceptSceneActionButton: { borderWidth: 1.25, borderRadius: 9 },
   sceneActionText: { fontSize: 12, lineHeight: 17, fontWeight: '900', flexShrink: 1, textAlign: 'center' },
+  sceneActionGlyph: { fontSize: 15, lineHeight: 17, fontWeight: '900' },
   sceneActionReadyDot: { width: 5, height: 5, borderRadius: 999 },
+  conceptBuildingStats: { marginTop: 5, marginBottom: 7, paddingHorizontal: 6, paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: SETTLEMENT_HUD_GOLD_DARK },
+  conceptBuildingEffect: { color: SETTLEMENT_HUD_TEXT, fontSize: 9.5, lineHeight: 13, fontWeight: '700' },
+  conceptBuildingDistrict: { fontSize: 8, lineHeight: 11, fontWeight: '900', marginTop: 3 },
   sceneDetailsScroll: { padding: 6, paddingTop: 10 },
   sceneDetailsContent: { gap: 8 },
   constructionChoice: { minWidth: 48, minHeight: 48, borderWidth: 1, borderRadius: 12, padding: 9, gap: 5 },
