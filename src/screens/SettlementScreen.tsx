@@ -44,23 +44,14 @@ const fortWorldPositions: Record<string, { left: ViewStyle['left']; top: ViewSty
   plot_se: { left: '66%', top: '62%' }
 };
 
-// The authored Human plates use an isometric ground plane rather than a
-// rectangular screen-space grid. These hitboxes are centered on the actual
-// painted build pads, and the building sprite's bottom-center is locked to the
-// matching anchor below.
-const humanSettlementBackgroundPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
-  plot_nw: { left: '34.7%', top: '14.6%' },
-  plot_n: { left: '55.7%', top: '9.0%' },
-  plot_ne: { left: '59.6%', top: '20.4%' },
-  plot_w: { left: '5.4%', top: '19.7%' },
-  plot_center: { left: '33.0%', top: '24.0%' },
-  plot_e: { left: '65.7%', top: '33.1%' },
-  plot_sw: { left: '4.9%', top: '32.2%' },
-  plot_s: { left: '40.3%', top: '39.4%' },
-  plot_se: { left: '64.1%', top: '47.6%' }
-};
+// The authored Human plates use a fixed 540×960 isometric ground plane.
+// Store the exact painted pad points in source-image space. At runtime they are
+// projected through the same center-cover crop used by the background image,
+// so buildings remain attached to the same pad on every portrait aspect ratio.
+const HUMAN_SETTLEMENT_PLATE_WIDTH = 540;
+const HUMAN_SETTLEMENT_PLATE_HEIGHT = 960;
 
-const humanSettlementBackgroundCenters: Record<string, { x: number; y: number }> = {
+const humanSettlementSourceAnchors: Record<string, { x: number; y: number }> = {
   plot_nw: { x: 0.487, y: 0.266 },
   plot_n: { x: 0.697, y: 0.210 },
   plot_ne: { x: 0.736, y: 0.324 },
@@ -71,6 +62,39 @@ const humanSettlementBackgroundCenters: Record<string, { x: number; y: number }>
   plot_s: { x: 0.543, y: 0.514 },
   plot_se: { x: 0.781, y: 0.596 }
 };
+
+function projectCoverPoint(
+  point: { x: number; y: number },
+  viewportWidth: number,
+  viewportHeight: number
+) {
+  const width = Number.isFinite(viewportWidth) && viewportWidth > 0 ? viewportWidth : 340;
+  const height = Number.isFinite(viewportHeight) && viewportHeight > 0 ? viewportHeight : 600;
+  const scale = Math.max(
+    width / HUMAN_SETTLEMENT_PLATE_WIDTH,
+    height / HUMAN_SETTLEMENT_PLATE_HEIGHT
+  );
+  const renderedWidth = HUMAN_SETTLEMENT_PLATE_WIDTH * scale;
+  const renderedHeight = HUMAN_SETTLEMENT_PLATE_HEIGHT * scale;
+  const offsetX = (width - renderedWidth) / 2;
+  const offsetY = (height - renderedHeight) / 2;
+  return {
+    x: (offsetX + point.x * renderedWidth) / width,
+    y: (offsetY + point.y * renderedHeight) / height
+  };
+}
+
+function plotPositionFromCenter(
+  center: { x: number; y: number },
+  landmark: boolean
+): { left: ViewStyle['left']; top: ViewStyle['top'] } {
+  const halfWidth = landmark ? 0.17 : 0.14;
+  const halfHeight = landmark ? 0.145 : 0.12;
+  return {
+    left: ((center.x - halfWidth) * 100).toFixed(2) + '%' as ViewStyle['left'],
+    top: ((center.y - halfHeight) * 100).toFixed(2) + '%' as ViewStyle['top']
+  };
+}
 
 const fortWorldCenters: Record<string, { x: number; y: number }> = {
   plot_nw: { x: 0.24, y: 0.33 },
@@ -655,8 +679,17 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     !worldRebuildActive ||
     districtOverlayOpen ||
     Boolean(selectedBuildingId || selectedDistrictId || selectedPlotId || blueprintPlannerOpen || relocationMode);
+  const humanSettlementViewportCenters = useMemo(
+    () => Object.fromEntries(
+      Object.entries(humanSettlementSourceAnchors).map(([plotId, anchor]) => [
+        plotId,
+        projectCoverPoint(anchor, mapWidth, mapHeight)
+      ])
+    ) as Record<string, { x: number; y: number }>,
+    [mapWidth, mapHeight]
+  );
   const activePlotCenters = humanStagePlateActive
-    ? humanSettlementBackgroundCenters
+    ? humanSettlementViewportCenters
     : worldRebuildActive
       ? fortWorldCenters
       : settlementPlotCenters;
@@ -1453,9 +1486,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const districtActivityColor = buildingDistrictBonuses[0]
             ? semanticColor(theme, settlementDistrictTone(buildingDistrictBonuses[0]))
             : roleColor;
+          const humanPlotCenter = humanStagePlateActive
+            ? humanSettlementViewportCenters[plot.id]
+            : null;
           const visualPosition = (
-            humanStagePlateActive
-              ? humanSettlementBackgroundPositions[plot.id]
+            humanPlotCenter
+              ? plotPositionFromCenter(humanPlotCenter, landmark)
               : worldRebuildActive
                 ? fortWorldPositions[plot.id]
                 : settlementPlotPositions[plot.id]
