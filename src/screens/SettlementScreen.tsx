@@ -2267,7 +2267,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <SecondaryButton label="Close district" onPress={() => setSelectedDistrictId(null)} />
           </View>
         </View>
-      ) : selectedBuilding || selectedPlot ? null : (
+      ) : selectedBuilding || selectedPlot || worldRebuildActive ? null : (
         <Text style={[styles.sceneHelp, { color: theme.colors.textMuted }]}>Tap a structure to manage it or marked ground to expand.</Text>
       )}
 
