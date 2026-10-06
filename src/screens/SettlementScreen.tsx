@@ -1708,7 +1708,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       styles.buildingPad,
                       landmark ? styles.landmarkBuildingPad : undefined,
                       worldRebuildActive ? landmark ? styles.worldLandmarkBuildingPad : styles.worldBuildingPad : undefined,
-                      selected ? styles.selectedBuildingPad : undefined
+                      selected
+                        ? worldRebuildActive
+                          ? landmark ? styles.selectedWorldLandmarkBuildingPad : styles.selectedWorldBuildingPad
+                          : styles.selectedBuildingPad
+                        : undefined
                     ]}
                   >
                     <View
@@ -2377,6 +2381,8 @@ const styles = StyleSheet.create({
   landmarkBuildingPad: { width: 110, height: 98, transform: [{ translateY: -9 }], elevation: 6 },
   worldBuildingPad: { transform: [{ scale: 1.14 }, { translateY: -1 }], elevation: 5 },
   worldLandmarkBuildingPad: { width: 136, height: 120, transform: [{ translateY: -13 }], elevation: 8 },
+  selectedWorldBuildingPad: { transform: [{ scale: 1.19 }, { translateY: -3 }], elevation: 7 },
+  selectedWorldLandmarkBuildingPad: { width: 136, height: 120, transform: [{ scale: 1.045 }, { translateY: -15 }], elevation: 10 },
   buildingFootprint: { position: 'absolute', left: 5, right: 5, bottom: 0, height: 20, borderRadius: 999, opacity: 0.18, transform: [{ scaleX: 1.08 }] },
   landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
