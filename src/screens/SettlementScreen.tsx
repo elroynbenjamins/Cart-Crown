@@ -2118,7 +2118,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             >
               <View style={[styles.districtOverlayLauncherDot, { backgroundColor: factionAccent }]} />
               <Text style={[styles.districtOverlayLauncherText, { color: theme.colors.text }]}>DISTRICTS</Text>
-              <Text style={[styles.districtOverlayLauncherCount, { color: factionAccent }]}>{settlementAdjacencyBonuses.length}</Text>
+              <Text style={[styles.districtOverlayLauncherCount, { color: factionAccent }]}>
+                {districtOverlayOpen ? '×' : settlementAdjacencyBonuses.length}
+              </Text>
             </Pressable>
 
             {districtOverlayOpen ? (
