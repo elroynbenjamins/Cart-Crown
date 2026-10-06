@@ -248,6 +248,14 @@ function testRecipesAndInteractions() {
     check(centerPlotStyle.zIndex > westPlotStyle.zIndex, 'The Great Hall must remain above same-row secondary structures in scene depth.');
     check(nodes(tree, 'BuildingSprite').filter(node => Number(node.props.size) >= 80).length === 1, 'Only the central landmark should use oversized settlement scale at the initial layout.');
     const placedBuildingCount = Object.values(f.game.buildingPlacements).filter(Boolean).length;
+    const buildingAnchors = nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-ground-anchor-'));
+    check(buildingAnchors.length === placedBuildingCount, 'Every placed building must expose one explicit ground anchor.');
+    if (faction === 'human') {
+      check(buildingAnchors.every(node => {
+        const anchored = style(node.props.style);
+        return anchored.position === 'absolute' && anchored.left === '50%' && anchored.bottom === '50%';
+      }), 'Authored Human buildings must lock their bottom-center to the painted plot center rather than float in the hitbox.');
+    }
     const ambience = nodes(tree, 'SettlementBuildingAmbience');
     check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-ground-shadow-')).length === placedBuildingCount, 'Every placed building must receive a world-grounding shadow.');
     check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-contact-shadow-')).length === placedBuildingCount, 'Every placed building must receive a tight contact shadow.');
