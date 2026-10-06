@@ -39,7 +39,7 @@ const definitions: Record<LateHumanEventId, Definition> = {
     purpose: { label: 'Royal records', tone: 'violet' },
     action: 'completeEmptyThrone', actionLabel: 'Secure the Royal Records', continueLabel: 'Continue along the Crownroad',
     scene: 'crownspire', loreId: 'empty_throne_records', siteId: 'crownroad_salvage',
-    findings: [{ title: 'No lawful succession', portrait: 'human', detail: 'The records show military officials continued issuing royal orders after the court stopped functioning. Someone preserved the machinery of authority without the crown itself.' }]
+    findings: [{ title: 'Preparation matters', portrait: 'human', detail: 'The recovered stores make it practical to maintain more than one viable army setup. The next encounters are built to punish a single habitual high-Power loadout.' }]
   },
   broken_archives: {
     chapter: 5, nodeId: 'ch5_node_3', title: 'Broken Archives',
