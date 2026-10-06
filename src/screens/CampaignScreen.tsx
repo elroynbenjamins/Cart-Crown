@@ -404,19 +404,19 @@ export function CampaignScreen({
           const mercenaryPlayable =
             chapterNumber === 1 &&
             node.current &&
-            node.id === 'node_4' &&
+            node.id === 'node_5' &&
             firstPromotionComplete &&
             !mercenaryPatrolWon;
           const refugeePlayable =
             chapterNumber === 1 &&
             node.current &&
-            node.id === 'node_5' &&
+            node.id === 'node_6' &&
             Boolean(commanderPathId) &&
             !refugeeCampSecured;
           const bossPlayable =
             chapterNumber === 1 &&
             node.current &&
-            node.id === 'node_6' &&
+            node.id === 'node_7' &&
             refugeeCampSecured;
 
           const fortMusterPlayable =
@@ -604,7 +604,7 @@ export function CampaignScreen({
             ? 'DONE'
             : node.id === 'node_4' && node.current && !firstPromotionComplete
               ? 'PROMOTE FIRST'
-              : node.id === 'node_5' && node.current && !commanderPathId
+              : node.id === 'node_6' && node.current && !commanderPathId
                 ? 'CHOOSE COMMANDER'
                 : refugeePlayable
                   ? 'WELCOME REFUGEES'
