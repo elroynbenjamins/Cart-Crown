@@ -262,13 +262,8 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'SettlementBuildPlotSprite').length >= 1, faction + ' empty plots must render as production build sites.');
     if (faction === 'human') {
       check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('building-district-aura-')), 'Authored Human world view must not paint district aura pills until analysis is active.');
-      const expectedUpgradeDots = f.game.buildings.filter((building: any) => {
-        const level = f.game.buildingLevels[building.id] ?? 0;
-        if (level <= 0 || level >= building.maxLevel || level >= 3 || !f.game.isBuildingUnlocked(building.id)) return false;
-        const next = kingdom.getBuildingLevelDefinition(building.id, level + 1);
-        return Boolean(next && kingdom.canPayBuildingCost(f.game.resources, next.cost));
-      }).length;
-      check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('world-upgrade-ready-')).length === expectedUpgradeDots, 'World upgrade readiness must use compact notification dots rather than large arrows.');
+      check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('world-upgrade-ready-')), 'Upgrade readiness must stay in the HUD rather than marking every world building.');
+      check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('upgrade mats')), 'Normal settlement HUD must preserve the aggregate upgrade-ready count.');
       check(!text(tree).includes('↑'), 'Default world view must not scatter large upgrade arrows over the settlement.');
     }
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
@@ -276,7 +271,7 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')), 'District-completing plots must be summarized in the HUD.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'Rebuilt world canvases must keep district-opportunity detail in the HUD/planner instead of covering the terrain.');
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
-    check(text(tree).includes('BUILD READY'), 'The recommended empty plot must show direct in-world readiness feedback.');
+    check(nodes(tree, 'View').some(node => node.props.testID === 'world-build-ready-plot_nw'), 'The recommended world plot must use one compact in-world build marker.');
     check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
     const normalMap = nodes(tree, 'View').find(node => style(node.props.style).height === 600 && style(node.props.style).position === 'relative');
     check(Boolean(normalMap), 'Reference portrait layout must devote 600px to the settlement world scene.');
@@ -411,6 +406,7 @@ function testRecipesAndInteractions() {
     const largeTree = f.h.render();
     const map = nodes(largeTree, 'View').find(node => style(node.props.style).height === 720 && style(node.props.style).position === 'relative');
     check(Boolean(map), 'Larger text must expand the world viewport without changing plot geometry.');
+    check(text(largeTree).includes('built ·') && text(largeTree).includes('districts'), 'Compact/large-text HUD must collapse status chips into one calm summary line.');
   }
 }
 
