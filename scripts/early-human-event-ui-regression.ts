@@ -103,7 +103,7 @@ function fixture(id: EarlyHumanEventId) {
     mercenaryPatrolWon: true, commanderPathId: 'existing_commander', refugeeCampSecured: false,
     resources: { gold: 12, wood: 15, stone: 6, iron: 3, provisions: 9 },
     unlockedResourceSites: [], sharedProgress: { lore: [], achievements: [] },
-    buildingLevels: { hall: 1 }, buildingPlacements: { center: 'hall' },
+    buildingLevels: { hall: 1 }, buildingPlacements: { center: 'hall' }, recruitChoiceAvailable: false, recruitChosen: false,
     units: [{ id: 'hum_recruit', className: 'Recruit', hp: 100 }], formation: ['hum_recruit', null, null, null, null, null, null, null, null],
     equipmentInventory: ['already_owned'], unitEquipment: {}, armyReadiness: 42,
     activeSquadCap: 3, wagonItems: [{ id: 'medicine' }], expeditionTickets: 1,
@@ -113,7 +113,8 @@ function fixture(id: EarlyHumanEventId) {
   for (const [setter, field] of Object.entries({
     setMarkedRaidersInvestigated: 'markedRaidersInvestigated', setForgeUnlocked: 'forgeUnlocked',
     setRefugeeCampSecured: 'refugeeCampSecured', setResources: 'resources', setChapterNodes: 'chapterNodes',
-    setUnlockedResourceSites: 'unlockedResourceSites', setSharedProgress: 'sharedProgress'
+    setUnlockedResourceSites: 'unlockedResourceSites', setSharedProgress: 'sharedProgress',
+    setRecruitChoiceAvailable: 'recruitChoiceAvailable', setBuildingLevels: 'buildingLevels'
   })) game[setter] = (value: any) => { game[field] = typeof value === 'function' ? value(game[field]) : value; };
   for (const entry of cases) game[entry[4]] = () => { calls.push(entry[4]); return providerAction(entry[4], game)(); };
   return { game, calls, row };
