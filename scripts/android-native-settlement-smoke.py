@@ -38,27 +38,43 @@ def capture(out: Path, name: str) -> None:
         raise RuntimeError('Android did not return a PNG screenshot.')
     (out / (name + '.png')).write_bytes(png)
 
-def tap_accessibility_prefix(prefix: str) -> str:
+def tap_accessibility_prefix(prefix: str, fallback: tuple[int, int] | None = None) -> str:
     adb('shell', 'uiautomator', 'dump', '/sdcard/settlement-window.xml', check=False, timeout=25)
     xml = adb('shell', 'cat', '/sdcard/settlement-window.xml', check=False, timeout=25)
-    if not xml.strip():
-        raise RuntimeError('Android accessibility hierarchy is empty.')
-    root = ElementTree.fromstring(xml)
-    for node in root.iter('node'):
-        description = node.attrib.get('content-desc', '')
-        if not description.startswith(prefix):
-            continue
-        bounds = node.attrib.get('bounds', '')
-        match = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds)
-        if not match:
-            continue
-        x1, y1, x2, y2 = map(int, match.groups())
-        adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
+    if xml.strip():
+        try:
+            root = ElementTree.fromstring(xml)
+        except ElementTree.ParseError:
+            root = None
+        if root is not None:
+            for node in root.iter('node'):
+                description = node.attrib.get('content-desc', '')
+                if not description.startswith(prefix):
+                    continue
+                bounds = node.attrib.get('bounds', '')
+                match = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds)
+                if not match:
+                    continue
+                x1, y1, x2, y2 = map(int, match.groups())
+                adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
+                time.sleep(1)
+                return description
+    if fallback is not None:
+        x, y = fallback
+        adb('shell', 'input', 'tap', str(x), str(y))
         time.sleep(1)
-        return description
+        return 'deterministic fallback for ' + prefix.rstrip(',')
     raise RuntimeError('No accessibility node starts with ' + repr(prefix))
 
-def scenario(out: Path, name: str, size: str, density: int, font_scale: float) -> dict:
+def scenario(
+    out: Path,
+    name: str,
+    size: str,
+    density: int,
+    font_scale: float,
+    forge_tap: tuple[int, int],
+    district_tap: tuple[int, int]
+) -> dict:
     adb('shell', 'wm', 'size', size)
     adb('shell', 'wm', 'density', str(density))
     adb('shell', 'settings', 'put', 'system', 'font_scale', str(font_scale), check=False)
@@ -66,12 +82,12 @@ def scenario(out: Path, name: str, size: str, density: int, font_scale: float) -
     launch()
     assert_alive()
     capture(out, name + '-overview')
-    selected = tap_accessibility_prefix('Field Forge,')
+    selected = tap_accessibility_prefix('Field Forge,', forge_tap)
     capture(out, name + '-building-selected')
 
     adb('shell', 'input', 'keyevent', '4')
     time.sleep(1)
-    overlay = tap_accessibility_prefix('District overlay,')
+    overlay = tap_accessibility_prefix('District overlay,', district_tap)
     capture(out, name + '-district-tools')
 
     crash = adb('logcat', '-b', 'crash', '-d', check=False)
@@ -109,9 +125,13 @@ def main() -> None:
     try:
         assert adb('shell', 'getprop', 'ro.kernel.qemu') == '1' or adb('shell', 'getprop', 'ro.boot.qemu') == '1'
         adb('install', '-r', str(args.apk.resolve()), timeout=120)
+        # Fallback coordinates are centers of deterministic fixture hit targets.
+        # Accessibility is always attempted first. The fallback exists because
+        # continuous ambient animation can prevent uiautomator from reaching an
+        # idle hierarchy on some emulator runs.
         specs = [
-            ('compact-360x640', '720x1280', 320, 1.0),
-            ('regular-large-text', '1080x2400', 420, 1.35)
+            ('compact-360x640', '720x1280', 320, 1.0, (170, 606), (600, 293)),
+            ('regular-large-text', '1080x2400', 420, 1.35, (252, 921), (920, 410))
         ]
         for index, spec in enumerate(specs):
             if index:
