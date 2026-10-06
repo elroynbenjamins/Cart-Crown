@@ -1,7 +1,7 @@
 import React from 'react';
 import { GameProvider } from './src/game/GameProvider';
 import { createHumanFactionState, createInitialGameSnapshot } from './src/save/schema';
-import { SettlementScreen } from './src/screens/SettlementScreen';
+import { AppShell } from './src/AppShell';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { AndroidWindowFrame } from './src/ui/AndroidWindowFrame';
 
@@ -56,7 +56,12 @@ export default function App() {
     <ThemeProvider>
       <AndroidWindowFrame>
         <GameProvider initialSnapshot={snapshot} onSnapshotChange={() => undefined}>
-          <SettlementScreen onExit={() => undefined} />
+          <AppShell
+            saveSlotId={1}
+            onExitToSaves={() => undefined}
+            initialActive="kingdom"
+            initialFlow="settlement"
+          />
         </GameProvider>
       </AndroidWindowFrame>
     </ThemeProvider>
