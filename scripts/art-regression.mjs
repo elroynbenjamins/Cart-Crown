@@ -236,11 +236,18 @@ if (campSceneBytes > campSceneByteBudget) {
 const registry = fs.readFileSync(path.join(root, 'src/ui/productionAssets.ts'), 'utf8');
 const registered = new Set([...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/[^']+\.(?:png|jpg))'\)/g)].map(match => match[1]));
 const spritePaths = new Set(sprites.map(relative));
+const productionAssetPaths = new Set([
+  ...spritePaths,
+  ...settlementBackgrounds.keys()
+]);
 for (const sprite of spritePaths) {
   if (!registered.has(sprite)) failures.push(sprite + ' exists but is not registered in productionAssetSources.');
 }
-for (const sprite of registered) {
-  if (!spritePaths.has(sprite)) failures.push(sprite + ' is registered but the file does not exist.');
+for (const asset of settlementBackgrounds.keys()) {
+  if (!registered.has(asset)) failures.push(asset + ' exists but is not registered in productionAssetSources.');
+}
+for (const asset of registered) {
+  if (!productionAssetPaths.has(asset)) failures.push(asset + ' is registered but the file does not exist.');
 }
 for (const [relativePath, background] of settlementBackgrounds) {
   const expected = "'" + background.assetId + "': require('../../" + relativePath + "')";
