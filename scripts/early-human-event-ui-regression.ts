@@ -162,7 +162,7 @@ function testActions() {
     check(exited === 1 && calls.length === 0, 'Return from preview must not resolve an event.');
     const resolve = one(tree, 'DecisionCommit').onConfirm;
     resolve(); resolve();
-    check(calls.length === 1 && calls[0] === actionName, 'One confirmation must dispatch one correct provider action.');
+    check(calls.length === 1 && calls[0] === actionName, 'One confirmation must dispatch one correct provider action for ' + id + '.');
     for (const key of Object.keys(before)) check(game.resources[key] - before[key] === (reward as Record<string, number>)[key] || game.resources[key] - before[key] === 0 && !(key in reward), 'Displayed reward must match the current provider for ' + id + ' / ' + key);
     check(game.chapterNodes.find((node: any) => node.id === nodeId).completed, 'Event completion must come from the provider.');
     check(game.chapterNodes.find((node: any) => node.id === nextId).current, 'Original next objective must remain unchanged.');
