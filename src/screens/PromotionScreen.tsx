@@ -66,7 +66,7 @@ export function PromotionScreen({ onOpenForge, onComplete }: {
       {mira ? (
         <PromotionPathScene
           faction={mira.faction}
-          fromClass={mira.className}
+          fromClass={firstPromotionComplete ? 'Recruit' : mira.className}
           toClass={firstPromotionComplete ? mira.className : selected?.toClass}
           equipmentId={firstPromotionComplete ? null : selected?.requiredEquipmentId}
         />
