@@ -28,6 +28,13 @@ function one(tree: any, name: string) {
   assert.equal(found.length, 1, 'Expected one ' + name);
   return found[0]!.props;
 }
+function allText(tree: any): string {
+  if (typeof tree === 'string' || typeof tree === 'number') return String(tree);
+  if (Array.isArray(tree)) return tree.map(allText).join(' ');
+  return tree?.props
+    ? allText(tree.props.children) + ' ' + allText(tree.props.footer)
+    : '';
+}
 function harness(file: string, name: string, game: any = {}, props: Record<string, any> = {}) {
   let cursor = 0;
   const hooks: any[] = [];
