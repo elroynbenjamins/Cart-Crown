@@ -1409,32 +1409,75 @@ export function AppShell({
               setActiveEncounterId('pretender_general');
               setFlow('battlePrep');
             }}
-            onOpenRoyalDecrees={() => setFlow('royalDecrees')}
             onStartOldRoyalLands={() => {
               setActiveEncounterId('old_royal_lands');
               setFlow('battlePrep');
             }}
+            onOpenRoyalDecrees={() => setFlow('royalDecrees')}
+            onStartCh5RallyLine={() => {
+              setActiveEncounterId('ch5_rally_line');
+              setFlow('battlePrep');
+            }}
+            onStartCh5AboveShieldwall={() => {
+              setActiveEncounterId('ch5_above_shieldwall');
+              setFlow('battlePrep');
+            }}
             onOpenBrokenArchives={() => setFlow('brokenArchives')}
+            onOpenRoyalLedger={() => setFlow('royalLedger')}
             onStartAshenEnvoy={() => {
               setActiveEncounterId('ashen_envoy');
               setFlow('battlePrep');
             }}
-            onOpenRoyalLedger={() => setFlow('royalLedger')}
+            onStartCh5HammerWing={() => {
+              setActiveEncounterId('ch5_hammer_wing');
+              setFlow('battlePrep');
+            }}
+            onStartCh5StrongestArmy={() => {
+              setActiveEncounterId('ch5_strongest_army');
+              setFlow('battlePrep');
+            }}
+            onStartCh5CrownsMuster={() => {
+              setActiveEncounterId('ch5_crowns_muster');
+              setFlow('battlePrep');
+            }}
             onStartGateOfCrownspire={() => {
               setActiveEncounterId('gate_of_crownspire');
               setFlow('battlePrep');
             }}
-            onOpenGrandCouncil={() => setFlow('grandCouncil')}
             onStartSunderedFields={() => {
               setActiveEncounterId('sundered_fields');
               setFlow('battlePrep');
             }}
+            onStartCh6FirstWard={() => {
+              setActiveEncounterId('ch6_first_ward');
+              setFlow('battlePrep');
+            }}
+            onOpenGrandCouncil={() => setFlow('grandCouncil')}
+            onStartCh6PowerPrice={() => {
+              setActiveEncounterId('ch6_power_price');
+              setFlow('battlePrep');
+            }}
+            onStartCh6BreakSpell={() => {
+              setActiveEncounterId('ch6_break_spell');
+              setFlow('battlePrep');
+            }}
             onOpenConcordVault={() => setFlow('concordVault')}
+            onStartCh6FireFromAbove={() => {
+              setActiveEncounterId('ch6_fire_from_above');
+              setFlow('battlePrep');
+            }}
+            onStartCh6SilentGround={() => {
+              setActiveEncounterId('ch6_silent_ground');
+              setFlow('battlePrep');
+            }}
+            onStartCh6WardsSteel={() => {
+              setActiveEncounterId('ch6_wards_steel');
+              setFlow('battlePrep');
+            }}
             onStartAshenCourt={() => {
               setActiveEncounterId('ashen_court');
               setFlow('battlePrep');
             }}
-            onOpenForcedBeacon={() => setFlow('forcedBeacon')}
             onStartReturnToCrownspire={() => {
               setActiveEncounterId('return_to_crownspire');
               setFlow('battlePrep');
