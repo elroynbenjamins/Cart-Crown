@@ -221,13 +221,17 @@ const flowTitles: Record<FlowScreen, string> = {
 
 export function AppShell({
   saveSlotId,
-  onExitToSaves
+  onExitToSaves,
+  initialActive = 'kingdom',
+  initialFlow = null
 }: {
   saveSlotId: SaveSlotId;
   onExitToSaves: () => void;
+  initialActive?: NavId;
+  initialFlow?: FlowScreen | null;
 }) {
-  const [active, setActive] = useState<NavId>('kingdom');
-  const [flow, setFlow] = useState<FlowScreen | null>(null);
+  const [active, setActive] = useState<NavId>(initialActive);
+  const [flow, setFlow] = useState<FlowScreen | null>(initialFlow);
   const [commanderChoiceReturn, setCommanderChoiceReturn] =
     useState<'army' | 'campaign'>('army');
   const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
