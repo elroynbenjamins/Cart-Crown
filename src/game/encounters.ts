@@ -16,6 +16,7 @@ export type EncounterId =
   | 'war_table_golem_breach'
   | 'mercenary_patrol'
   | 'toll_captain'
+  | 'ch1_banner_still_flies'
   | 'ch1_hold_crossing'
   | 'ch1_spears_at_dawn'
   | 'ch1_cut_off_captain'
@@ -229,6 +230,15 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyCount: 5,
     enemyHp: 340,
     difficulty: 'Boss'
+  },
+  ch1_banner_still_flies: {
+    id: 'ch1_banner_still_flies',
+    name: 'A Banner Still Flies',
+    subtitle: 'The survivors raise Greenkeep’s banner and face the first raiders trying to finish the broken column.',
+    enemyName: 'Roadside Raiders',
+    enemyCount: 2,
+    enemyHp: 78,
+    difficulty: 'Normal'
   },
   ch1_hold_crossing: {
     id: 'ch1_hold_crossing',
@@ -970,6 +980,7 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   war_table_golem_breach: 'heavy_front_441',
   mercenary_patrol: 'assault_432',
   toll_captain: 'wide_vanguard_522',
+  ch1_banner_still_flies: 'balanced_333',
   ch1_hold_crossing: 'balanced_333',
   ch1_spears_at_dawn: 'skirmish_screen_243',
   ch1_cut_off_captain: 'protected_rear_225',
@@ -1280,6 +1291,7 @@ const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>
   war_table_sky_raiders: 'mounted_hunters',
   war_table_golem_breach: 'shock_warband',
   mercenary_patrol: 'mercenary_line',
+  ch1_banner_still_flies: 'raider_pack',
   ch1_hold_crossing: 'raider_pack',
   ch1_spears_at_dawn: 'mounted_hunters',
   ch1_cut_off_captain: 'mercenary_line',
@@ -1547,6 +1559,10 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   toll_captain: {
     resources: { gold: 120, wood: 90, stone: 45, iron: 12, provisions: 8 },
     storySummary: 'The old toll fort falls. Greenkeep now controls the western road and has the stone, timber and authority needed to become a true Fort.'
+  },
+  ch1_banner_still_flies: {
+    resources: { gold: 24, wood: 8, provisions: 3 },
+    storySummary: 'The first raiders break against the surviving line. Greenkeep’s banner remains standing.'
   },
   ch1_hold_crossing: {
     resources: { gold: 38, wood: 40, provisions: 4 },
