@@ -254,6 +254,7 @@ function testRecipesAndInteractions() {
       check(southStyle.left === '42.30%' && southStyle.top === '44.41%', 'Human south logical plot must map to the lower-center painted pad after cover-crop projection.');
       check(southeastStyle.left === '66.10%' && southeastStyle.top === '52.67%', 'Human southeast logical plot must map to the lowest painted pad after cover-crop projection.');
       check(southStyle.width === '24%' && southStyle.height === '14%', 'Human normal plot hitboxes must match the authored build-pad footprint.');
+      check(southeastStyle.zIndex > centerPlotStyle.zIndex, 'Authored Human depth order must follow projected ground Y so foreground plots render over uphill plots.');
     }
     check(centerPlotStyle.borderWidth === 0 && westPlotStyle.borderWidth === 0, 'Occupied settlement structures must not keep card-like plot borders.');
     check(centerPlotStyle.zIndex > westPlotStyle.zIndex, 'The Great Hall must remain above same-row secondary structures in scene depth.');
