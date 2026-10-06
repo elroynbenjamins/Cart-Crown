@@ -1543,6 +1543,26 @@ export function GameProvider({
     stageFormationSlots: currentWagonStage.formationSlots,
     chapterNodes
   });
+
+  useEffect(() => {
+    setFormation(previous => {
+      let usedCapacity = 0;
+      let changed = false;
+      const next = previous.map(unitId => {
+        if (!unitId) return null;
+        const unit = units.find(candidate => candidate.id === unitId);
+        const capacity = unit?.deploymentCapacity ?? 1;
+        if (usedCapacity + capacity > activeSquadCap) {
+          changed = true;
+          return null;
+        }
+        usedCapacity += capacity;
+        return unitId;
+      });
+      return changed ? next : previous;
+    });
+  }, [activeSquadCap, units]);
+
   const activeDeploymentCapacity = useMemo(
     () =>
       getArmyDeploymentCapacity(
@@ -6036,12 +6056,17 @@ export function GameProvider({
     setCommanderPathId(pathId);
 
     if (activeFaction === 'human') {
-      setChapterNodes(previous =>
-        previous.map(node => {
-          if (node.id === 'node_5') return { ...node, current: true };
+      setChapterNodes(previous => {
+        const usesRoadmapNodes = previous.some(node => node.id === 'ch1_m06');
+        return previous.map(node => {
+          if (
+            node.id === (usesRoadmapNodes ? 'ch1_m06' : 'node_5')
+          ) {
+            return { ...node, current: true };
+          }
           return { ...node, current: false };
-        })
-      );
+        });
+      });
     }
 
     return true;
