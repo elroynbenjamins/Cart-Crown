@@ -287,6 +287,7 @@ type GameContextValue = {
   formationShapes: FormationShapeDefinition[];
   activeFormationShape: FormationShapeDefinition;
   formationPresets: FormationPreset[];
+  armyLoadoutsUnlocked: boolean;
   formationDoctrineId: string;
   formationDoctrines: FormationDoctrine[];
   formationBonuses: FormationBonus[];
@@ -1495,6 +1496,16 @@ export function GameProvider({
     currentWagonStage.formationSlots,
     getCampaignActiveSquadCap(chapterNumber, chapterNodes)
   );
+  const armyLoadoutsUnlocked =
+    activeFaction !== 'human' ||
+    chapterNumber > 4 ||
+    (
+      chapterNumber === 4 &&
+      Boolean(
+        chapterNodes.find(node => node.id === 'ch4_node_6')
+          ?.completed
+      )
+    );
   const activeDeploymentCapacity = useMemo(
     () =>
       getArmyDeploymentCapacity(
@@ -6323,6 +6334,7 @@ export function GameProvider({
   };
 
   const saveFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!armyLoadoutsUnlocked) return false;
     if (![1, 2, 3].includes(slotId)) return false;
     if (!formation.some(Boolean)) return false;
 
@@ -6358,6 +6370,7 @@ export function GameProvider({
   };
 
   const applyFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!armyLoadoutsUnlocked) return false;
     const preset = formationPresets.find(
       candidate => candidate.slotId === slotId
     );
@@ -6440,6 +6453,7 @@ export function GameProvider({
   };
 
   const clearFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!armyLoadoutsUnlocked) return false;
     if (!formationPresets.some(candidate => candidate.slotId === slotId)) {
       return false;
     }
@@ -7305,6 +7319,7 @@ export function GameProvider({
       formationShapes,
       activeFormationShape,
       formationPresets,
+      armyLoadoutsUnlocked,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,
@@ -7556,6 +7571,7 @@ export function GameProvider({
       formationShapeId,
       activeFormationShape,
       formationPresets,
+      armyLoadoutsUnlocked,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,
