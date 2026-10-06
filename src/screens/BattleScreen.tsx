@@ -42,6 +42,58 @@ type ActiveEffect = {
 };
 
 type BattleSpeed = 1 | 2;
+type FormationIntegrityState =
+  | 'stable'
+  | 'pressured'
+  | 'breaking'
+  | 'breached';
+
+function getFormationIntegrityState(value: number): FormationIntegrityState {
+  if (value > 70) return 'stable';
+  if (value > 40) return 'pressured';
+  if (value > 15) return 'breaking';
+  return 'breached';
+}
+
+function integrityAttackMultiplier(state: FormationIntegrityState) {
+  return state === 'stable'
+    ? 1
+    : state === 'pressured'
+      ? 0.98
+      : state === 'breaking'
+        ? 0.92
+        : 0.82;
+}
+
+function integrityDefenseMultiplier(state: FormationIntegrityState) {
+  return state === 'stable'
+    ? 1
+    : state === 'pressured'
+      ? 0.98
+      : state === 'breaking'
+        ? 0.9
+        : 0.78;
+}
+
+function integrityVulnerabilityMultiplier(state: FormationIntegrityState) {
+  return state === 'stable'
+    ? 1
+    : state === 'pressured'
+      ? 1.02
+      : state === 'breaking'
+        ? 1.08
+        : 1.16;
+}
+
+function integrityLabel(state: FormationIntegrityState) {
+  return state === 'stable'
+    ? 'Stable'
+    : state === 'pressured'
+      ? 'Pressured'
+      : state === 'breaking'
+        ? 'Breaking'
+        : 'Breached';
+}
 
 type ExchangeFeedback = {
   outgoing: number;
@@ -145,8 +197,13 @@ export function BattleScreen({
       : activeFaction === 'orc'
         ? theme.colors.orc
         : theme.colors.human;
-  const marcherDoctrineActive =
-    encounterId === 'siege_road' || encounterId === 'lord_marshal_veyr';
+  const marcherDoctrineActive = [
+    'siege_road',
+    'ch3_through_gap',
+    'ch3_wolves_wing',
+    'ch3_layered_host',
+    'lord_marshal_veyr'
+  ].includes(encounterId);
   const loyalistApproachActive =
     encounterId === 'pretender_general';
   const metaAllianceActive = [
@@ -301,6 +358,10 @@ export function BattleScreen({
     damageTaken: 0,
     healing: 0
   });
+  const [partyIntegrity, setPartyIntegrity] = useState(100);
+  const [enemyIntegrity, setEnemyIntegrity] = useState(100);
+  const partyIntegrityState = getFormationIntegrityState(partyIntegrity);
+  const enemyIntegrityState = getFormationIntegrityState(enemyIntegrity);
   const outcomeCommitGateRef = useRef(
     createOneShotGate()
   );
@@ -474,6 +535,26 @@ export function BattleScreen({
       color: theme.colors.gold
     });
   }
+  battleEffects.push({
+    key: 'formation-integrity',
+    label: 'Your line · ' + integrityLabel(partyIntegrityState),
+    color:
+      partyIntegrityState === 'stable'
+        ? factionAccent
+        : partyIntegrityState === 'pressured'
+          ? theme.colors.gold
+          : theme.colors.danger
+  });
+  battleEffects.push({
+    key: 'enemy-integrity',
+    label: 'Enemy line · ' + integrityLabel(enemyIntegrityState),
+    color:
+      enemyIntegrityState === 'stable'
+        ? theme.colors.textMuted
+        : enemyIntegrityState === 'pressured'
+          ? theme.colors.gold
+          : theme.colors.danger
+  });
   useEffect(() => {
     if (!exchangeFeedback || !appIsActive || manualPaused || pausedForTutorial) return;
 
@@ -676,7 +757,8 @@ export function BattleScreen({
             (enemyFantasyThreat?.outgoingDamageMultiplier ?? 1) *
             momentum *
             attackFactor *
-            tacticalSpeedDamageMultiplier
+            tacticalSpeedDamageMultiplier *
+            integrityAttackMultiplier(partyIntegrityState)
         )
       );
       const playerDamage = Math.max(
@@ -687,7 +769,8 @@ export function BattleScreen({
               enemyTactic.armorMultiplier *
               enemyArmyProfile.armorMultiplier
             )) *
-            formationMatchup.outgoingDamageMultiplier
+            formationMatchup.outgoingDamageMultiplier *
+            integrityVulnerabilityMultiplier(enemyIntegrityState)
         )
       );
 
@@ -724,7 +807,8 @@ export function BattleScreen({
                 loyalistArmorMultiplier *
                 decreeArmorMultiplier *
                 mandateArmorMultiplier *
-                allianceArmorMultiplier
+                allianceArmorMultiplier *
+                integrityDefenseMultiplier(partyIntegrityState)
             )
         )
       );
@@ -748,8 +832,67 @@ export function BattleScreen({
             })
           : [];
 
+      const partyPressureLoss = Math.max(
+        2,
+        Math.round(
+          (actualEnemyDamage / Math.max(1, partyMaxHp)) * 58 +
+            Math.max(0, enemyPressureMultiplier - 1) * 18
+        )
+      );
+      const partyRecovery = Math.min(
+        6,
+        Math.round(
+          (actualHealing / Math.max(1, partyMaxHp)) * 30 +
+            (formationAnalysis.armorMultiplier > 1 ? 1 : 0)
+        )
+      );
+      const enemyPressureLoss = Math.max(
+        2,
+        Math.round(
+          (actualPlayerDamage / Math.max(1, encounter.enemyHp)) * 64 +
+            Math.max(0, formationAnalysis.attackMultiplier - 1) * 14
+        )
+      );
+      const enemyDepthResistance =
+        enemyShape.id === 'layered_core_231'
+          ? 0.72
+          : enemyShape.id === 'iron_wall_501'
+            ? 0.82
+            : 1;
+      const nextPartyIntegrity = Math.max(
+        0,
+        Math.min(
+          100,
+          partyIntegrity - partyPressureLoss + partyRecovery
+        )
+      );
+      const nextEnemyIntegrity = Math.max(
+        0,
+        Math.min(
+          100,
+          enemyIntegrity -
+            Math.max(1, Math.round(enemyPressureLoss * enemyDepthResistance))
+        )
+      );
+      const nextPartyIntegrityState =
+        getFormationIntegrityState(nextPartyIntegrity);
+      const nextEnemyIntegrityState =
+        getFormationIntegrityState(nextEnemyIntegrity);
+      const integrityEvent =
+        nextPartyIntegrityState !== partyIntegrityState
+          ? ' Your line is now ' +
+            integrityLabel(nextPartyIntegrityState).toUpperCase() +
+            '.'
+          : nextEnemyIntegrityState !== enemyIntegrityState
+            ? ' Enemy line is now ' +
+              integrityLabel(nextEnemyIntegrityState).toUpperCase() +
+              '.'
+            : '';
+
       setEnemyHp(Math.max(0, enemyHp - playerDamage));
       setPartyHp(healedPartyHp);
+      setPartyIntegrity(nextPartyIntegrity);
+      setEnemyIntegrity(nextEnemyIntegrity);
       setExchangeFeedback({
         outgoing: actualPlayerDamage,
         incoming: actualEnemyDamage,
@@ -801,7 +944,8 @@ export function BattleScreen({
                 (enemyFantasyThreat
                   ? ' ' + enemyFantasyThreat.detail
                   : '')
-              : action)
+              : action) +
+          integrityEvent
       );
 
       if (effect) {
@@ -850,6 +994,10 @@ export function BattleScreen({
     formationMatchup,
     partyAttack,
     partyHp,
+    partyIntegrity,
+    partyIntegrityState,
+    enemyIntegrity,
+    enemyIntegrityState,
     skillTriggered,
     turn,
     settlementEffects.commanderSkillPowerMultiplier,
