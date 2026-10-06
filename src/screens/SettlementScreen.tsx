@@ -1706,6 +1706,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       styles.buildingGroundShadow,
                       landmark ? styles.landmarkBuildingGroundShadow : undefined,
                       worldRebuildActive ? styles.worldBuildingGroundShadow : undefined,
+                      humanStagePlateActive ? styles.humanBuildingGroundShadow : undefined,
                       {
                         opacity: humanStagePlateActive
                           ? selected ? 0.08 : 0.035
@@ -1723,6 +1724,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     style={[
                       styles.buildingContactShadow,
                       landmark ? styles.landmarkBuildingContactShadow : undefined,
+                      humanStagePlateActive ? styles.humanBuildingContactShadow : undefined,
                       {
                         opacity: humanStagePlateActive
                           ? selected ? 0.16 : 0.08
@@ -1737,6 +1739,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       style={[
                         styles.selectionHalo,
                         landmark ? styles.landmarkSelectionHalo : undefined,
+                        humanStagePlateActive ? styles.humanSelectionHalo : undefined,
                         { borderColor: theme.colors.gold, backgroundColor: theme.colors.gold + '16' }
                       ]}
                     />
@@ -1748,6 +1751,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       style={[
                         styles.buildingDistrictAura,
                         landmark ? styles.landmarkDistrictAura : undefined,
+                        humanStagePlateActive ? styles.humanBuildingDistrictAura : undefined,
                         {
                           borderColor: districtActivityColor,
                           backgroundColor: districtActivityColor + (districtCount > 1 ? '22' : '16'),
@@ -1776,14 +1780,20 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     </View>
                   ) : null}
                   <View
+                    testID={'building-ground-anchor-' + building.id}
                     style={[
                       styles.buildingPad,
                       landmark ? styles.landmarkBuildingPad : undefined,
                       worldRebuildActive ? landmark ? styles.worldLandmarkBuildingPad : styles.worldBuildingPad : undefined,
+                      humanStagePlateActive
+                        ? landmark ? styles.humanLandmarkBuildingAnchor : styles.humanBuildingAnchor
+                        : undefined,
                       selected
-                        ? worldRebuildActive
-                          ? landmark ? styles.selectedWorldLandmarkBuildingPad : styles.selectedWorldBuildingPad
-                          : styles.selectedBuildingPad
+                        ? humanStagePlateActive
+                          ? landmark ? styles.selectedHumanLandmarkBuildingPad : styles.selectedHumanBuildingPad
+                          : worldRebuildActive
+                            ? landmark ? styles.selectedWorldLandmarkBuildingPad : styles.selectedWorldBuildingPad
+                            : styles.selectedBuildingPad
                         : undefined
                     ]}
                   >
@@ -1813,6 +1823,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         style={[
                           styles.plotBuildingName,
                           !selected && !landmark ? styles.plotBuildingNameCompact : undefined,
+                          humanStagePlateActive ? styles.humanPlotBuildingName : undefined,
                           { color: roleColor, backgroundColor: theme.colors.surface1 }
                         ]}
                         numberOfLines={1}
@@ -1821,7 +1832,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       </Text>
                       <View
                         testID={'building-level-status-' + building.id}
-                        style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }]}
+                        style={[
+                          styles.levelPill,
+                          humanStagePlateActive ? styles.humanLevelPill : undefined,
+                          { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }
+                        ]}
                       >
                         <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
                         {districtCount > 0 ? (
@@ -1868,7 +1883,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     ) : null
                   ) : null}
                   {plotSelected && previewBuilding && constructionPlotAvailable ? (
-                    <View pointerEvents="none" testID="construction-ghost-preview" style={styles.constructionGhost}>
+                    <View
+                      pointerEvents="none"
+                      testID="construction-ghost-preview"
+                      style={[styles.constructionGhost, humanStagePlateActive ? styles.humanConstructionGhost : undefined]}
+                    >
                       <View style={styles.constructionGroundShadow} />
                       <BuildingSprite buildingId={previewBuilding.id} faction={activeFaction} size={72} />
                       <Text style={[styles.constructionGhostLabel, { color: theme.colors.gold, backgroundColor: theme.colors.surface1 }]}>PREVIEW</Text>
@@ -2506,6 +2525,7 @@ const styles = StyleSheet.create({
   constructionChoice: { minWidth: 48, minHeight: 48, borderWidth: 1, borderRadius: 12, padding: 9, gap: 5 },
   constructionChoiceHeading: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   constructionGhost: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -44, width: 76, alignItems: 'center', opacity: 0.72, zIndex: 7 },
+  humanConstructionGhost: { marginTop: -72 },
   constructionGroundShadow: { position: 'absolute', left: '50%', bottom: 13, marginLeft: -27, width: 54, height: 15, borderRadius: 999, backgroundColor: '#0A0D0B', opacity: 0.44 },
   constructionGhostLabel: { fontSize: 9, lineHeight: 13, fontWeight: '900', paddingHorizontal: 5, borderRadius: 4 },
   sceneDetailTitle: { fontSize: 12, lineHeight: 18, fontWeight: '900' },
@@ -2513,13 +2533,17 @@ const styles = StyleSheet.create({
   sceneFeedback: { fontSize: 12, lineHeight: 17, fontWeight: '700', padding: 6 },
 
   landmarkSelectionHalo: { marginLeft: -54, width: 108, height: 38, bottom: '19%' },
+  humanSelectionHalo: { bottom: '47%', height: 22, marginLeft: -38, width: 76 },
   buildingGroundShadow: { position: 'absolute', left: '50%', bottom: '15%', marginLeft: -29, width: 58, height: 14, borderRadius: 999, backgroundColor: '#111712', opacity: 0.22 },
   landmarkBuildingGroundShadow: { bottom: '14%', marginLeft: -41, width: 82, height: 20 },
   worldBuildingGroundShadow: { bottom: '13%', height: 15, backgroundColor: '#0D120F' },
+  humanBuildingGroundShadow: { bottom: '48%', height: 8, marginLeft: -24, width: 48 },
   buildingContactShadow: { position: 'absolute', left: '50%', bottom: '21%', marginLeft: -21, width: 42, height: 7, borderRadius: 999, backgroundColor: '#060806', opacity: 0.32 },
   landmarkBuildingContactShadow: { bottom: '20%', marginLeft: -29, width: 58, height: 9 },
+  humanBuildingContactShadow: { bottom: '49%', marginLeft: -18, width: 36, height: 5 },
   buildingDistrictAura: { position: 'absolute', left: 9, right: 9, bottom: 13, height: 22, borderRadius: 999, borderWidth: 1, opacity: 0.78, transform: [{ scaleX: 1.08 }] },
   landmarkDistrictAura: { left: 3, right: 3, bottom: 15, height: 30, borderWidth: 1.5, opacity: 0.82 },
+  humanBuildingDistrictAura: { left: '50%', right: undefined, bottom: '46%', marginLeft: -34, width: 68, height: 18 },
   buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
   landmarkAmbience: { marginLeft: -63, marginTop: -67, width: 126, height: 126, transform: [{ translateY: -5 }] },
   buildingPad: { width: 82, height: 74, alignItems: 'center', justifyContent: 'flex-end', elevation: 4 },
@@ -2527,15 +2551,21 @@ const styles = StyleSheet.create({
   landmarkBuildingPad: { width: 110, height: 98, transform: [{ translateY: -9 }], elevation: 6 },
   worldBuildingPad: { transform: [{ scale: 1.14 }, { translateY: -1 }], elevation: 5 },
   worldLandmarkBuildingPad: { width: 122, height: 108, transform: [{ translateY: -11 }], elevation: 8 },
+  humanBuildingAnchor: { position: 'absolute', left: '50%', bottom: '50%', marginLeft: -41, transform: [{ scale: 1.14 }] },
+  humanLandmarkBuildingAnchor: { position: 'absolute', left: '50%', bottom: '50%', marginLeft: -61, width: 122, height: 108, transform: [] },
   selectedWorldBuildingPad: { transform: [{ scale: 1.18 }, { translateY: -3 }], elevation: 7 },
   selectedWorldLandmarkBuildingPad: { width: 122, height: 108, transform: [{ scale: 1.04 }, { translateY: -13 }], elevation: 10 },
+  selectedHumanBuildingPad: { transform: [{ scale: 1.18 }], elevation: 7 },
+  selectedHumanLandmarkBuildingPad: { width: 122, height: 108, transform: [{ scale: 1.04 }], elevation: 10 },
   buildingFootprint: { position: 'absolute', left: 5, right: 5, bottom: 0, height: 20, borderRadius: 999, opacity: 0.18, transform: [{ scaleX: 1.08 }] },
   landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
   plotGuideText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900' },
   plotBuildingName: { fontSize: 9.5, lineHeight: 13, fontWeight: '900', textAlign: 'center', marginTop: 0, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 7, maxWidth: '96%', opacity: 0.98, elevation: 2 },
+  humanPlotBuildingName: { position: 'absolute', top: '53%', alignSelf: 'center' },
   plotBuildingNameCompact: { fontSize: 8.3, lineHeight: 11, maxWidth: '92%' },
   levelPill: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2, marginTop: 2, opacity: 0.96, flexDirection: 'row', alignItems: 'center', gap: 3 },
+  humanLevelPill: { position: 'absolute', top: '58%', alignSelf: 'center', marginTop: 0 },
   plotLevel: { fontSize: 8.5, lineHeight: 11, fontWeight: '900' },
   levelDistrictDot: { width: 4, height: 4, borderRadius: 999 },
   levelDistrictCount: { fontSize: 7.5, lineHeight: 10, fontWeight: '900' },
