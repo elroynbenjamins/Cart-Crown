@@ -3,7 +3,6 @@ import type { FactionId } from './types';
 export type ChapterTwoMissionKind =
   | 'battle'
   | 'event'
-  | 'choice'
   | 'upgrade'
   | 'boss';
 
@@ -12,7 +11,7 @@ export type ChapterTwoMissionDefinition = {
   order: number;
   name: string;
   kind: ChapterTwoMissionKind;
-  deploymentCap: 5 | 6 | 7;
+  deploymentCap: 3;
   lesson: string;
   unlocks: string[];
   mandatory: true;
@@ -20,103 +19,83 @@ export type ChapterTwoMissionDefinition = {
 
 export const chapterTwoCampaign: ChapterTwoMissionDefinition[] = [
   {
-    id: 'ch2_defend_camp',
+    id: 'ch2_strength_in_numbers',
     order: 1,
-    name: 'They Found Us',
-    kind: 'battle',
-    deploymentCap: 5,
-    lesson: 'Defending a settlement means the player now has something to lose.',
-    unlocks: ['defensive_battle_context'],
+    name: 'Strength in Numbers',
+    kind: 'event',
+    deploymentCap: 3,
+    lesson: 'The third active slot is now available, but roster depth still matters.',
+    unlocks: ['third_deployment_slot', 'formation_2_1', 'formation_1_1_1'],
     mandatory: true
   },
   {
-    id: 'ch2_beyond_fires',
+    id: 'ch2_tools_of_war',
     order: 2,
-    name: 'Beyond the Fires',
+    name: 'Tools of War',
     kind: 'battle',
-    deploymentCap: 6,
-    lesson: 'Introduce Front, Middle and Rear with the default 2-2-2 layout.',
-    unlocks: ['middle_row', 'sixth_deployment_slot'],
+    deploymentCap: 3,
+    lesson: 'Connect predictable crafting materials directly to military progression.',
+    unlocks: ['iron_hills_mine', 'basic_military_crafting'],
     mandatory: true
   },
   {
-    id: 'ch2_three_roads',
+    id: 'ch2_riders_on_road',
     order: 3,
-    name: 'Three Roads',
-    kind: 'choice',
-    deploymentCap: 6,
-    lesson: 'Choose which territorial benefit arrives first without permanently losing the other routes.',
-    unlocks: ['chapter_two_route_choice'],
+    name: 'Riders on the Road',
+    kind: 'battle',
+    deploymentCap: 3,
+    lesson: 'Mounted pressure is readable and can be countered without chasing raw Army Power.',
+    unlocks: ['charge_telegraph', 'anti_charge_readability'],
     mandatory: true
   },
   {
-    id: 'ch2_horse_rider',
+    id: 'ch2_army_fights_forever',
     order: 4,
-    name: 'Horse and Rider',
-    kind: 'event',
-    deploymentCap: 6,
-    lesson: 'An experienced troop, mount and weapon define the first cavalry branch.',
-    unlocks: ['cavalry', 'first_trained_mount'],
+    name: 'No Army Fights Forever',
+    kind: 'battle',
+    deploymentCap: 3,
+    lesson: 'Injuries, readiness and reserve substitution make rotation meaningful.',
+    unlocks: ['injury_rotation', 'offline_recovery'],
     mandatory: true
   },
   {
-    id: 'ch2_brace',
+    id: 'ch2_long_way_around',
     order: 5,
-    name: 'Brace!',
-    kind: 'battle',
-    deploymentCap: 6,
-    lesson: 'Cavalry is powerful but Spears and Pikes punish unsupported charges.',
-    unlocks: ['brace', 'charge'],
-    mandatory: true
-  },
-  {
-    id: 'ch2_long_haul',
-    order: 6,
-    name: 'The Long Haul',
+    name: 'The Long Way Around',
     kind: 'event',
-    deploymentCap: 6,
-    lesson: 'Territorial expansion needs logistics, not just more combat power.',
-    unlocks: ['handcart', 'expanded_field_supplies'],
+    deploymentCap: 3,
+    lesson: 'Scouting and route pressure introduce the idea of protecting vulnerable approaches.',
+    unlocks: ['signal_route', 'flank_warning'],
     mandatory: true
   },
   {
-    id: 'ch2_those_remain',
-    order: 7,
-    name: 'Those Who Remain',
-    kind: 'choice',
-    deploymentCap: 6,
-    lesson: 'Introduce the first non-magical Support squad and a small diplomacy consequence.',
-    unlocks: ['support', 'neighbor_relation'],
-    mandatory: true
-  },
-  {
-    id: 'ch2_take_watch',
-    order: 8,
-    name: 'Take the Watch',
+    id: 'ch2_iron_line',
+    order: 6,
+    name: 'The Iron Line',
     kind: 'battle',
-    deploymentCap: 7,
-    lesson: 'A strategic assault rewards preparation and expands formation management.',
-    unlocks: ['seventh_deployment_slot', 'formation_presets', 'improved_scouting'],
+    deploymentCap: 3,
+    lesson: 'Introduce a dense named enemy formation with a protected rear.',
+    unlocks: ['enemy_formation_preview', 'iron_wall'],
     mandatory: true
   },
   {
-    id: 'ch2_build_outpost',
-    order: 9,
-    name: 'Build Something Worth Defending',
-    kind: 'upgrade',
-    deploymentCap: 7,
-    lesson: 'Secure territory and resources before the permanent Camp becomes an Outpost.',
-    unlocks: ['outpost', 'five_major_building_slots'],
+    id: 'ch2_supplies_for_war',
+    order: 7,
+    name: 'Supplies for War',
+    kind: 'event',
+    deploymentCap: 3,
+    lesson: 'Optional preparation is a pressure valve, not a mandatory grind wall.',
+    unlocks: ['greenwood_camp', 'preparation_recommendation'],
     mandatory: true
   },
   {
-    id: 'ch2_riders_banner',
-    order: 10,
-    name: "The Rider's Banner",
+    id: 'ch2_break_their_hold',
+    order: 8,
+    name: 'Break Their Hold',
     kind: 'boss',
-    deploymentCap: 7,
-    lesson: 'Test three rows, Cavalry, Spears, Support, Readiness and formation choice together.',
-    unlocks: ['chapter_three', 'territorial_post_specialization'],
+    deploymentCap: 3,
+    lesson: 'Test counters, injuries, formation reading and preparation together.',
+    unlocks: ['chapter_three', 'fort_transition', 'fourth_deployment_slot'],
     mandatory: true
   }
 ];
@@ -166,16 +145,14 @@ export const chapterTwoTerritoryRoutes: ChapterTwoTerritoryRouteDefinition[] = [
   }
 ];
 
-export function getChapterTwoSquadCap(completedMissionIds: string[]) {
-  if (completedMissionIds.includes('ch2_take_watch')) return 7;
-  if (completedMissionIds.includes('ch2_beyond_fires')) return 6;
-  return 5;
+export function getChapterTwoSquadCap(_completedMissionIds: string[]) {
+  return 3;
 }
 
 export function getChapterTwoRosterCap(completedMissionIds: string[]) {
-  if (completedMissionIds.includes('ch2_take_watch')) return 16;
-  if (completedMissionIds.includes('ch2_beyond_fires')) return 12;
-  return 9;
+  if (completedMissionIds.includes('ch2_break_their_hold')) return 8;
+  if (completedMissionIds.includes('ch2_army_fights_forever')) return 7;
+  return 6;
 }
 
 export function getChapterTwoTerritoryName(
