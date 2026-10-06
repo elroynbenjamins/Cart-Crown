@@ -555,7 +555,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         : currentWagonStage.id === 'town' ? 'EMBERCLAN GREAT WARHOLD'
         : currentWagonStage.id === 'fort' ? 'EMBERCLAN WARHOLD'
         : currentWagonStage.id === 'settlement' ? 'EMBERCLAN WARCAMP' : 'EMBERCLAN CAMP'
-      : currentWagonStage.id === 'grand' ? 'GREENKEEP GRAND CAMPAIGN'
+      : currentWagonStage.id === 'grand' ? 'GREENKEEP GRAND'
         : currentWagonStage.id === 'capital' ? 'GREENKEEP CAPITAL'
         : currentWagonStage.id === 'stronghold' ? 'GREENKEEP STRONGHOLD'
         : currentWagonStage.id === 'town' ? 'GREENKEEP TOWN'
