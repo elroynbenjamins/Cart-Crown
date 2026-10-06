@@ -3954,28 +3954,73 @@ export function GameProvider({
     if (encounterId === 'old_royal_lands') {
       if (
         chapterNumber !== 5 ||
-        !royalDecreeId ||
-        !chapterNodes.find(node => node.id === 'ch5_node_2')?.current
-      ) {
-        return;
-      }
+        !chapterNodes.find(node => node.id === 'ch5_node_1')?.current
+      ) return;
 
       setResources(previous => addResources(previous, reward.resources));
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'ch5_node_2') {
-            return { ...node, completed: true, current: false };
-          }
-          if (node.id === 'ch5_node_3') {
-            return { ...node, current: true };
-          }
+          if (node.id === 'ch5_node_1') return { ...node, completed: true, current: false };
+          if (node.id === 'ch5_node_2') return { ...node, current: true };
           return { ...node, current: false };
         })
       );
       setLastBattleResult({
         id: 'old_royal_lands_result',
-        title: 'Old Royal Lands Secured',
+        title: 'Too Many Fronts Held',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch5_rally_line') {
+      if (
+        chapterNumber !== 5 ||
+        !chapterNodes.find(node => node.id === 'ch5_node_3')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch5_node_3') return { ...node, completed: true, current: false };
+          if (node.id === 'ch5_node_4') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch5_rally_line_result',
+        title: 'Line Rallied',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch5_above_shieldwall') {
+      if (
+        chapterNumber !== 5 ||
+        !chapterNodes.find(node => node.id === 'ch5_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch5_node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'ch5_node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch5_above_shieldwall_result',
+        title: 'Sky Threat Repelled',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -3987,27 +4032,99 @@ export function GameProvider({
     if (encounterId === 'ashen_envoy') {
       if (
         chapterNumber !== 5 ||
-        !chapterNodes.find(node => node.id === 'ch5_node_4')?.current
-      ) {
-        return;
-      }
+        !chapterNodes.find(node => node.id === 'ch5_node_7')?.current
+      ) return;
 
       setResources(previous => addResources(previous, reward.resources));
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'ch5_node_4') {
-            return { ...node, completed: true, current: false };
-          }
-          if (node.id === 'ch5_node_5') {
-            return { ...node, current: true };
-          }
+          if (node.id === 'ch5_node_7') return { ...node, completed: true, current: false };
+          if (node.id === 'ch5_node_8') return { ...node, current: true };
           return { ...node, current: false };
         })
       );
       setLastBattleResult({
         id: 'ashen_envoy_result',
-        title: 'Ashen Envoy Defeated',
+        title: 'Three Lines Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch5_hammer_wing') {
+      if (
+        chapterNumber !== 5 ||
+        !chapterNodes.find(node => node.id === 'ch5_node_8')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch5_node_8') return { ...node, completed: true, current: false };
+          if (node.id === 'ch5_node_9') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch5_hammer_wing_result',
+        title: 'Hammer and Wing Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch5_strongest_army') {
+      if (
+        chapterNumber !== 5 ||
+        !chapterNodes.find(node => node.id === 'ch5_node_9')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch5_node_9') return { ...node, completed: true, current: false };
+          if (node.id === 'ch5_node_10') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch5_strongest_army_result',
+        title: 'Counter Army Wins',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch5_crowns_muster') {
+      if (
+        chapterNumber !== 5 ||
+        !chapterNodes.find(node => node.id === 'ch5_node_10')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch5_node_10') return { ...node, completed: true, current: false };
+          if (node.id === 'ch5_node_11') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch5_crowns_muster_result',
+        title: "Crown's Muster Survived",
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -4019,23 +4136,21 @@ export function GameProvider({
     if (encounterId === 'gate_of_crownspire') {
       if (
         chapterNumber !== 5 ||
-        !chapterNodes.find(node => node.id === 'ch5_node_6')?.current
-      ) {
-        return;
-      }
+        !chapterNodes.find(node => node.id === 'ch5_node_11')?.current
+      ) return;
 
       setResources(previous => addResources(previous, reward.resources));
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node =>
-          node.id === 'ch5_node_6'
+          node.id === 'ch5_node_11'
             ? { ...node, completed: true, current: false }
             : { ...node, current: false }
         )
       );
       setLastBattleResult({
         id: 'gate_of_crownspire_result',
-        title: 'Gate of Crownspire Open',
+        title: 'Crownroad Won',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -4045,6 +4160,32 @@ export function GameProvider({
     }
 
     if (encounterId === 'sundered_fields') {
+      if (
+        chapterNumber !== 6 ||
+        !chapterNodes.find(node => node.id === 'ch6_node_1')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch6_node_1') return { ...node, completed: true, current: false };
+          if (node.id === 'ch6_node_2') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'sundered_fields_result',
+        title: 'Strange Fire Contained',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch6_first_ward') {
       if (
         chapterNumber !== 6 ||
         !chapterNodes.find(node => node.id === 'ch6_node_2')?.current
@@ -4060,8 +4201,8 @@ export function GameProvider({
         })
       );
       setLastBattleResult({
-        id: 'sundered_fields_result',
-        title: 'Sundered Fields Secured',
+        id: 'ch6_first_ward_result',
+        title: 'Ward Broken',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -4070,7 +4211,7 @@ export function GameProvider({
       return;
     }
 
-    if (encounterId === 'ashen_court') {
+    if (encounterId === 'ch6_power_price') {
       if (
         chapterNumber !== 6 ||
         !chapterNodes.find(node => node.id === 'ch6_node_4')?.current
@@ -4086,8 +4227,138 @@ export function GameProvider({
         })
       );
       setLastBattleResult({
+        id: 'ch6_power_price_result',
+        title: 'Caster Protected',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch6_break_spell') {
+      if (
+        chapterNumber !== 6 ||
+        !chapterNodes.find(node => node.id === 'ch6_node_5')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch6_node_5') return { ...node, completed: true, current: false };
+          if (node.id === 'ch6_node_6') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch6_break_spell_result',
+        title: 'Spell Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch6_fire_from_above') {
+      if (
+        chapterNumber !== 6 ||
+        !chapterNodes.find(node => node.id === 'ch6_node_7')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch6_node_7') return { ...node, completed: true, current: false };
+          if (node.id === 'ch6_node_8') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch6_fire_from_above_result',
+        title: 'Skyfire Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch6_silent_ground') {
+      if (
+        chapterNumber !== 6 ||
+        !chapterNodes.find(node => node.id === 'ch6_node_8')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch6_node_8') return { ...node, completed: true, current: false };
+          if (node.id === 'ch6_node_9') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch6_silent_ground_result',
+        title: 'Silent Ground Crossed',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch6_wards_steel') {
+      if (
+        chapterNumber !== 6 ||
+        !chapterNodes.find(node => node.id === 'ch6_node_9')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch6_node_9') return { ...node, completed: true, current: false };
+          if (node.id === 'ch6_node_10') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch6_wards_steel_result',
+        title: 'Wards and Steel Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ashen_court') {
+      if (
+        chapterNumber !== 6 ||
+        !chapterNodes.find(node => node.id === 'ch6_node_10')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch6_node_10') return { ...node, completed: true, current: false };
+          if (node.id === 'ch6_node_11') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
         id: 'ashen_court_result',
-        title: 'Ashen Court District Falls',
+        title: 'Arcane General Defeated',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -4099,13 +4370,13 @@ export function GameProvider({
     if (encounterId === 'return_to_crownspire') {
       if (
         chapterNumber !== 6 ||
-        !chapterNodes.find(node => node.id === 'ch6_node_6')?.current
+        !chapterNodes.find(node => node.id === 'ch6_node_11')?.current
       ) return;
 
       setResources(previous => addResources(previous, reward.resources));
       setChapterNodes(previous =>
         previous.map(node =>
-          node.id === 'ch6_node_6'
+          node.id === 'ch6_node_11'
             ? { ...node, completed: true, current: false }
             : { ...node, current: false }
         )
@@ -4121,12 +4392,13 @@ export function GameProvider({
       }));
       setLastBattleResult({
         id: 'return_to_crownspire_result',
-        title: 'Human Oath Seal Recovered',
+        title: 'Glass Keep Falls',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
         casualties: 0
       });
+      return;
     }
   };
 
