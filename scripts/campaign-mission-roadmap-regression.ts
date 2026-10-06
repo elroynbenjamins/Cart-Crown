@@ -1,3 +1,5 @@
+import { chapterOneNodes } from '../src/game/data';
+import { chapterTwoNodes } from '../src/game/chapter2';
 import {
   campaignMissionCountsByChapter,
   campaignMissionRoadmap,
@@ -142,3 +144,35 @@ assert(
 );
 assert(getCampaignActiveSquadCap(6) === 6, 'Chapter 6 runtime cap must remain 6');
 assert(getCampaignActiveSquadCap(99) === 6, 'Late campaign runtime cap must never exceed 6');
+
+
+const liveChapterOneNames = [
+  'A Banner Still Flies',
+  'Hold the Crossing',
+  'Rebuild the Barracks',
+  'Spears at Dawn',
+  'Cut Off the Captain',
+  'The Broken Road',
+  'Reclaim the Outpost'
+];
+const liveChapterTwoNames = [
+  'Strength in Numbers',
+  'Tools of War',
+  'Riders on the Road',
+  'No Army Fights Forever',
+  'The Long Way Around',
+  'The Iron Line',
+  'Supplies for War',
+  'Break Their Hold'
+];
+
+assert(chapterOneNodes.length === 7, 'Live Chapter 1 must contain seven missions');
+assert(
+  chapterOneNodes.every((node, index) => node.name === liveChapterOneNames[index]),
+  'Live Chapter 1 mission order drifted from the roadmap'
+);
+assert(chapterTwoNodes.length === 8, 'Live Chapter 2 must contain eight missions');
+assert(
+  chapterTwoNodes.every((node, index) => node.name === liveChapterTwoNames[index]),
+  'Live Chapter 2 mission order drifted from the roadmap'
+);
