@@ -998,20 +998,38 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         </View>
 
         <View style={[styles.hudFooter, compactHud ? styles.hudFooterCompact : undefined]}>
-          <View style={styles.hudStats}>
-            <SemanticChip label={placedIds.length + ' built'} tone="neutral" compact />
-            <SemanticChip label={settlementAdjacencyBonuses.length + ' districts'} tone={settlementAdjacencyBonuses.length ? 'positive' : 'neutral'} compact />
-            {bestNetworkOptimization ? (
-              <SemanticChip
-                label={bestNetworkOptimization.currentDistrictCount + '→' + bestNetworkOptimization.futureDistrictCount + ' layout'}
-                tone="positive"
-                compact
-              />
-            ) : null}
-            {districtOpportunities.length ? <SemanticChip label={districtOpportunities.length + ' district spots'} tone="positive" compact /> : null}
-            {constructionReadyCount ? <SemanticChip label={constructionReadyCount + ' build ready'} tone="currency" compact /> : null}
-            {upgradeMaterialReadyIds.size ? <SemanticChip label={upgradeMaterialReadyIds.size + ' upgrade mats'} tone="positive" compact /> : null}
-          </View>
+          {compactHud ? (
+            <Text
+              accessible
+              accessibilityLabel={
+                placedIds.length + ' built, ' +
+                settlementAdjacencyBonuses.length + ' districts' +
+                (upgradeMaterialReadyIds.size ? ', ' + upgradeMaterialReadyIds.size + ' upgrades' : '') +
+                (constructionReadyCount ? ', ' + constructionReadyCount + ' build ready' : '')
+              }
+              style={[styles.hudCompactSummary, { color: theme.colors.textMuted }]}
+              numberOfLines={1}
+            >
+              {placedIds.length} built · {settlementAdjacencyBonuses.length} districts
+              {upgradeMaterialReadyIds.size ? ' · ' + upgradeMaterialReadyIds.size + ' upgrades' : ''}
+              {constructionReadyCount ? ' · ' + constructionReadyCount + ' build' : ''}
+            </Text>
+          ) : (
+            <View style={styles.hudStats}>
+              <SemanticChip label={placedIds.length + ' built'} tone="neutral" compact />
+              <SemanticChip label={settlementAdjacencyBonuses.length + ' districts'} tone={settlementAdjacencyBonuses.length ? 'positive' : 'neutral'} compact />
+              {bestNetworkOptimization ? (
+                <SemanticChip
+                  label={bestNetworkOptimization.currentDistrictCount + '→' + bestNetworkOptimization.futureDistrictCount + ' layout'}
+                  tone="positive"
+                  compact
+                />
+              ) : null}
+              {districtOpportunities.length ? <SemanticChip label={districtOpportunities.length + ' district spots'} tone="positive" compact /> : null}
+              {constructionReadyCount ? <SemanticChip label={constructionReadyCount + ' build ready'} tone="currency" compact /> : null}
+              {upgradeMaterialReadyIds.size ? <SemanticChip label={upgradeMaterialReadyIds.size + ' upgrade mats'} tone="positive" compact /> : null}
+            </View>
+          )}
           {!compactHud && nextSuggestedBuilding && nextSuggestedPlot ? (
             <View style={styles.nextGoalInline}>
               <Text style={[styles.nextGoalEyebrow, { color: constructionReadyCount ? theme.colors.gold : theme.colors.textMuted }]}>{constructionReadyCount ? 'READY' : 'NEXT'}</Text>
@@ -1749,21 +1767,13 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     ) : null}
                     <BuildingSprite buildingId={building.id} faction={building.faction} size={buildingSize} />
                   </View>
-                  {upgradeMaterialsReady && !selected ? (
-                    worldRebuildActive ? (
-                      <View
-                        pointerEvents="none"
-                        testID={'world-upgrade-ready-' + building.id}
-                        style={[styles.worldUpgradeReadyDot, { backgroundColor: theme.colors.gold, borderColor: theme.colors.surface1 }]}
-                      />
-                    ) : (
-                      <View
-                        pointerEvents="none"
-                        style={[styles.upgradeReadyBadge, { backgroundColor: theme.colors.gold }]}
-                      >
-                        <Text style={styles.upgradeReadyText}>UPGRADE</Text>
-                      </View>
-                    )
+                  {upgradeMaterialsReady && !selected && !worldRebuildActive ? (
+                    <View
+                      pointerEvents="none"
+                      style={[styles.upgradeReadyBadge, { backgroundColor: theme.colors.gold }]}
+                    >
+                      <Text style={styles.upgradeReadyText}>UPGRADE</Text>
+                    </View>
                   ) : null}
                   {!worldRebuildActive || selected ? (
                     <>
@@ -1802,18 +1812,28 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 <>
                   {buildReady ? (
                     recommendedBuildPlot ? (
-                      <View
-                        pointerEvents="none"
-                        style={[styles.buildReadyBadge, { backgroundColor: theme.colors.gold, borderColor: theme.colors.gold }]}
-                      >
-                        <Text style={styles.buildReadyText}>BUILD READY</Text>
-                      </View>
-                    ) : (
+                      worldRebuildActive ? (
+                        <View
+                          pointerEvents="none"
+                          testID={'world-build-ready-' + plot.id}
+                          style={[styles.worldBuildReadyMarker, { backgroundColor: theme.colors.gold, borderColor: theme.colors.surface1 }]}
+                        >
+                          <Text style={styles.worldBuildReadyPlus}>+</Text>
+                        </View>
+                      ) : (
+                        <View
+                          pointerEvents="none"
+                          style={[styles.buildReadyBadge, { backgroundColor: theme.colors.gold, borderColor: theme.colors.gold }]}
+                        >
+                          <Text style={styles.buildReadyText}>BUILD READY</Text>
+                        </View>
+                      )
+                    ) : !worldRebuildActive ? (
                       <View
                         pointerEvents="none"
                         style={[styles.buildReadyDot, { backgroundColor: factionAccent }]}
                       />
-                    )
+                    ) : null
                   ) : null}
                   {plotSelected && previewBuilding && constructionPlotAvailable ? (
                     <View pointerEvents="none" testID="construction-ghost-preview" style={styles.constructionGhost}>
@@ -2278,7 +2298,8 @@ const styles = StyleSheet.create({
   resourceValueCompact: { fontSize: 8.5, lineHeight: 10 },
   resourceLabel: { fontSize: 7, lineHeight: 9, fontWeight: '700' },
   hudFooter: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 6 },
-  hudFooterCompact: { marginTop: 4 },
+  hudFooterCompact: { marginTop: 3, minHeight: 12 },
+  hudCompactSummary: { flex: 1, minWidth: 0, fontSize: 8, lineHeight: 10, fontWeight: '800', letterSpacing: 0.1 },
   hudStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, flexShrink: 1 },
   nextGoalInline: { flex: 1, minWidth: 0, alignItems: 'flex-end' },
   nextGoalEyebrow: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.85 },
@@ -2433,11 +2454,12 @@ const styles = StyleSheet.create({
   buildReadyBadge: { position: 'absolute', top: 3, alignSelf: 'center', zIndex: 8, minHeight: 24, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, elevation: 2 },
   buildReadyText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.5 },
   buildReadyDot: { position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: 999, zIndex: 8 },
+  worldBuildReadyMarker: { position: 'absolute', top: 5, alignSelf: 'center', width: 24, height: 24, borderRadius: 999, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', zIndex: 9, elevation: 4 },
+  worldBuildReadyPlus: { color: '#111318', fontSize: 17, lineHeight: 19, fontWeight: '900' },
   upgradeReadyBadge: { position: 'absolute', top: 3, right: 4, zIndex: 9, minHeight: 21, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 3, alignItems: 'center', justifyContent: 'center', elevation: 2 },
   upgradeReadyText: { color: '#111318', fontSize: 6, lineHeight: 8, fontWeight: '900', letterSpacing: 0.25 },
   worldUpgradeReadyBadge: { top: 7, right: 8, width: 20, height: 20, minHeight: 20, paddingHorizontal: 0, paddingVertical: 0, borderWidth: 1.5, elevation: 4, opacity: 0.94 },
   worldUpgradeReadyText: { fontSize: 12, lineHeight: 14, letterSpacing: 0 },
-  worldUpgradeReadyDot: { position: 'absolute', top: 8, right: 10, width: 9, height: 9, borderRadius: 999, borderWidth: 1.5, zIndex: 9, elevation: 4 },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
