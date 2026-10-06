@@ -76,6 +76,7 @@ export function FormationScreen({
     formationDoctrines,
     formationBonuses,
     formationPresets,
+    armyLoadoutsUnlocked,
     unitEquipment = {},
     setFormationShape,
     setFormationDoctrine,
@@ -136,7 +137,9 @@ export function FormationScreen({
     return false;
   };
 
-  const presetSlots = [1, 2, 3] as const;
+  const presetSlots = armyLoadoutsUnlocked
+    ? ([1, 2, 3] as const)
+    : ([] as const);
 
   const presetMatchesCurrent = (slotId: 1 | 2 | 3) => {
     const preset = formationPresets.find(
@@ -620,8 +623,16 @@ export function FormationScreen({
           />
           <MetricTile
             label="LOADOUTS"
-            value={formationPresets.length + '/3'}
-            caption="saved army setups"
+            value={
+              armyLoadoutsUnlocked
+                ? formationPresets.length + '/3'
+                : 'LOCKED'
+            }
+            caption={
+              armyLoadoutsUnlocked
+                ? 'saved army setups'
+                : 'unlock at Prepare for Battle'
+            }
             tone="info"
           />
         </View>
@@ -638,7 +649,34 @@ export function FormationScreen({
         </GameCard>
       ) : null}
 
-      <SectionTitle title="Army loadouts" trailing="3 slots" />
+      <SectionTitle
+        title="Army loadouts"
+        trailing={
+          armyLoadoutsUnlocked
+            ? '3 slots'
+            : 'Unlocks in Chapter 4'
+        }
+      />
+      {!armyLoadoutsUnlocked ? (
+        <GameCard ornament={false}>
+          <Text
+            style={[
+              styles.presetTitle,
+              { color: theme.colors.text }
+            ]}
+          >
+            Prepare for Battle
+          </Text>
+          <Text
+            style={[
+              styles.presetHint,
+              { color: theme.colors.textMuted }
+            ]}
+          >
+            Human Army Loadouts unlock after Chapter 4 mission 6. Until then, formation changes remain manual so the early campaign teaches each formation directly.
+          </Text>
+        </GameCard>
+      ) : null}
       {loadoutMessage ? (
         <Text
           style={[
@@ -833,9 +871,11 @@ export function FormationScreen({
           );
         })}
       </View>
-      <Text style={[styles.presetHint, { color: theme.colors.textMuted }]}>
-        New Army Loadouts save formation shape, doctrine, squad positions and all equipped gear for deployed squads, including Relics. Applying a loadout may move owned gear between squads; unavailable saved items are skipped safely.
-      </Text>
+      {armyLoadoutsUnlocked ? (
+        <Text style={[styles.presetHint, { color: theme.colors.textMuted }]}>
+          New Army Loadouts save formation shape, doctrine, squad positions and all equipped gear for deployed squads, including Relics. Applying a loadout may move owned gear between squads; unavailable saved items are skipped safely.
+        </Text>
+      ) : null}
 
       <SectionTitle
         title="Formation shape"
