@@ -1846,6 +1846,12 @@ export function AppShell({
     flow === 'settings' ||
     flow === 'preparationFix';
   const title = flow ? flowTitles[flow] : screenTitles[active];
+  const settlementChrome = flow === 'settlement';
+  const settlementHudNavy = '#101B2D';
+  const settlementHudNavyRaised = '#172740';
+  const settlementHudGold = '#D6A85A';
+  const settlementHudText = '#F3E8D3';
+  const settlementHudMuted = '#B7C6D8';
 
   const goBack = () => {
     if (!canGoBack) return;
@@ -1933,7 +1939,7 @@ export function AppShell({
         backgroundColor={theme.colors.appBg}
       />
 
-      {flow !== 'battle' ? (
+      {flow !== 'battle' && flow !== 'settlement' ? (
       <View
         style={[
           styles.topBar,
@@ -2045,13 +2051,14 @@ export function AppShell({
         />
       ) : null}
 
-      {!flow ? (
+      {!flow || flow === 'settlement' ? (
         <View
           style={[
             styles.bottomNav,
+            settlementChrome ? styles.settlementBottomNav : undefined,
             {
-              backgroundColor: theme.colors.surface1,
-              borderTopColor: theme.colors.border
+              backgroundColor: settlementChrome ? settlementHudNavy : theme.colors.surface1,
+              borderTopColor: settlementChrome ? settlementHudGold : theme.colors.border
             }
           ]}
         >
@@ -2081,6 +2088,9 @@ export function AppShell({
                   } else if (tutorialFocus) {
                     cancelTutorialFocus();
                   }
+                  if (settlementChrome) {
+                    setFlow(null);
+                  }
                   setActive(item.id);
                 }}
                 style={({ pressed }) => [
@@ -2100,22 +2110,28 @@ export function AppShell({
                     <View
                       style={[
                         styles.navIconWrap,
+                        settlementChrome ? styles.settlementNavIconWrap : undefined,
                         {
-                          backgroundColor: selected ? factionAccent + '24' : 'transparent',
-                          borderColor: selected ? factionAccent + '80' : 'transparent'
+                          backgroundColor: settlementChrome
+                            ? settlementHudNavyRaised
+                            : selected ? factionAccent + '24' : 'transparent',
+                          borderColor: settlementChrome
+                            ? selected ? settlementHudGold : '#6F5B3A'
+                            : selected ? factionAccent + '80' : 'transparent'
                         }
                       ]}
                     >
                       <AppNavIcon
                         kind={item.id}
-                        color={selected ? factionAccent : theme.colors.textMuted}
-                        size={26}
+                        color={settlementChrome ? selected ? settlementHudGold : settlementHudMuted : selected ? factionAccent : theme.colors.textMuted}
+                        size={settlementChrome ? 24 : 26}
                       />
                     </View>
                     <Text
                       style={[
                         styles.navLabel,
-                        { color: selected ? factionAccent : theme.colors.textMuted }
+                        settlementChrome ? styles.settlementNavLabel : undefined,
+                        { color: settlementChrome ? selected ? settlementHudGold : settlementHudText : selected ? factionAccent : theme.colors.textMuted }
                       ]}
                       numberOfLines={1}
                     >
@@ -2125,7 +2141,8 @@ export function AppShell({
                       pointerEvents="none"
                       style={[
                         styles.navSelectionMark,
-                        { backgroundColor: selected ? factionAccent : 'transparent' }
+                        settlementChrome ? styles.settlementNavSelectionMark : undefined,
+                        { backgroundColor: selected ? (settlementChrome ? settlementHudGold : factionAccent) : 'transparent' }
                       ]}
                     />
                   </View>
@@ -2204,9 +2221,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingBottom: 3
   },
+  settlementBottomNav: {
+    height: 82,
+    borderTopWidth: 1,
+    paddingHorizontal: 6,
+    paddingTop: 4,
+    paddingBottom: 5,
+    elevation: 10
+  },
   navItem: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
   navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
   navIconWrap: { width: 42, height: 34, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  settlementNavIconWrap: { width: 44, height: 44, borderRadius: 999, borderWidth: 1.5 },
   navLabel: { fontSize: 10, fontWeight: '900', marginTop: 3 },
-  navSelectionMark: { width: 14, height: 3, borderRadius: 2, marginTop: 4 }
+  settlementNavLabel: { fontSize: 9.5, letterSpacing: 0.1, marginTop: 2 },
+  navSelectionMark: { width: 14, height: 3, borderRadius: 2, marginTop: 4 },
+  settlementNavSelectionMark: { width: 18, height: 2, marginTop: 2 }
 });
