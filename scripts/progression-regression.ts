@@ -65,8 +65,8 @@ function runCampaignCurveCoverage() {
   });
 
   const expectedFamilies = new Map([
-    [4, 'magic'],
     [5, 'flying'],
+    [6, 'magic'],
     [7, 'large'],
     [8, 'hybrid']
   ]);
