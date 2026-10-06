@@ -11,16 +11,16 @@ export function ThreeWarningsScreen({ onComplete }: { onComplete: () => void }) 
 
   return (
     <ChapterDecision
-      key="human-three-warnings"
-      eyebrow="BORDER INTELLIGENCE · CHAPTER 3"
-      title="Three Warnings"
-      body="Three marcher authorities sent contradictory warnings. You cannot verify every report before the Siege Road closes, so your army must choose how it will operate."
-      scope="Siege Road and Lord Marshal Veyr. The choice is locked for this event; it is not a permanent army upgrade or a side-mode bonus."
+      key="human-rider-doctrine"
+      eyebrow="MOUNTED DOCTRINE · CHAPTER 3"
+      title="Choose Your Rider"
+      body="The first Frostmarch rider is ready to specialize. Choose whether this mounted doctrine should favor impact, sustained melee or mobile scouting for the rest of Chapter 3."
+      scope="Chapter 3 campaign battles only. This is a doctrine choice for the Frostmarch arc; later troop-branch systems can formalize permanent cavalry specialization."
       options={marcherWarningChoices}
       recordedId={marcherWarningChoiceId}
-      canChoose={activeFaction === 'human' && chapterNumber === 3 && Boolean(chapterNodes.find(node => node.id === 'ch3_node_3')?.current)}
+      canChoose={activeFaction === 'human' && chapterNumber === 3 && Boolean(chapterNodes.find(node => node.id === 'ch3_node_5')?.current)}
       onChoose={chooseMarcherWarning}
-      continueLabel="Continue to Siege Road"
+      continueLabel="Continue to The Line Buckles"
       onContinue={onComplete}
       portrait={<StoryCharacterPortrait role="officer" size={42} />}
       illustration={<StoryScene scene="grand_council" size={192} />}

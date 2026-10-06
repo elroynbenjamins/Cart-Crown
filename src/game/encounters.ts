@@ -26,10 +26,19 @@ export type EncounterId =
   | 'the_iron_line'
   | 'iron_provost'
   | 'border_fort'
+  | 'ch3_frozen_steel'
+  | 'ch3_hooves_snow'
   | 'siege_road'
+  | 'ch3_through_gap'
+  | 'ch3_wolves_wing'
+  | 'ch3_layered_host'
   | 'lord_marshal_veyr'
+  | 'ch4_long_front'
   | 'broken_standards'
+  | 'ch4_broken_ground'
   | 'crownroad_ambush'
+  | 'ch4_wrong_army'
+  | 'ch4_hunters_rear'
   | 'pretender_general'
   | 'old_royal_lands'
   | 'ashen_envoy'
@@ -304,54 +313,135 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   border_fort: {
     id: 'border_fort',
-    name: 'Border Fort',
-    subtitle: 'The first marcher strongpoint refuses Greenkeep passage and raises two different house banners over the same gate.',
-    enemyName: 'Marcher Fort Guard',
-    enemyCount: 6,
-    enemyHp: 390,
+    name: 'A Wider Front',
+    subtitle: 'Frostmarch defenders spread across the road and force Greenkeep to cover more frontage than three squads comfortably can.',
+    enemyName: 'Frostmarch Line',
+    enemyCount: 5,
+    enemyHp: 380,
+    difficulty: 'Elite'
+  },
+  ch3_frozen_steel: {
+    id: 'ch3_frozen_steel',
+    name: 'Frozen Steel',
+    subtitle: 'Armored Frostmarch troops hold a material convoy carrying the first cold-forged components Greenkeep can use.',
+    enemyName: 'Froststeel Escort',
+    enemyCount: 5,
+    enemyHp: 410,
+    difficulty: 'Elite'
+  },
+  ch3_hooves_snow: {
+    id: 'ch3_hooves_snow',
+    name: 'Hooves in the Snow',
+    subtitle: 'Mounted raiders build charge distance across the frozen road and punish any line that cannot brace or intercept.',
+    enemyName: 'Snow Riders',
+    enemyCount: 5,
+    enemyHp: 430,
     difficulty: 'Elite'
   },
   siege_road: {
     id: 'siege_road',
-    name: 'Siege Road',
-    subtitle: 'Greenkeep must break through a fortified marcher road before the false orders isolate the remaining houses.',
-    enemyName: 'Siege Road Column',
+    name: 'The Line Buckles',
+    subtitle: 'Frostmarch shock infantry applies crushing formation pressure without relying on overwhelming raw damage.',
+    enemyName: 'Frostmarch Breakers',
+    enemyCount: 5,
+    enemyHp: 455,
+    difficulty: 'Elite'
+  },
+  ch3_through_gap: {
+    id: 'ch3_through_gap',
+    name: 'Through the Gap',
+    subtitle: 'A disciplined line gives ground deliberately, then punishes armies that push through before their own formation is ready.',
+    enemyName: 'Gap Wardens',
+    enemyCount: 5,
+    enemyHp: 470,
+    difficulty: 'Elite'
+  },
+  ch3_wolves_wing: {
+    id: 'ch3_wolves_wing',
+    name: 'Wolves on the Wing',
+    subtitle: 'Fast Warg-style riders sweep around the outer lane and seek exposed ranged or support squads.',
+    enemyName: 'Frostfang Wing',
+    enemyCount: 5,
+    enemyHp: 485,
+    difficulty: 'Elite'
+  },
+  ch3_layered_host: {
+    id: 'ch3_layered_host',
+    name: 'The Layered Host',
+    subtitle: 'A narrow screen protects a deeper center that reinforces whichever section begins to break first.',
+    enemyName: 'Layered Frost Host',
     enemyCount: 6,
-    enemyHp: 560,
+    enemyHp: 520,
     difficulty: 'Elite'
   },
   lord_marshal_veyr: {
     id: 'lord_marshal_veyr',
-    name: 'Lord Marshal Veyr',
-    subtitle: 'Veyr gathers the loyal marcher companies beneath one standard and challenges Greenkeep at the old crown road.',
-    enemyName: 'Veyr’s Marshal Guard',
+    name: 'Battle for Frostgate',
+    subtitle: 'The Frostgate host combines layered defense, mounted pressure and a protected rear line in one final Chapter 3 test.',
+    enemyName: 'Frostgate Host',
     enemyCount: 6,
-    enemyHp: 760,
+    enemyHp: 900,
     difficulty: 'Boss'
+  },
+  ch4_long_front: {
+    id: 'ch4_long_front',
+    name: 'The Long Front',
+    subtitle: 'A broad enemy line creates simultaneous pressure and makes a four-squad army feel stretched before the next banner is raised.',
+    enemyName: 'Long Front Companies',
+    enemyCount: 6,
+    enemyHp: 560,
+    difficulty: 'Elite'
   },
   broken_standards: {
     id: 'broken_standards',
-    name: 'Broken Standards',
-    subtitle: 'Royal companies with mismatched banners block the Stronghold army’s first march toward the abandoned court.',
-    enemyName: 'Broken Standard Companies',
+    name: 'Raise Another Banner',
+    subtitle: 'A reinforced royal line blocks the road just as Greenkeep prepares to field its fifth active squad.',
+    enemyName: 'Banner Guard',
     enemyCount: 6,
     enemyHp: 610,
-    difficulty: 'Normal'
+    difficulty: 'Elite'
+  },
+  ch4_broken_ground: {
+    id: 'ch4_broken_ground',
+    name: 'Broken Ground',
+    subtitle: 'Uneven lanes shift pressure from one side to another and reward commanders that adapt instead of holding one static answer.',
+    enemyName: 'Broken Ground Veterans',
+    enemyCount: 6,
+    enemyHp: 640,
+    difficulty: 'Elite'
   },
   crownroad_ambush: {
     id: 'crownroad_ambush',
-    name: 'Crownroad Ambush',
-    subtitle: 'A veteran force attacks Greenkeep’s full six-squad column among the abandoned royal wagons.',
-    enemyName: 'Crownroad Veterans',
+    name: 'Hold the Breach',
+    subtitle: 'Shock troops repeatedly strike one threatened section and force Greenkeep to manage reserves and lane pressure.',
+    enemyName: 'Breach Hunters',
     enemyCount: 6,
-    enemyHp: 790,
+    enemyHp: 675,
+    difficulty: 'Elite'
+  },
+  ch4_wrong_army: {
+    id: 'ch4_wrong_army',
+    name: 'The Wrong Army',
+    subtitle: 'Heavy cavalry and aggressive wings punish a generic high-Power lineup while a lower-Power counter force can perform far better.',
+    enemyName: 'Counter March',
+    enemyCount: 6,
+    enemyHp: 700,
+    difficulty: 'Elite'
+  },
+  ch4_hunters_rear: {
+    id: 'ch4_hunters_rear',
+    name: 'Hunters in the Rear',
+    subtitle: 'Enemy flankers deliberately ignore poor frontline trades to seek exposed Support and Ranged squads.',
+    enemyName: 'Rear Hunters',
+    enemyCount: 6,
+    enemyHp: 735,
     difficulty: 'Elite'
   },
   pretender_general: {
     id: 'pretender_general',
-    name: 'The Pretender General',
-    subtitle: 'The officer commanding the last royal companies claims emergency authority over the crownless realm.',
-    enemyName: 'Pretender General’s Host',
+    name: 'Siege of Greywatch',
+    subtitle: 'Greywatch combines layered defense, an elite guard, a cavalry wing and protected ranged pressure under one experienced commander.',
+    enemyName: 'Greywatch Host',
     enemyCount: 6,
     enemyHp: 1280,
     difficulty: 'Boss'
@@ -890,11 +980,20 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   the_iron_line: 'iron_wall_501',
   iron_provost: 'spear_wall_531',
   border_fort: 'wide_vanguard_522',
+  ch3_frozen_steel: 'heavy_front_441',
+  ch3_hooves_snow: 'skirmish_screen_243',
   siege_road: 'spear_wall_531',
-  lord_marshal_veyr: 'reinforced_center_252',
-  broken_standards: 'assault_432',
-  crownroad_ambush: 'skirmish_screen_243',
-  pretender_general: 'reinforced_center_252',
+  ch3_through_gap: 'forward_line_411',
+  ch3_wolves_wing: 'skirmish_screen_243',
+  ch3_layered_host: 'layered_core_231',
+  lord_marshal_veyr: 'layered_core_231',
+  ch4_long_front: 'wide_vanguard_522',
+  broken_standards: 'balanced_333',
+  ch4_broken_ground: 'reinforced_center_252',
+  crownroad_ambush: 'assault_432',
+  ch4_wrong_army: 'spear_wall_531',
+  ch4_hunters_rear: 'skirmish_screen_243',
+  pretender_general: 'layered_core_231',
   old_royal_lands: 'balanced_333',
   ashen_envoy: 'protected_rear_225',
   gate_of_crownspire: 'heavy_front_441',
@@ -1475,28 +1574,64 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
     storySummary: 'The Iron Provost falls and the road network opens. Greenkeep now has the wealth and authority to grow into a true Town.'
   },
   border_fort: {
-    resources: { gold: 85, stone: 12, iron: 7, provisions: 4 },
-    storySummary: 'The border fort yields. Its orders show three separate marcher authorities issuing contradictory warnings about the same enemy.'
+    resources: { gold: 82, stone: 10, iron: 6, provisions: 4 },
+    storySummary: 'The wider Frostmarch line is broken. Greenkeep can now support a fourth active squad without pretending the earlier three-squad frontage was enough.'
+  },
+  ch3_frozen_steel: {
+    resources: { gold: 70, iron: 9, stone: 5, provisions: 3 },
+    storySummary: 'The Froststeel convoy is secured, giving Greenkeep its first reliable cold-forged material and a reason to specialize equipment.'
+  },
+  ch3_hooves_snow: {
+    resources: { gold: 78, iron: 5, provisions: 7 },
+    storySummary: 'The Snow Riders lose their charge lanes. Greenkeep has now seen mounted momentum and anti-charge preparation work in a real Frostmarch fight.'
   },
   siege_road: {
-    resources: { gold: 105, wood: 18, stone: 16, iron: 9, provisions: 5 },
-    storySummary: 'Siege Road is opened. Captured dispatches prove the marcher houses were deliberately given conflicting commands.'
+    resources: { gold: 92, wood: 12, stone: 10, iron: 7, provisions: 5 },
+    storySummary: 'The breaker line buckles. Greenkeep can now read pressure, breaking and breach states instead of treating every surviving squad as equally stable.'
+  },
+  ch3_through_gap: {
+    resources: { gold: 88, iron: 6, provisions: 5 },
+    storySummary: 'Greenkeep pushes through at the right moment and survives the counterpressure. Offensive timing now matters as much as raw damage.'
+  },
+  ch3_wolves_wing: {
+    resources: { gold: 94, wood: 8, provisions: 7 },
+    storySummary: 'The Frostfang wing is intercepted before it can live in the rear line. Wide positioning and flank protection become real tactical concerns.'
+  },
+  ch3_layered_host: {
+    resources: { gold: 110, stone: 10, iron: 8, provisions: 6 },
+    storySummary: 'The Layered Host is dismantled one layer at a time. Greenkeep has now faced reserves that visibly reinforce a failing line.'
   },
   lord_marshal_veyr: {
     resources: { gold: 260, wood: 150, stone: 120, iron: 35, provisions: 12 },
-    storySummary: 'Lord Marshal Veyr is defeated. The Border Marches recognize Greenkeep as the strongest western authority and the road toward the broken Crown opens.'
+    storySummary: 'Frostgate falls after a combined fight against depth, cavalry and protected rear pressure. Greenkeep enters Chapter 4 as a genuine regional army.'
+  },
+  ch4_long_front: {
+    resources: { gold: 105, wood: 10, stone: 8, provisions: 5 },
+    storySummary: 'The long front is survived, but the cost of covering multiple lanes with only four active squads is impossible to ignore.'
   },
   broken_standards: {
     resources: { gold: 120, wood: 20, iron: 12, provisions: 6 },
-    storySummary: 'The mismatched royal companies scatter. Their standards all carry legitimate seals from different years, suggesting authority was deliberately fragmented.'
+    storySummary: 'The Banner Guard yields. Greenkeep can now field a fifth active squad and build formations with real width and reserve depth.'
+  },
+  ch4_broken_ground: {
+    resources: { gold: 118, stone: 12, iron: 8, provisions: 5 },
+    storySummary: 'The shifting lanes are stabilized. Commander doctrine is now a battlefield behavior choice rather than a decorative stat line.'
   },
   crownroad_ambush: {
-    resources: { gold: 145, wood: 24, stone: 18, iron: 14, provisions: 7 },
-    storySummary: 'The ambush fails. Greenkeep captures veteran officers who still claim to serve a court that no longer exists.'
+    resources: { gold: 145, iron: 14, provisions: 6 },
+    storySummary: 'The breach is stabilized before the enemy can cascade through it. Greenkeep proves that reserve timing can save a threatened lane.'
+  },
+  ch4_wrong_army: {
+    resources: { gold: 132, iron: 11, provisions: 6 },
+    storySummary: 'The counter march is defeated after Greenkeep abandons the idea that the highest Army Power number is always the right answer.'
+  },
+  ch4_hunters_rear: {
+    resources: { gold: 150, wood: 8, iron: 10, provisions: 7 },
+    storySummary: 'The rear hunters are stopped. Enemy targeting is now clearly smart enough to punish exposed Support and Ranged squads.'
   },
   pretender_general: {
-    resources: { gold: 430, wood: 210, stone: 175, iron: 55, provisions: 18 },
-    storySummary: 'The Pretender General falls. With the old royal command broken, Greenkeep becomes the strongest organized authority in the western realm.'
+    resources: { gold: 360, wood: 210, stone: 160, iron: 48, provisions: 15 },
+    storySummary: 'Greywatch falls after Greenkeep prepares the right Commander, formation and roster for a layered combined-arms defense.'
   },
   old_royal_lands: {
     resources: { gold: 175, wood: 28, stone: 22, iron: 16, provisions: 8 },

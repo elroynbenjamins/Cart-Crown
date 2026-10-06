@@ -174,7 +174,7 @@ export const humanRegions: RegionDefinition[] = [
   { id: 'greenkeep_outskirts', name: 'Greenkeep Outskirts', faction: 'human', x: 13, y: 58, state: 'current' },
   { id: 'greenkeep_vale', name: 'Greenkeep Vale', faction: 'human', x: 24, y: 55, state: 'locked' },
   { id: 'iron_hills', name: 'Iron Hills', faction: 'human', x: 30, y: 31, state: 'locked' },
-  { id: 'border_marches', name: 'Border Marches', faction: 'human', x: 39, y: 52, state: 'locked' },
+  { id: 'border_marches', name: 'Frostmarch', faction: 'human', x: 39, y: 52, state: 'locked' },
   { id: 'crownspire', name: 'Crownspire', faction: 'neutral', x: 58, y: 48, state: 'locked' }
 ];
 

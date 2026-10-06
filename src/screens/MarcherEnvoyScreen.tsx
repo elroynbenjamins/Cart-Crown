@@ -44,23 +44,23 @@ export function MarcherEnvoyScreen({ onComplete }: { onComplete: () => void }) {
       <DecisionCommit
         title={recorded ? selected ? selected.unit.name + ' · ' + selected.unit.className : 'Auxiliary choice recorded' : selected?.unit.className ?? 'Choose an auxiliary'}
         detail={recorded ? 'This event has already supplied its one auxiliary squad.' : 'One auxiliary joins at no resource cost. Selecting a card only previews it.'}
-        warning={!recorded ? !canChoose ? 'Reach the Marcher Envoy event before accepting an auxiliary.' : 'Accepting a squad records this event choice; it cannot be swapped for another envoy option.' : null}
+        warning={!recorded ? !canChoose ? 'Reach Into Frostmarch before accepting an auxiliary.' : 'Accepting a squad records this event choice; it cannot be swapped for another envoy option.' : null}
         message={message}
-        label={recorded ? 'Enter the Border Marches' : selected ? 'Accept ' + selected.unit.className : 'Choose an auxiliary'}
+        label={recorded ? 'Enter Frostmarch' : selected ? 'Accept ' + selected.unit.className : 'Choose an auxiliary'}
         disabled={!recorded && (!selected || !canChoose)}
         onConfirm={recorded ? onComplete : confirm}
       />
     }>
       <DecisionIntro
-        eyebrow="CHAPTER 3 · BORDER KINGDOMS"
-        title="Marcher Envoy"
-        body="Greenkeep Town draws its first formal visitor from the Border Marches. The envoy warns that the marcher lords are divided and offers one experienced auxiliary squad before you enter their territory."
+        eyebrow="CHAPTER 3 · FROSTMARCH"
+        title="Into Frostmarch"
+        body="Greenkeep crosses into Frostmarch with only three active squads. A local auxiliary offers to join before the army reaches the first broad defensive line."
         accent={theme.colors.gold}
       />
       <GameCard ornament={false}>
         <SemanticChip label={recorded ? 'Auxiliary choice recorded' : 'One squad · recruitment preview'} tone={recorded ? 'positive' : 'blue'} />
-        <Text style={[styles.heading, { color: theme.colors.text }]}>A divided frontier</Text>
-        <Text style={[styles.body, { color: theme.colors.textMuted }]}>Three marcher houses claim they are defending the same roads, yet their soldiers have begun stopping one another at old forts. Crownspire coin appears in every camp.</Text>
+        <Text style={[styles.heading, { color: theme.colors.text }]}>A harsher frontier</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>Frostmarch roads are wider, colder and more exposed than Greenkeep’s earlier battlefields. The next engagements will test frontage, mounted pressure and formation depth rather than simply higher numbers.</Text>
       </GameCard>
       {(!recorded ? marcherAuxiliaryOptions : selected ? [selected] : []).map(option => (
         <DecisionOption

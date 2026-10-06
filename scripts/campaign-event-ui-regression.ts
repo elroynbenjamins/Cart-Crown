@@ -146,7 +146,7 @@ function testEffects() {
   }
   const battle = ts.createSourceFile('BattleScreen.tsx', readFileSync('src/screens/BattleScreen.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   for (const [variable, expected] of [
-    ['marcherDoctrineActive', ['siege_road', 'lord_marshal_veyr']],
+    ['marcherDoctrineActive', ['siege_road', 'ch3_through_gap', 'ch3_wolves_wing', 'ch3_layered_host', 'lord_marshal_veyr']],
     ['loyalistApproachActive', ['pretender_general']]
   ] as const) {
     const strings: string[] = [];
@@ -159,8 +159,8 @@ function testEffects() {
 
 function testTacticalChoices() {
   for (const spec of [
-    { file: 'ThreeWarningsScreen', chapter: 3, node: 'ch3_node_3', field: 'marcherWarningChoiceId', options: chapter3.marcherWarningChoices },
-    { file: 'LastLoyalistsScreen', chapter: 4, node: 'ch4_node_5', field: 'lastLoyalistsChoiceId', options: chapter4.lastLoyalistChoices }
+    { file: 'ThreeWarningsScreen', chapter: 3, node: 'ch3_node_5', field: 'marcherWarningChoiceId', options: chapter3.marcherWarningChoices },
+    { file: 'LastLoyalistsScreen', chapter: 4, node: 'ch4_node_10', field: 'lastLoyalistsChoiceId', options: chapter4.lastLoyalistChoices }
   ]) {
     for (const option of spec.options) {
       const { game, calls } = gameFixture(spec.chapter, spec.node);
@@ -236,13 +236,13 @@ function testAuxiliaries() {
     one(tree, 'DecisionCommit').onConfirm();
     check(continued === 1 && calls.length === 1, 'Envoy Continue must only navigate.');
     const reloaded = harness('src/screens/MarcherEnvoyScreen.tsx', 'MarcherEnvoyScreen', game, { onComplete() {} });
-    check(one(reloaded.render(), 'DecisionCommit').label === 'Enter the Border Marches', 'Reload must not offer a second auxiliary.');
+    check(one(reloaded.render(), 'DecisionCommit').label === 'Enter Frostmarch', 'Reload must not offer a second auxiliary.');
   }
 }
 
 function testRewards() {
   for (const spec of [
-    { file: 'DividedMarchScreen', chapter: 3, node: 'ch3_node_5', completedField: 'dividedMarchResolved', callback: 'onComplete' },
+    { file: 'DividedMarchScreen', chapter: 3, node: 'ch3_node_10', completedField: 'dividedMarchResolved', callback: 'onComplete' },
     { file: 'BrokenSignalTowerScreen', chapter: 2, node: 'ch2_node_5', completedField: 'signalTowerUnlocked', callback: 'onExit' }
   ]) {
     const { game, calls } = gameFixture(spec.chapter, spec.node);

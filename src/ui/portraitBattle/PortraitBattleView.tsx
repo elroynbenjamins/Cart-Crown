@@ -26,6 +26,15 @@ export type PortraitBattleProps = {
   records: readonly ExchangeRecord[]; initialLog: string;
   matchup: string; effects: readonly { key: string; label: string; color: string }[];
   status: { type: CommanderSkillEffectType; remaining: number; power: number } | null;
+  orders?: readonly {
+    id: string;
+    label: string;
+    accessibilityLabel: string;
+    selected: boolean;
+    disabled: boolean;
+    cooldown: number;
+    onPress: () => void;
+  }[];
   onToggleSpeed: () => void; onTogglePause: () => void; onComplete: () => void;
 };
 
@@ -260,6 +269,22 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
       </Text>
       <BattleStatusMarker effectType={p.status?.type ?? null} remaining={p.status?.remaining ?? 0} />
     </ScrollView>
+    {!p.outcome && p.orders && p.orders.length > 0 ? (
+      <View style={[s.orderBar, { backgroundColor: theme.colors.surface1, borderTopColor: theme.colors.border }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.orderContent}>
+          {p.orders.map(order => (
+            <Action
+              key={order.id}
+              label={order.cooldown > 0 ? order.label + ' · ' + order.cooldown : order.label}
+              accessibilityLabel={order.accessibilityLabel}
+              selected={order.selected}
+              disabled={order.disabled || p.controlsLocked}
+              onPress={order.onPress}
+            />
+          ))}
+        </ScrollView>
+      </View>
+    ) : null}
     <View testID="battle-outcome-actions" style={[s.footer, layout.footerStacked && s.footerStack, {
       backgroundColor: theme.colors.appBg, borderTopColor: theme.colors.border
     }]}>
@@ -327,6 +352,8 @@ const s = StyleSheet.create({
   selectionFrame: { position: 'absolute', left: -2, right: -2, bottom: -2, height: 10, borderWidth: 1.5, borderRadius: 99 },
   vfx: { position: 'absolute', alignSelf: 'center', zIndex: 50 }, pauseOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000099', justifyContent: 'center', alignItems: 'center' },
   pauseCopy: { color: '#F3C461', fontSize: 16, fontWeight: '800', letterSpacing: 2 }, selectionCopy: { fontSize: 10, textAlign: 'center', minHeight: 15 },
+  orderBar: { flexShrink: 0, borderTopWidth: 1, paddingVertical: 3 },
+  orderContent: { gap: 6, paddingHorizontal: 8 },
   footer: { flexShrink: 0, borderTopWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 4 }, footerStack: { flexDirection: 'column', alignItems: 'stretch' },
   footerCopy: { flex: 1, minWidth: 0 }, footerStatus: { fontSize: 10, fontWeight: '800' }, formationLink: { minHeight: 44, justifyContent: 'center' }, linkText: { fontSize: 10 },
   modalShade: { flex: 1, backgroundColor: '#000000BB', justifyContent: 'center', padding: 16 }, sheet: { maxHeight: '80%', borderRadius: 8, borderWidth: 1, padding: 12 },

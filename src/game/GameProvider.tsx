@@ -287,6 +287,7 @@ type GameContextValue = {
   formationShapes: FormationShapeDefinition[];
   activeFormationShape: FormationShapeDefinition;
   formationPresets: FormationPreset[];
+  armyLoadoutsUnlocked: boolean;
   formationDoctrineId: string;
   formationDoctrines: FormationDoctrine[];
   formationBonuses: FormationBonus[];
@@ -1495,6 +1496,16 @@ export function GameProvider({
     currentWagonStage.formationSlots,
     getCampaignActiveSquadCap(chapterNumber, chapterNodes)
   );
+  const armyLoadoutsUnlocked =
+    activeFaction !== 'human' ||
+    chapterNumber > 4 ||
+    (
+      chapterNumber === 4 &&
+      Boolean(
+        chapterNodes.find(node => node.id === 'ch4_node_6')
+          ?.completed
+      )
+    );
   const activeDeploymentCapacity = useMemo(
     () =>
       getArmyDeploymentCapacity(
@@ -3535,11 +3546,63 @@ export function GameProvider({
       return;
     }
 
+    if (encounterId === 'ch3_frozen_steel') {
+      if (
+        chapterNumber !== 3 ||
+        !chapterNodes.find(node => node.id === 'ch3_node_3')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch3_node_3') return { ...node, completed: true, current: false };
+          if (node.id === 'ch3_node_4') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch3_frozen_steel_result',
+        title: 'Froststeel Secured',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch3_hooves_snow') {
+      if (
+        chapterNumber !== 3 ||
+        !chapterNodes.find(node => node.id === 'ch3_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch3_node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'ch3_node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch3_hooves_snow_result',
+        title: 'Charge Lanes Closed',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
     if (encounterId === 'siege_road') {
       if (
         chapterNumber !== 3 ||
         !marcherWarningChoiceId ||
-        !chapterNodes.find(node => node.id === 'ch3_node_4')?.current
+        !chapterNodes.find(node => node.id === 'ch3_node_6')?.current
       ) {
         return;
       }
@@ -3548,10 +3611,10 @@ export function GameProvider({
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'ch3_node_4') {
+          if (node.id === 'ch3_node_6') {
             return { ...node, completed: true, current: false };
           }
-          if (node.id === 'ch3_node_5') {
+          if (node.id === 'ch3_node_7') {
             return { ...node, current: true };
           }
           return { ...node, current: false };
@@ -3568,12 +3631,90 @@ export function GameProvider({
       return;
     }
 
+    if (encounterId === 'ch3_through_gap') {
+      if (
+        chapterNumber !== 3 ||
+        !chapterNodes.find(node => node.id === 'ch3_node_7')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch3_node_7') return { ...node, completed: true, current: false };
+          if (node.id === 'ch3_node_8') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch3_through_gap_result',
+        title: 'Gap Exploited',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch3_wolves_wing') {
+      if (
+        chapterNumber !== 3 ||
+        !chapterNodes.find(node => node.id === 'ch3_node_8')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch3_node_8') return { ...node, completed: true, current: false };
+          if (node.id === 'ch3_node_9') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch3_wolves_wing_result',
+        title: 'Wing Secured',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch3_layered_host') {
+      if (
+        chapterNumber !== 3 ||
+        !chapterNodes.find(node => node.id === 'ch3_node_9')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch3_node_9') return { ...node, completed: true, current: false };
+          if (node.id === 'ch3_node_10') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch3_layered_host_result',
+        title: 'Layers Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
     if (encounterId === 'lord_marshal_veyr') {
       if (
         chapterNumber !== 3 ||
         lordMarshalWon ||
         !dividedMarchResolved ||
-        !chapterNodes.find(node => node.id === 'ch3_node_6')?.current
+        !chapterNodes.find(node => node.id === 'ch3_node_11')?.current
       ) {
         return;
       }
@@ -3583,7 +3724,7 @@ export function GameProvider({
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node =>
-          node.id === 'ch3_node_6'
+          node.id === 'ch3_node_11'
             ? { ...node, completed: true, current: false }
             : { ...node, current: false }
         )
@@ -3605,10 +3746,35 @@ export function GameProvider({
       return;
     }
 
+    if (encounterId === 'ch4_long_front') {
+      if (
+        chapterNumber !== 4 ||
+        !chapterNodes.find(node => node.id === 'ch4_node_1')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch4_node_1') return { ...node, completed: true, current: false };
+          if (node.id === 'ch4_node_2') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch4_long_front_result',
+        title: 'Long Front Held',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
     if (encounterId === 'broken_standards') {
       if (
         chapterNumber !== 4 ||
-        !sixthRecruitChosen ||
         !chapterNodes.find(node => node.id === 'ch4_node_2')?.current
       ) {
         return;
@@ -3638,10 +3804,36 @@ export function GameProvider({
       return;
     }
 
-    if (encounterId === 'crownroad_ambush') {
+    if (encounterId === 'ch4_broken_ground') {
       if (
         chapterNumber !== 4 ||
         !chapterNodes.find(node => node.id === 'ch4_node_4')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch4_node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'ch4_node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch4_broken_ground_result',
+        title: 'Ground Stabilized',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'crownroad_ambush') {
+      if (
+        chapterNumber !== 4 ||
+        !chapterNodes.find(node => node.id === 'ch4_node_5')?.current
       ) {
         return;
       }
@@ -3650,10 +3842,10 @@ export function GameProvider({
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'ch4_node_4') {
+          if (node.id === 'ch4_node_5') {
             return { ...node, completed: true, current: false };
           }
-          if (node.id === 'ch4_node_5') {
+          if (node.id === 'ch4_node_6') {
             return { ...node, current: true };
           }
           return { ...node, current: false };
@@ -3670,12 +3862,64 @@ export function GameProvider({
       return;
     }
 
+    if (encounterId === 'ch4_wrong_army') {
+      if (
+        chapterNumber !== 4 ||
+        !chapterNodes.find(node => node.id === 'ch4_node_7')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch4_node_7') return { ...node, completed: true, current: false };
+          if (node.id === 'ch4_node_8') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch4_wrong_army_result',
+        title: 'Counter Army Rebuilt',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'ch4_hunters_rear') {
+      if (
+        chapterNumber !== 4 ||
+        !chapterNodes.find(node => node.id === 'ch4_node_9')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch4_node_9') return { ...node, completed: true, current: false };
+          if (node.id === 'ch4_node_10') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'ch4_hunters_rear_result',
+        title: 'Rear Hunters Stopped',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
     if (encounterId === 'pretender_general') {
       if (
         chapterNumber !== 4 ||
         pretenderGeneralWon ||
         !lastLoyalistsChoiceId ||
-        !chapterNodes.find(node => node.id === 'ch4_node_6')?.current
+        !chapterNodes.find(node => node.id === 'ch4_node_11')?.current
       ) {
         return;
       }
@@ -3685,7 +3929,7 @@ export function GameProvider({
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node =>
-          node.id === 'ch4_node_6'
+          node.id === 'ch4_node_11'
             ? { ...node, completed: true, current: false }
             : { ...node, current: false }
         )
@@ -5059,7 +5303,7 @@ export function GameProvider({
     if (
       chapterNumber !== 4 ||
       sixthRecruitChosen ||
-      !chapterNodes.find(node => node.id === 'ch4_node_1')?.current
+      !chapterNodes.find(node => node.id === 'ch4_node_8')?.current
     ) {
       return false;
     }
@@ -5080,10 +5324,10 @@ export function GameProvider({
     });
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch4_node_1') {
+        if (node.id === 'ch4_node_8') {
           return { ...node, completed: true, current: false };
         }
-        if (node.id === 'ch4_node_2') {
+        if (node.id === 'ch4_node_9') {
           return { ...node, current: true };
         }
         return { ...node, current: false };
@@ -5095,7 +5339,7 @@ export function GameProvider({
   const completeEmptyThrone = () => {
     if (
       chapterNumber !== 4 ||
-      !chapterNodes.find(node => node.id === 'ch4_node_3')?.current
+      !chapterNodes.find(node => node.id === 'ch4_node_6')?.current
     ) {
       return false;
     }
@@ -5113,10 +5357,10 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch4_node_3') {
+        if (node.id === 'ch4_node_6') {
           return { ...node, completed: true, current: false };
         }
-        if (node.id === 'ch4_node_4') {
+        if (node.id === 'ch4_node_7') {
           return { ...node, current: true };
         }
         return { ...node, current: false };
@@ -5131,7 +5375,7 @@ export function GameProvider({
     if (
       chapterNumber !== 4 ||
       lastLoyalistsChoiceId ||
-      !chapterNodes.find(node => node.id === 'ch4_node_5')?.current
+      !chapterNodes.find(node => node.id === 'ch4_node_10')?.current
     ) {
       return false;
     }
@@ -5142,10 +5386,10 @@ export function GameProvider({
     setLastLoyalistsChoiceId(choiceId);
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch4_node_5') {
+        if (node.id === 'ch4_node_10') {
           return { ...node, completed: true, current: false };
         }
-        if (node.id === 'ch4_node_6') {
+        if (node.id === 'ch4_node_11') {
           return { ...node, current: true };
         }
         return { ...node, current: false };
@@ -5289,7 +5533,7 @@ export function GameProvider({
     if (
       chapterNumber !== 3 ||
       marcherWarningChoiceId ||
-      !chapterNodes.find(node => node.id === 'ch3_node_3')?.current
+      !chapterNodes.find(node => node.id === 'ch3_node_5')?.current
     ) {
       return false;
     }
@@ -5300,10 +5544,10 @@ export function GameProvider({
     setMarcherWarningChoiceId(choiceId);
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch3_node_3') {
+        if (node.id === 'ch3_node_5') {
           return { ...node, completed: true, current: false };
         }
-        if (node.id === 'ch3_node_4') {
+        if (node.id === 'ch3_node_6') {
           return { ...node, current: true };
         }
         return { ...node, current: false };
@@ -5316,7 +5560,7 @@ export function GameProvider({
     if (
       chapterNumber !== 3 ||
       dividedMarchResolved ||
-      !chapterNodes.find(node => node.id === 'ch3_node_5')?.current
+      !chapterNodes.find(node => node.id === 'ch3_node_10')?.current
     ) {
       return false;
     }
@@ -5334,10 +5578,10 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch3_node_5') {
+        if (node.id === 'ch3_node_10') {
           return { ...node, completed: true, current: false };
         }
-        if (node.id === 'ch3_node_6') {
+        if (node.id === 'ch3_node_11') {
           return { ...node, current: true };
         }
         return { ...node, current: false };
@@ -5933,7 +6177,15 @@ export function GameProvider({
     const path = commanderPaths.find(candidate => candidate.id === pathId);
     if (!path) return false;
 
-    const cost = commanderPathId ? commanderRespecCost : 0;
+    const chapterFourDoctrineMission =
+      activeFaction === 'human' &&
+      chapterNumber === 4 &&
+      Boolean(chapterNodes.find(node => node.id === 'ch4_node_3')?.current);
+    const cost = chapterFourDoctrineMission
+      ? 0
+      : commanderPathId
+        ? commanderRespecCost
+        : 0;
     if (resources.gold < cost) return false;
 
     if (cost > 0) {
@@ -5945,10 +6197,22 @@ export function GameProvider({
 
     setCommanderPathId(pathId);
 
-    if (activeFaction === 'human') {
+    if (activeFaction === 'human' && chapterNumber === 1) {
       setChapterNodes(previous =>
         previous.map(node => {
           if (node.id === 'node_6') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+    } else if (chapterFourDoctrineMission) {
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch4_node_3') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'ch4_node_4') {
+            return { ...node, current: true };
+          }
           return { ...node, current: false };
         })
       );
@@ -6069,6 +6333,7 @@ export function GameProvider({
   };
 
   const saveFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!armyLoadoutsUnlocked) return false;
     if (![1, 2, 3].includes(slotId)) return false;
     if (!formation.some(Boolean)) return false;
 
@@ -6104,6 +6369,7 @@ export function GameProvider({
   };
 
   const applyFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!armyLoadoutsUnlocked) return false;
     const preset = formationPresets.find(
       candidate => candidate.slotId === slotId
     );
@@ -6186,6 +6452,7 @@ export function GameProvider({
   };
 
   const clearFormationPreset = (slotId: FormationPresetSlotId) => {
+    if (!armyLoadoutsUnlocked) return false;
     if (!formationPresets.some(candidate => candidate.slotId === slotId)) {
       return false;
     }
@@ -7051,6 +7318,7 @@ export function GameProvider({
       formationShapes,
       activeFormationShape,
       formationPresets,
+      armyLoadoutsUnlocked,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,
@@ -7302,6 +7570,7 @@ export function GameProvider({
       formationShapeId,
       activeFormationShape,
       formationPresets,
+      armyLoadoutsUnlocked,
       formationDoctrineId,
       formationDoctrines,
       formationBonuses,

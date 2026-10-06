@@ -179,12 +179,12 @@ const flowTitles: Record<FlowScreen, string> = {
   timberClaim: 'Timber Claim',
   kingdomDefense: 'Kingdom Defense',
   brokenSignalTower: 'Broken Signal Tower',
-  marcherEnvoy: 'Marcher Envoy',
-  threeWarnings: 'Three Warnings',
-  dividedMarch: 'The Divided March',
-  strongholdMuster: 'Stronghold Muster',
-  emptyThrone: 'The Empty Throne',
-  lastLoyalists: 'The Last Loyalists',
+  marcherEnvoy: 'Into Frostmarch',
+  threeWarnings: 'Choose Your Rider',
+  dividedMarch: 'Cold Roads',
+  strongholdMuster: 'Veteran Steel',
+  emptyThrone: 'Prepare for Battle',
+  lastLoyalists: 'The Forked Banner',
   royalDecrees: 'Royal Decrees',
   brokenArchives: 'Broken Archives',
   royalLedger: 'The Royal Ledger',
@@ -228,6 +228,8 @@ export function AppShell({
 }) {
   const [active, setActive] = useState<NavId>('kingdom');
   const [flow, setFlow] = useState<FlowScreen | null>(null);
+  const [commanderChoiceReturn, setCommanderChoiceReturn] =
+    useState<'army' | 'campaign'>('army');
   const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
   const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
@@ -390,6 +392,7 @@ export function AppShell({
       ].includes(lastBattleResult?.id ?? '') &&
       !commanderPathId
     ) {
+      setCommanderChoiceReturn('army');
       setFlow('commanderChoice');
       return;
     }
@@ -772,7 +775,7 @@ export function AppShell({
           onComplete={() => {
             markTutorialSeen('system:commander');
             setFlow(null);
-            setActive('army');
+            setActive(commanderChoiceReturn);
           }}
         />
       );
@@ -1341,9 +1344,29 @@ export function AppShell({
               setActiveEncounterId('border_fort');
               setFlow('battlePrep');
             }}
+            onStartFrozenSteel={() => {
+              setActiveEncounterId('ch3_frozen_steel');
+              setFlow('battlePrep');
+            }}
+            onStartHoovesSnow={() => {
+              setActiveEncounterId('ch3_hooves_snow');
+              setFlow('battlePrep');
+            }}
             onOpenThreeWarnings={() => setFlow('threeWarnings')}
             onStartSiegeRoad={() => {
               setActiveEncounterId('siege_road');
+              setFlow('battlePrep');
+            }}
+            onStartThroughGap={() => {
+              setActiveEncounterId('ch3_through_gap');
+              setFlow('battlePrep');
+            }}
+            onStartWolvesWing={() => {
+              setActiveEncounterId('ch3_wolves_wing');
+              setFlow('battlePrep');
+            }}
+            onStartLayeredHost={() => {
+              setActiveEncounterId('ch3_layered_host');
               setFlow('battlePrep');
             }}
             onOpenDividedMarch={() => setFlow('dividedMarch')}
@@ -1351,14 +1374,34 @@ export function AppShell({
               setActiveEncounterId('lord_marshal_veyr');
               setFlow('battlePrep');
             }}
-            onOpenStrongholdMuster={() => setFlow('strongholdMuster')}
+            onStartLongFront={() => {
+              setActiveEncounterId('ch4_long_front');
+              setFlow('battlePrep');
+            }}
             onStartBrokenStandards={() => {
               setActiveEncounterId('broken_standards');
               setFlow('battlePrep');
             }}
-            onOpenEmptyThrone={() => setFlow('emptyThrone')}
+            onOpenChapterFourCommander={() => {
+              setCommanderChoiceReturn('campaign');
+              setFlow('commanderChoice');
+            }}
+            onStartBrokenGround={() => {
+              setActiveEncounterId('ch4_broken_ground');
+              setFlow('battlePrep');
+            }}
             onStartCrownroadAmbush={() => {
               setActiveEncounterId('crownroad_ambush');
+              setFlow('battlePrep');
+            }}
+            onOpenEmptyThrone={() => setFlow('emptyThrone')}
+            onStartWrongArmy={() => {
+              setActiveEncounterId('ch4_wrong_army');
+              setFlow('battlePrep');
+            }}
+            onOpenStrongholdMuster={() => setFlow('strongholdMuster')}
+            onStartHuntersRear={() => {
+              setActiveEncounterId('ch4_hunters_rear');
               setFlow('battlePrep');
             }}
             onOpenLastLoyalists={() => setFlow('lastLoyalists')}
@@ -1667,7 +1710,10 @@ export function AppShell({
             onOpenRecruitment={openRecruitment}
             onOpenForge={() => setFlow('forge')}
             onOpenPromotion={() => setFlow('promotion')}
-            onOpenCommander={() => setFlow('commanderChoice')}
+            onOpenCommander={() => {
+              setCommanderChoiceReturn('army');
+              setFlow('commanderChoice');
+            }}
             onOpenFantasyResearch={() => setFlow('fantasyResearch')}
             onOpenFlyingResearch={() => setFlow('flyingResearch')}
             onOpenLargeResearch={() => setFlow('largeResearch')}
@@ -1688,7 +1734,10 @@ export function AppShell({
                 onTutorialFocusComplete={completeTutorialFocus}
                 onOpenSettlement={() => setFlow('settlement')}
                 onOpenRecruitment={() => setFlow('factionRecruitment')}
-                onOpenCommander={() => setFlow('commanderChoice')}
+                onOpenCommander={() => {
+                  setCommanderChoiceReturn('army');
+                  setFlow('commanderChoice');
+                }}
                 onOpenFactionMandate={() => setFlow('factionMandate')}
               />
             );
@@ -1696,7 +1745,10 @@ export function AppShell({
 
           return (
             <FactionCampScreen
-              onOpenCommander={() => setFlow('commanderChoice')}
+              onOpenCommander={() => {
+                setCommanderChoiceReturn('army');
+                setFlow('commanderChoice');
+              }}
             />
           );
         }

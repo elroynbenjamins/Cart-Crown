@@ -45,14 +45,24 @@ export function CampaignScreen({
   onStartIronProvost,
   onOpenMarcherEnvoy,
   onStartBorderFort,
+  onStartFrozenSteel,
+  onStartHoovesSnow,
   onOpenThreeWarnings,
   onStartSiegeRoad,
+  onStartThroughGap,
+  onStartWolvesWing,
+  onStartLayeredHost,
   onOpenDividedMarch,
   onStartLordMarshal,
-  onOpenStrongholdMuster,
+  onStartLongFront,
   onStartBrokenStandards,
-  onOpenEmptyThrone,
+  onOpenChapterFourCommander,
+  onStartBrokenGround,
   onStartCrownroadAmbush,
+  onOpenEmptyThrone,
+  onStartWrongArmy,
+  onOpenStrongholdMuster,
+  onStartHuntersRear,
   onOpenLastLoyalists,
   onStartPretenderGeneral,
   onOpenRoyalDecrees,
@@ -126,14 +136,24 @@ export function CampaignScreen({
   onStartIronProvost: () => void;
   onOpenMarcherEnvoy: () => void;
   onStartBorderFort: () => void;
+  onStartFrozenSteel: () => void;
+  onStartHoovesSnow: () => void;
   onOpenThreeWarnings: () => void;
   onStartSiegeRoad: () => void;
+  onStartThroughGap: () => void;
+  onStartWolvesWing: () => void;
+  onStartLayeredHost: () => void;
   onOpenDividedMarch: () => void;
   onStartLordMarshal: () => void;
-  onOpenStrongholdMuster: () => void;
+  onStartLongFront: () => void;
   onStartBrokenStandards: () => void;
-  onOpenEmptyThrone: () => void;
+  onOpenChapterFourCommander: () => void;
+  onStartBrokenGround: () => void;
   onStartCrownroadAmbush: () => void;
+  onOpenEmptyThrone: () => void;
+  onStartWrongArmy: () => void;
+  onOpenStrongholdMuster: () => void;
+  onStartHuntersRear: () => void;
   onOpenLastLoyalists: () => void;
   onStartPretenderGeneral: () => void;
   onOpenRoyalDecrees: () => void;
@@ -325,26 +345,26 @@ export function CampaignScreen({
         eyebrow={'CHAPTER ' + chapterNumber}
         title={
           chapterNumber === 1
-            ? 'The Last Wagon'
+            ? 'The Remnant'
             : chapterNumber === 2
-              ? 'The Iron Road'
+              ? 'Building a Warband'
               : chapterNumber === 3
-                ? 'Border Kingdoms'
+                ? 'Frostmarch'
                 : chapterNumber === 4
-                  ? 'The Broken Crown'
+                  ? 'Fortifying the Realm'
                   : chapterNumber === 5
                     ? 'Old Royal Lands'
                     : 'Return to Crownspire'
         }
         body={
           chapterNumber === 1
-            ? 'Reach ruined Greenkeep with the surviving squads.'
+            ? 'Rebuild Greenkeep from a two-squad remnant and learn the fundamentals of formation warfare.'
             : chapterNumber === 2
-              ? 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'
+              ? 'Grow to three active squads, learn counters and injuries, and break the first named enemy formation.'
               : chapterNumber === 3
-                ? 'Carry Greenkeep’s authority into the divided Border Marches.'
+                ? 'Enter Frostmarch, unlock the fourth squad, face cavalry and learn how formations become Pressured, Breaking and Breached.'
                 : chapterNumber === 4
-                  ? 'Push beyond the marcher crisis toward the broken western crown.'
+                  ? 'Field five squads, adapt Commander doctrine, use alternate loadouts and prepare an elite force for Greywatch.'
                   : chapterNumber === 5
                     ? 'Govern the western realm as a Capital and trace the final royal records toward Crownspire.'
                     : 'Lead the Grand Campaign into Crownspire and confront the Ashen Court around the Concord Beacon.'
@@ -355,7 +375,7 @@ export function CampaignScreen({
         <View style={styles.chapterMetrics}>
           <MetricTile
             label="OBJECTIVES"
-            value={completed + '/6'}
+            value={completed + '/' + chapterNodes.length}
             caption="completed this chapter"
             tone="positive"
           />
@@ -383,9 +403,9 @@ export function CampaignScreen({
             : chapterNumber === 2
               ? 'Iron Hills Approach'
               : chapterNumber === 3
-                ? 'Border Marches'
+                ? 'Frostmarch'
                 : chapterNumber === 4
-                  ? 'Crown Road'
+                  ? 'Greywatch Frontier'
                   : chapterNumber === 5
                     ? 'Old Royal Lands'
                     : 'Crownspire Basin'
@@ -473,55 +493,94 @@ export function CampaignScreen({
             chapterNumber === 3 &&
             node.current &&
             node.id === 'ch3_node_2';
+          const frozenSteelPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_3';
+          const hoovesSnowPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_4';
           const warningsPlayable =
             chapterNumber === 3 &&
             node.current &&
-            node.id === 'ch3_node_3' &&
+            node.id === 'ch3_node_5' &&
             !marcherWarningChoiceId;
           const siegeRoadPlayable =
             chapterNumber === 3 &&
             node.current &&
-            node.id === 'ch3_node_4' &&
+            node.id === 'ch3_node_6' &&
             Boolean(marcherWarningChoiceId);
+          const throughGapPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_7';
+          const wolvesWingPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_8';
+          const layeredHostPlayable =
+            chapterNumber === 3 &&
+            node.current &&
+            node.id === 'ch3_node_9';
           const dividedMarchPlayable =
             chapterNumber === 3 &&
             node.current &&
-            node.id === 'ch3_node_5' &&
+            node.id === 'ch3_node_10' &&
             !dividedMarchResolved;
           const lordMarshalPlayable =
             chapterNumber === 3 &&
             node.current &&
-            node.id === 'ch3_node_6' &&
+            node.id === 'ch3_node_11' &&
             dividedMarchResolved &&
             !lordMarshalWon;
 
-          const strongholdMusterPlayable =
+          const longFrontPlayable =
             chapterNumber === 4 &&
             node.current &&
-            node.id === 'ch4_node_1' &&
-            !sixthRecruitChosen;
+            node.id === 'ch4_node_1';
           const brokenStandardsPlayable =
             chapterNumber === 4 &&
             node.current &&
-            node.id === 'ch4_node_2' &&
-            sixthRecruitChosen;
-          const emptyThronePlayable =
+            node.id === 'ch4_node_2';
+          const chapterFourCommanderPlayable =
             chapterNumber === 4 &&
             node.current &&
             node.id === 'ch4_node_3';
-          const crownroadAmbushPlayable =
+          const brokenGroundPlayable =
             chapterNumber === 4 &&
             node.current &&
             node.id === 'ch4_node_4';
+          const crownroadAmbushPlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_5';
+          const emptyThronePlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_6';
+          const wrongArmyPlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_7';
+          const strongholdMusterPlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_8' &&
+            !sixthRecruitChosen;
+          const huntersRearPlayable =
+            chapterNumber === 4 &&
+            node.current &&
+            node.id === 'ch4_node_9';
           const lastLoyalistsPlayable =
             chapterNumber === 4 &&
             node.current &&
-            node.id === 'ch4_node_5' &&
+            node.id === 'ch4_node_10' &&
             !lastLoyalistsChoiceId;
           const pretenderGeneralPlayable =
             chapterNumber === 4 &&
             node.current &&
-            node.id === 'ch4_node_6' &&
+            node.id === 'ch4_node_11' &&
             Boolean(lastLoyalistsChoiceId) &&
             !pretenderGeneralWon;
 
@@ -593,14 +652,24 @@ export function CampaignScreen({
             provostPlayable ||
             marcherEnvoyPlayable ||
             borderFortPlayable ||
+            frozenSteelPlayable ||
+            hoovesSnowPlayable ||
             warningsPlayable ||
             siegeRoadPlayable ||
+            throughGapPlayable ||
+            wolvesWingPlayable ||
+            layeredHostPlayable ||
             dividedMarchPlayable ||
             lordMarshalPlayable ||
-            strongholdMusterPlayable ||
+            longFrontPlayable ||
             brokenStandardsPlayable ||
-            emptyThronePlayable ||
+            chapterFourCommanderPlayable ||
+            brokenGroundPlayable ||
             crownroadAmbushPlayable ||
+            emptyThronePlayable ||
+            wrongArmyPlayable ||
+            strongholdMusterPlayable ||
+            huntersRearPlayable ||
             lastLoyalistsPlayable ||
             pretenderGeneralPlayable ||
             capitalCouncilPlayable ||
@@ -644,26 +713,46 @@ export function CampaignScreen({
                                 ? 'CHOOSE AUXILIARY'
                                 : borderFortPlayable
                                   ? 'PLAY'
-                                  : warningsPlayable
-                                    ? 'CHOOSE DOCTRINE'
-                                    : siegeRoadPlayable
+                                  : frozenSteelPlayable
+                                    ? 'PLAY'
+                                    : hoovesSnowPlayable
                                       ? 'PLAY'
-                                      : dividedMarchPlayable
-                                        ? 'UNITE MARCHES'
-                                        : lordMarshalPlayable
-                                          ? 'BOSS'
-                                          : strongholdMusterPlayable
-                                            ? 'CHOOSE SQUAD'
-                                            : brokenStandardsPlayable
+                                      : warningsPlayable
+                                        ? 'CHOOSE RIDER'
+                                        : siegeRoadPlayable
+                                          ? 'PLAY'
+                                          : throughGapPlayable
+                                            ? 'PLAY'
+                                            : wolvesWingPlayable
                                               ? 'PLAY'
-                                              : emptyThronePlayable
-                                                ? 'INVESTIGATE'
-                                                : crownroadAmbushPlayable
-                                                  ? 'PLAY'
-                                                  : lastLoyalistsPlayable
-                                                    ? 'CHOOSE APPROACH'
-                                                    : pretenderGeneralPlayable
-                                                      ? 'BOSS'
+                                              : layeredHostPlayable
+                                                ? 'PLAY'
+                                                : dividedMarchPlayable
+                                                  ? 'PREPARE'
+                                                  : lordMarshalPlayable
+                                                    ? 'BOSS'
+                                                    : longFrontPlayable
+                                                      ? 'PLAY'
+                                                      : brokenStandardsPlayable
+                                                        ? 'PLAY'
+                                                        : chapterFourCommanderPlayable
+                                                          ? 'CHOOSE DOCTRINE'
+                                                          : brokenGroundPlayable
+                                                            ? 'PLAY'
+                                                            : crownroadAmbushPlayable
+                                                              ? 'HOLD'
+                                                              : emptyThronePlayable
+                                                                ? 'PREPARE'
+                                                                : wrongArmyPlayable
+                                                                  ? 'PLAY'
+                                                                  : strongholdMusterPlayable
+                                                                    ? 'CHOOSE ELITE'
+                                                                    : huntersRearPlayable
+                                                                      ? 'PLAY'
+                                                                      : lastLoyalistsPlayable
+                                                                        ? 'CHOOSE ROUTE'
+                                                                        : pretenderGeneralPlayable
+                                                                          ? 'BOSS'
                                                       : capitalCouncilPlayable
                                                         ? 'CHOOSE DECREE'
                                                         : oldRoyalLandsPlayable
@@ -726,26 +815,46 @@ export function CampaignScreen({
                                   ? onOpenMarcherEnvoy
                                   : borderFortPlayable
                                     ? onStartBorderFort
-                                    : warningsPlayable
-                                      ? onOpenThreeWarnings
-                                      : siegeRoadPlayable
-                                        ? onStartSiegeRoad
-                                        : dividedMarchPlayable
-                                          ? onOpenDividedMarch
-                                          : lordMarshalPlayable
-                                            ? onStartLordMarshal
-                                            : strongholdMusterPlayable
-                                              ? onOpenStrongholdMuster
-                                              : brokenStandardsPlayable
-                                                ? onStartBrokenStandards
-                                                : emptyThronePlayable
-                                                  ? onOpenEmptyThrone
-                                                  : crownroadAmbushPlayable
-                                                    ? onStartCrownroadAmbush
-                                                    : lastLoyalistsPlayable
-                                                      ? onOpenLastLoyalists
-                                                      : pretenderGeneralPlayable
-                                                        ? onStartPretenderGeneral
+                                    : frozenSteelPlayable
+                                      ? onStartFrozenSteel
+                                      : hoovesSnowPlayable
+                                        ? onStartHoovesSnow
+                                        : warningsPlayable
+                                          ? onOpenThreeWarnings
+                                          : siegeRoadPlayable
+                                            ? onStartSiegeRoad
+                                            : throughGapPlayable
+                                              ? onStartThroughGap
+                                              : wolvesWingPlayable
+                                                ? onStartWolvesWing
+                                                : layeredHostPlayable
+                                                  ? onStartLayeredHost
+                                                  : dividedMarchPlayable
+                                                    ? onOpenDividedMarch
+                                                    : lordMarshalPlayable
+                                                      ? onStartLordMarshal
+                                                      : longFrontPlayable
+                                                        ? onStartLongFront
+                                                        : brokenStandardsPlayable
+                                                          ? onStartBrokenStandards
+                                                          : chapterFourCommanderPlayable
+                                                            ? onOpenChapterFourCommander
+                                                            : brokenGroundPlayable
+                                                              ? onStartBrokenGround
+                                                              : crownroadAmbushPlayable
+                                                                ? onStartCrownroadAmbush
+                                                                : emptyThronePlayable
+                                                                  ? onOpenEmptyThrone
+                                                                  : wrongArmyPlayable
+                                                                    ? onStartWrongArmy
+                                                                    : strongholdMusterPlayable
+                                                                      ? onOpenStrongholdMuster
+                                                                      : huntersRearPlayable
+                                                                        ? onStartHuntersRear
+                                                                        : lastLoyalistsPlayable
+                                                                          ? onOpenLastLoyalists
+                                                                          : pretenderGeneralPlayable
+                                                                            ? onStartPretenderGeneral
                                                         : capitalCouncilPlayable
                                                           ? onOpenRoyalDecrees
                                                           : oldRoyalLandsPlayable

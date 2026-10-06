@@ -21,12 +21,17 @@ export type LastLoyalistsChoice = {
 };
 
 export const chapterFourNodes: ChapterNode[] = [
-  { id: 'ch4_node_1', name: 'Stronghold Muster', type: 'event', completed: false, current: true },
-  { id: 'ch4_node_2', name: 'Broken Standards', type: 'battle', completed: false },
-  { id: 'ch4_node_3', name: 'The Empty Throne', type: 'event', completed: false },
-  { id: 'ch4_node_4', name: 'Crownroad Ambush', type: 'elite', completed: false },
-  { id: 'ch4_node_5', name: 'The Last Loyalists', type: 'event', completed: false },
-  { id: 'ch4_node_6', name: 'The Pretender General', type: 'boss', completed: false }
+  { id: 'ch4_node_1', name: 'The Long Front', type: 'battle', completed: false, current: true },
+  { id: 'ch4_node_2', name: 'Raise Another Banner', type: 'battle', completed: false },
+  { id: 'ch4_node_3', name: 'Two Ways to War', type: 'event', completed: false },
+  { id: 'ch4_node_4', name: 'Broken Ground', type: 'battle', completed: false },
+  { id: 'ch4_node_5', name: 'Hold the Breach', type: 'elite', completed: false },
+  { id: 'ch4_node_6', name: 'Prepare for Battle', type: 'event', completed: false },
+  { id: 'ch4_node_7', name: 'The Wrong Army', type: 'battle', completed: false },
+  { id: 'ch4_node_8', name: 'Veteran Steel', type: 'event', completed: false },
+  { id: 'ch4_node_9', name: 'Hunters in the Rear', type: 'battle', completed: false },
+  { id: 'ch4_node_10', name: 'The Forked Banner', type: 'event', completed: false },
+  { id: 'ch4_node_11', name: 'Siege of Greywatch', type: 'boss', completed: false }
 ];
 
 export const strongholdMusterOptions: RecruitOption[] = [
@@ -92,9 +97,9 @@ export const strongholdMusterOptions: RecruitOption[] = [
 export const lastLoyalistChoices: LastLoyalistsChoice[] = [
   {
     id: 'offer_amnesty',
-    name: 'Offer Amnesty',
-    description: 'Promise rank-and-file loyalists safe return if they abandon the Pretender General before battle.',
-    effectText: '+10% armor against the Pretender General',
+    name: 'Northern Forge Route',
+    description: 'Secure the heavier supply road first and enter Greywatch with reinforced defensive equipment.',
+    effectText: '+10% armor during Siege of Greywatch',
     attackMultiplier: 1,
     armorMultiplier: 1.1,
     retaliationMultiplier: 1,
@@ -102,9 +107,9 @@ export const lastLoyalistChoices: LastLoyalistsChoice[] = [
   },
   {
     id: 'publish_the_seals',
-    name: 'Publish the Royal Seals',
-    description: 'Distribute copies of the conflicting royal orders and force the Pretender General to defend the legitimacy of his command.',
-    effectText: 'Detailed intel and -20% enemy retaliation',
+    name: 'Scout the Crossroads',
+    description: 'Spend time mapping Greywatch’s approach lanes so the army enters with detailed intel and reduced enemy response.',
+    effectText: 'Detailed intel and -20% enemy retaliation at Greywatch',
     attackMultiplier: 1,
     armorMultiplier: 1,
     retaliationMultiplier: 0.8,
@@ -112,9 +117,9 @@ export const lastLoyalistChoices: LastLoyalistsChoice[] = [
   },
   {
     id: 'seize_the_arsenal',
-    name: 'Seize the Loyalist Arsenal',
-    description: 'Strike the remaining supply depots before the final battle and turn their own weapons against them.',
-    effectText: '+10% attack against the Pretender General',
+    name: 'Western Horsefields',
+    description: 'Secure the mobile approach first and convert its stores into a more aggressive Greywatch assault plan.',
+    effectText: '+10% attack during Siege of Greywatch',
     attackMultiplier: 1.1,
     armorMultiplier: 1,
     retaliationMultiplier: 1,

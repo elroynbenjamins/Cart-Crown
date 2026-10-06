@@ -116,7 +116,7 @@ function runProviderAction(name: string, scope: Record<string, any>, id: string)
 }
 const cases: Array<{ kind: ReinforcementMusterKind; faction: 'human' | 'elf' | 'orc'; chapter: number; capacity: number; file: string; action: string; options: readonly any[] }> = [
   { kind: 'fort', faction: 'human', chapter: 2, capacity: 3, file: 'FortMusterScreen', action: 'chooseFortRecruit', options: fortMusterOptions },
-  { kind: 'stronghold', faction: 'human', chapter: 4, capacity: 6, file: 'StrongholdMusterScreen', action: 'chooseStrongholdRecruit', options: strongholdMusterOptions },
+  { kind: 'stronghold', faction: 'human', chapter: 4, capacity: 5, file: 'StrongholdMusterScreen', action: 'chooseStrongholdRecruit', options: strongholdMusterOptions },
   { kind: 'faction_third', faction: 'elf', chapter: 2, capacity: 3, file: 'FactionRecruitmentScreen', action: 'chooseRecruit', options: elfThirdRecruitOptions },
   { kind: 'faction_third', faction: 'orc', chapter: 2, capacity: 3, file: 'FactionRecruitmentScreen', action: 'chooseRecruit', options: orcThirdRecruitOptions },
   { kind: 'faction_fourth', faction: 'elf', chapter: 3, capacity: 4, file: 'FactionFourthRecruitmentScreen', action: 'chooseFactionFourthRecruit', options: elfFourthRecruitOptions },
@@ -129,10 +129,12 @@ function fixture(test: typeof cases[number], full = false) {
   let returns = 0;
   let failure: 'reject' | 'throw' | null = null;
   const prefix = test.faction === 'human' ? 'ch' + test.chapter : test.faction + test.chapter;
+  const currentNodeNumber = test.kind === 'stronghold' ? 8 : 1;
+  const nodeCount = test.kind === 'stronghold' ? 11 : 6;
   const count = test.capacity - (full ? 0 : 1);
   const game: any = {
     activeFaction: test.faction, chapterNumber: test.chapter, activeSquadCap: test.capacity,
-    chapterNodes: Array.from({ length: 6 }, (_, index) => ({ id: prefix + '_node_' + (index + 1), name: 'Node ' + index, type: index ? 'battle' : 'event', current: index === 0, completed: false })),
+    chapterNodes: Array.from({ length: nodeCount }, (_, index) => ({ id: prefix + '_node_' + (index + 1), name: 'Node ' + index, type: index ? 'battle' : 'event', current: index + 1 === currentNodeNumber, completed: false })),
     units: Array.from({ length: count }, (_, index) => ({ id: 'existing_' + index, name: 'Existing ' + index, className: 'Guard', faction: test.faction, role: 'frontline', tier: 2, level: 4, hp: 100, attack: 15, armor: 10, speed: 7 })),
     formation: Array.from({ length: 9 }, (_, index) => index < count ? 'existing_' + index : null),
     formationShapeId: 'balanced_333',
@@ -155,7 +157,8 @@ function fixture(test: typeof cases[number], full = false) {
       ...game, getPreferredFormationSlots,
       setUnits: setter('units'), setFormation: setter('formation'), setChapterNodes: setter('chapterNodes'),
       setRecruitChosen: setter('recruitChosen'), setRecruitChoiceAvailable: setter('recruitChoiceAvailable'),
-      setFourthRecruitChosen: setter('fourthRecruitChosen'), setFourthRecruitChoiceAvailable: setter('fourthRecruitChoiceAvailable')
+      setFourthRecruitChosen: setter('fourthRecruitChosen'), setFourthRecruitChoiceAvailable: setter('fourthRecruitChoiceAvailable'),
+      setSixthRecruitChosen: setter('sixthRecruitChosen')
     }, id);
     // These provider-facing booleans are derived from the recorded recruitment/roster.
     if (ok && test.kind === 'stronghold') game.sixthRecruitChosen = true;
@@ -200,7 +203,12 @@ function testMatrix() {
     check(f.counts().calls === 1, 'A repeated stale tap must call the provider once.');
     check(f.game.units.length === previousUnits.length + 1 && f.game.units.at(-1).id === option.unit.id, 'Exact provider recruitment must add the selected authored squad.');
     check(unchangedState(f.game) === unchanged, 'Recruitment must not spend resources, heal, equip, expand capacity or alter guidance/tutorial state.');
-    check(f.game.chapterNodes[0].completed && f.game.chapterNodes[1].current, 'The original provider must advance the correct muster node.');
+    const currentNodeIndex = test.kind === 'stronghold' ? 7 : 0;
+    check(
+      f.game.chapterNodes[currentNodeIndex].completed &&
+        f.game.chapterNodes[currentNodeIndex + 1].current,
+      'The original provider must advance the correct muster node.'
+    );
     const target = getPreferredFormationSlots('balanced_333', option.unit.role).find(slot => previousFormation[slot] === null);
     const expectedFormation = [...previousFormation];
     if (!full && target !== undefined) expectedFormation[target] = option.unit.id;
@@ -238,11 +246,13 @@ function testGuards() {
       const f = fixture(test); const h = f.makeHarness();
       const stale = one(h.render(), 'DecisionCommit').onConfirm;
       if (changed === 'chapter') f.game.chapterNumber += 1;
-      if (changed === 'current') f.game.chapterNodes[0].current = false;
+      if (changed === 'current') f.game.chapterNodes[test.kind === 'stronghold' ? 7 : 0].current = false;
       if (changed === 'faction') f.game.activeFaction = test.faction === 'human' ? 'elf' : 'human';
       if (changed === 'availability') {
         f.game.recruitChoiceAvailable = false; f.game.fourthRecruitChoiceAvailable = false;
-        if (test.kind === 'stronghold' || test.kind === 'faction_fifth') f.game.chapterNodes[0].current = false;
+        if (test.kind === 'stronghold' || test.kind === 'faction_fifth') {
+          f.game.chapterNodes[test.kind === 'stronghold' ? 7 : 0].current = false;
+        }
       }
       const tree = h.render();
       stale();
@@ -260,8 +270,9 @@ function testGuards() {
 
     for (const amount of [0, 2]) {
       const recorded = fixture(test);
-      recorded.game.chapterNodes[0].completed = true;
-      recorded.game.chapterNodes[0].current = false;
+      const recordedIndex = test.kind === 'stronghold' ? 7 : 0;
+      recorded.game.chapterNodes[recordedIndex].completed = true;
+      recorded.game.chapterNodes[recordedIndex].current = false;
       recorded.game.units.push(...test.options.slice(0, amount).map(option => ({ ...option.unit })));
       const report = recorded.makeHarness().render();
       check(nodes(report, 'DecisionOption').length === 0 && nodes(report, 'UnitBadges').length === 0, 'Missing/ambiguous history must not guess a chosen squad.');

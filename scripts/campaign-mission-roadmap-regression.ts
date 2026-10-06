@@ -1,5 +1,7 @@
 import { chapterOneNodes } from '../src/game/data';
 import { chapterTwoNodes } from '../src/game/chapter2';
+import { chapterThreeNodes } from '../src/game/chapter3';
+import { chapterFourNodes } from '../src/game/chapter4';
 import {
   campaignMissionCountsByChapter,
   campaignMissionRoadmap,
@@ -118,13 +120,6 @@ assert(
   'Normal campaign squad count must stop increasing after the sixth slot'
 );
 
-console.log(
-  'Campaign mission roadmap OK: ' +
-    campaignMissionRoadmap.length +
-    ' missions across 7 chapters; squad cadence 2->3->4->5->6 locked.'
-);
-
-
 assert(getCampaignActiveSquadCap(1) === 2, 'Chapter 1 runtime cap must be 2');
 assert(getCampaignActiveSquadCap(2) === 3, 'Chapter 2 runtime cap must be 3');
 assert(getCampaignActiveSquadCap(3) === 3, 'Chapter 3 must open at 3 squads');
@@ -175,4 +170,48 @@ assert(chapterTwoNodes.length === 8, 'Live Chapter 2 must contain eight missions
 assert(
   chapterTwoNodes.every((node, index) => node.name === liveChapterTwoNames[index]),
   'Live Chapter 2 mission order drifted from the roadmap'
+);
+
+
+const liveChapterThreeNames = [
+  'Into Frostmarch',
+  'A Wider Front',
+  'Frozen Steel',
+  'Hooves in the Snow',
+  'Choose Your Rider',
+  'The Line Buckles',
+  'Through the Gap',
+  'Wolves on the Wing',
+  'The Layered Host',
+  'Cold Roads',
+  'Battle for Frostgate'
+];
+const liveChapterFourNames = [
+  'The Long Front',
+  'Raise Another Banner',
+  'Two Ways to War',
+  'Broken Ground',
+  'Hold the Breach',
+  'Prepare for Battle',
+  'The Wrong Army',
+  'Veteran Steel',
+  'Hunters in the Rear',
+  'The Forked Banner',
+  'Siege of Greywatch'
+];
+
+assert(chapterThreeNodes.length === 11, 'Live Chapter 3 must contain eleven missions');
+assert(
+  chapterThreeNodes.every((node, index) => node.name === liveChapterThreeNames[index]),
+  'Live Chapter 3 mission order drifted from the roadmap'
+);
+assert(chapterFourNodes.length === 11, 'Live Chapter 4 must contain eleven missions');
+assert(
+  chapterFourNodes.every((node, index) => node.name === liveChapterFourNames[index]),
+  'Live Chapter 4 mission order drifted from the roadmap'
+);
+
+
+console.log(
+  'PASS: campaign mission roadmap, live Chapters 1-4 ordering and 2->3->4->5->6 squad cadence remain protected.'
 );
