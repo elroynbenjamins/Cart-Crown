@@ -2,6 +2,8 @@ import { chapterOneNodes } from '../src/game/data';
 import { chapterTwoNodes } from '../src/game/chapter2';
 import { chapterThreeNodes } from '../src/game/chapter3';
 import { chapterFourNodes } from '../src/game/chapter4';
+import { chapterFiveNodes } from '../src/game/chapter5';
+import { chapterSixNodes } from '../src/game/chapter6';
 import {
   campaignMissionCountsByChapter,
   campaignMissionRoadmap,
@@ -214,4 +216,42 @@ assert(
 
 console.log(
   'PASS: campaign mission roadmap, live Chapters 1-4 ordering and 2->3->4->5->6 squad cadence remain protected.'
+);
+
+
+const liveChapterFiveNames = [
+  'Too Many Fronts',
+  'The Sixth Banner',
+  'Rally the Line',
+  'Above the Shieldwall',
+  'Answers to the Sky',
+  "Commander's Hand",
+  'Three Lines Deep',
+  'Hammer and Wing',
+  'The Strongest Army?',
+  "Crown's Muster",
+  'Battle for the Crownroad'
+];
+const liveChapterSixNames = [
+  'Strange Fire',
+  'The First Ward',
+  'Call the Arcanist',
+  'Power Has a Price',
+  'Break the Spell',
+  'Paths of the Arcane',
+  'Fire from Above',
+  'The Silent Ground',
+  'Wards and Steel',
+  'The Arcane General',
+  'Siege of the Glass Keep'
+];
+assert(chapterFiveNodes.length === 11, 'Live Chapter 5 must contain eleven missions');
+assert(
+  chapterFiveNodes.every((node, index) => node.name === liveChapterFiveNames[index]),
+  'Live Chapter 5 mission order drifted from the roadmap'
+);
+assert(chapterSixNodes.length === 11, 'Live Chapter 6 must contain eleven missions');
+assert(
+  chapterSixNodes.every((node, index) => node.name === liveChapterSixNames[index]),
+  'Live Chapter 6 mission order drifted from the roadmap'
 );
