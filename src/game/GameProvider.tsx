@@ -6055,7 +6055,7 @@ export function GameProvider({
 
     setCommanderPathId(pathId);
 
-    if (activeFaction === 'human') {
+    if (activeFaction === 'human' && chapterNumber === 1) {
       setChapterNodes(previous => {
         const usesRoadmapNodes = previous.some(node => node.id === 'ch1_m06');
         return previous.map(node => {
