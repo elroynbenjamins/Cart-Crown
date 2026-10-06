@@ -97,9 +97,9 @@ export const strongholdMusterOptions: RecruitOption[] = [
 export const lastLoyalistChoices: LastLoyalistsChoice[] = [
   {
     id: 'offer_amnesty',
-    name: 'Offer Amnesty',
-    description: 'Promise rank-and-file loyalists safe return if they abandon the Pretender General before battle.',
-    effectText: '+10% armor against the Pretender General',
+    name: 'Northern Forge Route',
+    description: 'Secure the heavier supply road first and enter Greywatch with reinforced defensive equipment.',
+    effectText: '+10% armor during Siege of Greywatch',
     attackMultiplier: 1,
     armorMultiplier: 1.1,
     retaliationMultiplier: 1,
@@ -107,9 +107,9 @@ export const lastLoyalistChoices: LastLoyalistsChoice[] = [
   },
   {
     id: 'publish_the_seals',
-    name: 'Publish the Royal Seals',
-    description: 'Distribute copies of the conflicting royal orders and force the Pretender General to defend the legitimacy of his command.',
-    effectText: 'Detailed intel and -20% enemy retaliation',
+    name: 'Scout the Crossroads',
+    description: 'Spend time mapping Greywatch’s approach lanes so the army enters with detailed intel and reduced enemy response.',
+    effectText: 'Detailed intel and -20% enemy retaliation at Greywatch',
     attackMultiplier: 1,
     armorMultiplier: 1,
     retaliationMultiplier: 0.8,
@@ -117,9 +117,9 @@ export const lastLoyalistChoices: LastLoyalistsChoice[] = [
   },
   {
     id: 'seize_the_arsenal',
-    name: 'Seize the Loyalist Arsenal',
-    description: 'Strike the remaining supply depots before the final battle and turn their own weapons against them.',
-    effectText: '+10% attack against the Pretender General',
+    name: 'Western Horsefields',
+    description: 'Secure the mobile approach first and convert its stores into a more aggressive Greywatch assault plan.',
+    effectText: '+10% attack during Siege of Greywatch',
     attackMultiplier: 1.1,
     armorMultiplier: 1,
     retaliationMultiplier: 1,
