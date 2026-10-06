@@ -497,7 +497,15 @@ function testDenseDistrictZoneReadability() {
   check(f.game.settlementAdjacencyBonuses.length === 5, 'Dense district readability fixture must activate five real districts.');
   const startingPlacements = JSON.stringify(f.game.buildingPlacements);
   const startingBuildingSprites = nodes(tree, 'BuildingSprite').length;
-  check(nodes(tree, 'View').some(node => node.props.testID === 'district-overlay-controls'), 'Dense districts must expose compact overlay controls.');
+  const overlayLauncher = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-launcher');
+  check(Boolean(overlayLauncher), 'Dense districts must expose one compact in-scene overlay launcher.');
+  check(overlayLauncher?.props.accessibilityState?.expanded === false, 'District overlay filters must stay collapsed in the default world view.');
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-overlay-controls'), 'Collapsed district tools must not add another card below or over the world.');
+  overlayLauncher!.props.onPress();
+  tree = f.h.render();
+  const openLauncher = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-launcher');
+  check(openLauncher?.props.accessibilityState?.expanded === true, 'Opening district tools must expose expanded accessibility state.');
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-overlay-controls'), 'Opening the in-scene launcher must reveal compact district filters.');
   check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-all')?.props.accessibilityLabel === 'All district overlay, 5 active', 'All filter must report the full active district count.');
   check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-economy')?.props.accessibilityLabel === 'Economy district overlay, 1 active', 'Economy filter must count only supply-resource districts.');
   check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-military')?.props.accessibilityLabel === 'Military district overlay, 2 active', 'Military filter must count equipment and mount districts.');
