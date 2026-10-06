@@ -129,6 +129,29 @@ function walk(dir) {
   });
 }
 function relative(file) { return path.relative(root, file).split(path.sep).join('/'); }
+
+function jpegDimensions(bytes) {
+  assert.equal(bytes[0], 0xff, 'JPEG must start with SOI.');
+  assert.equal(bytes[1], 0xd8, 'JPEG must start with SOI.');
+  let offset = 2;
+  while (offset + 9 < bytes.length) {
+    if (bytes[offset] !== 0xff) { offset += 1; continue; }
+    const marker = bytes[offset + 1];
+    if (marker === 0xd9 || marker === 0xda) break;
+    if (marker === 0x00 || marker === 0xff) { offset += 1; continue; }
+    const length = bytes.readUInt16BE(offset + 2);
+    assert.ok(length >= 2 && offset + 2 + length <= bytes.length, 'JPEG segment is truncated.');
+    if ([0xc0, 0xc1, 0xc2].includes(marker)) {
+      return {
+        height: bytes.readUInt16BE(offset + 5),
+        width: bytes.readUInt16BE(offset + 7)
+      };
+    }
+    offset += 2 + length;
+  }
+  throw new Error('JPEG has no supported SOF dimensions.');
+}
+
 // Only these reviewed panorama files use the scene contract. Apart from the
 // explicit treasury atlas below, other assets retain the 256x256 alpha contract.
 // Unknown scene files fail rather than escaping checks through their directory.
@@ -138,6 +161,14 @@ const campScenes = new Map([
   ['assets/game/scenes/orc/camp.png', { assetId: 'scene.orc.camp', width: 1672, height: 941, maxBytes: 3500000 }]
 ]);
 const campSceneByteBudget = 9000000;
+const settlementBackgrounds = new Map([
+  ['assets/game/scenes/human/settlement/camp.jpg', { assetId: 'settlement_background.human.camp', width: 540, height: 960, maxBytes: 240000 }],
+  ['assets/game/scenes/human/settlement/settlement.jpg', { assetId: 'settlement_background.human.settlement', width: 540, height: 960, maxBytes: 240000 }],
+  ['assets/game/scenes/human/settlement/fort.jpg', { assetId: 'settlement_background.human.fort', width: 540, height: 960, maxBytes: 240000 }],
+  ['assets/game/scenes/human/settlement/town.jpg', { assetId: 'settlement_background.human.town', width: 540, height: 960, maxBytes: 240000 }],
+  ['assets/game/scenes/human/settlement/capital.jpg', { assetId: 'settlement_background.human.capital', width: 540, height: 960, maxBytes: 260000 }]
+]);
+const settlementBackgroundByteBudget = 1050000;
 const treasuryAtlas = {
   relativePath: 'assets/game/ui/treasury_atlas.png', assetId: 'ui.treasury_atlas',
   width: 1536, height: 1024, maxBytes: 3000000, columns: 3, rows: 2,
@@ -154,6 +185,26 @@ const settlementHumanV2Atlas = {
 };
 const sprites = walk(path.join(root, 'assets/game')).filter(file => file.endsWith('.png')).sort();
 assert.ok(sprites.length > 0, 'No production PNGs found');
+let settlementBackgroundBytes = 0;
+for (const [relativePath, contract] of settlementBackgrounds) {
+  const full = path.join(root, relativePath);
+  try {
+    assert.ok(fs.existsSync(full), 'Settlement background is missing.');
+    const bytes = fs.readFileSync(full);
+    settlementBackgroundBytes += bytes.length;
+    assert.ok(bytes.length <= contract.maxBytes, 'Settlement background exceeds file-size budget.');
+    assert.equal(bytes.at(-2), 0xff, 'JPEG must end with EOI.');
+    assert.equal(bytes.at(-1), 0xd9, 'JPEG must end with EOI.');
+    const dimensions = jpegDimensions(bytes);
+    assert.equal(dimensions.width, contract.width, 'Settlement background has wrong width.');
+    assert.equal(dimensions.height, contract.height, 'Settlement background has wrong height.');
+  } catch (error) {
+    failures.push(relativePath + ': ' + error.message);
+  }
+}
+if (settlementBackgroundBytes > settlementBackgroundByteBudget) {
+  failures.push('Settlement backgrounds exceed the shared ' + settlementBackgroundByteBudget + '-byte budget: ' + settlementBackgroundBytes + ' bytes.');
+}
 const hashes = new Map();
 let campSceneBytes = 0;
 for (const file of sprites) {
@@ -183,13 +234,17 @@ if (campSceneBytes > campSceneByteBudget) {
   failures.push('Camp scenes exceed the shared ' + campSceneByteBudget + '-byte budget: ' + campSceneBytes + ' bytes.');
 }
 const registry = fs.readFileSync(path.join(root, 'src/ui/productionAssets.ts'), 'utf8');
-const registered = new Set([...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/[^']+\.png)'\)/g)].map(match => match[1]));
+const registered = new Set([...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/[^']+\.(?:png|jpg))'\)/g)].map(match => match[1]));
 const spritePaths = new Set(sprites.map(relative));
 for (const sprite of spritePaths) {
   if (!registered.has(sprite)) failures.push(sprite + ' exists but is not registered in productionAssetSources.');
 }
 for (const sprite of registered) {
   if (!spritePaths.has(sprite)) failures.push(sprite + ' is registered but the file does not exist.');
+}
+for (const [relativePath, background] of settlementBackgrounds) {
+  const expected = "'" + background.assetId + "': require('../../" + relativePath + "')";
+  if (!registry.includes(expected)) failures.push('Settlement background is not registered: ' + background.assetId + '.');
 }
 for (const [relativePath, scene] of campScenes) {
   if (!spritePaths.has(relativePath)) failures.push('Camp scene is missing: ' + relativePath + '.');
