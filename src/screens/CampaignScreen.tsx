@@ -5,6 +5,7 @@ import { factions, factionOrder } from '../game/factions';
 import { humanRegions } from '../game/data';
 import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
+import type { EncounterId } from '../game/encounters';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -29,7 +30,29 @@ import type { TutorialFocusTarget } from '../game/tutorial';
 
 type CampaignView = 'story' | 'activities' | 'factions';
 
+const humanEarlyEncounterByNode: Partial<Record<string, EncounterId>> = {
+  ch1_m02: 'ch1_hold_crossing',
+  ch1_m04: 'ch1_spears_at_dawn',
+  ch1_m05: 'ch1_cut_off_captain',
+  ch1_m06: 'ch1_broken_road',
+  ch1_m07: 'ch1_reclaim_outpost',
+  ch2_m01: 'ch2_strength_in_numbers',
+  ch2_m03: 'ch2_riders_on_road',
+  ch2_m04: 'ch2_no_army_fights_forever',
+  ch2_m05: 'ch2_long_way_around',
+  ch2_m06: 'ch2_iron_line',
+  ch2_m08: 'ch2_break_their_hold'
+};
+
+const humanEarlyEventNodes = new Set([
+  'ch1_m03',
+  'ch2_m02',
+  'ch2_m07'
+]);
+
+
 export function CampaignScreen({
+  onStartRoadmapEncounter,
   onStartBattle,
   onOpenMarkedRaiders,
   onStartMercenary,
@@ -109,6 +132,7 @@ export function CampaignScreen({
   tutorialFocus,
   onTutorialFocusComplete
 }: {
+  onStartRoadmapEncounter: (encounterId: EncounterId) => void;
   onStartBattle: () => void;
   onOpenMarkedRaiders: () => void;
   onStartMercenary: () => void;
@@ -229,7 +253,8 @@ export function CampaignScreen({
     kingdomTrialCompletions,
     claimRewardedAd,
     rewardedAdClaims,
-    rewardedAdMessage
+    rewardedAdMessage,
+    completeHumanEarlyCampaignEvent
   } = useGame();
   const [view, setView] = useState<CampaignView>('story');
   const completed = chapterNodes.filter(node => node.completed).length;
@@ -291,11 +316,11 @@ export function CampaignScreen({
   const currentHumanRegionIndex =
     chapterNumber >= 5
       ? 4
-      : chapterNumber >= 3
+      : chapterNumber >= 4
         ? 3
-        : chapterNumber >= 2
+        : chapterNumber >= 3
           ? 2
-          : settlementUpgraded
+          : chapterNumber >= 2 || settlementUpgraded
             ? 1
             : 0;
   const humanJourney = humanRegions.map((region, index) => ({
@@ -321,9 +346,9 @@ export function CampaignScreen({
         eyebrow={'CHAPTER ' + chapterNumber}
         title={
           chapterNumber === 1
-            ? 'The Last Wagon'
+            ? 'The Remnant'
             : chapterNumber === 2
-              ? 'The Iron Road'
+              ? 'Building a Warband'
               : chapterNumber === 3
                 ? 'Border Kingdoms'
                 : chapterNumber === 4
@@ -334,9 +359,9 @@ export function CampaignScreen({
         }
         body={
           chapterNumber === 1
-            ? 'Reach ruined Greenkeep with the surviving squads.'
+            ? 'Rebuild a surviving force, learn the first tactical orders and reclaim Greenkeep’s outer works.'
             : chapterNumber === 2
-              ? 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'
+              ? 'Grow from a two-squad core into a three-squad warband, learn counters and survive the first Iron Wall.'
               : chapterNumber === 3
                 ? 'Carry Greenkeep’s authority into the divided Border Marches.'
                 : chapterNumber === 4
@@ -351,7 +376,7 @@ export function CampaignScreen({
         <View style={styles.chapterMetrics}>
           <MetricTile
             label="OBJECTIVES"
-            value={completed + '/6'}
+            value={completed + '/' + chapterNodes.length}
             caption="completed this chapter"
             tone="positive"
           />
@@ -377,7 +402,7 @@ export function CampaignScreen({
           chapterNumber === 1
             ? 'Greenkeep Outskirts'
             : chapterNumber === 2
-              ? 'Iron Hills Approach'
+              ? 'Greenkeep Vale'
               : chapterNumber === 3
                 ? 'Border Marches'
                 : chapterNumber === 4
@@ -391,65 +416,28 @@ export function CampaignScreen({
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
-          const chapterOneBattle =
-            chapterNumber === 1 &&
-            node.current &&
-            node.type === 'battle' &&
-            node.id === 'node_2';
-          const chapterOneStory =
-            chapterNumber === 1 &&
-            node.current &&
-            node.type === 'event' &&
-            node.id === 'node_3';
-          const mercenaryPlayable =
-            chapterNumber === 1 &&
-            node.current &&
-            node.id === 'node_4' &&
-            firstPromotionComplete &&
-            !mercenaryPatrolWon;
-          const refugeePlayable =
-            chapterNumber === 1 &&
-            node.current &&
-            node.id === 'node_5' &&
-            Boolean(commanderPathId) &&
-            !refugeeCampSecured;
-          const bossPlayable =
-            chapterNumber === 1 &&
-            node.current &&
-            node.id === 'node_6' &&
-            refugeeCampSecured;
-
-          const fortMusterPlayable =
-            chapterNumber === 2 &&
-            node.current &&
-            node.id === 'ch2_node_1' &&
-            !fourthRecruitChosen;
-          const ironRoadPlayable =
-            chapterNumber === 2 &&
-            node.current &&
-            node.id === 'ch2_node_2' &&
-            fourthRecruitChosen;
-          const timberPlayable =
-            chapterNumber === 2 &&
-            node.current &&
-            node.id === 'ch2_node_3' &&
-            unlockedResourceSites.includes('iron_hills_mine');
-          const defensePlayable =
-            chapterNumber === 2 &&
-            node.current &&
-            node.id === 'ch2_node_4';
-          const signalPlayable =
-            chapterNumber === 2 &&
-            node.current &&
-            node.id === 'ch2_node_5' &&
-            kingdomDefenseCompleted &&
-            !signalTowerUnlocked;
-          const provostPlayable =
-            chapterNumber === 2 &&
-            node.current &&
-            node.id === 'ch2_node_6' &&
-            signalTowerUnlocked &&
-            !ironProvostWon;
+          const earlyEncounterId =
+            chapterNumber <= 2
+              ? humanEarlyEncounterByNode[node.id]
+              : undefined;
+          const earlyEvent =
+            chapterNumber <= 2 &&
+            humanEarlyEventNodes.has(node.id);
+          const earlyRequirementMet =
+            node.id === 'ch1_m03'
+              ? settlementUpgraded
+              : node.id === 'ch1_m04'
+                ? firstPromotionComplete
+                : node.id === 'ch1_m06'
+                  ? Boolean(commanderPathId)
+                  : node.id === 'ch1_m07'
+                    ? refugeeCampSecured
+                    : true;
+          const earlyRoadmapPlayable =
+            chapterNumber <= 2 &&
+            Boolean(node.current) &&
+            earlyRequirementMet &&
+            Boolean(earlyEncounterId || earlyEvent);
 
           const marcherEnvoyPlayable =
             chapterNumber === 3 &&
@@ -564,17 +552,7 @@ export function CampaignScreen({
             node.id === 'ch6_node_6';
 
           const playable =
-            chapterOneBattle ||
-            chapterOneStory ||
-            mercenaryPlayable ||
-            refugeePlayable ||
-            bossPlayable ||
-            fortMusterPlayable ||
-            ironRoadPlayable ||
-            timberPlayable ||
-            defensePlayable ||
-            signalPlayable ||
-            provostPlayable ||
+            earlyRoadmapPlayable ||
             marcherEnvoyPlayable ||
             borderFortPlayable ||
             warningsPlayable ||
@@ -600,153 +578,137 @@ export function CampaignScreen({
             forcedBeaconPlayable ||
             returnToCrownspirePlayable;
 
+          const earlyRoadmapStatus =
+            chapterNumber <= 2 && node.current
+              ? node.id === 'ch1_m03' && !settlementUpgraded
+                ? 'UPGRADE CAMP'
+                : node.id === 'ch1_m04' && !firstPromotionComplete
+                  ? 'PROMOTE FIRST'
+                  : node.id === 'ch1_m06' && !commanderPathId
+                    ? 'CHOOSE COMMANDER'
+                    : node.type === 'boss'
+                      ? 'BOSS'
+                      : earlyEvent
+                        ? node.id === 'ch1_m03'
+                          ? 'REBUILD'
+                          : node.id === 'ch2_m02'
+                            ? 'PREPARE'
+                            : 'SUPPLY'
+                        : 'PLAY'
+              : null;
+
           const status = node.completed
             ? 'DONE'
-            : node.id === 'node_4' && node.current && !firstPromotionComplete
-              ? 'PROMOTE FIRST'
-              : node.id === 'node_5' && node.current && !commanderPathId
-                ? 'CHOOSE COMMANDER'
-                : refugeePlayable
-                  ? 'WELCOME REFUGEES'
-                  : fortMusterPlayable
-                    ? 'CHOOSE SQUAD'
-                    : ironRoadPlayable
+            : earlyRoadmapStatus ??
+              (marcherEnvoyPlayable
+                ? 'CHOOSE AUXILIARY'
+                : borderFortPlayable
+                  ? 'PLAY'
+                  : warningsPlayable
+                    ? 'CHOOSE DOCTRINE'
+                    : siegeRoadPlayable
                       ? 'PLAY'
-                      : timberPlayable
-                        ? 'SECURE SITE'
-                        : defensePlayable
-                          ? 'DEFEND'
-                          : signalPlayable
-                            ? 'RESTORE'
-                            : provostPlayable
-                              ? 'BOSS'
-                              : marcherEnvoyPlayable
-                                ? 'CHOOSE AUXILIARY'
-                                : borderFortPlayable
-                                  ? 'PLAY'
-                                  : warningsPlayable
-                                    ? 'CHOOSE DOCTRINE'
-                                    : siegeRoadPlayable
-                                      ? 'PLAY'
-                                      : dividedMarchPlayable
-                                        ? 'UNITE MARCHES'
-                                        : lordMarshalPlayable
-                                          ? 'BOSS'
-                                          : strongholdMusterPlayable
-                                            ? 'CHOOSE SQUAD'
-                                            : brokenStandardsPlayable
-                                              ? 'PLAY'
-                                              : emptyThronePlayable
-                                                ? 'INVESTIGATE'
-                                                : crownroadAmbushPlayable
-                                                  ? 'PLAY'
-                                                  : lastLoyalistsPlayable
-                                                    ? 'CHOOSE APPROACH'
-                                                    : pretenderGeneralPlayable
-                                                      ? 'BOSS'
-                                                      : capitalCouncilPlayable
-                                                        ? 'CHOOSE DECREE'
-                                                        : oldRoyalLandsPlayable
-                                                          ? 'PLAY'
-                                                          : brokenArchivesPlayable
-                                                            ? 'INVESTIGATE'
-                                                            : ashenEnvoyPlayable
-                                                              ? 'ELITE'
-                                                              : royalLedgerPlayable
-                                                                ? 'READ LEDGER'
-                                                                : crownspireGatePlayable
-                                                                  ? 'BOSS'
-                                                                  : grandCouncilPlayable
-                                                                    ? 'COUNCIL'
-                                                                    : sunderedFieldsPlayable
-                                                                      ? 'PLAY'
-                                                                      : concordVaultPlayable
-                                                                        ? 'OPEN VAULT'
-                                                                        : ashenCourtPlayable
-                                                                          ? 'ELITE'
-                                                                          : forcedBeaconPlayable
-                                                                            ? 'TRUTH'
-                                                                            : returnToCrownspirePlayable
-                                                                              ? 'FINAL BOSS'
-                                                                              : bossPlayable
-                                ? 'BOSS'
-                            : playable
+                      : dividedMarchPlayable
+                        ? 'UNITE MARCHES'
+                        : lordMarshalPlayable
+                          ? 'BOSS'
+                          : strongholdMusterPlayable
+                            ? 'CHOOSE SQUAD'
+                            : brokenStandardsPlayable
                               ? 'PLAY'
-                              : node.current
-                                ? 'NEXT'
-                                : 'LOCKED';
+                              : emptyThronePlayable
+                                ? 'INVESTIGATE'
+                                : crownroadAmbushPlayable
+                                  ? 'PLAY'
+                                  : lastLoyalistsPlayable
+                                    ? 'CHOOSE APPROACH'
+                                    : pretenderGeneralPlayable
+                                      ? 'BOSS'
+                                      : capitalCouncilPlayable
+                                        ? 'CHOOSE DECREE'
+                                        : oldRoyalLandsPlayable
+                                          ? 'PLAY'
+                                          : brokenArchivesPlayable
+                                            ? 'INVESTIGATE'
+                                            : ashenEnvoyPlayable
+                                              ? 'ELITE'
+                                              : royalLedgerPlayable
+                                                ? 'READ LEDGER'
+                                                : crownspireGatePlayable
+                                                  ? 'BOSS'
+                                                  : grandCouncilPlayable
+                                                    ? 'COUNCIL'
+                                                    : sunderedFieldsPlayable
+                                                      ? 'PLAY'
+                                                      : concordVaultPlayable
+                                                        ? 'OPEN VAULT'
+                                                        : ashenCourtPlayable
+                                                          ? 'ELITE'
+                                                          : forcedBeaconPlayable
+                                                            ? 'TRUTH'
+                                                            : returnToCrownspirePlayable
+                                                              ? 'FINAL BOSS'
+                                                              : playable
+                                                                ? 'PLAY'
+                                                                : node.current
+                                                                  ? 'NEXT'
+                                                                  : 'LOCKED');
 
-          const action = chapterOneBattle
-            ? onStartBattle
-            : chapterOneStory
-              ? onOpenMarkedRaiders
-              : mercenaryPlayable
-                ? onStartMercenary
-                : refugeePlayable
-                  ? onOpenRefugeeCamp
-                  : bossPlayable
-                    ? onStartTollCaptain
-                    : fortMusterPlayable
-                      ? onOpenFortMuster
-                      : ironRoadPlayable
-                        ? onStartIronRoad
-                        : timberPlayable
-                          ? onOpenTimberClaim
-                          : defensePlayable
-                            ? onOpenKingdomDefense
-                            : signalPlayable
-                              ? onOpenBrokenSignalTower
-                              : provostPlayable
-                                ? onStartIronProvost
-                                : marcherEnvoyPlayable
-                                  ? onOpenMarcherEnvoy
-                                  : borderFortPlayable
-                                    ? onStartBorderFort
-                                    : warningsPlayable
-                                      ? onOpenThreeWarnings
-                                      : siegeRoadPlayable
-                                        ? onStartSiegeRoad
-                                        : dividedMarchPlayable
-                                          ? onOpenDividedMarch
-                                          : lordMarshalPlayable
-                                            ? onStartLordMarshal
-                                            : strongholdMusterPlayable
-                                              ? onOpenStrongholdMuster
-                                              : brokenStandardsPlayable
-                                                ? onStartBrokenStandards
-                                                : emptyThronePlayable
-                                                  ? onOpenEmptyThrone
-                                                  : crownroadAmbushPlayable
-                                                    ? onStartCrownroadAmbush
-                                                    : lastLoyalistsPlayable
-                                                      ? onOpenLastLoyalists
-                                                      : pretenderGeneralPlayable
-                                                        ? onStartPretenderGeneral
-                                                        : capitalCouncilPlayable
-                                                          ? onOpenRoyalDecrees
-                                                          : oldRoyalLandsPlayable
-                                                            ? onStartOldRoyalLands
-                                                            : brokenArchivesPlayable
-                                                              ? onOpenBrokenArchives
-                                                              : ashenEnvoyPlayable
-                                                                ? onStartAshenEnvoy
-                                                                : royalLedgerPlayable
-                                                                  ? onOpenRoyalLedger
-                                                                  : crownspireGatePlayable
-                                                                    ? onStartGateOfCrownspire
-                                                                    : grandCouncilPlayable
-                                                                      ? onOpenGrandCouncil
-                                                                      : sunderedFieldsPlayable
-                                                                        ? onStartSunderedFields
-                                                                        : concordVaultPlayable
-                                                                          ? onOpenConcordVault
-                                                                          : ashenCourtPlayable
-                                                                            ? onStartAshenCourt
-                                                                            : forcedBeaconPlayable
-                                                                              ? onOpenForcedBeacon
-                                                                              : returnToCrownspirePlayable
-                                                                                ? onStartReturnToCrownspire
-                                                                                : undefined;
+          const action = earlyRoadmapPlayable
+            ? earlyEncounterId
+              ? () => onStartRoadmapEncounter(earlyEncounterId)
+              : () => {
+                  completeHumanEarlyCampaignEvent(node.id);
+                }
+            : marcherEnvoyPlayable
+              ? onOpenMarcherEnvoy
+              : borderFortPlayable
+                ? onStartBorderFort
+                : warningsPlayable
+                  ? onOpenThreeWarnings
+                  : siegeRoadPlayable
+                    ? onStartSiegeRoad
+                    : dividedMarchPlayable
+                      ? onOpenDividedMarch
+                      : lordMarshalPlayable
+                        ? onStartLordMarshal
+                        : strongholdMusterPlayable
+                          ? onOpenStrongholdMuster
+                          : brokenStandardsPlayable
+                            ? onStartBrokenStandards
+                            : emptyThronePlayable
+                              ? onOpenEmptyThrone
+                              : crownroadAmbushPlayable
+                                ? onStartCrownroadAmbush
+                                : lastLoyalistsPlayable
+                                  ? onOpenLastLoyalists
+                                  : pretenderGeneralPlayable
+                                    ? onStartPretenderGeneral
+                                    : capitalCouncilPlayable
+                                      ? onOpenRoyalDecrees
+                                      : oldRoyalLandsPlayable
+                                        ? onStartOldRoyalLands
+                                        : brokenArchivesPlayable
+                                          ? onOpenBrokenArchives
+                                          : ashenEnvoyPlayable
+                                            ? onStartAshenEnvoy
+                                            : royalLedgerPlayable
+                                              ? onOpenRoyalLedger
+                                              : crownspireGatePlayable
+                                                ? onStartGateOfCrownspire
+                                                : grandCouncilPlayable
+                                                  ? onOpenGrandCouncil
+                                                  : sunderedFieldsPlayable
+                                                    ? onStartSunderedFields
+                                                    : concordVaultPlayable
+                                                      ? onOpenConcordVault
+                                                      : ashenCourtPlayable
+                                                        ? onStartAshenCourt
+                                                        : forcedBeaconPlayable
+                                                          ? onOpenForcedBeacon
+                                                          : returnToCrownspirePlayable
+                                                            ? onStartReturnToCrownspire
+                                                            : undefined;
 
           return (
             <Pressable
