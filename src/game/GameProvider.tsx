@@ -5706,7 +5706,7 @@ export function GameProvider({
   const completeRoyalLedger = () => {
     if (
       chapterNumber !== 5 ||
-      !chapterNodes.find(node => node.id === 'ch5_node_7')?.current
+      !chapterNodes.find(node => node.id === 'ch5_node_6')?.current
     ) {
       return false;
     }
@@ -5722,7 +5722,7 @@ export function GameProvider({
         if (node.id === 'ch5_node_6') {
           return { ...node, completed: true, current: false };
         }
-        if (node.id === 'ch5_node_6') {
+        if (node.id === 'ch5_node_7') {
           return { ...node, current: true };
         }
         return { ...node, current: false };
@@ -6165,10 +6165,10 @@ export function GameProvider({
     ) {
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'ch5_node_3') {
+          if (node.id === 'ch5_node_2') {
             return { ...node, completed: true, current: false };
           }
-          if (node.id === 'ch5_node_2') {
+          if (node.id === 'ch5_node_3') {
             return { ...node, current: true };
           }
           return { ...node, current: false };
