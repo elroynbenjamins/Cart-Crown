@@ -1057,6 +1057,7 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
           {worldRebuildActive ? (
             <View style={[styles.conceptCrestFrame, { borderColor: SETTLEMENT_HUD_GOLD_DARK }]}>
               <FactionCrest faction={activeFaction} size={compactHud ? 34 : 40} />
+              <View pointerEvents="none" style={styles.conceptCrestTail} />
             </View>
           ) : null}
           <View style={styles.heroCopy}>
@@ -1110,12 +1111,17 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
             }
           ]}
         >
-          {settlementResourceOrder.map(resource => (
+          {settlementResourceOrder.map((resource, index) => (
             <View
               key={resource}
               accessible
               accessibilityLabel={settlementResourceLabels[resource] + ' ' + resources[resource]}
-              style={[styles.resourceCell, compactHud ? styles.resourceCellCompact : undefined]}
+              style={[
+                styles.resourceCell,
+                compactHud ? styles.resourceCellCompact : undefined,
+                worldRebuildActive ? styles.conceptResourceCell : undefined,
+                worldRebuildActive && index ? styles.conceptResourceCellDivider : undefined
+              ]}
             >
               <ResourceSprite resource={resource} size={compactHud ? 15 : 18} />
               <View style={styles.resourceCopy}>
@@ -2628,7 +2634,8 @@ const styles = StyleSheet.create({
   hud: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 8 },
   hudCompact: { borderRadius: 14, paddingHorizontal: 9, paddingVertical: 6 },
   conceptHud: { borderWidth: 1, borderRadius: 12, elevation: 6, paddingHorizontal: 8 },
-  conceptCrestFrame: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: SETTLEMENT_HUD_NAVY_RAISED },
+  conceptCrestFrame: { width: 48, height: 50, borderRadius: 9, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center', backgroundColor: SETTLEMENT_HUD_NAVY_RAISED, marginBottom: 3 },
+  conceptCrestTail: { position: 'absolute', bottom: -7, width: 0, height: 0, borderLeftWidth: 9, borderRightWidth: 9, borderTopWidth: 7, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderTopColor: SETTLEMENT_HUD_GOLD_DARK },
   conceptStageBadge: { borderWidth: 1.5, borderRadius: 999 },
   conceptSettingsButton: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   conceptSettingsGlyph: { color: SETTLEMENT_HUD_GOLD, fontSize: 16, lineHeight: 18, fontWeight: '900' },
@@ -2648,6 +2655,8 @@ const styles = StyleSheet.create({
   worldResourceStrip: { borderRadius: 8, paddingHorizontal: 5, paddingVertical: 4, borderWidth: 1, marginTop: 6 },
   resourceCell: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 2 },
   resourceCellCompact: { justifyContent: 'center', gap: 1 },
+  conceptResourceCell: { justifyContent: 'center', paddingHorizontal: 3 },
+  conceptResourceCellDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: SETTLEMENT_HUD_GOLD_DARK },
   resourceCopy: { flex: 1, minWidth: 0 },
   resourceValue: { fontSize: 9.5, lineHeight: 12, fontWeight: '900' },
   resourceValueCompact: { fontSize: 8.5, lineHeight: 10 },
