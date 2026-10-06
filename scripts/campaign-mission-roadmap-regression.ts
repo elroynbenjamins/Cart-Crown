@@ -120,13 +120,6 @@ assert(
   'Normal campaign squad count must stop increasing after the sixth slot'
 );
 
-console.log(
-  'Campaign mission roadmap OK: ' +
-    campaignMissionRoadmap.length +
-    ' missions across 7 chapters; squad cadence 2->3->4->5->6 locked.'
-);
-
-
 assert(getCampaignActiveSquadCap(1) === 2, 'Chapter 1 runtime cap must be 2');
 assert(getCampaignActiveSquadCap(2) === 3, 'Chapter 2 runtime cap must be 3');
 assert(getCampaignActiveSquadCap(3) === 3, 'Chapter 3 must open at 3 squads');
@@ -216,4 +209,9 @@ assert(chapterFourNodes.length === 11, 'Live Chapter 4 must contain eleven missi
 assert(
   chapterFourNodes.every((node, index) => node.name === liveChapterFourNames[index]),
   'Live Chapter 4 mission order drifted from the roadmap'
+);
+
+
+console.log(
+  'PASS: campaign mission roadmap, live Chapters 1-4 ordering and 2->3->4->5->6 squad cadence remain protected.'
 );
