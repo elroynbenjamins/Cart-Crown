@@ -37,9 +37,11 @@ export function CampaignScreen({
   onStartTollCaptain,
   onOpenFortMuster,
   onStartIronRoad,
+  onStartRidersOnRoad,
   onOpenTimberClaim,
   onOpenKingdomDefense,
   onOpenBrokenSignalTower,
+  onStartIronLine,
   onStartIronProvost,
   onOpenMarcherEnvoy,
   onStartBorderFort,
@@ -116,9 +118,11 @@ export function CampaignScreen({
   onStartTollCaptain: () => void;
   onOpenFortMuster: () => void;
   onStartIronRoad: () => void;
+  onStartRidersOnRoad: () => void;
   onOpenTimberClaim: () => void;
   onOpenKingdomDefense: () => void;
   onOpenBrokenSignalTower: () => void;
+  onStartIronLine: () => void;
   onStartIronProvost: () => void;
   onOpenMarcherEnvoy: () => void;
   onStartBorderFort: () => void;
@@ -429,11 +433,10 @@ export function CampaignScreen({
             node.current &&
             node.id === 'ch2_node_2' &&
             fourthRecruitChosen;
-          const timberPlayable =
+          const ridersPlayable =
             chapterNumber === 2 &&
             node.current &&
-            node.id === 'ch2_node_3' &&
-            unlockedResourceSites.includes('iron_hills_mine');
+            node.id === 'ch2_node_3';
           const defensePlayable =
             chapterNumber === 2 &&
             node.current &&
@@ -444,11 +447,22 @@ export function CampaignScreen({
             node.id === 'ch2_node_5' &&
             kingdomDefenseCompleted &&
             !signalTowerUnlocked;
-          const provostPlayable =
+          const ironLinePlayable =
             chapterNumber === 2 &&
             node.current &&
             node.id === 'ch2_node_6' &&
+            signalTowerUnlocked;
+          const timberPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_7' &&
+            unlockedResourceSites.includes('iron_hills_mine');
+          const provostPlayable =
+            chapterNumber === 2 &&
+            node.current &&
+            node.id === 'ch2_node_8' &&
             signalTowerUnlocked &&
+            unlockedResourceSites.includes('greenwood_camp') &&
             !ironProvostWon;
 
           const marcherEnvoyPlayable =
@@ -571,9 +585,11 @@ export function CampaignScreen({
             bossPlayable ||
             fortMusterPlayable ||
             ironRoadPlayable ||
-            timberPlayable ||
+            ridersPlayable ||
             defensePlayable ||
             signalPlayable ||
+            ironLinePlayable ||
+            timberPlayable ||
             provostPlayable ||
             marcherEnvoyPlayable ||
             borderFortPlayable ||
@@ -612,14 +628,18 @@ export function CampaignScreen({
                     ? 'CHOOSE SQUAD'
                     : ironRoadPlayable
                       ? 'PLAY'
-                      : timberPlayable
-                        ? 'SECURE SITE'
+                      : ridersPlayable
+                        ? 'PLAY'
                         : defensePlayable
                           ? 'DEFEND'
                           : signalPlayable
                             ? 'RESTORE'
-                            : provostPlayable
-                              ? 'BOSS'
+                            : ironLinePlayable
+                              ? 'BREAK WALL'
+                              : timberPlayable
+                                ? 'PREPARE'
+                                : provostPlayable
+                                  ? 'BOSS'
                               : marcherEnvoyPlayable
                                 ? 'CHOOSE AUXILIARY'
                                 : borderFortPlayable
@@ -690,14 +710,18 @@ export function CampaignScreen({
                       ? onOpenFortMuster
                       : ironRoadPlayable
                         ? onStartIronRoad
-                        : timberPlayable
-                          ? onOpenTimberClaim
+                        : ridersPlayable
+                          ? onStartRidersOnRoad
                           : defensePlayable
                             ? onOpenKingdomDefense
                             : signalPlayable
                               ? onOpenBrokenSignalTower
-                              : provostPlayable
-                                ? onStartIronProvost
+                              : ironLinePlayable
+                                ? onStartIronLine
+                                : timberPlayable
+                                  ? onOpenTimberClaim
+                                  : provostPlayable
+                                    ? onStartIronProvost
                                 : marcherEnvoyPlayable
                                   ? onOpenMarcherEnvoy
                                   : borderFortPlayable
