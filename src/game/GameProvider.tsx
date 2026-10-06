@@ -1594,9 +1594,13 @@ export function GameProvider({
         ? Boolean(chapterNodes.find(node => node.id === 'orc_node_6')?.completed)
         : false;
 
+  const humanChapterOneComplete = Boolean(
+    chapterNodes.find(node => node.id === 'node_7')?.completed
+  );
+
   const canUpgradeSettlement =
     activeFaction === 'human'
-      ? holdTheRoadWon &&
+      ? humanChapterOneComplete &&
         !settlementUpgraded &&
         resources.wood >= 90 &&
         resources.stone >= 20
@@ -1614,13 +1618,12 @@ export function GameProvider({
           resources.stone >= 15 &&
           resources.iron >= 4;
 
-  const tollCaptainWon = Boolean(
-    chapterNodes.find(node => node.id === 'node_6')?.completed
-  );
+  const reclaimOutpostWon = humanChapterOneComplete;
   const fortUpgradeAvailable =
     activeFaction === 'human' &&
-    tollCaptainWon &&
-    currentWagonStage.id === 'settlement';
+    reclaimOutpostWon &&
+    currentWagonStage.id === 'settlement' &&
+    chapterNumber >= 2;
   const canUpgradeToFort =
     fortUpgradeAvailable &&
     (buildingLevels.barracks ?? 0) >= 2 &&
@@ -3351,7 +3354,42 @@ export function GameProvider({
     }
 
     if (encounterId === 'toll_captain') {
-      if (chapterNodes.find(node => node.id === 'node_6')?.completed || !refugeeCampSecured) {
+      if (
+        !commanderPathId ||
+        !chapterNodes.find(node => node.id === 'node_5')?.current
+      ) {
+        return;
+      }
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'node_5') {
+            return { ...node, completed: true, current: false };
+          }
+          if (node.id === 'node_6') {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'toll_captain_result',
+        title: 'Captain Cut Off',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'reclaim_outpost') {
+      if (
+        !refugeeCampSecured ||
+        !chapterNodes.find(node => node.id === 'node_7')?.current
+      ) {
         return;
       }
 
@@ -3359,14 +3397,14 @@ export function GameProvider({
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node =>
-          node.id === 'node_6'
+          node.id === 'node_7'
             ? { ...node, completed: true, current: false }
             : { ...node, current: false }
         )
       );
       setLastBattleResult({
-        id: 'toll_captain_result',
-        title: 'The Western Road Is Ours',
+        id: 'reclaim_outpost_result',
+        title: 'Outpost Reclaimed',
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -4398,6 +4436,11 @@ export function GameProvider({
 
     setMarkedRaidersInvestigated(true);
     setForgeUnlocked(true);
+    setRecruitChoiceAvailable(previous => previous || !recruitChosen);
+    setBuildingLevels(previous => ({
+      ...previous,
+      barracks: Math.max(previous.barracks ?? 0, 1)
+    }));
     setResources(previous => ({
       ...previous,
       wood: previous.wood + 5,
@@ -4420,7 +4463,14 @@ export function GameProvider({
   };
 
   const completeRefugeeCamp = () => {
-    if (!mercenaryPatrolWon || !commanderPathId || refugeeCampSecured) return false;
+    if (
+      !mercenaryPatrolWon ||
+      !commanderPathId ||
+      refugeeCampSecured ||
+      !chapterNodes.find(node => node.id === 'node_6')?.current
+    ) {
+      return false;
+    }
 
     setRefugeeCampSecured(true);
     setResources(previous => ({
@@ -4431,8 +4481,8 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'node_5') return { ...node, completed: true, current: false };
-        if (node.id === 'node_6') return { ...node, current: true };
+        if (node.id === 'node_6') return { ...node, completed: true, current: false };
+        if (node.id === 'node_7') return { ...node, current: true };
         return { ...node, current: false };
       })
     );
