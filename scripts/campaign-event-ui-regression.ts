@@ -347,7 +347,7 @@ function testSharedPresentation() {
 
 testEffects();
 testTacticalChoices();
-testAuxiliaries();
+testFrostmarchOpening();
 testRewards();
 testSharedPresentation();
 console.log('PASS: ' + checks + ' campaign-event presentation, real-provider action and TSX interaction/model checks. Native device rendering remains separate.');
