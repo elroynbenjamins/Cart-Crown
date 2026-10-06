@@ -629,10 +629,13 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   ]);
   const safeFontScale = Number.isFinite(fontScale) ? fontScale : 1;
   const safeViewportHeight = Number.isFinite(viewportHeight) ? viewportHeight : 800;
-  const mapHeight = Math.max(
-    600,
-    Math.min(780, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 120))
-  );
+  const compactHud = safeViewportHeight < 720 || safeFontScale > 1.15;
+  const mapHeight = safeViewportHeight < 700 && safeFontScale <= 1.15
+    ? Math.max(520, Math.round(safeViewportHeight - 120))
+    : Math.max(
+        600,
+        Math.min(760, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 100))
+      );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
   const humanStagePlateActive = activeFaction === 'human';
@@ -962,30 +965,35 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <View style={[styles.hud, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
+      <View style={[styles.hud, compactHud ? styles.hudCompact : undefined, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}>
         <View style={styles.heroHeader}>
           <View style={styles.heroCopy}>
-            <Text style={[styles.eyebrow, { color: factionAccent }]}>CART & CROWN</Text>
-            <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.text }]} numberOfLines={1}>{stageLabel}</Text>
+            <Text style={[styles.eyebrow, compactHud ? styles.eyebrowCompact : undefined, { color: factionAccent }]}>CART & CROWN</Text>
+            <Text accessibilityRole="header" style={[styles.title, compactHud ? styles.titleCompact : undefined, { color: theme.colors.text }]} numberOfLines={1}>{stageLabel}</Text>
           </View>
           <View style={[styles.stageBadge, { borderColor: factionAccent, backgroundColor: theme.colors.surface2 }]}>
             <Text style={[styles.stageBadgeText, { color: factionAccent }]}>{currentWagonStage.id.toUpperCase()}</Text>
           </View>
         </View>
 
-        <View style={[styles.resourceStrip, { backgroundColor: theme.colors.surface2 }]}>
+        <View style={[styles.resourceStrip, compactHud ? styles.resourceStripCompact : undefined, { backgroundColor: theme.colors.surface2 }]}>
           {settlementResourceOrder.map(resource => (
-            <View key={resource} style={styles.resourceCell}>
-              <ResourceSprite resource={resource} size={18} />
+            <View
+              key={resource}
+              accessible
+              accessibilityLabel={settlementResourceLabels[resource] + ' ' + resources[resource]}
+              style={[styles.resourceCell, compactHud ? styles.resourceCellCompact : undefined]}
+            >
+              <ResourceSprite resource={resource} size={compactHud ? 15 : 18} />
               <View style={styles.resourceCopy}>
-                <Text style={[styles.resourceValue, { color: theme.colors.text }]}>{resources[resource]}</Text>
-                <Text style={[styles.resourceLabel, { color: theme.colors.textMuted }]}>{settlementResourceLabels[resource]}</Text>
+                <Text style={[styles.resourceValue, compactHud ? styles.resourceValueCompact : undefined, { color: theme.colors.text }]}>{resources[resource]}</Text>
+                {!compactHud ? <Text style={[styles.resourceLabel, { color: theme.colors.textMuted }]}>{settlementResourceLabels[resource]}</Text> : null}
               </View>
             </View>
           ))}
         </View>
 
-        <View style={styles.hudFooter}>
+        <View style={[styles.hudFooter, compactHud ? styles.hudFooterCompact : undefined]}>
           <View style={styles.hudStats}>
             <SemanticChip label={placedIds.length + ' built'} tone="neutral" compact />
             <SemanticChip label={settlementAdjacencyBonuses.length + ' districts'} tone={settlementAdjacencyBonuses.length ? 'positive' : 'neutral'} compact />
@@ -1000,7 +1008,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             {constructionReadyCount ? <SemanticChip label={constructionReadyCount + ' build ready'} tone="currency" compact /> : null}
             {upgradeMaterialReadyIds.size ? <SemanticChip label={upgradeMaterialReadyIds.size + ' upgrade mats'} tone="positive" compact /> : null}
           </View>
-          {nextSuggestedBuilding && nextSuggestedPlot ? (
+          {!compactHud && nextSuggestedBuilding && nextSuggestedPlot ? (
             <View style={styles.nextGoalInline}>
               <Text style={[styles.nextGoalEyebrow, { color: constructionReadyCount ? theme.colors.gold : theme.colors.textMuted }]}>{constructionReadyCount ? 'READY' : 'NEXT'}</Text>
               <Text style={[styles.nextGoalTitle, { color: theme.colors.text }]} numberOfLines={1}>{nextSuggestedBuilding.name}</Text>
@@ -1378,7 +1386,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.86 : plot.row === 2 ? 1.1 : 1;
           const buildingSize = worldRebuildActive
-            ? landmark ? 124 : Math.round(72 * depthScale)
+            ? landmark ? 110 : Math.round(66 * depthScale)
             : landmark ? 106 : Math.round(70 * depthScale);
           const ambienceSize = worldRebuildActive
             ? landmark ? 118 : Math.round(78 * depthScale)
@@ -1649,7 +1657,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       landmark ? styles.landmarkBuildingGroundShadow : undefined,
                       worldRebuildActive ? styles.worldBuildingGroundShadow : undefined,
                       {
-                        opacity: selected ? 0.34 : humanStagePlateActive ? 0.2 : worldRebuildActive ? 0.26 : 0.22,
+                        opacity: selected ? 0.26 : humanStagePlateActive ? 0.1 : worldRebuildActive ? 0.22 : 0.2,
                         transform: [
                           { scaleX: depthScale * (landmark ? 1.08 : 1) },
                           { scaleY: landmark ? 1.08 : 1 }
@@ -1664,7 +1672,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       styles.buildingContactShadow,
                       landmark ? styles.landmarkBuildingContactShadow : undefined,
                       {
-                        opacity: selected ? 0.42 : humanStagePlateActive ? 0.26 : worldRebuildActive ? 0.34 : 0.32,
+                        opacity: selected ? 0.34 : humanStagePlateActive ? 0.16 : worldRebuildActive ? 0.28 : 0.28,
                         transform: [{ scaleX: depthScale }]
                       }
                     ]}
@@ -1679,7 +1687,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       ]}
                     />
                   ) : null}
-                  {districtCount > 0 ? (
+                  {districtCount > 0 && districtAnalysisVisible ? (
                     <View
                       pointerEvents="none"
                       testID={'building-district-aura-' + building.id}
@@ -1700,7 +1708,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       styles.buildingAmbience,
                       landmark ? styles.landmarkAmbience : undefined,
                       humanStagePlateActive
-                        ? { opacity: selected ? 0.62 : districtCount > 0 ? 0.38 : 0.16 }
+                        ? { opacity: selected ? 0.48 : districtAnalysisVisible && districtCount > 0 ? 0.2 : 0 }
                         : undefined
                     ]}
                   >
@@ -1725,29 +1733,33 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         : undefined
                     ]}
                   >
-                    <View
-                      pointerEvents="none"
-                      style={[
-                        styles.buildingFootprint,
-                        landmark ? styles.landmarkFootprint : undefined,
-                        { backgroundColor: roleColor, opacity: worldRebuildActive ? 0.07 : undefined }
-                      ]}
-                    />
+                    {!worldRebuildActive ? (
+                      <View
+                        pointerEvents="none"
+                        style={[
+                          styles.buildingFootprint,
+                          landmark ? styles.landmarkFootprint : undefined,
+                          { backgroundColor: roleColor }
+                        ]}
+                      />
+                    ) : null}
                     <BuildingSprite buildingId={building.id} faction={building.faction} size={buildingSize} />
                   </View>
                   {upgradeMaterialsReady && !selected ? (
-                    <View
-                      pointerEvents="none"
-                      style={[
-                        styles.upgradeReadyBadge,
-                        worldRebuildActive ? styles.worldUpgradeReadyBadge : undefined,
-                        { backgroundColor: theme.colors.gold, borderColor: worldRebuildActive ? theme.colors.surface1 : undefined }
-                      ]}
-                    >
-                      <Text style={[styles.upgradeReadyText, worldRebuildActive ? styles.worldUpgradeReadyText : undefined]}>
-                        {worldRebuildActive ? '↑' : 'UPGRADE'}
-                      </Text>
-                    </View>
+                    worldRebuildActive ? (
+                      <View
+                        pointerEvents="none"
+                        testID={'world-upgrade-ready-' + building.id}
+                        style={[styles.worldUpgradeReadyDot, { backgroundColor: theme.colors.gold, borderColor: theme.colors.surface1 }]}
+                      />
+                    ) : (
+                      <View
+                        pointerEvents="none"
+                        style={[styles.upgradeReadyBadge, { backgroundColor: theme.colors.gold }]}
+                      >
+                        <Text style={styles.upgradeReadyText}>UPGRADE</Text>
+                      </View>
+                    )
                   ) : null}
                   {!worldRebuildActive || selected ? (
                     <>
@@ -2244,18 +2256,25 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
 const styles = StyleSheet.create({
   content: { padding: 10, paddingBottom: 30, gap: 8 },
   hud: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 8 },
+  hudCompact: { borderRadius: 14, paddingHorizontal: 9, paddingVertical: 6 },
   heroHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroCopy: { flex: 1, minWidth: 0 },
   eyebrow: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 1.1 },
+  eyebrowCompact: { fontSize: 7, lineHeight: 9, letterSpacing: 0.9 },
   title: { fontSize: 17, lineHeight: 21, fontWeight: '900', marginTop: 1 },
+  titleCompact: { fontSize: 14, lineHeight: 17, marginTop: 0 },
   stageBadge: { borderWidth: 1, borderRadius: 9, paddingHorizontal: 7, paddingVertical: 4 },
   stageBadgeText: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
   resourceStrip: { flexDirection: 'row', borderRadius: 10, paddingHorizontal: 5, paddingVertical: 5, marginTop: 7, gap: 2 },
+  resourceStripCompact: { borderRadius: 9, paddingHorizontal: 4, paddingVertical: 3, marginTop: 5 },
   resourceCell: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 2 },
+  resourceCellCompact: { justifyContent: 'center', gap: 1 },
   resourceCopy: { flex: 1, minWidth: 0 },
   resourceValue: { fontSize: 9.5, lineHeight: 12, fontWeight: '900' },
+  resourceValueCompact: { fontSize: 8.5, lineHeight: 10 },
   resourceLabel: { fontSize: 7, lineHeight: 9, fontWeight: '700' },
   hudFooter: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 6 },
+  hudFooterCompact: { marginTop: 4 },
   hudStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, flexShrink: 1 },
   nextGoalInline: { flex: 1, minWidth: 0, alignItems: 'flex-end' },
   nextGoalEyebrow: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.85 },
@@ -2414,6 +2433,7 @@ const styles = StyleSheet.create({
   upgradeReadyText: { color: '#111318', fontSize: 6, lineHeight: 8, fontWeight: '900', letterSpacing: 0.25 },
   worldUpgradeReadyBadge: { top: 7, right: 8, width: 20, height: 20, minHeight: 20, paddingHorizontal: 0, paddingVertical: 0, borderWidth: 1.5, elevation: 4, opacity: 0.94 },
   worldUpgradeReadyText: { fontSize: 12, lineHeight: 14, letterSpacing: 0 },
+  worldUpgradeReadyDot: { position: 'absolute', top: 8, right: 10, width: 9, height: 9, borderRadius: 999, borderWidth: 1.5, zIndex: 9, elevation: 4 },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
