@@ -457,6 +457,50 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyHp: 1280,
     difficulty: 'Boss'
   },
+  ch5_rally_line: {
+    resources: { gold: 125, stone: 8, provisions: 6 },
+    storySummary: 'Greenkeep stabilizes the pressured line and proves Rally can recover cohesion without erasing the cost of a bad position.'
+  },
+  ch5_above_shieldwall: {
+    resources: { gold: 140, iron: 8, provisions: 7 },
+    storySummary: 'The flying assault is driven off. Greenkeep now understands that rear protection needs a direct answer to air threats.'
+  },
+  ch5_hammer_wing: {
+    resources: { gold: 150, iron: 10, provisions: 8 },
+    storySummary: 'The hammer-and-wing attack fails after Greenkeep balances center pressure against the threatened flank.'
+  },
+  ch5_strongest_army: {
+    resources: { gold: 160, stone: 9, iron: 9, provisions: 6 },
+    storySummary: 'The counter-built enemy force is defeated by matchup quality rather than raw Army Power.'
+  },
+  ch5_crowns_muster: {
+    resources: { gold: 175, wood: 12, iron: 10, provisions: 10 },
+    storySummary: 'The operation survives three different threat groups and proves the wider roster can carry the army through attrition.'
+  },
+  ch6_first_ward: {
+    resources: { gold: 150, stone: 10, provisions: 6 },
+    storySummary: 'The first ward is broken and Greenkeep learns that magical protection strengthens cohesion without replacing ordinary defense.'
+  },
+  ch6_power_price: {
+    resources: { gold: 155, iron: 8, provisions: 7 },
+    storySummary: 'The exposed caster is punished, proving that magic still depends on conventional protection and positioning.'
+  },
+  ch6_break_spell: {
+    resources: { gold: 165, iron: 10, stone: 6 },
+    storySummary: 'The major spell is interrupted before release. Pressure and timing can answer dangerous casters without a mandatory counter.'
+  },
+  ch6_fire_from_above: {
+    resources: { gold: 175, iron: 10, provisions: 8 },
+    storySummary: 'Greenkeep survives coordinated magic and flying pressure by protecting the anti-air response and controlling the rear line.'
+  },
+  ch6_silent_ground: {
+    resources: { gold: 180, stone: 12, provisions: 8 },
+    storySummary: 'The army crosses the control zone without losing formation discipline and records how arcane terrain affects movement.'
+  },
+  ch6_wards_steel: {
+    resources: { gold: 190, stone: 12, iron: 12 },
+    storySummary: 'The linked Guard, Ward and ranged core is dismantled by breaking the protection chain rather than brute force.'
+  },
   old_royal_lands: {
     id: 'old_royal_lands',
     name: 'Too Many Fronts',
