@@ -57,6 +57,15 @@ export type EncounterId =
   | 'ch6_wards_steel'
   | 'ashen_court'
   | 'return_to_crownspire'
+  | 'ch7_stone_road'
+  | 'ch7_break_gate'
+  | 'ch7_protect_engineers'
+  | 'ch7_fire_walls'
+  | 'ch7_under_towers'
+  | 'ch7_enemy_at_walls'
+  | 'ch7_hold_dawn'
+  | 'ch7_breached_city'
+  | 'ch7_blackstone'
   | 'elf_wardbreakers'
   | 'elf_ashen_tracks'
   | 'elf_hollow_warden'
@@ -613,10 +622,91 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   return_to_crownspire: {
     id: 'return_to_crownspire',
     name: 'Siege of the Glass Keep',
-    subtitle: 'The final Human assault reaches the Concord chamber and the Ashen commander holding the Oath Seal.',
+    subtitle: 'The arcane campaign ends at the Glass Keep, opening the road to the fortified Blackstone frontier.',
     enemyName: 'Ashen Court Regent',
     enemyCount: 6,
     enemyHp: 2400,
+    difficulty: 'Boss'
+  },
+  ch7_stone_road: {
+    id: 'ch7_stone_road',
+    name: 'The Stone Road',
+    subtitle: 'Barricades, elevated missile troops and a narrow approach turn the first Blackstone road into a fortified battlefield.',
+    enemyName: 'Stone Road Guard',
+    enemyCount: 6,
+    enemyHp: 1550,
+    difficulty: 'Elite'
+  },
+  ch7_break_gate: {
+    id: 'ch7_break_gate',
+    name: 'Break the Gate',
+    subtitle: 'A reinforced gate anchors the defensive line. The army must protect its breach effort while defenders concentrate on the approach.',
+    enemyName: 'Blackstone Gate Guard',
+    enemyCount: 6,
+    enemyHp: 1680,
+    difficulty: 'Elite'
+  },
+  ch7_protect_engineers: {
+    id: 'ch7_protect_engineers',
+    name: 'Protect the Engineers',
+    subtitle: 'Fast defenders try to reach the engineer teams while Greenkeep holds a temporary protective perimeter.',
+    enemyName: 'Engineer Hunters',
+    enemyCount: 6,
+    enemyHp: 1640,
+    difficulty: 'Elite'
+  },
+  ch7_fire_walls: {
+    id: 'ch7_fire_walls',
+    name: 'Fire on the Walls',
+    subtitle: 'Wall artillery targets exposed squads from protected firing positions and must be pressured before the approach collapses.',
+    enemyName: 'Wall Artillery Guard',
+    enemyCount: 6,
+    enemyHp: 1760,
+    difficulty: 'Elite'
+  },
+  ch7_under_towers: {
+    id: 'ch7_under_towers',
+    name: 'Under Their Towers',
+    subtitle: 'Blackstone towers overlap their firing lanes while heavy infantry protects the bases from direct assault.',
+    enemyName: 'Tower Wardens',
+    enemyCount: 6,
+    enemyHp: 1820,
+    difficulty: 'Elite'
+  },
+  ch7_enemy_at_walls: {
+    id: 'ch7_enemy_at_walls',
+    name: 'The Enemy at Our Walls',
+    subtitle: 'A counterattack reaches Greenkeep territory, forcing the army to fight alongside its own settlement defenses.',
+    enemyName: 'Blackstone Counterhost',
+    enemyCount: 6,
+    enemyHp: 1860,
+    difficulty: 'Elite'
+  },
+  ch7_hold_dawn: {
+    id: 'ch7_hold_dawn',
+    name: 'Hold Until Dawn',
+    subtitle: 'Success depends on surviving repeated pressure long enough for the relief column to reach the battlefield.',
+    enemyName: 'Night Assault Waves',
+    enemyCount: 6,
+    enemyHp: 1940,
+    difficulty: 'Elite'
+  },
+  ch7_breached_city: {
+    id: 'ch7_breached_city',
+    name: 'The Breached City',
+    subtitle: 'The outer wall is open, but cramped streets reduce charge lanes and create dangerous side approaches.',
+    enemyName: 'Blackstone Inner Guard',
+    enemyCount: 6,
+    enemyHp: 2050,
+    difficulty: 'Elite'
+  },
+  ch7_blackstone: {
+    id: 'ch7_blackstone',
+    name: 'Fall of Blackstone',
+    subtitle: 'Greenkeep commits its full six-squad army to the final fortified defense and the commander holding Blackstone.',
+    enemyName: 'Blackstone High Guard',
+    enemyCount: 6,
+    enemyHp: 2800,
     difficulty: 'Boss'
   },
   elf_wardbreakers: {
@@ -1130,6 +1220,15 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   ch6_wards_steel: 'reinforced_center_252',
   ashen_court: 'layered_core_231',
   return_to_crownspire: 'heavy_front_441',
+  ch7_stone_road: 'spear_wall_531',
+  ch7_break_gate: 'heavy_front_441',
+  ch7_protect_engineers: 'skirmish_screen_243',
+  ch7_fire_walls: 'protected_rear_225',
+  ch7_under_towers: 'wide_vanguard_522',
+  ch7_enemy_at_walls: 'assault_432',
+  ch7_hold_dawn: 'layered_core_231',
+  ch7_breached_city: 'forward_line_411',
+  ch7_blackstone: 'reinforced_center_252',
 
   elf_wardbreakers: 'skirmish_screen_243',
   elf_ashen_tracks: 'skirmish_screen_243',
