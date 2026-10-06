@@ -85,8 +85,8 @@ export type EncounterReward = {
 export const encounters: Record<EncounterId, EncounterDefinition> = {
   hold_the_road: {
     id: 'hold_the_road',
-    name: 'Hold the Road',
-    subtitle: 'A raider patrol is blocking the refugee road to Greenkeep.',
+    name: 'Hold the Crossing',
+    subtitle: 'A raider patrol is blocking the crossing that links the surviving camp to Greenkeep.',
     enemyName: 'Road Raiders',
     enemyCount: 3,
     enemyHp: 128,
@@ -205,8 +205,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   mercenary_patrol: {
     id: 'mercenary_patrol',
-    name: 'Mercenary Patrol',
-    subtitle: 'A contracted warband is sweeping the road before Greenkeep can trace its employer.',
+    name: 'Cut Off the Captain',
+    subtitle: 'A contracted captain is moving down the broken road with a warband before Greenkeep can isolate the command group.',
     enemyName: 'Green Banner Company',
     enemyCount: 4,
     enemyHp: 220,
@@ -214,8 +214,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   toll_captain: {
     id: 'toll_captain',
-    name: 'The Toll Captain',
-    subtitle: 'The mercenary captain holding the old Greenkeep toll fort refuses to abandon the road.',
+    name: 'Reclaim the Outpost',
+    subtitle: 'The Toll Captain has fortified the old Greenkeep outpost and refuses to release the western road.',
     enemyName: 'Toll Captain Host',
     enemyCount: 5,
     enemyHp: 340,
