@@ -32,7 +32,7 @@ const settlementPlotPositions: Record<string, { left: ViewStyle['left']; top: Vi
   plot_se: { left: '68%', top: '66%' }
 };
 
-const humanFortWorldPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
+const fortWorldPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
   plot_nw: { left: '10%', top: '21%' },
   plot_n: { left: '37%', top: '10%' },
   plot_ne: { left: '65%', top: '21%' },
@@ -44,7 +44,7 @@ const humanFortWorldPositions: Record<string, { left: ViewStyle['left']; top: Vi
   plot_se: { left: '66%', top: '62%' }
 };
 
-const humanFortWorldCenters: Record<string, { x: number; y: number }> = {
+const fortWorldCenters: Record<string, { x: number; y: number }> = {
   plot_nw: { x: 0.24, y: 0.33 },
   plot_n: { x: 0.505, y: 0.22 },
   plot_ne: { x: 0.785, y: 0.33 },
@@ -612,12 +612,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
   const worldRebuildActive =
-    activeFaction === 'human' &&
     ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
   const districtAnalysisVisible =
     !worldRebuildActive ||
     Boolean(selectedBuildingId || selectedDistrictId || selectedPlotId || blueprintPlannerOpen || relocationMode);
-  const activePlotCenters = worldRebuildActive ? humanFortWorldCenters : settlementPlotCenters;
+  const activePlotCenters = worldRebuildActive ? fortWorldCenters : settlementPlotCenters;
   const districtConnections = settlementAdjacencyBonuses.flatMap(bonus => {
     const first = activePlotCenters[bonus.plotA];
     const second = activePlotCenters[bonus.plotB];
@@ -1361,7 +1360,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const districtActivityColor = buildingDistrictBonuses[0]
             ? semanticColor(theme, settlementDistrictTone(buildingDistrictBonuses[0]))
             : roleColor;
-          const visualPosition = (worldRebuildActive ? humanFortWorldPositions[plot.id] : settlementPlotPositions[plot.id]) ?? {
+          const visualPosition = (worldRebuildActive ? fortWorldPositions[plot.id] : settlementPlotPositions[plot.id]) ?? {
             left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
             top: (String(7 + plot.row * 31) + '%') as ViewStyle['top']
           };
