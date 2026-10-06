@@ -286,14 +286,14 @@ function testRecipesAndInteractions() {
     if (faction === 'human') {
       check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('building-district-aura-')), 'Authored Human world view must not paint district aura pills until analysis is active.');
       check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('world-upgrade-ready-')), 'Upgrade readiness must stay in the HUD rather than marking every world building.');
-      check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('upgrade mats')), 'Normal settlement HUD must preserve the aggregate upgrade-ready count.');
+      check(text(tree).includes('upgrades'), 'Concept settlement HUD must preserve the aggregate upgrade-ready count in its summary line.');
       check(!text(tree).includes('↑'), 'Default world view must not scatter large upgrade arrows over the settlement.');
     }
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
     check(nodes(tree, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'Blueprint planner must be directly available from the settlement overview.');
-    check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')), 'District-completing plots must be summarized in the HUD.');
-    check(!nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'Rebuilt world canvases must keep district-opportunity detail in the HUD/planner instead of covering the terrain.');
-    check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
+    check(text(tree).includes('built ·') && text(tree).includes('districts'), 'Concept settlement HUD must summarize kingdom and district status without stacked chips.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'Rebuilt world canvases must keep district-opportunity detail in the planner instead of covering the terrain.');
+    check(text(tree).includes(' build'), 'Affordable construction must remain visible in the concept HUD summary before opening a plot.');
     check(nodes(tree, 'View').some(node => node.props.testID === 'world-build-ready-plot_nw'), 'The recommended world plot must use one compact in-world build marker.');
     check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
     if (faction === 'human') {
