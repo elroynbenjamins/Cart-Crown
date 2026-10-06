@@ -375,15 +375,6 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     difficulty: 'Elite'
   },
   lord_marshal_veyr: {
-    id: 'siege_road',
-    name: 'Siege Road',
-    subtitle: 'Greenkeep must break through a fortified marcher road before the false orders isolate the remaining houses.',
-    enemyName: 'Siege Road Column',
-    enemyCount: 6,
-    enemyHp: 560,
-    difficulty: 'Elite'
-  },
-  lord_marshal_veyr: {
     id: 'lord_marshal_veyr',
     name: 'Battle for Frostgate',
     subtitle: 'The Frostgate host combines layered defense, mounted pressure and a protected rear line in one final Chapter 3 test.',
@@ -447,21 +438,12 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     difficulty: 'Elite'
   },
   pretender_general: {
-    id: 'crownroad_ambush',
-    name: 'Crownroad Ambush',
-    subtitle: 'A veteran force attacks Greenkeep’s full six-squad column among the abandoned royal wagons.',
-    enemyName: 'Crownroad Veterans',
-    enemyCount: 6,
-    enemyHp: 790,
-    difficulty: 'Elite'
-  },
-  pretender_general: {
     id: 'pretender_general',
-    name: 'The Pretender General',
-    subtitle: 'The officer commanding the last royal companies claims emergency authority over the crownless realm.',
-    enemyName: 'Pretender General’s Host',
+    name: 'Siege of Greywatch',
+    subtitle: 'Greywatch combines layered defense, an elite guard, a cavalry wing and protected ranged pressure under one experienced commander.',
+    enemyName: 'Greywatch Host',
     enemyCount: 6,
-    enemyHp: 1280,
+    enemyHp: 960,
     difficulty: 'Boss'
   },
   old_royal_lands: {
@@ -1629,15 +1611,27 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   },
   broken_standards: {
     resources: { gold: 120, wood: 20, iron: 12, provisions: 6 },
-    storySummary: 'The mismatched royal companies scatter. Their standards all carry legitimate seals from different years, suggesting authority was deliberately fragmented.'
+    storySummary: 'The Banner Guard yields. Greenkeep can now field a fifth active squad and build formations with real width and reserve depth.'
+  },
+  ch4_broken_ground: {
+    resources: { gold: 118, stone: 12, iron: 8, provisions: 5 },
+    storySummary: 'The shifting lanes are stabilized. Commander doctrine is now a battlefield behavior choice rather than a decorative stat line.'
   },
   crownroad_ambush: {
-    resources: { gold: 145, wood: 24, stone: 18, iron: 14, provisions: 7 },
-    storySummary: 'The ambush fails. Greenkeep captures veteran officers who still claim to serve a court that no longer exists.'
+    resources: { gold: 145, iron: 14, provisions: 6 },
+    storySummary: 'The breach is stabilized before the enemy can cascade through it. Greenkeep proves that reserve timing can save a threatened lane.'
+  },
+  ch4_wrong_army: {
+    resources: { gold: 132, iron: 11, provisions: 6 },
+    storySummary: 'The counter march is defeated after Greenkeep abandons the idea that the highest Army Power number is always the right answer.'
+  },
+  ch4_hunters_rear: {
+    resources: { gold: 150, wood: 8, iron: 10, provisions: 7 },
+    storySummary: 'The rear hunters are stopped. Enemy targeting is now clearly smart enough to punish exposed Support and Ranged squads.'
   },
   pretender_general: {
-    resources: { gold: 430, wood: 210, stone: 175, iron: 55, provisions: 18 },
-    storySummary: 'The Pretender General falls. With the old royal command broken, Greenkeep becomes the strongest organized authority in the western realm.'
+    resources: { gold: 360, wood: 210, stone: 160, iron: 48, provisions: 15 },
+    storySummary: 'Greywatch falls after Greenkeep prepares the right Commander, formation and roster for a layered combined-arms defense.'
   },
   old_royal_lands: {
     resources: { gold: 175, wood: 28, stone: 22, iron: 16, provisions: 8 },
