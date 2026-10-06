@@ -30,6 +30,13 @@ import {
   appStateAllowsBattleProgress,
   createOneShotGate
 } from '../game/mobileSession';
+import {
+  battleOrderDefinitions,
+  decrementBattleOrderCooldowns,
+  getBattleOrderDefinition,
+  getUnlockedBattleOrders,
+  type BattleOrderId
+} from '../game/battleOrders';
 import { useGameTheme } from '../theme/ThemeProvider';
 import type { CommanderSkillEffectType, UnitRole } from '../game/types';
 import { PortraitBattleView } from '../ui/portraitBattle/PortraitBattleView';
@@ -42,6 +49,10 @@ type ActiveEffect = {
 };
 
 type BattleSpeed = 1 | 2;
+type ActiveBattleOrder = {
+  id: BattleOrderId;
+  remaining: number;
+};
 type FormationIntegrityState =
   | 'stable'
   | 'pressured'
@@ -360,6 +371,10 @@ export function BattleScreen({
   });
   const [partyIntegrity, setPartyIntegrity] = useState(100);
   const [enemyIntegrity, setEnemyIntegrity] = useState(100);
+  const [activeBattleOrder, setActiveBattleOrder] =
+    useState<ActiveBattleOrder | null>(null);
+  const [battleOrderCooldowns, setBattleOrderCooldowns] =
+    useState<Partial<Record<BattleOrderId, number>>>({});
   const partyIntegrityState = getFormationIntegrityState(partyIntegrity);
   const enemyIntegrityState = getFormationIntegrityState(enemyIntegrity);
   const outcomeCommitGateRef = useRef(
@@ -382,6 +397,80 @@ export function BattleScreen({
   const defeated = partyHp <= 0;
   const finished = enemyHp <= 0 && !defeated;
   const battleEnded = finished || defeated;
+  const unlockedBattleOrders = useMemo(
+    () => getUnlockedBattleOrders(chapterNumber, encounterId),
+    [chapterNumber, encounterId]
+  );
+  const activeBattleOrderDefinition = activeBattleOrder
+    ? getBattleOrderDefinition(activeBattleOrder.id)
+    : null;
+  const activeBattleOrderEffects =
+    activeBattleOrderDefinition?.effects ?? {
+      attackMultiplier: 1,
+      incomingDamageMultiplier: 1,
+      partyIntegrityLossMultiplier: 1,
+      enemyIntegrityPressureMultiplier: 1,
+      immediateIntegrityRestore: 0
+    };
+
+  const issueBattleOrder = (id: BattleOrderId) => {
+    if (
+      battleEnded ||
+      manualPaused ||
+      pausedForTutorial ||
+      activeBattleOrder ||
+      !unlockedBattleOrders.includes(id) ||
+      (battleOrderCooldowns[id] ?? 0) > 0
+    ) {
+      return;
+    }
+
+    const definition = getBattleOrderDefinition(id);
+    setBattleOrderCooldowns(previous => ({
+      ...previous,
+      [id]: definition.cooldownExchanges
+    }));
+    setActiveBattleOrder({
+      id,
+      remaining: definition.durationExchanges
+    });
+
+    if (definition.effects.immediateIntegrityRestore > 0) {
+      setPartyIntegrity(previous =>
+        Math.min(
+          100,
+          previous + definition.effects.immediateIntegrityRestore
+        )
+      );
+    }
+
+    setLastAction(
+      'Commander order: ' +
+        definition.accessibilityLabel
+          .replace('Commander order ', '')
+          .toUpperCase() +
+        '.'
+    );
+  };
+
+  const battleOrders = unlockedBattleOrders.map(id => {
+    const definition = battleOrderDefinitions[id];
+    return {
+      id,
+      label: definition.label,
+      accessibilityLabel: definition.accessibilityLabel,
+      selected: activeBattleOrder?.id === id,
+      disabled:
+        battleEnded ||
+        manualPaused ||
+        pausedForTutorial ||
+        Boolean(activeBattleOrder) ||
+        (battleOrderCooldowns[id] ?? 0) > 0,
+      cooldown: battleOrderCooldowns[id] ?? 0,
+      onPress: () => issueBattleOrder(id)
+    };
+  });
+
   const tacticalSpeedDamageMultiplier =
     getTacticalSpeedDamageMultiplier(
       combatProfile.speedStatMultiplier,
@@ -758,7 +847,8 @@ export function BattleScreen({
             momentum *
             attackFactor *
             tacticalSpeedDamageMultiplier *
-            integrityAttackMultiplier(partyIntegrityState)
+            integrityAttackMultiplier(partyIntegrityState) *
+            activeBattleOrderEffects.attackMultiplier
         )
       );
       const playerDamage = Math.max(
@@ -797,7 +887,8 @@ export function BattleScreen({
             (hybridCombatEdge?.incomingDamageMultiplier ?? 1) *
             (enemyFantasyThreat?.incomingDamageMultiplier ?? 1) *
             retaliationFactor *
-            loyalistRetaliationMultiplier) /
+            loyalistRetaliationMultiplier *
+            activeBattleOrderEffects.incomingDamageMultiplier) /
             Math.max(
               0.7,
               combatProfile.armorStatMultiplier *
@@ -833,10 +924,13 @@ export function BattleScreen({
           : [];
 
       const partyPressureLoss = Math.max(
-        2,
+        1,
         Math.round(
-          (actualEnemyDamage / Math.max(1, partyMaxHp)) * 58 +
+          (
+            (actualEnemyDamage / Math.max(1, partyMaxHp)) * 58 +
             Math.max(0, enemyPressureMultiplier - 1) * 18
+          ) *
+            activeBattleOrderEffects.partyIntegrityLossMultiplier
         )
       );
       const partyRecovery = Math.min(
@@ -847,10 +941,13 @@ export function BattleScreen({
         )
       );
       const enemyPressureLoss = Math.max(
-        2,
+        1,
         Math.round(
-          (actualPlayerDamage / Math.max(1, encounter.enemyHp)) * 64 +
+          (
+            (actualPlayerDamage / Math.max(1, encounter.enemyHp)) * 64 +
             Math.max(0, formationAnalysis.attackMultiplier - 1) * 14
+          ) *
+            activeBattleOrderEffects.enemyIntegrityPressureMultiplier
         )
       );
       const enemyDepthResistance =
@@ -917,6 +1014,17 @@ export function BattleScreen({
         skill: commanderSkillName
       }));
       setTurn(previous => previous + 1);
+      setBattleOrderCooldowns(previous =>
+        decrementBattleOrderCooldowns(previous)
+      );
+      if (activeBattleOrder) {
+        const remaining = activeBattleOrder.remaining - 1;
+        setActiveBattleOrder(
+          remaining > 0
+            ? { ...activeBattleOrder, remaining }
+            : null
+        );
+      }
       setLastAction(
         (attackingUnit
           ? attackingUnit.className + ' leads the exchange. '
@@ -968,6 +1076,11 @@ export function BattleScreen({
 
     return () => clearTimeout(timer);
   }, [
+    activeBattleOrder,
+    activeBattleOrderEffects.attackMultiplier,
+    activeBattleOrderEffects.enemyIntegrityPressureMultiplier,
+    activeBattleOrderEffects.incomingDamageMultiplier,
+    activeBattleOrderEffects.partyIntegrityLossMultiplier,
     activeCommanderPath,
     activeEffect,
     appIsActive,
@@ -1081,6 +1194,7 @@ export function BattleScreen({
     matchup={formationMatchup.title + '. ' + formationMatchup.summary}
     effects={battleEffects}
     status={activeEffect}
+    orders={battleOrders}
     onToggleSpeed={() => setBattleSpeed(previous => previous === 1 ? 2 : 1)}
     onTogglePause={() => setManualPaused(previous => !previous)}
     onComplete={finishBattle}
