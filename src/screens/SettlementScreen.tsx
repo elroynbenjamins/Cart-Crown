@@ -250,6 +250,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const [blueprintPlannerOpen, setBlueprintPlannerOpen] = useState(false);
   const [planningBuildingId, setPlanningBuildingId] = useState<string | null>(null);
   const [districtOverlayFilter, setDistrictOverlayFilter] = useState<DistrictOverlayFilter>('all');
+  const [districtOverlayOpen, setDistrictOverlayOpen] = useState(false);
   const [selectedDistrictId, setSelectedDistrictId] = useState<string | null>(null);
   const [districtCodexOpen, setDistrictCodexOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -648,6 +649,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
   const districtAnalysisVisible =
     !worldRebuildActive ||
+    districtOverlayOpen ||
     Boolean(selectedBuildingId || selectedDistrictId || selectedPlotId || blueprintPlannerOpen || relocationMode);
   const activePlotCenters = humanStagePlateActive
     ? humanSettlementBackgroundCenters
@@ -919,6 +921,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     setBlueprintPlannerOpen(false);
     setPlanningBuildingId(null);
     setSelectedDistrictId(null);
+    setDistrictOverlayOpen(false);
+    setDistrictOverlayFilter('all');
   }, [activeFaction]);
   const actionAnchorId = relocationMode && relocationTarget ? relocationTarget.plotId : sourcePlotId;
   const actionAnchor = (actionAnchorId ? activePlotCenters[actionAnchorId] : null) ?? { x: 0.5, y: 0.5 };
@@ -2086,58 +2090,96 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             </Text>
           </>
         ) : null}
+
+        {settlementAdjacencyBonuses.length && !selectedBuilding && !selectedPlot && !unlockCelebration && !blueprintPlannerOpen ? (
+          <>
+            <Pressable
+              testID="district-overlay-launcher"
+              accessibilityRole="button"
+              accessibilityState={{ expanded: districtOverlayOpen }}
+              accessibilityLabel={
+                'District overlay, ' +
+                settlementAdjacencyBonuses.length +
+                ' active districts, ' +
+                (districtOverlayOpen ? 'close filters' : 'open filters')
+              }
+              onPress={() => {
+                setDistrictOverlayOpen(open => !open);
+                setSelectedDistrictId(null);
+                setDistrictCodexOpen(false);
+              }}
+              style={[
+                styles.districtOverlayLauncher,
+                {
+                  backgroundColor: theme.colors.surface1,
+                  borderColor: districtOverlayOpen ? factionAccent : theme.colors.border
+                }
+              ]}
+            >
+              <View style={[styles.districtOverlayLauncherDot, { backgroundColor: factionAccent }]} />
+              <Text style={[styles.districtOverlayLauncherText, { color: theme.colors.text }]}>DISTRICTS</Text>
+              <Text style={[styles.districtOverlayLauncherCount, { color: factionAccent }]}>{settlementAdjacencyBonuses.length}</Text>
+            </Pressable>
+
+            {districtOverlayOpen ? (
+              <View
+                testID="district-overlay-controls"
+                accessibilityLabel="District overlay filters"
+                style={[styles.districtOverlayControls, { backgroundColor: theme.colors.surface1, borderColor: factionAccent + '88' }]}
+              >
+                <View style={styles.districtOverlayHeader}>
+                  <Text style={[styles.districtOverlayLabel, { color: theme.colors.textMuted }]}>DISTRICT OVERLAY</Text>
+                  <Text style={[styles.districtOverlayHint, { color: theme.colors.textMuted }]}>Tap a filter</Text>
+                </View>
+                <View style={styles.districtOverlayButtons}>
+                  {settlementDistrictOverlayFilters.map(filter => {
+                    const active = districtOverlayFilter === filter.id;
+                    const toneColor = semanticColor(theme, filter.tone);
+                    return (
+                      <Pressable
+                        key={filter.id}
+                        testID={'district-overlay-filter-' + filter.id}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: active }}
+                        accessibilityLabel={filter.label + ' district overlay, ' + districtOverlayCounts[filter.id] + ' active'}
+                        onPress={() => {
+                          setDistrictOverlayFilter(filter.id);
+                          setSelectedDistrictId(null);
+                          setDistrictCodexOpen(false);
+                        }}
+                        style={[
+                          styles.districtOverlayButton,
+                          {
+                            borderColor: active ? toneColor : theme.colors.border,
+                            backgroundColor: active
+                              ? blendColor(toneColor, theme.colors.surface1, theme.dark ? 0.16 : 0.08)
+                              : theme.colors.surface2
+                          }
+                        ]}
+                      >
+                        <Text style={[styles.districtOverlayButtonText, { color: active ? toneColor : theme.colors.textMuted }]}>
+                          {filter.label}
+                        </Text>
+                        <Text style={[styles.districtOverlayCount, { color: active ? toneColor : theme.colors.textMuted }]}>
+                          {districtOverlayCounts[filter.id]}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : null}
+          </>
+        ) : null}
       </View>
-      {settlementAdjacencyBonuses.length ? (
-        <View
-          testID="district-overlay-controls"
-          accessibilityLabel="District overlay filters"
-          style={[styles.districtOverlayControls, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
-        >
-          <Text style={[styles.districtOverlayLabel, { color: theme.colors.textMuted }]}>DISTRICT OVERLAY</Text>
-          <View style={styles.districtOverlayButtons}>
-            {settlementDistrictOverlayFilters.map(filter => {
-              const active = districtOverlayFilter === filter.id;
-              const toneColor = semanticColor(theme, filter.tone);
-              return (
-                <Pressable
-                  key={filter.id}
-                  testID={'district-overlay-filter-' + filter.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  accessibilityLabel={filter.label + ' district overlay, ' + districtOverlayCounts[filter.id] + ' active'}
-                  onPress={() => {
-                    setDistrictOverlayFilter(filter.id);
-                    setSelectedDistrictId(null);
-                    setDistrictCodexOpen(false);
-                  }}
-                  style={[
-                    styles.districtOverlayButton,
-                    {
-                      borderColor: active ? toneColor : theme.colors.border,
-                      backgroundColor: active
-                        ? blendColor(toneColor, theme.colors.surface1, theme.dark ? 0.16 : 0.08)
-                        : theme.colors.surface2
-                    }
-                  ]}
-                >
-                  <Text style={[styles.districtOverlayButtonText, { color: active ? toneColor : theme.colors.textMuted }]}>
-                    {filter.label}
-                  </Text>
-                  <Text style={[styles.districtOverlayCount, { color: active ? toneColor : theme.colors.textMuted }]}>
-                    {districtOverlayCounts[filter.id]}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+      {!worldRebuildActive ? (
+        <View style={styles.sceneLegend}>
+          <Text style={[styles.sceneLegendText, { color: theme.colors.textMuted }]}>
+            {districtOverlayFilter === 'all' ? 'Tap buildings for actions · marked ground = build' : districtOverlayFilter.charAt(0).toUpperCase() + districtOverlayFilter.slice(1) + ' districts shown'}
+          </Text>
+          <Text style={[styles.sceneLegendCount, { color: factionAccent }]}>{placedIds.length}/{buildings.length}</Text>
         </View>
       ) : null}
-      <View style={styles.sceneLegend}>
-        <Text style={[styles.sceneLegendText, { color: theme.colors.textMuted }]}>
-          {districtOverlayFilter === 'all' ? 'Tap buildings for actions · marked ground = build' : districtOverlayFilter.charAt(0).toUpperCase() + districtOverlayFilter.slice(1) + ' districts shown'}
-        </Text>
-        <Text style={[styles.sceneLegendCount, { color: factionAccent }]}>{placedIds.length}/{buildings.length}</Text>
-      </View>
 
       {selectedDistrict ? (
         <View
@@ -2337,9 +2379,15 @@ const styles = StyleSheet.create({
   nextGoalTitle: { fontSize: 10.5, lineHeight: 13, fontWeight: '900', maxWidth: '100%' },
   body: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 7 },
-  districtOverlayControls: { borderWidth: 1, borderRadius: 13, paddingHorizontal: 7, paddingVertical: 6, gap: 5 },
+  districtOverlayLauncher: { position: 'absolute', right: 9, bottom: 9, zIndex: 42, minHeight: 28, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5, flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.96, elevation: 5 },
+  districtOverlayLauncherDot: { width: 6, height: 6, borderRadius: 999 },
+  districtOverlayLauncherText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.65 },
+  districtOverlayLauncherCount: { fontSize: 8, lineHeight: 10, fontWeight: '900' },
+  districtOverlayControls: { position: 'absolute', left: 8, right: 8, bottom: 8, zIndex: 41, borderWidth: 1, borderRadius: 13, paddingHorizontal: 7, paddingVertical: 6, gap: 5, opacity: 0.98, elevation: 4 },
+  districtOverlayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 88 },
   districtOverlayLabel: { fontSize: 6.5, lineHeight: 8, fontWeight: '900', letterSpacing: 0.8 },
-  districtOverlayButtons: { flexDirection: 'row', gap: 4 },
+  districtOverlayHint: { fontSize: 6.5, lineHeight: 8, fontWeight: '700' },
+  districtOverlayButtons: { flexDirection: 'row', gap: 4, paddingRight: 88 },
   districtOverlayButton: { flex: 1, minWidth: 0, borderWidth: 1, borderRadius: 9, paddingHorizontal: 4, paddingVertical: 4, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 3 },
   districtOverlayButtonText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900' },
   districtOverlayCount: { fontSize: 6.5, lineHeight: 9, fontWeight: '900' },
