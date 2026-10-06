@@ -159,8 +159,8 @@ function testEffects() {
 
 function testTacticalChoices() {
   for (const spec of [
-    { file: 'ThreeWarningsScreen', chapter: 3, node: 'ch3_node_3', field: 'marcherWarningChoiceId', options: chapter3.marcherWarningChoices },
-    { file: 'LastLoyalistsScreen', chapter: 4, node: 'ch4_node_5', field: 'lastLoyalistsChoiceId', options: chapter4.lastLoyalistChoices }
+    { file: 'ThreeWarningsScreen', chapter: 3, node: 'ch3_node_5', field: 'marcherWarningChoiceId', options: chapter3.marcherWarningChoices },
+    { file: 'LastLoyalistsScreen', chapter: 4, node: 'ch4_node_10', field: 'lastLoyalistsChoiceId', options: chapter4.lastLoyalistChoices }
   ]) {
     for (const option of spec.options) {
       const { game, calls } = gameFixture(spec.chapter, spec.node);
@@ -242,7 +242,7 @@ function testAuxiliaries() {
 
 function testRewards() {
   for (const spec of [
-    { file: 'DividedMarchScreen', chapter: 3, node: 'ch3_node_5', completedField: 'dividedMarchResolved', callback: 'onComplete' },
+    { file: 'DividedMarchScreen', chapter: 3, node: 'ch3_node_10', completedField: 'dividedMarchResolved', callback: 'onComplete' },
     { file: 'BrokenSignalTowerScreen', chapter: 2, node: 'ch2_node_5', completedField: 'signalTowerUnlocked', callback: 'onExit' }
   ]) {
     const { game, calls } = gameFixture(spec.chapter, spec.node);
