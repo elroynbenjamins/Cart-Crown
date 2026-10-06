@@ -975,8 +975,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <Text style={[styles.eyebrow, compactHud ? styles.eyebrowCompact : undefined, { color: factionAccent }]}>CART & CROWN</Text>
             <Text accessibilityRole="header" style={[styles.title, compactHud ? styles.titleCompact : undefined, { color: theme.colors.text }]} numberOfLines={1}>{stageLabel}</Text>
           </View>
-          <View style={[styles.stageBadge, { borderColor: factionAccent, backgroundColor: theme.colors.surface2 }]}>
-            <Text style={[styles.stageBadgeText, { color: factionAccent }]}>{currentWagonStage.id.toUpperCase()}</Text>
+          <View style={[styles.stageBadge, compactHud ? styles.stageBadgeCompact : undefined, { borderColor: factionAccent, backgroundColor: theme.colors.surface2 }]}>
+            <Text style={[styles.stageBadgeText, compactHud ? styles.stageBadgeTextCompact : undefined, { color: factionAccent }]}>{currentWagonStage.id.toUpperCase()}</Text>
           </View>
         </View>
 
@@ -2316,7 +2316,9 @@ const styles = StyleSheet.create({
   title: { fontSize: 17, lineHeight: 21, fontWeight: '900', marginTop: 1 },
   titleCompact: { fontSize: 14, lineHeight: 17, marginTop: 0 },
   stageBadge: { borderWidth: 1, borderRadius: 9, paddingHorizontal: 7, paddingVertical: 4 },
+  stageBadgeCompact: { borderRadius: 8, paddingHorizontal: 6, paddingVertical: 3 },
   stageBadgeText: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
+  stageBadgeTextCompact: { fontSize: 7, lineHeight: 9, letterSpacing: 0.5 },
   resourceStrip: { flexDirection: 'row', borderRadius: 10, paddingHorizontal: 5, paddingVertical: 5, marginTop: 7, gap: 2 },
   resourceStripCompact: { borderRadius: 9, paddingHorizontal: 4, paddingVertical: 3, marginTop: 5 },
   worldResourceStrip: { borderRadius: 0, paddingHorizontal: 0, paddingVertical: 3 },
