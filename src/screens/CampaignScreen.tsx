@@ -31,6 +31,7 @@ import type { TutorialFocusTarget } from '../game/tutorial';
 type CampaignView = 'story' | 'activities' | 'factions';
 
 const humanEarlyEncounterByNode: Partial<Record<string, EncounterId>> = {
+  ch1_m01: 'ch1_banner_still_flies',
   ch1_m02: 'ch1_hold_crossing',
   ch1_m04: 'ch1_spears_at_dawn',
   ch1_m05: 'ch1_cut_off_captain',
