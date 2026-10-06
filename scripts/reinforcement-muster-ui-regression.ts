@@ -115,7 +115,7 @@ function runProviderAction(name: string, scope: Record<string, any>, id: string)
   return module.exports(id);
 }
 const cases: Array<{ kind: ReinforcementMusterKind; faction: 'human' | 'elf' | 'orc'; chapter: number; capacity: number; file: string; action: string; options: readonly any[] }> = [
-  { kind: 'fort', faction: 'human', chapter: 2, capacity: 4, file: 'FortMusterScreen', action: 'chooseFortRecruit', options: fortMusterOptions },
+  { kind: 'fort', faction: 'human', chapter: 2, capacity: 3, file: 'FortMusterScreen', action: 'chooseFortRecruit', options: fortMusterOptions },
   { kind: 'stronghold', faction: 'human', chapter: 4, capacity: 6, file: 'StrongholdMusterScreen', action: 'chooseStrongholdRecruit', options: strongholdMusterOptions },
   { kind: 'faction_third', faction: 'elf', chapter: 2, capacity: 3, file: 'FactionRecruitmentScreen', action: 'chooseRecruit', options: elfThirdRecruitOptions },
   { kind: 'faction_third', faction: 'orc', chapter: 2, capacity: 3, file: 'FactionRecruitmentScreen', action: 'chooseRecruit', options: orcThirdRecruitOptions },
