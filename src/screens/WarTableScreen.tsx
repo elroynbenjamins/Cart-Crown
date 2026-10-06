@@ -34,6 +34,7 @@ import {
   SectionTitle,
   StatusPill
 } from '../ui/components';
+import { WarTableBoardScene } from '../ui/gameArt';
 
 export function WarTableScreen({
   onStartBattle
@@ -106,6 +107,13 @@ export function WarTableScreen({
             tone="available"
           />
         }
+      />
+      <WarTableBoardScene
+        faction={activeFaction}
+        completed={completedOnBoard}
+        total={contracts.length}
+        boardCycle={warTableCycle}
+        tierUpgradePending={tierUpgradePending}
       />
 
       <GameCard

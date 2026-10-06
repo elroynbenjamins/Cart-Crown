@@ -31,6 +31,7 @@ import {
   SectionTitle,
   StatusPill
 } from '../ui/components';
+import { SiegeAssaultScene } from '../ui/gameArt';
 
 export function SiegeScreen({
   onEditFormation,
@@ -164,6 +165,12 @@ export function SiegeScreen({
             }
           />
         }
+      />
+      <SiegeAssaultScene
+        faction={activeFaction}
+        stageIndex={activeSiegeRun ? activeSiegeRun.stageIndex : -1}
+        completed={Boolean(activeSiegeRun?.completed)}
+        failed={Boolean(activeSiegeRun?.failed)}
       />
 
       {!activeSiegeRun ? (
