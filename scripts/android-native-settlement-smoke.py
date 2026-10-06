@@ -3,6 +3,7 @@
 from __future__ import annotations
 import argparse, json, re, subprocess, time
 from pathlib import Path
+from xml.etree import ElementTree
 
 PACKAGE = 'com.elroybenjamins.cartcrown'
 
@@ -37,6 +38,26 @@ def capture(out: Path, name: str) -> None:
         raise RuntimeError('Android did not return a PNG screenshot.')
     (out / (name + '.png')).write_bytes(png)
 
+def tap_accessibility_prefix(prefix: str) -> str:
+    adb('shell', 'uiautomator', 'dump', '/sdcard/settlement-window.xml', check=False, timeout=25)
+    xml = adb('shell', 'cat', '/sdcard/settlement-window.xml', check=False, timeout=25)
+    if not xml.strip():
+        raise RuntimeError('Android accessibility hierarchy is empty.')
+    root = ElementTree.fromstring(xml)
+    for node in root.iter('node'):
+        description = node.attrib.get('content-desc', '')
+        if not description.startswith(prefix):
+            continue
+        bounds = node.attrib.get('bounds', '')
+        match = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds)
+        if not match:
+            continue
+        x1, y1, x2, y2 = map(int, match.groups())
+        adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
+        time.sleep(1)
+        return description
+    raise RuntimeError('No accessibility node starts with ' + repr(prefix))
+
 def scenario(out: Path, name: str, size: str, density: int, font_scale: float) -> dict:
     adb('shell', 'wm', 'size', size)
     adb('shell', 'wm', 'density', str(density))
@@ -45,6 +66,8 @@ def scenario(out: Path, name: str, size: str, density: int, font_scale: float) -
     launch()
     assert_alive()
     capture(out, name + '-overview')
+    selected = tap_accessibility_prefix('Field Forge,')
+    capture(out, name + '-building-selected')
 
     crash = adb('logcat', '-b', 'crash', '-d', check=False)
     fatal_for_app = re.search(r'FATAL EXCEPTION.*?com\\.elroybenjamins\\.cartcrown', crash, re.S)
@@ -56,6 +79,8 @@ def scenario(out: Path, name: str, size: str, density: int, font_scale: float) -
         'size': size,
         'density': density,
         'font_scale': font_scale,
+        'selected_building': selected,
+        'selected_capture': name + '-building-selected.png',
         'status': 'passed'
     }
 
