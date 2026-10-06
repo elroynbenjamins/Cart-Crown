@@ -1619,7 +1619,7 @@ export function GameProvider({
           resources.iron >= 4;
 
   const tollCaptainWon = Boolean(
-    chapterNodes.find(node => node.id === 'node_6')?.completed
+    chapterNodes.find(node => node.id === 'node_7')?.completed
   );
   const fortUpgradeAvailable =
     activeFaction === 'human' &&
@@ -3326,14 +3326,18 @@ export function GameProvider({
     }
 
     if (encounterId === 'mercenary_patrol') {
-      if (mercenaryPatrolWon || !firstPromotionComplete) return;
+      if (
+        mercenaryPatrolWon ||
+        !firstPromotionComplete ||
+        !chapterNodes.find(node => node.id === 'node_5')?.current
+      ) return;
       setMercenaryPatrolWon(true);
       setCommanderChoiceUnlocked(true);
       setResources(previous => addResources(previous, reward.resources));
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'node_5') return { ...node, completed: true, current: false };
           return { ...node, current: false };
         })
       );
@@ -3355,7 +3359,7 @@ export function GameProvider({
     }
 
     if (encounterId === 'toll_captain') {
-      if (chapterNodes.find(node => node.id === 'node_6')?.completed || !refugeeCampSecured) {
+      if (chapterNodes.find(node => node.id === 'node_7')?.completed || !refugeeCampSecured) {
         return;
       }
 
@@ -3363,7 +3367,7 @@ export function GameProvider({
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node =>
-          node.id === 'node_6'
+          node.id === 'node_7'
             ? { ...node, completed: true, current: false }
             : { ...node, current: false }
         )
@@ -5797,6 +5801,15 @@ export function GameProvider({
       )
     );
     setFirstPromotionComplete(true);
+    if (activeFaction === 'human') {
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'node_6') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+    }
     return true;
   };
 
