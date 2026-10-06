@@ -536,6 +536,7 @@ type GameContextValue = {
 };
 
 const humanEarlyBattleNodeByEncounter: Partial<Record<EncounterId, string>> = {
+  ch1_banner_still_flies: 'ch1_m01',
   ch1_hold_crossing: 'ch1_m02',
   ch1_spears_at_dawn: 'ch1_m04',
   ch1_cut_off_captain: 'ch1_m05',
@@ -550,6 +551,7 @@ const humanEarlyBattleNodeByEncounter: Partial<Record<EncounterId, string>> = {
 };
 
 const humanEarlyNextNodeByNodeId: Record<string, string | null> = {
+  ch1_m01: 'ch1_m02',
   ch1_m02: 'ch1_m03',
   ch1_m03: 'ch1_m04',
   ch1_m04: 'ch1_m05',
@@ -567,6 +569,7 @@ const humanEarlyNextNodeByNodeId: Record<string, string | null> = {
 };
 
 const humanEarlyBattleResultTitle: Partial<Record<EncounterId, string>> = {
+  ch1_banner_still_flies: 'Banner Held',
   ch1_hold_crossing: 'Crossing Held',
   ch1_spears_at_dawn: 'Charges Broken',
   ch1_cut_off_captain: 'Captain Isolated',
