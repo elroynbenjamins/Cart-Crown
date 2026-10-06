@@ -1206,6 +1206,7 @@ export function AppShell({
         <SettlementScreen
           tutorialFocus={tutorialFocus}
           onTutorialFocusComplete={completeTutorialFocus}
+          onOpenSettings={() => setFlow('settings')}
           onExit={() => {
             setFlow(null);
             setActive('kingdom');
