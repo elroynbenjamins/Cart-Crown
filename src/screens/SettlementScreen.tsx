@@ -1290,7 +1290,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.activityStyle,
                   styles.districtEnvironment,
-                  { opacity: connection.focused ? 1 : districtFocusActive ? 0.28 : 0.82 }
+                  { opacity: districtAnalysisVisible ? (connection.focused ? 1 : districtFocusActive ? 0.28 : 0.82) : 0 }
                 ]}
               >
                 <SettlementDistrictAmbience
@@ -1378,7 +1378,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.86 : plot.row === 2 ? 1.1 : 1;
           const buildingSize = worldRebuildActive
-            ? landmark ? 142 : Math.round(76 * depthScale)
+            ? landmark ? 124 : Math.round(72 * depthScale)
             : landmark ? 106 : Math.round(70 * depthScale);
           const ambienceSize = worldRebuildActive
             ? landmark ? 118 : Math.round(78 * depthScale)
@@ -1649,7 +1649,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       landmark ? styles.landmarkBuildingGroundShadow : undefined,
                       worldRebuildActive ? styles.worldBuildingGroundShadow : undefined,
                       {
-                        opacity: selected ? 0.5 : humanStagePlateActive ? 0.38 : worldRebuildActive ? 0.34 : 0.26,
+                        opacity: selected ? 0.34 : humanStagePlateActive ? 0.2 : worldRebuildActive ? 0.26 : 0.22,
                         transform: [
                           { scaleX: depthScale * (landmark ? 1.08 : 1) },
                           { scaleY: landmark ? 1.08 : 1 }
@@ -1664,7 +1664,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       styles.buildingContactShadow,
                       landmark ? styles.landmarkBuildingContactShadow : undefined,
                       {
-                        opacity: selected ? 0.62 : worldRebuildActive ? 0.5 : 0.38,
+                        opacity: selected ? 0.42 : humanStagePlateActive ? 0.26 : worldRebuildActive ? 0.34 : 0.32,
                         transform: [{ scaleX: depthScale }]
                       }
                     ]}
@@ -1694,7 +1694,16 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       ]}
                     />
                   ) : null}
-                  <View pointerEvents="none" style={[styles.buildingAmbience, landmark ? styles.landmarkAmbience : undefined]}>
+                  <View
+                    pointerEvents="none"
+                    style={[
+                      styles.buildingAmbience,
+                      landmark ? styles.landmarkAmbience : undefined,
+                      humanStagePlateActive
+                        ? { opacity: selected ? 0.62 : districtCount > 0 ? 0.38 : 0.16 }
+                        : undefined
+                    ]}
+                  >
                     <SettlementBuildingAmbience
                       buildingId={building.id}
                       role={building.role}
@@ -2368,11 +2377,11 @@ const styles = StyleSheet.create({
   sceneFeedback: { fontSize: 12, lineHeight: 17, fontWeight: '700', padding: 6 },
 
   landmarkSelectionHalo: { marginLeft: -54, width: 108, height: 38, bottom: '19%' },
-  buildingGroundShadow: { position: 'absolute', left: '50%', bottom: '15%', marginLeft: -34, width: 68, height: 22, borderRadius: 999, backgroundColor: '#111712', opacity: 0.28 },
-  landmarkBuildingGroundShadow: { bottom: '14%', marginLeft: -49, width: 98, height: 30 },
-  worldBuildingGroundShadow: { bottom: '12%', height: 24, backgroundColor: '#0D120F' },
-  buildingContactShadow: { position: 'absolute', left: '50%', bottom: '21%', marginLeft: -24, width: 48, height: 10, borderRadius: 999, backgroundColor: '#060806', opacity: 0.42 },
-  landmarkBuildingContactShadow: { bottom: '20%', marginLeft: -34, width: 68, height: 13 },
+  buildingGroundShadow: { position: 'absolute', left: '50%', bottom: '15%', marginLeft: -29, width: 58, height: 14, borderRadius: 999, backgroundColor: '#111712', opacity: 0.22 },
+  landmarkBuildingGroundShadow: { bottom: '14%', marginLeft: -41, width: 82, height: 20 },
+  worldBuildingGroundShadow: { bottom: '13%', height: 15, backgroundColor: '#0D120F' },
+  buildingContactShadow: { position: 'absolute', left: '50%', bottom: '21%', marginLeft: -21, width: 42, height: 7, borderRadius: 999, backgroundColor: '#060806', opacity: 0.32 },
+  landmarkBuildingContactShadow: { bottom: '20%', marginLeft: -29, width: 58, height: 9 },
   buildingDistrictAura: { position: 'absolute', left: 9, right: 9, bottom: 13, height: 22, borderRadius: 999, borderWidth: 1, opacity: 0.78, transform: [{ scaleX: 1.08 }] },
   landmarkDistrictAura: { left: 3, right: 3, bottom: 15, height: 30, borderWidth: 1.5, opacity: 0.82 },
   buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
@@ -2381,9 +2390,9 @@ const styles = StyleSheet.create({
   selectedBuildingPad: { transform: [{ scale: 1.075 }, { translateY: -2 }] },
   landmarkBuildingPad: { width: 110, height: 98, transform: [{ translateY: -9 }], elevation: 6 },
   worldBuildingPad: { transform: [{ scale: 1.14 }, { translateY: -1 }], elevation: 5 },
-  worldLandmarkBuildingPad: { width: 136, height: 120, transform: [{ translateY: -13 }], elevation: 8 },
-  selectedWorldBuildingPad: { transform: [{ scale: 1.19 }, { translateY: -3 }], elevation: 7 },
-  selectedWorldLandmarkBuildingPad: { width: 136, height: 120, transform: [{ scale: 1.045 }, { translateY: -15 }], elevation: 10 },
+  worldLandmarkBuildingPad: { width: 122, height: 108, transform: [{ translateY: -11 }], elevation: 8 },
+  selectedWorldBuildingPad: { transform: [{ scale: 1.18 }, { translateY: -3 }], elevation: 7 },
+  selectedWorldLandmarkBuildingPad: { width: 122, height: 108, transform: [{ scale: 1.04 }, { translateY: -13 }], elevation: 10 },
   buildingFootprint: { position: 'absolute', left: 5, right: 5, bottom: 0, height: 20, borderRadius: 999, opacity: 0.18, transform: [{ scaleX: 1.08 }] },
   landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
@@ -2403,8 +2412,8 @@ const styles = StyleSheet.create({
   buildReadyDot: { position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: 999, zIndex: 8 },
   upgradeReadyBadge: { position: 'absolute', top: 3, right: 4, zIndex: 9, minHeight: 21, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 3, alignItems: 'center', justifyContent: 'center', elevation: 2 },
   upgradeReadyText: { color: '#111318', fontSize: 6, lineHeight: 8, fontWeight: '900', letterSpacing: 0.25 },
-  worldUpgradeReadyBadge: { top: 5, right: 7, width: 25, height: 25, minHeight: 25, paddingHorizontal: 0, paddingVertical: 0, borderWidth: 2, elevation: 4 },
-  worldUpgradeReadyText: { fontSize: 15, lineHeight: 18, letterSpacing: 0 },
+  worldUpgradeReadyBadge: { top: 7, right: 8, width: 20, height: 20, minHeight: 20, paddingHorizontal: 0, paddingVertical: 0, borderWidth: 1.5, elevation: 4, opacity: 0.94 },
+  worldUpgradeReadyText: { fontSize: 12, lineHeight: 14, letterSpacing: 0 },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
