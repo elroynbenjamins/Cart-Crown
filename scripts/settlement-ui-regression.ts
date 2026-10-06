@@ -245,13 +245,15 @@ function testRecipesAndInteractions() {
     const centerPlotStyle = style(plot(tree, 'plot_center').props.style);
     const westPlotStyle = style(plot(tree, 'plot_w').props.style);
     if (faction === 'human') {
-      check(centerPlotStyle.left === '33.00%' && centerPlotStyle.top === '23.91%', 'Human Hall hitbox must stay centered on the authored central plaza after background cover-crop projection.');
+      check(centerPlotStyle.left === '37.00%' && centerPlotStyle.top === '29.41%', 'Human Hall hitbox must stay centered on the authored central plaza after background cover-crop projection.');
+      check(centerPlotStyle.width === '26%' && centerPlotStyle.height === '18%', 'Human landmark hitbox must follow the authored plaza footprint rather than the oversized generic grid.');
       const southStyle = style(plot(tree, 'plot_s').props.style);
       const southwestStyle = style(plot(tree, 'plot_sw').props.style);
       const southeastStyle = style(plot(tree, 'plot_se').props.style);
-      check(southwestStyle.left === '4.90%' && southwestStyle.top === '32.16%', 'Human southwest logical plot must map to its painted isometric pad after cover-crop projection.');
-      check(southStyle.left === '40.30%' && southStyle.top === '39.41%', 'Human south logical plot must map to the lower-center painted pad after cover-crop projection.');
-      check(southeastStyle.left === '64.10%' && southeastStyle.top === '47.67%', 'Human southeast logical plot must map to the lowest painted pad after cover-crop projection.');
+      check(southwestStyle.left === '6.90%' && southwestStyle.top === '37.16%', 'Human southwest logical plot must map to its painted isometric pad after cover-crop projection.');
+      check(southStyle.left === '42.30%' && southStyle.top === '44.41%', 'Human south logical plot must map to the lower-center painted pad after cover-crop projection.');
+      check(southeastStyle.left === '66.10%' && southeastStyle.top === '52.67%', 'Human southeast logical plot must map to the lowest painted pad after cover-crop projection.');
+      check(southStyle.width === '24%' && southStyle.height === '14%', 'Human normal plot hitboxes must match the authored build-pad footprint.');
     }
     check(centerPlotStyle.borderWidth === 0 && westPlotStyle.borderWidth === 0, 'Occupied settlement structures must not keep card-like plot borders.');
     check(centerPlotStyle.zIndex > westPlotStyle.zIndex, 'The Great Hall must remain above same-row secondary structures in scene depth.');
