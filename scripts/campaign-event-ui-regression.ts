@@ -239,8 +239,7 @@ function testFrostmarchOpening() {
     'Into Frostmarch must be a story beat, not a free squad recruitment.'
   );
   check(
-    allText(tree).includes('three active squads') ||
-      allText(tree).includes('3 squads'),
+    String(one(tree, 'DecisionIntro').body).includes('three active squads'),
     'Into Frostmarch must explain that the army enters with only three active squads.'
   );
   const beforeUnits = JSON.stringify(game.units);
