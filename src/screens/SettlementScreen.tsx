@@ -1926,7 +1926,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         }
                       ]}
                     >
-                      <View style={[styles.humanWorldLevelMedallion, { borderColor: SETTLEMENT_HUD_GOLD_DARK, backgroundColor: SETTLEMENT_HUD_NAVY_RAISED }]}>
+                      <View testID={'building-level-status-' + building.id} style={[styles.humanWorldLevelMedallion, { borderColor: SETTLEMENT_HUD_GOLD_DARK, backgroundColor: SETTLEMENT_HUD_NAVY_RAISED }]}>
                         <Text style={styles.humanWorldLevelText}>{level}</Text>
                       </View>
                       <Text style={styles.humanWorldBuildingName} numberOfLines={1}>{building.name}</Text>
@@ -2051,21 +2051,29 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 const height = event.nativeEvent.layout.height;
                 if (Number.isFinite(height) && height > 0) setMeasuredConstructionHeight(previous => Math.abs(previous - height) < 0.5 ? previous : height);
               }}
-              style={[styles.sceneActionStrip, { ...constructionLayout, maxHeight: constructionMaxHeight,
-                backgroundColor: theme.colors.surface1, borderColor: factionAccent }]}
+              style={[
+                styles.sceneActionStrip,
+                humanStagePlateActive ? styles.conceptSceneActionStrip : undefined,
+                {
+                  ...constructionLayout,
+                  maxHeight: constructionMaxHeight,
+                  backgroundColor: humanStagePlateActive ? SETTLEMENT_HUD_NAVY : theme.colors.surface1,
+                  borderColor: humanStagePlateActive ? SETTLEMENT_HUD_GOLD : factionAccent
+                }
+              ]}
             >
               <View onLayout={event => {
                 const height = event.nativeEvent.layout.height;
                 if (Number.isFinite(height) && height > 0) setMeasuredConstructionHeader(previous => Math.abs(previous - height) < 0.5 ? previous : height);
               }} style={styles.sceneActionHeading}>
                 <View style={styles.sceneActionHeadingCopy}>
-                  <Text style={[styles.sceneActionLevel, { color: factionAccent }]}>BUILD SITE · {settlementPlotLabels[selectedPlot.id] ?? selectedPlot.id}</Text>
-                  <Text accessibilityRole="header" style={[styles.sceneActionName, { color: theme.colors.text }]}>
+                  <Text style={[styles.sceneActionLevel, { color: humanStagePlateActive ? SETTLEMENT_HUD_GOLD : factionAccent }]}>BUILD SITE · {settlementPlotLabels[selectedPlot.id] ?? selectedPlot.id}</Text>
+                  <Text accessibilityRole="header" style={[styles.sceneActionName, { color: humanStagePlateActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]}>
                     {constructionReviewOpen ? 'Review construction' : 'Choose a blueprint'}
                   </Text>
                 </View>
                 <Pressable testID="construction-close" accessibilityRole="button" accessibilityLabel="Close construction without building" onPress={closeConstruction} style={styles.sceneActionClose}>
-                  <Text style={[styles.sceneCloseText, { color: theme.colors.text }]}>×</Text>
+                  <Text style={[styles.sceneCloseText, { color: humanStagePlateActive ? SETTLEMENT_HUD_GOLD : theme.colors.text }]}>×</Text>
                 </Pressable>
               </View>
               <ScrollView
@@ -2166,19 +2174,33 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 const height = event.nativeEvent.layout.height;
                 if (Number.isFinite(height) && height > 0) setMeasuredActionHeight(previous => Math.abs(previous - height) < 0.5 ? previous : height);
               }}
-              style={[styles.sceneActionStrip, { ...actionLayout, maxHeight: mapHeight - 16, backgroundColor: theme.colors.surface1, borderColor: theme.colors.gold }]}
+              style={[
+                styles.sceneActionStrip,
+                humanStagePlateActive ? styles.conceptSceneActionStrip : undefined,
+                {
+                  ...actionLayout,
+                  maxHeight: mapHeight - 16,
+                  backgroundColor: humanStagePlateActive ? SETTLEMENT_HUD_NAVY : theme.colors.surface1,
+                  borderColor: humanStagePlateActive ? SETTLEMENT_HUD_GOLD : theme.colors.gold
+                }
+              ]}
             >
               <View onLayout={event => {
                 const height = event.nativeEvent.layout.height;
                 if (Number.isFinite(height) && height > 0) setMeasuredActionChrome(previous => Math.abs(previous - height) < 0.5 ? previous : height);
               }}>
                 <View style={styles.sceneActionHeading}>
+                  {humanStagePlateActive ? (
+                    <View style={[styles.sceneActionBuildingThumb, { backgroundColor: SETTLEMENT_HUD_NAVY_RAISED, borderColor: SETTLEMENT_HUD_GOLD_DARK }]}>
+                      <BuildingSprite buildingId={selectedBuilding.id} faction={selectedBuilding.faction} size={38} />
+                    </View>
+                  ) : null}
                   <View style={styles.sceneActionHeadingCopy}>
-                    <Text style={[styles.sceneActionName, { color: theme.colors.text }]} numberOfLines={2}>{selectedBuilding.name}</Text>
-                    <Text style={[styles.sceneActionLevel, { color: theme.colors.textMuted }]}>Lv.{selectedBuildingLevel} · {buildingRolePresentation[selectedBuilding.role]?.label ?? selectedBuilding.role}</Text>
+                    <Text style={[styles.sceneActionName, { color: humanStagePlateActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]} numberOfLines={2}>{selectedBuilding.name}</Text>
+                    <Text style={[styles.sceneActionLevel, { color: humanStagePlateActive ? SETTLEMENT_HUD_MUTED : theme.colors.textMuted }]}>Lv.{selectedBuildingLevel} · {buildingRolePresentation[selectedBuilding.role]?.label ?? selectedBuilding.role}</Text>
                   </View>
                   <Pressable testID="building-action-close" accessibilityRole="button" accessibilityLabel="Close building actions" onPress={closeBuildingSelection} style={styles.sceneActionClose}>
-                    <Text style={[styles.sceneCloseText, { color: theme.colors.text }]}>×</Text>
+                    <Text style={[styles.sceneCloseText, { color: humanStagePlateActive ? SETTLEMENT_HUD_GOLD : theme.colors.text }]}>×</Text>
                   </Pressable>
                 </View>
                 <View style={styles.sceneActionRow}>
@@ -2196,14 +2218,22 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       accessibilityHint={action === 'upgrade' ? 'Review benefits, requirements and cost before confirming. Opening this review never spends resources.' : disabled ? 'No unlocked empty plot is available.' : undefined}
                       disabled={disabled}
                       onPress={() => { setSelectedBuildingAction(action); setRelocationTargetPlotId(null); setMessage(null); }}
-                      style={({ pressed }) => [styles.sceneActionButton, {
-                        backgroundColor: active || ready ? blendColor(theme.colors.gold, theme.colors.surface1, 0.16) : theme.colors.surface2,
-                        borderColor: active ? theme.colors.gold : theme.colors.border,
-                        opacity: disabled ? 0.45 : pressed ? 0.75 : 1
-                      }]}
+                      style={({ pressed }) => [
+                        styles.sceneActionButton,
+                        humanStagePlateActive ? styles.conceptSceneActionButton : undefined,
+                        {
+                          backgroundColor: humanStagePlateActive
+                            ? active || ready ? SETTLEMENT_HUD_NAVY_RAISED : SETTLEMENT_HUD_NAVY_DEEP
+                            : active || ready ? blendColor(theme.colors.gold, theme.colors.surface1, 0.16) : theme.colors.surface2,
+                          borderColor: humanStagePlateActive
+                            ? active || ready ? SETTLEMENT_HUD_GOLD : SETTLEMENT_HUD_GOLD_DARK
+                            : active ? theme.colors.gold : theme.colors.border,
+                          opacity: disabled ? 0.45 : pressed ? 0.75 : 1
+                        }
+                      ]}
                     >
                       {ready ? <View pointerEvents="none" style={[styles.sceneActionReadyDot, { backgroundColor: theme.colors.gold }]} /> : null}
-                      <Text style={[styles.sceneActionText, { color: active || ready ? theme.colors.gold : theme.colors.text }]}>{label}</Text>
+                      <Text style={[styles.sceneActionText, { color: humanStagePlateActive ? (active || ready ? SETTLEMENT_HUD_GOLD : SETTLEMENT_HUD_TEXT) : (active || ready ? theme.colors.gold : theme.colors.text) }]}>{label}</Text>
                     </Pressable>;
                   })}
                 </View>
@@ -2631,7 +2661,9 @@ const styles = StyleSheet.create({
   sceneDismissSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 1 },
   sceneActionsLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 50 },
   sceneActionStrip: { position: 'absolute', borderWidth: 1, borderRadius: 16, padding: 6, elevation: 12, overflow: 'hidden' },
+  conceptSceneActionStrip: { borderWidth: 1.5, borderRadius: 12, padding: 7 },
   sceneActionHeading: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  sceneActionBuildingThumb: { width: 46, height: 46, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   sceneActionHeadingCopy: { flex: 1, minWidth: 0, paddingLeft: 5 },
   sceneActionName: { fontSize: 13, lineHeight: 18, fontWeight: '900' },
   sceneActionLevel: { fontSize: 11, lineHeight: 16 },
@@ -2639,6 +2671,7 @@ const styles = StyleSheet.create({
   sceneCloseText: { fontSize: 24, lineHeight: 28, fontWeight: '700' },
   sceneActionRow: { flexDirection: 'row', gap: 5 },
   sceneActionButton: { flex: 1, minWidth: 48, minHeight: 48, borderWidth: 1, borderRadius: 10, paddingHorizontal: 4, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 3 },
+  conceptSceneActionButton: { borderWidth: 1.25, borderRadius: 9 },
   sceneActionText: { fontSize: 12, lineHeight: 17, fontWeight: '900', flexShrink: 1, textAlign: 'center' },
   sceneActionReadyDot: { width: 5, height: 5, borderRadius: 999 },
   sceneDetailsScroll: { padding: 6, paddingTop: 10 },
