@@ -775,6 +775,8 @@ check(gameArtSource.includes('settlement-district-worker'), 'District-connected 
 check(gameArtSource.includes('settlement-district-activity-glow'), 'District-connected buildings must expose a restrained ambient glow.');
 check(gameArtSource.includes('export function SettlementDistrictAmbience'), 'Active district space must use a dedicated non-gameplay ambience component.');
 check(gameArtSource.includes('function FactionFortWorldBackdrop'), 'Fort+ settlements must use the rebuilt faction world canvas instead of the legacy flat board.');
+check(gameArtSource.includes("settlementBackgroundProductionAsset('human', backgroundStage)"), 'Human settlements must select a real stage-specific world plate before falling back to procedural terrain.');
+check(gameArtSource.includes("testID={'settlement-stage-background-' + stageId}"), 'Human settlement stage plates must expose deterministic visual evidence.');
 check(gameArtSource.includes("testID={'settlement-fort-world-' + faction}"), 'The rebuilt settlement world must expose faction-specific native visual evidence.');
 check(gameArtSource.includes("const isElf = faction === 'elf'"), 'Elf Fort+ settlements must receive authored grove-fort dressing.');
 check(gameArtSource.includes("const isOrc = faction === 'orc'"), 'Orc Fort+ settlements must receive authored war-fort dressing.');
@@ -785,6 +787,9 @@ check(gameArtSource.includes('AccessibilityInfo.isReduceMotionEnabled'), 'Settle
 
 const settlementScreenSource = readFileSync(resolve('src/screens/SettlementScreen.tsx'), 'utf8');
 check(settlementScreenSource.includes("['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id)"), 'Fort+ world layout must apply without a Human-only faction gate.');
+check(settlementScreenSource.includes("const humanStagePlateActive = activeFaction === 'human'"), 'Human stage backgrounds must drive the organic overlay geometry at every settlement tier.');
+check(settlementScreenSource.includes('humanSettlementBackgroundPositions'), 'Human stage backgrounds must keep a dedicated build-pad anchor map.');
+check(settlementScreenSource.includes('humanSettlementBackgroundCenters'), 'Human stage backgrounds must keep district geometry aligned with those build pads.');
 check(settlementScreenSource.includes('settlementUnlockSnapshots'), 'Settlement unlock celebration must compare against an in-session baseline.');
 check(settlementScreenSource.includes('settlement-unlock-celebration'), 'Settlement unlock celebration must stay in-world instead of using a modal.');
 check(settlementScreenSource.includes('setTimeout(() => setUnlockCelebration(null), 2600)'), 'Settlement unlock celebration must auto-clear quickly.');

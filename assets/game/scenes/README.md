@@ -21,3 +21,16 @@ The native image uses `resizeMethod="resize"` to request decoding near its displ
 `npm run art:check` fully decodes every PNG and checks CRCs, compression, row filters, dimensions, opacity and static registration. Only these three scene paths have the opaque panorama contract; the existing 256×256 alpha-sprite contract remains unchanged. Each camp PNG has a 3,500,000-byte limit; the three together have a 9,000,000-byte limit. The current set totals 8,489,110 bytes.
 
 Android native validation also publishes a compact `android-visuals-<run_id>` artifact with real phone-size screenshots, smoke results and the exact source commit. The full APK/build evidence artifact remains available separately.
+
+
+## Settlement world progression backgrounds
+
+Human settlement progression uses five opaque portrait background plates beneath the transparent building layer:
+
+- `human/settlement/camp.jpg` — rough camp/outpost, dirt paths and minimal fencing
+- `human/settlement/settlement.jpg` — early permanent settlement, cleaner paths and modest perimeter
+- `human/settlement/fort.jpg` — defensive fort, real walls/gate/watchtowers
+- `human/settlement/town.jpg` — developed town, refined roads/plaza/quayside
+- `human/settlement/capital.jpg` — stronghold/capital/grand shell, full prestigious fortification
+
+The surrounding coastline, cliffs, waterfall and distant valley stay compositionally stable while settlement infrastructure becomes stronger. Gameplay buildings remain separate transparent sprites and are positioned over the clear build pads. Stronghold, Capital and Grand currently share the capital plate; later passes may split those top tiers without changing settlement data.

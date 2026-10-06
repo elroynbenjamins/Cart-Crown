@@ -13,7 +13,8 @@ The game currently uses code-rendered pixel art as a safe fallback. Final PNG ar
 - `resource_sites/<faction>/<site-id>.png` — 256×256 transparent
 - `resources/<resource-id>.png` — 128×128 transparent
 - `wagon_items/<item-id>.png` — 256×256 transparent
-- `scenes/<faction>/<scene-id>.png` — opaque/background scene; camp panoramas use reviewed 1672×941 originals, other planned scenes use 768×432
+- `scenes/<faction>/<scene-id>.png` — opaque story/camp scene; camp panoramas use reviewed 1672×941 originals
+- `scenes/<faction>/settlement/<stage>.jpg` — optimized 540×960 opaque portrait settlement world plate; gameplay buildings remain separate sprites
 - `ui/<ui-id>.png` — 96×96 transparent
 
 ## Art rules
