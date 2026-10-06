@@ -7,6 +7,7 @@ import {
   metadataFromSnapshot,
   normalizeSaveRecord
 } from '../src/save/schema';
+import { chapterSevenNodes } from '../src/game/chapter7';
 import type {
   GameSnapshot,
   SaveRecord
@@ -89,6 +90,35 @@ function runFreshRoundTrip() {
       'Chapter 1'
     ),
     'Fresh metadata lost Chapter 1 label.'
+  );
+}
+
+function runChapterSevenRoundTrip() {
+  const record = createNewSaveRecord(1);
+  const human = record.snapshot.factionStates.human;
+  check(human, 'Human state missing for Chapter 7 round trip.');
+
+  human.wagonStageId = 'grand';
+  human.chapterNumber = 7;
+  human.chapterNodes = chapterSevenNodes.map((node, index) => ({
+    ...node,
+    completed: index < 4,
+    current: index === 4
+  }));
+
+  const normalized = normalize(record);
+  check(normalized, 'Chapter 7 save failed normalization.');
+  const repaired = normalized.snapshot.factionStates.human;
+  check(repaired, 'Chapter 7 Human state disappeared.');
+
+  expect(repaired.chapterNumber === 7, 'Grand-stage Chapter 7 save was repaired back to Chapter 6.');
+  expect(
+    repaired.chapterNodes.some(node => node.id === 'ch7_node_5' && node.current),
+    'Chapter 7 current mission did not survive save reload.'
+  );
+  expect(
+    normalized.metadata.chapterLabel.includes('Chapter 7'),
+    'Chapter 7 metadata label was not preserved.'
   );
 }
 
@@ -697,6 +727,7 @@ function runMultiFactionMetadata() {
 
 function main() {
   runFreshRoundTrip();
+runChapterSevenRoundTrip();
   runBackwardCompatibleV13Defaults();
   runLegacyFormationPresetCompatibility();
   runCorruptionRepair();
