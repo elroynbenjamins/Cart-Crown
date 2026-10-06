@@ -1,6 +1,6 @@
 import type { EncounterId } from './encounters';
 
-export type BattleOrderId = 'hold' | 'focus' | 'push' | 'reinforce';
+export type BattleOrderId = 'hold' | 'focus' | 'push' | 'reinforce' | 'rally';
 
 export type BattleOrderEffects = {
   attackMultiplier: number;
@@ -75,6 +75,20 @@ export const battleOrderDefinitions: Record<BattleOrderId, BattleOrderDefinition
       enemyIntegrityPressureMultiplier: 0.92,
       immediateIntegrityRestore: 22
     }
+  },
+  rally: {
+    id: 'rally',
+    label: 'RALLY',
+    accessibilityLabel: 'Commander order Rally the Line',
+    durationExchanges: 2,
+    cooldownExchanges: 10,
+    effects: {
+      attackMultiplier: 0.98,
+      incomingDamageMultiplier: 0.92,
+      partyIntegrityLossMultiplier: 0.58,
+      enemyIntegrityPressureMultiplier: 0.95,
+      immediateIntegrityRestore: 30
+    }
   }
 };
 
@@ -95,6 +109,15 @@ const chapterFourReinforceEncounters = new Set<EncounterId>([
   'ch4_wrong_army',
   'ch4_hunters_rear',
   'pretender_general'
+]);
+
+const chapterFiveRallyEncounters = new Set<EncounterId>([
+  'ch5_rally_line',
+  'ch5_above_shieldwall',
+  'ch5_three_lines_deep',
+  'ch5_hammer_wing',
+  'ch5_strongest_army',
+  'gate_of_crownspire'
 ]);
 
 export function getUnlockedBattleOrders(
@@ -122,6 +145,13 @@ export function getUnlockedBattleOrders(
     chapterFourReinforceEncounters.has(encounterId)
   ) {
     unlocked.push('reinforce');
+  }
+
+  if (
+    chapterNumber >= 6 ||
+    chapterFiveRallyEncounters.has(encounterId)
+  ) {
+    unlocked.push('rally');
   }
 
   return unlocked;
