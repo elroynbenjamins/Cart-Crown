@@ -69,6 +69,11 @@ def scenario(out: Path, name: str, size: str, density: int, font_scale: float) -
     selected = tap_accessibility_prefix('Field Forge,')
     capture(out, name + '-building-selected')
 
+    adb('shell', 'input', 'keyevent', '4')
+    time.sleep(1)
+    overlay = tap_accessibility_prefix('District overlay,')
+    capture(out, name + '-district-tools')
+
     crash = adb('logcat', '-b', 'crash', '-d', check=False)
     fatal_for_app = re.search(r'FATAL EXCEPTION.*?com\\.elroybenjamins\\.cartcrown', crash, re.S)
     if fatal_for_app:
@@ -81,6 +86,8 @@ def scenario(out: Path, name: str, size: str, density: int, font_scale: float) -
         'font_scale': font_scale,
         'selected_building': selected,
         'selected_capture': name + '-building-selected.png',
+        'district_overlay': overlay,
+        'district_capture': name + '-district-tools.png',
         'status': 'passed'
     }
 
