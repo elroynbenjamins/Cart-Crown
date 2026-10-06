@@ -3193,6 +3193,186 @@ export function PromotionPathScene({
   );
 }
 
+
+export function SiegeAssaultScene({
+  faction = 'human',
+  stageIndex = -1,
+  completed = false,
+  failed = false
+}: {
+  faction?: FactionId;
+  stageIndex?: number;
+  completed?: boolean;
+  failed?: boolean;
+}) {
+  const motion = useSettlementAmbientMotion(2400);
+  const pulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.28, 0.66] });
+  const smokeLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -9] });
+  const smokeFade = motion.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.08] });
+  const accent = settlementAmbientGlow[faction];
+  const tint = settlementAmbientPeopleTint[faction];
+  const sceneTint = settlementSceneFactionTints[faction];
+  const ground = faction === 'elf' ? '#355B47' : faction === 'orc' ? '#654432' : '#5B604C';
+  const sky = faction === 'elf' ? '#223C38' : faction === 'orc' ? '#3D2C29' : '#2E3C3A';
+  const activeStage = completed ? 3 : Math.max(0, Math.min(3, stageIndex));
+  const attackerPositions: Array<`${number}%`> = ['9%', '31%', '52%', '70%'];
+  const stagePositions: Array<`${number}%`> = ['13%', '35%', '57%', '78%'];
+
+  return (
+    <View
+      testID={'siege-assault-scene-' + faction}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: '100%', height: 194, position: 'relative', overflow: 'hidden', borderRadius: 18, backgroundColor: sky, opacity: failed ? 0.72 : 1 }}
+    >
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 88, backgroundColor: ground }} />
+      <View style={{ position: 'absolute', left: '4%', right: '17%', bottom: 38, height: 24, borderRadius: 999, backgroundColor: '#8E7454', opacity: 0.72 }} />
+      <View style={{ position: 'absolute', left: '6%', right: '19%', bottom: 45, height: 9, borderRadius: 999, backgroundColor: '#B39A6A', opacity: 0.54 }} />
+
+      <View style={{ position: 'absolute', right: '-1%', top: 32 }}>
+        <SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.gate} size={122} opacity={0.98} tintColor={sceneTint} />
+      </View>
+      <View style={{ position: 'absolute', right: '18%', top: 52 }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.stone_wall} size={104} opacity={0.92} tintColor={tint} />
+      </View>
+      <View style={{ position: 'absolute', right: '-8%', top: 58 }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.stone_wall} size={108} opacity={0.92} tintColor={tint} />
+      </View>
+
+      <Animated.View style={{ position: 'absolute', right: '18%', top: 19, transform: [{ rotate: motion.interpolate({ inputRange: [0, 1], outputRange: ['-1.2deg', '1.2deg'] }) }] }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={46} opacity={0.94} tintColor={tint} />
+      </Animated.View>
+
+      {stagePositions.map((left, index) => {
+        const reached = completed || index < activeStage || (stageIndex >= 0 && index === activeStage);
+        const current = !completed && !failed && stageIndex >= 0 && index === activeStage;
+        return (
+          <React.Fragment key={'siege-stage-node-' + index}>
+            {index < stagePositions.length - 1 ? (
+              <View style={{ position: 'absolute', left, bottom: 49, width: '22%', height: 3, borderRadius: 999, backgroundColor: reached ? accent : '#6F756F', opacity: reached ? 0.52 : 0.28 }} />
+            ) : null}
+            <Animated.View
+              style={{
+                position: 'absolute',
+                left,
+                bottom: 38,
+                width: current ? 28 : 22,
+                height: current ? 28 : 22,
+                marginLeft: current ? -3 : 0,
+                marginBottom: current ? -3 : 0,
+                borderRadius: 999,
+                borderWidth: 2,
+                borderColor: reached ? accent : '#7A7E79',
+                backgroundColor: reached ? accent : '#252A29',
+                opacity: current ? pulse : reached ? 0.76 : 0.48
+              }}
+            />
+          </React.Fragment>
+        );
+      })}
+
+      <Animated.View style={{ position: 'absolute', left: attackerPositions[activeStage], bottom: 50, transform: [{ translateY: motion.interpolate({ inputRange: [0, 1], outputRange: [0, -2] }) }] }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.knight} size={58} opacity={failed ? 0.5 : 0.98} tintColor={tint} />
+      </Animated.View>
+      <View style={{ position: 'absolute', left: '4%', bottom: 45 }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.guard} size={44} opacity={0.8} tintColor={tint} />
+      </View>
+      <View style={{ position: 'absolute', left: '18%', bottom: 43 }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={42} opacity={0.82} tintColor={tint} />
+      </View>
+
+      <Animated.View style={{ position: 'absolute', right: '8%', top: 27, width: 22, height: 22, borderRadius: 999, backgroundColor: failed ? '#A83F35' : '#D5D0C4', opacity: smokeFade, transform: [{ translateY: smokeLift }] }} />
+      <Animated.View style={{ position: 'absolute', right: '3%', top: 16, width: 15, height: 15, borderRadius: 999, backgroundColor: failed ? '#C34A3B' : '#E2DDD4', opacity: smokeFade, transform: [{ translateY: smokeLift }] }} />
+      {completed ? <Animated.View style={{ position: 'absolute', right: '9%', top: 59, width: 62, height: 26, borderRadius: 999, backgroundColor: accent, opacity: pulse }} /> : null}
+    </View>
+  );
+}
+
+export function WarTableBoardScene({
+  faction = 'human',
+  completed = 0,
+  total = 3,
+  boardCycle = 0,
+  tierUpgradePending = false
+}: {
+  faction?: FactionId;
+  completed?: number;
+  total?: number;
+  boardCycle?: number;
+  tierUpgradePending?: boolean;
+}) {
+  const motion = useSettlementAmbientMotion(3000);
+  const pulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.28, 0.58] });
+  const accent = settlementAmbientGlow[faction];
+  const tint = settlementAmbientPeopleTint[faction];
+  const pinPositions = [
+    { left: '15%' as const, top: 62 },
+    { left: '34%' as const, top: 34 },
+    { left: '52%' as const, top: 74 },
+    { left: '69%' as const, top: 42 },
+    { left: '27%' as const, top: 108 },
+    { left: '63%' as const, top: 112 }
+  ];
+  const visiblePins = Math.max(1, Math.min(pinPositions.length, total));
+  const focusPin = boardCycle % visiblePins;
+
+  return (
+    <View
+      testID={'war-table-board-scene-' + faction}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: '100%', height: 184, position: 'relative', overflow: 'hidden', borderRadius: 18, backgroundColor: '#4A3326' }}
+    >
+      <View style={{ position: 'absolute', left: 12, right: 12, top: 12, bottom: 12, borderRadius: 16, borderWidth: 2, borderColor: '#8D6E4B', backgroundColor: '#B59A6C' }} />
+      <View style={{ position: 'absolute', left: 24, right: 24, top: 24, bottom: 24, borderRadius: 12, backgroundColor: '#C8B17F', opacity: 0.9 }} />
+
+      <View style={{ position: 'absolute', left: '16%', top: 78, width: '24%', height: 3, borderRadius: 999, backgroundColor: '#7C6545', transform: [{ rotate: '-20deg' }] }} />
+      <View style={{ position: 'absolute', left: '36%', top: 70, width: '25%', height: 3, borderRadius: 999, backgroundColor: '#7C6545', transform: [{ rotate: '24deg' }] }} />
+      <View style={{ position: 'absolute', left: '55%', top: 78, width: '20%', height: 3, borderRadius: 999, backgroundColor: '#7C6545', transform: [{ rotate: '-23deg' }] }} />
+      <View style={{ position: 'absolute', left: '29%', top: 105, width: '35%', height: 3, borderRadius: 999, backgroundColor: '#7C6545', transform: [{ rotate: '7deg' }] }} />
+
+      {pinPositions.slice(0, visiblePins).map((position, index) => {
+        const cleared = index < completed;
+        const focused = index === focusPin && !cleared;
+        return (
+          <Animated.View
+            key={'war-table-pin-' + index}
+            style={[
+              {
+                position: 'absolute',
+                width: focused ? 30 : 24,
+                height: focused ? 30 : 24,
+                marginLeft: focused ? -3 : 0,
+                marginTop: focused ? -3 : 0,
+                borderRadius: 999,
+                borderWidth: 3,
+                borderColor: cleared ? '#D6E8C0' : accent,
+                backgroundColor: cleared ? '#4D7A4E' : '#6B3E32',
+                opacity: focused ? pulse : 0.94
+              },
+              position
+            ]}
+          />
+        );
+      })}
+
+      <View style={{ position: 'absolute', left: 15, top: 9 }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={54} opacity={0.9} tintColor={tint} />
+      </View>
+      <View style={{ position: 'absolute', right: 12, top: 8 }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={52} opacity={0.9} tintColor={tint} />
+      </View>
+      <View style={{ position: 'absolute', right: 19, bottom: 8 }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={48} opacity={0.84} tintColor={tint} />
+      </View>
+
+      {tierUpgradePending ? (
+        <Animated.View style={{ position: 'absolute', left: '46%', top: 17, width: 32, height: 32, borderRadius: 999, borderWidth: 2, borderColor: accent, backgroundColor: accent, opacity: pulse }} />
+      ) : null}
+    </View>
+  );
+}
+
 const settlementGrowthTint: Record<FactionId, string | undefined> = {
   human: undefined,
   elf: '#83B89A',
