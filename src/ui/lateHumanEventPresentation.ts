@@ -34,10 +34,10 @@ type Definition = {
 // GameProvider action bodies. No reward, progression or combat mutation belongs here.
 const definitions: Record<LateHumanEventId, Definition> = {
   empty_throne: {
-    chapter: 4, nodeId: 'ch4_node_3', title: 'The Empty Throne',
-    body: 'Greenkeep reaches an abandoned royal audience hall. The throne is gone, but official standards, transport records and broken crown wagons remain.',
-    purpose: { label: 'Royal records', tone: 'violet' },
-    action: 'completeEmptyThrone', actionLabel: 'Secure the Royal Records', continueLabel: 'Continue along the Crownroad',
+    chapter: 4, nodeId: 'ch4_node_6', title: 'Prepare for Battle',
+    body: 'Recovered royal records, wagon inventories and abandoned standards give Greenkeep enough logistical clarity to formalize reusable army preparations before the harder Crownroad fights.',
+    purpose: { label: 'Army preparation', tone: 'blue' },
+    action: 'completeEmptyThrone', actionLabel: 'Organize the Battle Plans', continueLabel: 'Test the new loadout',
     scene: 'crownspire', loreId: 'empty_throne_records', siteId: 'crownroad_salvage',
     findings: [{ title: 'Preparation matters', portrait: 'human', detail: 'The recovered stores make it practical to maintain more than one viable army setup. The next encounters are built to punish a single habitual high-Power loadout.' }]
   },
