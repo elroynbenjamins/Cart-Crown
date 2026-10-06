@@ -1803,32 +1803,19 @@ export function metadataFromSnapshot(
               : current.chapterNodes.find(node => node.id === 'ch3_node_2')?.current
                 ? 'Chapter 3 · Border Fort'
                 : 'Chapter 3 · Marcher Envoy';
-  } else if (current.chapterNumber === 2) {
-    chapterLabel = current.ironProvostWon
-      ? 'Chapter 2 · Raise Greenkeep Town'
-      : current.signalTowerUnlocked
-        ? 'Chapter 2 · The Iron Provost'
-        : current.kingdomDefenseCompleted
-          ? 'Chapter 2 · Broken Signal Tower'
-          : current.unlockedResourceSites.includes('greenwood_camp')
-            ? 'Chapter 2 · Kingdom Defense'
-            : current.unlockedResourceSites.includes('iron_hills_mine')
-              ? 'Chapter 2 · Timber Claim'
-              : current.fourthRecruitChosen
-                ? 'Chapter 2 · Iron Road Skirmish'
-                : 'Chapter 2 · Fort Muster';
-  } else if (current.refugeeCampSecured) {
-    chapterLabel = 'Chapter 1 · The Toll Captain';
-  } else if (current.mercenaryPatrolWon && !current.commanderPathId) {
-    chapterLabel = 'Chapter 1 · Choose Commander';
-  } else if (current.mercenaryPatrolWon) {
-    chapterLabel = 'Chapter 1 · Refugee Camp';
-  } else if (current.firstPromotionComplete) {
-    chapterLabel = 'Chapter 1 · Mercenary Patrol';
-  } else if (current.markedRaidersInvestigated) {
-    chapterLabel = 'Chapter 1 · First Promotion';
-  } else if (current.holdTheRoadWon) {
-    chapterLabel = 'Chapter 1 · Marked Raiders';
+  } else if (current.chapterNumber <= 2) {
+    const currentNode = current.chapterNodes.find(node => node.current);
+    const lastCompletedNode = [...current.chapterNodes]
+      .reverse()
+      .find(node => node.completed);
+    chapterLabel =
+      'Chapter ' +
+      current.chapterNumber +
+      ' · ' +
+      (currentNode?.name ??
+        (current.chapterNumber === 2 && current.ironProvostWon
+          ? 'Prepare for Chapter 3'
+          : lastCompletedNode?.name ?? 'Campaign'));
   }
 
   const kingdomName =
