@@ -630,12 +630,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const safeFontScale = Number.isFinite(fontScale) ? fontScale : 1;
   const safeViewportHeight = Number.isFinite(viewportHeight) ? viewportHeight : 800;
   const compactHud = safeViewportHeight < 720 || safeFontScale > 1.15;
-  const mapHeight = safeViewportHeight < 700 && safeFontScale <= 1.15
-    ? Math.max(520, Math.round(safeViewportHeight - 120))
-    : Math.max(
-        600,
-        Math.min(760, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 120))
-      );
+  const mapHeight = Math.max(
+    600,
+    Math.min(760, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 120))
+  );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
   const humanStagePlateActive = activeFaction === 'human';
