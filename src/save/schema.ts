@@ -668,6 +668,98 @@ function migrateLegacyHumanChapterOneNodes(
   });
 }
 
+function migrateLegacyHumanChapterTwoNodes(
+  value: unknown,
+  stored: Partial<FactionGameState>
+): unknown {
+  if (!Array.isArray(value)) return value;
+
+  const ids = new Set(
+    value
+      .filter((node): node is ChapterNode =>
+        Boolean(node && typeof node === 'object' && typeof (node as ChapterNode).id === 'string')
+      )
+      .map(node => node.id)
+  );
+
+  if (ids.has('ch2_node_8') || !ids.has('ch2_node_6')) {
+    return value;
+  }
+
+  if (Boolean(stored.ironProvostWon)) {
+    return chapterTwoNodes.map(node => ({
+      ...node,
+      completed: true,
+      current: false
+    }));
+  }
+
+  const musterComplete = Boolean(stored.fourthRecruitChosen);
+  const toolsComplete = Array.isArray(stored.unlockedResourceSites) &&
+    stored.unlockedResourceSites.includes('iron_hills_mine');
+  const suppliesKnown = Array.isArray(stored.unlockedResourceSites) &&
+    stored.unlockedResourceSites.includes('greenwood_camp');
+  const defenseComplete = Boolean(stored.kingdomDefenseCompleted);
+  const routeComplete = Boolean(stored.signalTowerUnlocked);
+  const ironLineComplete = routeComplete && suppliesKnown;
+
+  return chapterTwoNodes.map(node => {
+    if (node.id === 'ch2_node_1') {
+      return { ...node, completed: musterComplete, current: !musterComplete };
+    }
+    if (node.id === 'ch2_node_2') {
+      return {
+        ...node,
+        completed: toolsComplete,
+        current: musterComplete && !toolsComplete
+      };
+    }
+    if (node.id === 'ch2_node_3') {
+      return {
+        ...node,
+        completed: suppliesKnown || defenseComplete,
+        current: toolsComplete && !suppliesKnown && !defenseComplete
+      };
+    }
+    if (node.id === 'ch2_node_4') {
+      return {
+        ...node,
+        completed: defenseComplete,
+        current: (suppliesKnown || toolsComplete) && !defenseComplete
+      };
+    }
+    if (node.id === 'ch2_node_5') {
+      return {
+        ...node,
+        completed: routeComplete,
+        current: defenseComplete && !routeComplete
+      };
+    }
+    if (node.id === 'ch2_node_6') {
+      return {
+        ...node,
+        completed: ironLineComplete,
+        current: routeComplete && !ironLineComplete
+      };
+    }
+    if (node.id === 'ch2_node_7') {
+      return {
+        ...node,
+        completed: ironLineComplete,
+        current: false
+      };
+    }
+    if (node.id === 'ch2_node_8') {
+      return {
+        ...node,
+        completed: false,
+        current: ironLineComplete
+      };
+    }
+    return { ...node };
+  });
+}
+
 function sanitizeNodes(
   value: unknown,
   fallback: ChapterNode[]
@@ -1073,7 +1165,11 @@ export function sanitizeFactionGameState(
     stageId === 'settlement' &&
     storedNodeIds.some(id => id.startsWith('ch2_node_'))
       ? 2
-      : inferredChapterNumber;
+      : faction === 'human' &&
+          stageId === 'fort' &&
+          storedNodeIds.some(id => id.startsWith('ch3_node_'))
+        ? 3
+        : inferredChapterNumber;
   const chapterDefaults = nodesForChapter(
     faction,
     chapterNumber
@@ -1223,7 +1319,12 @@ export function sanitizeFactionGameState(
             stored.chapterNodes,
             stored
           )
-        : stored.chapterNodes,
+        : faction === 'human' && chapterNumber === 2
+          ? migrateLegacyHumanChapterTwoNodes(
+              stored.chapterNodes,
+              stored
+            )
+          : stored.chapterNodes,
       chapterDefaults
     ),
     formationDoctrineId,
@@ -1911,18 +2012,22 @@ export function metadataFromSnapshot(
                 : 'Chapter 3 · Marcher Envoy';
   } else if (current.chapterNumber === 2) {
     chapterLabel = current.ironProvostWon
-      ? 'Chapter 2 · Raise Greenkeep Town'
-      : current.signalTowerUnlocked
-        ? 'Chapter 2 · The Iron Provost'
-        : current.kingdomDefenseCompleted
-          ? 'Chapter 2 · Broken Signal Tower'
-          : current.unlockedResourceSites.includes('greenwood_camp')
-            ? 'Chapter 2 · Kingdom Defense'
-            : current.unlockedResourceSites.includes('iron_hills_mine')
-              ? 'Chapter 2 · Timber Claim'
-              : current.fourthRecruitChosen
-                ? 'Chapter 2 · Iron Road Skirmish'
-                : 'Chapter 2 · Fort Muster';
+      ? 'Chapter 2 Complete · Raise Greenkeep Fort'
+      : current.chapterNodes.find(node => node.id === 'ch2_node_8')?.current
+        ? 'Chapter 2 · Break Their Hold'
+        : current.chapterNodes.find(node => node.id === 'ch2_node_7')?.current
+          ? 'Chapter 2 · Supplies for War'
+          : current.chapterNodes.find(node => node.id === 'ch2_node_6')?.current
+            ? 'Chapter 2 · The Iron Line'
+            : current.chapterNodes.find(node => node.id === 'ch2_node_5')?.current
+              ? 'Chapter 2 · The Long Way Around'
+              : current.chapterNodes.find(node => node.id === 'ch2_node_4')?.current
+                ? 'Chapter 2 · No Army Fights Forever'
+                : current.chapterNodes.find(node => node.id === 'ch2_node_3')?.current
+                  ? 'Chapter 2 · Riders on the Road'
+                  : current.chapterNodes.find(node => node.id === 'ch2_node_2')?.current
+                    ? 'Chapter 2 · Tools of War'
+                    : 'Chapter 2 · Strength in Numbers';
   } else if (current.chapterNodes.find(node => node.id === 'node_7')?.current) {
     chapterLabel = 'Chapter 1 · Reclaim the Outpost';
   } else if (current.chapterNodes.find(node => node.id === 'node_6')?.current) {
