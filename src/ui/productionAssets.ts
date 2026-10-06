@@ -23,6 +23,7 @@ export type ProductionAssetCategory =
   | 'enemy'
   | 'commander'
   | 'story_scene'
+  | 'settlement_background'
   | 'resource_site'
   | 'resource'
   | 'wagon_item'
@@ -184,6 +185,24 @@ export function storySceneProductionAsset(
   );
 }
 
+export type SettlementBackgroundStage = 'camp' | 'settlement' | 'fort' | 'town' | 'capital';
+
+export function settlementBackgroundProductionAsset(
+  faction: FactionId,
+  stage: SettlementBackgroundStage
+) {
+  return spec(
+    'settlement_background.' + faction + '.' + stage,
+    'settlement_background',
+    PRODUCTION_ASSET_ROOT + '/scenes/' + faction + '/settlement/' + stage + '.jpg',
+    540,
+    960,
+    false,
+    3,
+    'Opaque portrait settlement world plate. Keep gameplay build pads clear; no baked building sprites, text or UI.'
+  );
+}
+
 export function resourceSiteProductionAsset(
   faction: FactionId,
   siteId: string,
@@ -256,6 +275,12 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'scene.human.camp': require('../../assets/game/scenes/human/camp.png'),
   'scene.elf.camp': require('../../assets/game/scenes/elf/camp.png'),
   'scene.orc.camp': require('../../assets/game/scenes/orc/camp.png'),
+
+  'settlement_background.human.camp': require('../../assets/game/scenes/human/settlement/camp.jpg'),
+  'settlement_background.human.settlement': require('../../assets/game/scenes/human/settlement/settlement.jpg'),
+  'settlement_background.human.fort': require('../../assets/game/scenes/human/settlement/fort.jpg'),
+  'settlement_background.human.town': require('../../assets/game/scenes/human/settlement/town.jpg'),
+  'settlement_background.human.capital': require('../../assets/game/scenes/human/settlement/capital.jpg'),
 
   // Generated Human portrait/figure pairs. Existing exact-class fallback art stays registered.
   'battle_portrait.human_captain_portrait': require('../../assets/game/battle_portraits/human/captain_portrait.png'),
