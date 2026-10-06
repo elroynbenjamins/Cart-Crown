@@ -10,7 +10,7 @@ import { canPayBuildingCost, getBuildingLevelDefinition } from '../game/kingdom'
 import { useGame } from '../game/GameProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { PrimaryButton, SecondaryButton } from '../ui/components';
-import { BuildingSprite, LockIcon, ResourceSprite, SettlementBuildingAmbience, SettlementBuildPlotSprite, SettlementDistrictAmbience, SettlementTerrainBackdrop } from '../ui/gameArt';
+import { BuildingSprite, LockIcon, ResourceSprite, SettlementBuildingAmbience, SettlementBuildPlotSprite, SettlementDistrictAmbience, SettlementSceneAtmosphere, SettlementTerrainBackdrop } from '../ui/gameArt';
 import { SemanticChip, SemanticText } from '../ui/SemanticUI';
 import { blendColor, semanticColor } from '../ui/semanticColors';
 import type { SemanticTone } from '../ui/semanticColors';
@@ -1161,6 +1161,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         <View pointerEvents="none" style={styles.backdrop}>
           <SettlementTerrainBackdrop faction={activeFaction} stageId={currentWagonStage.id} />
         </View>
+        <SettlementSceneAtmosphere faction={activeFaction} stageId={currentWagonStage.id} />
         <View pointerEvents="none" style={[styles.sceneInnerFrame, { borderColor: factionAccent + '66' }]} />
         <View pointerEvents="none" style={[styles.sceneShadeTop, { backgroundColor: theme.colors.surface1 }]} />
         <View pointerEvents="none" style={[styles.sceneShadeBottom, { backgroundColor: theme.colors.surface1 }]} />
