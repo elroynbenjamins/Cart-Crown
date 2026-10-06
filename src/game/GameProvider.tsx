@@ -1490,7 +1490,16 @@ export function GameProvider({
   );
 
   const formationBonuses = formationAnalysis.bonuses;
-  const activeSquadCap = currentWagonStage.formationSlots;
+  const activeSquadCap =
+    activeFaction === 'human' && chapterNumber === 3
+      ? chapterNodes.find(node => node.id === 'ch3_node_2')?.completed
+        ? 4
+        : 3
+      : activeFaction === 'human' && chapterNumber === 4
+        ? chapterNodes.find(node => node.id === 'ch4_node_2')?.completed
+          ? 5
+          : 4
+        : currentWagonStage.formationSlots;
   const activeDeploymentCapacity = useMemo(
     () =>
       getArmyDeploymentCapacity(
