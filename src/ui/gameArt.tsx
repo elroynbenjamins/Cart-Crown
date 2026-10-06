@@ -4053,6 +4053,7 @@ export function SettlementSceneAtmosphere({
   const tintColor = settlementGrowthTint[faction];
   const glow = settlementAmbientGlow[faction];
   const edgeTint = faction === 'elf' ? '#173D31' : faction === 'orc' ? '#39251E' : '#233728';
+  const authoredHumanPlate = faction === 'human';
   const travelerPrimary = faction === 'elf'
     ? settlementPeopleHumanCells.woman
     : faction === 'orc'
@@ -4070,11 +4071,15 @@ export function SettlementSceneAtmosphere({
       importantForAccessibility="no-hide-descendants"
       style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 1, overflow: 'hidden' }}
     >
-      <View style={{ position: 'absolute', left: -18, top: '12%', width: 58, height: '58%', borderRadius: 999, backgroundColor: edgeTint, opacity: faction === 'elf' ? 0.2 : 0.14 }} />
-      <View style={{ position: 'absolute', right: -18, top: '9%', width: 58, height: '61%', borderRadius: 999, backgroundColor: edgeTint, opacity: faction === 'elf' ? 0.2 : 0.14 }} />
-      <View style={{ position: 'absolute', left: '5%', right: '5%', bottom: -24, height: 52, borderRadius: 999, backgroundColor: edgeTint, opacity: 0.16 }} />
+      {!authoredHumanPlate ? (
+        <>
+          <View style={{ position: 'absolute', left: -18, top: '12%', width: 58, height: '58%', borderRadius: 999, backgroundColor: edgeTint, opacity: faction === 'elf' ? 0.2 : 0.14 }} />
+          <View style={{ position: 'absolute', right: -18, top: '9%', width: 58, height: '61%', borderRadius: 999, backgroundColor: edgeTint, opacity: faction === 'elf' ? 0.2 : 0.14 }} />
+          <View style={{ position: 'absolute', left: '5%', right: '5%', bottom: -24, height: 52, borderRadius: 999, backgroundColor: edgeTint, opacity: 0.16 }} />
+        </>
+      ) : null}
 
-      {natureSource ? (
+      {natureSource && !authoredHumanPlate ? (
         <>
           <View style={{ position: 'absolute', left: '-3%', top: faction === 'elf' ? '7%' : '13%' }}>
             <SettlementDetailAtlasSprite
@@ -4115,7 +4120,7 @@ export function SettlementSceneAtmosphere({
         </>
       ) : null}
 
-      {worldSource && rank >= 2 ? (
+      {worldSource && rank >= 2 && !authoredHumanPlate ? (
         <>
           <Animated.View style={{ position: 'absolute', left: '9%', top: '26%', transform: [{ rotate: bannerSway }] }}>
             <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={34} opacity={0.62} tintColor={tintColor} />
@@ -4131,7 +4136,7 @@ export function SettlementSceneAtmosphere({
           testID="settlement-scene-walker-primary"
           style={{ position: 'absolute', left: '24%', top: rank >= 3 ? '48%' : '53%', transform: [{ translateX: walkerDrift }, { translateY: idleLift }] }}
         >
-          <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={travelerPrimary} size={26} opacity={0.72} tintColor={tintColor} />
+          <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={travelerPrimary} size={authoredHumanPlate ? 18 : 26} opacity={authoredHumanPlate ? 0.5 : 0.72} tintColor={tintColor} />
         </Animated.View>
       ) : null}
       {peopleSource && rank >= 1 ? (
@@ -4139,7 +4144,7 @@ export function SettlementSceneAtmosphere({
           testID="settlement-scene-walker-secondary"
           style={{ position: 'absolute', right: '25%', top: rank >= 4 ? '55%' : '59%', transform: [{ translateX: reverseDrift }, { translateY: idleLift }] }}
         >
-          <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={travelerSecondary} size={24} opacity={0.68} tintColor={tintColor} />
+          <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={travelerSecondary} size={authoredHumanPlate ? 17 : 24} opacity={authoredHumanPlate ? 0.46 : 0.68} tintColor={tintColor} />
         </Animated.View>
       ) : null}
 
@@ -4174,8 +4179,8 @@ export function SettlementSceneAtmosphere({
         </>
       ) : rank >= 2 ? (
         <>
-          <Animated.View style={{ position: 'absolute', left: '45%', top: '33%', width: 5, height: 5, borderRadius: 999, backgroundColor: '#F2C06B', opacity: ambientPulse }} />
-          <Animated.View style={{ position: 'absolute', right: '36%', top: '57%', width: 4, height: 4, borderRadius: 999, backgroundColor: '#F2C06B', opacity: ambientPulse }} />
+          <Animated.View style={{ position: 'absolute', left: '45%', top: '33%', width: 3, height: 3, borderRadius: 999, backgroundColor: '#F2C06B', opacity: ambientPulse }} />
+          <Animated.View style={{ position: 'absolute', right: '36%', top: '57%', width: 3, height: 3, borderRadius: 999, backgroundColor: '#F2C06B', opacity: ambientPulse }} />
         </>
       ) : null}
     </View>
