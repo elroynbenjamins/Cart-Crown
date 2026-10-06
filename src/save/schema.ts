@@ -585,6 +585,89 @@ function sanitizeUnits(
     : fallback.map(unit => ({ ...unit }));
 }
 
+function migrateLegacyHumanChapterOneNodes(
+  value: unknown,
+  stored: Partial<FactionGameState>
+): unknown {
+  if (!Array.isArray(value)) return value;
+
+  const ids = new Set(
+    value
+      .filter((node): node is ChapterNode =>
+        Boolean(node && typeof node === 'object' && typeof (node as ChapterNode).id === 'string')
+      )
+      .map(node => node.id)
+  );
+
+  if (ids.has('node_7') || !ids.has('node_6')) {
+    return value;
+  }
+
+  const legacyFinalComplete = value.some(
+    node =>
+      node &&
+      typeof node === 'object' &&
+      (node as ChapterNode).id === 'node_6' &&
+      Boolean((node as ChapterNode).completed)
+  );
+  const holdComplete = Boolean(stored.holdTheRoadWon);
+  const barracksComplete = Boolean(stored.markedRaidersInvestigated);
+  const spearsComplete = Boolean(stored.mercenaryPatrolWon);
+  const commanderChosen = Boolean(stored.commanderPathId);
+  const brokenRoadComplete = Boolean(stored.refugeeCampSecured);
+
+  if (legacyFinalComplete) {
+    return chapterOneNodes.map(node => ({
+      ...node,
+      completed: true,
+      current: false
+    }));
+  }
+
+  return chapterOneNodes.map(node => {
+    if (node.id === 'node_1') return { ...node, completed: true, current: false };
+    if (node.id === 'node_2') {
+      return { ...node, completed: holdComplete, current: !holdComplete };
+    }
+    if (node.id === 'node_3') {
+      return {
+        ...node,
+        completed: barracksComplete,
+        current: holdComplete && !barracksComplete
+      };
+    }
+    if (node.id === 'node_4') {
+      return {
+        ...node,
+        completed: spearsComplete,
+        current: barracksComplete && !spearsComplete
+      };
+    }
+    if (node.id === 'node_5') {
+      return {
+        ...node,
+        completed: brokenRoadComplete,
+        current: spearsComplete && commanderChosen && !brokenRoadComplete
+      };
+    }
+    if (node.id === 'node_6') {
+      return {
+        ...node,
+        completed: brokenRoadComplete,
+        current: false
+      };
+    }
+    if (node.id === 'node_7') {
+      return {
+        ...node,
+        completed: false,
+        current: brokenRoadComplete
+      };
+    }
+    return { ...node };
+  });
+}
+
 function sanitizeNodes(
   value: unknown,
   fallback: ChapterNode[]
@@ -969,10 +1052,28 @@ export function sanitizeFactionGameState(
     stored.wagonStageId,
     defaults.wagonStageId
   );
-  const chapterNumber = expectedChapterForStage(
+  const inferredChapterNumber = expectedChapterForStage(
     faction,
     stageId
   );
+  const storedNodeIds = Array.isArray(stored.chapterNodes)
+    ? stored.chapterNodes
+        .filter(
+          (node): node is ChapterNode =>
+            Boolean(
+              node &&
+                typeof node === 'object' &&
+                typeof (node as ChapterNode).id === 'string'
+            )
+        )
+        .map(node => node.id)
+    : [];
+  const chapterNumber =
+    faction === 'human' &&
+    stageId === 'settlement' &&
+    storedNodeIds.some(id => id.startsWith('ch2_node_'))
+      ? 2
+      : inferredChapterNumber;
   const chapterDefaults = nodesForChapter(
     faction,
     chapterNumber
@@ -1117,7 +1218,12 @@ export function sanitizeFactionGameState(
         : defaults.armyReadiness ?? 100
     ),
     chapterNodes: sanitizeNodes(
-      stored.chapterNodes,
+      faction === 'human' && chapterNumber === 1
+        ? migrateLegacyHumanChapterOneNodes(
+            stored.chapterNodes,
+            stored
+          )
+        : stored.chapterNodes,
       chapterDefaults
     ),
     formationDoctrineId,
