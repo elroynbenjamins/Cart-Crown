@@ -236,7 +236,7 @@ function testAuxiliaries() {
     one(tree, 'DecisionCommit').onConfirm();
     check(continued === 1 && calls.length === 1, 'Envoy Continue must only navigate.');
     const reloaded = harness('src/screens/MarcherEnvoyScreen.tsx', 'MarcherEnvoyScreen', game, { onComplete() {} });
-    check(one(reloaded.render(), 'DecisionCommit').label === 'Enter the Border Marches', 'Reload must not offer a second auxiliary.');
+    check(one(reloaded.render(), 'DecisionCommit').label === 'Enter Frostmarch', 'Reload must not offer a second auxiliary.');
   }
 }
 
