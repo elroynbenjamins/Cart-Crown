@@ -28,6 +28,20 @@ const SETTLEMENT_HUD_GOLD_DARK = '#796039';
 const SETTLEMENT_HUD_TEXT = '#F3E8D3';
 const SETTLEMENT_HUD_MUTED = '#B6C4D3';
 
+function formatSettlementHudAmount(value: number) {
+  if (!Number.isFinite(value)) return '—';
+  const abs = Math.abs(value);
+  if (abs >= 1000000) {
+    const millions = value / 1000000;
+    return (Math.abs(millions) >= 10 ? millions.toFixed(0) : millions.toFixed(1)).replace('.0', '') + 'M';
+  }
+  if (abs >= 1000) {
+    const thousands = value / 1000;
+    return (Math.abs(thousands) >= 10 ? thousands.toFixed(0) : thousands.toFixed(1)).replace('.0', '') + 'K';
+  }
+  return String(Math.round(value));
+}
+
 const settlementPlotPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
   plot_nw: { left: '6%', top: '15%' },
   plot_n: { left: '37%', top: '6%' },
@@ -251,8 +265,9 @@ type SettlementBuildingAction = 'inspect' | 'move' | 'upgrade';
 
 const settlementUnlockSnapshots = new Map<string, SettlementUnlockSnapshot>();
 
-export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplete }: {
+export function SettlementScreen({ onExit, onOpenSettings, tutorialFocus, onTutorialFocusComplete }: {
   onExit: () => void;
+  onOpenSettings?: () => void;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
 }) {
@@ -1043,20 +1058,39 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <Text style={[styles.eyebrow, compactHud ? styles.eyebrowCompact : undefined, { color: worldRebuildActive ? '#8FC2F1' : factionAccent }]}>CART & CROWN</Text>
             <Text accessibilityRole="header" style={[styles.title, compactHud ? styles.titleCompact : undefined, { color: worldRebuildActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]} numberOfLines={1}>{stageLabel}</Text>
           </View>
-          <View
-            style={[
-              styles.stageBadge,
-              compactHud ? styles.stageBadgeCompact : undefined,
-              worldRebuildActive ? styles.conceptStageBadge : undefined,
-              {
-                borderColor: worldRebuildActive ? SETTLEMENT_HUD_GOLD : factionAccent,
-                backgroundColor: worldRebuildActive ? SETTLEMENT_HUD_NAVY_RAISED : theme.colors.surface2
-              }
-            ]}
-          >
-            <Text style={[styles.stageBadgeText, compactHud ? styles.stageBadgeTextCompact : undefined, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : factionAccent }]}>
-              {currentWagonStage.id.toUpperCase()}
-            </Text>
+          <View style={styles.heroActions}>
+            <View
+              style={[
+                styles.stageBadge,
+                compactHud ? styles.stageBadgeCompact : undefined,
+                worldRebuildActive ? styles.conceptStageBadge : undefined,
+                {
+                  borderColor: worldRebuildActive ? SETTLEMENT_HUD_GOLD : factionAccent,
+                  backgroundColor: worldRebuildActive ? SETTLEMENT_HUD_NAVY_RAISED : theme.colors.surface2
+                }
+              ]}
+            >
+              <Text style={[styles.stageBadgeText, compactHud ? styles.stageBadgeTextCompact : undefined, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : factionAccent }]}>
+                {currentWagonStage.id.toUpperCase()}
+              </Text>
+            </View>
+            {worldRebuildActive && onOpenSettings ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Open settings"
+                onPress={onOpenSettings}
+                style={({ pressed }) => [
+                  styles.conceptSettingsButton,
+                  {
+                    borderColor: SETTLEMENT_HUD_GOLD_DARK,
+                    backgroundColor: SETTLEMENT_HUD_NAVY_RAISED,
+                    opacity: pressed ? 0.72 : 1
+                  }
+                ]}
+              >
+                <Text style={styles.conceptSettingsGlyph}>⚙</Text>
+              </Pressable>
+            ) : null}
           </View>
         </View>
 
@@ -1080,15 +1114,17 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             >
               <ResourceSprite resource={resource} size={compactHud ? 15 : 18} />
               <View style={styles.resourceCopy}>
-                <Text style={[styles.resourceValue, compactHud ? styles.resourceValueCompact : undefined, { color: worldRebuildActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]}>{resources[resource]}</Text>
-                {!compactHud ? <Text style={[styles.resourceLabel, { color: worldRebuildActive ? SETTLEMENT_HUD_MUTED : theme.colors.textMuted }]}>{settlementResourceLabels[resource]}</Text> : null}
+                <Text style={[styles.resourceValue, compactHud ? styles.resourceValueCompact : undefined, { color: worldRebuildActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]}>
+                  {worldRebuildActive ? formatSettlementHudAmount(resources[resource]) : resources[resource]}
+                </Text>
+                {!compactHud && !worldRebuildActive ? <Text style={[styles.resourceLabel, { color: theme.colors.textMuted }]}>{settlementResourceLabels[resource]}</Text> : null}
               </View>
             </View>
           ))}
         </View>
 
         <View style={[styles.hudFooter, compactHud ? styles.hudFooterCompact : undefined]}>
-          {compactHud ? (
+          {compactHud || worldRebuildActive ? (
             <Text
               accessible
               accessibilityLabel={
@@ -1097,7 +1133,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 (upgradeMaterialReadyIds.size ? ', ' + upgradeMaterialReadyIds.size + ' upgrades' : '') +
                 (constructionReadyCount ? ', ' + constructionReadyCount + ' build ready' : '')
               }
-              style={[styles.hudCompactSummary, { color: worldRebuildActive ? SETTLEMENT_HUD_MUTED : theme.colors.textMuted }]}
+              style={[styles.hudCompactSummary, worldRebuildActive ? styles.conceptHudSummary : undefined, { color: worldRebuildActive ? SETTLEMENT_HUD_MUTED : theme.colors.textMuted }]}
               numberOfLines={1}
             >
               {placedIds.length} built · {settlementAdjacencyBonuses.length} districts
@@ -1120,7 +1156,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               {upgradeMaterialReadyIds.size ? <SemanticChip label={upgradeMaterialReadyIds.size + ' upgrade mats'} tone="positive" compact /> : null}
             </View>
           )}
-          {!compactHud && nextSuggestedBuilding && nextSuggestedPlot ? (
+          {!compactHud && !worldRebuildActive && nextSuggestedBuilding && nextSuggestedPlot ? (
             <View style={styles.nextGoalInline}>
               <Text style={[styles.nextGoalEyebrow, { color: constructionReadyCount ? theme.colors.gold : theme.colors.textMuted }]}>{constructionReadyCount ? 'READY' : 'NEXT'}</Text>
               <Text style={[styles.nextGoalTitle, { color: theme.colors.text }]} numberOfLines={1}>{nextSuggestedBuilding.name}</Text>
@@ -2566,7 +2602,10 @@ const styles = StyleSheet.create({
   conceptHud: { borderWidth: 1, borderRadius: 12, elevation: 6, paddingHorizontal: 8 },
   conceptCrestFrame: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: SETTLEMENT_HUD_NAVY_RAISED },
   conceptStageBadge: { borderWidth: 1.5, borderRadius: 999 },
+  conceptSettingsButton: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  conceptSettingsGlyph: { color: SETTLEMENT_HUD_GOLD, fontSize: 16, lineHeight: 18, fontWeight: '900' },
   heroHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  heroActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   heroCopy: { flex: 1, minWidth: 0 },
   eyebrow: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 1.1 },
   eyebrowCompact: { fontSize: 7, lineHeight: 9, letterSpacing: 0.9 },
@@ -2588,6 +2627,7 @@ const styles = StyleSheet.create({
   hudFooter: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 6 },
   hudFooterCompact: { marginTop: 3, minHeight: 12 },
   hudCompactSummary: { flex: 1, minWidth: 0, fontSize: 8, lineHeight: 10, fontWeight: '800', letterSpacing: 0.1 },
+  conceptHudSummary: { textAlign: 'right', fontSize: 8.5, lineHeight: 11, letterSpacing: 0.2 },
   hudStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, flexShrink: 1 },
   nextGoalInline: { flex: 1, minWidth: 0, alignItems: 'flex-end' },
   nextGoalEyebrow: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.85 },
