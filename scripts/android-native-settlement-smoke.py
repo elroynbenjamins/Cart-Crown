@@ -130,8 +130,8 @@ def main() -> None:
         # continuous ambient animation can prevent uiautomator from reaching an
         # idle hierarchy on some emulator runs.
         specs = [
-            ('compact-360x640', '720x1280', 320, 1.0, (170, 606), (600, 293)),
-            ('regular-large-text', '1080x2400', 420, 1.35, (252, 921), (920, 410))
+            ('compact-360x640', '720x1280', 320, 1.0, (352, 566), (600, 293)),
+            ('regular-large-text', '1080x2400', 420, 1.35, (527, 865), (920, 410))
         ]
         for index, spec in enumerate(specs):
             if index:
