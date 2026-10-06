@@ -585,12 +585,121 @@ function sanitizeUnits(
     : fallback.map(unit => ({ ...unit }));
 }
 
+function migrateLegacyHumanEarlyNodes(
+  value: unknown,
+  fallback: ChapterNode[]
+): ChapterNode[] | null {
+  if (!Array.isArray(value) || value.length === 0) {
+    return null;
+  }
+
+  const source = value.filter(
+    (node): node is ChapterNode =>
+      Boolean(
+        node &&
+          typeof node === 'object' &&
+          typeof node.id === 'string'
+      )
+  );
+  if (source.length !== value.length) return null;
+
+  const firstFallbackId = fallback[0]?.id;
+  const chapterOneLegacyIds = [
+    'node_1',
+    'node_2',
+    'node_3',
+    'node_4',
+    'node_5',
+    'node_6'
+  ];
+  const chapterTwoLegacyIds = [
+    'ch2_node_1',
+    'ch2_node_2',
+    'ch2_node_3',
+    'ch2_node_4',
+    'ch2_node_5',
+    'ch2_node_6'
+  ];
+
+  const isChapterOne = firstFallbackId === 'ch1_m01';
+  const isChapterTwo = firstFallbackId === 'ch2_m01';
+  if (!isChapterOne && !isChapterTwo) return null;
+
+  const legacyIds = isChapterOne
+    ? chapterOneLegacyIds
+    : chapterTwoLegacyIds;
+  if (
+    source.length !== legacyIds.length ||
+    source.some(node => !legacyIds.includes(node.id))
+  ) {
+    return null;
+  }
+
+  const currentId = source.find(node => node.current)?.id ?? null;
+  const allComplete = source.every(node => node.completed);
+
+  const currentTargetIndex: Record<string, number> = isChapterOne
+    ? {
+        node_1: 0,
+        node_2: 1,
+        node_3: 2,
+        node_4: 3,
+        node_5: 5,
+        node_6: 6
+      }
+    : {
+        ch2_node_1: 0,
+        ch2_node_2: 2,
+        ch2_node_3: 3,
+        ch2_node_4: 4,
+        ch2_node_5: 6,
+        ch2_node_6: 7
+      };
+
+  let targetIndex = currentId
+    ? currentTargetIndex[currentId] ?? 0
+    : -1;
+
+  if (allComplete) {
+    targetIndex = fallback.length;
+  } else if (targetIndex < 0) {
+    const highestCompleted = source.reduce(
+      (highest, node) =>
+        node.completed
+          ? Math.max(highest, legacyIds.indexOf(node.id))
+          : highest,
+      -1
+    );
+    const completedTargetIndex = isChapterOne
+      ? [1, 2, 3, 5, 6, 7]
+      : [1, 2, 3, 4, 6, 7];
+    targetIndex =
+      highestCompleted >= 0
+        ? completedTargetIndex[highestCompleted] ?? 0
+        : 0;
+  }
+
+  return fallback.map((node, index) => ({
+    ...node,
+    completed: index < targetIndex,
+    current:
+      targetIndex < fallback.length &&
+      index === targetIndex
+  }));
+}
+
 function sanitizeNodes(
   value: unknown,
   fallback: ChapterNode[]
 ): ChapterNode[] {
   if (!Array.isArray(value) || value.length === 0) {
     return fallback.map(node => ({ ...node }));
+  }
+
+  const migratedLegacyNodes =
+    migrateLegacyHumanEarlyNodes(value, fallback);
+  if (migratedLegacyNodes) {
+    return migratedLegacyNodes;
   }
 
   const allowedIds = new Set(
