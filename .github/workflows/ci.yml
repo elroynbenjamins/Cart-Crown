@@ -45,6 +45,9 @@ jobs:
       - name: Commander battle order regression
         run: npm run battle-orders:check
 
+      - name: Campaign loadout unlock regression
+        run: npm run campaign-loadouts:check
+
       - name: Kingdom Trials regression
         run: npm run trials:check
 
