@@ -2091,7 +2091,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           </>
         ) : null}
 
-        {settlementAdjacencyBonuses.length && !selectedBuilding && !selectedPlot && !unlockCelebration && !blueprintPlannerOpen ? (
+        {adjacencyRecipes.length && !selectedBuilding && !selectedPlot && !unlockCelebration && !blueprintPlannerOpen && !districtCodexOpen ? (
           <>
             <Pressable
               testID="district-overlay-launcher"
@@ -2128,8 +2128,29 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[styles.districtOverlayControls, { backgroundColor: theme.colors.surface1, borderColor: factionAccent + '88' }]}
               >
                 <View style={styles.districtOverlayHeader}>
-                  <Text style={[styles.districtOverlayLabel, { color: theme.colors.textMuted }]}>DISTRICT OVERLAY</Text>
-                  <Text style={[styles.districtOverlayHint, { color: theme.colors.textMuted }]}>Tap a filter</Text>
+                  <View style={styles.districtOverlayHeaderCopy}>
+                    <Text style={[styles.districtOverlayLabel, { color: theme.colors.textMuted }]}>DISTRICT OVERLAY</Text>
+                    <Text style={[styles.districtOverlayHint, { color: theme.colors.textMuted }]}>Tap a filter</Text>
+                  </View>
+                  <Pressable
+                    testID="district-codex-open"
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      'Open District Codex, ' +
+                      settlementAdjacencyBonuses.length +
+                      ' of ' +
+                      adjacencyRecipes.length +
+                      ' active'
+                    }
+                    onPress={() => {
+                      setDistrictCodexOpen(true);
+                      setDistrictOverlayOpen(false);
+                      setSelectedDistrictId(null);
+                    }}
+                    style={[styles.districtCodexInlineButton, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}
+                  >
+                    <Text style={[styles.districtCodexInlineText, { color: theme.colors.gold }]}>CODEX</Text>
+                  </Pressable>
                 </View>
                 <View style={styles.districtOverlayButtons}>
                   {settlementDistrictOverlayFilters.map(filter => {
@@ -2250,56 +2271,42 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         <Text style={[styles.sceneHelp, { color: theme.colors.textMuted }]}>Tap a structure to manage it or marked ground to expand.</Text>
       )}
 
-      <View
-        testID="district-codex"
-        style={[styles.districtCodex, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
-      >
-        <Pressable
-          testID="district-codex-toggle"
-          accessibilityRole="button"
-          accessibilityState={{ expanded: districtCodexOpen }}
-          accessibilityLabel={
-            'District Codex, ' +
-            settlementAdjacencyBonuses.length +
-            ' of ' +
-            adjacencyRecipes.length +
-            ' active'
-          }
-          onPress={() => {
-            setDistrictCodexOpen(open => !open);
-            if (!districtCodexOpen) {
-              setSelectedDistrictId(null);
-              setSelectedBuildingId(null);
-              setSelectedBuildingAction(null);
-              setRelocationTargetPlotId(null);
-              setSelectedPlotId(null);
-              setPreviewBuildingId(null);
-              setBlueprintPlannerOpen(false);
-              setPlanningBuildingId(null);
-            }
-          }}
-          style={styles.districtCodexToggle}
+      {districtCodexOpen ? (
+        <View
+          testID="district-codex"
+          style={[styles.districtCodex, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
         >
-          <View style={styles.districtCodexCopy}>
-            <Text style={[styles.districtCodexEyebrow, { color: theme.colors.textMuted }]}>DISTRICT CODEX</Text>
-            <Text style={[styles.districtCodexTitle, { color: theme.colors.text }]}>
-              {settlementAdjacencyBonuses.length}/{adjacencyRecipes.length} active
-            </Text>
-          </View>
-          <View style={styles.districtCodexSummary}>
-            {districtPlacementAttentionCount ? (
-              <SemanticChip label={districtPlacementAttentionCount + ' placement'} tone="blue" compact />
-            ) : null}
-            {districtDevelopingCount ? (
-              <SemanticChip label={districtDevelopingCount + ' developing'} tone="neutral" compact />
-            ) : null}
-          </View>
-          <Text style={[styles.districtCodexAction, { color: theme.colors.gold }]}>
-            {districtCodexOpen ? 'CLOSE' : 'OPEN'}
-          </Text>
-        </Pressable>
+          <Pressable
+            testID="district-codex-toggle"
+            accessibilityRole="button"
+            accessibilityState={{ expanded: true }}
+            accessibilityLabel={
+              'Close District Codex, ' +
+              settlementAdjacencyBonuses.length +
+              ' of ' +
+              adjacencyRecipes.length +
+              ' active'
+            }
+            onPress={() => setDistrictCodexOpen(false)}
+            style={styles.districtCodexToggle}
+          >
+            <View style={styles.districtCodexCopy}>
+              <Text style={[styles.districtCodexEyebrow, { color: theme.colors.textMuted }]}>DISTRICT CODEX</Text>
+              <Text style={[styles.districtCodexTitle, { color: theme.colors.text }]}>
+                {settlementAdjacencyBonuses.length}/{adjacencyRecipes.length} active
+              </Text>
+            </View>
+            <View style={styles.districtCodexSummary}>
+              {districtPlacementAttentionCount ? (
+                <SemanticChip label={districtPlacementAttentionCount + ' placement'} tone="blue" compact />
+              ) : null}
+              {districtDevelopingCount ? (
+                <SemanticChip label={districtDevelopingCount + ' developing'} tone="neutral" compact />
+              ) : null}
+            </View>
+            <Text style={[styles.districtCodexAction, { color: theme.colors.gold }]}>CLOSE</Text>
+          </Pressable>
 
-        {districtCodexOpen ? (
           <View testID="district-codex-panel" style={[styles.districtCodexPanel, { borderTopColor: theme.colors.border }]}>
             {districtCodexRows.map((row, index) => {
               const statePresentation = districtRecipePresentation[row.state];
@@ -2339,8 +2346,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               );
             })}
           </View>
-        ) : null}
-      </View>
+        </View>
+      ) : null}
       {message && !selectedBuilding && !selectedPlot ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.text }]}>{message}</Text> : null}
       <SecondaryButton label="Return to Kingdom" onPress={onExit} />
     </ScrollView>
@@ -2384,9 +2391,12 @@ const styles = StyleSheet.create({
   districtOverlayLauncherText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.65 },
   districtOverlayLauncherCount: { fontSize: 8, lineHeight: 10, fontWeight: '900' },
   districtOverlayControls: { position: 'absolute', left: 8, right: 8, bottom: 8, zIndex: 41, borderWidth: 1, borderRadius: 13, paddingHorizontal: 7, paddingVertical: 6, gap: 5, opacity: 0.98, elevation: 4 },
-  districtOverlayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 88 },
+  districtOverlayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingRight: 88 },
+  districtOverlayHeaderCopy: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 6 },
   districtOverlayLabel: { fontSize: 6.5, lineHeight: 8, fontWeight: '900', letterSpacing: 0.8 },
   districtOverlayHint: { fontSize: 6.5, lineHeight: 8, fontWeight: '700' },
+  districtCodexInlineButton: { minHeight: 24, borderWidth: 1, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 4, alignItems: 'center', justifyContent: 'center' },
+  districtCodexInlineText: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.55 },
   districtOverlayButtons: { flexDirection: 'row', gap: 4, paddingRight: 88 },
   districtOverlayButton: { flex: 1, minWidth: 0, borderWidth: 1, borderRadius: 9, paddingHorizontal: 4, paddingVertical: 4, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 3 },
   districtOverlayButtonText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900' },
