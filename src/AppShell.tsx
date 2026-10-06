@@ -228,6 +228,8 @@ export function AppShell({
 }) {
   const [active, setActive] = useState<NavId>('kingdom');
   const [flow, setFlow] = useState<FlowScreen | null>(null);
+  const [commanderChoiceReturn, setCommanderChoiceReturn] =
+    useState<'army' | 'campaign'>('army');
   const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
   const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
@@ -390,6 +392,7 @@ export function AppShell({
       ].includes(lastBattleResult?.id ?? '') &&
       !commanderPathId
     ) {
+      setCommanderChoiceReturn('army');
       setFlow('commanderChoice');
       return;
     }
@@ -1379,7 +1382,10 @@ export function AppShell({
               setActiveEncounterId('broken_standards');
               setFlow('battlePrep');
             }}
-            onOpenChapterFourCommander={() => setFlow('commanderChoice')}
+            onOpenChapterFourCommander={() => {
+              setCommanderChoiceReturn('campaign');
+              setFlow('commanderChoice');
+            }}
             onStartBrokenGround={() => {
               setActiveEncounterId('ch4_broken_ground');
               setFlow('battlePrep');
@@ -1704,7 +1710,10 @@ export function AppShell({
             onOpenRecruitment={openRecruitment}
             onOpenForge={() => setFlow('forge')}
             onOpenPromotion={() => setFlow('promotion')}
-            onOpenCommander={() => setFlow('commanderChoice')}
+            onOpenCommander={() => {
+              setCommanderChoiceReturn('army');
+              setFlow('commanderChoice');
+            }}
             onOpenFantasyResearch={() => setFlow('fantasyResearch')}
             onOpenFlyingResearch={() => setFlow('flyingResearch')}
             onOpenLargeResearch={() => setFlow('largeResearch')}
@@ -1725,7 +1734,10 @@ export function AppShell({
                 onTutorialFocusComplete={completeTutorialFocus}
                 onOpenSettlement={() => setFlow('settlement')}
                 onOpenRecruitment={() => setFlow('factionRecruitment')}
-                onOpenCommander={() => setFlow('commanderChoice')}
+                onOpenCommander={() => {
+                  setCommanderChoiceReturn('army');
+                  setFlow('commanderChoice');
+                }}
                 onOpenFactionMandate={() => setFlow('factionMandate')}
               />
             );
@@ -1733,7 +1745,10 @@ export function AppShell({
 
           return (
             <FactionCampScreen
-              onOpenCommander={() => setFlow('commanderChoice')}
+              onOpenCommander={() => {
+                setCommanderChoiceReturn('army');
+                setFlow('commanderChoice');
+              }}
             />
           );
         }
