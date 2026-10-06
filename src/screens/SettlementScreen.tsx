@@ -32,6 +32,30 @@ const settlementPlotPositions: Record<string, { left: ViewStyle['left']; top: Vi
   plot_se: { left: '68%', top: '66%' }
 };
 
+const humanFortWorldPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
+  plot_nw: { left: '10%', top: '21%' },
+  plot_n: { left: '37%', top: '10%' },
+  plot_ne: { left: '65%', top: '21%' },
+  plot_w: { left: '5%', top: '42%' },
+  plot_center: { left: '33%', top: '33%' },
+  plot_e: { left: '70%', top: '42%' },
+  plot_sw: { left: '11%', top: '62%' },
+  plot_s: { left: '38%', top: '70%' },
+  plot_se: { left: '66%', top: '62%' }
+};
+
+const humanFortWorldCenters: Record<string, { x: number; y: number }> = {
+  plot_nw: { x: 0.24, y: 0.33 },
+  plot_n: { x: 0.505, y: 0.22 },
+  plot_ne: { x: 0.785, y: 0.33 },
+  plot_w: { x: 0.19, y: 0.54 },
+  plot_center: { x: 0.5, y: 0.46 },
+  plot_e: { x: 0.84, y: 0.54 },
+  plot_sw: { x: 0.245, y: 0.74 },
+  plot_s: { x: 0.51, y: 0.82 },
+  plot_se: { x: 0.79, y: 0.74 }
+};
+
 const settlementPlotCenters: Record<string, { x: number; y: number }> = {
   plot_nw: { x: 0.195, y: 0.265 },
   plot_n: { x: 0.505, y: 0.175 },
@@ -587,9 +611,16 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
   const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
+  const worldRebuildActive =
+    activeFaction === 'human' &&
+    ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
+  const districtAnalysisVisible =
+    !worldRebuildActive ||
+    Boolean(selectedBuildingId || selectedDistrictId || selectedPlotId || blueprintPlannerOpen || relocationMode);
+  const activePlotCenters = worldRebuildActive ? humanFortWorldCenters : settlementPlotCenters;
   const districtConnections = settlementAdjacencyBonuses.flatMap(bonus => {
-    const first = settlementPlotCenters[bonus.plotA];
-    const second = settlementPlotCenters[bonus.plotB];
+    const first = activePlotCenters[bonus.plotA];
+    const second = activePlotCenters[bonus.plotB];
     if (!first || !second) return [];
 
     const x1 = first.x * mapWidth;
@@ -655,8 +686,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     Boolean(selectedBuildingId || selectedDistrictId) &&
     visibleDistrictConnections.some(connection => connection.focused);
   const previewDistrictConnections = previewDistrictBonuses.flatMap(bonus => {
-    const first = settlementPlotCenters[bonus.plotA];
-    const second = settlementPlotCenters[bonus.plotB];
+    const first = activePlotCenters[bonus.plotA];
+    const second = activePlotCenters[bonus.plotB];
     if (!first || !second) return [];
 
     const x1 = first.x * mapWidth;
@@ -679,8 +710,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     }];
   });
   const relocationGainConnections = (relocationTarget?.gainedBonuses ?? []).flatMap(bonus => {
-    const first = settlementPlotCenters[bonus.plotA];
-    const second = settlementPlotCenters[bonus.plotB];
+    const first = activePlotCenters[bonus.plotA];
+    const second = activePlotCenters[bonus.plotB];
     if (!first || !second) return [];
     const x1 = first.x * mapWidth;
     const y1 = first.y * mapHeight;
@@ -701,8 +732,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     }];
   });
   const relocationLossConnections = (relocationTarget?.lostBonuses ?? []).flatMap(bonus => {
-    const first = settlementPlotCenters[bonus.plotA];
-    const second = settlementPlotCenters[bonus.plotB];
+    const first = activePlotCenters[bonus.plotA];
+    const second = activePlotCenters[bonus.plotB];
     if (!first || !second) return [];
     const x1 = first.x * mapWidth;
     const y1 = first.y * mapHeight;
@@ -818,7 +849,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     setMessage(ok ? previewBuilding.name + ' constructed. District bonuses recalculated.'
       : 'This building cannot be constructed here yet. Recheck the plot, unlock and resources; nothing was built.');
   };
-  const constructionAnchor = (selectedPlot ? settlementPlotCenters[selectedPlot.id] : null) ?? { x: 0.5, y: 0.5 };
+  const constructionAnchor = (selectedPlot ? activePlotCenters[selectedPlot.id] : null) ?? { x: 0.5, y: 0.5 };
   // Keep a clear side of the selected plot; only the card content scrolls.
   const constructionMaxHeight = Math.max(180, Math.min(380,
     Math.max(constructionAnchor.y, 1 - constructionAnchor.y) * mapHeight - 74));
@@ -854,7 +885,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     setSelectedDistrictId(null);
   }, [activeFaction]);
   const actionAnchorId = relocationMode && relocationTarget ? relocationTarget.plotId : sourcePlotId;
-  const actionAnchor = (actionAnchorId ? settlementPlotCenters[actionAnchorId] : null) ?? { x: 0.5, y: 0.5 };
+  const actionAnchor = (actionAnchorId ? activePlotCenters[actionAnchorId] : null) ?? { x: 0.5, y: 0.5 };
   const actionLayout = settlementActionLayout(mapWidth, mapHeight, actionAnchor, measuredActionHeight);
   const actionDetailHeight = Math.max(64, Math.min(280,
     Math.max(actionAnchor.y, 1 - actionAnchor.y) * mapHeight - 74 - measuredActionChrome));
@@ -1138,14 +1169,15 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       styles.districtZone,
                       {
                         backgroundColor: zoneFill,
-                        borderColor: zoneBorder
+                        borderColor: zoneBorder,
+                        opacity: districtAnalysisVisible ? 1 : 0
                       }
                     ]}
                   />
                 );
               })}
             </View>
-            <View pointerEvents="box-none" style={styles.districtTagLayer}>
+            <View pointerEvents={districtAnalysisVisible ? "box-none" : "none"} style={styles.districtTagLayer}>
               {visibleDistrictConnections.map(connection => {
                 const dimmed = districtFocusActive && !connection.focused;
                 const zoneBorder = blendColor(
@@ -1182,7 +1214,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         backgroundColor: theme.colors.surface1,
                         borderColor: selectedDistrictTag ? connection.color : zoneBorder,
                         borderWidth: selectedDistrictTag ? 2 : 1,
-                        opacity: connection.focused ? 1 : dimmed ? 0.42 : 0.76
+                        opacity: districtAnalysisVisible ? (connection.focused ? 1 : dimmed ? 0.42 : 0.76) : 0
                       }
                     ]}
                   >
@@ -1203,7 +1235,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLinkGlow,
-                  { backgroundColor: connection.color, opacity: connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1 }
+                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1) : 0.015 }
                 ]}
               />
               <View
@@ -1211,7 +1243,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLink,
-                  { backgroundColor: connection.color, opacity: connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56 }
+                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56) : 0.12 }
                 ]}
               />
             </React.Fragment>
@@ -1315,8 +1347,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
-          const buildingSize = landmark ? 104 : Math.round(70 * depthScale);
-          const ambienceSize = landmark ? 126 : Math.round(94 * depthScale);
+          const buildingSize = worldRebuildActive
+            ? landmark ? 138 : Math.round(74 * depthScale)
+            : landmark ? 104 : Math.round(70 * depthScale);
+          const ambienceSize = worldRebuildActive
+            ? landmark ? 118 : Math.round(78 * depthScale)
+            : landmark ? 126 : Math.round(94 * depthScale);
           const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const buildingDistrictBonuses = building
             ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id)
@@ -1325,7 +1361,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const districtActivityColor = buildingDistrictBonuses[0]
             ? semanticColor(theme, settlementDistrictTone(buildingDistrictBonuses[0]))
             : roleColor;
-          const visualPosition = settlementPlotPositions[plot.id] ?? {
+          const visualPosition = (worldRebuildActive ? humanFortWorldPositions[plot.id] : settlementPlotPositions[plot.id]) ?? {
             left: (String(5 + plot.column * 32) + '%') as ViewStyle['left'],
             top: (String(7 + plot.row * 31) + '%') as ViewStyle['top']
           };
@@ -1421,7 +1457,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                               : buildReady
                                 ? factionAccent
                                 : theme.colors.border,
-                  borderWidth: tutorialPlotFocused || selected ? 2.5 : building ? 0 : relocationPlanVisible ? 2 : blueprintPlanVisible ? 2 : districtOpportunityVisible ? 2 : recommendedBuildPlot ? 2.25 : 1.5,
+                  borderWidth: worldRebuildActive
+                    ? tutorialPlotFocused || selected ? 2.5 : relocationPlanVisible || blueprintPlanVisible || districtOpportunityVisible || recommendedBuildPlot ? 2 : 0
+                    : tutorialPlotFocused || selected ? 2.5 : building ? 0 : relocationPlanVisible ? 2 : blueprintPlanVisible ? 2 : districtOpportunityVisible ? 2 : recommendedBuildPlot ? 2.25 : 1.5,
                   borderStyle: building || selected || tutorialPlotFocused || buildReady || blueprintPlanVisible || relocationPlanVisible ? 'solid' : 'dashed',
                   zIndex: plotZIndex,
                   transform: tutorialPlotFocused ? [{ scale: 1.04 }] : selected ? [{ scale: 1.025 }] : undefined
@@ -1449,7 +1487,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                                 : buildReady
                                   ? factionAccent
                                   : theme.colors.surface2,
-                    opacity: building ? 0.12 : unlocked ? selected ? 0.18 : buildReady || blueprintPlanVisible || relocationPlanVisible || districtOpportunityVisible ? 0.14 : 0.06 : 0.72
+                    opacity: worldRebuildActive
+                      ? building ? selected ? 0.08 : 0 : unlocked ? selected || buildReady || blueprintPlanVisible || relocationPlanVisible ? 0.12 : 0 : 0.34
+                      : building ? 0.12 : unlocked ? selected ? 0.18 : buildReady || blueprintPlanVisible || relocationPlanVisible || districtOpportunityVisible ? 0.14 : 0.06 : 0.72
                   }
                 ]}
               />
@@ -1600,45 +1640,70 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       size={ambienceSize}
                     />
                   </View>
-                  <View style={[styles.buildingPad, landmark ? styles.landmarkBuildingPad : undefined, selected ? styles.selectedBuildingPad : undefined]}>
-                    <View pointerEvents="none" style={[styles.buildingFootprint, landmark ? styles.landmarkFootprint : undefined, { backgroundColor: roleColor }]} />
+                  <View
+                    style={[
+                      styles.buildingPad,
+                      landmark ? styles.landmarkBuildingPad : undefined,
+                      worldRebuildActive ? landmark ? styles.worldLandmarkBuildingPad : styles.worldBuildingPad : undefined,
+                      selected ? styles.selectedBuildingPad : undefined
+                    ]}
+                  >
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.buildingFootprint,
+                        landmark ? styles.landmarkFootprint : undefined,
+                        { backgroundColor: roleColor, opacity: worldRebuildActive ? 0.07 : undefined }
+                      ]}
+                    />
                     <BuildingSprite buildingId={building.id} faction={building.faction} size={buildingSize} />
                   </View>
                   {upgradeMaterialsReady && !selected ? (
-                    <View pointerEvents="none" style={[styles.upgradeReadyBadge, { backgroundColor: theme.colors.gold }]}>
-                      <Text style={styles.upgradeReadyText}>UPGRADE</Text>
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.upgradeReadyBadge,
+                        worldRebuildActive ? styles.worldUpgradeReadyBadge : undefined,
+                        { backgroundColor: theme.colors.gold, borderColor: worldRebuildActive ? theme.colors.surface1 : undefined }
+                      ]}
+                    >
+                      <Text style={[styles.upgradeReadyText, worldRebuildActive ? styles.worldUpgradeReadyText : undefined]}>
+                        {worldRebuildActive ? '↑' : 'UPGRADE'}
+                      </Text>
                     </View>
                   ) : null}
-                  <>
-                    <Text
-                      style={[
-                        styles.plotBuildingName,
-                        !selected && !landmark ? styles.plotBuildingNameCompact : undefined,
-                        { color: roleColor, backgroundColor: theme.colors.surface1 }
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {building.name}
-                    </Text>
-                    <View
-                      testID={'building-level-status-' + building.id}
-                      style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }]}
-                    >
-                      <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
-                      {districtCount > 0 ? (
-                        <>
-                          <View style={[styles.levelDistrictDot, { backgroundColor: districtActivityColor }]} />
-                          <Text
-                            testID={'building-district-count-' + building.id}
-                            accessible={false}
-                            style={[styles.levelDistrictCount, { color: districtActivityColor }]}
-                          >
-                            {districtCount}
-                          </Text>
-                        </>
-                      ) : null}
-                    </View>
-                  </>
+                  {!worldRebuildActive || selected ? (
+                    <>
+                      <Text
+                        style={[
+                          styles.plotBuildingName,
+                          !selected && !landmark ? styles.plotBuildingNameCompact : undefined,
+                          { color: roleColor, backgroundColor: theme.colors.surface1 }
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {building.name}
+                      </Text>
+                      <View
+                        testID={'building-level-status-' + building.id}
+                        style={[styles.levelPill, { backgroundColor: theme.colors.surface1, borderColor: selected ? theme.colors.gold : theme.colors.border }]}
+                      >
+                        <SemanticText tone="neutral" style={styles.plotLevel}>Lv.{level}</SemanticText>
+                        {districtCount > 0 ? (
+                          <>
+                            <View style={[styles.levelDistrictDot, { backgroundColor: districtActivityColor }]} />
+                            <Text
+                              testID={'building-district-count-' + building.id}
+                              accessible={false}
+                              style={[styles.levelDistrictCount, { color: districtActivityColor }]}
+                            >
+                              {districtCount}
+                            </Text>
+                          </>
+                        ) : null}
+                      </View>
+                    </>
+                  ) : null}
                 </>
               ) : unlocked ? (
                 <>
@@ -1663,22 +1728,30 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       <Text style={[styles.constructionGhostLabel, { color: theme.colors.gold, backgroundColor: theme.colors.surface1 }]}>PREVIEW</Text>
                     </View>
                   ) : null}
-                  <View pointerEvents="none" style={styles.buildPlotArt}>
+                  <View
+                    pointerEvents="none"
+                    style={[
+                      styles.buildPlotArt,
+                      worldRebuildActive && !buildReady && !plotSelected && !relocationMode ? { opacity: 0 } : undefined
+                    ]}
+                  >
                     <SettlementBuildPlotSprite
                       terrain={plot.terrain}
                       faction={activeFaction}
                       selected={plotSelected}
                       moveTarget={relocationMode}
-                      size={94}
+                      size={worldRebuildActive ? 76 : 94}
                       color={theme.colors.textMuted}
                     />
                   </View>
-                  <View pointerEvents="none" style={[styles.emptyBadge, { backgroundColor: theme.colors.surface1 }]}>
-                    <Text style={[styles.emptyPlusCompact, { color: selected || relocationMode ? theme.colors.gold : semanticColor(theme, 'neutral') }]}>+</Text>
-                    <SemanticText tone="neutral" style={styles.emptyText}>
-                      {relocationMode ? relocationTargetSelected ? 'Target' : 'Move' : 'Build'}
-                    </SemanticText>
-                  </View>
+                  {!worldRebuildActive || buildReady || plotSelected || relocationMode ? (
+                    <View pointerEvents="none" style={[styles.emptyBadge, worldRebuildActive ? styles.worldEmptyBadge : undefined, { backgroundColor: theme.colors.surface1 }]}>
+                      <Text style={[styles.emptyPlusCompact, { color: selected || relocationMode ? theme.colors.gold : semanticColor(theme, 'neutral') }]}>+</Text>
+                      <SemanticText tone="neutral" style={styles.emptyText}>
+                        {relocationMode ? relocationTargetSelected ? 'Target' : 'Move' : buildReady ? 'Build' : 'Plot'}
+                      </SemanticText>
+                    </View>
+                  ) : null}
                 </>
               ) : (
                 <>
@@ -1864,9 +1937,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         ) : null}
         {['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id) ? (
           <>
-            <View pointerEvents="none" style={[styles.wallTop, { borderColor: factionAccent, borderTopWidth: fortificationWeight }]} />
-            <View pointerEvents="none" style={[styles.wallBottom, { borderColor: factionAccent, borderBottomWidth: fortificationWeight }]} />
-            <Text pointerEvents="none" style={[styles.gateLabel, { color: factionAccent }]}>
+            <View pointerEvents="none" style={[styles.wallTop, { borderColor: factionAccent, borderTopWidth: fortificationWeight, opacity: worldRebuildActive ? 0 : 0.75 }]} />
+            <View pointerEvents="none" style={[styles.wallBottom, { borderColor: factionAccent, borderBottomWidth: fortificationWeight, opacity: worldRebuildActive ? 0 : 0.75 }]} />
+            <Text pointerEvents="none" style={[styles.gateLabel, { color: factionAccent, opacity: worldRebuildActive ? 0 : 1 }]}>
               {currentWagonStage.id === 'grand' ? 'GRAND GATE' : currentWagonStage.id === 'capital' ? 'CAPITAL GATE' : currentWagonStage.id === 'stronghold' ? 'STRONGHOLD GATE' : currentWagonStage.id === 'town' ? 'TOWN GATE' : 'FORT GATE'}
             </Text>
           </>
@@ -2232,6 +2305,8 @@ const styles = StyleSheet.create({
   buildingPad: { width: 82, height: 74, alignItems: 'center', justifyContent: 'flex-end', elevation: 4 },
   selectedBuildingPad: { transform: [{ scale: 1.075 }, { translateY: -2 }] },
   landmarkBuildingPad: { width: 108, height: 96, transform: [{ translateY: -8 }], elevation: 6 },
+  worldBuildingPad: { transform: [{ scale: 1.12 }], elevation: 5 },
+  worldLandmarkBuildingPad: { width: 132, height: 116, transform: [{ translateY: -12 }], elevation: 8 },
   buildingFootprint: { position: 'absolute', left: 5, right: 5, bottom: 0, height: 20, borderRadius: 999, opacity: 0.18, transform: [{ scaleX: 1.08 }] },
   landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
@@ -2245,11 +2320,14 @@ const styles = StyleSheet.create({
   emptyPlus: { fontSize: 27, fontWeight: '600' },
   buildPlotArt: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
   emptyBadge: { position: 'absolute', bottom: 4, alignSelf: 'center', minHeight: 27, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.96, elevation: 2 },
+  worldEmptyBadge: { minHeight: 24, paddingHorizontal: 7, paddingVertical: 3, opacity: 0.9 },
   buildReadyBadge: { position: 'absolute', top: 3, alignSelf: 'center', zIndex: 8, minHeight: 24, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, elevation: 2 },
   buildReadyText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.5 },
   buildReadyDot: { position: 'absolute', top: 7, right: 8, width: 7, height: 7, borderRadius: 999, zIndex: 8 },
   upgradeReadyBadge: { position: 'absolute', top: 3, right: 4, zIndex: 9, minHeight: 21, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 3, alignItems: 'center', justifyContent: 'center', elevation: 2 },
   upgradeReadyText: { color: '#111318', fontSize: 6, lineHeight: 8, fontWeight: '900', letterSpacing: 0.25 },
+  worldUpgradeReadyBadge: { top: 5, right: 7, width: 25, height: 25, minHeight: 25, paddingHorizontal: 0, paddingVertical: 0, borderWidth: 2, elevation: 4 },
+  worldUpgradeReadyText: { fontSize: 15, lineHeight: 18, letterSpacing: 0 },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
