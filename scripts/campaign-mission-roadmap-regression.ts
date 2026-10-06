@@ -2,7 +2,8 @@ import {
   campaignMissionCountsByChapter,
   campaignMissionRoadmap,
   expectedActiveSquadsByChapter,
-  getCampaignChapterBlueprints
+  getCampaignChapterBlueprints,
+  getCampaignActiveSquadCap
 } from '../src/game/campaignMissionRoadmap';
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -120,3 +121,12 @@ console.log(
     campaignMissionRoadmap.length +
     ' missions across 7 chapters; squad cadence 2->3->4->5->6 locked.'
 );
+
+
+assert(getCampaignActiveSquadCap(1) === 2, 'Chapter 1 runtime cap must be 2');
+assert(getCampaignActiveSquadCap(2) === 3, 'Chapter 2 runtime cap must be 3');
+assert(getCampaignActiveSquadCap(3) === 4, 'Chapter 3 runtime cap must be 4');
+assert(getCampaignActiveSquadCap(4) === 5, 'Chapter 4 runtime cap must be 5');
+assert(getCampaignActiveSquadCap(5) === 6, 'Chapter 5 runtime cap must be 6');
+assert(getCampaignActiveSquadCap(6) === 6, 'Chapter 6 runtime cap must remain 6');
+assert(getCampaignActiveSquadCap(99) === 6, 'Late campaign runtime cap must never exceed 6');
