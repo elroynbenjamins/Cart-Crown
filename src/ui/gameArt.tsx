@@ -3443,12 +3443,14 @@ export function KingdomDefenseScene({
         const cleared = completed || (started && index < activeWave);
         const current = started && !completed && !failed && index === activeWave;
         const right = 10 + index * 11;
+        const rightPosition = `${right}%` as `${number}%`;
+        const threatRightPosition = `${right - 1}%` as `${number}%`;
         return (
           <React.Fragment key={'defense-wave-' + index}>
             <Animated.View
               style={{
                 position: 'absolute',
-                right: right + '%',
+                right: rightPosition,
                 top: 19 + (index % 2) * 14,
                 width: current ? 28 : 22,
                 height: current ? 28 : 22,
@@ -3460,7 +3462,7 @@ export function KingdomDefenseScene({
               }}
             />
             {!cleared && index <= activeWave + 1 ? (
-              <View style={{ position: 'absolute', right: right - 1 + '%', top: 43 + (index % 2) * 10 }}>
+              <View style={{ position: 'absolute', right: threatRightPosition, top: 43 + (index % 2) * 10 }}>
                 <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={30} opacity={0.58} tintColor="#A55345" />
               </View>
             ) : null}
@@ -3538,12 +3540,13 @@ export function FormationTrialScene({
 
       {Array.from({ length: objectives }).map((_, index) => {
         const met = allComplete || index < passedCount;
+        const objectiveLeft = `${26 + index * (48 / Math.max(1, objectives - 1))}%` as `${number}%`;
         return (
           <Animated.View
             key={'trial-objective-' + index}
             style={{
               position: 'absolute',
-              left: 26 + index * (48 / Math.max(1, objectives - 1)) + '%',
+              left: objectiveLeft,
               bottom: 10,
               width: met ? 18 : 14,
               height: met ? 18 : 14,
