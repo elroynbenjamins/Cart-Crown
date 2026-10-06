@@ -251,7 +251,10 @@ function testRecipesAndInteractions() {
     const ambience = nodes(tree, 'SettlementBuildingAmbience');
     check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-ground-shadow-')).length === placedBuildingCount, 'Every placed building must receive a world-grounding shadow.');
     check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-contact-shadow-')).length === placedBuildingCount, 'Every placed building must receive a tight contact shadow.');
-    check(ambience.length === placedBuildingCount, 'Placed buildings must carry ambient life and props.');
+    const expectedOverviewAmbience = faction === 'human' ? 0 : placedBuildingCount;
+    check(ambience.length === expectedOverviewAmbience, faction === 'human'
+      ? 'Authored Human overview must not mount hidden per-building animation loops.'
+      : 'Placed buildings must carry ambient life and props.');
     check(ambience.every(node => node.props.faction === faction), 'Building ambience must remain faction-scoped.');
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
     check(ambience.every(node => {
