@@ -1549,7 +1549,7 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
     storySummary: 'The old toll fort falls. Greenkeep now controls the western road and has the stone, timber and authority needed to become a true Fort.'
   },
   ch1_hold_crossing: {
-    resources: { gold: 38, wood: 10, provisions: 4 },
+    resources: { gold: 38, wood: 40, provisions: 4 },
     storySummary: 'The crossing holds. Greenkeep can rebuild without the surviving column being cut off from the road.'
   },
   ch1_spears_at_dawn: {
