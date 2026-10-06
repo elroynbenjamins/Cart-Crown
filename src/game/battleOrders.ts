@@ -114,7 +114,7 @@ const chapterFourReinforceEncounters = new Set<EncounterId>([
 const chapterFiveRallyEncounters = new Set<EncounterId>([
   'ch5_rally_line',
   'ch5_above_shieldwall',
-  'ch5_three_lines_deep',
+  'ashen_envoy',
   'ch5_hammer_wing',
   'ch5_strongest_army',
   'gate_of_crownspire'
