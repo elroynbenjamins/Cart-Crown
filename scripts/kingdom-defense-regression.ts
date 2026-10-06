@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import {
   applyKingdomDefenseChoice,
   getKingdomDefenseEffectivePower,
@@ -447,6 +448,13 @@ runFortificationCoverage();
 runFormationCoverage();
 runChoiceCoverage();
 runWearCoverage();
+
+
+const defenseScreenSource = readFileSync('src/screens/KingdomDefenseScreen.tsx', 'utf8');
+const gameArtSource = readFileSync('src/ui/gameArt.tsx', 'utf8');
+check(defenseScreenSource.includes('<KingdomDefenseScene'), 'Kingdom Defense must render the settlement-under-attack scene.');
+check(gameArtSource.includes('export function KingdomDefenseScene'), 'Kingdom Defense scene component must remain available.');
+check(gameArtSource.includes("testID={'kingdom-defense-scene-' + faction}"), 'Kingdom Defense scene must remain faction-aware and testable.');
 
 console.log(
   'PASS: Kingdom Defense waves, formations, fortifications, supplies, Readiness and between-wave choices remain inside the intended endurance rules.'

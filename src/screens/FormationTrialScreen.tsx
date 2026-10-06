@@ -6,7 +6,7 @@ import { factions } from '../game/factions';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { DecisionCommit, DecisionIntro, DecisionLayout } from '../ui/DecisionUI';
 import { GameCard, SecondaryButton } from '../ui/components';
-import { FactionCrest } from '../ui/gameArt';
+import { FactionCrest, FormationTrialScene } from '../ui/gameArt';
 import { SemanticChip } from '../ui/SemanticUI';
 import { semanticColor } from '../ui/semanticColors';
 import { getKingdomTrialView, trialMedalNames, trialScreenKey } from '../ui/kingdomTrialPresentation';
@@ -106,6 +106,12 @@ export function FormationTrialScreen({ onEditFormation, onExit }: {
       <DecisionIntro eyebrow="OPTIONAL TACTICAL MODE" title="Kingdom Trials"
         body="Practice formation, spacing and doctrine. Trials check your current setup; they do not start a battle."
         accent={semanticColor(theme, 'blue')} />
+      <FormationTrialScene
+        faction={faction}
+        passedCount={view.passedCount}
+        total={view.current?.checks.length ?? 3}
+        allComplete={view.allComplete}
+      />
 
       {view.current ? (
         <GameCard ornament={false} accent={semanticColor(theme, 'blue')}>
