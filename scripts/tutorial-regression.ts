@@ -1068,7 +1068,7 @@ function runReviewTimingCoverage() {
     activeFaction: 'human' as const,
     activeView: 'kingdom' as const,
     lastBattleResultId:
-      'toll_captain_result',
+      'ch1_reclaim_outpost_result',
     reviewPromptShown: false,
     tutorialActive: false
   };

@@ -16,6 +16,18 @@ export type EncounterId =
   | 'war_table_golem_breach'
   | 'mercenary_patrol'
   | 'toll_captain'
+  | 'ch1_banner_still_flies'
+  | 'ch1_hold_crossing'
+  | 'ch1_spears_at_dawn'
+  | 'ch1_cut_off_captain'
+  | 'ch1_broken_road'
+  | 'ch1_reclaim_outpost'
+  | 'ch2_strength_in_numbers'
+  | 'ch2_riders_on_road'
+  | 'ch2_no_army_fights_forever'
+  | 'ch2_long_way_around'
+  | 'ch2_iron_line'
+  | 'ch2_break_their_hold'
   | 'ch2_defend_camp'
   | 'ch2_beyond_fires'
   | 'ch2_brace'
@@ -217,6 +229,114 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
     enemyName: 'Toll Captain Host',
     enemyCount: 5,
     enemyHp: 340,
+    difficulty: 'Boss'
+  },
+  ch1_banner_still_flies: {
+    id: 'ch1_banner_still_flies',
+    name: 'A Banner Still Flies',
+    subtitle: 'The survivors raise Greenkeep’s banner and face the first raiders trying to finish the broken column.',
+    enemyName: 'Roadside Raiders',
+    enemyCount: 2,
+    enemyHp: 78,
+    difficulty: 'Normal'
+  },
+  ch1_hold_crossing: {
+    id: 'ch1_hold_crossing',
+    name: 'Hold the Crossing',
+    subtitle: 'A small raider force is trying to cut the surviving column off from the Greenkeep crossing.',
+    enemyName: 'Crossing Raiders',
+    enemyCount: 2,
+    enemyHp: 96,
+    difficulty: 'Normal'
+  },
+  ch1_spears_at_dawn: {
+    id: 'ch1_spears_at_dawn',
+    name: 'Spears at Dawn',
+    subtitle: 'Mounted scouts test the rebuilt camp at first light and punish any line that cannot brace.',
+    enemyName: 'Dawn Riders',
+    enemyCount: 2,
+    enemyHp: 122,
+    difficulty: 'Normal'
+  },
+  ch1_cut_off_captain: {
+    id: 'ch1_cut_off_captain',
+    name: 'Cut Off the Captain',
+    subtitle: 'A paid captain is coordinating the road bands from behind a compact escort.',
+    enemyName: 'Captain’s Escort',
+    enemyCount: 3,
+    enemyHp: 152,
+    difficulty: 'Elite'
+  },
+  ch1_broken_road: {
+    id: 'ch1_broken_road',
+    name: 'The Broken Road',
+    subtitle: 'A mixed warband closes the damaged road while Greenkeep’s young command structure is still forming.',
+    enemyName: 'Broken Road Warband',
+    enemyCount: 3,
+    enemyHp: 176,
+    difficulty: 'Elite'
+  },
+  ch1_reclaim_outpost: {
+    id: 'ch1_reclaim_outpost',
+    name: 'Reclaim the Outpost',
+    subtitle: 'The remaining road companies make a final stand around Greenkeep’s abandoned outer works.',
+    enemyName: 'Outpost Occupiers',
+    enemyCount: 3,
+    enemyHp: 232,
+    difficulty: 'Boss'
+  },
+  ch2_strength_in_numbers: {
+    id: 'ch2_strength_in_numbers',
+    name: 'Strength in Numbers',
+    subtitle: 'A disciplined patrol blocks the first Fort road while Greenkeep still fields only its two-squad core.',
+    enemyName: 'Road Discipline Patrol',
+    enemyCount: 3,
+    enemyHp: 218,
+    difficulty: 'Normal'
+  },
+  ch2_riders_on_road: {
+    id: 'ch2_riders_on_road',
+    name: 'Riders on the Road',
+    subtitle: 'Mounted raiders repeatedly probe the line, telegraphing their charges before committing.',
+    enemyName: 'Road Riders',
+    enemyCount: 3,
+    enemyHp: 248,
+    difficulty: 'Elite'
+  },
+  ch2_no_army_fights_forever: {
+    id: 'ch2_no_army_fights_forever',
+    name: 'No Army Fights Forever',
+    subtitle: 'A stubborn veteran patrol forces Greenkeep to manage wear and recovery instead of relying on one perfect squad.',
+    enemyName: 'Iron Road Veterans',
+    enemyCount: 3,
+    enemyHp: 272,
+    difficulty: 'Elite'
+  },
+  ch2_long_way_around: {
+    id: 'ch2_long_way_around',
+    name: 'The Long Way Around',
+    subtitle: 'Fast skirmishers use a side route to threaten Greenkeep’s outer and rear positions.',
+    enemyName: 'Long Road Flankers',
+    enemyCount: 3,
+    enemyHp: 286,
+    difficulty: 'Elite'
+  },
+  ch2_iron_line: {
+    id: 'ch2_iron_line',
+    name: 'The Iron Line',
+    subtitle: 'A shield-heavy company forms the first true Iron Wall Greenkeep has faced.',
+    enemyName: 'Iron Line Company',
+    enemyCount: 4,
+    enemyHp: 318,
+    difficulty: 'Elite'
+  },
+  ch2_break_their_hold: {
+    id: 'ch2_break_their_hold',
+    name: 'Break Their Hold',
+    subtitle: 'The Iron Road commander combines a dense frontline, protected rear threat and limited flank pressure.',
+    enemyName: 'Iron Hold Host',
+    enemyCount: 4,
+    enemyHp: 392,
     difficulty: 'Boss'
   },
   ch2_defend_camp: {
@@ -860,6 +980,18 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   war_table_golem_breach: 'heavy_front_441',
   mercenary_patrol: 'assault_432',
   toll_captain: 'wide_vanguard_522',
+  ch1_banner_still_flies: 'balanced_333',
+  ch1_hold_crossing: 'balanced_333',
+  ch1_spears_at_dawn: 'skirmish_screen_243',
+  ch1_cut_off_captain: 'protected_rear_225',
+  ch1_broken_road: 'assault_432',
+  ch1_reclaim_outpost: 'protected_rear_225',
+  ch2_strength_in_numbers: 'balanced_333',
+  ch2_riders_on_road: 'skirmish_screen_243',
+  ch2_no_army_fights_forever: 'assault_432',
+  ch2_long_way_around: 'skirmish_screen_243',
+  ch2_iron_line: 'iron_wall_501',
+  ch2_break_their_hold: 'iron_wall_501',
   ch2_defend_camp: 'assault_432',
   ch2_beyond_fires: 'balanced_333',
   ch2_brace: 'skirmish_screen_243',
@@ -1159,6 +1291,18 @@ const enemyArmyProfileOverrides: Partial<Record<EncounterId, EnemyArmyProfileId>
   war_table_sky_raiders: 'mounted_hunters',
   war_table_golem_breach: 'shock_warband',
   mercenary_patrol: 'mercenary_line',
+  ch1_banner_still_flies: 'raider_pack',
+  ch1_hold_crossing: 'raider_pack',
+  ch1_spears_at_dawn: 'mounted_hunters',
+  ch1_cut_off_captain: 'mercenary_line',
+  ch1_broken_road: 'shock_warband',
+  ch1_reclaim_outpost: 'shield_host',
+  ch2_strength_in_numbers: 'mercenary_line',
+  ch2_riders_on_road: 'mounted_hunters',
+  ch2_no_army_fights_forever: 'mercenary_line',
+  ch2_long_way_around: 'mounted_hunters',
+  ch2_iron_line: 'shield_host',
+  ch2_break_their_hold: 'shield_host',
   ch2_defend_camp: 'raider_pack',
   ch2_beyond_fires: 'mercenary_line',
   ch2_brace: 'mounted_hunters',
@@ -1415,6 +1559,54 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
   toll_captain: {
     resources: { gold: 120, wood: 90, stone: 45, iron: 12, provisions: 8 },
     storySummary: 'The old toll fort falls. Greenkeep now controls the western road and has the stone, timber and authority needed to become a true Fort.'
+  },
+  ch1_banner_still_flies: {
+    resources: { gold: 24, wood: 8, provisions: 3 },
+    storySummary: 'The first raiders break against the surviving line. Greenkeep’s banner remains standing.'
+  },
+  ch1_hold_crossing: {
+    resources: { gold: 38, wood: 40, provisions: 4 },
+    storySummary: 'The crossing holds. Greenkeep can rebuild without the surviving column being cut off from the road.'
+  },
+  ch1_spears_at_dawn: {
+    resources: { gold: 44, iron: 3, provisions: 3 },
+    storySummary: 'The Dawn Riders are stopped before their charges can scatter the camp’s new line.'
+  },
+  ch1_cut_off_captain: {
+    resources: { gold: 58, wood: 7, iron: 4, provisions: 3 },
+    storySummary: 'The captain is isolated from the road bands. His pay records reveal a wider effort to keep Greenkeep weak.'
+  },
+  ch1_broken_road: {
+    resources: { gold: 70, wood: 10, stone: 6, provisions: 5 },
+    storySummary: 'The broken road is opened and the refugees can move behind Greenkeep’s protected line.'
+  },
+  ch1_reclaim_outpost: {
+    resources: { gold: 118, wood: 80, stone: 38, iron: 10, provisions: 8 },
+    storySummary: 'Greenkeep’s outer works are reclaimed. The surviving settlement now has the authority and stores to expand toward the Iron Road.'
+  },
+  ch2_strength_in_numbers: {
+    resources: { gold: 50, wood: 8, provisions: 4 },
+    storySummary: 'The patrol breaks. Greenkeep can now deploy a third squad and begin using real three-squad formations.'
+  },
+  ch2_riders_on_road: {
+    resources: { gold: 62, iron: 5, provisions: 4 },
+    storySummary: 'The Road Riders are forced back after their charge lanes are read and countered.'
+  },
+  ch2_no_army_fights_forever: {
+    resources: { gold: 66, wood: 8, provisions: 6 },
+    storySummary: 'The veteran patrol withdraws. Greenkeep learns that recovery and rotation matter as much as winning one clean fight.'
+  },
+  ch2_long_way_around: {
+    resources: { gold: 70, wood: 10, provisions: 5 },
+    storySummary: 'The flanking route is cleared before the skirmishers can turn Greenkeep’s rear.'
+  },
+  ch2_iron_line: {
+    resources: { gold: 82, stone: 8, iron: 7, provisions: 5 },
+    storySummary: 'The Iron Line finally opens. Greenkeep now recognizes the Iron Wall as a formation to solve rather than a raw power check.'
+  },
+  ch2_break_their_hold: {
+    resources: { gold: 168, wood: 85, stone: 72, iron: 22, provisions: 10 },
+    storySummary: 'The Iron Hold collapses. Greenkeep controls the approach and can prepare for the next campaign tier.'
   },
   ch2_defend_camp: {
     resources: { gold: 48, wood: 10, provisions: 5 },

@@ -6,6 +6,7 @@ import {
   starterWagonItems,
   wagonStages
 } from './data';
+import { getCampaignActiveSquadCap } from './campaignCapacity';
 import {
   chapterTwoNodes,
   fortMusterOptions,
@@ -442,6 +443,7 @@ type GameContextValue = {
   ) => boolean;
   completeMetaCouncil: () => boolean;
   completeMetaConcordChamber: () => boolean;
+  completeHumanEarlyCampaignEvent: (nodeId: string) => boolean;
   completeMarkedRaiders: () => boolean;
   completeRefugeeCamp: () => boolean;
   upgradeSettlement: () => boolean;
@@ -531,6 +533,54 @@ type GameContextValue = {
   recruitFantasyUnit: (templateId: string) => boolean;
   completeCampaign: (faction: FactionId) => void;
   recruitOptions: RecruitOption[];
+};
+
+const humanEarlyBattleNodeByEncounter: Partial<Record<EncounterId, string>> = {
+  ch1_banner_still_flies: 'ch1_m01',
+  ch1_hold_crossing: 'ch1_m02',
+  ch1_spears_at_dawn: 'ch1_m04',
+  ch1_cut_off_captain: 'ch1_m05',
+  ch1_broken_road: 'ch1_m06',
+  ch1_reclaim_outpost: 'ch1_m07',
+  ch2_strength_in_numbers: 'ch2_m01',
+  ch2_riders_on_road: 'ch2_m03',
+  ch2_no_army_fights_forever: 'ch2_m04',
+  ch2_long_way_around: 'ch2_m05',
+  ch2_iron_line: 'ch2_m06',
+  ch2_break_their_hold: 'ch2_m08'
+};
+
+const humanEarlyNextNodeByNodeId: Record<string, string | null> = {
+  ch1_m01: 'ch1_m02',
+  ch1_m02: 'ch1_m03',
+  ch1_m03: 'ch1_m04',
+  ch1_m04: 'ch1_m05',
+  ch1_m05: 'ch1_m06',
+  ch1_m06: 'ch1_m07',
+  ch1_m07: null,
+  ch2_m01: 'ch2_m02',
+  ch2_m02: 'ch2_m03',
+  ch2_m03: 'ch2_m04',
+  ch2_m04: 'ch2_m05',
+  ch2_m05: 'ch2_m06',
+  ch2_m06: 'ch2_m07',
+  ch2_m07: 'ch2_m08',
+  ch2_m08: null
+};
+
+const humanEarlyBattleResultTitle: Partial<Record<EncounterId, string>> = {
+  ch1_banner_still_flies: 'Banner Held',
+  ch1_hold_crossing: 'Crossing Held',
+  ch1_spears_at_dawn: 'Charges Broken',
+  ch1_cut_off_captain: 'Captain Isolated',
+  ch1_broken_road: 'Road Reopened',
+  ch1_reclaim_outpost: 'Outpost Reclaimed',
+  ch2_strength_in_numbers: 'Third Banner Earned',
+  ch2_riders_on_road: 'Riders Repelled',
+  ch2_no_army_fights_forever: 'Veterans Withdraw',
+  ch2_long_way_around: 'Flank Route Cleared',
+  ch2_iron_line: 'Iron Line Broken',
+  ch2_break_their_hold: 'The Hold Falls'
 };
 
 type GameProviderProps = PropsWithChildren<{
@@ -1490,7 +1540,32 @@ export function GameProvider({
   );
 
   const formationBonuses = formationAnalysis.bonuses;
-  const activeSquadCap = currentWagonStage.formationSlots;
+  const activeSquadCap = getCampaignActiveSquadCap({
+    faction: activeFaction,
+    chapterNumber,
+    stageFormationSlots: currentWagonStage.formationSlots,
+    chapterNodes
+  });
+
+  useEffect(() => {
+    setFormation(previous => {
+      let usedCapacity = 0;
+      let changed = false;
+      const next = previous.map(unitId => {
+        if (!unitId) return null;
+        const unit = units.find(candidate => candidate.id === unitId);
+        const capacity = unit?.deploymentCapacity ?? 1;
+        if (usedCapacity + capacity > activeSquadCap) {
+          changed = true;
+          return null;
+        }
+        usedCapacity += capacity;
+        return unitId;
+      });
+      return changed ? next : previous;
+    });
+  }, [activeSquadCap, units]);
+
   const activeDeploymentCapacity = useMemo(
     () =>
       getArmyDeploymentCapacity(
@@ -1615,7 +1690,7 @@ export function GameProvider({
           resources.iron >= 4;
 
   const tollCaptainWon = Boolean(
-    chapterNodes.find(node => node.id === 'node_6')?.completed
+    chapterNodes.find(node => node.id === 'ch1_m07')?.completed
   );
   const fortUpgradeAvailable =
     activeFaction === 'human' &&
@@ -1624,8 +1699,8 @@ export function GameProvider({
   const canUpgradeToFort =
     fortUpgradeAvailable &&
     (buildingLevels.barracks ?? 0) >= 2 &&
-    (buildingLevels.forge ?? 0) >= 2 &&
-    (buildingLevels.wagonwright ?? 0) >= 2 &&
+    (buildingLevels.forge ?? 0) >= 1 &&
+    (buildingLevels.wagonwright ?? 0) >= 1 &&
     canAfford(resources, getExpansionCost('human', 'fort'));
 
   const factionChapterTwoBossWon =
@@ -2113,6 +2188,55 @@ export function GameProvider({
     battleSummary?: WarTableBattleSummary
   ) => {
     const reward = encounterRewards[encounterId];
+
+    const humanEarlyNodeId = humanEarlyBattleNodeByEncounter[encounterId];
+    if (activeFaction === 'human' && humanEarlyNodeId) {
+      const currentNode = chapterNodes.find(node => node.id === humanEarlyNodeId);
+      if (!currentNode?.current) return;
+
+      if (encounterId === 'ch1_spears_at_dawn' && !firstPromotionComplete) return;
+      if (encounterId === 'ch1_broken_road' && !commanderPathId) return;
+      if (encounterId === 'ch1_reclaim_outpost' && !refugeeCampSecured) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+
+      if (encounterId === 'ch1_hold_crossing') {
+        setHoldTheRoadWon(true);
+      }
+      if (encounterId === 'ch1_cut_off_captain') {
+        setMercenaryPatrolWon(true);
+        setCommanderChoiceUnlocked(true);
+      }
+      if (encounterId === 'ch1_broken_road') {
+        setRefugeeCampSecured(true);
+      }
+      if (encounterId === 'ch2_break_their_hold') {
+        setIronProvostWon(true);
+      }
+
+      const nextNodeId = humanEarlyNextNodeByNodeId[humanEarlyNodeId];
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === humanEarlyNodeId) {
+            return { ...node, completed: true, current: false };
+          }
+          if (nextNodeId && node.id === nextNodeId) {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: encounterId + '_result',
+        title: humanEarlyBattleResultTitle[encounterId] ?? reward.storySummary,
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
 
     if (encounterId.startsWith('war_table_')) {
       if (!isSideModeUnlocked('war_table')) return;
@@ -4393,6 +4517,72 @@ export function GameProvider({
     return true;
   };
 
+  const completeHumanEarlyCampaignEvent = (nodeId: string) => {
+    if (activeFaction !== 'human') return false;
+
+    const node = chapterNodes.find(candidate => candidate.id === nodeId);
+    if (!node?.current) return false;
+
+    if (nodeId === 'ch1_m03') {
+      if (
+        !settlementUpgraded ||
+        (buildingLevels.barracks ?? 0) < 2
+      ) return false;
+      setMarkedRaidersInvestigated(true);
+      setForgeUnlocked(true);
+      setResources(previous => ({
+        ...previous,
+        wood: previous.wood + 5,
+        iron: previous.iron + 2
+      }));
+    } else if (nodeId === 'ch2_m02') {
+      if ((buildingLevels.forge ?? 0) < 2) return false;
+      setForgeUnlocked(true);
+      setResources(previous => ({
+        ...previous,
+        wood: previous.wood + 6,
+        iron: previous.iron + 5
+      }));
+      setUnlockedResourceSites(previous =>
+        previous.includes('iron_hills_mine')
+          ? previous
+          : [...previous, 'iron_hills_mine']
+      );
+    } else if (nodeId === 'ch2_m07') {
+      setSignalTowerUnlocked(true);
+      setResources(previous => ({
+        ...previous,
+        wood: previous.wood + 8,
+        stone: previous.stone + 5,
+        provisions: previous.provisions + 10
+      }));
+      setUnlockedResourceSites(previous => [
+        ...new Set([
+          ...previous,
+          'greenkeep_farms',
+          'greenwood_camp',
+          'old_quarry'
+        ])
+      ]);
+    } else {
+      return false;
+    }
+
+    const nextNodeId = humanEarlyNextNodeByNodeId[nodeId];
+    setChapterNodes(previous =>
+      previous.map(candidate => {
+        if (candidate.id === nodeId) {
+          return { ...candidate, completed: true, current: false };
+        }
+        if (nextNodeId && candidate.id === nextNodeId) {
+          return { ...candidate, current: true };
+        }
+        return { ...candidate, current: false };
+      })
+    );
+    return true;
+  };
+
   const completeMarkedRaiders = () => {
     if (!holdTheRoadWon || markedRaidersInvestigated) return false;
 
@@ -4503,7 +4693,8 @@ export function GameProvider({
     }));
     setChapterNumber(2);
     setChapterNodes(cloneNodes(chapterTwoNodes));
-    setFourthRecruitChoiceAvailable(true);
+    setFourthRecruitChoiceAvailable(false);
+    setFourthRecruitChosen(false);
     setUnlockedResourceSites(previous =>
       previous.includes('greenkeep_farms')
         ? previous
@@ -5871,13 +6062,18 @@ export function GameProvider({
 
     setCommanderPathId(pathId);
 
-    if (activeFaction === 'human') {
-      setChapterNodes(previous =>
-        previous.map(node => {
-          if (node.id === 'node_5') return { ...node, current: true };
+    if (activeFaction === 'human' && chapterNumber === 1) {
+      setChapterNodes(previous => {
+        const usesRoadmapNodes = previous.some(node => node.id === 'ch1_m06');
+        return previous.map(node => {
+          if (
+            node.id === (usesRoadmapNodes ? 'ch1_m06' : 'node_5')
+          ) {
+            return { ...node, current: true };
+          }
           return { ...node, current: false };
-        })
-      );
+        });
+      });
     }
 
     return true;
@@ -7104,6 +7300,7 @@ export function GameProvider({
       completeFactionChapterSixEvent,
       completeMetaCouncil,
       completeMetaConcordChamber,
+      completeHumanEarlyCampaignEvent,
       completeMarkedRaiders,
       completeRefugeeCamp,
       upgradeSettlement,
