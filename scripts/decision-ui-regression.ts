@@ -191,7 +191,8 @@ function testCommander() {
       skill: { name: 'Rally', description: 'Automatic battle skill', effectType: 'morale_break' }
     }));
     const game: any = {
-      activeFaction: faction, resources: { gold: 10 }, commanderPaths: paths,
+      activeFaction: faction, chapterNumber: 1, chapterNodes: [],
+      resources: { gold: 10 }, commanderPaths: paths,
       commanderPathId: 'A', commanderRespecCost: 50,
       chooseCommanderPath: (id: string) => { choices += 1; game.resources = { gold: game.resources.gold - 50 }; game.commanderPathId = id; return true; }
     };
@@ -214,6 +215,28 @@ function testCommander() {
     action(); action();
     check(choices === 1 && game.resources.gold === 50, 'Commander retraining must be charged once.');
     check(commit(h.render()).label === 'Return to Army', 'Commander confirmation must transition to the current specialization.');
+    if (faction === 'human') {
+      game.chapterNumber = 4;
+      game.chapterNodes = [{ id: 'ch4_node_3', current: true, completed: false }];
+      game.commanderPathId = 'A';
+      game.resources = { gold: 0 };
+      choices = 0;
+      const missionHarness = harness(
+        'src/screens/CommanderChoiceScreen.tsx',
+        'CommanderChoiceScreen',
+        game,
+        { onComplete: () => { returned += 1; } }
+      );
+      let missionTree = missionHarness.render();
+      nodes(missionTree, 'DecisionOption')[1]!.props.onSelect();
+      missionTree = missionHarness.render();
+      check(
+        !commit(missionTree).disabled &&
+          commit(missionTree).label.includes('Free') &&
+          commit(missionTree).detail.includes('free doctrine'),
+        'Two Ways to War must allow the Chapter 4 doctrine switch with zero Gold.'
+      );
+    }
   }
 }
 
