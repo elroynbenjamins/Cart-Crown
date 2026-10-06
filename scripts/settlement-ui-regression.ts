@@ -766,7 +766,7 @@ function testTutorialAndCosts() {
   const poor = fixture('orc');
   poor.game.resources = { gold: 0, wood: 0, stone: 0, iron: 0, provisions: 0 };
   const poorOverview = poor.h.render();
-  check(nodes(poorOverview, 'View').some(node => String(node.props.testID ?? '').startsWith('district-opportunity-')), 'District opportunities must remain visible even when the missing blueprint is currently unaffordable.');
+  check(nodes(poorOverview, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')), 'District opportunities must remain visible in the HUD even when the missing blueprint is currently unaffordable.');
   choosePlot(poorOverview, 'plot_nw'); tree = poor.h.render();
   const forge = poor.game.buildings.find((building: any) => building.role === 'EQUIPMENT');
   pressTestId(tree, 'construction-select-' + forge.id); tree = poor.h.render();
