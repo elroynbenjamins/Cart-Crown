@@ -218,6 +218,7 @@ export function CampaignScreen({
     chapterNumber,
     chapterNodes,
     settlementUpgraded,
+    buildingLevels,
     firstPromotionComplete,
     mercenaryPatrolWon,
     commanderPathId,
@@ -425,7 +426,10 @@ export function CampaignScreen({
             humanEarlyEventNodes.has(node.id);
           const earlyRequirementMet =
             node.id === 'ch1_m03'
-              ? settlementUpgraded
+              ? settlementUpgraded &&
+                (buildingLevels.barracks ?? 0) >= 2
+              : node.id === 'ch2_m02'
+                ? (buildingLevels.forge ?? 0) >= 2
               : node.id === 'ch1_m04'
                 ? firstPromotionComplete
                 : node.id === 'ch1_m06'
@@ -580,8 +584,15 @@ export function CampaignScreen({
 
           const earlyRoadmapStatus =
             chapterNumber <= 2 && node.current
-              ? node.id === 'ch1_m03' && !settlementUpgraded
+              ? node.id === 'ch1_m03' &&
+                !settlementUpgraded
                 ? 'UPGRADE CAMP'
+                : node.id === 'ch1_m03' &&
+                    (buildingLevels.barracks ?? 0) < 2
+                  ? 'UPGRADE BARRACKS'
+                  : node.id === 'ch2_m02' &&
+                      (buildingLevels.forge ?? 0) < 2
+                    ? 'UPGRADE FORGE'
                 : node.id === 'ch1_m04' && !firstPromotionComplete
                   ? 'PROMOTE FIRST'
                   : node.id === 'ch1_m06' && !commanderPathId
