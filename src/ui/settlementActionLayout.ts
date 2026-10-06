@@ -6,7 +6,7 @@ export function settlementActionLayout(
   const w = safe(mapWidth, 360);
   const h = safe(mapHeight, 600);
   const inset = Math.min(8, w / 4, h / 4);
-  const width = Math.min(320, w - inset * 2);
+  const width = Math.min(288, w - inset * 2);
   const height = Math.min(safe(measuredHeight, 112), h - inset * 2);
   const norm = (value: number) => Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0.5;
   const x = norm(anchor.x) * w;
