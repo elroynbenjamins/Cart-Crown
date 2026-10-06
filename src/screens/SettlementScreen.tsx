@@ -1475,10 +1475,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.86 : plot.row === 2 ? 1.1 : 1;
           const buildingSize = worldRebuildActive
-            ? landmark ? 110 : Math.round(66 * depthScale)
+            ? landmark ? humanStagePlateActive ? 88 : 110 : Math.round(66 * depthScale)
             : landmark ? 106 : Math.round(70 * depthScale);
           const ambienceSize = worldRebuildActive
-            ? landmark ? 118 : Math.round(78 * depthScale)
+            ? landmark ? humanStagePlateActive ? 96 : 118 : Math.round(78 * depthScale)
             : landmark ? 126 : Math.round(94 * depthScale);
           const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
           const buildingDistrictBonuses = building
@@ -2599,11 +2599,11 @@ const styles = StyleSheet.create({
   worldBuildingPad: { transform: [{ scale: 1.14 }, { translateY: -1 }], elevation: 5 },
   worldLandmarkBuildingPad: { width: 122, height: 108, transform: [{ translateY: -11 }], elevation: 8 },
   humanBuildingAnchor: { position: 'absolute', left: '50%', bottom: '50%', marginLeft: -41, transform: [{ scale: 1.14 }] },
-  humanLandmarkBuildingAnchor: { position: 'absolute', left: '50%', bottom: '50%', marginLeft: -61, width: 122, height: 108, transform: [] },
+  humanLandmarkBuildingAnchor: { position: 'absolute', left: '50%', bottom: '50%', marginLeft: -48, width: 96, height: 88, transform: [] },
   selectedWorldBuildingPad: { transform: [{ scale: 1.18 }, { translateY: -3 }], elevation: 7 },
   selectedWorldLandmarkBuildingPad: { width: 122, height: 108, transform: [{ scale: 1.04 }, { translateY: -13 }], elevation: 10 },
   selectedHumanBuildingPad: { transform: [{ scale: 1.18 }], elevation: 7 },
-  selectedHumanLandmarkBuildingPad: { width: 122, height: 108, transform: [{ scale: 1.04 }], elevation: 10 },
+  selectedHumanLandmarkBuildingPad: { width: 96, height: 88, transform: [{ scale: 1.04 }], elevation: 10 },
   buildingFootprint: { position: 'absolute', left: 5, right: 5, bottom: 0, height: 20, borderRadius: 999, opacity: 0.18, transform: [{ scaleX: 1.08 }] },
   landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
