@@ -428,7 +428,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   const districtOpportunityByPlot = new Map(
     districtOpportunities.map(opportunity => [opportunity.plotId, opportunity] as const)
   );
-  const showDistrictOpportunities = !selectedPlotId && !selectedBuildingId && !unlockCelebration && !blueprintPlannerOpen;
+  const showDistrictOpportunities = !worldRebuildActive && !selectedPlotId && !selectedBuildingId && !unlockCelebration && !blueprintPlannerOpen;
   const selectedBuildingCurrentBonuses = selectedBuilding
     ? settlementAdjacencyBonuses.filter(
         bonus => bonus.buildingA === selectedBuilding.id || bonus.buildingB === selectedBuilding.id
@@ -1820,7 +1820,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     pointerEvents="none"
                     style={[
                       styles.buildPlotArt,
-                      worldRebuildActive && !buildReady && !plotSelected && !relocationMode ? { opacity: 0 } : undefined
+                      worldRebuildActive && !recommendedBuildPlot && !plotSelected && !relocationMode && !blueprintPlanVisible ? { opacity: 0 } : undefined
                     ]}
                   >
                     <SettlementBuildPlotSprite
@@ -1832,7 +1832,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       color={theme.colors.textMuted}
                     />
                   </View>
-                  {!worldRebuildActive || buildReady || plotSelected || relocationMode ? (
+                  {!worldRebuildActive || recommendedBuildPlot || plotSelected || relocationMode ? (
                     <View pointerEvents="none" style={[styles.emptyBadge, worldRebuildActive ? styles.worldEmptyBadge : undefined, { backgroundColor: theme.colors.surface1 }]}>
                       <Text style={[styles.emptyPlusCompact, { color: selected || relocationMode ? theme.colors.gold : semanticColor(theme, 'neutral') }]}>+</Text>
                       <SemanticText tone="neutral" style={styles.emptyText}>
