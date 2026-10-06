@@ -16,6 +16,7 @@ export type EncounterId =
   | 'war_table_golem_breach'
   | 'mercenary_patrol'
   | 'toll_captain'
+  | 'reclaim_outpost'
   | 'ch2_defend_camp'
   | 'ch2_beyond_fires'
   | 'ch2_brace'
@@ -83,8 +84,8 @@ export type EncounterReward = {
 export const encounters: Record<EncounterId, EncounterDefinition> = {
   hold_the_road: {
     id: 'hold_the_road',
-    name: 'Hold the Road',
-    subtitle: 'A raider patrol is blocking the refugee road to Greenkeep.',
+    name: 'Hold the Crossing',
+    subtitle: 'A raider patrol is blocking the crossing that keeps Greenkeep connected to the refugee road.',
     enemyName: 'Road Raiders',
     enemyCount: 3,
     enemyHp: 128,
@@ -203,18 +204,27 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   mercenary_patrol: {
     id: 'mercenary_patrol',
-    name: 'Mercenary Patrol',
-    subtitle: 'A contracted warband is sweeping the road before Greenkeep can trace its employer.',
-    enemyName: 'Green Banner Company',
+    name: 'Spears at Dawn',
+    subtitle: 'A contracted mounted screen tests Greenkeep before its employer can be identified.',
+    enemyName: 'Green Banner Riders',
     enemyCount: 4,
     enemyHp: 220,
     difficulty: 'Elite'
   },
   toll_captain: {
     id: 'toll_captain',
-    name: 'The Toll Captain',
-    subtitle: 'The mercenary captain holding the old Greenkeep toll fort refuses to abandon the road.',
-    enemyName: 'Toll Captain Host',
+    name: 'Cut Off the Captain',
+    subtitle: 'The road captain is isolated from the old toll fort. Breaking his escort will cut the defenders off from outside support.',
+    enemyName: 'Captain Escort',
+    enemyCount: 4,
+    enemyHp: 255,
+    difficulty: 'Elite'
+  },
+  reclaim_outpost: {
+    id: 'reclaim_outpost',
+    name: 'Reclaim the Outpost',
+    subtitle: 'The remaining garrison has fallen back into the old Greenkeep toll fort. The road is ready for one final assault.',
+    enemyName: 'Outpost Garrison',
     enemyCount: 5,
     enemyHp: 340,
     difficulty: 'Boss'
@@ -1413,8 +1423,12 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
     storySummary: 'The mercenaries retreat, leaving behind sealed pay records tied to Crownspire coin.'
   },
   toll_captain: {
+    resources: { gold: 70, wood: 12, iron: 5, provisions: 4 },
+    storySummary: 'The captain is cut off from the outpost. His dispatch case reveals how thin the remaining garrison has become.'
+  },
+  reclaim_outpost: {
     resources: { gold: 120, wood: 90, stone: 45, iron: 12, provisions: 8 },
-    storySummary: 'The old toll fort falls. Greenkeep now controls the western road and has the stone, timber and authority needed to become a true Fort.'
+    storySummary: 'The old outpost falls. Greenkeep controls the western road and has the stone, timber and authority needed to build beyond a temporary camp.'
   },
   ch2_defend_camp: {
     resources: { gold: 48, wood: 10, provisions: 5 },
