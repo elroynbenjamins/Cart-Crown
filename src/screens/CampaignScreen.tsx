@@ -35,6 +35,7 @@ export function CampaignScreen({
   onStartMercenary,
   onOpenRefugeeCamp,
   onStartTollCaptain,
+  onStartReclaimOutpost,
   onOpenFortMuster,
   onStartIronRoad,
   onOpenTimberClaim,
@@ -114,6 +115,7 @@ export function CampaignScreen({
   onStartMercenary: () => void;
   onOpenRefugeeCamp: () => void;
   onStartTollCaptain: () => void;
+  onStartReclaimOutpost: () => void;
   onOpenFortMuster: () => void;
   onStartIronRoad: () => void;
   onOpenTimberClaim: () => void;
@@ -407,16 +409,21 @@ export function CampaignScreen({
             node.id === 'node_4' &&
             firstPromotionComplete &&
             !mercenaryPatrolWon;
-          const refugeePlayable =
+          const cutOffCaptainPlayable =
             chapterNumber === 1 &&
             node.current &&
             node.id === 'node_5' &&
-            Boolean(commanderPathId) &&
-            !refugeeCampSecured;
-          const bossPlayable =
+            Boolean(commanderPathId);
+          const brokenRoadPlayable =
             chapterNumber === 1 &&
             node.current &&
             node.id === 'node_6' &&
+            Boolean(commanderPathId) &&
+            !refugeeCampSecured;
+          const reclaimOutpostPlayable =
+            chapterNumber === 1 &&
+            node.current &&
+            node.id === 'node_7' &&
             refugeeCampSecured;
 
           const fortMusterPlayable =
@@ -567,8 +574,9 @@ export function CampaignScreen({
             chapterOneBattle ||
             chapterOneStory ||
             mercenaryPlayable ||
-            refugeePlayable ||
-            bossPlayable ||
+            cutOffCaptainPlayable ||
+            brokenRoadPlayable ||
+            reclaimOutpostPlayable ||
             fortMusterPlayable ||
             ironRoadPlayable ||
             timberPlayable ||
@@ -606,9 +614,13 @@ export function CampaignScreen({
               ? 'PROMOTE FIRST'
               : node.id === 'node_5' && node.current && !commanderPathId
                 ? 'CHOOSE COMMANDER'
-                : refugeePlayable
-                  ? 'WELCOME REFUGEES'
-                  : fortMusterPlayable
+                : cutOffCaptainPlayable
+                  ? 'PLAY'
+                  : brokenRoadPlayable
+                    ? 'SECURE ROAD'
+                    : reclaimOutpostPlayable
+                      ? 'BOSS'
+                      : fortMusterPlayable
                     ? 'CHOOSE SQUAD'
                     : ironRoadPlayable
                       ? 'PLAY'
@@ -668,9 +680,7 @@ export function CampaignScreen({
                                                                             ? 'TRUTH'
                                                                             : returnToCrownspirePlayable
                                                                               ? 'FINAL BOSS'
-                                                                              : bossPlayable
-                                ? 'BOSS'
-                            : playable
+                                                                              : playable
                               ? 'PLAY'
                               : node.current
                                 ? 'NEXT'
@@ -682,11 +692,13 @@ export function CampaignScreen({
               ? onOpenMarkedRaiders
               : mercenaryPlayable
                 ? onStartMercenary
-                : refugeePlayable
-                  ? onOpenRefugeeCamp
-                  : bossPlayable
-                    ? onStartTollCaptain
-                    : fortMusterPlayable
+                : cutOffCaptainPlayable
+                  ? onStartTollCaptain
+                  : brokenRoadPlayable
+                    ? onOpenRefugeeCamp
+                    : reclaimOutpostPlayable
+                      ? onStartReclaimOutpost
+                      : fortMusterPlayable
                       ? onOpenFortMuster
                       : ironRoadPlayable
                         ? onStartIronRoad
