@@ -108,8 +108,8 @@ function runCampaignCurveCoverage() {
 
 function runChapterTwoCoverage() {
   expect(
-    chapterTwoCampaign.length === 10,
-    'Chapter 2 must contain exactly ten authored main missions.'
+    chapterTwoCampaign.length === 8,
+    'Chapter 2 must contain exactly eight authored main missions.'
   );
 
   chapterTwoCampaign.forEach((mission, index) => {
@@ -124,16 +124,14 @@ function runChapterTwoCoverage() {
   });
 
   const expectedNames = [
-    'They Found Us',
-    'Beyond the Fires',
-    'Three Roads',
-    'Horse and Rider',
-    'Brace!',
-    'The Long Haul',
-    'Those Who Remain',
-    'Take the Watch',
-    'Build Something Worth Defending',
-    "The Rider's Banner"
+    'Strength in Numbers',
+    'Tools of War',
+    'Riders on the Road',
+    'No Army Fights Forever',
+    'The Long Way Around',
+    'The Iron Line',
+    'Supplies for War',
+    'Break Their Hold'
   ];
   expect(
     chapterTwoCampaign.every((mission, index) => mission.name === expectedNames[index]),
@@ -141,46 +139,33 @@ function runChapterTwoCoverage() {
   );
 
   expect(
-    chapterTwoCampaign[0]?.deploymentCap === 5,
-    'Chapter 2 must open at five deployed squads.'
+    chapterTwoCampaign[0]?.deploymentCap === 2,
+    'Strength in Numbers must still be fought with the two-squad core.'
   );
   expect(
-    chapterTwoCampaign.find(mission => mission.id === 'ch2_beyond_fires')?.deploymentCap === 6,
-    'Beyond the Fires must unlock/use the sixth deployment slot.'
-  );
-  expect(
-    chapterTwoCampaign.find(mission => mission.id === 'ch2_take_watch')?.deploymentCap === 7 &&
-      chapterTwoCampaign.at(-1)?.deploymentCap === 7,
-    'Take the Watch must establish the seven-squad Chapter 2 end state.'
+    chapterTwoCampaign.slice(1).every(mission => mission.deploymentCap === 3),
+    'Chapter 2 must stay at three active squads after Strength in Numbers.'
   );
 
-  expect(getChapterTwoSquadCap([]) === 5, 'Chapter 2 squad cap must begin at five.');
+  expect(getChapterTwoSquadCap([]) === 2, 'Chapter 2 squad cap must begin at two.');
   expect(
-    getChapterTwoSquadCap(['ch2_beyond_fires']) === 6,
-    'Beyond the Fires must raise the Chapter 2 squad cap to six.'
-  );
-  expect(
-    getChapterTwoSquadCap(['ch2_beyond_fires', 'ch2_take_watch']) === 7,
-    'Take the Watch must raise the Chapter 2 squad cap to seven.'
+    getChapterTwoSquadCap(['ch2_strength_in_numbers']) === 3,
+    'Strength in Numbers must unlock the third active squad.'
   );
 
-  expect(getChapterTwoRosterCap([]) === 9, 'Chapter 2 roster cap must begin at nine.');
+  expect(getChapterTwoRosterCap([]) === 4, 'Chapter 2 roster cap must begin at four.');
   expect(
-    getChapterTwoRosterCap(['ch2_beyond_fires']) === 12,
-    'Beyond the Fires must expand the roster to twelve.'
-  );
-  expect(
-    getChapterTwoRosterCap(['ch2_beyond_fires', 'ch2_take_watch']) === 16,
-    'Take the Watch must expand the roster to sixteen.'
+    getChapterTwoRosterCap(['ch2_strength_in_numbers']) === 5,
+    'Strength in Numbers must expand the practical roster to five.'
   );
 
   expect(
     chapterTwoTerritoryRoutes.length === 3,
-    'Chapter 2 must offer exactly three first-route priorities.'
+    'Chapter 2 must retain three later territorial priority definitions.'
   );
   expect(
     new Set(chapterTwoTerritoryRoutes.map(route => route.benefit)).size === 3,
-    'Trade, materials and mounts must each have a distinct Chapter 2 route.'
+    'Trade, materials and mounts must each retain a distinct route identity.'
   );
 
   expect(
