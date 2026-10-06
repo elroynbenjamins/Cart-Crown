@@ -1927,8 +1927,44 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
     storySummary: 'The Ashen Court district falls. Records inside confirm the Court forced the Beacon activation that caused the Crownfall.'
   },
   return_to_crownspire: {
-    resources: { gold: 700, wood: 300, stone: 260, iron: 90, provisions: 25 },
-    storySummary: 'The Ashen Regent falls and Greenkeep recovers the Human Oath Seal. The Human campaign is complete.'
+    resources: { gold: 420, wood: 150, stone: 135, iron: 55, provisions: 18 },
+    storySummary: 'The Glass Keep falls. The arcane threat is broken, but Blackstone still controls the fortified road beyond Crownspire.'
+  },
+  ch7_stone_road: {
+    resources: { gold: 130, stone: 18, iron: 8, provisions: 5 },
+    storySummary: 'The Stone Road checkpoint falls and Greenkeep learns how Blackstone layers fortifications into ordinary field battles.'
+  },
+  ch7_break_gate: {
+    resources: { gold: 150, wood: 14, stone: 22, iron: 10 },
+    storySummary: 'The first gate is breached. Siege support can now be treated as a deliberate campaign tool rather than a side activity.'
+  },
+  ch7_protect_engineers: {
+    resources: { gold: 145, wood: 18, provisions: 8 },
+    storySummary: 'The engineers finish their work under protection and open the next fortified approach.'
+  },
+  ch7_fire_walls: {
+    resources: { gold: 165, iron: 12, stone: 12 },
+    storySummary: 'Blackstone artillery is silenced and its firing pattern is added to the campaign siege plans.'
+  },
+  ch7_under_towers: {
+    resources: { gold: 175, stone: 20, iron: 12 },
+    storySummary: 'The overlapping tower line collapses after its protected bases are forced into direct combat.'
+  },
+  ch7_enemy_at_walls: {
+    resources: { gold: 170, wood: 20, provisions: 10 },
+    storySummary: 'Greenkeep holds its own walls. Settlement defenses have proven they matter on the battlefield.'
+  },
+  ch7_hold_dawn: {
+    resources: { gold: 180, provisions: 14, iron: 8 },
+    storySummary: 'The line survives until dawn and the relief force drives the exhausted attackers away.'
+  },
+  ch7_breached_city: {
+    resources: { gold: 205, wood: 15, stone: 18, iron: 15 },
+    storySummary: 'The breached district is secured. The final Blackstone defense is now exposed.'
+  },
+  ch7_blackstone: {
+    resources: { gold: 720, wood: 260, stone: 240, iron: 95, provisions: 28 },
+    storySummary: 'Blackstone falls. Greenkeep has mastered field warfare, arcane threats and fortified campaigns, completing the Human campaign.'
   },
   elf_wardbreakers: {
     resources: { gold: 42, wood: 10, provisions: 5 },
