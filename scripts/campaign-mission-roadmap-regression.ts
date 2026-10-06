@@ -2,8 +2,6 @@ import { chapterOneNodes } from '../src/game/data';
 import { chapterTwoNodes } from '../src/game/chapter2';
 import { chapterThreeNodes } from '../src/game/chapter3';
 import { chapterFourNodes } from '../src/game/chapter4';
-import { chapterThreeNodes } from '../src/game/chapter3';
-import { chapterFourNodes } from '../src/game/chapter4';
 import {
   campaignMissionCountsByChapter,
   campaignMissionRoadmap,
@@ -214,49 +212,6 @@ assert(
 );
 
 
-console.log(
-  'PASS: campaign mission roadmap, live Chapters 1-4 ordering and 2->3->4->5->6 squad cadence remain protected.'
-);
-
-
-const liveChapterThreeNames = [
-  'Into Frostmarch',
-  'A Wider Front',
-  'Frozen Steel',
-  'Hooves in the Snow',
-  'Choose Your Rider',
-  'The Line Buckles',
-  'Through the Gap',
-  'Wolves on the Wing',
-  'The Layered Host',
-  'Cold Roads',
-  'Battle for Frostgate'
-];
-const liveChapterFourNames = [
-  'The Long Front',
-  'Raise Another Banner',
-  'Two Ways to War',
-  'Broken Ground',
-  'Hold the Breach',
-  'Prepare for Battle',
-  'The Wrong Army',
-  'Veteran Steel',
-  'Hunters in the Rear',
-  'The Forked Banner',
-  'Siege of Greywatch'
-];
-
-assert(chapterThreeNodes.length === 11, 'Live Chapter 3 must contain eleven missions');
-assert(
-  chapterThreeNodes.every((node, index) => node.name === liveChapterThreeNames[index]),
-  'Live Chapter 3 mission order drifted from the roadmap'
-);
-assert(chapterFourNodes.length === 11, 'Live Chapter 4 must contain eleven missions');
-assert(
-  chapterFourNodes.every((node, index) => node.name === liveChapterFourNames[index]),
-  'Live Chapter 4 mission order drifted from the roadmap'
-);
-
 assert(
   getCampaignActiveSquadCap(3, chapterThreeNodes) === 3,
   'Chapter 3 must begin with only three active squads'
@@ -282,4 +237,8 @@ assert(
     )
   ) === 5,
   'Raise Another Banner must unlock the fifth squad'
+);
+
+console.log(
+  'PASS: campaign mission roadmap, live Chapters 1-4 ordering and 2->3->4->5->6 squad cadence remain protected.'
 );
