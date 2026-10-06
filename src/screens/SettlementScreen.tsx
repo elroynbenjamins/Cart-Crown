@@ -1375,10 +1375,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const buildReady = unlocked && !building && !selectedBuildingId && !plotSelected && !blueprintPlannerOpen && constructionReadyCount > 0;
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
-          const depthScale = plot.row === 0 ? 0.9 : plot.row === 2 ? 1.06 : 1;
+          const depthScale = plot.row === 0 ? 0.86 : plot.row === 2 ? 1.1 : 1;
           const buildingSize = worldRebuildActive
-            ? landmark ? 138 : Math.round(74 * depthScale)
-            : landmark ? 104 : Math.round(70 * depthScale);
+            ? landmark ? 142 : Math.round(76 * depthScale)
+            : landmark ? 106 : Math.round(70 * depthScale);
           const ambienceSize = worldRebuildActive
             ? landmark ? 118 : Math.round(78 * depthScale)
             : landmark ? 126 : Math.round(94 * depthScale);
@@ -1640,6 +1640,34 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               ) : null}
               {building ? (
                 <>
+                  <View
+                    pointerEvents="none"
+                    testID={'building-ground-shadow-' + building.id}
+                    style={[
+                      styles.buildingGroundShadow,
+                      landmark ? styles.landmarkBuildingGroundShadow : undefined,
+                      worldRebuildActive ? styles.worldBuildingGroundShadow : undefined,
+                      {
+                        opacity: selected ? 0.5 : humanStagePlateActive ? 0.38 : worldRebuildActive ? 0.34 : 0.26,
+                        transform: [
+                          { scaleX: depthScale * (landmark ? 1.08 : 1) },
+                          { scaleY: landmark ? 1.08 : 1 }
+                        ]
+                      }
+                    ]}
+                  />
+                  <View
+                    pointerEvents="none"
+                    testID={'building-contact-shadow-' + building.id}
+                    style={[
+                      styles.buildingContactShadow,
+                      landmark ? styles.landmarkBuildingContactShadow : undefined,
+                      {
+                        opacity: selected ? 0.62 : worldRebuildActive ? 0.5 : 0.38,
+                        transform: [{ scaleX: depthScale }]
+                      }
+                    ]}
+                  />
                   {selected ? (
                     <View
                       pointerEvents="none"
@@ -1759,7 +1787,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   ) : null}
                   {plotSelected && previewBuilding && constructionPlotAvailable ? (
                     <View pointerEvents="none" testID="construction-ghost-preview" style={styles.constructionGhost}>
-                      <BuildingSprite buildingId={previewBuilding.id} faction={activeFaction} size={70} />
+                      <View style={styles.constructionGroundShadow} />
+                      <BuildingSprite buildingId={previewBuilding.id} faction={activeFaction} size={72} />
                       <Text style={[styles.constructionGhostLabel, { color: theme.colors.gold, backgroundColor: theme.colors.surface1 }]}>PREVIEW</Text>
                     </View>
                   ) : null}
@@ -2326,22 +2355,28 @@ const styles = StyleSheet.create({
   sceneDetailsContent: { gap: 8 },
   constructionChoice: { minWidth: 48, minHeight: 48, borderWidth: 1, borderRadius: 12, padding: 9, gap: 5 },
   constructionChoiceHeading: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  constructionGhost: { position: 'absolute', left: '50%', top: '50%', marginLeft: -36, marginTop: -42, width: 72, alignItems: 'center', opacity: 0.65, zIndex: 7 },
+  constructionGhost: { position: 'absolute', left: '50%', top: '50%', marginLeft: -38, marginTop: -44, width: 76, alignItems: 'center', opacity: 0.72, zIndex: 7 },
+  constructionGroundShadow: { position: 'absolute', left: '50%', bottom: 13, marginLeft: -27, width: 54, height: 15, borderRadius: 999, backgroundColor: '#0A0D0B', opacity: 0.44 },
   constructionGhostLabel: { fontSize: 9, lineHeight: 13, fontWeight: '900', paddingHorizontal: 5, borderRadius: 4 },
   sceneDetailTitle: { fontSize: 12, lineHeight: 18, fontWeight: '900' },
   sceneDetailText: { fontSize: 12, lineHeight: 18 },
   sceneFeedback: { fontSize: 12, lineHeight: 17, fontWeight: '700', padding: 6 },
 
   landmarkSelectionHalo: { marginLeft: -54, width: 108, height: 38, bottom: '19%' },
+  buildingGroundShadow: { position: 'absolute', left: '50%', bottom: '15%', marginLeft: -34, width: 68, height: 22, borderRadius: 999, backgroundColor: '#111712', opacity: 0.28 },
+  landmarkBuildingGroundShadow: { bottom: '14%', marginLeft: -49, width: 98, height: 30 },
+  worldBuildingGroundShadow: { bottom: '12%', height: 24, backgroundColor: '#0D120F' },
+  buildingContactShadow: { position: 'absolute', left: '50%', bottom: '21%', marginLeft: -24, width: 48, height: 10, borderRadius: 999, backgroundColor: '#060806', opacity: 0.42 },
+  landmarkBuildingContactShadow: { bottom: '20%', marginLeft: -34, width: 68, height: 13 },
   buildingDistrictAura: { position: 'absolute', left: 9, right: 9, bottom: 13, height: 22, borderRadius: 999, borderWidth: 1, opacity: 0.78, transform: [{ scaleX: 1.08 }] },
   landmarkDistrictAura: { left: 3, right: 3, bottom: 15, height: 30, borderWidth: 1.5, opacity: 0.82 },
   buildingAmbience: { position: 'absolute', left: '50%', top: '50%', marginLeft: -47, marginTop: -47, width: 94, height: 94, alignItems: 'center', justifyContent: 'center' },
   landmarkAmbience: { marginLeft: -63, marginTop: -67, width: 126, height: 126, transform: [{ translateY: -5 }] },
   buildingPad: { width: 82, height: 74, alignItems: 'center', justifyContent: 'flex-end', elevation: 4 },
   selectedBuildingPad: { transform: [{ scale: 1.075 }, { translateY: -2 }] },
-  landmarkBuildingPad: { width: 108, height: 96, transform: [{ translateY: -8 }], elevation: 6 },
-  worldBuildingPad: { transform: [{ scale: 1.12 }], elevation: 5 },
-  worldLandmarkBuildingPad: { width: 132, height: 116, transform: [{ translateY: -12 }], elevation: 8 },
+  landmarkBuildingPad: { width: 110, height: 98, transform: [{ translateY: -9 }], elevation: 6 },
+  worldBuildingPad: { transform: [{ scale: 1.14 }, { translateY: -1 }], elevation: 5 },
+  worldLandmarkBuildingPad: { width: 136, height: 120, transform: [{ translateY: -13 }], elevation: 8 },
   buildingFootprint: { position: 'absolute', left: 5, right: 5, bottom: 0, height: 20, borderRadius: 999, opacity: 0.18, transform: [{ scaleX: 1.08 }] },
   landmarkFootprint: { left: 1, right: 1, height: 27, opacity: 0.24 },
   plotGuideBadge: { position: 'absolute', top: -12, right: -8, zIndex: 5, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 },
