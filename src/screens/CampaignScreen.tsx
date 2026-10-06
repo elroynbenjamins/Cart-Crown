@@ -67,15 +67,25 @@ export function CampaignScreen({
   onStartPretenderGeneral,
   onOpenRoyalDecrees,
   onStartOldRoyalLands,
+  onStartCh5RallyLine,
+  onStartCh5AboveShieldwall,
   onOpenBrokenArchives,
-  onStartAshenEnvoy,
   onOpenRoyalLedger,
+  onStartAshenEnvoy,
+  onStartCh5HammerWing,
+  onStartCh5StrongestArmy,
+  onStartCh5CrownsMuster,
   onStartGateOfCrownspire,
-  onOpenGrandCouncil,
   onStartSunderedFields,
+  onStartCh6FirstWard,
+  onOpenGrandCouncil,
+  onStartCh6PowerPrice,
+  onStartCh6BreakSpell,
   onOpenConcordVault,
+  onStartCh6FireFromAbove,
+  onStartCh6SilentGround,
+  onStartCh6WardsSteel,
   onStartAshenCourt,
-  onOpenForcedBeacon,
   onStartReturnToCrownspire,
   onStartFactionOpeningBattle,
   onOpenFactionInvestigation,
@@ -158,15 +168,25 @@ export function CampaignScreen({
   onStartPretenderGeneral: () => void;
   onOpenRoyalDecrees: () => void;
   onStartOldRoyalLands: () => void;
+  onStartCh5RallyLine: () => void;
+  onStartCh5AboveShieldwall: () => void;
   onOpenBrokenArchives: () => void;
-  onStartAshenEnvoy: () => void;
   onOpenRoyalLedger: () => void;
+  onStartAshenEnvoy: () => void;
+  onStartCh5HammerWing: () => void;
+  onStartCh5StrongestArmy: () => void;
+  onStartCh5CrownsMuster: () => void;
   onStartGateOfCrownspire: () => void;
-  onOpenGrandCouncil: () => void;
   onStartSunderedFields: () => void;
+  onStartCh6FirstWard: () => void;
+  onOpenGrandCouncil: () => void;
+  onStartCh6PowerPrice: () => void;
+  onStartCh6BreakSpell: () => void;
   onOpenConcordVault: () => void;
+  onStartCh6FireFromAbove: () => void;
+  onStartCh6SilentGround: () => void;
+  onStartCh6WardsSteel: () => void;
   onStartAshenCourt: () => void;
-  onOpenForcedBeacon: () => void;
   onStartReturnToCrownspire: () => void;
   onStartFactionOpeningBattle: () => void;
   onOpenFactionInvestigation: () => void;
@@ -584,57 +604,29 @@ export function CampaignScreen({
             Boolean(lastLoyalistsChoiceId) &&
             !pretenderGeneralWon;
 
-          const capitalCouncilPlayable =
-            chapterNumber === 5 &&
-            node.current &&
-            node.id === 'ch5_node_1' &&
-            !royalDecreeId;
-          const oldRoyalLandsPlayable =
-            chapterNumber === 5 &&
-            node.current &&
-            node.id === 'ch5_node_2' &&
-            Boolean(royalDecreeId);
-          const brokenArchivesPlayable =
-            chapterNumber === 5 &&
-            node.current &&
-            node.id === 'ch5_node_3';
-          const ashenEnvoyPlayable =
-            chapterNumber === 5 &&
-            node.current &&
-            node.id === 'ch5_node_4';
-          const royalLedgerPlayable =
-            chapterNumber === 5 &&
-            node.current &&
-            node.id === 'ch5_node_5';
-          const crownspireGatePlayable =
-            chapterNumber === 5 &&
-            node.current &&
-            node.id === 'ch5_node_6';
+          const oldRoyalLandsPlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_1';
+          const capitalCouncilPlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_2';
+          const ch5RallyPlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_3';
+          const ch5AbovePlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_4';
+          const brokenArchivesPlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_5';
+          const royalLedgerPlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_6';
+          const ashenEnvoyPlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_7';
+          const ch5HammerPlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_8';
+          const ch5StrongestPlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_9';
+          const ch5MusterPlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_10';
+          const crownspireGatePlayable = chapterNumber === 5 && node.current && node.id === 'ch5_node_11';
 
-          const grandCouncilPlayable =
-            chapterNumber === 6 &&
-            node.current &&
-            node.id === 'ch6_node_1';
-          const sunderedFieldsPlayable =
-            chapterNumber === 6 &&
-            node.current &&
-            node.id === 'ch6_node_2';
-          const concordVaultPlayable =
-            chapterNumber === 6 &&
-            node.current &&
-            node.id === 'ch6_node_3';
-          const ashenCourtPlayable =
-            chapterNumber === 6 &&
-            node.current &&
-            node.id === 'ch6_node_4';
-          const forcedBeaconPlayable =
-            chapterNumber === 6 &&
-            node.current &&
-            node.id === 'ch6_node_5';
-          const returnToCrownspirePlayable =
-            chapterNumber === 6 &&
-            node.current &&
-            node.id === 'ch6_node_6';
+          const sunderedFieldsPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_1';
+          const ch6FirstWardPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_2';
+          const grandCouncilPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_3';
+          const ch6PowerPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_4';
+          const ch6BreakSpellPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_5';
+          const concordVaultPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_6';
+          const ch6FireAbovePlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_7';
+          const ch6SilentGroundPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_8';
+          const ch6WardsSteelPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_9';
+          const ashenCourtPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_10';
+          const returnToCrownspirePlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_11';
 
           const playable =
             chapterOneBattle ||
@@ -672,17 +664,27 @@ export function CampaignScreen({
             huntersRearPlayable ||
             lastLoyalistsPlayable ||
             pretenderGeneralPlayable ||
-            capitalCouncilPlayable ||
             oldRoyalLandsPlayable ||
+            capitalCouncilPlayable ||
+            ch5RallyPlayable ||
+            ch5AbovePlayable ||
             brokenArchivesPlayable ||
-            ashenEnvoyPlayable ||
             royalLedgerPlayable ||
+            ashenEnvoyPlayable ||
+            ch5HammerPlayable ||
+            ch5StrongestPlayable ||
+            ch5MusterPlayable ||
             crownspireGatePlayable ||
-            grandCouncilPlayable ||
             sunderedFieldsPlayable ||
+            ch6FirstWardPlayable ||
+            grandCouncilPlayable ||
+            ch6PowerPlayable ||
+            ch6BreakSpellPlayable ||
             concordVaultPlayable ||
+            ch6FireAbovePlayable ||
+            ch6SilentGroundPlayable ||
+            ch6WardsSteelPlayable ||
             ashenCourtPlayable ||
-            forcedBeaconPlayable ||
             returnToCrownspirePlayable;
 
           const status = node.completed
@@ -753,30 +755,34 @@ export function CampaignScreen({
                                                                         ? 'CHOOSE ROUTE'
                                                                         : pretenderGeneralPlayable
                                                                           ? 'BOSS'
-                                                      : capitalCouncilPlayable
-                                                        ? 'CHOOSE DECREE'
-                                                        : oldRoyalLandsPlayable
-                                                          ? 'PLAY'
-                                                          : brokenArchivesPlayable
-                                                            ? 'INVESTIGATE'
-                                                            : ashenEnvoyPlayable
-                                                              ? 'ELITE'
+                                                      : oldRoyalLandsPlayable
+                                                        ? 'PLAY'
+                                                        : capitalCouncilPlayable
+                                                          ? 'RAISE BANNER'
+                                                          : ch5RallyPlayable || ch5AbovePlayable
+                                                            ? 'PLAY'
+                                                            : brokenArchivesPlayable
+                                                              ? 'PREPARE'
                                                               : royalLedgerPlayable
-                                                                ? 'READ LEDGER'
-                                                                : crownspireGatePlayable
-                                                                  ? 'BOSS'
-                                                                  : grandCouncilPlayable
-                                                                    ? 'COUNCIL'
-                                                                    : sunderedFieldsPlayable
+                                                                ? 'COMMAND'
+                                                                : ashenEnvoyPlayable || ch5HammerPlayable || ch5StrongestPlayable || ch5MusterPlayable
+                                                                  ? 'PLAY'
+                                                                  : crownspireGatePlayable
+                                                                    ? 'BOSS'
+                                                                    : sunderedFieldsPlayable || ch6FirstWardPlayable
                                                                       ? 'PLAY'
-                                                                      : concordVaultPlayable
-                                                                        ? 'OPEN VAULT'
-                                                                        : ashenCourtPlayable
-                                                                          ? 'ELITE'
-                                                                          : forcedBeaconPlayable
-                                                                            ? 'TRUTH'
-                                                                            : returnToCrownspirePlayable
-                                                                              ? 'FINAL BOSS'
+                                                                      : grandCouncilPlayable
+                                                                        ? 'CALL ARCANIST'
+                                                                        : ch6PowerPlayable || ch6BreakSpellPlayable
+                                                                          ? 'PLAY'
+                                                                          : concordVaultPlayable
+                                                                            ? 'CHOOSE PATH'
+                                                                            : ch6FireAbovePlayable || ch6SilentGroundPlayable || ch6WardsSteelPlayable
+                                                                              ? 'PLAY'
+                                                                              : ashenCourtPlayable
+                                                                                ? 'ELITE'
+                                                                                : returnToCrownspirePlayable
+                                                                                  ? 'FINAL BOSS'
                                                                               : bossPlayable
                                 ? 'BOSS'
                             : playable
@@ -855,30 +861,50 @@ export function CampaignScreen({
                                                                           ? onOpenLastLoyalists
                                                                           : pretenderGeneralPlayable
                                                                             ? onStartPretenderGeneral
-                                                        : capitalCouncilPlayable
-                                                          ? onOpenRoyalDecrees
-                                                          : oldRoyalLandsPlayable
-                                                            ? onStartOldRoyalLands
-                                                            : brokenArchivesPlayable
-                                                              ? onOpenBrokenArchives
-                                                              : ashenEnvoyPlayable
-                                                                ? onStartAshenEnvoy
-                                                                : royalLedgerPlayable
-                                                                  ? onOpenRoyalLedger
-                                                                  : crownspireGatePlayable
-                                                                    ? onStartGateOfCrownspire
-                                                                    : grandCouncilPlayable
-                                                                      ? onOpenGrandCouncil
-                                                                      : sunderedFieldsPlayable
-                                                                        ? onStartSunderedFields
-                                                                        : concordVaultPlayable
-                                                                          ? onOpenConcordVault
-                                                                          : ashenCourtPlayable
-                                                                            ? onStartAshenCourt
-                                                                            : forcedBeaconPlayable
-                                                                              ? onOpenForcedBeacon
-                                                                              : returnToCrownspirePlayable
-                                                                                ? onStartReturnToCrownspire
+                                                        : oldRoyalLandsPlayable
+                                                          ? onStartOldRoyalLands
+                                                          : capitalCouncilPlayable
+                                                            ? onOpenRoyalDecrees
+                                                            : ch5RallyPlayable
+                                                              ? onStartCh5RallyLine
+                                                              : ch5AbovePlayable
+                                                                ? onStartCh5AboveShieldwall
+                                                                : brokenArchivesPlayable
+                                                                  ? onOpenBrokenArchives
+                                                                  : royalLedgerPlayable
+                                                                    ? onOpenRoyalLedger
+                                                                    : ashenEnvoyPlayable
+                                                                      ? onStartAshenEnvoy
+                                                                      : ch5HammerPlayable
+                                                                        ? onStartCh5HammerWing
+                                                                        : ch5StrongestPlayable
+                                                                          ? onStartCh5StrongestArmy
+                                                                          : ch5MusterPlayable
+                                                                            ? onStartCh5CrownsMuster
+                                                                            : crownspireGatePlayable
+                                                                              ? onStartGateOfCrownspire
+                                                                              : sunderedFieldsPlayable
+                                                                                ? onStartSunderedFields
+                                                                                : ch6FirstWardPlayable
+                                                                                  ? onStartCh6FirstWard
+                                                                                  : grandCouncilPlayable
+                                                                                    ? onOpenGrandCouncil
+                                                                                    : ch6PowerPlayable
+                                                                                      ? onStartCh6PowerPrice
+                                                                                      : ch6BreakSpellPlayable
+                                                                                        ? onStartCh6BreakSpell
+                                                                                        : concordVaultPlayable
+                                                                                          ? onOpenConcordVault
+                                                                                          : ch6FireAbovePlayable
+                                                                                            ? onStartCh6FireFromAbove
+                                                                                            : ch6SilentGroundPlayable
+                                                                                              ? onStartCh6SilentGround
+                                                                                              : ch6WardsSteelPlayable
+                                                                                                ? onStartCh6WardsSteel
+                                                                                                : ashenCourtPlayable
+                                                                                                  ? onStartAshenCourt
+                                                                                                  : returnToCrownspirePlayable
+                                                                                                    ? onStartReturnToCrownspire
                                                                                 : undefined;
 
           return (
