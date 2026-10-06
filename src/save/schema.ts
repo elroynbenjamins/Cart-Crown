@@ -1923,18 +1923,22 @@ export function metadataFromSnapshot(
               : current.fourthRecruitChosen
                 ? 'Chapter 2 · Iron Road Skirmish'
                 : 'Chapter 2 · Fort Muster';
-  } else if (current.refugeeCampSecured) {
-    chapterLabel = 'Chapter 1 · The Toll Captain';
+  } else if (current.chapterNodes.find(node => node.id === 'node_7')?.current) {
+    chapterLabel = 'Chapter 1 · Reclaim the Outpost';
+  } else if (current.chapterNodes.find(node => node.id === 'node_6')?.current) {
+    chapterLabel = 'Chapter 1 · The Broken Road';
   } else if (current.mercenaryPatrolWon && !current.commanderPathId) {
     chapterLabel = 'Chapter 1 · Choose Commander';
-  } else if (current.mercenaryPatrolWon) {
-    chapterLabel = 'Chapter 1 · Refugee Camp';
-  } else if (current.firstPromotionComplete) {
-    chapterLabel = 'Chapter 1 · Mercenary Patrol';
-  } else if (current.markedRaidersInvestigated) {
-    chapterLabel = 'Chapter 1 · First Promotion';
-  } else if (current.holdTheRoadWon) {
-    chapterLabel = 'Chapter 1 · Marked Raiders';
+  } else if (current.chapterNodes.find(node => node.id === 'node_5')?.current) {
+    chapterLabel = 'Chapter 1 · Cut Off the Captain';
+  } else if (current.chapterNodes.find(node => node.id === 'node_4')?.current) {
+    chapterLabel = current.firstPromotionComplete
+      ? 'Chapter 1 · Spears at Dawn'
+      : 'Chapter 1 · Prepare the Spears';
+  } else if (current.chapterNodes.find(node => node.id === 'node_3')?.current) {
+    chapterLabel = 'Chapter 1 · Rebuild the Barracks';
+  } else if (current.chapterNodes.find(node => node.id === 'node_2')?.current) {
+    chapterLabel = 'Chapter 1 · Hold the Crossing';
   }
 
   const kingdomName =
