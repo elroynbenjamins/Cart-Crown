@@ -1325,6 +1325,14 @@ export function AppShell({
               setActiveEncounterId('iron_road_skirmish');
               setFlow('battlePrep');
             }}
+            onStartChapterTwoRiders={() => {
+              setActiveEncounterId('ch2_brace');
+              setFlow('battlePrep');
+            }}
+            onStartChapterTwoIronLine={() => {
+              setActiveEncounterId('ch2_beyond_fires');
+              setFlow('battlePrep');
+            }}
             onOpenTimberClaim={() => setFlow('timberClaim')}
             onOpenKingdomDefense={() => setFlow('kingdomDefense')}
             onOpenBrokenSignalTower={() => setFlow('brokenSignalTower')}
