@@ -50,8 +50,8 @@ function runCampaignCurveCoverage() {
       'A chapter may not reduce the active squad cap.'
     );
     expect(
-      stage.endSquadCap <= 9,
-      'Active squad cap must remain nine or lower.'
+      stage.endSquadCap <= 6,
+      'Active squad cap must remain six or lower.'
     );
     expect(
       stage.endRosterCap >= stage.startRosterCap,
@@ -79,37 +79,46 @@ function runCampaignCurveCoverage() {
   }
 
   expect(
-    campaignProgression[0]?.startSquadCap === 3 &&
-      campaignProgression[0]?.endSquadCap === 5 &&
-      campaignProgression[0]?.startRosterCap === 5 &&
-      campaignProgression[0]?.endRosterCap === 9,
-    'Chapter 1 must remain a 3→5 deployment and 5→9 roster progression.'
+    campaignProgression[0]?.startSquadCap === 2 &&
+      campaignProgression[0]?.endSquadCap === 2 &&
+      campaignProgression[0]?.startRosterCap === 3 &&
+      campaignProgression[0]?.endRosterCap === 4,
+    'Chapter 1 must remain a two-squad introductory campaign.'
   );
   expect(
-    campaignProgression[1]?.startSquadCap === 5 &&
-      campaignProgression[1]?.endSquadCap === 7 &&
-      campaignProgression[1]?.endRosterCap === 16,
-    'Chapter 2 must remain a 5→7 deployment progression ending near 16 roster slots.'
+    campaignProgression[1]?.startSquadCap === 3 &&
+      campaignProgression[1]?.endSquadCap === 3 &&
+      campaignProgression[1]?.endRosterCap === 6,
+    'Chapter 2 must remain a three-squad campaign with a broader reserve roster.'
   );
   expect(
-    campaignProgression[2]?.startSquadCap === 7 &&
-      campaignProgression[2]?.endSquadCap === 9 &&
-      campaignProgression[2]?.endRosterCap === 30,
-    'Chapter 3 must reach the nine-squad battlefield and roughly 30 roster slots.'
+    campaignProgression[2]?.startSquadCap === 3 &&
+      campaignProgression[2]?.endSquadCap === 4,
+    'Chapter 3 must introduce the fourth deployed squad.'
+  );
+  expect(
+    campaignProgression[3]?.startSquadCap === 4 &&
+      campaignProgression[3]?.endSquadCap === 5,
+    'Chapter 4 must introduce the fifth deployed squad.'
+  );
+  expect(
+    campaignProgression[4]?.startSquadCap === 5 &&
+      campaignProgression[4]?.endSquadCap === 6,
+    'Chapter 5 must introduce the sixth and final normal campaign squad.'
   );
 
-  campaignProgression.slice(3).forEach(stage => {
+  campaignProgression.slice(5).forEach(stage => {
     expect(
-      stage.startSquadCap === 9 && stage.endSquadCap === 9,
-      'Chapter ' + stage.chapter + ' must keep the nine-squad long-term battlefield cap.'
+      stage.startSquadCap === 6 && stage.endSquadCap === 6,
+      'Chapter ' + stage.chapter + ' must keep the six-squad long-term battlefield cap.'
     );
   });
 }
 
 function runChapterTwoCoverage() {
   expect(
-    chapterTwoCampaign.length === 10,
-    'Chapter 2 must contain exactly ten authored main missions.'
+    chapterTwoCampaign.length === 8,
+    'Chapter 2 must contain exactly eight authored main missions.'
   );
 
   chapterTwoCampaign.forEach((mission, index) => {
@@ -124,16 +133,14 @@ function runChapterTwoCoverage() {
   });
 
   const expectedNames = [
-    'They Found Us',
-    'Beyond the Fires',
-    'Three Roads',
-    'Horse and Rider',
-    'Brace!',
-    'The Long Haul',
-    'Those Who Remain',
-    'Take the Watch',
-    'Build Something Worth Defending',
-    "The Rider's Banner"
+    'Strength in Numbers',
+    'Tools of War',
+    'Riders on the Road',
+    'No Army Fights Forever',
+    'The Long Way Around',
+    'The Iron Line',
+    'Supplies for War',
+    'Break Their Hold'
   ];
   expect(
     chapterTwoCampaign.every((mission, index) => mission.name === expectedNames[index]),
@@ -141,37 +148,24 @@ function runChapterTwoCoverage() {
   );
 
   expect(
-    chapterTwoCampaign[0]?.deploymentCap === 5,
-    'Chapter 2 must open at five deployed squads.'
-  );
-  expect(
-    chapterTwoCampaign.find(mission => mission.id === 'ch2_beyond_fires')?.deploymentCap === 6,
-    'Beyond the Fires must unlock/use the sixth deployment slot.'
-  );
-  expect(
-    chapterTwoCampaign.find(mission => mission.id === 'ch2_take_watch')?.deploymentCap === 7 &&
-      chapterTwoCampaign.at(-1)?.deploymentCap === 7,
-    'Take the Watch must establish the seven-squad Chapter 2 end state.'
+    chapterTwoCampaign.every(mission => mission.deploymentCap === 3),
+    'Every Chapter 2 mission must respect the three-squad deployment cap.'
   );
 
-  expect(getChapterTwoSquadCap([]) === 5, 'Chapter 2 squad cap must begin at five.');
+  expect(getChapterTwoSquadCap([]) === 3, 'Chapter 2 squad cap must remain three.');
   expect(
-    getChapterTwoSquadCap(['ch2_beyond_fires']) === 6,
-    'Beyond the Fires must raise the Chapter 2 squad cap to six.'
-  );
-  expect(
-    getChapterTwoSquadCap(['ch2_beyond_fires', 'ch2_take_watch']) === 7,
-    'Take the Watch must raise the Chapter 2 squad cap to seven.'
+    getChapterTwoSquadCap(['ch2_iron_line']) === 3,
+    'Chapter 2 mission progress must not raise deployment above three.'
   );
 
-  expect(getChapterTwoRosterCap([]) === 9, 'Chapter 2 roster cap must begin at nine.');
+  expect(getChapterTwoRosterCap([]) === 4, 'Chapter 2 roster cap must begin at four.');
   expect(
-    getChapterTwoRosterCap(['ch2_beyond_fires']) === 12,
-    'Beyond the Fires must expand the roster to twelve.'
+    getChapterTwoRosterCap(['ch2_no_army_fights_forever']) === 5,
+    'The injury lesson must expand the reserve roster to five.'
   );
   expect(
-    getChapterTwoRosterCap(['ch2_beyond_fires', 'ch2_take_watch']) === 16,
-    'Take the Watch must expand the roster to sixteen.'
+    getChapterTwoRosterCap(['ch2_no_army_fights_forever', 'ch2_long_way_around']) === 6,
+    'The flank lesson must expand the Chapter 2 roster to six.'
   );
 
   expect(

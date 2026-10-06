@@ -25,14 +25,14 @@ export function BrokenSignalTowerScreen({ onExit }: { onExit: () => void }) {
       completed={signalTowerUnlocked}
       canResolve={activeFaction === 'human' && chapterNumber === 2 && kingdomDefenseCompleted && Boolean(chapterNodes.find(node => node.id === 'ch2_node_5')?.current)}
       label="Restore the Signal Network"
-      continueLabel="Continue to the Iron Provost"
+      continueLabel="Continue to The Iron Line"
       onResolve={completeBrokenSignalTower}
       onContinue={onExit}
     >
       <DecisionIntro
         eyebrow="IRON ROAD EVENT · CHAPTER 2"
-        title="Broken Signal Tower"
-        body="The old frontier beacon has been stripped for parts, but its stone base still overlooks the Iron Road. Rebuilding the warning network would give Greenkeep better battle intelligence."
+        title="The Long Way Around"
+        body="The direct road is too exposed to trust. Restoring the old frontier beacon opens a safer approach and gives Greenkeep enough warning to challenge the Iron Line ahead."
         accent={theme.colors.gold}
       />
       <EventRewardPanel

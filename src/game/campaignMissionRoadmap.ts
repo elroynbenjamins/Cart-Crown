@@ -606,3 +606,20 @@ export function getCampaignMissionBlueprint(chapter: number, chapterOrder: numbe
 export function getCampaignChapterBlueprints(chapter: number) {
   return campaignMissionRoadmap.filter(candidate => candidate.chapter === chapter);
 }
+
+
+export function getCampaignActiveSquadCap(
+  chapterNumber: number,
+  chapterNodes: Array<{ id: string; completed: boolean }> = []
+) {
+  const normalizedChapter = Math.max(1, Math.floor(chapterNumber));
+  const completed = (id: string) =>
+    Boolean(chapterNodes.find(node => node.id === id)?.completed);
+
+  if (normalizedChapter <= 1) return 2;
+  if (normalizedChapter === 2) return 3;
+  if (normalizedChapter === 3) return completed('ch3_node_2') ? 4 : 3;
+  if (normalizedChapter === 4) return completed('ch4_node_2') ? 5 : 4;
+  if (normalizedChapter === 5) return completed('ch5_node_2') ? 6 : 5;
+  return 6;
+}

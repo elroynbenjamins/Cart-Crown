@@ -1321,9 +1321,17 @@ export function AppShell({
               setActiveEncounterId('iron_road_skirmish');
               setFlow('battlePrep');
             }}
+            onStartRidersOnRoad={() => {
+              setActiveEncounterId('riders_on_the_road');
+              setFlow('battlePrep');
+            }}
             onOpenTimberClaim={() => setFlow('timberClaim')}
             onOpenKingdomDefense={() => setFlow('kingdomDefense')}
             onOpenBrokenSignalTower={() => setFlow('brokenSignalTower')}
+            onStartIronLine={() => {
+              setActiveEncounterId('the_iron_line');
+              setFlow('battlePrep');
+            }}
             onStartIronProvost={() => {
               setActiveEncounterId('iron_provost');
               setFlow('battlePrep');

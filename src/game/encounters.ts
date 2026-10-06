@@ -22,6 +22,8 @@ export type EncounterId =
   | 'ch2_take_watch'
   | 'ch2_riders_banner'
   | 'iron_road_skirmish'
+  | 'riders_on_the_road'
+  | 'the_iron_line'
   | 'iron_provost'
   | 'border_fort'
   | 'siege_road'
@@ -83,8 +85,8 @@ export type EncounterReward = {
 export const encounters: Record<EncounterId, EncounterDefinition> = {
   hold_the_road: {
     id: 'hold_the_road',
-    name: 'Hold the Road',
-    subtitle: 'A raider patrol is blocking the refugee road to Greenkeep.',
+    name: 'Hold the Crossing',
+    subtitle: 'A raider patrol is blocking the crossing that links the surviving camp to Greenkeep.',
     enemyName: 'Road Raiders',
     enemyCount: 3,
     enemyHp: 128,
@@ -203,8 +205,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   mercenary_patrol: {
     id: 'mercenary_patrol',
-    name: 'Mercenary Patrol',
-    subtitle: 'A contracted warband is sweeping the road before Greenkeep can trace its employer.',
+    name: 'Cut Off the Captain',
+    subtitle: 'A contracted captain is moving down the broken road with a warband before Greenkeep can isolate the command group.',
     enemyName: 'Green Banner Company',
     enemyCount: 4,
     enemyHp: 220,
@@ -212,8 +214,8 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   toll_captain: {
     id: 'toll_captain',
-    name: 'The Toll Captain',
-    subtitle: 'The mercenary captain holding the old Greenkeep toll fort refuses to abandon the road.',
+    name: 'Reclaim the Outpost',
+    subtitle: 'The Toll Captain has fortified the old Greenkeep outpost and refuses to release the western road.',
     enemyName: 'Toll Captain Host',
     enemyCount: 5,
     enemyHp: 340,
@@ -266,11 +268,29 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   },
   iron_road_skirmish: {
     id: 'iron_road_skirmish',
-    name: 'Iron Road Skirmish',
-    subtitle: 'Greenkeep’s first Fort patrol runs into mercenaries guarding an abandoned roadside mine.',
+    name: 'Tools of War',
+    subtitle: 'A disciplined road company guards the material stores Greenkeep needs to equip its growing warband.',
     enemyName: 'Iron Road Mercenaries',
+    enemyCount: 4,
+    enemyHp: 250,
+    difficulty: 'Normal'
+  },
+  riders_on_the_road: {
+    id: 'riders_on_the_road',
+    name: 'Riders on the Road',
+    subtitle: 'Mounted raiders use speed and repeated charges to punish exposed formations on the outer road.',
+    enemyName: 'Road Riders',
+    enemyCount: 4,
+    enemyHp: 275,
+    difficulty: 'Elite'
+  },
+  the_iron_line: {
+    id: 'the_iron_line',
+    name: 'The Iron Line',
+    subtitle: 'A shield-heavy company forms a broad Iron Wall around a protected rear squad and refuses to yield the crossing.',
+    enemyName: 'Iron Line Company',
     enemyCount: 5,
-    enemyHp: 285,
+    enemyHp: 335,
     difficulty: 'Elite'
   },
   iron_provost: {
@@ -866,6 +886,8 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   ch2_take_watch: 'wide_vanguard_522',
   ch2_riders_banner: 'assault_432',
   iron_road_skirmish: 'balanced_333',
+  riders_on_the_road: 'skirmish_screen_243',
+  the_iron_line: 'iron_wall_501',
   iron_provost: 'spear_wall_531',
   border_fort: 'wide_vanguard_522',
   siege_road: 'spear_wall_531',
@@ -1437,8 +1459,16 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
     storySummary: 'The Rider’s Banner falls. Captured dispatches prove that several local commanders were supplied and directed from beyond the region.'
   },
   iron_road_skirmish: {
-    resources: { gold: 55, iron: 6, provisions: 3 },
-    storySummary: 'The patrol secures the roadside mine. Greenkeep can now draw a steady trickle of iron from the Iron Hills approach.'
+    resources: { gold: 48, iron: 5, wood: 4, provisions: 3 },
+    storySummary: 'The road stores are secured. Greenkeep now has enough reliable material flow to make military crafting part of normal preparation.'
+  },
+  riders_on_the_road: {
+    resources: { gold: 58, iron: 3, provisions: 5 },
+    storySummary: 'The riders are driven from the outer road. Their failed charges give Greenkeep a clear lesson in brace timing and anti-mounted positioning.'
+  },
+  the_iron_line: {
+    resources: { gold: 72, stone: 7, iron: 5, provisions: 4 },
+    storySummary: 'The Iron Wall finally opens. Greenkeep has proven it can read and break a named enemy formation instead of relying on raw army power.'
   },
   iron_provost: {
     resources: { gold: 180, wood: 100, stone: 90, iron: 25, provisions: 10 },

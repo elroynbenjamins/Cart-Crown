@@ -47,12 +47,12 @@ export function getReinforcementMusterView(kind: ReinforcementMusterKind, state:
   const canChoose = !recorded && !rosterConflict && chapterNumber === chapter &&
     Boolean(node?.current) && choiceAvailable && options.length > 0;
   const rosterUnit = recorded && rosterMatches.length === 1 ? rosterMatches[0]! : null;
-  const title = kind === 'fort' ? 'Fort reinforcements'
+  const title = kind === 'fort' ? 'Strength in Numbers'
     : kind === 'stronghold' ? 'Stronghold reinforcements'
       : kind === 'faction_third' ? faction === 'elf' ? 'Sanctuary muster' : 'Clan muster'
         : kind === 'faction_fourth' ? faction === 'elf' ? 'Moonlit Pass muster' : 'Stonejaw muster'
           : faction === 'elf' ? 'Ashen Grove muster' : 'Warhold muster';
-  const continueLabel = kind === 'fort' ? 'Continue to the Iron Road'
+  const continueLabel = kind === 'fort' ? 'Continue to Tools of War'
     : kind === 'stronghold' ? 'Advance toward the Broken Crown'
       : kind === 'faction_third' ? 'Continue Chapter 2'
         : kind === 'faction_fourth' ? faction === 'elf' ? 'Enter Moonlit Pass' : 'Begin the Stonejaw Trial'

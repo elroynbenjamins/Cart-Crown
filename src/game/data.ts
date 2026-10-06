@@ -179,12 +179,13 @@ export const humanRegions: RegionDefinition[] = [
 ];
 
 export const chapterOneNodes: ChapterNode[] = [
-  { id: 'node_1', name: 'The Last Two', type: 'story', completed: true },
-  { id: 'node_2', name: 'Hold the Road', type: 'battle', completed: false, current: true },
-  { id: 'node_3', name: 'Marked Raiders', type: 'event', completed: false },
-  { id: 'node_4', name: 'Mercenary Patrol', type: 'elite', completed: false },
-  { id: 'node_5', name: 'Refugee Camp', type: 'supply', completed: false },
-  { id: 'node_6', name: 'The Toll Captain', type: 'boss', completed: false }
+  { id: 'node_1', name: 'A Banner Still Flies', type: 'story', completed: true },
+  { id: 'node_2', name: 'Hold the Crossing', type: 'battle', completed: false, current: true },
+  { id: 'node_3', name: 'Rebuild the Barracks', type: 'event', completed: false },
+  { id: 'node_4', name: 'Spears at Dawn', type: 'event', completed: false },
+  { id: 'node_5', name: 'Cut Off the Captain', type: 'elite', completed: false },
+  { id: 'node_6', name: 'The Broken Road', type: 'supply', completed: false },
+  { id: 'node_7', name: 'Reclaim the Outpost', type: 'boss', completed: false }
 ];
 
 export const holdTheRoadEncounter: EncounterDefinition = {

@@ -1,3 +1,4 @@
+import { getCampaignActiveSquadCap } from './campaignMissionRoadmap';
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
@@ -1490,7 +1491,10 @@ export function GameProvider({
   );
 
   const formationBonuses = formationAnalysis.bonuses;
-  const activeSquadCap = currentWagonStage.formationSlots;
+  const activeSquadCap = Math.min(
+    currentWagonStage.formationSlots,
+    getCampaignActiveSquadCap(chapterNumber, chapterNodes)
+  );
   const activeDeploymentCapacity = useMemo(
     () =>
       getArmyDeploymentCapacity(
@@ -1615,7 +1619,7 @@ export function GameProvider({
           resources.iron >= 4;
 
   const tollCaptainWon = Boolean(
-    chapterNodes.find(node => node.id === 'node_6')?.completed
+    chapterNodes.find(node => node.id === 'node_7')?.completed
   );
   const fortUpgradeAvailable =
     activeFaction === 'human' &&
@@ -3322,14 +3326,18 @@ export function GameProvider({
     }
 
     if (encounterId === 'mercenary_patrol') {
-      if (mercenaryPatrolWon || !firstPromotionComplete) return;
+      if (
+        mercenaryPatrolWon ||
+        !firstPromotionComplete ||
+        !chapterNodes.find(node => node.id === 'node_5')?.current
+      ) return;
       setMercenaryPatrolWon(true);
       setCommanderChoiceUnlocked(true);
       setResources(previous => addResources(previous, reward.resources));
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'node_5') return { ...node, completed: true, current: false };
           return { ...node, current: false };
         })
       );
@@ -3351,7 +3359,7 @@ export function GameProvider({
     }
 
     if (encounterId === 'toll_captain') {
-      if (chapterNodes.find(node => node.id === 'node_6')?.completed || !refugeeCampSecured) {
+      if (chapterNodes.find(node => node.id === 'node_7')?.completed || !refugeeCampSecured) {
         return;
       }
 
@@ -3359,7 +3367,7 @@ export function GameProvider({
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node =>
-          node.id === 'node_6'
+          node.id === 'node_7'
             ? { ...node, completed: true, current: false }
             : { ...node, current: false }
         )
@@ -3406,12 +3414,64 @@ export function GameProvider({
       return;
     }
 
+    if (encounterId === 'riders_on_the_road') {
+      if (
+        chapterNumber !== 2 ||
+        !chapterNodes.find(node => node.id === 'ch2_node_3')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch2_node_3') return { ...node, completed: true, current: false };
+          if (node.id === 'ch2_node_4') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'riders_on_the_road_result',
+        title: 'Riders Driven Off',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    if (encounterId === 'the_iron_line') {
+      if (
+        chapterNumber !== 2 ||
+        !chapterNodes.find(node => node.id === 'ch2_node_6')?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'ch2_node_6') return { ...node, completed: true, current: false };
+          if (node.id === 'ch2_node_7') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+      setLastBattleResult({
+        id: 'the_iron_line_result',
+        title: 'Iron Wall Broken',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
     if (encounterId === 'iron_provost') {
       if (
         chapterNumber !== 2 ||
         ironProvostWon ||
         !signalTowerUnlocked ||
-        !chapterNodes.find(node => node.id === 'ch2_node_6')?.current
+        !chapterNodes.find(node => node.id === 'ch2_node_8')?.current
       ) {
         return;
       }
@@ -3421,7 +3481,7 @@ export function GameProvider({
       accrueRegionalProduction();
       setChapterNodes(previous =>
         previous.map(node =>
-          node.id === 'ch2_node_6'
+          node.id === 'ch2_node_8'
             ? { ...node, completed: true, current: false }
             : { ...node, current: false }
         )
@@ -4420,7 +4480,12 @@ export function GameProvider({
   };
 
   const completeRefugeeCamp = () => {
-    if (!mercenaryPatrolWon || !commanderPathId || refugeeCampSecured) return false;
+    if (
+      !mercenaryPatrolWon ||
+      !commanderPathId ||
+      refugeeCampSecured ||
+      !chapterNodes.find(node => node.id === 'node_6')?.current
+    ) return false;
 
     setRefugeeCampSecured(true);
     setResources(previous => ({
@@ -4431,8 +4496,8 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'node_5') return { ...node, completed: true, current: false };
-        if (node.id === 'node_6') return { ...node, current: true };
+        if (node.id === 'node_6') return { ...node, completed: true, current: false };
+        if (node.id === 'node_7') return { ...node, current: true };
         return { ...node, current: false };
       })
     );
@@ -5285,7 +5350,7 @@ export function GameProvider({
     if (
       chapterNumber !== 2 ||
       unlockedResourceSites.includes('greenwood_camp') ||
-      !chapterNodes.find(node => node.id === 'ch2_node_3')?.current
+      !chapterNodes.find(node => node.id === 'ch2_node_7')?.current
     ) {
       return false;
     }
@@ -5293,8 +5358,8 @@ export function GameProvider({
     setUnlockedResourceSites(previous => [...previous, 'greenwood_camp']);
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch2_node_3') return { ...node, completed: true, current: false };
-        if (node.id === 'ch2_node_4') return { ...node, current: true };
+        if (node.id === 'ch2_node_7') return { ...node, completed: true, current: false };
+        if (node.id === 'ch2_node_8') return { ...node, current: true };
         return { ...node, current: false };
       })
     );
@@ -5793,6 +5858,15 @@ export function GameProvider({
       )
     );
     setFirstPromotionComplete(true);
+    if (activeFaction === 'human') {
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === 'node_4') return { ...node, completed: true, current: false };
+          if (node.id === 'node_5') return { ...node, current: true };
+          return { ...node, current: false };
+        })
+      );
+    }
     return true;
   };
 
@@ -5874,7 +5948,7 @@ export function GameProvider({
     if (activeFaction === 'human') {
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'node_5') return { ...node, current: true };
+          if (node.id === 'node_6') return { ...node, current: true };
           return { ...node, current: false };
         })
       );
