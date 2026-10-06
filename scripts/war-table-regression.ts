@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import {
   evaluateWarTableBonus,
   getWarTablePostedContracts,
@@ -459,6 +460,13 @@ runContractCatalogCoverage();
 runBonusCoverage();
 runBoardClearCoverage();
 runSaveCoverage();
+
+
+const warTableScreenSource = readFileSync('src/screens/WarTableScreen.tsx', 'utf8');
+const gameArtSource = readFileSync('src/ui/gameArt.tsx', 'utf8');
+check(warTableScreenSource.includes('<WarTableBoardScene'), 'War Table must render the scene-level campaign board.');
+check(gameArtSource.includes('export function WarTableBoardScene'), 'War Table campaign-board scene component must remain available.');
+check(gameArtSource.includes("testID={'war-table-board-scene-' + faction}"), 'War Table scene must remain faction-aware and testable.');
 
 console.log(
   'PASS: War Table tiers, fantasy threat staging, rotation, categories, objectives, rewards, board clearing and save sanitization remain valid.'
