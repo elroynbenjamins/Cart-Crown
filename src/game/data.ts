@@ -179,8 +179,8 @@ export const humanRegions: RegionDefinition[] = [
 ];
 
 export const chapterOneNodes: ChapterNode[] = [
-  { id: 'ch1_m01', name: 'A Banner Still Flies', type: 'story', completed: true },
-  { id: 'ch1_m02', name: 'Hold the Crossing', type: 'battle', completed: false, current: true },
+  { id: 'ch1_m01', name: 'A Banner Still Flies', type: 'battle', completed: false, current: true },
+  { id: 'ch1_m02', name: 'Hold the Crossing', type: 'battle', completed: false },
   { id: 'ch1_m03', name: 'Rebuild the Barracks', type: 'event', completed: false },
   { id: 'ch1_m04', name: 'Spears at Dawn', type: 'battle', completed: false },
   { id: 'ch1_m05', name: 'Cut Off the Captain', type: 'elite', completed: false },
