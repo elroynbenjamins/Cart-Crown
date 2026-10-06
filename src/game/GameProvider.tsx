@@ -5673,7 +5673,7 @@ export function GameProvider({
   const completeBrokenArchives = () => {
     if (
       chapterNumber !== 5 ||
-      !chapterNodes.find(node => node.id === 'ch5_node_3')?.current
+      !chapterNodes.find(node => node.id === 'ch5_node_5')?.current
     ) {
       return false;
     }
@@ -5691,10 +5691,10 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch5_node_3') {
+        if (node.id === 'ch5_node_5') {
           return { ...node, completed: true, current: false };
         }
-        if (node.id === 'ch5_node_4') {
+        if (node.id === 'ch5_node_6') {
           return { ...node, current: true };
         }
         return { ...node, current: false };
@@ -5706,7 +5706,7 @@ export function GameProvider({
   const completeRoyalLedger = () => {
     if (
       chapterNumber !== 5 ||
-      !chapterNodes.find(node => node.id === 'ch5_node_5')?.current
+      !chapterNodes.find(node => node.id === 'ch5_node_7')?.current
     ) {
       return false;
     }
@@ -5719,7 +5719,7 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch5_node_5') {
+        if (node.id === 'ch5_node_6') {
           return { ...node, completed: true, current: false };
         }
         if (node.id === 'ch5_node_6') {
@@ -5734,7 +5734,7 @@ export function GameProvider({
   const completeGrandCouncil = () => {
     if (
       chapterNumber !== 6 ||
-      !chapterNodes.find(node => node.id === 'ch6_node_1')?.current
+      !chapterNodes.find(node => node.id === 'ch6_node_3')?.current
     ) return false;
 
     setResources(previous => ({
@@ -5744,8 +5744,8 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch6_node_1') return { ...node, completed: true, current: false };
-        if (node.id === 'ch6_node_2') return { ...node, current: true };
+        if (node.id === 'ch6_node_3') return { ...node, completed: true, current: false };
+        if (node.id === 'ch6_node_4') return { ...node, current: true };
         return { ...node, current: false };
       })
     );
@@ -5755,7 +5755,7 @@ export function GameProvider({
   const completeConcordVault = () => {
     if (
       chapterNumber !== 6 ||
-      !chapterNodes.find(node => node.id === 'ch6_node_3')?.current
+      !chapterNodes.find(node => node.id === 'ch6_node_6')?.current
     ) return false;
 
     setUnlockedResourceSites(previous =>
@@ -5771,8 +5771,8 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'ch6_node_3') return { ...node, completed: true, current: false };
-        if (node.id === 'ch6_node_4') return { ...node, current: true };
+        if (node.id === 'ch6_node_6') return { ...node, completed: true, current: false };
+        if (node.id === 'ch6_node_7') return { ...node, current: true };
         return { ...node, current: false };
       })
     );
@@ -6161,11 +6161,11 @@ export function GameProvider({
 
     if (
       chapterNumber === 5 &&
-      chapterNodes.find(node => node.id === 'ch5_node_1')?.current
+      chapterNodes.find(node => node.id === 'ch5_node_2')?.current
     ) {
       setChapterNodes(previous =>
         previous.map(node => {
-          if (node.id === 'ch5_node_1') {
+          if (node.id === 'ch5_node_3') {
             return { ...node, completed: true, current: false };
           }
           if (node.id === 'ch5_node_2') {
