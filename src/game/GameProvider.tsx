@@ -4428,7 +4428,12 @@ export function GameProvider({
   };
 
   const completeRefugeeCamp = () => {
-    if (!mercenaryPatrolWon || !commanderPathId || refugeeCampSecured) return false;
+    if (
+      !mercenaryPatrolWon ||
+      !commanderPathId ||
+      refugeeCampSecured ||
+      !chapterNodes.find(node => node.id === 'node_6')?.current
+    ) return false;
 
     setRefugeeCampSecured(true);
     setResources(previous => ({
@@ -4439,8 +4444,8 @@ export function GameProvider({
     }));
     setChapterNodes(previous =>
       previous.map(node => {
-        if (node.id === 'node_5') return { ...node, completed: true, current: false };
-        if (node.id === 'node_6') return { ...node, current: true };
+        if (node.id === 'node_6') return { ...node, completed: true, current: false };
+        if (node.id === 'node_7') return { ...node, current: true };
         return { ...node, current: false };
       })
     );
