@@ -95,7 +95,7 @@ export const chapterTwoCampaign: ChapterTwoMissionDefinition[] = [
     kind: 'boss',
     deploymentCap: 3,
     lesson: 'Test counters, injuries, formation reading and preparation together.',
-    unlocks: ['chapter_three', 'fort_transition', 'fourth_deployment_slot'],
+    unlocks: ['chapter_three', 'fort_transition'],
     mandatory: true
   }
 ];
