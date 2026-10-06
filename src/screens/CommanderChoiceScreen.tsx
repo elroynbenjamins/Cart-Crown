@@ -10,7 +10,7 @@ import { CommanderPortrait } from '../ui/gameArt';
 
 export function CommanderChoiceScreen({ onComplete }: { onComplete: () => void }) {
   const { theme } = useGameTheme();
-  const { activeFaction, resources, commanderPaths, commanderPathId, commanderRespecCost, chooseCommanderPath } = useGame();
+  const { activeFaction, chapterNumber, chapterNodes, resources, commanderPaths, commanderPathId, commanderRespecCost, chooseCommanderPath } = useGame();
   const [selectedId, setSelectedId] = useState<string | null>(commanderPathId ?? commanderPaths[0]?.id ?? null);
   const [message, setMessage] = useState<string | null>(null);
   const submittedId = useRef<string | null>(null);
@@ -19,7 +19,12 @@ export function CommanderChoiceScreen({ onComplete }: { onComplete: () => void }
   const accent = activeFaction === 'elf' ? theme.colors.elf : activeFaction === 'orc' ? theme.colors.orc : theme.colors.human;
   const isCurrent = Boolean(selected && selected.id === commanderPathId);
   const isRespec = Boolean(commanderPathId && !isCurrent);
-  const canAfford = !isRespec || resources.gold >= commanderRespecCost;
+  const chapterFourDoctrineMission =
+    activeFaction === 'human' &&
+    chapterNumber === 4 &&
+    Boolean(chapterNodes.find(node => node.id === 'ch4_node_3')?.current);
+  const effectiveRespecCost = chapterFourDoctrineMission ? 0 : commanderRespecCost;
+  const canAfford = !isRespec || resources.gold >= effectiveRespecCost;
 
   const confirm = () => {
     if (!selected || isCurrent || !canAfford || submittedId.current === selected.id) return;
@@ -38,24 +43,34 @@ export function CommanderChoiceScreen({ onComplete }: { onComplete: () => void }
         <DecisionCommit
           title={selected?.name ?? 'Choose a command path'}
           detail={isCurrent
-            ? 'Current specialization. Returning to Army costs no Gold.'
+            ? chapterFourDoctrineMission
+              ? 'Current doctrine. Choose another path for this campaign decision, or keep the existing one.'
+              : 'Current specialization. Returning to Army costs no Gold.'
             : isRespec
-              ? 'Retraining costs ' + commanderRespecCost + ' Gold. Balance: ' + resources.gold + ' Gold.'
+              ? chapterFourDoctrineMission
+                ? 'Two Ways to War allows one free doctrine reassignment before the next battle.'
+                : 'Retraining costs ' + effectiveRespecCost + ' Gold. Balance: ' + resources.gold + ' Gold.'
               : 'Your first specialization is free.'}
-          warning={!canAfford ? 'Need ' + Math.max(0, commanderRespecCost - resources.gold) + ' more Gold to retrain.' : null}
+          warning={!canAfford ? 'Need ' + Math.max(0, effectiveRespecCost - resources.gold) + ' more Gold to retrain.' : null}
           message={message}
-          label={isCurrent ? 'Return to Army' : isRespec ? 'Retrain · ' + commanderRespecCost + ' Gold' : selected ? 'Become ' + selected.name : 'Choose a path'}
+          label={isCurrent
+            ? chapterFourDoctrineMission ? 'Keep ' + selected!.name : 'Return to Army'
+            : isRespec
+              ? chapterFourDoctrineMission ? 'Choose ' + selected!.name + ' · Free' : 'Retrain · ' + effectiveRespecCost + ' Gold'
+              : selected ? 'Become ' + selected.name : 'Choose a path'}
           disabled={!selected || !canAfford}
           onConfirm={isCurrent ? onComplete : confirm}
         >
-          {commanderPathId && !isCurrent ? <SecondaryButton label="Keep current specialization" onPress={onComplete} /> : null}
+          {commanderPathId && !isCurrent ? <SecondaryButton label={chapterFourDoctrineMission ? 'Keep current doctrine' : 'Keep current specialization'} onPress={onComplete} /> : null}
         </DecisionCommit>
       }
     >
       <DecisionIntro
-        eyebrow={faction.name.toUpperCase() + ' COMMAND'}
-        title="Choose your command style"
-        body="Compare favored roles, passive bonuses and the automatic command skill. Selecting a card does not spend Gold."
+        eyebrow={chapterFourDoctrineMission ? 'CHAPTER 4 · TWO WAYS TO WAR' : faction.name.toUpperCase() + ' COMMAND'}
+        title={chapterFourDoctrineMission ? 'Choose how this army will fight' : 'Choose your command style'}
+        body={chapterFourDoctrineMission
+          ? 'Greywatch demands a deliberate doctrine choice. Compare the available command styles; switching during this mission is free, and the next battle will make the behavioral difference visible.'
+          : 'Compare favored roles, passive bonuses and the automatic command skill. Selecting a card does not spend Gold.'}
         accent={accent}
       />
       {commanderPaths.map(path => {

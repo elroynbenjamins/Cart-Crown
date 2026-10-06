@@ -212,6 +212,33 @@ assert(
 );
 
 
+assert(
+  getCampaignActiveSquadCap(3, chapterThreeNodes) === 3,
+  'Chapter 3 must begin with only three active squads'
+);
+assert(
+  getCampaignActiveSquadCap(
+    3,
+    chapterThreeNodes.map(node =>
+      node.id === 'ch3_node_2' ? { ...node, completed: true } : node
+    )
+  ) === 4,
+  'A Wider Front must unlock the fourth squad'
+);
+assert(
+  getCampaignActiveSquadCap(4, chapterFourNodes) === 4,
+  'Chapter 4 must begin with only four active squads'
+);
+assert(
+  getCampaignActiveSquadCap(
+    4,
+    chapterFourNodes.map(node =>
+      node.id === 'ch4_node_2' ? { ...node, completed: true } : node
+    )
+  ) === 5,
+  'Raise Another Banner must unlock the fifth squad'
+);
+
 console.log(
   'PASS: campaign mission roadmap, live Chapters 1-4 ordering and 2->3->4->5->6 squad cadence remain protected.'
 );
