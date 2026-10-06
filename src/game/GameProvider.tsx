@@ -3446,7 +3446,7 @@ export function GameProvider({
     if (encounterId === 'ch2_brace') {
       if (
         chapterNumber !== 2 ||
-        !chapterNodes.find(node => node.id === 'ch2_node_7')?.current
+        !chapterNodes.find(node => node.id === 'ch2_node_3')?.current
       ) {
         return;
       }
@@ -3478,7 +3478,7 @@ export function GameProvider({
     if (encounterId === 'ch2_beyond_fires') {
       if (
         chapterNumber !== 2 ||
-        !chapterNodes.find(node => node.id === 'ch2_node_8')?.current
+        !chapterNodes.find(node => node.id === 'ch2_node_6')?.current
       ) {
         return;
       }
@@ -3512,7 +3512,7 @@ export function GameProvider({
         chapterNumber !== 2 ||
         ironProvostWon ||
         !signalTowerUnlocked ||
-        !chapterNodes.find(node => node.id === 'ch2_node_6')?.current
+        !chapterNodes.find(node => node.id === 'ch2_node_8')?.current
       ) {
         return;
       }
@@ -5407,7 +5407,7 @@ export function GameProvider({
     if (
       chapterNumber !== 2 ||
       unlockedResourceSites.includes('greenwood_camp') ||
-      !chapterNodes.find(node => node.id === 'ch2_node_3')?.current
+      !chapterNodes.find(node => node.id === 'ch2_node_7')?.current
     ) {
       return false;
     }
