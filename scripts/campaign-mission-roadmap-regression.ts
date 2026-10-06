@@ -125,8 +125,20 @@ console.log(
 
 assert(getCampaignActiveSquadCap(1) === 2, 'Chapter 1 runtime cap must be 2');
 assert(getCampaignActiveSquadCap(2) === 3, 'Chapter 2 runtime cap must be 3');
-assert(getCampaignActiveSquadCap(3) === 4, 'Chapter 3 runtime cap must be 4');
-assert(getCampaignActiveSquadCap(4) === 5, 'Chapter 4 runtime cap must be 5');
-assert(getCampaignActiveSquadCap(5) === 6, 'Chapter 5 runtime cap must be 6');
+assert(getCampaignActiveSquadCap(3) === 3, 'Chapter 3 must open at 3 squads');
+assert(
+  getCampaignActiveSquadCap(3, [{ id: 'ch3_node_2', completed: true }]) === 4,
+  'Chapter 3 mission 2 must unlock squad 4'
+);
+assert(getCampaignActiveSquadCap(4) === 4, 'Chapter 4 must open at 4 squads');
+assert(
+  getCampaignActiveSquadCap(4, [{ id: 'ch4_node_2', completed: true }]) === 5,
+  'Chapter 4 mission 2 must unlock squad 5'
+);
+assert(getCampaignActiveSquadCap(5) === 5, 'Chapter 5 must open at 5 squads');
+assert(
+  getCampaignActiveSquadCap(5, [{ id: 'ch5_node_2', completed: true }]) === 6,
+  'Chapter 5 mission 2 must unlock squad 6'
+);
 assert(getCampaignActiveSquadCap(6) === 6, 'Chapter 6 runtime cap must remain 6');
 assert(getCampaignActiveSquadCap(99) === 6, 'Late campaign runtime cap must never exceed 6');
