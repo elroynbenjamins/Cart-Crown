@@ -20,7 +20,9 @@ def launch() -> None:
     output = adb('shell', 'am', 'start', '-W', '-n', component)
     if 'Error:' in output:
         raise RuntimeError(output)
-    time.sleep(5)
+    # The first cold-start decode of the 540×960 authored settlement JPEG can
+    # take several seconds on the software-rendered CI emulator.
+    time.sleep(8)
 
 def assert_alive() -> None:
     pid = adb('shell', 'pidof', PACKAGE, check=False)
