@@ -5312,7 +5312,6 @@ export function GameProvider({
     if (!choice) return false;
 
     setUnits(previous => [...previous, { ...choice.unit }]);
-    setSixthRecruitChosen(true);
     setFormation(previous => {
       const next = [...previous];
       const preferredSlots = getPreferredFormationSlots(formationShapeId, choice.unit.role);
