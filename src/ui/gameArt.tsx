@@ -2999,6 +2999,200 @@ export function SettlementDistrictAmbience({
   );
 }
 
+
+export function ForgeWorkshopScene({
+  faction = 'human',
+  buildingId,
+  level = 1,
+  equipmentId
+}: {
+  faction?: FactionId;
+  buildingId: string;
+  level?: number;
+  equipmentId?: string | null;
+}) {
+  const motion = useSettlementAmbientMotion(2300);
+  const emberPulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.42, 0.92] });
+  const smokeLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -7] });
+  const smokeFade = motion.interpolate({ inputRange: [0, 1], outputRange: [0.28, 0.08] });
+  const tint = settlementAmbientPeopleTint[faction];
+  const accent = settlementAmbientGlow[faction];
+  const wall = faction === 'elf' ? '#23483A' : faction === 'orc' ? '#422D25' : '#303B35';
+  const ground = faction === 'elf' ? '#385947' : faction === 'orc' ? '#5A3D2E' : '#5A5545';
+
+  return (
+    <View
+      testID={'forge-workshop-scene-' + faction}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: '100%', height: 176, position: 'relative', overflow: 'hidden', borderRadius: 18, backgroundColor: wall }}
+    >
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 58, backgroundColor: ground }} />
+      <View style={{ position: 'absolute', left: '4%', right: '4%', bottom: 50, height: 2, backgroundColor: '#A58D68', opacity: 0.34 }} />
+      <View style={{ position: 'absolute', left: '4%', top: 12, width: 92, height: 120 }}>
+        <SettlementBuildingAmbience buildingId={buildingId} role="EQUIPMENT" faction={faction} level={level} size={112} />
+      </View>
+      <View style={{ position: 'absolute', left: '5%', top: 22 }}>
+        <BuildingSprite buildingId={buildingId} faction={faction} size={110} />
+      </View>
+
+      <View style={{ position: 'absolute', left: '36%', right: '7%', top: 24, bottom: 20, borderRadius: 16, borderWidth: 1, borderColor: accent, backgroundColor: '#171B1C', opacity: 0.84 }} />
+      <View style={{ position: 'absolute', left: '43%', right: '14%', bottom: 31, height: 28, borderRadius: 999, backgroundColor: '#66533C', opacity: 0.9 }} />
+      <View style={{ position: 'absolute', left: '47%', right: '18%', bottom: 42, height: 10, borderRadius: 999, backgroundColor: '#A1865E', opacity: 0.72 }} />
+
+      <Animated.View style={{ position: 'absolute', right: '17%', bottom: 30, width: 38, height: 15, borderRadius: 999, backgroundColor: '#F18A45', opacity: emberPulse }} />
+      <Animated.View style={{ position: 'absolute', right: '20%', bottom: 46, width: 18, height: 18, borderRadius: 999, backgroundColor: '#E8DDD0', opacity: smokeFade, transform: [{ translateY: smokeLift }] }} />
+      <Animated.View style={{ position: 'absolute', right: '15%', bottom: 53, width: 13, height: 13, borderRadius: 999, backgroundColor: '#D8CFC1', opacity: smokeFade, transform: [{ translateY: smokeLift }] }} />
+
+      <View style={{ position: 'absolute', left: '41%', bottom: 22 }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={settlementPeopleHumanCells.smith} size={54} opacity={0.96} tintColor={tint} />
+      </View>
+      <View style={{ position: 'absolute', right: '5%', top: 15 }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={58} opacity={0.88} tintColor={tint} />
+      </View>
+
+      {equipmentId ? (
+        <View style={{ position: 'absolute', left: '59%', top: 43, width: 84, height: 84, alignItems: 'center', justifyContent: 'center' }}>
+          <Animated.View style={{ position: 'absolute', width: 76, height: 30, borderRadius: 999, backgroundColor: accent, opacity: emberPulse, transform: [{ scaleX: 1.12 }] }} />
+          <View style={{ width: 76, height: 76, borderRadius: 18, borderWidth: 1, borderColor: accent, backgroundColor: '#202527', alignItems: 'center', justifyContent: 'center' }}>
+            <EquipmentSprite equipmentId={equipmentId} faction={faction} size={64} />
+          </View>
+        </View>
+      ) : (
+        <View style={{ position: 'absolute', left: '62%', top: 56, width: 62, height: 62, borderRadius: 16, borderWidth: 1, borderStyle: 'dashed', borderColor: accent, opacity: 0.5 }} />
+      )}
+    </View>
+  );
+}
+
+export function EquipmentLoadoutScene({
+  className,
+  faction = 'human',
+  equipmentIds,
+  accent
+}: {
+  className: string;
+  faction?: FactionId;
+  equipmentIds: Array<string | null | undefined>;
+  accent?: string;
+}) {
+  const glow = accent ?? settlementAmbientGlow[faction];
+  const motion = useSettlementAmbientMotion(2800);
+  const pulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.18, 0.42] });
+  const positions = [
+    { left: '5%' as const, top: 22 },
+    { left: '5%' as const, top: 92 },
+    { right: '5%' as const, top: 22 },
+    { right: '5%' as const, top: 92 },
+    { left: '40%' as const, top: 8 }
+  ];
+
+  return (
+    <View
+      testID={'equipment-loadout-scene-' + faction}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: '100%', height: 180, position: 'relative', overflow: 'hidden', borderRadius: 16, backgroundColor: faction === 'elf' ? '#203D34' : faction === 'orc' ? '#3B2A24' : '#293733' }}
+    >
+      <View style={{ position: 'absolute', left: '12%', right: '12%', bottom: 12, height: 38, borderRadius: 999, backgroundColor: faction === 'elf' ? '#496B58' : faction === 'orc' ? '#664735' : '#55624E', opacity: 0.76 }} />
+      <Animated.View style={{ position: 'absolute', left: '31%', right: '31%', bottom: 22, height: 28, borderRadius: 999, backgroundColor: glow, opacity: pulse }} />
+      <View style={{ position: 'absolute', left: '50%', marginLeft: -54, bottom: 20, width: 108, height: 132, alignItems: 'center', justifyContent: 'flex-end' }}>
+        <UnitSprite className={className} faction={faction} size={104} />
+      </View>
+
+      {positions.map((position, index) => {
+        const equipmentId = equipmentIds[index];
+        return (
+          <View
+            key={'loadout-slot-' + index}
+            style={[
+              { position: 'absolute', width: 54, height: 54, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#171C1D' },
+              position,
+              { borderColor: equipmentId ? glow : '#697170', opacity: equipmentId ? 1 : 0.56 }
+            ]}
+          >
+            {equipmentId ? <EquipmentSprite equipmentId={equipmentId} faction={faction} size={44} /> : null}
+          </View>
+        );
+      })}
+
+      <View style={{ position: 'absolute', left: 18, right: 18, top: 18, height: 1, backgroundColor: glow, opacity: 0.28 }} />
+      <View style={{ position: 'absolute', left: 18, right: 18, bottom: 18, height: 1, backgroundColor: glow, opacity: 0.22 }} />
+    </View>
+  );
+}
+
+export function PromotionPathScene({
+  fromClass,
+  toClass,
+  faction = 'human',
+  equipmentId
+}: {
+  fromClass: string;
+  toClass?: string | null;
+  faction?: FactionId;
+  equipmentId?: string | null;
+}) {
+  const motion = useSettlementAmbientMotion(2500);
+  const accent = settlementAmbientGlow[faction];
+  const pulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.24, 0.56] });
+  const lift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -3] });
+
+  return (
+    <View
+      testID={'promotion-path-scene-' + faction}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: '100%', height: 166, position: 'relative', overflow: 'hidden', borderRadius: 18, backgroundColor: faction === 'elf' ? '#203F36' : faction === 'orc' ? '#3B2922' : '#293833' }}
+    >
+      <View style={{ position: 'absolute', left: '8%', right: '8%', bottom: 18, height: 32, borderRadius: 999, backgroundColor: faction === 'elf' ? '#486D58' : faction === 'orc' ? '#654735' : '#58634E', opacity: 0.78 }} />
+      <View style={{ position: 'absolute', left: '29%', right: '29%', top: 80, height: 4, borderRadius: 999, backgroundColor: accent, opacity: 0.5 }} />
+      <View style={{ position: 'absolute', left: '48%', top: 72, width: 14, height: 14, borderTopWidth: 3, borderRightWidth: 3, borderColor: accent, transform: [{ rotate: '45deg' }] }} />
+
+      <Animated.View style={{ position: 'absolute', left: '8%', top: 35, width: 84, height: 70, borderRadius: 999, backgroundColor: accent, opacity: pulse }} />
+      <View style={{ position: 'absolute', left: '8%', bottom: 26, width: 84, height: 112, alignItems: 'center', justifyContent: 'flex-end' }}>
+        <UnitSprite className={fromClass} faction={faction} size={78} />
+      </View>
+
+      {equipmentId ? (
+        <Animated.View style={{ position: 'absolute', left: '50%', marginLeft: -27, top: 54, width: 54, height: 54, borderRadius: 14, borderWidth: 1, borderColor: accent, backgroundColor: '#171D1D', alignItems: 'center', justifyContent: 'center', transform: [{ translateY: lift }] }}>
+          <EquipmentSprite equipmentId={equipmentId} faction={faction} size={44} />
+        </Animated.View>
+      ) : (
+        <Animated.View style={{ position: 'absolute', left: '50%', marginLeft: -20, top: 61, width: 40, height: 40, borderRadius: 999, borderWidth: 2, borderColor: accent, opacity: pulse }} />
+      )}
+
+      {toClass ? (
+        <>
+          <Animated.View style={{ position: 'absolute', right: '7%', top: 26, width: 102, height: 88, borderRadius: 999, backgroundColor: accent, opacity: pulse }} />
+          <View style={{ position: 'absolute', right: '7%', bottom: 20, width: 102, height: 128, alignItems: 'center', justifyContent: 'flex-end' }}>
+            <UnitSprite className={toClass} faction={faction} size={92} />
+          </View>
+        </>
+      ) : (
+        <>
+          {[0, 1, 2].map(index => (
+            <Animated.View
+              key={'promotion-node-' + index}
+              style={{
+                position: 'absolute',
+                right: 18 + index * 28,
+                top: 52 + Math.abs(1 - index) * 15,
+                width: 30,
+                height: 30,
+                borderRadius: 999,
+                borderWidth: 2,
+                borderColor: accent,
+                opacity: pulse
+              }}
+            />
+          ))}
+        </>
+      )}
+    </View>
+  );
+}
+
 const settlementGrowthTint: Record<FactionId, string | undefined> = {
   human: undefined,
   elf: '#83B89A',

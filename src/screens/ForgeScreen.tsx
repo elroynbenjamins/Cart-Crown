@@ -8,7 +8,7 @@ import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionOption, Decision
 import { SemanticChip, SemanticText, TierChip } from '../ui/SemanticUI';
 import { tierTone } from '../ui/semanticColors';
 import { signedStat } from '../ui/decisionPresentation';
-import { EquipmentSprite, ResourceSprite } from '../ui/gameArt';
+import { EquipmentSprite, ForgeWorkshopScene, ResourceSprite } from '../ui/gameArt';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
@@ -92,6 +92,12 @@ export function ForgeScreen({ onOpenPromotion, onExit, tutorialFocus, onTutorial
         title={firstPromotionComplete ? 'Craft equipment' : 'First equipment'}
         body="Select a recipe to compare stats and costs. Crafting spends resources only when you confirm."
         accent={theme.colors.gold}
+      />
+      <ForgeWorkshopScene
+        faction="human"
+        buildingId="forge"
+        level={buildingLevels.forge ?? 0}
+        equipmentId={selected?.id}
       />
       <View style={styles.resources}>
         <ResourceChip art={<ResourceSprite resource="wood" size={28} />} value={resources.wood} label="Wood" />
