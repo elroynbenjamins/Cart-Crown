@@ -76,6 +76,7 @@ import {
   chapterSixNodes,
   crownspireResourceSites
 } from './chapter6';
+import { chapterSevenNodes } from './chapter7';
 import {
   getRoyalDecree,
   royalDecrees
@@ -470,6 +471,8 @@ type GameContextValue = {
   completeGrandCouncil: () => boolean;
   completeConcordVault: () => boolean;
   completeForcedBeacon: () => boolean;
+  completeChapterSevenRouteChoice: () => boolean;
+  completeChapterSevenSiegecraft: () => boolean;
   chooseMarcherWarning: (choiceId: MarcherWarningChoiceId) => boolean;
   completeDividedMarch: () => boolean;
   unlockTimberCamp: () => boolean;
@@ -4374,25 +4377,77 @@ export function GameProvider({
       ) return;
 
       setResources(previous => addResources(previous, reward.resources));
-      setChapterNodes(previous =>
-        previous.map(node =>
-          node.id === 'ch6_node_11'
-            ? { ...node, completed: true, current: false }
-            : { ...node, current: false }
-        )
-      );
+      setChapterNumber(7);
+      setChapterNodes(cloneNodes(chapterSevenNodes));
       setSharedProgress(previous => ({
         ...previous,
-        completedCampaigns: previous.completedCampaigns.includes('human')
-          ? previous.completedCampaigns
-          : [...previous.completedCampaigns, 'human'],
-        lore: previous.lore.includes('human_oath_seal')
+        lore: previous.lore.includes('glass_keep_falls')
           ? previous.lore
-          : [...previous.lore, 'human_oath_seal']
+          : [...previous.lore, 'glass_keep_falls']
       }));
       setLastBattleResult({
         id: 'return_to_crownspire_result',
         title: 'Glass Keep Falls',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
+
+    const chapterSevenBattleFlow = {
+      ch7_stone_road: ['ch7_node_1', 'ch7_node_2', 'Stone Road Secured'],
+      ch7_break_gate: ['ch7_node_2', 'ch7_node_3', 'Gate Breached'],
+      ch7_protect_engineers: ['ch7_node_3', 'ch7_node_4', 'Engineers Protected'],
+      ch7_fire_walls: ['ch7_node_4', 'ch7_node_5', 'Wall Fire Silenced'],
+      ch7_under_towers: ['ch7_node_6', 'ch7_node_7', 'Tower Line Broken'],
+      ch7_enemy_at_walls: ['ch7_node_7', 'ch7_node_8', 'Greenkeep Holds'],
+      ch7_hold_dawn: ['ch7_node_8', 'ch7_node_9', 'Dawn Reached'],
+      ch7_breached_city: ['ch7_node_10', 'ch7_node_11', 'Inner City Secured'],
+      ch7_blackstone: ['ch7_node_11', null, 'Blackstone Falls']
+    } as const;
+    const chapterSevenStep =
+      chapterSevenBattleFlow[
+        encounterId as keyof typeof chapterSevenBattleFlow
+      ];
+
+    if (chapterSevenStep) {
+      const [nodeId, nextNodeId, title] = chapterSevenStep;
+      if (
+        chapterNumber !== 7 ||
+        !chapterNodes.find(node => node.id === nodeId)?.current
+      ) return;
+
+      setResources(previous => addResources(previous, reward.resources));
+      accrueRegionalProduction();
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) {
+            return { ...node, completed: true, current: false };
+          }
+          if (nextNodeId && node.id === nextNodeId) {
+            return { ...node, current: true };
+          }
+          return { ...node, current: false };
+        })
+      );
+
+      if (encounterId === 'ch7_blackstone') {
+        setSharedProgress(previous => ({
+          ...previous,
+          completedCampaigns: previous.completedCampaigns.includes('human')
+            ? previous.completedCampaigns
+            : [...previous.completedCampaigns, 'human'],
+          lore: previous.lore.includes('human_oath_seal')
+            ? previous.lore
+            : [...previous.lore, 'human_oath_seal']
+        }));
+      }
+
+      setLastBattleResult({
+        id: encounterId + '_result',
+        title,
         victory: true,
         summary: reward.storySummary,
         rewards: { ...reward.resources },
@@ -5795,6 +5850,46 @@ export function GameProvider({
       previous.map(node => {
         if (node.id === 'ch6_node_5') return { ...node, completed: true, current: false };
         if (node.id === 'ch6_node_6') return { ...node, current: true };
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const completeChapterSevenRouteChoice = () => {
+    if (
+      chapterNumber !== 7 ||
+      !chapterNodes.find(node => node.id === 'ch7_node_5')?.current
+    ) return false;
+
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch7_node_5') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch7_node_6') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
+    return true;
+  };
+
+  const completeChapterSevenSiegecraft = () => {
+    if (
+      chapterNumber !== 7 ||
+      !chapterNodes.find(node => node.id === 'ch7_node_9')?.current
+    ) return false;
+
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch7_node_9') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch7_node_10') {
+          return { ...node, current: true };
+        }
         return { ...node, current: false };
       })
     );
@@ -7744,6 +7839,8 @@ export function GameProvider({
       completeGrandCouncil,
       completeConcordVault,
       completeForcedBeacon,
+      completeChapterSevenRouteChoice,
+      completeChapterSevenSiegecraft,
       chooseMarcherWarning,
       completeDividedMarch,
       unlockTimberCamp,

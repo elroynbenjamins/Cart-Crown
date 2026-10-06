@@ -57,6 +57,15 @@ export type EncounterId =
   | 'ch6_wards_steel'
   | 'ashen_court'
   | 'return_to_crownspire'
+  | 'ch7_stone_road'
+  | 'ch7_break_gate'
+  | 'ch7_protect_engineers'
+  | 'ch7_fire_walls'
+  | 'ch7_under_towers'
+  | 'ch7_enemy_at_walls'
+  | 'ch7_hold_dawn'
+  | 'ch7_breached_city'
+  | 'ch7_blackstone'
   | 'elf_wardbreakers'
   | 'elf_ashen_tracks'
   | 'elf_hollow_warden'
@@ -613,10 +622,91 @@ export const encounters: Record<EncounterId, EncounterDefinition> = {
   return_to_crownspire: {
     id: 'return_to_crownspire',
     name: 'Siege of the Glass Keep',
-    subtitle: 'The final Human assault reaches the Concord chamber and the Ashen commander holding the Oath Seal.',
+    subtitle: 'The arcane campaign ends at the Glass Keep, opening the road to the fortified Blackstone frontier.',
     enemyName: 'Ashen Court Regent',
     enemyCount: 6,
     enemyHp: 2400,
+    difficulty: 'Boss'
+  },
+  ch7_stone_road: {
+    id: 'ch7_stone_road',
+    name: 'The Stone Road',
+    subtitle: 'Barricades, elevated missile troops and a narrow approach turn the first Blackstone road into a fortified battlefield.',
+    enemyName: 'Stone Road Guard',
+    enemyCount: 6,
+    enemyHp: 1550,
+    difficulty: 'Elite'
+  },
+  ch7_break_gate: {
+    id: 'ch7_break_gate',
+    name: 'Break the Gate',
+    subtitle: 'A reinforced gate anchors the defensive line. The army must protect its breach effort while defenders concentrate on the approach.',
+    enemyName: 'Blackstone Gate Guard',
+    enemyCount: 6,
+    enemyHp: 1680,
+    difficulty: 'Elite'
+  },
+  ch7_protect_engineers: {
+    id: 'ch7_protect_engineers',
+    name: 'Protect the Engineers',
+    subtitle: 'Fast defenders try to reach the engineer teams while Greenkeep holds a temporary protective perimeter.',
+    enemyName: 'Engineer Hunters',
+    enemyCount: 6,
+    enemyHp: 1640,
+    difficulty: 'Elite'
+  },
+  ch7_fire_walls: {
+    id: 'ch7_fire_walls',
+    name: 'Fire on the Walls',
+    subtitle: 'Wall artillery targets exposed squads from protected firing positions and must be pressured before the approach collapses.',
+    enemyName: 'Wall Artillery Guard',
+    enemyCount: 6,
+    enemyHp: 1760,
+    difficulty: 'Elite'
+  },
+  ch7_under_towers: {
+    id: 'ch7_under_towers',
+    name: 'Under Their Towers',
+    subtitle: 'Blackstone towers overlap their firing lanes while heavy infantry protects the bases from direct assault.',
+    enemyName: 'Tower Wardens',
+    enemyCount: 6,
+    enemyHp: 1820,
+    difficulty: 'Elite'
+  },
+  ch7_enemy_at_walls: {
+    id: 'ch7_enemy_at_walls',
+    name: 'The Enemy at Our Walls',
+    subtitle: 'A counterattack reaches Greenkeep territory, forcing the army to fight alongside its own settlement defenses.',
+    enemyName: 'Blackstone Counterhost',
+    enemyCount: 6,
+    enemyHp: 1860,
+    difficulty: 'Elite'
+  },
+  ch7_hold_dawn: {
+    id: 'ch7_hold_dawn',
+    name: 'Hold Until Dawn',
+    subtitle: 'Success depends on surviving repeated pressure long enough for the relief column to reach the battlefield.',
+    enemyName: 'Night Assault Waves',
+    enemyCount: 6,
+    enemyHp: 1940,
+    difficulty: 'Elite'
+  },
+  ch7_breached_city: {
+    id: 'ch7_breached_city',
+    name: 'The Breached City',
+    subtitle: 'The outer wall is open, but cramped streets reduce charge lanes and create dangerous side approaches.',
+    enemyName: 'Blackstone Inner Guard',
+    enemyCount: 6,
+    enemyHp: 2050,
+    difficulty: 'Elite'
+  },
+  ch7_blackstone: {
+    id: 'ch7_blackstone',
+    name: 'Fall of Blackstone',
+    subtitle: 'Greenkeep commits its full six-squad army to the final fortified defense and the commander holding Blackstone.',
+    enemyName: 'Blackstone High Guard',
+    enemyCount: 6,
+    enemyHp: 2800,
     difficulty: 'Boss'
   },
   elf_wardbreakers: {
@@ -1130,6 +1220,15 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   ch6_wards_steel: 'reinforced_center_252',
   ashen_court: 'layered_core_231',
   return_to_crownspire: 'heavy_front_441',
+  ch7_stone_road: 'spear_wall_531',
+  ch7_break_gate: 'heavy_front_441',
+  ch7_protect_engineers: 'skirmish_screen_243',
+  ch7_fire_walls: 'protected_rear_225',
+  ch7_under_towers: 'wide_vanguard_522',
+  ch7_enemy_at_walls: 'assault_432',
+  ch7_hold_dawn: 'layered_core_231',
+  ch7_breached_city: 'forward_line_411',
+  ch7_blackstone: 'reinforced_center_252',
 
   elf_wardbreakers: 'skirmish_screen_243',
   elf_ashen_tracks: 'skirmish_screen_243',
@@ -1828,8 +1927,44 @@ export const encounterRewards: Record<EncounterId, EncounterReward> = {
     storySummary: 'The Ashen Court district falls. Records inside confirm the Court forced the Beacon activation that caused the Crownfall.'
   },
   return_to_crownspire: {
-    resources: { gold: 700, wood: 300, stone: 260, iron: 90, provisions: 25 },
-    storySummary: 'The Ashen Regent falls and Greenkeep recovers the Human Oath Seal. The Human campaign is complete.'
+    resources: { gold: 420, wood: 150, stone: 135, iron: 55, provisions: 18 },
+    storySummary: 'The Glass Keep falls. The arcane threat is broken, but Blackstone still controls the fortified road beyond Crownspire.'
+  },
+  ch7_stone_road: {
+    resources: { gold: 130, stone: 18, iron: 8, provisions: 5 },
+    storySummary: 'The Stone Road checkpoint falls and Greenkeep learns how Blackstone layers fortifications into ordinary field battles.'
+  },
+  ch7_break_gate: {
+    resources: { gold: 150, wood: 14, stone: 22, iron: 10 },
+    storySummary: 'The first gate is breached. Siege support can now be treated as a deliberate campaign tool rather than a side activity.'
+  },
+  ch7_protect_engineers: {
+    resources: { gold: 145, wood: 18, provisions: 8 },
+    storySummary: 'The engineers finish their work under protection and open the next fortified approach.'
+  },
+  ch7_fire_walls: {
+    resources: { gold: 165, iron: 12, stone: 12 },
+    storySummary: 'Blackstone artillery is silenced and its firing pattern is added to the campaign siege plans.'
+  },
+  ch7_under_towers: {
+    resources: { gold: 175, stone: 20, iron: 12 },
+    storySummary: 'The overlapping tower line collapses after its protected bases are forced into direct combat.'
+  },
+  ch7_enemy_at_walls: {
+    resources: { gold: 170, wood: 20, provisions: 10 },
+    storySummary: 'Greenkeep holds its own walls. Settlement defenses have proven they matter on the battlefield.'
+  },
+  ch7_hold_dawn: {
+    resources: { gold: 180, provisions: 14, iron: 8 },
+    storySummary: 'The line survives until dawn and the relief force drives the exhausted attackers away.'
+  },
+  ch7_breached_city: {
+    resources: { gold: 205, wood: 15, stone: 18, iron: 15 },
+    storySummary: 'The breached district is secured. The final Blackstone defense is now exposed.'
+  },
+  ch7_blackstone: {
+    resources: { gold: 720, wood: 260, stone: 240, iron: 95, provisions: 28 },
+    storySummary: 'Blackstone falls. Greenkeep has mastered field warfare, arcane threats and fortified campaigns, completing the Human campaign.'
   },
   elf_wardbreakers: {
     resources: { gold: 42, wood: 10, provisions: 5 },

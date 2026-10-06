@@ -5,6 +5,7 @@ import { factions, factionOrder } from '../game/factions';
 import { humanRegions } from '../game/data';
 import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
+import type { EncounterId } from '../game/encounters';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -87,6 +88,7 @@ export function CampaignScreen({
   onStartCh6WardsSteel,
   onStartAshenCourt,
   onStartReturnToCrownspire,
+  onStartChapterSevenBattle,
   onStartFactionOpeningBattle,
   onOpenFactionInvestigation,
   onStartFactionEliteBattle,
@@ -188,6 +190,7 @@ export function CampaignScreen({
   onStartCh6WardsSteel: () => void;
   onStartAshenCourt: () => void;
   onStartReturnToCrownspire: () => void;
+  onStartChapterSevenBattle: (encounterId: EncounterId) => void;
   onStartFactionOpeningBattle: () => void;
   onOpenFactionInvestigation: () => void;
   onStartFactionEliteBattle: () => void;
@@ -273,7 +276,9 @@ export function CampaignScreen({
     kingdomTrialCompletions,
     claimRewardedAd,
     rewardedAdClaims,
-    rewardedAdMessage
+    rewardedAdMessage,
+    completeChapterSevenRouteChoice,
+    completeChapterSevenSiegecraft
   } = useGame();
   const [view, setView] = useState<CampaignView>('story');
   const completed = chapterNodes.filter(node => node.completed).length;
@@ -374,7 +379,9 @@ export function CampaignScreen({
                   ? 'Fortifying the Realm'
                   : chapterNumber === 5
                     ? 'Old Royal Lands'
-                    : 'Return to Crownspire'
+                    : chapterNumber === 6
+                      ? 'Arcane Warfare'
+                      : 'Walls & War Machines'
         }
         body={
           chapterNumber === 1
@@ -386,8 +393,10 @@ export function CampaignScreen({
                 : chapterNumber === 4
                   ? 'Field five squads, adapt Commander doctrine, use alternate loadouts and prepare an elite force for Greywatch.'
                   : chapterNumber === 5
-                    ? 'Govern the western realm as a Capital and trace the final royal records toward Crownspire.'
-                    : 'Lead the Grand Campaign into Crownspire and confront the Ashen Court around the Concord Beacon.'
+                    ? 'Complete the six-squad army, rally collapsing lines and answer the first Flying threats.'
+                    : chapterNumber === 6
+                      ? 'Bring Mages into the six-squad army and master wards, interruption and arcane battlefield control.'
+                      : 'Take the mature army into Blackstone siege warfare: breach gates, protect engineers, defend your own walls and finish the fortified campaign.'
         }
         accent={theme.colors.human}
         status={<StatusPill label="HUMAN" tone="current" />}
@@ -428,7 +437,9 @@ export function CampaignScreen({
                   ? 'Greywatch Frontier'
                   : chapterNumber === 5
                     ? 'Old Royal Lands'
-                    : 'Crownspire Basin'
+                    : chapterNumber === 6
+                      ? 'Crownspire Basin'
+                      : 'Blackstone Frontier'
         }
         trailing="Current region"
       />
@@ -628,6 +639,31 @@ export function CampaignScreen({
           const ashenCourtPlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_10';
           const returnToCrownspirePlayable = chapterNumber === 6 && node.current && node.id === 'ch6_node_11';
 
+          const ch7StoneRoadPlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_1';
+          const ch7BreakGatePlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_2';
+          const ch7ProtectEngineersPlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_3';
+          const ch7FireWallsPlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_4';
+          const ch7TwoWaysPlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_5';
+          const ch7UnderTowersPlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_6';
+          const ch7EnemyWallsPlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_7';
+          const ch7HoldDawnPlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_8';
+          const ch7SiegecraftPlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_9';
+          const ch7BreachedCityPlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_10';
+          const ch7BlackstonePlayable = chapterNumber === 7 && node.current && node.id === 'ch7_node_11';
+
+          const chapterSevenPlayable =
+            ch7StoneRoadPlayable ||
+            ch7BreakGatePlayable ||
+            ch7ProtectEngineersPlayable ||
+            ch7FireWallsPlayable ||
+            ch7TwoWaysPlayable ||
+            ch7UnderTowersPlayable ||
+            ch7EnemyWallsPlayable ||
+            ch7HoldDawnPlayable ||
+            ch7SiegecraftPlayable ||
+            ch7BreachedCityPlayable ||
+            ch7BlackstonePlayable;
+
           const playable =
             chapterOneBattle ||
             chapterOneStory ||
@@ -685,10 +721,26 @@ export function CampaignScreen({
             ch6SilentGroundPlayable ||
             ch6WardsSteelPlayable ||
             ashenCourtPlayable ||
-            returnToCrownspirePlayable;
+            returnToCrownspirePlayable ||
+            chapterSevenPlayable;
+
+          const chapterSevenStatus =
+            ch7BreakGatePlayable ? 'BREACH' :
+            ch7ProtectEngineersPlayable ? 'PROTECT' :
+            ch7FireWallsPlayable ? 'SILENCE' :
+            ch7TwoWaysPlayable ? 'CHOOSE ROUTE' :
+            ch7UnderTowersPlayable ? 'ASSAULT' :
+            ch7EnemyWallsPlayable ? 'DEFEND' :
+            ch7HoldDawnPlayable ? 'HOLD' :
+            ch7SiegecraftPlayable ? 'PREPARE' :
+            ch7BlackstonePlayable ? 'FINAL SIEGE' :
+            chapterSevenPlayable ? 'PLAY' :
+            null;
 
           const status = node.completed
             ? 'DONE'
+            : chapterSevenStatus
+              ? chapterSevenStatus
             : node.id === 'node_4' && node.current && !firstPromotionComplete
               ? 'PROMOTE FIRST'
               : node.id === 'node_6' && node.current && !commanderPathId
@@ -791,7 +843,27 @@ export function CampaignScreen({
                                 ? 'NEXT'
                                 : 'LOCKED';
 
-          const action = chapterOneBattle
+          const chapterSevenEncounterId: EncounterId | null =
+            ch7StoneRoadPlayable ? 'ch7_stone_road' :
+            ch7BreakGatePlayable ? 'ch7_break_gate' :
+            ch7ProtectEngineersPlayable ? 'ch7_protect_engineers' :
+            ch7FireWallsPlayable ? 'ch7_fire_walls' :
+            ch7UnderTowersPlayable ? 'ch7_under_towers' :
+            ch7EnemyWallsPlayable ? 'ch7_enemy_at_walls' :
+            ch7HoldDawnPlayable ? 'ch7_hold_dawn' :
+            ch7BreachedCityPlayable ? 'ch7_breached_city' :
+            ch7BlackstonePlayable ? 'ch7_blackstone' :
+            null;
+          const chapterSevenAction =
+            chapterSevenEncounterId
+              ? () => onStartChapterSevenBattle(chapterSevenEncounterId)
+              : ch7TwoWaysPlayable
+                ? completeChapterSevenRouteChoice
+                : ch7SiegecraftPlayable
+                  ? completeChapterSevenSiegecraft
+                  : undefined;
+
+          const action = chapterSevenAction ?? (chapterOneBattle
             ? onStartBattle
             : chapterOneStory
               ? onOpenMarkedRaiders
@@ -905,7 +977,7 @@ export function CampaignScreen({
                                                                                                   ? onStartAshenCourt
                                                                                                   : returnToCrownspirePlayable
                                                                                                     ? onStartReturnToCrownspire
-                                                                                : undefined;
+                                                                                : undefined);
 
           return (
             <Pressable

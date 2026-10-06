@@ -4,6 +4,9 @@ import { chapterThreeNodes } from '../src/game/chapter3';
 import { chapterFourNodes } from '../src/game/chapter4';
 import { chapterFiveNodes } from '../src/game/chapter5';
 import { chapterSixNodes } from '../src/game/chapter6';
+import { chapterSevenNodes } from '../src/game/chapter7';
+import { chapterFiveNodes } from '../src/game/chapter5';
+import { chapterSixNodes } from '../src/game/chapter6';
 import {
   campaignMissionCountsByChapter,
   campaignMissionRoadmap,

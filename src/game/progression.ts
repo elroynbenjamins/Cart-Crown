@@ -155,15 +155,15 @@ export const campaignProgression: CampaignProgressionStage[] = [
   },
   {
     chapter: 7,
-    theme: 'Monsters and constructs',
+    theme: 'Walls and war machines',
     startSquadCap: 6,
     endSquadCap: 6,
     startRosterCap: 14,
     endRosterCap: 16,
     wagon: 'Kingdom Caravan',
     settlementStage: 'grand',
-    newFamily: 'large',
-    difficultyLesson: 'Deployment capacity, anti-large and formation breaking'
+    newFamily: null,
+    difficultyLesson: 'Siege support, structures, defensive objectives, settlement defense and urban combat'
   },
   {
     chapter: 8,
