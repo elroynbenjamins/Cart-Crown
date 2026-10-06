@@ -1301,6 +1301,10 @@ export function AppShell({
         return (
           <CampaignScreen
             tutorialFocus={tutorialFocus}
+            onStartRoadmapEncounter={encounterId => {
+              setActiveEncounterId(encounterId);
+              setFlow('battlePrep');
+            }}
             onTutorialFocusComplete={completeTutorialFocus}
             onStartBattle={() => {
               setActiveEncounterId('hold_the_road');
