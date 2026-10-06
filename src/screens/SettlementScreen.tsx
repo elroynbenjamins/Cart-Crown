@@ -1136,7 +1136,8 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
                 placedIds.length + ' built, ' +
                 settlementAdjacencyBonuses.length + ' districts' +
                 (upgradeMaterialReadyIds.size ? ', ' + upgradeMaterialReadyIds.size + ' upgrades' : '') +
-                (constructionReadyCount ? ', ' + constructionReadyCount + ' build ready' : '')
+                (constructionReadyCount ? ', ' + constructionReadyCount + ' build ready' : '') +
+                (bestNetworkOptimization ? ', layout ' + bestNetworkOptimization.currentDistrictCount + ' to ' + bestNetworkOptimization.futureDistrictCount + ' districts' : '')
               }
               style={[styles.hudCompactSummary, worldRebuildActive ? styles.conceptHudSummary : undefined, { color: worldRebuildActive ? SETTLEMENT_HUD_MUTED : theme.colors.textMuted }]}
               numberOfLines={1}
@@ -1144,6 +1145,7 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
               {placedIds.length} built · {settlementAdjacencyBonuses.length} districts
               {upgradeMaterialReadyIds.size ? ' · ' + upgradeMaterialReadyIds.size + ' upgrades' : ''}
               {constructionReadyCount ? ' · ' + constructionReadyCount + ' build' : ''}
+              {bestNetworkOptimization ? ' · ' + bestNetworkOptimization.currentDistrictCount + '→' + bestNetworkOptimization.futureDistrictCount + ' layout' : ''}
             </Text>
           ) : (
             <View style={styles.hudStats}>
