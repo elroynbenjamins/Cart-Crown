@@ -345,26 +345,26 @@ export function CampaignScreen({
         eyebrow={'CHAPTER ' + chapterNumber}
         title={
           chapterNumber === 1
-            ? 'The Last Wagon'
+            ? 'The Remnant'
             : chapterNumber === 2
-              ? 'The Iron Road'
+              ? 'Building a Warband'
               : chapterNumber === 3
-                ? 'Border Kingdoms'
+                ? 'Frostmarch'
                 : chapterNumber === 4
-                  ? 'The Broken Crown'
+                  ? 'Fortifying the Realm'
                   : chapterNumber === 5
                     ? 'Old Royal Lands'
                     : 'Return to Crownspire'
         }
         body={
           chapterNumber === 1
-            ? 'Reach ruined Greenkeep with the surviving squads.'
+            ? 'Rebuild Greenkeep from a two-squad remnant and learn the fundamentals of formation warfare.'
             : chapterNumber === 2
-              ? 'Use Greenkeep Fort to reopen the road toward the Iron Hills.'
+              ? 'Grow to three active squads, learn counters and injuries, and break the first named enemy formation.'
               : chapterNumber === 3
-                ? 'Carry Greenkeep’s authority into the divided Border Marches.'
+                ? 'Enter Frostmarch, unlock the fourth squad, face cavalry and learn how formations become Pressured, Breaking and Breached.'
                 : chapterNumber === 4
-                  ? 'Push beyond the marcher crisis toward the broken western crown.'
+                  ? 'Field five squads, adapt Commander doctrine, use alternate loadouts and prepare an elite force for Greywatch.'
                   : chapterNumber === 5
                     ? 'Govern the western realm as a Capital and trace the final royal records toward Crownspire.'
                     : 'Lead the Grand Campaign into Crownspire and confront the Ashen Court around the Concord Beacon.'
@@ -375,7 +375,7 @@ export function CampaignScreen({
         <View style={styles.chapterMetrics}>
           <MetricTile
             label="OBJECTIVES"
-            value={completed + '/6'}
+            value={completed + '/' + chapterNodes.length}
             caption="completed this chapter"
             tone="positive"
           />
@@ -403,9 +403,9 @@ export function CampaignScreen({
             : chapterNumber === 2
               ? 'Iron Hills Approach'
               : chapterNumber === 3
-                ? 'Border Marches'
+                ? 'Frostmarch'
                 : chapterNumber === 4
-                  ? 'Crown Road'
+                  ? 'Greywatch Frontier'
                   : chapterNumber === 5
                     ? 'Old Royal Lands'
                     : 'Crownspire Basin'
