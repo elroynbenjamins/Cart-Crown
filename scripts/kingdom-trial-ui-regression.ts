@@ -264,4 +264,11 @@ function testPresentation() {
 }
 
 testEveryMedal(); testGatesAndVisibility(); testChangesAndRetries(); testPresentation();
+
+const trialScreenSource = readFileSync('src/screens/FormationTrialScreen.tsx', 'utf8');
+const trialArtSource = readFileSync('src/ui/gameArt.tsx', 'utf8');
+check(trialScreenSource.includes('<FormationTrialScene'), 'Kingdom Trials must render the training-yard scene.');
+check(trialArtSource.includes('export function FormationTrialScene'), 'Formation Trial scene component must remain available.');
+check(trialArtSource.includes("testID={'formation-trial-scene-' + faction}"), 'Formation Trial scene must remain faction-aware and testable.');
+
 console.log('PASS: ' + checks + ' Kingdom Trials UI, first-clear, gate, disclosure and provider-action checks across all factions. Native visual QA remains separate.');
