@@ -460,6 +460,7 @@ type GameContextValue = {
   chooseFactionFourthRecruit: (choiceId: string) => boolean;
   chooseFactionFifthRecruit: (choiceId: string) => boolean;
   chooseFortRecruit: (choiceId: string) => boolean;
+  completeIntoFrostmarch: () => boolean;
   chooseMarcherAuxiliary: (choiceId: string) => boolean;
   chooseStrongholdRecruit: (choiceId: string) => boolean;
   completeEmptyThrone: () => boolean;
@@ -5255,6 +5256,35 @@ export function GameProvider({
     return true;
   };
 
+  const completeIntoFrostmarch = () => {
+    if (
+      activeFaction !== 'human' ||
+      chapterNumber !== 3 ||
+      !chapterNodes.find(node => node.id === 'ch3_node_1')?.current
+    ) {
+      return false;
+    }
+
+    setChapterNodes(previous =>
+      previous.map(node => {
+        if (node.id === 'ch3_node_1') {
+          return { ...node, completed: true, current: false };
+        }
+        if (node.id === 'ch3_node_2') {
+          return { ...node, current: true };
+        }
+        return { ...node, current: false };
+      })
+    );
+    setSharedProgress(previous => ({
+      ...previous,
+      lore: previous.lore.includes('frostmarch_entered')
+        ? previous.lore
+        : [...previous.lore, 'frostmarch_entered']
+    }));
+    return true;
+  };
+
   const chooseMarcherAuxiliary = (choiceId: string) => {
     if (
       chapterNumber !== 3 ||
@@ -7462,6 +7492,7 @@ export function GameProvider({
       chooseFactionFourthRecruit,
       chooseFactionFifthRecruit,
       chooseFortRecruit,
+      completeIntoFrostmarch,
       chooseMarcherAuxiliary,
       chooseStrongholdRecruit,
       completeEmptyThrone,
