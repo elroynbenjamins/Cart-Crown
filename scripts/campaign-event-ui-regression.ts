@@ -120,7 +120,7 @@ function gameFixture(chapter: number, nodeId: string) {
     setSignalTowerUnlocked: 'signalTowerUnlocked', setUnlockedResourceSites: 'unlockedResourceSites', setDividedMarchResolved: 'dividedMarchResolved',
     setSharedProgress: 'sharedProgress'
   })) game[setter] = (value: any) => { game[field] = typeof value === 'function' ? value(game[field]) : value; };
-  for (const action of ['chooseMarcherWarning', 'chooseLastLoyalistsApproach', 'chooseMarcherAuxiliary', 'completeDividedMarch', 'completeBrokenSignalTower']) {
+  for (const action of ['completeIntoFrostmarch', 'chooseMarcherWarning', 'chooseLastLoyalistsApproach', 'chooseMarcherAuxiliary', 'completeDividedMarch', 'completeBrokenSignalTower']) {
     game[action] = (...args: any[]) => { calls.push(action); return actionFromProvider(action, game)(...args); };
   }
   return { game, calls };
@@ -214,31 +214,58 @@ function testTacticalChoices() {
   check(one(unknownTree, 'DecisionCommit').label === 'Continue' && attempts === 2, 'An unknown saved choice must remain recorded without running the provider.');
 }
 
-function testAuxiliaries() {
-  for (const option of chapter3.marcherAuxiliaryOptions) {
-    const { game, calls } = gameFixture(3, 'ch3_node_1');
-    let continued = 0;
-    const h = harness('src/screens/MarcherEnvoyScreen.tsx', 'MarcherEnvoyScreen', game, { onComplete: () => { continued += 1; } });
-    let tree = h.render();
-    nodes(tree, 'DecisionOption').find(node => node.props.title === option.unit.className)!.props.onSelect();
-    check(calls.length === 0 && game.units.length === 0, 'Comparing auxiliaries must not recruit.');
-    tree = h.render();
-    const badges = nodes(tree, 'UnitBadges');
-    check(badges.length === 3 && badges.some(node => node.props.role === option.unit.role && node.props.tier === option.unit.tier), 'Auxiliary roles and tiers must use actual squad data.');
-    const wallet = JSON.stringify(game.resources);
-    const action = one(tree, 'DecisionCommit').onConfirm;
-    action(); action();
-    check(calls.length === 1 && game.units.length === 1 && game.units[0].id === option.unit.id, 'Accepting must use the existing provider exactly once.');
-    check(wallet === JSON.stringify(game.resources), 'Envoy recruitment must stay free.');
-    check(game.formation.filter(Boolean).length <= game.activeSquadCap, 'Existing formation placement must remain capped.');
-    tree = h.render();
-    check(nodes(tree, 'DecisionOption').length === 1 && nodes(tree, 'DecisionStats').length === 0, 'Recorded recruit must not be confused with live equipped stats or replaceable alternatives.');
-    one(tree, 'DecisionCommit').onConfirm();
-    check(continued === 1 && calls.length === 1, 'Envoy Continue must only navigate.');
-    const reloaded = harness('src/screens/MarcherEnvoyScreen.tsx', 'MarcherEnvoyScreen', game, { onComplete() {} });
-    check(one(reloaded.render(), 'DecisionCommit').label === 'Enter Frostmarch', 'Reload must not offer a second auxiliary.');
-  }
+function testFrostmarchOpening() {
+  const { game, calls } = gameFixture(3, 'ch3_node_1');
+  game.activeSquadCap = 3;
+  let continued = 0;
+  const h = harness(
+    'src/screens/MarcherEnvoyScreen.tsx',
+    'MarcherEnvoyScreen',
+    game,
+    { onComplete: () => { continued += 1; } }
+  );
+
+  let tree = h.render();
+  check(
+    nodes(tree, 'DecisionOption').length === 0 &&
+      nodes(tree, 'DecisionStats').length === 0,
+    'Into Frostmarch must be a story beat, not a free squad recruitment.'
+  );
+  check(
+    allText(tree).includes('three active squads') ||
+      allText(tree).includes('3 squads'),
+    'Into Frostmarch must explain that the army enters with only three active squads.'
+  );
+  const beforeUnits = JSON.stringify(game.units);
+  const beforeFormation = JSON.stringify(game.formation);
+  const beforeResources = JSON.stringify(game.resources);
+  const action = one(tree, 'DecisionCommit').onConfirm;
+  action(); action();
+
+  check(
+    calls.filter(call => call === 'completeIntoFrostmarch').length === 1,
+    'Into Frostmarch must dispatch its story progression exactly once.'
+  );
+  check(
+    JSON.stringify(game.units) === beforeUnits &&
+      JSON.stringify(game.formation) === beforeFormation &&
+      JSON.stringify(game.resources) === beforeResources,
+    'Entering Frostmarch must not grant a squad, change formation or award resources.'
+  );
+  check(
+    game.chapterNodes[0].completed && game.chapterNodes[1].current,
+    'Into Frostmarch must advance cleanly into A Wider Front.'
+  );
+
+  tree = h.render();
+  check(
+    one(tree, 'DecisionCommit').label === 'Continue to A Wider Front',
+    'Recorded Frostmarch entry must continue to A Wider Front.'
+  );
+  one(tree, 'DecisionCommit').onConfirm();
+  check(continued === 1, 'Recorded Frostmarch entry must navigate once.');
 }
+
 
 function testRewards() {
   for (const spec of [
