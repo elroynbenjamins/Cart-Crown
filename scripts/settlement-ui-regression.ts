@@ -244,6 +244,15 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'BuildingSprite').some(node => Number(node.props.size) >= 78), 'The central settlement landmark must read larger than secondary buildings in portrait mode.');
     const centerPlotStyle = style(plot(tree, 'plot_center').props.style);
     const westPlotStyle = style(plot(tree, 'plot_w').props.style);
+    if (faction === 'human') {
+      check(centerPlotStyle.left === '33.0%' && centerPlotStyle.top === '24.0%', 'Human Hall hitbox must stay centered on the authored central plaza.');
+      const southStyle = style(plot(tree, 'plot_s').props.style);
+      const southwestStyle = style(plot(tree, 'plot_sw').props.style);
+      const southeastStyle = style(plot(tree, 'plot_se').props.style);
+      check(southwestStyle.left === '4.9%' && southwestStyle.top === '32.2%', 'Human southwest logical plot must map to its painted isometric pad.');
+      check(southStyle.left === '40.3%' && southStyle.top === '39.4%', 'Human south logical plot must map to the lower-center painted pad.');
+      check(southeastStyle.left === '64.1%' && southeastStyle.top === '47.6%', 'Human southeast logical plot must map to the lowest painted pad.');
+    }
     check(centerPlotStyle.borderWidth === 0 && westPlotStyle.borderWidth === 0, 'Occupied settlement structures must not keep card-like plot borders.');
     check(centerPlotStyle.zIndex > westPlotStyle.zIndex, 'The Great Hall must remain above same-row secondary structures in scene depth.');
     check(nodes(tree, 'BuildingSprite').filter(node => Number(node.props.size) >= 80).length === 1, 'Only the central landmark should use oversized settlement scale at the initial layout.');
