@@ -32,6 +32,7 @@ import {
   getProductionAssetSource,
   resourceProductionAsset,
   resourceSiteProductionAsset,
+  settlementBackgroundProductionAsset,
   storySceneProductionAsset,
   uiProductionAsset,
   unitProductionAsset,
@@ -4037,6 +4038,35 @@ export function SettlementTerrainBackdrop({
   faction?: FactionId;
   stageId?: WagonStage['id'];
 }) {
+  if (faction === 'human') {
+    const backgroundStage =
+      stageId === 'camp'
+        ? 'camp'
+        : stageId === 'settlement'
+          ? 'settlement'
+          : stageId === 'fort'
+            ? 'fort'
+            : stageId === 'town'
+              ? 'town'
+              : 'capital';
+    const background = settlementBackgroundProductionAsset('human', backgroundStage);
+    const source = getProductionAssetSource(background.id);
+    if (source) {
+      return (
+        <View
+          testID={'settlement-stage-background-' + stageId}
+          pointerEvents="none"
+          style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, overflow: 'hidden', backgroundColor: '#35523A' }}
+        >
+          <Image
+            source={source}
+            resizeMode="cover"
+            style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, width: '100%', height: '100%' }}
+          />
+        </View>
+      );
+    }
+  }
   if (['fort', 'town', 'stronghold', 'capital', 'grand'].includes(stageId)) {
     return <FactionFortWorldBackdrop faction={faction} />;
   }
