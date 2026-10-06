@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import {
   createSiegeRun,
   getSiegeChoice,
@@ -471,6 +472,13 @@ runAlertCoverage();
 runSuccessAndFailureCoverage();
 runRewardCoverage();
 runSaveResumeCoverage();
+
+
+const siegeScreenSource = readFileSync('src/screens/SiegeScreen.tsx', 'utf8');
+const gameArtSource = readFileSync('src/ui/gameArt.tsx', 'utf8');
+check(siegeScreenSource.includes('<SiegeAssaultScene'), 'Offensive Siege must render the scene-level fortress assault.');
+check(gameArtSource.includes('export function SiegeAssaultScene'), 'Siege fortress scene component must remain available.');
+check(gameArtSource.includes("testID={'siege-assault-scene-' + faction}"), 'Siege scene must remain faction-aware and testable.');
 
 console.log(
   'PASS: Offensive Sieges preserve staged assault rules, preparation gates, attrition, reward fatigue and save/resume state.'
