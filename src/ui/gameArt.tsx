@@ -2941,7 +2941,6 @@ export function SettlementBuildingAmbience({
   );
 }
 
-
 export function SettlementDistrictAmbience({
   category,
   faction = 'human',
@@ -2963,122 +2962,37 @@ export function SettlementDistrictAmbience({
   const lift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.3] });
   const sway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1deg', '1deg'] });
   const pulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.62, focused ? 0.96 : 0.82] });
-  const person =
-    category === 'economy'
-      ? settlementPeopleHumanCells.merchant
-      : category === 'military'
-        ? settlementPeopleHumanCells.guard
-        : settlementPeopleHumanCells.knight;
-
+  const person = category === 'economy'
+    ? settlementPeopleHumanCells.merchant
+    : category === 'military'
+      ? settlementPeopleHumanCells.guard
+      : settlementPeopleHumanCells.knight;
   return (
-    <View
-      testID={'settlement-district-environment-art-' + category}
-      style={{ width: size, height: size, position: 'relative', opacity: focused ? 1 : 0.86 }}
-    >
-      <Animated.View
-        style={{
-          position: 'absolute',
-          left: size * 0.1,
-          right: size * 0.1,
-          bottom: size * 0.06,
-          height: Math.max(2, size * 0.045),
-          borderRadius: size,
-          backgroundColor: settlementAmbientGlow[faction],
-          opacity: pulse
-        }}
-      />
+    <View testID={'settlement-district-environment-art-' + category} style={{ width: size, height: size, position: 'relative', opacity: focused ? 1 : 0.86 }}>
+      <Animated.View style={{ position: 'absolute', left: size * 0.1, right: size * 0.1, bottom: size * 0.06, height: Math.max(2, size * 0.045), borderRadius: size, backgroundColor: settlementAmbientGlow[faction], opacity: pulse }} />
       {category === 'economy' ? (
         <>
-          {sceneSource ? (
-            <View style={{ position: 'absolute', left: size * 0.16, bottom: size * 0.04 }}>
-              <SettlementDetailAtlasSprite
-                assetId={settlementSceneFactionAssetIds[faction]}
-                cell={settlementSceneHumanV2Cells.market}
-                size={size * 0.58}
-                opacity={focused ? 0.86 : 0.68}
-                tintColor={sceneTint}
-              />
-            </View>
-          ) : null}
-          {worldSource ? (
-            <View style={{ position: 'absolute', right: 0, bottom: 0 }}>
-              <SettlementDetailAtlasSprite
-                assetId="ui.settlement_world_human_atlas"
-                cell={settlementWorldHumanCells.supplies}
-                size={size * 0.36}
-                opacity={0.84}
-                tintColor={tintColor}
-              />
-            </View>
-          ) : null}
+          {sceneSource ? <View style={{ position: 'absolute', left: size * 0.16, bottom: size * 0.04 }}><SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.market} size={size * 0.58} opacity={focused ? 0.86 : 0.68} tintColor={sceneTint} /></View> : null}
+          {worldSource ? <View style={{ position: 'absolute', right: 0, bottom: 0 }}><SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={size * 0.36} opacity={0.84} tintColor={tintColor} /></View> : null}
         </>
       ) : category === 'military' ? (
         <>
           {worldSource ? (
             <>
-              <View style={{ position: 'absolute', right: size * 0.03, bottom: 0 }}>
-                <SettlementDetailAtlasSprite
-                  assetId="ui.settlement_world_human_atlas"
-                  cell={settlementWorldHumanCells.target_sign}
-                  size={size * 0.43}
-                  opacity={0.86}
-                  tintColor={tintColor}
-                />
-              </View>
-              <Animated.View style={{ position: 'absolute', left: size * 0.02, top: size * 0.02, transform: [{ rotate: sway }] }}>
-                <SettlementDetailAtlasSprite
-                  assetId="ui.settlement_world_human_atlas"
-                  cell={settlementWorldHumanCells.torch_banner}
-                  size={size * 0.33}
-                  opacity={0.82}
-                  tintColor={tintColor}
-                />
-              </Animated.View>
+              <View style={{ position: 'absolute', right: size * 0.03, bottom: 0 }}><SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={size * 0.43} opacity={0.86} tintColor={tintColor} /></View>
+              <Animated.View style={{ position: 'absolute', left: size * 0.02, top: size * 0.02, transform: [{ rotate: sway }] }}><SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={size * 0.33} opacity={0.82} tintColor={tintColor} /></Animated.View>
             </>
           ) : null}
         </>
       ) : (
         <>
-          {sceneSource ? (
-            <View style={{ position: 'absolute', left: size * 0.2, bottom: size * 0.02 }}>
-              <SettlementDetailAtlasSprite
-                assetId={settlementSceneFactionAssetIds[faction]}
-                cell={settlementSceneHumanV2Cells.fountain}
-                size={size * 0.54}
-                opacity={focused ? 0.82 : 0.64}
-                tintColor={sceneTint}
-              />
-            </View>
-          ) : null}
-          {worldSource ? (
-            <Animated.View style={{ position: 'absolute', right: 0, top: size * 0.02, transform: [{ rotate: sway }] }}>
-              <SettlementDetailAtlasSprite
-                assetId="ui.settlement_world_human_atlas"
-                cell={settlementWorldHumanCells.torch_banner}
-                size={size * 0.31}
-                opacity={0.8}
-                tintColor={tintColor}
-              />
-            </Animated.View>
-          ) : null}
+          {sceneSource ? <View style={{ position: 'absolute', left: size * 0.2, bottom: size * 0.02 }}><SettlementDetailAtlasSprite assetId={settlementSceneFactionAssetIds[faction]} cell={settlementSceneHumanV2Cells.fountain} size={size * 0.54} opacity={focused ? 0.82 : 0.64} tintColor={sceneTint} /></View> : null}
+          {worldSource ? <Animated.View style={{ position: 'absolute', right: 0, top: size * 0.02, transform: [{ rotate: sway }] }}><SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={size * 0.31} opacity={0.8} tintColor={tintColor} /></Animated.View> : null}
         </>
       )}
       {peopleSource ? (
-        <Animated.View
-          style={{
-            position: 'absolute',
-            left: category === 'economy' ? size * 0.02 : size * 0.36,
-            bottom: -size * 0.01,
-            transform: [{ translateX: drift }, { translateY: lift }]
-          }}
-        >
-          <SettlementDetailAtlasSprite
-            assetId="ui.settlement_people_human_atlas"
-            cell={person}
-            size={size * 0.27}
-            opacity={0.92}
-            tintColor={tintColor}
-          />
+        <Animated.View style={{ position: 'absolute', left: category === 'economy' ? size * 0.02 : size * 0.36, bottom: -size * 0.01, transform: [{ translateX: drift }, { translateY: lift }] }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={person} size={size * 0.27} opacity={0.92} tintColor={tintColor} />
         </Animated.View>
       ) : null}
     </View>
@@ -3311,6 +3225,247 @@ export function SettlementBuildPlotSprite({
   return <PlotTerrainSprite terrain={terrain} color={color} size={Math.max(24, size * 0.38)} />;
 }
 
+
+// Human Fort uses a layered world canvas; gameplay plots remain invisible anchors above it.
+function FactionFortWorldBackdrop({ faction }: { faction: FactionId }) {
+  const worldMotion = useSettlementAmbientMotion(faction === 'elf' ? 3900 : faction === 'orc' ? 3200 : 3600);
+  const waterShift = worldMotion.interpolate({ inputRange: [0, 1], outputRange: [-8, 8] });
+  const shimmerOpacity = worldMotion.interpolate({ inputRange: [0, 1], outputRange: [0.14, faction === 'elf' ? 0.42 : 0.34] });
+  const bannerSway = worldMotion.interpolate({ inputRange: [0, 1], outputRange: ['-1deg', '1deg'] });
+  const firePulse = worldMotion.interpolate({ inputRange: [0, 1], outputRange: [0.46, 0.9] });
+
+  const isElf = faction === 'elf';
+  const isOrc = faction === 'orc';
+  const sceneAssetId = settlementSceneFactionAssetIds[faction];
+  const sceneTint = settlementSceneFactionTints[faction];
+  const detailTint = isElf ? '#86C9A6' : isOrc ? '#B76A50' : undefined;
+  const ground = isElf ? '#23483A' : isOrc ? '#493329' : '#35523A';
+  const upperGround = isElf ? '#2F5947' : isOrc ? '#56392D' : '#446148';
+  const terrace = isElf ? '#426D55' : isOrc ? '#6B4938' : '#52684B';
+  const cliffLight = isElf ? '#49675D' : isOrc ? '#6B5548' : '#68716A';
+  const cliffDark = isElf ? '#2D4A42' : isOrc ? '#46372F' : '#424A45';
+  const clearing = isElf ? '#4D765F' : isOrc ? '#76503D' : '#587050';
+  const innerClearing = isElf ? '#5D876C' : isOrc ? '#825A43' : '#69805B';
+  const roadDark = isElf ? '#514B3E' : isOrc ? '#5B4032' : '#5A5140';
+  const roadLight = isElf ? '#8D825F' : isOrc ? '#9A6C4C' : '#A28D67';
+  const roadBranch = isElf ? '#6B634C' : isOrc ? '#76513B' : '#6D624E';
+  const plaza = isElf ? '#6D7E68' : isOrc ? '#7B6654' : '#8E8166';
+  const plazaBorder = isElf ? '#4B6656' : isOrc ? '#594439' : '#615948';
+  const plazaInner = isElf ? '#426F5E' : isOrc ? '#5F4738' : '#6B805A';
+  const waterfront = isElf ? '#1F6671' : isOrc ? '#324C55' : '#245F78';
+  const waterHighlight = isElf ? '#BEEFF0' : isOrc ? '#9FC8D0' : '#B8E9F0';
+
+  type FortWorldPlacement = {
+    left: `${number}%`;
+    top: `${number}%`;
+    cell: { x: number; y: number };
+    size: number;
+  };
+  type FortificationPlacement = FortWorldPlacement & {
+    rotate: `${number}deg`;
+    opacity: number;
+  };
+
+  const trees: readonly FortWorldPlacement[] = isElf
+    ? [
+        { left: '1%', top: '4%', cell: settlementNatureHumanCells.tree_large, size: 84 },
+        { left: '18%', top: '6%', cell: settlementNatureHumanCells.tree_dark, size: 70 },
+        { left: '78%', top: '4%', cell: settlementNatureHumanCells.tree_large, size: 82 },
+        { left: '2%', top: '28%', cell: settlementNatureHumanCells.tree_dark, size: 78 },
+        { left: '83%', top: '29%', cell: settlementNatureHumanCells.conifer, size: 74 },
+        { left: '4%', top: '58%', cell: settlementNatureHumanCells.tree_large, size: 78 },
+        { left: '81%', top: '58%', cell: settlementNatureHumanCells.tree_dark, size: 78 },
+        { left: '10%', top: '76%', cell: settlementNatureHumanCells.conifer, size: 70 },
+        { left: '72%', top: '76%', cell: settlementNatureHumanCells.tree_large, size: 76 }
+      ]
+    : isOrc
+      ? [
+          { left: '2%', top: '9%', cell: settlementNatureHumanCells.conifer, size: 68 },
+          { left: '82%', top: '8%', cell: settlementNatureHumanCells.tree_dark, size: 68 },
+          { left: '0%', top: '31%', cell: settlementNatureHumanCells.tree_dark, size: 70 },
+          { left: '84%', top: '34%', cell: settlementNatureHumanCells.conifer, size: 66 },
+          { left: '5%', top: '65%', cell: settlementNatureHumanCells.conifer, size: 62 },
+          { left: '82%', top: '66%', cell: settlementNatureHumanCells.tree_dark, size: 64 }
+        ]
+      : [
+          { left: '3%', top: '7%', cell: settlementNatureHumanCells.tree_dark, size: 74 },
+          { left: '80%', top: '8%', cell: settlementNatureHumanCells.conifer, size: 68 },
+          { left: '1%', top: '29%', cell: settlementNatureHumanCells.tree_large, size: 72 },
+          { left: '82%', top: '31%', cell: settlementNatureHumanCells.tree_dark, size: 72 },
+          { left: '4%', top: '61%', cell: settlementNatureHumanCells.conifer, size: 66 },
+          { left: '82%', top: '61%', cell: settlementNatureHumanCells.tree_large, size: 72 },
+          { left: '8%', top: '78%', cell: settlementNatureHumanCells.tree_dark, size: 64 },
+          { left: '76%', top: '79%', cell: settlementNatureHumanCells.conifer, size: 66 }
+        ];
+
+  const fortifications: readonly FortificationPlacement[] = isElf
+    ? [
+        { left: '2%', top: '20%', rotate: '-7deg', cell: settlementNatureHumanCells.hedge, size: 102, opacity: 0.82 },
+        { left: '72%', top: '20%', rotate: '7deg', cell: settlementNatureHumanCells.hedge, size: 102, opacity: 0.82 },
+        { left: '0%', top: '52%', rotate: '4deg', cell: settlementNatureHumanCells.fence, size: 98, opacity: 0.78 },
+        { left: '73%', top: '52%', rotate: '-4deg', cell: settlementNatureHumanCells.fence, size: 98, opacity: 0.78 }
+      ]
+    : isOrc
+      ? [
+          { left: '0%', top: '18%', rotate: '-10deg', cell: settlementNatureHumanCells.stone_wall, size: 104, opacity: 0.94 },
+          { left: '71%', top: '18%', rotate: '10deg', cell: settlementNatureHumanCells.stone_wall, size: 104, opacity: 0.94 },
+          { left: '-2%', top: '48%', rotate: '6deg', cell: settlementNatureHumanCells.stone_wall, size: 106, opacity: 0.94 },
+          { left: '72%', top: '49%', rotate: '-6deg', cell: settlementNatureHumanCells.stone_wall, size: 106, opacity: 0.94 },
+          { left: '7%', top: '69%', rotate: '-4deg', cell: settlementNatureHumanCells.rocks, size: 78, opacity: 0.9 },
+          { left: '75%', top: '70%', rotate: '4deg', cell: settlementNatureHumanCells.rocks, size: 78, opacity: 0.9 }
+        ]
+      : [
+          { left: '2%', top: '19%', rotate: '-8deg', cell: settlementNatureHumanCells.stone_wall, size: 96, opacity: 0.88 },
+          { left: '73%', top: '19%', rotate: '8deg', cell: settlementNatureHumanCells.stone_wall, size: 96, opacity: 0.88 },
+          { left: '1%', top: '52%', rotate: '5deg', cell: settlementNatureHumanCells.stone_wall, size: 96, opacity: 0.88 },
+          { left: '72%', top: '52%', rotate: '-5deg', cell: settlementNatureHumanCells.stone_wall, size: 96, opacity: 0.88 }
+        ];
+
+  return (
+    <View
+      testID={'settlement-fort-world-' + faction}
+      pointerEvents="none"
+      style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, overflow: 'hidden', backgroundColor: ground }}
+    >
+      <View style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '23%', backgroundColor: isElf ? '#19372F' : isOrc ? '#33251F' : '#263D31' }} />
+      <View style={{ position: 'absolute', left: '7%', right: '7%', top: '2%', height: '20%', borderBottomLeftRadius: 60, borderBottomRightRadius: 60, backgroundColor: upperGround, opacity: 0.94 }} />
+      <View style={{ position: 'absolute', left: '12%', right: '12%', top: '12%', height: '15%', borderBottomLeftRadius: 80, borderBottomRightRadius: 80, backgroundColor: terrace, opacity: 0.9 }} />
+
+      <View style={{ position: 'absolute', left: '-12%', top: '12%', width: '42%', height: '14%', backgroundColor: cliffLight, opacity: 0.76, transform: [{ rotate: '-12deg' }] }} />
+      <View style={{ position: 'absolute', right: '-12%', top: '12%', width: '42%', height: '14%', backgroundColor: cliffLight, opacity: 0.76, transform: [{ rotate: '12deg' }] }} />
+      <View style={{ position: 'absolute', left: '-8%', top: '19%', width: '34%', height: '9%', backgroundColor: cliffDark, opacity: 0.74, transform: [{ rotate: '-9deg' }] }} />
+      <View style={{ position: 'absolute', right: '-8%', top: '19%', width: '34%', height: '9%', backgroundColor: cliffDark, opacity: 0.74, transform: [{ rotate: '9deg' }] }} />
+
+      <View style={{ position: 'absolute', left: '4%', top: '21%', width: '92%', height: '60%', borderRadius: 90, backgroundColor: clearing, opacity: 0.54 }} />
+      <View style={{ position: 'absolute', left: '13%', top: '29%', width: '74%', height: '44%', borderRadius: 80, backgroundColor: innerClearing, opacity: 0.34 }} />
+
+      <View style={{ position: 'absolute', left: '42%', top: '22%', width: '16%', height: '50%', borderRadius: 999, backgroundColor: roadDark, opacity: 0.82 }} />
+      <View style={{ position: 'absolute', left: '43.5%', top: '22%', width: '13%', height: '50%', borderRadius: 999, backgroundColor: roadLight, opacity: 0.86 }} />
+      <View style={{ position: 'absolute', left: '7%', top: '44%', width: '86%', height: '8%', borderRadius: 999, backgroundColor: roadDark, opacity: 0.74 }} />
+      <View style={{ position: 'absolute', left: '8%', top: '45%', width: '84%', height: '6%', borderRadius: 999, backgroundColor: roadLight, opacity: 0.82 }} />
+
+      <View style={{ position: 'absolute', left: '17%', top: '31%', width: '41%', height: 28, borderRadius: 999, backgroundColor: roadBranch, opacity: 0.72, transform: [{ rotate: '27deg' }] }} />
+      <View style={{ position: 'absolute', right: '16%', top: '32%', width: '39%', height: 28, borderRadius: 999, backgroundColor: roadBranch, opacity: 0.72, transform: [{ rotate: '-27deg' }] }} />
+      <View style={{ position: 'absolute', left: '18%', top: '60%', width: '40%', height: 26, borderRadius: 999, backgroundColor: roadBranch, opacity: 0.68, transform: [{ rotate: '-26deg' }] }} />
+      <View style={{ position: 'absolute', right: '17%', top: '60%', width: '39%', height: 26, borderRadius: 999, backgroundColor: roadBranch, opacity: 0.68, transform: [{ rotate: '26deg' }] }} />
+
+      <View style={{ position: 'absolute', left: '30%', top: '35%', width: '40%', height: '22%', borderRadius: 64, borderWidth: 2, borderColor: plazaBorder, backgroundColor: plaza, opacity: 0.76, transform: [{ rotate: '45deg' }] }} />
+      <View style={{ position: 'absolute', left: '39%', top: '39%', width: '22%', height: '14%', borderRadius: 50, borderWidth: 1, borderColor: isElf ? '#8BD0B8' : isOrc ? '#C7895F' : '#C2AC7C', backgroundColor: plazaInner, opacity: 0.8, transform: [{ rotate: '45deg' }] }} />
+
+      {isOrc ? (
+        <>
+          <Animated.View style={{ position: 'absolute', left: '46%', top: '42%', width: 28, height: 18, borderRadius: 999, backgroundColor: '#F08A45', opacity: firePulse }} />
+          <View style={{ position: 'absolute', left: '42%', top: '39%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={62} opacity={0.92} tintColor={detailTint} />
+          </View>
+        </>
+      ) : (
+        <View style={{ position: 'absolute', left: '41%', top: '41%' }}>
+          <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.fountain} size={68} opacity={0.9} tintColor={sceneTint} />
+        </View>
+      )}
+
+      {isElf ? (
+        <>
+          <View style={{ position: 'absolute', left: '35%', top: '37%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.bush_flowers} size={42} opacity={0.92} tintColor={detailTint} />
+          </View>
+          <View style={{ position: 'absolute', right: '35%', top: '38%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.bush_blue} size={42} opacity={0.92} tintColor={detailTint} />
+          </View>
+        </>
+      ) : null}
+
+      <View style={{ position: 'absolute', left: '39%', top: '18%' }}>
+        <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.gate} size={84} opacity={0.96} tintColor={sceneTint} />
+      </View>
+      <Animated.View style={{ position: 'absolute', left: '33%', top: '22%', transform: [{ rotate: bannerSway }] }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={42} opacity={0.94} tintColor={detailTint} />
+      </Animated.View>
+      <Animated.View style={{ position: 'absolute', right: '33%', top: '22%', transform: [{ rotate: bannerSway }] }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={42} opacity={0.94} tintColor={detailTint} />
+      </Animated.View>
+
+      {fortifications.map((item, index) => (
+        <View key={'fortification-' + faction + '-' + index} style={{ position: 'absolute', left: item.left, top: item.top, transform: [{ rotate: item.rotate }] }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={item.cell} size={item.size} opacity={item.opacity} tintColor={detailTint} />
+        </View>
+      ))}
+
+      {trees.map((item, index) => (
+        <View key={'fort-tree-' + faction + '-' + index} style={{ position: 'absolute', left: item.left, top: item.top }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={item.cell} size={item.size} opacity={0.95} tintColor={detailTint} />
+        </View>
+      ))}
+
+      {isOrc ? (
+        <>
+          <View style={{ position: 'absolute', left: '7%', top: '40%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.rocks} size={56} opacity={0.92} tintColor={detailTint} />
+          </View>
+          <View style={{ position: 'absolute', right: '8%', top: '39%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={48} opacity={0.88} tintColor={detailTint} />
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', left: '6%', top: '38%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.bush_flowers} size={52} opacity={0.92} tintColor={detailTint} />
+          </View>
+          <View style={{ position: 'absolute', right: '7%', top: '39%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.bush_blue} size={50} opacity={0.9} tintColor={detailTint} />
+          </View>
+        </>
+      )}
+
+      <View style={{ position: 'absolute', left: '15%', top: '57%' }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.supplies} size={46} opacity={0.78} tintColor={detailTint} />
+      </View>
+      <View style={{ position: 'absolute', right: '14%', top: '56%' }}>
+        <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.target_sign} size={42} opacity={0.72} tintColor={detailTint} />
+      </View>
+
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '15%', backgroundColor: waterfront, opacity: 0.96 }} />
+      <Animated.View style={{ position: 'absolute', left: '-5%', bottom: '8%', width: '110%', height: 2, backgroundColor: waterHighlight, opacity: shimmerOpacity, transform: [{ translateX: waterShift }] }} />
+      <Animated.View style={{ position: 'absolute', left: '-8%', bottom: '4%', width: '116%', height: 1, backgroundColor: isElf ? '#E6FFFF' : isOrc ? '#C7E0E3' : '#E2F7FA', opacity: shimmerOpacity, transform: [{ translateX: waterShift }] }} />
+
+      <View style={{ position: 'absolute', left: isOrc ? '1%' : '3%', bottom: '-1%' }}>
+        <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.dock} size={isOrc ? 98 : 92} opacity={0.96} tintColor={sceneTint} />
+      </View>
+      {!isOrc ? (
+        <View style={{ position: 'absolute', left: '27%', bottom: '-1%' }}>
+          <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.sailboat} size={76} opacity={0.95} tintColor={sceneTint} />
+        </View>
+      ) : (
+        <View style={{ position: 'absolute', left: '28%', bottom: '1%' }}>
+          <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.wagon} size={72} opacity={0.86} tintColor={sceneTint} />
+        </View>
+      )}
+
+      {!isOrc ? (
+        <>
+          <View style={{ position: 'absolute', right: '2%', bottom: '9%' }}>
+            <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.waterfall} size={82} opacity={0.96} tintColor={sceneTint} />
+          </View>
+          <View style={{ position: 'absolute', left: '6%', bottom: '12%' }}>
+            <SettlementDetailAtlasSprite assetId={sceneAssetId} cell={settlementSceneHumanV2Cells.waterfall} size={72} opacity={0.9} tintColor={sceneTint} />
+          </View>
+        </>
+      ) : (
+        <>
+          <View style={{ position: 'absolute', right: '3%', bottom: '10%' }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_nature_human_atlas" cell={settlementNatureHumanCells.rocks} size={72} opacity={0.94} tintColor={detailTint} />
+          </View>
+          <Animated.View style={{ position: 'absolute', right: '14%', bottom: '11%', width: 18, height: 10, borderRadius: 999, backgroundColor: '#E9733F', opacity: firePulse }} />
+        </>
+      )}
+
+      <View style={{ position: 'absolute', left: '12%', bottom: '15%', width: '76%', height: 16, borderRadius: 999, backgroundColor: isElf ? '#5D665A' : isOrc ? '#695245' : '#6A6151', opacity: 0.68 }} />
+      <View style={{ position: 'absolute', left: '16%', bottom: '17%', width: '68%', height: 10, borderRadius: 999, backgroundColor: isElf ? '#8C9175' : isOrc ? '#97715A' : '#9A8868', opacity: 0.7 }} />
+    </View>
+  );
+}
+
 export function SettlementTerrainBackdrop({
   faction = 'human',
   stageId = 'camp'
@@ -3318,6 +3473,9 @@ export function SettlementTerrainBackdrop({
   faction?: FactionId;
   stageId?: WagonStage['id'];
 }) {
+  if (['fort', 'town', 'stronghold', 'capital', 'grand'].includes(stageId)) {
+    return <FactionFortWorldBackdrop faction={faction} />;
+  }
   const rank = stageRanks[stageId] ?? 0;
   const accent = faction === 'elf' ? palette.elfLight : faction === 'orc' ? palette.orcLight : palette.humanLight;
   const sceneAssetId = settlementSceneFactionAssetIds[faction];

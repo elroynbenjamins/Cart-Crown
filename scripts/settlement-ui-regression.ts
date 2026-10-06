@@ -774,12 +774,17 @@ check(gameArtSource.includes('activeDistricts = 0'), 'Settlement ambience must s
 check(gameArtSource.includes('settlement-district-worker'), 'District-connected buildings must gain an additional ambient worker at higher activity.');
 check(gameArtSource.includes('settlement-district-activity-glow'), 'District-connected buildings must expose a restrained ambient glow.');
 check(gameArtSource.includes('export function SettlementDistrictAmbience'), 'Active district space must use a dedicated non-gameplay ambience component.');
+check(gameArtSource.includes('function FactionFortWorldBackdrop'), 'Fort+ settlements must use the rebuilt faction world canvas instead of the legacy flat board.');
+check(gameArtSource.includes("testID={'settlement-fort-world-' + faction}"), 'The rebuilt settlement world must expose faction-specific native visual evidence.');
+check(gameArtSource.includes("const isElf = faction === 'elf'"), 'Elf Fort+ settlements must receive authored grove-fort dressing.');
+check(gameArtSource.includes("const isOrc = faction === 'orc'"), 'Orc Fort+ settlements must receive authored war-fort dressing.');
 check(gameArtSource.includes("category === 'economy'"), 'Economy districts must have distinct market/supply dressing.');
 check(gameArtSource.includes("category === 'military'"), 'Military districts must have distinct training dressing.');
 check(gameArtSource.includes('settlementSceneHumanV2Cells.fountain'), 'Command districts must have a distinct civic/command focal prop.');
 check(gameArtSource.includes('AccessibilityInfo.isReduceMotionEnabled'), 'Settlement ambience motion must continue respecting reduced-motion accessibility.');
 
 const settlementScreenSource = readFileSync(resolve('src/screens/SettlementScreen.tsx'), 'utf8');
+check(settlementScreenSource.includes("['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id)"), 'Fort+ world layout must apply without a Human-only faction gate.');
 check(settlementScreenSource.includes('settlementUnlockSnapshots'), 'Settlement unlock celebration must compare against an in-session baseline.');
 check(settlementScreenSource.includes('settlement-unlock-celebration'), 'Settlement unlock celebration must stay in-world instead of using a modal.');
 check(settlementScreenSource.includes('setTimeout(() => setUnlockCelebration(null), 2600)'), 'Settlement unlock celebration must auto-clear quickly.');
