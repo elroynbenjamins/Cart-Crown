@@ -146,7 +146,7 @@ function testEffects() {
   }
   const battle = ts.createSourceFile('BattleScreen.tsx', readFileSync('src/screens/BattleScreen.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   for (const [variable, expected] of [
-    ['marcherDoctrineActive', ['siege_road', 'lord_marshal_veyr']],
+    ['marcherDoctrineActive', ['siege_road', 'ch3_through_gap', 'ch3_wolves_wing', 'ch3_layered_host', 'lord_marshal_veyr']],
     ['loyalistApproachActive', ['pretender_general']]
   ] as const) {
     const strings: string[] = [];
