@@ -43,9 +43,10 @@ expect(
   'Live Chapter 2 names/order drifted from the roadmap.'
 );
 expect(
-  chapterOneNodes[0]?.completed === true &&
-    chapterOneNodes[1]?.current === true,
-  'Fresh Chapter 1 must treat A Banner Still Flies as the intro and Hold the Crossing as the first playable mission.'
+  chapterOneNodes[0]?.current === true &&
+    chapterOneNodes[0]?.completed === false &&
+    !chapterOneNodes[1]?.current,
+  'Fresh Chapter 1 must open on the playable A Banner Still Flies mission.'
 );
 expect(
   chapterTwoNodes[0]?.current === true,
@@ -124,6 +125,7 @@ expect(
 );
 
 const earlyBattles: EncounterId[] = [
+  'ch1_banner_still_flies',
   'ch1_hold_crossing',
   'ch1_spears_at_dawn',
   'ch1_cut_off_captain',
