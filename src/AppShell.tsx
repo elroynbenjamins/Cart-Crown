@@ -1211,6 +1211,7 @@ export function AppShell({
           tutorialFocus={tutorialFocus}
           onTutorialFocusComplete={completeTutorialFocus}
           onOpenSettings={() => setFlow('settings')}
+          showReturnButton={false}
           onExit={() => {
             setFlow(null);
             setActive('kingdom');
