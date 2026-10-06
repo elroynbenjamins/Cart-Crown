@@ -262,7 +262,14 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'SettlementBuildPlotSprite').length >= 1, faction + ' empty plots must render as production build sites.');
     if (faction === 'human') {
       check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('building-district-aura-')), 'Authored Human world view must not paint district aura pills until analysis is active.');
-      check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('world-upgrade-ready-')).length === f.game.buildings.filter((building: any) => (f.game.buildingLevels[building.id] ?? 0) > 0 && (f.game.buildingLevels[building.id] ?? 0) < building.maxLevel && kingdom.canPayBuildingCost(f.game.resources, kingdom.getBuildingLevelDefinition(building.id, (f.game.buildingLevels[building.id] ?? 0) + 1)?.cost ?? {})).length, 'World upgrade readiness must use compact notification dots rather than large arrows.');
+      const expectedUpgradeDots = f.game.buildings.filter((building: any) => {
+        const level = f.game.buildingLevels[building.id] ?? 0;
+        if (level <= 0 || level >= building.maxLevel || level >= 3 || !f.game.isBuildingUnlocked(building.id)) return false;
+        const next = kingdom.getBuildingLevelDefinition(building.id, level + 1);
+        return Boolean(next && kingdom.canPayBuildingCost(f.game.resources, next.cost));
+      }).length;
+      check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('world-upgrade-ready-')).length === expectedUpgradeDots, 'World upgrade readiness must use compact notification dots rather than large arrows.');
+      check(!text(tree).includes('↑'), 'Default world view must not scatter large upgrade arrows over the settlement.');
     }
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
     check(nodes(tree, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'Blueprint planner must be directly available from the settlement overview.');
