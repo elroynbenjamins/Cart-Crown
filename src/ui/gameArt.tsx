@@ -3073,7 +3073,7 @@ export function EquipmentLoadoutScene({
 }: {
   className: string;
   faction?: FactionId;
-  equipmentIds: string[];
+  equipmentIds: Array<string | null | undefined>;
   accent?: string;
 }) {
   const glow = accent ?? settlementAmbientGlow[faction];
