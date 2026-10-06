@@ -265,9 +265,10 @@ type SettlementBuildingAction = 'inspect' | 'move' | 'upgrade';
 
 const settlementUnlockSnapshots = new Map<string, SettlementUnlockSnapshot>();
 
-export function SettlementScreen({ onExit, onOpenSettings, tutorialFocus, onTutorialFocusComplete }: {
+export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = true, tutorialFocus, onTutorialFocusComplete }: {
   onExit: () => void;
   onOpenSettings?: () => void;
+  showReturnButton?: boolean;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
 }) {
@@ -2590,7 +2591,7 @@ export function SettlementScreen({ onExit, onOpenSettings, tutorialFocus, onTuto
         </View>
       ) : null}
       {message && !selectedBuilding && !selectedPlot ? <Text accessibilityLiveRegion="polite" style={[styles.message, { color: theme.colors.text }]}>{message}</Text> : null}
-      <SecondaryButton label="Return to Kingdom" onPress={onExit} />
+      {showReturnButton ? <SecondaryButton label="Return to Kingdom" onPress={onExit} /> : null}
     </ScrollView>
   );
 }
