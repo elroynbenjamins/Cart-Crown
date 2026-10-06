@@ -2311,12 +2311,19 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
               <View
                 testID="district-overlay-controls"
                 accessibilityLabel="District overlay filters"
-                style={[styles.districtOverlayControls, { backgroundColor: theme.colors.surface1, borderColor: factionAccent + '88' }]}
+                style={[
+                  styles.districtOverlayControls,
+                  worldRebuildActive ? styles.conceptDistrictOverlay : undefined,
+                  {
+                    backgroundColor: worldRebuildActive ? SETTLEMENT_HUD_NAVY : theme.colors.surface1,
+                    borderColor: worldRebuildActive ? SETTLEMENT_HUD_GOLD : factionAccent + '88'
+                  }
+                ]}
               >
                 <View style={styles.districtOverlayHeader}>
                   <View style={styles.districtOverlayHeaderCopy}>
-                    <Text style={[styles.districtOverlayLabel, { color: theme.colors.textMuted }]}>DISTRICT OVERLAY</Text>
-                    <Text style={[styles.districtOverlayHint, { color: theme.colors.textMuted }]}>Tap a filter</Text>
+                    <Text style={[styles.districtOverlayLabel, { color: worldRebuildActive ? SETTLEMENT_HUD_TEXT : theme.colors.textMuted }]}>DISTRICT OVERLAY</Text>
+                    <Text style={[styles.districtOverlayHint, { color: worldRebuildActive ? SETTLEMENT_HUD_MUTED : theme.colors.textMuted }]}>Tap a filter</Text>
                   </View>
                   <Pressable
                     testID="district-codex-open"
@@ -2333,9 +2340,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       setDistrictOverlayOpen(false);
                       setSelectedDistrictId(null);
                     }}
-                    style={[styles.districtCodexInlineButton, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface2 }]}
+                    style={[styles.districtCodexInlineButton, {
+                      borderColor: worldRebuildActive ? SETTLEMENT_HUD_GOLD_DARK : theme.colors.border,
+                      backgroundColor: worldRebuildActive ? SETTLEMENT_HUD_NAVY_DEEP : theme.colors.surface2
+                    }]}
                   >
-                    <Text style={[styles.districtCodexInlineText, { color: theme.colors.gold }]}>CODEX</Text>
+                    <Text style={[styles.districtCodexInlineText, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : theme.colors.gold }]}>CODEX</Text>
                   </Pressable>
                 </View>
                 <View style={styles.districtOverlayButtons}>
@@ -2357,17 +2367,19 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         style={[
                           styles.districtOverlayButton,
                           {
-                            borderColor: active ? toneColor : theme.colors.border,
-                            backgroundColor: active
-                              ? blendColor(toneColor, theme.colors.surface1, theme.dark ? 0.16 : 0.08)
-                              : theme.colors.surface2
+                            borderColor: worldRebuildActive
+                              ? active ? toneColor : SETTLEMENT_HUD_GOLD_DARK
+                              : active ? toneColor : theme.colors.border,
+                            backgroundColor: worldRebuildActive
+                              ? active ? blendColor(toneColor, SETTLEMENT_HUD_NAVY, 0.18) : SETTLEMENT_HUD_NAVY_DEEP
+                              : active ? blendColor(toneColor, theme.colors.surface1, theme.dark ? 0.16 : 0.08) : theme.colors.surface2
                           }
                         ]}
                       >
-                        <Text style={[styles.districtOverlayButtonText, { color: active ? toneColor : theme.colors.textMuted }]}>
+                        <Text style={[styles.districtOverlayButtonText, { color: active ? toneColor : worldRebuildActive ? SETTLEMENT_HUD_MUTED : theme.colors.textMuted }]}>
                           {filter.label}
                         </Text>
-                        <Text style={[styles.districtOverlayCount, { color: active ? toneColor : theme.colors.textMuted }]}>
+                        <Text style={[styles.districtOverlayCount, { color: active ? toneColor : worldRebuildActive ? SETTLEMENT_HUD_MUTED : theme.colors.textMuted }]}>
                           {districtOverlayCounts[filter.id]}
                         </Text>
                       </Pressable>
@@ -2460,7 +2472,14 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
       {districtCodexOpen ? (
         <View
           testID="district-codex"
-          style={[styles.districtCodex, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+          style={[
+            styles.districtCodex,
+            worldRebuildActive ? styles.conceptDistrictCodex : undefined,
+            {
+              backgroundColor: worldRebuildActive ? SETTLEMENT_HUD_NAVY : theme.colors.surface1,
+              borderColor: worldRebuildActive ? SETTLEMENT_HUD_GOLD_DARK : theme.colors.border
+            }
+          ]}
         >
           <Pressable
             testID="district-codex-toggle"
@@ -2477,8 +2496,8 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             style={styles.districtCodexToggle}
           >
             <View style={styles.districtCodexCopy}>
-              <Text style={[styles.districtCodexEyebrow, { color: theme.colors.textMuted }]}>DISTRICT CODEX</Text>
-              <Text style={[styles.districtCodexTitle, { color: theme.colors.text }]}>
+              <Text style={[styles.districtCodexEyebrow, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : theme.colors.textMuted }]}>DISTRICT CODEX</Text>
+              <Text style={[styles.districtCodexTitle, { color: worldRebuildActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]}>
                 {settlementAdjacencyBonuses.length}/{adjacencyRecipes.length} active
               </Text>
             </View>
@@ -2490,7 +2509,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 <SemanticChip label={districtDevelopingCount + ' developing'} tone="neutral" compact />
               ) : null}
             </View>
-            <Text style={[styles.districtCodexAction, { color: theme.colors.gold }]}>CLOSE</Text>
+            <Text style={[styles.districtCodexAction, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : theme.colors.gold }]}>CLOSE</Text>
           </Pressable>
 
           <View testID="district-codex-panel" style={[styles.districtCodexPanel, { borderTopColor: theme.colors.border }]}>
@@ -2580,6 +2599,7 @@ const styles = StyleSheet.create({
   districtOverlayLauncherText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.65 },
   districtOverlayLauncherCount: { fontSize: 8, lineHeight: 10, fontWeight: '900' },
   districtOverlayControls: { position: 'absolute', left: 8, right: 8, top: 8, zIndex: 41, borderWidth: 1, borderRadius: 13, paddingHorizontal: 7, paddingVertical: 6, gap: 5, opacity: 0.98, elevation: 4 },
+  conceptDistrictOverlay: { borderWidth: 1.25, borderRadius: 11, elevation: 7 },
   districtOverlayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingRight: 88 },
   districtOverlayHeaderCopy: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 6 },
   districtOverlayLabel: { fontSize: 6.5, lineHeight: 8, fontWeight: '900', letterSpacing: 0.8 },
@@ -2594,6 +2614,7 @@ const styles = StyleSheet.create({
   sceneLegendText: { fontSize: 9.5, lineHeight: 13, fontWeight: '700' },
   sceneLegendCount: { fontSize: 10, lineHeight: 13, fontWeight: '900' },
   districtCodex: { borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
+  conceptDistrictCodex: { borderWidth: 1.25, borderRadius: 12, elevation: 5 },
   districtCodexToggle: { minHeight: 52, paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
   districtCodexCopy: { flex: 1, minWidth: 0 },
   districtCodexEyebrow: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.85 },
