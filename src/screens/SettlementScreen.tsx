@@ -1251,15 +1251,22 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
               setDistrictCodexOpen(false);
               setUnlockCelebration(null);
             }}
-            style={[styles.blueprintPlannerLauncher, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+            style={[
+              styles.blueprintPlannerLauncher,
+              worldRebuildActive ? styles.conceptPlannerLauncher : undefined,
+              {
+                backgroundColor: worldRebuildActive ? SETTLEMENT_HUD_NAVY : theme.colors.surface1,
+                borderColor: worldRebuildActive ? SETTLEMENT_HUD_GOLD_DARK : theme.colors.border
+              }
+            ]}
           >
             <View style={styles.blueprintPlannerLauncherCopy}>
-              <Text style={[styles.blueprintPlannerEyebrow, { color: theme.colors.textMuted }]}>PLAN BLUEPRINT</Text>
-              <Text style={[styles.blueprintPlannerLauncherText, { color: theme.colors.text }]} numberOfLines={1}>
+              <Text style={[styles.blueprintPlannerEyebrow, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : theme.colors.textMuted }]}>PLAN BLUEPRINT</Text>
+              <Text style={[styles.blueprintPlannerLauncherText, { color: worldRebuildActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]} numberOfLines={1}>
                 Compare every open plot at once
               </Text>
             </View>
-            <Text style={[styles.blueprintPlannerLauncherAction, { color: theme.colors.gold }]}>PLAN</Text>
+            <Text style={[styles.blueprintPlannerLauncherAction, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : theme.colors.gold }]}>PLAN</Text>
           </Pressable>
         )
       ) : null}
@@ -1294,21 +1301,21 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
           style={[
             styles.networkHint,
             {
-              backgroundColor: theme.colors.surface1,
-              borderColor: semanticColor(theme, 'positive')
+              backgroundColor: worldRebuildActive ? SETTLEMENT_HUD_NAVY : theme.colors.surface1,
+              borderColor: worldRebuildActive ? SETTLEMENT_HUD_GOLD_DARK : semanticColor(theme, 'positive')
             }
           ]}
         >
           <View style={styles.networkHintCopy}>
-            <Text style={[styles.networkHintEyebrow, { color: semanticColor(theme, 'positive') }]}>BETTER LAYOUT AVAILABLE</Text>
-            <Text style={[styles.networkHintTitle, { color: theme.colors.text }]}>
+            <Text style={[styles.networkHintEyebrow, { color: worldRebuildActive ? '#8ED17F' : semanticColor(theme, 'positive') }]}>BETTER LAYOUT AVAILABLE</Text>
+            <Text style={[styles.networkHintTitle, { color: worldRebuildActive ? SETTLEMENT_HUD_TEXT : theme.colors.text }]}>
               {bestNetworkOptimization.currentDistrictCount} → {bestNetworkOptimization.futureDistrictCount} districts
             </Text>
-            <Text style={[styles.networkHintDetail, { color: theme.colors.textMuted }]} numberOfLines={1}>
+            <Text style={[styles.networkHintDetail, { color: worldRebuildActive ? SETTLEMENT_HUD_MUTED : theme.colors.textMuted }]} numberOfLines={1}>
               Preview {bestNetworkOptimization.buildingName} → {settlementPlotLabels[bestNetworkOptimization.targetPlotId] ?? bestNetworkOptimization.targetPlotId}
             </Text>
           </View>
-          <Text style={[styles.networkHintAction, { color: theme.colors.gold }]}>PREVIEW</Text>
+          <Text style={[styles.networkHintAction, { color: worldRebuildActive ? SETTLEMENT_HUD_GOLD : theme.colors.gold }]}>PREVIEW</Text>
         </Pressable>
       ) : null}
 
@@ -2677,6 +2684,7 @@ const styles = StyleSheet.create({
   districtCodexRowChips: { alignItems: 'flex-end', gap: 3 },
   districtCodexDescription: { fontSize: 9.5, lineHeight: 14, marginTop: 5 },
   blueprintPlannerLauncher: { minHeight: 48, borderWidth: 1, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  conceptPlannerLauncher: { minHeight: 42, borderRadius: 10, borderWidth: 1.25, paddingVertical: 6, elevation: 4 },
   blueprintPlannerLauncherCopy: { flex: 1, minWidth: 0 },
   blueprintPlannerLauncherText: { fontSize: 11.5, lineHeight: 15, fontWeight: '800', marginTop: 1 },
   blueprintPlannerLauncherAction: { fontSize: 9, lineHeight: 12, fontWeight: '900', letterSpacing: 0.7 },
