@@ -30,7 +30,7 @@ const events: Record<EarlyHumanEventId, EventDefinition> = {
     }
   },
   refugee_camp: {
-    id: 'refugee_camp', chapter: 1, nodeId: 'node_5', title: 'Refugee Camp',
+    id: 'refugee_camp', chapter: 1, nodeId: 'node_6', title: 'Refugee Camp',
     body: 'Families displaced from the western road have gathered outside Greenkeep. Among them are experienced teamsters, cooks and storekeepers, bringing carts, tools and preserved food.',
     purpose: { label: 'Supplies', tone: 'positive' },
     action: 'completeRefugeeCamp', actionLabel: 'Welcome the Refugees',
@@ -41,7 +41,7 @@ const events: Record<EarlyHumanEventId, EventDefinition> = {
     }
   },
   timber_claim: {
-    id: 'timber_claim', chapter: 2, nodeId: 'ch2_node_3', title: 'Timber Claim',
+    id: 'timber_claim', chapter: 2, nodeId: 'ch2_node_7', title: 'Timber Claim',
     body: 'The Iron Road bends through an abandoned forestry camp. Securing the site gives Greenkeep a steady source of structural timber.',
     purpose: { label: 'Regional production', tone: 'cyan' },
     action: 'unlockTimberCamp', actionLabel: 'Secure the Timber Camp', siteId: 'greenwood_camp'
