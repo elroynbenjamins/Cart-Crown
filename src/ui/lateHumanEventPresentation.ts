@@ -42,18 +42,18 @@ const definitions: Record<LateHumanEventId, Definition> = {
     findings: [{ title: 'Preparation matters', portrait: 'human', detail: 'The recovered stores make it practical to maintain more than one viable army setup. The next encounters are built to punish a single habitual high-Power loadout.' }]
   },
   broken_archives: {
-    chapter: 5, nodeId: 'ch5_node_3', title: 'Broken Archives',
-    body: 'The recovered estate ledgers lead to a half-burned archive. Orders from different years were altered with the same ash-grey sealing compound and the same accounting marks.',
-    purpose: { label: 'Archive evidence', tone: 'violet' },
-    action: 'completeBrokenArchives', actionLabel: 'Secure the Broken Archives', continueLabel: 'Confront the Ashen Envoy',
+    chapter: 5, nodeId: 'ch5_node_5', title: 'Answers to the Sky',
+    body: 'After the first Flying assault, recovered archives and field reports reveal practical anti-air doctrine without making one dedicated counter mandatory.',
+    purpose: { label: 'Anti-air preparation', tone: 'cyan' },
+    action: 'completeBrokenArchives', actionLabel: 'Organize the Anti-Air Response', continueLabel: "Continue to Commander's Hand",
     scene: 'broken_archives', loreId: 'archive_ash_marks', siteId: 'royal_archive_stores',
     findings: [{ title: 'The same hand', detail: 'The false Orc evidence, the marcher warnings and the royal orders were not separate conspiracies. The archive marks all point to one hidden network.' }]
   },
   royal_ledger: {
-    chapter: 5, nodeId: 'ch5_node_5', title: 'The Royal Ledger',
-    body: 'The Envoy carried a private ledger linking mercenary payments, forged warnings, Crownroad officers and archive alterations to the same name: the Ashen Court.',
-    purpose: { label: 'Conspiracy evidence', tone: 'violet' },
-    action: 'completeRoyalLedger', actionLabel: 'Copy the Ledger for Every Province', continueLabel: 'March to the Gate of Crownspire',
+    chapter: 5, nodeId: 'ch5_node_6', title: "Commander's Hand",
+    body: 'The command staff formalizes the army’s mature doctrine. Existing evidence also confirms that the Ashen Court has been coordinating the Crownroad war from behind the front.',
+    purpose: { label: 'Commander doctrine', tone: 'blue' },
+    action: 'completeRoyalLedger', actionLabel: 'Commit the Commander Doctrine', continueLabel: 'Continue to Three Lines Deep',
     scene: 'royal_ledger', loreId: 'ashen_court_identified',
     findings: [
       { title: 'Ashen Court', portrait: 'ashen', detail: 'A cross-racial network used legitimate institutions, false flags and manufactured emergencies to push every faction toward the same crisis.' },
@@ -61,17 +61,17 @@ const definitions: Record<LateHumanEventId, Definition> = {
     ]
   },
   grand_council: {
-    chapter: 6, nodeId: 'ch6_node_1', title: 'Grand Council',
-    body: 'Greenkeep’s officers, quartermasters and provincial delegates agree on one final objective: enter Crownspire, reach the Concord Beacon, and expose the Ashen Court before it can force another activation.',
-    purpose: { label: 'Campaign council', tone: 'blue' },
-    action: 'completeGrandCouncil', actionLabel: 'Authorize the Grand Campaign', continueLabel: 'March to the Sundered Fields',
+    chapter: 6, nodeId: 'ch6_node_3', title: 'Call the Arcanist',
+    body: 'After seeing wards in battle, Greenkeep formally calls an Arcanist into the army and opens the existing magical research path for the first time.',
+    purpose: { label: 'Mage unlock', tone: 'violet' },
+    action: 'completeGrandCouncil', actionLabel: 'Call the Arcanist', continueLabel: 'Test the new caster under pressure',
     scene: 'grand_council', resources: { gold: 50, provisions: 30 }, showDecree: true, findings: []
   },
   concord_vault: {
-    chapter: 6, nodeId: 'ch6_node_3', title: 'Concord Vault',
-    body: 'Beneath a neutral road shrine lies a sealed maintenance vault built for Human, Elf and Orc engineers before the Crownfall.',
-    purpose: { label: 'Concord evidence', tone: 'violet' },
-    action: 'completeConcordVault', actionLabel: 'Open the Concord Cache', continueLabel: 'Enter the Ashen Court District',
+    chapter: 6, nodeId: 'ch6_node_6', title: 'Paths of the Arcane',
+    body: 'Recovered Concord records let the army choose how its new magical capability develops: pressure, battlefield control, or protection remain tactical sidegrades rather than a single best path.',
+    purpose: { label: 'Arcane specialization', tone: 'violet' },
+    action: 'completeConcordVault', actionLabel: 'Open the Arcane Paths', continueLabel: 'Continue to Fire from Above',
     scene: 'crownspire', loreId: 'shared_concord_beacon', siteId: 'concord_cache',
     findings: [{ title: 'The Beacon was shared', detail: 'The maintenance plans confirm the Concord Beacon was never Human property. Its safeguards required all three peoples to participate, explaining why the Ashen Court needed every faction destabilized at once.' }]
   },
