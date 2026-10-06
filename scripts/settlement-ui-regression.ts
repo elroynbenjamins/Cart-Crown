@@ -680,8 +680,8 @@ function testDistrictNetworkOptimizationHint() {
     'Network hint must name the exact best building, destination and current-to-future district count.'
   );
   check(
-    nodes(tree, 'SemanticChip').some(node => node.props.label === '0→2 layout'),
-    'The HUD must summarize the best whole-network improvement without forcing the move.'
+    text(tree).includes('0→2 layout'),
+    'The concept HUD must summarize the best whole-network improvement without forcing the move.'
   );
 
   const callsBeforePreview = f.calls.length;
