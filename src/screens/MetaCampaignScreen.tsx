@@ -138,14 +138,14 @@ export function MetaCampaignScreen({ onStartConvergence, onStartTriumvirate, onS
 }
 
 const styles = StyleSheet.create({
-  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 7 },
-  heading: { fontSize: 16, lineHeight: 22, fontWeight: '900' },
-  body: { fontSize: 14, lineHeight: 20, marginTop: 8 },
-  note: { fontSize: 12, lineHeight: 18 },
-  spaced: { marginTop: 10 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5 },
+  heading: { fontSize: 14.5, lineHeight: 19, fontWeight: '900' },
+  body: { fontSize: 11.5, lineHeight: 16, marginTop: 6 },
+  note: { fontSize: 10.5, lineHeight: 15 },
+  spaced: { marginTop: 8 },
   copy: { flex: 1, minWidth: 0 },
-  rowTitle: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
-  sealRow: { flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 12, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
+  rowTitle: { fontSize: 12, lineHeight: 16, fontWeight: '800' },
+  sealRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: 9, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth },
   status: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 5 },
-  leadRow: { flexDirection: 'row', alignItems: 'center', gap: 10 }
+  leadRow: { flexDirection: 'row', alignItems: 'center', gap: 8 }
 });
