@@ -120,17 +120,17 @@ export function ResearchRecruitCard({ template, unlocked, affordable, wallet, on
 }
 
 const styles = StyleSheet.create({
-  unlocks: { gap: 5, marginTop: 7 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center' },
-  caption: { fontSize: 12, lineHeight: 18, fontWeight: '800' },
-  costs: { marginTop: 12, gap: 5 },
-  costRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'baseline' },
-  costAmount: { fontSize: 13, lineHeight: 19, fontWeight: '800', flexGrow: 1 },
-  costOwned: { fontSize: 12, lineHeight: 18 },
-  costState: { fontSize: 12, lineHeight: 18, fontWeight: '800' },
-  recruitHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sprite: { width: 54, height: 58, borderWidth: 2, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  copy: { flex: 1, minWidth: 0, gap: 6 },
-  className: { fontSize: 17, lineHeight: 23, fontWeight: '900' },
-  section: { marginTop: 10 }
+  unlocks: { gap: 4, marginTop: 5 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, alignItems: 'center' },
+  caption: { fontSize: 10.5, lineHeight: 15, fontWeight: '800' },
+  costs: { marginTop: 9, gap: 4 },
+  costRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'baseline' },
+  costAmount: { fontSize: 11, lineHeight: 15, fontWeight: '800', flexGrow: 1 },
+  costOwned: { fontSize: 10.5, lineHeight: 15 },
+  costState: { fontSize: 10.5, lineHeight: 15, fontWeight: '800' },
+  recruitHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sprite: { width: 48, height: 52, borderWidth: 2, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  copy: { flex: 1, minWidth: 0, gap: 4 },
+  className: { fontSize: 15, lineHeight: 19, fontWeight: '900' },
+  section: { marginTop: 8 }
 });
