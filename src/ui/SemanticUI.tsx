@@ -109,10 +109,10 @@ export function EmphasisText({ text, mode = 'bonuses', style }: {
 }
 
 const styles = StyleSheet.create({
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center' },
-  chip: { alignSelf: 'flex-start', maxWidth: '100%', borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  chipText: { fontSize: 12, lineHeight: 17, fontWeight: '800', flexShrink: 1 },
-  compactChip: { paddingHorizontal: 5, paddingVertical: 3, borderRadius: 6 },
-  compactText: { fontSize: 10, lineHeight: 14 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, alignItems: 'center' },
+  chip: { alignSelf: 'flex-start', maxWidth: '100%', borderWidth: 1, borderRadius: 7, paddingHorizontal: 7, paddingVertical: 3 },
+  chipText: { fontSize: 11, lineHeight: 15, fontWeight: '800', flexShrink: 1 },
+  compactChip: { paddingHorizontal: 5, paddingVertical: 2, borderRadius: 6 },
+  compactText: { fontSize: 9, lineHeight: 12 },
   value: { fontWeight: '900' }
 });
