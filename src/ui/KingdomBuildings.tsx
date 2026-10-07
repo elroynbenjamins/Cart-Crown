@@ -140,14 +140,14 @@ export function KingdomBuildings({ buildings, levels, wallet, isBuildingUnlocked
 }
 
 const styles = StyleSheet.create({
-  list: { gap: 10 },
-  rowButton: { minHeight: 48, gap: 9 },
-  rowStatus: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  disclosure: { fontSize: 12, lineHeight: 18, fontWeight: '800' },
-  details: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: 12, paddingTop: 12, gap: 9 },
-  preview: { borderWidth: 1, borderRadius: 12, padding: 12, gap: 9, marginTop: 4 },
-  body: { fontSize: 13, lineHeight: 20 },
-  label: { fontSize: 13, lineHeight: 19, fontWeight: '900', marginTop: 3 },
-  note: { fontSize: 12, lineHeight: 18 },
-  feedback: { fontSize: 13, lineHeight: 20, fontWeight: '800' }
+  list: { gap: 7 },
+  rowButton: { minHeight: 48, gap: 7 },
+  rowStatus: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 6 },
+  disclosure: { fontSize: 10.5, lineHeight: 15, fontWeight: '800' },
+  details: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: 9, paddingTop: 9, gap: 7 },
+  preview: { borderWidth: 1, borderRadius: 10, padding: 9, gap: 7, marginTop: 3 },
+  body: { fontSize: 11, lineHeight: 15 },
+  label: { fontSize: 11.5, lineHeight: 15, fontWeight: '900', marginTop: 2 },
+  note: { fontSize: 10.5, lineHeight: 15 },
+  feedback: { fontSize: 11, lineHeight: 15, fontWeight: '800' }
 });
