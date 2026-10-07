@@ -897,6 +897,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 21,
     fontWeight: '900',
+    fontVariant: ['tabular-nums'],
     marginTop: 2
   },
   metricTileCaption: {
@@ -1063,7 +1064,8 @@ const styles = StyleSheet.create({
   },
   resourceValue: {
     fontSize: 12.5,
-    fontWeight: '900'
+    fontWeight: '900',
+    fontVariant: ['tabular-nums']
   },
   resourceLabel: {
     fontSize: 8.5,
@@ -1090,7 +1092,8 @@ const styles = StyleSheet.create({
   },
   resourceAmountText: {
     fontSize: 10.5,
-    fontWeight: '900'
+    fontWeight: '900',
+    fontVariant: ['tabular-nums']
   },
   portraitRow: {
     flexDirection: 'row',
