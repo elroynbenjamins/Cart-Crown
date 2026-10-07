@@ -190,18 +190,18 @@ export function EventResolution({ completed, canResolve, title, label, continueL
 }
 
 const styles = StyleSheet.create({
-  effects: { gap: 6, marginTop: 8 },
-  effectRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderRadius: 10, padding: 10 },
-  effectLabel: { flexGrow: 1, flexShrink: 1, fontSize: 13, lineHeight: 19 },
-  effectValue: { fontSize: 15, lineHeight: 21, fontWeight: '900', flexShrink: 1 },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  sectionLabel: { fontSize: 13, lineHeight: 19, fontWeight: '900', marginTop: 10 },
-  body: { fontSize: 14, lineHeight: 20, marginTop: 5 },
-  note: { fontSize: 12, lineHeight: 18, marginTop: 8 },
+  effects: { gap: 5, marginTop: 6 },
+  effectRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 6, borderRadius: 9, padding: 8 },
+  effectLabel: { flexGrow: 1, flexShrink: 1, fontSize: 11, lineHeight: 15 },
+  effectValue: { fontSize: 13.5, lineHeight: 18, fontWeight: '900', flexShrink: 1 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  sectionLabel: { fontSize: 11.5, lineHeight: 15, fontWeight: '900', marginTop: 8 },
+  body: { fontSize: 11.5, lineHeight: 16, marginTop: 4 },
+  note: { fontSize: 10.5, lineHeight: 15, marginTop: 6 },
   disclosure: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 12 },
-  disclosureText: { fontSize: 13, lineHeight: 19, fontWeight: '800' },
-  illustration: { alignItems: 'center', paddingBottom: 8 },
-  panelHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 },
+  disclosureText: { fontSize: 11.5, lineHeight: 15, fontWeight: '800' },
+  illustration: { alignItems: 'center', paddingBottom: 6 },
+  panelHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
   art: { width: 48, alignItems: 'center', justifyContent: 'center' },
-  panelTitle: { fontSize: 16, lineHeight: 22, fontWeight: '900', flex: 1, minWidth: 0 }
+  panelTitle: { fontSize: 14.5, lineHeight: 19, fontWeight: '900', flex: 1, minWidth: 0 }
 });
