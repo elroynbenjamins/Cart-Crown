@@ -277,7 +277,11 @@ function testLiveNavigationAndEffects() {
     const attribute = matches[0]!.attributes.properties.find(prop => ts.isJsxAttribute(prop) && prop.name.getText(file) === name);
     assert.ok(attribute && ts.isJsxAttribute(attribute) && attribute.initializer && ts.isJsxExpression(attribute.initializer) && attribute.initializer.expression);
     const route: any = {};
-    evaluate(attribute.initializer.expression, file, { setActiveEncounterId: (id: string) => { route.id = id; }, setFlow: (flow: string) => { route.flow = flow; } })();
+    evaluate(attribute.initializer.expression, file, {
+      setActiveEncounterId: (id: string) => { route.id = id; },
+      setFlow: (flow: string) => { route.flow = flow; },
+      openFlow: (flow: string) => { route.flow = flow; }
+    })();
     check(route.id === encounter && route.flow === 'battlePrep', name + ' must open the correct preparation screen, not begin/finish combat.');
   }
   const battle = source('src/screens/BattleScreen.tsx');
