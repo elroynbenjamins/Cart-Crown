@@ -630,35 +630,35 @@ export function ArmyScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 12 },
+  content: { padding: 12, paddingBottom: 24, gap: 9 },
   heroMetrics: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8
+    gap: 6
   },
-  unitBadges: { marginTop: 8 },
-  unitList: { gap: 10 },
-  unitRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  unitBadges: { marginTop: 6 },
+  unitList: { gap: 7 },
+  unitRow: { flexDirection: 'row', gap: 9, alignItems: 'center' },
   stats: { alignItems: 'flex-end', gap: 2 },
   stat: { fontSize: 10, fontWeight: '800' },
-  promotionPreview: { borderRadius: 14, padding: 11, marginTop: 12 },
+  promotionPreview: { borderRadius: 11, padding: 9, marginTop: 9 },
   previewTitle: { fontSize: 12, fontWeight: '900' },
   previewBody: { fontSize: 11, lineHeight: 15, marginTop: 3 },
-  promotionActions: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  promotionActions: { flexDirection: 'row', gap: 6, marginTop: 8 },
   actionGrow: { flex: 1 },
-  lockedTitle: { fontSize: 17, fontWeight: '900' },
-  lockedBody: { fontSize: 12, lineHeight: 17, marginTop: 5 },
-  choiceList: { gap: 8, marginTop: 14 },
-  choice: { borderRadius: 16, padding: 10, flexDirection: 'row', gap: 11, alignItems: 'center' },
-  choiceIcon: { width: 42, height: 48, borderRadius: 13, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  lockedTitle: { fontSize: 15.5, fontWeight: '900' },
+  lockedBody: { fontSize: 11, lineHeight: 16, marginTop: 4 },
+  choiceList: { gap: 6, marginTop: 10 },
+  choice: { borderRadius: 12, padding: 8, flexDirection: 'row', gap: 9, alignItems: 'center' },
+  choiceIcon: { width: 38, height: 44, borderRadius: 11, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   choiceCopy: { flex: 1 },
-  choiceName: { fontSize: 14, fontWeight: '900' },
+  choiceName: { fontSize: 13, fontWeight: '900' },
   choiceRole: { fontSize: 9, fontWeight: '900', textTransform: 'uppercase', marginTop: 2 },
-  choicePitch: { fontSize: 10, lineHeight: 14, marginTop: 3 },
-  recruitButton: { marginTop: 14 },
+  choicePitch: { fontSize: 9.5, lineHeight: 13, marginTop: 2 },
+  recruitButton: { marginTop: 10 },
   inventoryText: { fontSize: 11.5, lineHeight: 17 },
-  unitEquipmentButton: { marginTop: 11 },
-  commanderTitle: { fontSize: 18, fontWeight: '900' },
+  unitEquipmentButton: { marginTop: 8 },
+  commanderTitle: { fontSize: 16, fontWeight: '900' },
   commanderSubtitle: { fontSize: 10, fontWeight: '900', marginTop: 3 },
-  commanderBody: { fontSize: 11.5, lineHeight: 17, marginTop: 7 }
+  commanderBody: { fontSize: 10.5, lineHeight: 15, marginTop: 5 }
 });
