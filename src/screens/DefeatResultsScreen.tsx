@@ -292,25 +292,25 @@ export function DefeatResultsScreen({
 
 const styles = StyleSheet.create({
   content: {
-    padding: 16,
-    paddingBottom: 32,
-    gap: 14
+    padding: 12,
+    paddingBottom: 24,
+    gap: 9
   },
   heroMeta: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7
+    gap: 5
   },
   metrics: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8
+    gap: 6
   },
   lossRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
-    marginBottom: 8
+    gap: 7,
+    marginBottom: 6
   },
   lossText: {
     flex: 1,
@@ -327,11 +327,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 10
+    gap: 8
   },
   conditionCopy: { flex: 1 },
   conditionTitle: {
-    fontSize: 16,
+    fontSize: 14.5,
     fontWeight: '900'
   },
   conditionBody: {
@@ -339,23 +339,23 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     marginTop: 5
   },
-  recoveryAction: { marginTop: 12 },
+  recoveryAction: { marginTop: 9 },
   nextTitle: {
-    fontSize: 16,
+    fontSize: 14.5,
     fontWeight: '900'
   },
   nextBody: {
-    fontSize: 10.5,
-    lineHeight: 16,
-    marginTop: 6
+    fontSize: 10,
+    lineHeight: 14,
+    marginTop: 4
   },
   nextActions: {
-    gap: 9,
-    marginTop: 13
+    gap: 6,
+    marginTop: 9
   },
   secondaryActionRow: {
     flexDirection: 'row',
-    gap: 8
+    gap: 6
   },
   secondaryAction: {
     flex: 1
