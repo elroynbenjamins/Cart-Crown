@@ -1855,6 +1855,7 @@ export function AppShell({
   const settlementChrome = flow === 'settlement';
   const settlementHudNavy = '#101B2D';
   const settlementHudNavyRaised = '#172740';
+  const settlementHudNavyDeep = '#0B1423';
   const settlementHudGold = '#D6A85A';
   const settlementHudText = '#F3E8D3';
   const settlementHudMuted = '#B7C6D8';
@@ -2068,6 +2069,13 @@ export function AppShell({
             }
           ]}
         >
+          {settlementChrome ? (
+            <>
+              <View pointerEvents="none" style={[styles.settlementNavGoldTrim, { backgroundColor: settlementHudGold }]} />
+              <View pointerEvents="none" style={[styles.settlementNavRivet, styles.settlementNavRivetLeft, { backgroundColor: settlementHudGold }]} />
+              <View pointerEvents="none" style={[styles.settlementNavRivet, styles.settlementNavRivetRight, { backgroundColor: settlementHudGold }]} />
+            </>
+          ) : null}
           {navItems.map(item => {
             const selected = item.id === active;
 
@@ -2120,7 +2128,7 @@ export function AppShell({
                         settlementChrome && selected ? styles.settlementNavIconSelected : undefined,
                         {
                           backgroundColor: settlementChrome
-                            ? settlementHudNavyRaised
+                            ? selected ? settlementHudNavyRaised : settlementHudNavyDeep
                             : selected ? factionAccent + '24' : 'transparent',
                           borderColor: settlementChrome
                             ? selected ? settlementHudGold : '#6F5B3A'
@@ -2229,18 +2237,24 @@ const styles = StyleSheet.create({
     paddingBottom: 3
   },
   settlementBottomNav: {
-    height: 90,
+    position: 'relative',
+    height: 92,
     borderTopWidth: 1.5,
     paddingHorizontal: 4,
-    paddingTop: 6,
+    paddingTop: 7,
     paddingBottom: 5,
-    elevation: 12
+    elevation: 12,
+    overflow: 'visible'
   },
+  settlementNavGoldTrim: { position: 'absolute', left: 12, right: 12, top: 2, height: 1, opacity: 0.75 },
+  settlementNavRivet: { position: 'absolute', top: 5, width: 3, height: 3, borderRadius: 999, opacity: 0.9 },
+  settlementNavRivetLeft: { left: 6 },
+  settlementNavRivetRight: { right: 6 },
   navItem: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
   navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
   navIconWrap: { width: 42, height: 34, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  settlementNavIconWrap: { width: 46, height: 46, borderRadius: 999, borderWidth: 1.5, elevation: 2 },
-  settlementNavIconSelected: { width: 56, height: 56, borderWidth: 2.25, elevation: 8, transform: [{ translateY: -4 }] },
+  settlementNavIconWrap: { width: 47, height: 47, borderRadius: 999, borderWidth: 1.5, elevation: 3 },
+  settlementNavIconSelected: { width: 57, height: 57, borderWidth: 2.5, elevation: 9, transform: [{ translateY: -5 }] },
   navLabel: { fontSize: 10, fontWeight: '900', marginTop: 3 },
   settlementNavLabel: { fontSize: 9, lineHeight: 11, letterSpacing: 0.3, marginTop: 1, textTransform: 'uppercase' },
   navSelectionMark: { width: 14, height: 3, borderRadius: 2, marginTop: 4 },
