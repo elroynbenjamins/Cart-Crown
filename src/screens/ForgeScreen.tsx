@@ -151,8 +151,8 @@ export function ForgeScreen({ onOpenPromotion, onExit, tutorialFocus, onTutorial
 }
 
 const styles = StyleSheet.create({
-  resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   emphasis: { fontWeight: '900' },
-  body: { fontSize: 13, lineHeight: 19 }
+  body: { fontSize: 11, lineHeight: 15 }
 });
