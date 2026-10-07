@@ -424,8 +424,7 @@ export function ScreenAtmosphere({
   section: 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army' | 'flow';
 }) {
   const { theme } = useGameTheme();
-  // Dark UI stays black/charcoal; faction color belongs to content, not a full-screen wash.
-  if (theme.dark) return null;
+  // Dark UI stays black/charcoal. It keeps only a restrained faction rule; light mode also gets soft atmosphere halos.
   const accent = factionAccentFor(faction, theme) ?? theme.colors.primary;
   const secondary =
     faction === 'elf'
@@ -436,6 +435,8 @@ export function ScreenAtmosphere({
 
   return (
     <View pointerEvents="none" style={styles.atmosphere}>
+      {!theme.dark ? (
+        <>
       <View
         style={[
           styles.atmosphereHalo,
@@ -456,7 +457,14 @@ export function ScreenAtmosphere({
           }
         ]}
       />
-      <View style={[styles.atmosphereRule, { backgroundColor: accent + '2A' }]} />
+        </>
+      ) : null}
+      <View
+        style={[
+          styles.atmosphereRule,
+          { backgroundColor: accent + (theme.dark ? '20' : '2A') }
+        ]}
+      />
     </View>
   );
 }
