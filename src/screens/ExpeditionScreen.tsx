@@ -1187,13 +1187,13 @@ export function ExpeditionScreen({
 
 const styles = StyleSheet.create({
   content: {
-    padding: 16,
-    paddingBottom: 34,
-    gap: 12
+    padding: 12,
+    paddingBottom: 24,
+    gap: 9
   },
   rewardBand: {
-    gap: 7,
-    marginBottom: 12
+    gap: 5,
+    marginBottom: 9
   },
   rewardBandText: {
     fontSize: 10.5,
@@ -1201,8 +1201,8 @@ const styles = StyleSheet.create({
   },
   metrics: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 10
+    gap: 6,
+    marginBottom: 8
   },
   metric: {
     flex: 1
@@ -1213,22 +1213,22 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8
   },
   metricValue: {
-    fontSize: 18,
+    fontSize: 16.5,
     fontWeight: '900',
     marginTop: 2
   },
   bonusGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7,
-    marginTop: 10
+    gap: 5,
+    marginTop: 8
   },
   bonus: {
     minWidth: '45%',
     flexGrow: 1,
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 8
+    borderRadius: 9,
+    padding: 7
   },
   bonusLabel: {
     fontSize: 8.5,
@@ -1243,24 +1243,24 @@ const styles = StyleSheet.create({
   note: {
     fontSize: 10.5,
     lineHeight: 16,
-    marginTop: 10
+    marginTop: 8
   },
   actions: {
-    gap: 8,
-    marginTop: 12
+    gap: 6,
+    marginTop: 9
   },
   route: {
-    gap: 7
+    gap: 5
   },
   nodeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 8
   },
   nodeMark: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center'
@@ -1274,7 +1274,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6
   },
   nodeName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '900',
     marginTop: 2
   },
@@ -1298,19 +1298,19 @@ const styles = StyleSheet.create({
     flex: 1
   },
   choiceName: {
-    fontSize: 16,
+    fontSize: 14.5,
     fontWeight: '900'
   },
   choiceBody: {
-    fontSize: 11,
-    lineHeight: 17,
-    marginTop: 5
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 4
   },
   intel: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 11
+    borderRadius: 10,
+    padding: 8,
+    marginTop: 8
   },
   intelLabel: {
     fontSize: 9,
@@ -1340,22 +1340,22 @@ const styles = StyleSheet.create({
   effectRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 10
+    gap: 5,
+    marginTop: 8
   },
   lootRow: {
-    marginTop: 11,
-    gap: 6
+    marginTop: 8,
+    gap: 5
   },
   rewardTitle: {
     fontSize: 10,
     fontWeight: '900'
   },
   button: {
-    marginTop: 12
+    marginTop: 9
   },
   failTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900'
   },
   failBody: {
@@ -1373,7 +1373,7 @@ const styles = StyleSheet.create({
     gap: 10
   },
   finishTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900'
   },
   rewardRow: {
