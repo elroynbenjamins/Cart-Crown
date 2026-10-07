@@ -273,6 +273,9 @@ export function AppShell({
     productionStock,
     currentWagonStage,
     isSideModeUnlocked,
+    activeExpeditionRun,
+    activeSiegeRun,
+    activeRelicHuntRun,
     completedStoryGates,
     researchProgress,
     magicFamilyUnlock,
@@ -1838,6 +1841,13 @@ export function AppShell({
     }
   };
 
+  const campaignActivityNeedsAttention =
+    Boolean(
+      (isSideModeUnlocked('expeditions') && activeExpeditionRun) ||
+      (isSideModeUnlocked('sieges') && activeSiegeRun) ||
+      (isSideModeUnlocked('relic_hunts') && activeRelicHuntRun)
+    );
+
   const kingdomProductionReady =
     productionStock.gold +
     productionStock.wood +
@@ -2152,8 +2162,14 @@ export function AppShell({
           {navItems.map(item => {
             const selected = item.id === active;
             const hasNotification =
-              item.id === 'kingdom' &&
-              kingdomProductionReady;
+              (
+                item.id === 'kingdom' &&
+                kingdomProductionReady
+              ) ||
+              (
+                item.id === 'campaign' &&
+                campaignActivityNeedsAttention
+              );
 
             const tutorialNavFocused =
               tutorialFocus?.kind === 'nav' &&
@@ -2164,9 +2180,11 @@ export function AppShell({
                 key={item.id}
                 accessibilityRole="tab"
                 accessibilityLabel={
-                  hasNotification
+                  item.id === 'kingdom' && kingdomProductionReady
                     ? item.label + ', production ready to claim'
-                    : item.label
+                    : item.id === 'campaign' && campaignActivityNeedsAttention
+                      ? item.label + ', activity requires attention'
+                      : item.label
                 }
                 accessibilityState={{ selected }}
                 onPress={() => {
