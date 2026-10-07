@@ -33,8 +33,30 @@ export function SaveSelectScreen() {
   if (!ready) {
     return (
       <SafeAreaView style={[styles.loading, { backgroundColor: theme.colors.appBg }]}>
-        <ActivityIndicator color={theme.colors.primary} size="large" />
-        <Text style={[styles.loadingText, { color: theme.colors.textMuted }]}>Loading saves…</Text>
+        <View
+          style={[
+            styles.loadingCrest,
+            {
+              backgroundColor: theme.colors.surface1,
+              borderColor: theme.colors.gold
+            }
+          ]}
+        >
+          <FactionCrest faction="human" size={42} />
+        </View>
+        <Text style={[styles.loadingBrand, { color: theme.colors.gold }]}>CART & CROWN</Text>
+        <View
+          style={[
+            styles.loadingPanel,
+            {
+              backgroundColor: theme.colors.surface1,
+              borderColor: theme.colors.border
+            }
+          ]}
+        >
+          <ActivityIndicator color={theme.colors.primary} size="small" />
+          <Text style={[styles.loadingText, { color: theme.colors.textMuted }]}>Preparing campaign…</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -179,8 +201,34 @@ export function SaveSelectScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 9 },
-  loadingText: { fontSize: 12, fontWeight: '700' },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  loadingCrest: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  loadingBrand: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '900',
+    letterSpacing: 1.8,
+    marginTop: 10
+  },
+  loadingPanel: {
+    minHeight: 44,
+    marginTop: 14,
+    borderWidth: 1,
+    borderRadius: 11,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  loadingText: { fontSize: 10.5, fontWeight: '800' },
   content: { width: '100%', maxWidth: 540, alignSelf: 'center', padding: 12, paddingBottom: 24, gap: 10 },
   intro: { alignItems: 'center', paddingTop: 12, paddingBottom: 12 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 9, alignSelf: 'stretch' },
