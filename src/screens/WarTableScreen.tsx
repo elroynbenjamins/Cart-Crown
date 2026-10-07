@@ -621,36 +621,36 @@ export function WarTableScreen({
 
 const styles = StyleSheet.create({
   content: {
-    padding: 16,
-    paddingBottom: 32,
-    gap: 12
+    padding: 12,
+    paddingBottom: 24,
+    gap: 9
   },
   boardHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10
+    gap: 8
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10
+    gap: 8
   },
   headerCopy: {
     flex: 1
   },
   noticeTitle: {
-    fontSize: 15,
+    fontSize: 13.5,
     fontWeight: '900'
   },
   noticeBody: {
-    marginTop: 5,
-    fontSize: 11,
-    lineHeight: 17
+    marginTop: 4,
+    fontSize: 10,
+    lineHeight: 15
   },
   stats: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 12
+    gap: 6,
+    marginTop: 9
   },
   stat: {
     flex: 1
@@ -661,13 +661,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6
   },
   statValue: {
-    fontSize: 19,
+    fontSize: 15,
     fontWeight: '900',
     marginTop: 2
   },
   rewardBandRow: {
-    marginTop: 12,
-    gap: 6
+    marginTop: 9,
+    gap: 5
   },
   rewardBandText: {
     fontSize: 10.5,
@@ -675,9 +675,9 @@ const styles = StyleSheet.create({
   },
   unlockNotice: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 12
+    borderRadius: 10,
+    padding: 8,
+    marginTop: 9
   },
   unlockTitle: {
     fontSize: 9,
@@ -709,10 +709,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start'
   },
   intel: {
-    marginTop: 11,
+    marginTop: 8,
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 10
+    borderRadius: 10,
+    padding: 8
   },
   intelLabel: {
     fontSize: 9,
@@ -743,9 +743,9 @@ const styles = StyleSheet.create({
   },
   bonusBox: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 11
+    borderRadius: 10,
+    padding: 8,
+    marginTop: 8
   },
   bonusHeader: {
     flexDirection: 'row',
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
     marginTop: 8
   },
   button: {
-    marginTop: 12
+    marginTop: 9
   },
   refreshHeader: {
     flexDirection: 'row',
@@ -775,7 +775,7 @@ const styles = StyleSheet.create({
     gap: 10
   },
   refreshTitle: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '900'
   },
   footerTitle: {
