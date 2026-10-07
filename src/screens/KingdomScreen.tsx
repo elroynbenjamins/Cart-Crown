@@ -179,7 +179,7 @@ export function KingdomScreen({
       >
         <View style={styles.heroContent}>
           <View style={[styles.keepMark, { backgroundColor: theme.colors.surface2 }]}>
-            <SettlementStageSprite stageId={currentWagonStage.id} size={60} />
+            <SettlementStageSprite stageId={currentWagonStage.id} size={52} />
           </View>
           <View style={styles.heroMetrics}>
             <MetricTile label="DEVELOPMENT" value={builtCount + '/' + unlockedCount} caption="built / unlocked" tone="gold" />
@@ -193,13 +193,13 @@ export function KingdomScreen({
       </ScreenHero>
 
       <View style={styles.resources}>
-        <ResourceChip art={<ResourceSprite resource="gold" size={28} />} value={resources.gold} label="Gold" />
-        <ResourceChip art={<ResourceSprite resource="wood" size={28} />} value={resources.wood} label="Wood" />
-        <ResourceChip art={<ResourceSprite resource="stone" size={28} />} value={resources.stone} label="Stone" />
-        <ResourceChip art={<ResourceSprite resource="iron" size={28} />} value={resources.iron} label="Iron" />
+        <ResourceChip art={<ResourceSprite resource="gold" size={22} />} value={resources.gold} label="Gold" />
+        <ResourceChip art={<ResourceSprite resource="wood" size={22} />} value={resources.wood} label="Wood" />
+        <ResourceChip art={<ResourceSprite resource="stone" size={22} />} value={resources.stone} label="Stone" />
+        <ResourceChip art={<ResourceSprite resource="iron" size={22} />} value={resources.iron} label="Iron" />
       </View>
 
-      <GameCard>
+      <GameCard accent={theme.colors.gold}>
         <Text style={[styles.eyebrow, { color: theme.colors.gold }]}>CURRENT KINGDOM GOAL</Text>
         <Text style={[styles.goalTitle, { color: theme.colors.text }]}>{milestoneTitle}</Text>
         <Text style={[styles.goalBody, { color: theme.colors.textMuted }]}>{milestoneBody}</Text>
@@ -218,9 +218,9 @@ export function KingdomScreen({
               See the settlement, choose construction plots and tune adjacency bonuses. {settlementAdjacencyBonuses.length} district {settlementAdjacencyBonuses.length === 1 ? 'bonus is' : 'bonuses are'} active.
             </Text>
           </View>
-          <SettlementStageSprite stageId={currentWagonStage.id} size={48} />
+          <SettlementStageSprite stageId={currentWagonStage.id} size={42} />
         </View>
-        <View style={styles.supplyButton}><SecondaryButton label="Open Settlement View" onPress={onOpenSettlement} /></View>
+        <View style={styles.supplyButton}><SecondaryButton label="Enter Settlement" onPress={onOpenSettlement} /></View>
       </GameCard>
 
       {unlockedResourceSites.length > 0 ? (
@@ -275,7 +275,7 @@ export function KingdomScreen({
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>Troop Equipment</Text>
             <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>Craft base equipment, assign it to squads, then upgrade the piece itself. Forge Lv.2 unlocks Tier II equipment and advanced class branches.</Text>
-            <View style={styles.supplyButton}><PrimaryButton label="Open Field Forge" onPress={onOpenForge} /></View>
+            <View style={styles.supplyButton}><PrimaryButton label="Enter Forge" onPress={onOpenForge} /></View>
           </GameCard>
         </>
       ) : null}
@@ -311,31 +311,31 @@ export function KingdomScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 12 },
-  heroContent: { flexDirection: 'row', alignItems: 'stretch', gap: 9 },
-  heroMetrics: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  heroProgress: { marginTop: 10 },
-  developmentLabel: { fontSize: 10, lineHeight: 14, marginBottom: 6 },
-  eyebrow: { fontSize: 9.5, letterSpacing: 1.05, fontWeight: '900' },
-  keepMark: { width: 72, minHeight: 72, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
-  goalTitle: { fontSize: 17, fontWeight: '900', marginTop: 4 },
-  goalBody: { fontSize: 13, lineHeight: 20, marginTop: 5 },
-  requirement: { marginTop: 9, fontSize: 12, lineHeight: 18 },
-  productionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  content: { padding: 12, paddingBottom: 24, gap: 9 },
+  heroContent: { flexDirection: 'row', alignItems: 'stretch', gap: 7 },
+  heroMetrics: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  heroProgress: { marginTop: 7 },
+  developmentLabel: { fontSize: 9, lineHeight: 12, marginBottom: 4 },
+  eyebrow: { fontSize: 8.5, letterSpacing: 0.9, fontWeight: '900' },
+  keepMark: { width: 64, minHeight: 64, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'space-between' },
+  goalTitle: { fontSize: 15, lineHeight: 19, fontWeight: '900', marginTop: 3 },
+  goalBody: { fontSize: 11.5, lineHeight: 16, marginTop: 4 },
+  requirement: { marginTop: 7, fontSize: 10.5, lineHeight: 15 },
+  productionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   productionCard: { width: '48%' },
-  productionIcon: { height: 46, alignItems: 'center', justifyContent: 'center' },
-  productionName: { fontSize: 13, fontWeight: '900', marginTop: 6 },
-  productionBody: { fontSize: 9.5, lineHeight: 14, marginTop: 4, minHeight: 42 },
-  productionRate: { fontSize: 8.5, lineHeight: 13, fontWeight: '900', marginTop: 6 },
-  productionAmounts: { marginTop: 7 },
-  message: { fontSize: 12, lineHeight: 18, textAlign: 'center', fontWeight: '800' },
-  settlementViewRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  productionIcon: { height: 38, alignItems: 'center', justifyContent: 'center' },
+  productionName: { fontSize: 12, fontWeight: '900', marginTop: 4 },
+  productionBody: { fontSize: 9, lineHeight: 12.5, marginTop: 3, minHeight: 36 },
+  productionRate: { fontSize: 8, lineHeight: 11, fontWeight: '900', marginTop: 5 },
+  productionAmounts: { marginTop: 5 },
+  message: { fontSize: 10.5, lineHeight: 15, textAlign: 'center', fontWeight: '800' },
+  settlementViewRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   settlementViewCopy: { flex: 1 },
-  supplyTitle: { fontSize: 15, fontWeight: '900' },
-  supplyBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
-  supplyReward: { fontSize: 11, fontWeight: '900', marginTop: 7 },
-  supplyButton: { marginTop: 11 },
-  guidanceLaterButton: { marginTop: 8 },
-  adMessage: { fontSize: 10, textAlign: 'center', marginTop: 7 }
+  supplyTitle: { fontSize: 13.5, lineHeight: 17, fontWeight: '900' },
+  supplyBody: { fontSize: 10.5, lineHeight: 15, marginTop: 4 },
+  supplyReward: { fontSize: 10.5, fontWeight: '900', marginTop: 5 },
+  supplyButton: { marginTop: 8 },
+  guidanceLaterButton: { marginTop: 6 },
+  adMessage: { fontSize: 9.5, textAlign: 'center', marginTop: 5 }
 });
