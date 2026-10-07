@@ -270,6 +270,7 @@ export function AppShell({
     forgeUnlocked,
     armyReadiness,
     unlockedResourceSites,
+    productionStock,
     currentWagonStage,
     isSideModeUnlocked,
     completedStoryGates,
@@ -1837,6 +1838,13 @@ export function AppShell({
     }
   };
 
+  const kingdomProductionReady =
+    productionStock.gold +
+    productionStock.wood +
+    productionStock.stone +
+    productionStock.iron +
+    productionStock.provisions > 0;
+
   const factionAccent =
     activeFaction === 'elf'
       ? theme.colors.elf
@@ -2133,6 +2141,9 @@ export function AppShell({
         >
           {navItems.map(item => {
             const selected = item.id === active;
+            const hasNotification =
+              item.id === 'kingdom' &&
+              kingdomProductionReady;
 
             const tutorialNavFocused =
               tutorialFocus?.kind === 'nav' &&
@@ -2142,7 +2153,11 @@ export function AppShell({
               <Pressable
                 key={item.id}
                 accessibilityRole="tab"
-                accessibilityLabel={item.label}
+                accessibilityLabel={
+                  hasNotification
+                    ? item.label + ', production ready to claim'
+                    : item.label
+                }
                 accessibilityState={{ selected }}
                 onPress={() => {
                   if (item.id !== 'formation') {
@@ -2197,6 +2212,18 @@ export function AppShell({
                         size={23}
                       />
                     </View>
+                    {hasNotification ? (
+                      <View
+                        pointerEvents="none"
+                        style={[
+                          styles.navNotificationDot,
+                          {
+                            backgroundColor: theme.colors.gold,
+                            borderColor: theme.colors.surface1
+                          }
+                        ]}
+                      />
+                    ) : null}
                     <Text
                       style={[
                         styles.navLabel,
@@ -2300,6 +2327,16 @@ const styles = StyleSheet.create({
   },
   navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 46 },
   navIconWrap: { width: 36, height: 28, borderRadius: 9, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  navNotificationDot: {
+    position: 'absolute',
+    top: 0,
+    right: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    zIndex: 4
+  },
   navLabel: { fontSize: 9, lineHeight: 11, fontWeight: '900', marginTop: 2 },
   navSelectionMark: { width: 18, height: 2, borderRadius: 2, marginTop: 3 }
 });
