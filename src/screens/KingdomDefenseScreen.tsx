@@ -1042,13 +1042,13 @@ export function KingdomDefenseScreen({
 
 const styles = StyleSheet.create({
   content: {
-    padding: 16,
-    paddingBottom: 34,
-    gap: 13
+    padding: 12,
+    paddingBottom: 24,
+    gap: 9
   },
   rewardBand: {
-    gap: 7,
-    marginBottom: 12
+    gap: 5,
+    marginBottom: 9
   },
   rewardBandText: {
     fontSize: 10.5,
@@ -1057,8 +1057,8 @@ const styles = StyleSheet.create({
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 10,
-    marginBottom: 10
+    gap: 8,
+    marginBottom: 8
   },
   summaryBlock: {
     flex: 1
@@ -1069,21 +1069,21 @@ const styles = StyleSheet.create({
     letterSpacing: 1
   },
   summaryValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
     marginTop: 2
   },
   bonusGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7
+    gap: 5
   },
   bonusChip: {
     minWidth: '46%',
     flexGrow: 1,
     borderWidth: 1,
-    borderRadius: 11,
-    padding: 9
+    borderRadius: 9,
+    padding: 7
   },
   bonusLabel: {
     fontSize: 9,
@@ -1103,13 +1103,13 @@ const styles = StyleSheet.create({
   waveTrack: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 10
+    gap: 5,
+    marginBottom: 8
   },
   waveHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10
+    gap: 8
   },
   headerCopy: {
     flex: 1
@@ -1120,20 +1120,20 @@ const styles = StyleSheet.create({
     letterSpacing: 1
   },
   waveName: {
-    fontSize: 19,
+    fontSize: 17,
     fontWeight: '900',
     marginTop: 3
   },
   waveBody: {
-    fontSize: 11.5,
-    lineHeight: 17,
-    marginTop: 6
+    fontSize: 10.5,
+    lineHeight: 15,
+    marginTop: 5
   },
   intelBox: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 11
+    borderRadius: 10,
+    padding: 8,
+    marginTop: 8
   },
   intelLabel: {
     fontSize: 9,
@@ -1153,14 +1153,14 @@ const styles = StyleSheet.create({
   powerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 13,
-    marginBottom: 10
+    marginTop: 9,
+    marginBottom: 8
   },
   threatCopy: {
     alignItems: 'flex-end'
   },
   power: {
-    fontSize: 24,
+    fontSize: 21,
     fontWeight: '900',
     marginTop: 2
   },
@@ -1170,7 +1170,7 @@ const styles = StyleSheet.create({
     gap: 10
   },
   choiceTitle: {
-    fontSize: 15,
+    fontSize: 13.5,
     fontWeight: '900'
   },
   choiceBody: {
@@ -1179,10 +1179,10 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   button: {
-    marginTop: 11
+    marginTop: 8
   },
   actions: {
-    gap: 8
+    gap: 6
   },
   message: {
     textAlign: 'center',
@@ -1191,7 +1191,7 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   failTitle: {
-    fontSize: 17,
+    fontSize: 15.5,
     fontWeight: '900'
   },
   failBody: {
