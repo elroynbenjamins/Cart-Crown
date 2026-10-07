@@ -2726,10 +2726,10 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 6, paddingBottom: 22, gap: 6 },
+  content: { paddingHorizontal: 4, paddingTop: 4, paddingBottom: 18, gap: 4 },
   hud: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 8 },
   hudCompact: { borderRadius: 14, paddingHorizontal: 9, paddingVertical: 6 },
-  conceptHud: { position: 'relative', overflow: 'visible', borderWidth: 1.25, borderRadius: 8, elevation: 7, paddingHorizontal: 8, paddingTop: 7, paddingBottom: 6 },
+  conceptHud: { position: 'relative', overflow: 'visible', zIndex: 20, borderWidth: 1.25, borderRadius: 7, elevation: 7, paddingHorizontal: 8, paddingTop: 7, paddingBottom: 6, marginBottom: -1 },
   conceptHudTopTrim: { position: 'absolute', left: 8, right: 8, top: 2, height: 1, backgroundColor: SETTLEMENT_HUD_GOLD, opacity: 0.76 },
   conceptHudBottomTrim: { position: 'absolute', left: 24, right: 24, bottom: 2, height: 1, backgroundColor: SETTLEMENT_HUD_GOLD_DARK, opacity: 0.7 },
   conceptHudRivet: { position: 'absolute', top: 4, width: 3, height: 3, borderRadius: 999, backgroundColor: SETTLEMENT_HUD_GOLD },
@@ -2838,10 +2838,10 @@ const styles = StyleSheet.create({
   networkHintDetail: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', marginTop: 1 },
   networkHintAction: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
   section: { gap: 8, marginTop: 10 },
-  map: { borderRadius: 18, borderWidth: 2, overflow: 'hidden', position: 'relative', elevation: 3 },
-  authoredWorldMap: { borderRadius: 10, borderWidth: 1, elevation: 0 },
+  map: { borderRadius: 14, borderWidth: 2, overflow: 'hidden', position: 'relative', elevation: 3 },
+  authoredWorldMap: { borderRadius: 7, borderWidth: 1, elevation: 0 },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
-  sceneInnerFrame: { position: 'absolute', left: 4, right: 4, top: 4, bottom: 4, borderWidth: 1, borderRadius: 9, opacity: 0.72, zIndex: 1 },
+  sceneInnerFrame: { position: 'absolute', left: 3, right: 3, top: 3, bottom: 3, borderWidth: 1, borderRadius: 6, opacity: 0.72, zIndex: 1 },
   sceneShadeTop: { position: 'absolute', left: 0, right: 0, top: 0, height: 34, opacity: 0.16, zIndex: 1 },
   sceneShadeBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 48, opacity: 0.2, zIndex: 1 },
   unlockCelebration: { position: 'absolute', top: 10, left: '20%', right: '20%', zIndex: 50, borderWidth: 1, borderRadius: 12, paddingHorizontal: 9, paddingVertical: 6, alignItems: 'center', opacity: 0.96 },
