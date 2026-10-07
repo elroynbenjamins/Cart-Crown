@@ -690,19 +690,19 @@ export function SiegeScreen({
 
 const styles = StyleSheet.create({
   content: {
-    padding: 16,
-    paddingBottom: 34,
-    gap: 12
+    padding: 12,
+    paddingBottom: 24,
+    gap: 9
   },
   rewardBand: {
-    fontSize: 11,
-    lineHeight: 17,
+    fontSize: 10,
+    lineHeight: 15,
     fontWeight: '800'
   },
   metrics: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 10
+    gap: 6,
+    marginBottom: 8
   },
   metric: { flex: 1 },
   label: {
@@ -711,22 +711,22 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8
   },
   value: {
-    fontSize: 18,
+    fontSize: 16.5,
     fontWeight: '900',
     marginTop: 2
   },
   bonusGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7,
-    marginTop: 8
+    gap: 5,
+    marginTop: 7
   },
   bonus: {
     minWidth: '46%',
     flexGrow: 1,
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 8
+    borderRadius: 9,
+    padding: 7
   },
   bonusLabel: {
     fontSize: 8.5,
@@ -744,23 +744,23 @@ const styles = StyleSheet.create({
     marginTop: 8
   },
   actions: {
-    gap: 8,
-    marginTop: 12
+    gap: 6,
+    marginTop: 9
   },
   stageRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 8
   },
   headerCopy: { flex: 1 },
   stageName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '900'
   },
   stageSummary: {
-    fontSize: 10.5,
-    lineHeight: 15,
-    marginTop: 4
+    fontSize: 9.8,
+    lineHeight: 14,
+    marginTop: 3
   },
   track: {
     flexDirection: 'row',
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   failTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900'
   },
   completeHeader: {
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
     gap: 10
   },
   choiceName: {
-    fontSize: 16,
+    fontSize: 14.5,
     fontWeight: '900'
   },
   choiceBody: {
@@ -801,9 +801,9 @@ const styles = StyleSheet.create({
   },
   intel: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 11
+    borderRadius: 10,
+    padding: 8,
+    marginTop: 8
   },
   intelLabel: {
     fontSize: 9,
