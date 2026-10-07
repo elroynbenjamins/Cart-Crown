@@ -148,13 +148,13 @@ export function EarlyHumanEventScreen({ eventId, onExit, onOpenForge }: {
 }
 
 const styles = StyleSheet.create({
-  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 7 },
-  heading: { fontSize: 16, lineHeight: 22, fontWeight: '900' },
-  rowTitle: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
-  body: { fontSize: 14, lineHeight: 20, marginTop: 7 },
-  note: { fontSize: 12, lineHeight: 18 },
-  evidenceRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5 },
+  heading: { fontSize: 14.5, lineHeight: 19, fontWeight: '900' },
+  rowTitle: { fontSize: 12, lineHeight: 16, fontWeight: '800' },
+  body: { fontSize: 11.5, lineHeight: 16, marginTop: 5 },
+  note: { fontSize: 10.5, lineHeight: 15 },
+  evidenceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   copy: { flex: 1, minWidth: 0 },
-  spaced: { marginTop: 8 },
-  rule: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 }
+  spaced: { marginTop: 6 },
+  rule: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 8 }
 });
