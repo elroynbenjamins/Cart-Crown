@@ -89,7 +89,23 @@ for (const theme of Object.values(themes)) {
   appearance.theme = theme;
   for (const faction of ['human', 'elf', 'orc']) {
     const atmosphere = components.ScreenAtmosphere({ faction, section: 'flow' });
-    check(theme.dark ? atmosphere === null : atmosphere !== null, 'Colored screen washes must be absent only in dark modes');
+    check(atmosphere !== null, 'Screen framing should remain mounted in every theme.');
+    if (theme.dark) {
+      const largeColoredSurfaces = elements(atmosphere).filter(node => {
+        const rendered = style(node.props.style);
+        return Boolean(
+          rendered.backgroundColor &&
+          (
+            (typeof rendered.width === 'number' && rendered.width >= 100) ||
+            (typeof rendered.height === 'number' && rendered.height >= 100)
+          )
+        );
+      });
+      check(
+        largeColoredSurfaces.length === 0,
+        'Dark mode must not reintroduce large colored screen washes.'
+      );
+    }
     for (const id of Object.keys(encounters)) {
       const region = battle.getBattlefieldScene(id, faction);
       const snapshot = JSON.stringify(region);
