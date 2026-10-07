@@ -1352,6 +1352,7 @@ export function CampaignScreen({
               style={styles.tutorialSegmentFocus}
             >
               <Pressable
+                hitSlop={4}
                 onPress={() => {
                   if (focused) {
                     onTutorialFocusComplete?.();
