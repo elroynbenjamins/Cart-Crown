@@ -168,32 +168,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(4, 7, 12, 0.72)',
-    padding: 14,
-    paddingBottom: 22
+    padding: 10,
+    paddingBottom: 14
   },
   card: {
-    borderRadius: 20,
+    borderRadius: 14,
     borderWidth: 1,
-    padding: 17
+    padding: 12
   },
   topRow: {
-    minHeight: 26,
+    minHeight: 22,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 10
+    gap: 8
   },
   eyebrow: {
     flexShrink: 1,
-    fontSize: 10,
+    fontSize: 8.5,
     fontWeight: '900',
-    letterSpacing: 1.25
+    letterSpacing: 1
   },
   stepPill: {
     borderWidth: 1,
     borderRadius: 999,
-    paddingHorizontal: 9,
-    paddingVertical: 5
+    paddingHorizontal: 7,
+    paddingVertical: 3
   },
   stepText: {
     fontSize: 8,
@@ -201,21 +201,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7
   },
   title: {
-    fontSize: 22,
-    lineHeight: 27,
+    fontSize: 18,
+    lineHeight: 22,
     fontWeight: '900',
-    marginTop: 11
+    marginTop: 8
   },
   body: {
-    fontSize: 12,
-    lineHeight: 19,
-    marginTop: 10
+    fontSize: 10.5,
+    lineHeight: 15,
+    marginTop: 6
   },
   tip: {
-    marginTop: 15,
-    borderRadius: 13,
+    marginTop: 10,
+    borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 11
+    padding: 8
   },
   tipLabel: {
     fontSize: 8,
@@ -223,21 +223,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.9
   },
   tipText: {
-    fontSize: 10,
-    lineHeight: 15,
-    marginTop: 4
+    fontSize: 9.5,
+    lineHeight: 13,
+    marginTop: 3
   },
   primary: {
-    minHeight: 48,
-    marginTop: 15,
-    borderRadius: 14,
+    minHeight: 44,
+    marginTop: 10,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16
   },
   primaryText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '900'
   }
 });
