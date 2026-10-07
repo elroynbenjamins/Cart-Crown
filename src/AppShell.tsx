@@ -2033,13 +2033,19 @@ export function AppShell({
               accessibilityRole="button"
               accessibilityLabel="Back"
               onPress={goBack}
-              style={[styles.backButton, { backgroundColor: theme.colors.surface1 }]}
+              style={[
+                styles.backButton,
+                {
+                  backgroundColor: theme.colors.surface1,
+                  borderColor: factionAccent + '55'
+                }
+              ]}
             >
               <Text style={[styles.backText, { color: theme.colors.text }]}>‹</Text>
             </Pressable>
           ) : (
             <View accessible={false} importantForAccessibility="no-hide-descendants" style={styles.headerCrest}>
-              <FactionCrest faction={activeFaction} size={34} />
+              <FactionCrest faction={activeFaction} size={30} />
             </View>
           )}
           <View style={styles.titleCopy}>
@@ -2059,11 +2065,11 @@ export function AppShell({
                 styles.slotButton,
                 {
                   backgroundColor: theme.colors.surface1,
-                  borderColor: theme.colors.border
+                  borderColor: factionAccent + '55'
                 }
               ]}
             >
-              <Text style={[styles.slotButtonText, { color: theme.colors.text }]}>
+              <Text style={[styles.slotButtonText, { color: factionAccent }]}>
                 S{saveSlotId}
               </Text>
             </Pressable>
@@ -2270,6 +2276,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 10,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
