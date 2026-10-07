@@ -1414,7 +1414,9 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
               ' to ' +
               bestNetworkOptimization.futureDistrictCount +
               ' districts. Preview moving ' +
-              bestNetworkOptimization.buildingName
+              bestNetworkOptimization.buildingName +
+              ' to ' +
+              (settlementPlotLabels[bestNetworkOptimization.targetPlotId] ?? bestNetworkOptimization.targetPlotId)
             }
             onPress={() => {
               setSelectedDistrictId(null);
