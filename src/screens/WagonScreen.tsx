@@ -370,32 +370,32 @@ export function WagonScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 32, gap: 12 },
+  content: { padding: 12, paddingBottom: 24, gap: 9 },
   heroContent: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    gap: 9
+    gap: 7
   },
   heroMetrics: {
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7
+    gap: 5
   },
   wagonVisual: {
-    width: 72,
-    minHeight: 72,
-    borderRadius: 17,
+    width: 64,
+    minHeight: 64,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  boardWrap: { alignItems: 'center', paddingVertical: 4 },
+  boardWrap: { alignItems: 'center', paddingVertical: 2 },
   board: { position: 'relative' },
-  cell: { position: 'absolute', borderWidth: 1, borderRadius: 14 },
+  cell: { position: 'absolute', borderWidth: 1, borderRadius: 11 },
   item: {
     position: 'absolute',
-    borderRadius: 14,
-    padding: 6,
+    borderRadius: 11,
+    padding: 5,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -403,17 +403,17 @@ const styles = StyleSheet.create({
   itemEffect: { textAlign: 'center', fontSize: 8, lineHeight: 10, fontWeight: '800', marginTop: 3 },
   itemSize: { position: 'absolute', right: 6, bottom: 4, fontSize: 7, fontWeight: '900' },
   selectionLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
-  selectionName: { fontSize: 16, fontWeight: '900', marginTop: 4 },
-  feedback: { fontSize: 11, lineHeight: 16, marginTop: 5 },
-  controls: { flexDirection: 'row', gap: 8, marginTop: 12 },
-  returnButton: { marginTop: 10 },
+  selectionName: { fontSize: 14.5, fontWeight: '900', marginTop: 3 },
+  feedback: { fontSize: 10, lineHeight: 14, marginTop: 4 },
+  controls: { flexDirection: 'row', gap: 6, marginTop: 9 },
+  returnButton: { marginTop: 8 },
   control: { flex: 1 },
-  readinessRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  readinessRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   readinessCopy: { flex: 1 },
-  readyTitle: { fontSize: 15, fontWeight: '900' },
-  readyBody: { fontSize: 12, lineHeight: 17, marginTop: 4 },
-  readinessBar: { marginTop: 10 },
-  synergyName: { fontSize: 15, fontWeight: '900' },
-  synergyBody: { fontSize: 12, lineHeight: 17, marginTop: 5 },
-  synergyBonus: { fontSize: 12, fontWeight: '900', marginTop: 9 }
+  readyTitle: { fontSize: 13.5, fontWeight: '900' },
+  readyBody: { fontSize: 10.5, lineHeight: 15, marginTop: 3 },
+  readinessBar: { marginTop: 7 },
+  synergyName: { fontSize: 13.5, fontWeight: '900' },
+  synergyBody: { fontSize: 10.5, lineHeight: 15, marginTop: 4 },
+  synergyBonus: { fontSize: 10.5, fontWeight: '900', marginTop: 7 }
 });
