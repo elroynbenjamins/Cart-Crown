@@ -282,14 +282,14 @@ export function MasteryResearchScreen({ family, onExit, tutorialFocus, onTutoria
 }
 
 const styles = StyleSheet.create({
-  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 7 },
-  tabs: { flexDirection: 'row', padding: 4, borderRadius: 14, gap: 6 },
-  tab: { flex: 1, minHeight: 48, borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 10, alignItems: 'center', justifyContent: 'center' },
-  tabText: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
-  heading: { fontSize: 16, lineHeight: 22, fontWeight: '900' },
-  body: { fontSize: 14, lineHeight: 20, marginTop: 8 },
-  note: { fontSize: 12, lineHeight: 18, marginTop: 8 },
-  spaced: { marginTop: 10 },
-  unitRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  copy: { flex: 1, minWidth: 0, gap: 6 }
+  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5 },
+  tabs: { flexDirection: 'row', padding: 3, borderRadius: 11, gap: 4 },
+  tab: { flex: 1, minHeight: 44, borderRadius: 9, borderWidth: 1, paddingHorizontal: 9, paddingVertical: 7, alignItems: 'center', justifyContent: 'center' },
+  tabText: { fontSize: 12, lineHeight: 16, fontWeight: '900' },
+  heading: { fontSize: 14.5, lineHeight: 19, fontWeight: '900' },
+  body: { fontSize: 11.5, lineHeight: 16, marginTop: 6 },
+  note: { fontSize: 10.5, lineHeight: 15, marginTop: 6 },
+  spaced: { marginTop: 8 },
+  unitRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  copy: { flex: 1, minWidth: 0, gap: 4 }
 });
