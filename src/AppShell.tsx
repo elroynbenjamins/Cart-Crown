@@ -2100,7 +2100,7 @@ export function AppShell({
                 }
               ]}
             >
-              <ThemeModeIcon dark={theme.dark} color={theme.colors.gold} size={20} />
+              <ThemeModeIcon dark={theme.dark} color={theme.colors.gold} size={18} />
             </Pressable>
         </View>
       </View>
@@ -2161,7 +2161,16 @@ export function AppShell({
                 }}
                 style={({ pressed }) => [
                   styles.navItem,
-                  { opacity: pressed ? 0.78 : 1, transform: [{ translateY: pressed ? 1 : 0 }] }
+                  {
+                    backgroundColor: selected
+                      ? factionAccent + (theme.dark ? '18' : '12')
+                      : 'transparent',
+                    borderColor: selected
+                      ? factionAccent + '55'
+                      : 'transparent',
+                    opacity: pressed ? 0.78 : 1,
+                    transform: [{ translateY: pressed ? 1 : 0 }]
+                  }
                 ]}
               >
                 <TutorialFocus
@@ -2185,7 +2194,7 @@ export function AppShell({
                       <AppNavIcon
                         kind={item.id}
                         color={selected ? factionAccent : theme.colors.textMuted}
-                        size={26}
+                        size={23}
                       />
                     </View>
                     <Text
@@ -2218,71 +2227,79 @@ export function AppShell({
 const styles = StyleSheet.create({
   safeArea: { flex: 1, position: 'relative', overflow: 'hidden' },
   topBar: {
-    height: 66,
+    height: 56,
     zIndex: 2,
-    paddingHorizontal: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between'
   },
-  titleArea: { flexDirection: 'row', alignItems: 'center', gap: 9, minWidth: 0, flex: 1 },
+  titleArea: { flexDirection: 'row', alignItems: 'center', gap: 7, minWidth: 0, flex: 1 },
   titleCopy: { flex: 1, minWidth: 0 },
-  headerCrest: { width: 34, alignItems: 'center', justifyContent: 'center' },
-  topActions: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 8 },
+  headerCrest: { width: 30, alignItems: 'center', justifyContent: 'center' },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 6 },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  backText: { fontSize: 28, lineHeight: 30, marginTop: -3 },
-  brand: { fontSize: 8, letterSpacing: 1.55, fontWeight: '900' },
-  screenTitle: { fontSize: 19, lineHeight: 23, fontWeight: '900', marginTop: 1 },
+  backText: { fontSize: 25, lineHeight: 27, marginTop: -3 },
+  brand: { fontSize: 7, letterSpacing: 1.35, fontWeight: '900' },
+  screenTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '900', marginTop: 0 },
   slotButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  slotButtonText: { fontSize: 11, fontWeight: '900' },
+  slotButtonText: { fontSize: 10, fontWeight: '900' },
   settingsButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
   settingsButtonText: {
-    fontSize: 20,
-    lineHeight: 22,
+    fontSize: 18,
+    lineHeight: 20,
     fontWeight: '900'
   },
   themeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
   screen: { flex: 1, zIndex: 1 },
   bottomNav: {
-    height: 72,
+    height: 62,
     zIndex: 2,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 5,
-    paddingBottom: 3
+    paddingVertical: 4,
+    gap: 3
   },
-  navItem: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
-  navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
-  navIconWrap: { width: 42, height: 34, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  navLabel: { fontSize: 10, fontWeight: '900', marginTop: 3 },
-  navSelectionMark: { width: 14, height: 3, borderRadius: 2, marginTop: 4 }
+  navItem: {
+    flex: 1,
+    minHeight: 52,
+    borderRadius: 11,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 46 },
+  navIconWrap: { width: 36, height: 28, borderRadius: 9, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  navLabel: { fontSize: 9, lineHeight: 11, fontWeight: '900', marginTop: 2 },
+  navSelectionMark: { width: 18, height: 2, borderRadius: 2, marginTop: 3 }
 });
