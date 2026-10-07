@@ -1353,15 +1353,35 @@ export function CampaignScreen({
             >
               <Pressable
                 hitSlop={4}
+                accessibilityRole="tab"
+                accessibilityLabel={
+                  option === 'story'
+                    ? 'Story'
+                    : option === 'activities'
+                      ? activitiesNeedAttention
+                        ? 'Activities, attention required'
+                        : 'Activities'
+                      : 'Factions'
+                }
+                accessibilityState={{ selected: view === option }}
                 onPress={() => {
                   if (focused) {
                     onTutorialFocusComplete?.();
                   }
                   setView(option);
                 }}
-                style={[
+                style={({ pressed }) => [
                   styles.segmentButton,
-                  view === option ? { backgroundColor: theme.colors.surface2 } : undefined
+                  view === option
+                    ? {
+                        backgroundColor: theme.colors.surface2,
+                        borderColor: theme.colors.primary + '55'
+                      }
+                    : { borderColor: 'transparent' },
+                  {
+                    opacity: pressed ? 0.78 : 1,
+                    transform: [{ translateY: pressed ? 1 : 0 }]
+                  }
                 ]}
               >
                 <View style={styles.segmentLabelRow}>
@@ -1406,6 +1426,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 36,
     borderRadius: 10,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
