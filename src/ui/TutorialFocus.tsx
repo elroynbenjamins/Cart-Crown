@@ -105,28 +105,28 @@ const styles = StyleSheet.create({
   },
   focusRing: {
     position: 'absolute',
-    left: -5,
-    right: -5,
-    top: -5,
-    bottom: -5,
-    borderWidth: 3,
-    borderRadius: 18,
+    left: -4,
+    right: -4,
+    top: -4,
+    bottom: -4,
+    borderWidth: 2,
+    borderRadius: 14,
     zIndex: 20
   },
   label: {
     position: 'absolute',
-    right: 6,
-    top: -14,
+    right: 5,
+    top: -12,
     zIndex: 21,
     borderRadius: 999,
-    borderWidth: 2,
-    paddingHorizontal: 8,
-    paddingVertical: 4
+    borderWidth: 1.5,
+    paddingHorizontal: 6,
+    paddingVertical: 3
   },
   labelText: {
     color: '#111318',
-    fontSize: 8,
-    lineHeight: 10,
+    fontSize: 7.5,
+    lineHeight: 9,
     fontWeight: '900',
     letterSpacing: 0.55
   }
