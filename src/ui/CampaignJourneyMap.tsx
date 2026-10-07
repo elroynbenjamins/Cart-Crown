@@ -219,7 +219,7 @@ export function CampaignJourneyMap({
 const styles = StyleSheet.create({
   shell: {
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 16,
     overflow: 'hidden'
   },
   map: {
@@ -275,31 +275,31 @@ const styles = StyleSheet.create({
     fontWeight: '900'
   },
   inspector: {
-    minHeight: 68,
+    minHeight: 60,
     borderTopWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 8
   },
   inspectorCopy: {
     flex: 1,
     minWidth: 0
   },
   pointName: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '900'
   },
   pointDetail: {
     marginTop: 2,
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: 9.5,
+    lineHeight: 13,
     fontWeight: '700'
   },
   status: {
-    minHeight: 30,
-    paddingHorizontal: 9,
+    minHeight: 28,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderRadius: 10,
     alignItems: 'center',
