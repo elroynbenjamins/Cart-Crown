@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   choiceName: { fontSize: 13.5, lineHeight: 17, fontWeight: '900' },
   body: { fontSize: 11, lineHeight: 15 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
-  disclosure: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: 1, marginTop: 9, paddingVertical: 8 },
+  disclosure: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: 1, marginTop: 9, paddingVertical: 8 },
   disclosureText: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 16, fontWeight: '800' },
   disclosureMark: { fontSize: 20, lineHeight: 24, width: 24, textAlign: 'center' },
   details: { gap: 7 },
