@@ -2229,20 +2229,20 @@ const styles = StyleSheet.create({
     paddingBottom: 3
   },
   settlementBottomNav: {
-    height: 84,
-    borderTopWidth: 1,
-    paddingHorizontal: 5,
-    paddingTop: 5,
+    height: 90,
+    borderTopWidth: 1.5,
+    paddingHorizontal: 4,
+    paddingTop: 6,
     paddingBottom: 5,
-    elevation: 10
+    elevation: 12
   },
   navItem: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
   navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
   navIconWrap: { width: 42, height: 34, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  settlementNavIconWrap: { width: 43, height: 43, borderRadius: 999, borderWidth: 1.25 },
-  settlementNavIconSelected: { width: 50, height: 50, borderWidth: 2, elevation: 5, transform: [{ translateY: -2 }] },
+  settlementNavIconWrap: { width: 46, height: 46, borderRadius: 999, borderWidth: 1.5, elevation: 2 },
+  settlementNavIconSelected: { width: 56, height: 56, borderWidth: 2.25, elevation: 8, transform: [{ translateY: -4 }] },
   navLabel: { fontSize: 10, fontWeight: '900', marginTop: 3 },
-  settlementNavLabel: { fontSize: 9, lineHeight: 11, letterSpacing: 0.15, marginTop: 1 },
+  settlementNavLabel: { fontSize: 9, lineHeight: 11, letterSpacing: 0.3, marginTop: 1, textTransform: 'uppercase' },
   navSelectionMark: { width: 14, height: 3, borderRadius: 2, marginTop: 4 },
-  settlementNavSelectionMark: { width: 18, height: 2, marginTop: 2 }
+  settlementNavSelectionMark: { width: 24, height: 2, marginTop: 1 }
 });
