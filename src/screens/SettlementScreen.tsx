@@ -1262,7 +1262,7 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
               })}
             </ScrollView>
           </View>
-        ) : (
+        ) : worldRebuildActive ? null : (
           <Pressable
             testID="blueprint-planner-open"
             accessibilityRole="button"
@@ -1299,7 +1299,7 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
         )
       ) : null}
 
-      {showNetworkOptimizationHint && bestNetworkOptimization ? (
+      {showNetworkOptimizationHint && bestNetworkOptimization && !worldRebuildActive ? (
         <Pressable
           testID="district-network-hint"
           accessibilityRole="button"
@@ -1368,6 +1368,87 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
           <SettlementTerrainBackdrop faction={activeFaction} stageId={currentWagonStage.id} />
         </View>
         <SettlementSceneAtmosphere faction={activeFaction} stageId={currentWagonStage.id} />
+
+        {worldRebuildActive && availableBuildings.length && !selectedBuilding && !selectedPlot && !unlockCelebration && !blueprintPlannerOpen ? (
+          <Pressable
+            testID="blueprint-planner-open"
+            accessibilityRole="button"
+            accessibilityLabel="Plan a building blueprint across all settlement plots"
+            onPress={() => {
+              const first = nextSuggestedBuilding ?? availableBuildings[0] ?? null;
+              setBlueprintPlannerOpen(true);
+              setPlanningBuildingId(first?.id ?? null);
+              setPreviewBuildingId(null);
+              setSelectedPlotId(null);
+              setSelectedBuildingId(null);
+              setSelectedBuildingAction(null);
+              setSelectedDistrictId(null);
+              setDistrictCodexOpen(false);
+              setUnlockCelebration(null);
+            }}
+            style={({ pressed }) => [
+              styles.conceptWorldCommand,
+              styles.conceptWorldCommandBuild,
+              {
+                backgroundColor: SETTLEMENT_HUD_NAVY + 'F2',
+                borderColor: SETTLEMENT_HUD_GOLD_DARK,
+                opacity: pressed ? 0.76 : 0.96
+              }
+            ]}
+          >
+            <Text style={styles.conceptWorldCommandGlyph}>＋</Text>
+            <View style={styles.conceptWorldCommandCopy}>
+              <Text style={styles.conceptWorldCommandLabel}>BUILD</Text>
+              <Text style={styles.conceptWorldCommandMeta}>{availableBuildings.length}</Text>
+            </View>
+          </Pressable>
+        ) : null}
+
+        {worldRebuildActive && showNetworkOptimizationHint && bestNetworkOptimization && !selectedBuilding && !selectedPlot && !blueprintPlannerOpen ? (
+          <Pressable
+            testID="district-network-hint"
+            accessibilityRole="button"
+            accessibilityLabel={
+              'Better layout available, ' +
+              bestNetworkOptimization.currentDistrictCount +
+              ' to ' +
+              bestNetworkOptimization.futureDistrictCount +
+              ' districts. Preview moving ' +
+              bestNetworkOptimization.buildingName
+            }
+            onPress={() => {
+              setSelectedDistrictId(null);
+              setDistrictCodexOpen(false);
+              setSelectedBuildingId(bestNetworkOptimization.buildingId);
+              setSelectedBuildingAction('move');
+              setRelocationTargetPlotId(bestNetworkOptimization.targetPlotId);
+              setSelectedPlotId(null);
+              setPreviewBuildingId(null);
+              setBlueprintPlannerOpen(false);
+              setPlanningBuildingId(null);
+              setUnlockCelebration(null);
+              setMessage(null);
+            }}
+            style={({ pressed }) => [
+              styles.conceptWorldCommand,
+              styles.conceptWorldCommandLayout,
+              {
+                backgroundColor: SETTLEMENT_HUD_NAVY + 'F2',
+                borderColor: SETTLEMENT_HUD_GOLD_DARK,
+                opacity: pressed ? 0.76 : 0.96
+              }
+            ]}
+          >
+            <Text style={styles.conceptWorldCommandGlyph}>↔</Text>
+            <View style={styles.conceptWorldCommandCopy}>
+              <Text style={styles.conceptWorldCommandLabel}>LAYOUT</Text>
+              <Text style={[styles.conceptWorldCommandMeta, { color: '#8ED17F' }]}>
+                +{bestNetworkOptimization.improvement}
+              </Text>
+            </View>
+          </Pressable>
+        ) : null}
+
         <View
           pointerEvents="none"
           style={[styles.sceneInnerFrame, { borderColor: factionAccent + '66', opacity: humanStagePlateActive ? 0.12 : 0.72 }]}
@@ -2691,6 +2772,13 @@ const styles = StyleSheet.create({
   nextGoalTitle: { fontSize: 10.5, lineHeight: 13, fontWeight: '900', maxWidth: '100%' },
   body: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 7 },
+  conceptWorldCommand: { position: 'absolute', left: 9, zIndex: 42, minHeight: 29, borderWidth: 1, borderRadius: 7, paddingHorizontal: 7, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 5, elevation: 5 },
+  conceptWorldCommandBuild: { top: 9 },
+  conceptWorldCommandLayout: { top: 43 },
+  conceptWorldCommandGlyph: { color: SETTLEMENT_HUD_GOLD, fontSize: 15, lineHeight: 16, fontWeight: '900' },
+  conceptWorldCommandCopy: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  conceptWorldCommandLabel: { color: SETTLEMENT_HUD_TEXT, fontSize: 7.5, lineHeight: 9, fontWeight: '900', letterSpacing: 0.7 },
+  conceptWorldCommandMeta: { color: SETTLEMENT_HUD_GOLD, fontSize: 7.5, lineHeight: 9, fontWeight: '900' },
   districtOverlayLauncher: { position: 'absolute', right: 9, top: 9, zIndex: 42, minHeight: 28, borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5, flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.96, elevation: 5 },
   districtOverlayLauncherDot: { width: 6, height: 6, borderRadius: 999 },
   districtOverlayLauncherText: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.65 },
