@@ -2030,6 +2030,7 @@ export function AppShell({
         <View style={styles.titleArea}>
           {showBackButton ? (
             <Pressable
+              hitSlop={5}
               accessibilityRole="button"
               accessibilityLabel="Back"
               onPress={goBack}
@@ -2056,6 +2057,7 @@ export function AppShell({
 
         <View style={styles.topActions}>
             <Pressable
+              hitSlop={5}
               accessibilityRole="button"
               accessibilityLabel="Return to save slots"
               onPress={() => {
@@ -2075,6 +2077,7 @@ export function AppShell({
             </Pressable>
 
             <Pressable
+              hitSlop={5}
               accessibilityRole="button"
               accessibilityLabel="Open settings"
               onPress={() => {
@@ -2102,6 +2105,7 @@ export function AppShell({
             </Pressable>
 
             <Pressable
+              hitSlop={5}
               accessibilityRole="button"
               accessibilityLabel="Change theme"
               onPress={cycleTheme}
