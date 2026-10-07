@@ -968,12 +968,12 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
             <Text style={[styles.eyebrow, { color: factionAccent }]}>CART & CROWN</Text>
             <Text accessibilityRole="header" style={[styles.title, { color: theme.colors.text }]} numberOfLines={1}>{stageLabel}</Text>
           </View>
-          <View style={[styles.stageBadge, { borderColor: factionAccent, backgroundColor: theme.colors.surface2 }]}>
+          <View style={[styles.stageBadge, { borderColor: factionAccent, backgroundColor: factionAccent + '16' }]}>
             <Text style={[styles.stageBadgeText, { color: factionAccent }]}>{currentWagonStage.id.toUpperCase()}</Text>
           </View>
         </View>
 
-        <View style={[styles.resourceStrip, { backgroundColor: theme.colors.surface2 }]}>
+        <View style={[styles.resourceStrip, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
           {settlementResourceOrder.map(resource => (
             <View key={resource} style={styles.resourceCell}>
               <ResourceSprite resource={resource} size={18} />
@@ -1155,7 +1155,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const width = event.nativeEvent.layout.width;
           if (Number.isFinite(width) && width > 0) setMeasuredMapWidth(previous => Math.abs(previous - width) < 0.5 ? previous : width);
         }}
-        style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+        style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: factionAccent + '66' }]}
       >
         <Pressable testID="settlement-clear-selection" accessible={false} importantForAccessibility="no" disabled={!selectedBuilding && !selectedPlot} onPress={dismissSceneSelection} style={styles.sceneDismissSurface} />
         <View pointerEvents="none" style={styles.backdrop}>
@@ -2232,20 +2232,20 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 10, paddingBottom: 30, gap: 8 },
-  hud: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 8 },
+  content: { padding: 8, paddingBottom: 24, gap: 6 },
+  hud: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 9, paddingVertical: 7 },
   heroHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroCopy: { flex: 1, minWidth: 0 },
   eyebrow: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 1.1 },
-  title: { fontSize: 17, lineHeight: 21, fontWeight: '900', marginTop: 1 },
-  stageBadge: { borderWidth: 1, borderRadius: 9, paddingHorizontal: 7, paddingVertical: 4 },
+  title: { fontSize: 16, lineHeight: 20, fontWeight: '900', marginTop: 1 },
+  stageBadge: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3 },
   stageBadgeText: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
-  resourceStrip: { flexDirection: 'row', borderRadius: 10, paddingHorizontal: 5, paddingVertical: 5, marginTop: 7, gap: 2 },
+  resourceStrip: { flexDirection: 'row', borderWidth: 1, borderRadius: 8, paddingHorizontal: 5, paddingVertical: 4, marginTop: 6, gap: 2 },
   resourceCell: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 2 },
   resourceCopy: { flex: 1, minWidth: 0 },
   resourceValue: { fontSize: 9.5, lineHeight: 12, fontWeight: '900' },
   resourceLabel: { fontSize: 7, lineHeight: 9, fontWeight: '700' },
-  hudFooter: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 6 },
+  hudFooter: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 5 },
   hudStats: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, flexShrink: 1 },
   nextGoalInline: { flex: 1, minWidth: 0, alignItems: 'flex-end' },
   nextGoalEyebrow: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.85 },
@@ -2280,7 +2280,7 @@ const styles = StyleSheet.create({
   blueprintPlannerLauncherCopy: { flex: 1, minWidth: 0 },
   blueprintPlannerLauncherText: { fontSize: 11.5, lineHeight: 15, fontWeight: '800', marginTop: 1 },
   blueprintPlannerLauncherAction: { fontSize: 9, lineHeight: 12, fontWeight: '900', letterSpacing: 0.7 },
-  blueprintPlanner: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 9, paddingTop: 7, paddingBottom: 8 },
+  blueprintPlanner: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 9, paddingTop: 7, paddingBottom: 8 },
   blueprintPlannerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   blueprintPlannerCopy: { flex: 1, minWidth: 0 },
   blueprintPlannerEyebrow: { fontSize: 7.5, lineHeight: 10, fontWeight: '900', letterSpacing: 0.85 },
@@ -2291,16 +2291,16 @@ const styles = StyleSheet.create({
   blueprintPlannerChip: { width: 112, borderWidth: 1, borderRadius: 11, paddingHorizontal: 8, paddingVertical: 6 },
   blueprintPlannerChipName: { fontSize: 9.5, lineHeight: 12, fontWeight: '900' },
   blueprintPlannerChipQuality: { fontSize: 7.5, lineHeight: 10, fontWeight: '800', marginTop: 2 },
-  networkHint: { minHeight: 54, borderWidth: 1, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  networkHint: { minHeight: 50, borderWidth: 1, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 10 },
   networkHintCopy: { flex: 1, minWidth: 0 },
   networkHintEyebrow: { fontSize: 7, lineHeight: 9, fontWeight: '900', letterSpacing: 0.8 },
   networkHintTitle: { fontSize: 12.5, lineHeight: 16, fontWeight: '900', marginTop: 1 },
   networkHintDetail: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', marginTop: 1 },
   networkHintAction: { fontSize: 8, lineHeight: 11, fontWeight: '900', letterSpacing: 0.65 },
   section: { gap: 8, marginTop: 10 },
-  map: { borderRadius: 28, borderWidth: 2, overflow: 'hidden', position: 'relative', elevation: 3 },
+  map: { borderRadius: 20, borderWidth: 2, overflow: 'hidden', position: 'relative', elevation: 3 },
   backdrop: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
-  sceneInnerFrame: { position: 'absolute', left: 5, right: 5, top: 5, bottom: 5, borderWidth: 1, borderRadius: 23, opacity: 0.72, zIndex: 1 },
+  sceneInnerFrame: { position: 'absolute', left: 5, right: 5, top: 5, bottom: 5, borderWidth: 1, borderRadius: 16, opacity: 0.72, zIndex: 1 },
   sceneShadeTop: { position: 'absolute', left: 0, right: 0, top: 0, height: 34, opacity: 0.16, zIndex: 1 },
   sceneShadeBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 48, opacity: 0.2, zIndex: 1 },
   unlockCelebration: { position: 'absolute', top: 10, left: '20%', right: '20%', zIndex: 50, borderWidth: 1, borderRadius: 12, paddingHorizontal: 9, paddingVertical: 6, alignItems: 'center', opacity: 0.96 },
@@ -2344,7 +2344,7 @@ const styles = StyleSheet.create({
   landmarkDistrictMemberFocusRing: { marginLeft: -50, marginTop: -42, width: 100, height: 84, borderRadius: 22 },
   sceneDismissSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 1 },
   sceneActionsLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 50 },
-  sceneActionStrip: { position: 'absolute', borderWidth: 1, borderRadius: 16, padding: 6, elevation: 12, overflow: 'hidden' },
+  sceneActionStrip: { position: 'absolute', borderWidth: 1, borderRadius: 12, padding: 6, elevation: 12, overflow: 'hidden' },
   sceneActionHeading: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   sceneActionHeadingCopy: { flex: 1, minWidth: 0, paddingLeft: 5 },
   sceneActionName: { fontSize: 13, lineHeight: 18, fontWeight: '900' },
@@ -2411,7 +2411,7 @@ const styles = StyleSheet.create({
   wallTop: { position: 'absolute', left: '3%', right: '3%', top: 3, borderTopWidth: 2, opacity: 0.75 },
   wallBottom: { position: 'absolute', left: '3%', right: '3%', bottom: 3, borderBottomWidth: 2, opacity: 0.75 },
   gateLabel: { position: 'absolute', bottom: 7, alignSelf: 'center', fontSize: 9, lineHeight: 12, fontWeight: '900' },
-  inspectorSheet: { borderWidth: 1, borderRadius: 18, paddingHorizontal: 12, paddingTop: 7, paddingBottom: 11 },
+  inspectorSheet: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 12, paddingTop: 7, paddingBottom: 11 },
   inspectorHandle: { width: 34, height: 3, borderRadius: 999, alignSelf: 'center', opacity: 0.7, marginBottom: 7 },
   inspectorHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   inspectorCopy: { flex: 1, minWidth: 0 },
@@ -2425,7 +2425,7 @@ const styles = StyleSheet.create({
   districtMemberSummaryText: { flex: 1, fontSize: 9, lineHeight: 12, fontWeight: '900', textAlign: 'center' },
   districtMemberSummaryJoin: { fontSize: 12, lineHeight: 15, fontWeight: '900' },
   relocationSummaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 8 },
-  constructionOption: { borderWidth: 1, borderRadius: 14, padding: 11 },
+  constructionOption: { borderWidth: 1, borderRadius: 12, padding: 9 },
   optionDescription: { fontSize: 11.5, lineHeight: 17, marginTop: 4 },
   previewAction: { marginTop: 7 },
   sceneHelp: { fontSize: 10.5, lineHeight: 15, textAlign: 'center', paddingVertical: 3 },
