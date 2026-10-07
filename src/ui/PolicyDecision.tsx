@@ -188,21 +188,21 @@ export function PolicyDecision({ title, eyebrow, options, activeId, gold, switch
 }
 
 const styles = StyleSheet.create({
-  heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  heroRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 9 },
   copy: { flex: 1, minWidth: 0 },
-  art: { width: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  eyebrow: { fontSize: 11, lineHeight: 16, fontWeight: '900', letterSpacing: 1 },
-  title: { fontSize: 24, lineHeight: 30, fontWeight: '900', marginTop: 4 },
-  sectionTitle: { fontSize: 17, lineHeight: 23, fontWeight: '900', marginTop: 8, marginBottom: 4 },
-  body: { fontSize: 13, lineHeight: 19 },
-  note: { fontSize: 12, lineHeight: 18, marginTop: 9 },
-  topGap: { marginTop: 8 },
-  scene: { alignItems: 'center', marginTop: 8 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-  effects: { gap: 7 },
+  art: { width: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
+  eyebrow: { fontSize: 9, lineHeight: 12, fontWeight: '900', letterSpacing: .9 },
+  title: { fontSize: 20, lineHeight: 25, fontWeight: '900', marginTop: 3 },
+  sectionTitle: { fontSize: 15, lineHeight: 19, fontWeight: '900', marginTop: 6, marginBottom: 3 },
+  body: { fontSize: 11, lineHeight: 15 },
+  note: { fontSize: 10.5, lineHeight: 15, marginTop: 7 },
+  topGap: { marginTop: 6 },
+  scene: { alignItems: 'center', marginTop: 6 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 5 },
+  effects: { gap: 5 },
   effectRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 10, rowGap: 3 },
-  effectLabel: { flexGrow: 1, flexShrink: 1, fontSize: 13, lineHeight: 19 },
-  effectValue: { flexShrink: 1, fontSize: 14, lineHeight: 20, fontWeight: '900' },
-  changeRow: { borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 8, gap: 4 },
-  changeValues: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 7 }
+  effectLabel: { flexGrow: 1, flexShrink: 1, fontSize: 11, lineHeight: 15 },
+  effectValue: { flexShrink: 1, fontSize: 12.5, lineHeight: 17, fontWeight: '900' },
+  changeRow: { borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 6, gap: 3 },
+  changeValues: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5 }
 });
