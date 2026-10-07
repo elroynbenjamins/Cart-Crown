@@ -55,16 +55,16 @@ export function CampaignStageList({ rows, currentId }: {
 }
 
 const styles = StyleSheet.create({
-  heading: { fontSize: 16, lineHeight: 22, fontWeight: '900' },
-  note: { fontSize: 12, lineHeight: 18, marginTop: 5, marginBottom: 4 },
-  row: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: 8, paddingTop: 3 },
-  control: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
-  marker: { width: 28, height: 28, borderWidth: 1, borderRadius: 9, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  number: { fontSize: 13, lineHeight: 19, fontWeight: '900' },
+  heading: { fontSize: 14.5, lineHeight: 19, fontWeight: '900' },
+  note: { fontSize: 10.5, lineHeight: 15, marginTop: 4, marginBottom: 3 },
+  row: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: 6, paddingTop: 2 },
+  control: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
+  marker: { width: 24, height: 24, borderWidth: 1, borderRadius: 7, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  number: { fontSize: 11, lineHeight: 15, fontWeight: '900' },
   copy: { flex: 1, minWidth: 0 },
-  title: { fontSize: 14, lineHeight: 20, fontWeight: '800' },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center', marginTop: 5 },
-  kind: { fontSize: 12, lineHeight: 18 },
-  chevron: { fontSize: 20, lineHeight: 26, minWidth: 20, textAlign: 'center' },
-  description: { fontSize: 13, lineHeight: 20, paddingBottom: 8 }
+  title: { fontSize: 12, lineHeight: 16, fontWeight: '800' },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, alignItems: 'center', marginTop: 4 },
+  kind: { fontSize: 10.5, lineHeight: 15 },
+  chevron: { fontSize: 18, lineHeight: 22, minWidth: 18, textAlign: 'center' },
+  description: { fontSize: 11, lineHeight: 16, paddingBottom: 6 }
 });
