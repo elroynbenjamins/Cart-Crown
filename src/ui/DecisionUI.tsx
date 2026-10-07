@@ -92,9 +92,16 @@ export function DecisionOption({ title, subtitle, titleTone, selected, disabled 
       accessibilityHint="Select this option to review it before confirming."
       disabled={disabled}
       onPress={onSelect}
-      style={({ pressed }) => ({ opacity: pressed && !disabled ? 0.86 : 1 })}
+      style={({ pressed }) => ({
+        opacity: pressed && !disabled ? 0.88 : 1,
+        transform: [{ translateY: pressed && !disabled ? 1 : 0 }]
+      })}
     >
-      <GameCard accent={selected ? theme.colors.gold : undefined} ornament={false}>
+      <GameCard
+        accent={selected ? theme.colors.gold : undefined}
+        state={selected ? 'selected' : disabled ? 'locked' : 'default'}
+        ornament={false}
+      >
         <View style={styles.optionHeader}>
           {art ? <View style={styles.art}>{art}</View> : null}
           <View style={styles.optionCopy}>
