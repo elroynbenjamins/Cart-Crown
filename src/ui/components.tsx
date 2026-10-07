@@ -96,6 +96,7 @@ export function SectionTitle({
 
   return (
     <View style={styles.sectionTitleRow}>
+      <View style={[styles.sectionMarker, { backgroundColor: theme.colors.gold }]} />
       <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{title}</Text>
       {trailing ? (
         <Text style={[styles.sectionTrailing, { color: theme.colors.textMuted }]}>{trailing}</Text>
@@ -126,6 +127,13 @@ export function ScreenHero({
       ornament={false}
       style={styles.screenHero}
     >
+      <View
+        pointerEvents="none"
+        style={[
+          styles.screenHeroAccent,
+          { backgroundColor: accent ?? theme.colors.gold }
+        ]}
+      />
       <View style={styles.screenHeroHeader}>
         <View style={styles.screenHeroCopy}>
           <Text
@@ -203,6 +211,10 @@ export function MetricTile({
         }
       ]}
     >
+      <View
+        pointerEvents="none"
+        style={[styles.metricAccent, { backgroundColor: accent }]}
+      />
       <Text
         style={[
           styles.metricTileLabel,
@@ -498,6 +510,17 @@ export function PrimaryButton({
         }
       ]}
     >
+      <View
+        pointerEvents="none"
+        style={[
+          styles.buttonHighlight,
+          {
+            backgroundColor: disabled
+              ? 'transparent'
+              : '#FFFFFF24'
+          }
+        ]}
+      />
       <Text
         style={[
           styles.primaryButtonText,
@@ -540,6 +563,13 @@ export function SecondaryButton({
         }
       ]}
     >
+      <View
+        pointerEvents="none"
+        style={[
+          styles.secondaryHighlight,
+          { borderTopColor: theme.colors.text + '18' }
+        ]}
+      />
       <Text style={[styles.secondaryButtonText, { color: theme.colors.text }]}>
         {label}
       </Text>
@@ -570,7 +600,17 @@ export function ResourceChip({
         }
       ]}
     >
-      {art ?? <Text style={styles.resourceIcon}>{icon ?? ''}</Text>}
+      <View
+        style={[
+          styles.resourceArt,
+          {
+            backgroundColor: theme.colors.surface1,
+            borderColor: theme.colors.border
+          }
+        ]}
+      >
+        {art ?? <Text style={styles.resourceIcon}>{icon ?? ''}</Text>}
+      </View>
       <View>
         <Text style={[styles.resourceValue, { color: theme.colors.text }]}>{value}</Text>
         {label ? (
@@ -741,7 +781,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12
+    gap: 8
+  },
+  sectionMarker: {
+    width: 4,
+    height: 16,
+    borderRadius: 2,
+    opacity: 0.9
   },
   sectionTitle: {
     fontSize: 15.5,
@@ -759,6 +805,16 @@ const styles = StyleSheet.create({
   screenHero: {
     paddingVertical: 13,
     paddingHorizontal: 13
+  },
+  screenHeroAccent: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    top: 0,
+    height: 2,
+    borderBottomLeftRadius: 2,
+    borderBottomRightRadius: 2,
+    opacity: 0.9
   },
   screenHeroHeader: {
     flexDirection: 'row',
@@ -801,6 +857,16 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     paddingHorizontal: 9,
     paddingVertical: 7
+  },
+  metricAccent: {
+    position: 'absolute',
+    left: 8,
+    right: 8,
+    top: 0,
+    height: 2,
+    borderBottomLeftRadius: 2,
+    borderBottomRightRadius: 2,
+    opacity: 0.8
   },
   metricTileLabel: {
     fontSize: 7.5,
@@ -917,6 +983,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingBottom: 9
   },
+  buttonHighlight: {
+    position: 'absolute',
+    left: 10,
+    right: 10,
+    top: 2,
+    height: 1,
+    borderRadius: 999
+  },
   primaryButtonText: {
     fontSize: 13.5,
     fontWeight: '900',
@@ -931,6 +1005,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     paddingBottom: 8
+  },
+  secondaryHighlight: {
+    position: 'absolute',
+    left: 8,
+    right: 8,
+    top: 2,
+    height: 1,
+    borderTopWidth: 1,
+    borderRadius: 999
   },
   secondaryButtonText: {
     fontSize: 12,
@@ -948,8 +1031,16 @@ const styles = StyleSheet.create({
     gap: 5,
     alignItems: 'center'
   },
+  resourceArt: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   resourceIcon: {
-    fontSize: 20
+    fontSize: 18
   },
   resourceValue: {
     fontSize: 12.5,
