@@ -2018,11 +2018,11 @@ export function BattlePrepScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, paddingBottom: 30, gap: 12 },
+  content: { padding: 12, paddingBottom: 24, gap: 9 },
   prepAtGlance: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8
+    gap: 6
   },
   commitCard: {
     marginTop: 2
@@ -2044,34 +2044,34 @@ const styles = StyleSheet.create({
     letterSpacing: 0.9
   },
   commitTitle: {
-    fontSize: 16,
-    lineHeight: 21,
+    fontSize: 14.5,
+    lineHeight: 19,
     fontWeight: '900',
     marginTop: 3
   },
   commitBody: {
-    fontSize: 10.5,
-    lineHeight: 16,
-    marginTop: 8
+    fontSize: 10,
+    lineHeight: 14,
+    marginTop: 6
   },
   commitAction: {
-    marginTop: 12
+    marginTop: 9
   },
   severeConfirmActions: {
-    gap: 8,
-    marginTop: 12
+    gap: 6,
+    marginTop: 9
   },
 
-  enemyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  enemyMark: { width: 58, height: 64, borderRadius: 17, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  enemyRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  enemyMark: { width: 52, height: 58, borderRadius: 14, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   enemyCopy: { flex: 1 },
-  enemyName: { fontSize: 16, fontWeight: '900' },
-  enemyMeta: { fontSize: 12, lineHeight: 17, marginTop: 4 },
-  enemyFormation: { fontSize: 11, fontWeight: '900', marginTop: 7 },
+  enemyName: { fontSize: 14.5, fontWeight: '900' },
+  enemyMeta: { fontSize: 10.5, lineHeight: 15, marginTop: 3 },
+  enemyFormation: { fontSize: 10, fontWeight: '900', marginTop: 5 },
   enemyArmy: { fontSize: 10.5, fontWeight: '900', marginTop: 4 },
   enemyTactic: { fontSize: 9.5, lineHeight: 14, marginTop: 3 },
   enemyComposition: { fontSize: 9.5, lineHeight: 14, marginTop: 5, fontWeight: '800' },
-  scoutButton: { marginTop: 12 },
+  scoutButton: { marginTop: 9 },
   planHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -2079,20 +2079,20 @@ const styles = StyleSheet.create({
     gap: 10
   },
   planCopy: { flex: 1 },
-  planTitle: { fontSize: 16, fontWeight: '900', marginTop: 3 },
+  planTitle: { fontSize: 14.5, fontWeight: '900', marginTop: 2 },
   planMatchup: { fontSize: 10.5, lineHeight: 15, marginTop: 7 },
   planStatuses: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 10
+    gap: 5,
+    marginTop: 7
   },
   planHint: { fontSize: 9.5, lineHeight: 14, fontWeight: '900', marginTop: 9 },
   preparationSummary: {
     borderWidth: 1,
-    borderRadius: 13,
-    padding: 10,
-    marginTop: 10
+    borderRadius: 11,
+    padding: 8,
+    marginTop: 8
   },
   preparationHeader: {
     flexDirection: 'row',
@@ -2117,8 +2117,8 @@ const styles = StyleSheet.create({
     marginTop: 6
   },
   preparationDetails: {
-    gap: 7,
-    marginTop: 9
+    gap: 5,
+    marginTop: 7
   },
   preparationFactor: {
     gap: 2
@@ -2147,20 +2147,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 5
   },
-  unitList: { gap: 8 },
-  unitRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  unitList: { gap: 6 },
+  unitRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   unitStats: { alignItems: 'flex-end', gap: 3 },
   stat: { fontSize: 10, fontWeight: '800' },
   doctrineLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
-  doctrineName: { fontSize: 16, fontWeight: '900', marginTop: 3 },
-  doctrineBody: { fontSize: 11, lineHeight: 16, marginTop: 5 },
+  doctrineName: { fontSize: 14.5, fontWeight: '900', marginTop: 2 },
+  doctrineBody: { fontSize: 10, lineHeight: 14, marginTop: 4 },
   matchupSummary: { fontSize: 11, lineHeight: 16, marginTop: 8, fontWeight: '700' },
   formationDuel: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: 10,
-    paddingVertical: 6,
+    marginTop: 8,
+    paddingVertical: 5,
     paddingHorizontal: 4
   },
   formationVersus: {
@@ -2189,8 +2189,8 @@ const styles = StyleSheet.create({
   },
   recommendationCopy: { flex: 1 },
   recommendationTitle: {
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 13.5,
+    lineHeight: 18,
     fontWeight: '900',
     marginTop: 4
   },
@@ -2213,7 +2213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginTop: 7
   },
-  adjustmentList: { marginTop: 12 },
+  adjustmentList: { marginTop: 9 },
   adjustmentHeading: {
     fontSize: 10,
     fontWeight: '900',
@@ -2222,7 +2222,7 @@ const styles = StyleSheet.create({
   },
   adjustmentRow: {
     flexDirection: 'row',
-    gap: 9,
+    gap: 7,
     alignItems: 'flex-start',
     borderTopWidth: 1,
     paddingTop: 8,
@@ -2255,13 +2255,13 @@ const styles = StyleSheet.create({
     lineHeight: 13,
     marginTop: 2
   },
-  presetSwitchStrip: { gap: 8, paddingRight: 4 },
+  presetSwitchStrip: { gap: 6, paddingRight: 4 },
   presetSwitchCard: {
-    width: 184,
-    minHeight: 112,
-    borderRadius: 15,
+    width: 166,
+    minHeight: 102,
+    borderRadius: 12,
     borderWidth: 1.5,
-    padding: 10
+    padding: 8
   },
   presetSwitchHeader: {
     flexDirection: 'row',
@@ -2280,13 +2280,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 10
   },
-  formationSwitchStrip: { gap: 8, paddingRight: 4 },
+  formationSwitchStrip: { gap: 6, paddingRight: 4 },
   formationSwitchCard: {
-    width: 154,
-    minHeight: 92,
-    borderRadius: 15,
+    width: 142,
+    minHeight: 84,
+    borderRadius: 12,
     borderWidth: 1.5,
-    padding: 10
+    padding: 8
   },
   formationSwitchHeader: {
     flexDirection: 'row',
@@ -2299,8 +2299,8 @@ const styles = StyleSheet.create({
   formationSwitchEffect: { fontSize: 8.8, fontWeight: '900', marginTop: 6 },
   switchHint: { fontSize: 9.5, lineHeight: 14, textAlign: 'center', paddingHorizontal: 10 },
   detailsToggle: {
-    minHeight: 58,
-    borderRadius: 15,
+    minHeight: 52,
+    borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 13,
     paddingVertical: 10,
@@ -2321,11 +2321,11 @@ const styles = StyleSheet.create({
   bonusValue: { fontSize: 10, fontWeight: '900' },
   readinessHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 },
   readinessTitle: { fontSize: 14, fontWeight: '900' },
-  readinessList: { gap: 10 },
-  readinessRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  readinessText: { fontSize: 13, fontWeight: '700' },
+  readinessList: { gap: 7 },
+  readinessRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  readinessText: { fontSize: 12, fontWeight: '700' },
   readinessHint: { fontSize: 10.5, lineHeight: 15, marginTop: 3, maxWidth: 250 },
   readinessPenalty: { fontSize: 10, lineHeight: 15, fontWeight: '900', marginTop: 9 },
-  resupplyButton: { marginTop: 11 },
+  resupplyButton: { marginTop: 8 },
   adMessage: { fontSize: 10, textAlign: 'center' }
 });
