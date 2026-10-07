@@ -64,8 +64,13 @@ function Action({ label, onPress, selected = false, disabled = false, accessibil
   const { theme } = useGameTheme();
   return <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel ?? label}
     accessibilityState={{ disabled, selected }} disabled={disabled} onPress={onPress}
-    style={({ pressed }) => [s.action, { backgroundColor: theme.colors.surface1,
-      borderColor: selected ? theme.colors.gold : theme.colors.border, opacity: disabled ? .5 : pressed ? .7 : 1 }]}>
+    style={({ pressed }) => [s.action, {
+      backgroundColor: selected ? theme.colors.gold + '18' : theme.colors.surface1,
+      borderColor: selected ? theme.colors.gold : theme.colors.border,
+      borderBottomColor: selected ? theme.colors.gold : theme.colors.border,
+      opacity: disabled ? .5 : pressed ? .74 : 1,
+      transform: [{ translateY: pressed && !disabled ? 1 : 0 }]
+    }]}>
     <Text style={[s.actionLabel, { color: selected ? theme.colors.gold : theme.colors.text }]}>{label}</Text>
   </Pressable>;
 }
@@ -286,7 +291,7 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
       </View>
     ) : null}
     <View testID="battle-outcome-actions" style={[s.footer, layout.footerStacked && s.footerStack, {
-      backgroundColor: theme.colors.appBg, borderTopColor: theme.colors.border
+      backgroundColor: theme.colors.surface1, borderTopColor: theme.colors.border
     }]}>
       <View style={s.footerCopy}>
         <Text style={[s.footerStatus, { color: p.outcome === 'defeat' ? theme.colors.danger : theme.colors.gold }]}>
@@ -333,30 +338,61 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
 });
 
 const s = StyleSheet.create({
-  viewport: { flex: 1, minHeight: 0 }, scroll: { flex: 1 }, content: { paddingHorizontal: 10, paddingTop: 4, paddingBottom: 4, gap: 4 },
-  heading: { flexDirection: 'row', alignItems: 'center', gap: 6 }, headingCopy: { flex: 1, minWidth: 0 },
-  encounterTitle: { fontSize: 19, fontFamily: serif, fontWeight: '700' }, subtitle: { fontSize: 10, marginTop: 1 },
-  action: { minHeight: 44, minWidth: 44, paddingHorizontal: 10, borderWidth: 1, borderRadius: 5, justifyContent: 'center', alignItems: 'center' },
-  actionLabel: { fontSize: 12, fontWeight: '700' }, railContent: { gap: 6, paddingVertical: 2 },
-  portraitCard: { borderWidth: 1, borderRadius: 4, padding: 2, alignItems: 'center', overflow: 'hidden', minHeight: 44 },
-  portraitImage: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderRadius: 2 },
-  levelBadge: { position: 'absolute', bottom: 0, right: 0, fontSize: 10, fontWeight: '700', paddingHorizontal: 3, borderTopLeftRadius: 3 },
-  portraitName: { fontSize: 11, lineHeight: 15, paddingTop: 1, textAlign: 'center' }, routedMark: { position: 'absolute', right: 1, top: 0, color: '#FFFFFF', backgroundColor: '#000000', fontSize: 16 },
-  health: { gap: 2 }, healthHeading: { flexDirection: 'row', justifyContent: 'space-between', gap: 4 }, healthName: { fontSize: 9, fontWeight: '800' },
-  healthValue: { fontSize: 10, fontWeight: '700' }, healthTrack: { height: 4, borderRadius: 2, overflow: 'hidden' },
-  stage: { alignSelf: 'center', borderWidth: 1, overflow: 'hidden', borderRadius: 6 }, fill: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
-  guide: { position: 'absolute', left: 4, right: 4, borderTopWidth: .5, opacity: .24 }, rankMark: { position: 'absolute', top: -7, left: 0, fontSize: 8 },
+  viewport: { flex: 1, minHeight: 0 },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: 8, paddingTop: 3, paddingBottom: 3, gap: 3 },
+  heading: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 44 },
+  headingCopy: { flex: 1, minWidth: 0 },
+  encounterTitle: { fontSize: 17, lineHeight: 20, fontFamily: serif, fontWeight: '700' },
+  subtitle: { fontSize: 9, lineHeight: 11, marginTop: 0 },
+  action: {
+    minHeight: 44,
+    minWidth: 44,
+    paddingHorizontal: 9,
+    borderWidth: 1,
+    borderBottomWidth: 2,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  actionLabel: { fontSize: 11, fontWeight: '800' },
+  railContent: { gap: 4, paddingVertical: 1 },
+  portraitCard: { borderWidth: 1, borderRadius: 6, padding: 2, alignItems: 'center', overflow: 'hidden', minHeight: 44 },
+  portraitImage: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderRadius: 3 },
+  levelBadge: { position: 'absolute', bottom: 0, right: 0, fontSize: 9, fontWeight: '800', paddingHorizontal: 3, borderTopLeftRadius: 3 },
+  portraitName: { fontSize: 10, lineHeight: 13, paddingTop: 1, textAlign: 'center', fontWeight: '700' },
+  routedMark: { position: 'absolute', right: 1, top: 0, color: '#FFFFFF', backgroundColor: '#000000', fontSize: 16 },
+  health: { gap: 2 },
+  healthHeading: { flexDirection: 'row', justifyContent: 'space-between', gap: 4 },
+  healthName: { fontSize: 8.5, fontWeight: '900', letterSpacing: .3 },
+  healthValue: { fontSize: 9.5, fontWeight: '800' },
+  healthTrack: { height: 5, borderRadius: 3, overflow: 'hidden' },
+  stage: { alignSelf: 'center', borderWidth: 1.5, overflow: 'hidden', borderRadius: 8 },
+  fill: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
+  guide: { position: 'absolute', left: 4, right: 4, borderTopWidth: .5, opacity: .24 },
+  rankMark: { position: 'absolute', top: -7, left: 0, fontSize: 8 },
   engagement: { position: 'absolute', left: '22%', right: '22%', borderTopWidth: 1, opacity: .3 },
-  actor: { position: 'absolute', justifyContent: 'center', alignItems: 'center' }, shadow: { position: 'absolute', bottom: 0, borderRadius: 12 },
-  activeUnderline: { position: 'absolute', bottom: 0, height: 2, width: '80%', borderRadius: 2 }, impactRing: { position: 'absolute', left: -3, right: -3, bottom: -3, height: 12, borderWidth: 1.5, borderRadius: 99 },
+  actor: { position: 'absolute', justifyContent: 'center', alignItems: 'center' },
+  shadow: { position: 'absolute', bottom: 0, borderRadius: 12 },
+  activeUnderline: { position: 'absolute', bottom: 0, height: 2, width: '80%', borderRadius: 2 },
+  impactRing: { position: 'absolute', left: -3, right: -3, bottom: -3, height: 12, borderWidth: 1.5, borderRadius: 99 },
   selectionFrame: { position: 'absolute', left: -2, right: -2, bottom: -2, height: 10, borderWidth: 1.5, borderRadius: 99 },
-  vfx: { position: 'absolute', alignSelf: 'center', zIndex: 50 }, pauseOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000099', justifyContent: 'center', alignItems: 'center' },
-  pauseCopy: { color: '#F3C461', fontSize: 16, fontWeight: '800', letterSpacing: 2 }, selectionCopy: { fontSize: 10, textAlign: 'center', minHeight: 15 },
-  orderBar: { flexShrink: 0, borderTopWidth: 1, paddingVertical: 3 },
-  orderContent: { gap: 6, paddingHorizontal: 8 },
-  footer: { flexShrink: 0, borderTopWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 4 }, footerStack: { flexDirection: 'column', alignItems: 'stretch' },
-  footerCopy: { flex: 1, minWidth: 0 }, footerStatus: { fontSize: 10, fontWeight: '800' }, formationLink: { minHeight: 44, justifyContent: 'center' }, linkText: { fontSize: 10 },
-  modalShade: { flex: 1, backgroundColor: '#000000BB', justifyContent: 'center', padding: 16 }, sheet: { maxHeight: '80%', borderRadius: 8, borderWidth: 1, padding: 12 },
-  sheetHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }, sheetTitle: { flex: 1, fontSize: 17, fontFamily: serif },
-  detailText: { fontSize: 12, lineHeight: 19, marginVertical: 4 }, logEntry: { marginVertical: 4 }
+  vfx: { position: 'absolute', alignSelf: 'center', zIndex: 50 },
+  pauseOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000099', justifyContent: 'center', alignItems: 'center' },
+  pauseCopy: { color: '#F3C461', fontSize: 15, fontWeight: '900', letterSpacing: 2 },
+  selectionCopy: { fontSize: 9, lineHeight: 12, textAlign: 'center', minHeight: 12 },
+  orderBar: { flexShrink: 0, borderTopWidth: 1, paddingVertical: 2 },
+  orderContent: { gap: 5, paddingHorizontal: 6 },
+  footer: { flexShrink: 0, borderTopWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  footerStack: { flexDirection: 'column', alignItems: 'stretch' },
+  footerCopy: { flex: 1, minWidth: 0 },
+  footerStatus: { fontSize: 9.5, lineHeight: 12, fontWeight: '900' },
+  formationLink: { minHeight: 44, justifyContent: 'center' },
+  linkText: { fontSize: 9, lineHeight: 11 },
+  modalShade: { flex: 1, backgroundColor: '#000000BB', justifyContent: 'center', padding: 12 },
+  sheet: { maxHeight: '80%', borderRadius: 10, borderWidth: 1, padding: 10 },
+  sheetHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 7, marginBottom: 6 },
+  sheetTitle: { flex: 1, fontSize: 15.5, fontFamily: serif, fontWeight: '700' },
+  detailText: { fontSize: 11, lineHeight: 16, marginVertical: 3 },
+  logEntry: { marginVertical: 3 }
 });
