@@ -68,6 +68,13 @@ export function GameCard({
           <View pointerEvents="none" style={[styles.cardCornerBottom, { borderColor: factionAccent }]} />
         </>
       ) : null}
+      <View
+        pointerEvents="none"
+        style={[
+          styles.cardInset,
+          { borderColor: theme.colors.text + (theme.dark ? '0C' : '10') }
+        ]}
+      />
       {state === 'selected' || state === 'ready' ? (
         <View
           pointerEvents="none"
@@ -650,7 +657,10 @@ export function ResourceAmountRow({
             style={[
               styles.resourceAmount,
               compact ? styles.resourceAmountCompact : undefined,
-              { backgroundColor: theme.colors.surface2 }
+              {
+                backgroundColor: theme.colors.surface2,
+                borderColor: theme.colors.border
+              }
             ]}
           >
             <ResourceSprite resource={resource} size={compact ? 20 : 24} />
@@ -766,6 +776,15 @@ const styles = StyleSheet.create({
     borderLeftWidth: 2,
     borderBottomWidth: 2,
     opacity: 0.32
+  },
+  cardInset: {
+    position: 'absolute',
+    left: 2,
+    right: 2,
+    top: 2,
+    bottom: 2,
+    borderRadius: 12,
+    borderWidth: 1
   },
   cardStateGlow: {
     position: 'absolute',
@@ -1059,6 +1078,7 @@ const styles = StyleSheet.create({
   resourceAmount: {
     minHeight: 31,
     borderRadius: 9,
+    borderWidth: 1,
     paddingHorizontal: 7,
     flexDirection: 'row',
     alignItems: 'center',
