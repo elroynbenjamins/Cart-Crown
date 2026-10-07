@@ -261,10 +261,12 @@ export function AppShell({
     lastBattleResult,
     commanderPathId,
     firstPromotionComplete,
+    commanderChoiceUnlocked,
     settlementUpgraded,
     units,
     buildings,
     buildingLevels,
+    equipmentInventory,
     isBuildingUnlocked,
     factionBuildingIds,
     forgeUnlocked,
@@ -1841,6 +1843,21 @@ export function AppShell({
     }
   };
 
+  const armyActionReady =
+    Boolean(
+      (
+        activeFaction === 'human' &&
+        forgeUnlocked &&
+        (buildingLevels[factionBuildingIds.forge] ?? 0) > 0 &&
+        !firstPromotionComplete &&
+        equipmentInventory.length > 0
+      ) ||
+      (
+        commanderChoiceUnlocked &&
+        !commanderPathId
+      )
+    );
+
   const campaignActivityNeedsAttention =
     Boolean(
       (isSideModeUnlocked('expeditions') && activeExpeditionRun) ||
@@ -2169,6 +2186,10 @@ export function AppShell({
               (
                 item.id === 'campaign' &&
                 campaignActivityNeedsAttention
+              ) ||
+              (
+                item.id === 'army' &&
+                armyActionReady
               );
 
             const tutorialNavFocused =
@@ -2184,7 +2205,9 @@ export function AppShell({
                     ? item.label + ', production ready to claim'
                     : item.id === 'campaign' && campaignActivityNeedsAttention
                       ? item.label + ', activity requires attention'
-                      : item.label
+                      : item.id === 'army' && armyActionReady
+                        ? item.label + ', action ready'
+                        : item.label
                 }
                 accessibilityState={{ selected }}
                 onPress={() => {
