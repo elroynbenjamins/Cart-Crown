@@ -3,6 +3,8 @@ import {
   createKeyedInFlightGuard,
   createOneShotGate,
   createSerialTaskQueue,
+  popNavigationHistory,
+  pushNavigationHistory,
   resolveHardwareBackAction,
   shouldAcceptActionPress
 } from '../src/game/mobileSession';
@@ -93,9 +95,20 @@ function runBackCoverage() {
     resolveHardwareBackAction({
       flow: 'battlePrep',
       canGoBack: true,
-      active: 'campaign'
+      active: 'campaign',
+      hasHistory: true
+    }) === 'go_history',
+    'Hardware Back no longer restores the previous route when navigation history exists.'
+  );
+
+  expect(
+    resolveHardwareBackAction({
+      flow: 'battlePrep',
+      canGoBack: true,
+      active: 'campaign',
+      hasHistory: false
     }) === 'close_flow',
-    'Hardware Back no longer closes ordinary flow screens.'
+    'Hardware Back no longer closes an ordinary flow when no history is available.'
   );
 
   expect(
@@ -123,6 +136,63 @@ function runBackCoverage() {
       active: 'kingdom'
     }) === 'exit_app',
     'Hardware Back no longer exits only from the root Kingdom screen.'
+  );
+}
+
+function runNavigationHistoryCoverage() {
+  let history = pushNavigationHistory(
+    [],
+    { active: 'kingdom', flow: null }
+  );
+  history = pushNavigationHistory(
+    history,
+    { active: 'campaign', flow: null }
+  );
+  history = pushNavigationHistory(
+    history,
+    { active: 'campaign', flow: 'warTable' }
+  );
+
+  expect(
+    history.length === 3,
+    'Navigation history did not preserve the visited route sequence.'
+  );
+
+  const firstBack = popNavigationHistory(history);
+  expect(
+    firstBack.route?.active === 'campaign' &&
+      firstBack.route?.flow === 'warTable',
+    'Navigation history did not pop the most recently visited route first.'
+  );
+
+  const duplicate = pushNavigationHistory(
+    firstBack.history,
+    { active: 'campaign', flow: null }
+  );
+  expect(
+    duplicate.length === firstBack.history.length,
+    'Navigation history stored a duplicate consecutive route.'
+  );
+
+  let bounded: Array<{
+    active: 'kingdom' | 'campaign' | 'formation' | 'wagon' | 'army';
+    flow: string | null;
+  }> = [];
+
+  for (let index = 0; index < 40; index += 1) {
+    bounded = pushNavigationHistory(
+      bounded,
+      {
+        active: index % 2 === 0 ? 'kingdom' : 'campaign',
+        flow: 'screen-' + index
+      },
+      32
+    );
+  }
+
+  expect(
+    bounded.length === 32,
+    'Navigation history exceeded its 32-route safety bound.'
   );
 }
 
@@ -275,6 +345,7 @@ function runTacticalGuidanceCoverage() {
 
 async function main() {
   runBackCoverage();
+  runNavigationHistoryCoverage();
   runPressCoverage();
   runOneShotCoverage();
   runAppStateCoverage();
@@ -301,7 +372,7 @@ async function main() {
   }
 
   console.log(
-    'PASS: Android Back routing, rapid-press throttling, one-shot battle completion, background battle pause, rewarded-ad in-flight locking, tactical-guidance separation, severe-prep confirmation boundaries, defeat-to-rematch routing and serialized save writes remain protected.'
+    'PASS: Android Back routing, bounded navigation history, rapid-press throttling, one-shot battle completion, background battle pause, rewarded-ad in-flight locking, tactical-guidance separation, severe-prep confirmation boundaries, defeat-to-rematch routing and serialized save writes remain protected.'
   );
 }
 
