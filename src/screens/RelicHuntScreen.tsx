@@ -1226,15 +1226,15 @@ export function RelicHuntScreen({
 
 const styles = StyleSheet.create({
   content: {
-    padding: 16,
-    paddingBottom: 34,
-    gap: 12
+    padding: 12,
+    paddingBottom: 24,
+    gap: 9
   },
   metrics: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 10
+    gap: 6,
+    marginBottom: 8
   },
   metric: {
     flexGrow: 1,
@@ -1246,22 +1246,22 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7
   },
   value: {
-    fontSize: 18,
+    fontSize: 16.5,
     fontWeight: '900',
     marginTop: 2
   },
   affinityGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7,
-    marginTop: 8
+    gap: 5,
+    marginTop: 7
   },
   affinity: {
     minWidth: '22%',
     flexGrow: 1,
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 8
+    borderRadius: 9,
+    padding: 7
   },
   affinityLabel: {
     fontSize: 8.5,
@@ -1269,7 +1269,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7
   },
   affinityValue: {
-    fontSize: 16,
+    fontSize: 14.5,
     fontWeight: '900',
     marginTop: 2
   },
@@ -1285,19 +1285,19 @@ const styles = StyleSheet.create({
     marginTop: 8
   },
   actions: {
-    gap: 8,
-    marginTop: 12
+    gap: 6,
+    marginTop: 9
   },
   stageRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10
+    gap: 8
   },
   guardianIcon: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -1315,7 +1315,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8
   },
   stageTitle: {
-    fontSize: 15,
+    fontSize: 13.5,
     fontWeight: '900',
     marginTop: 2
   },
@@ -1327,12 +1327,12 @@ const styles = StyleSheet.create({
   rewardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 11
+    gap: 8
   },
   rewardArt: {
-    width: 62,
-    height: 62,
-    borderRadius: 15,
+    width: 54,
+    height: 54,
+    borderRadius: 12,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center'
@@ -1344,7 +1344,7 @@ const styles = StyleSheet.create({
     marginTop: 5
   },
   rewardName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900'
   },
   rewardStats: {
@@ -1353,10 +1353,10 @@ const styles = StyleSheet.create({
     marginTop: 5
   },
   collectionList: {
-    gap: 8
+    gap: 6
   },
   collectionRow: {
-    minHeight: 50,
+    minHeight: 46,
     borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1385,7 +1385,7 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   failTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900'
   },
   completeHeader: {
@@ -1395,9 +1395,9 @@ const styles = StyleSheet.create({
   },
   intel: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 12
+    borderRadius: 10,
+    padding: 8,
+    marginTop: 9
   },
   intelValue: {
     fontSize: 12,
