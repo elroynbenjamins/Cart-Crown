@@ -141,12 +141,12 @@ export function ActivityCard({
 
 const styles = StyleSheet.create({
   card: {
-    paddingVertical: 14
+    paddingVertical: 10
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: 9
   },
   copy: {
     flex: 1,
@@ -164,8 +164,8 @@ const styles = StyleSheet.create({
   },
   name: {
     flexShrink: 1,
-    fontSize: 17,
-    lineHeight: 21,
+    fontSize: 15,
+    lineHeight: 19,
     fontWeight: '900'
   },
   notificationDot: {
@@ -174,36 +174,36 @@ const styles = StyleSheet.create({
     borderRadius: 4
   },
   purpose: {
-    fontSize: 11.5,
-    lineHeight: 16,
-    marginTop: 4
+    fontSize: 10.5,
+    lineHeight: 14,
+    marginTop: 3
   },
   metaRow: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    paddingTop: 11,
-    marginTop: 12,
-    gap: 8
+    paddingTop: 8,
+    marginTop: 9,
+    gap: 6
   },
   statusRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8
+    gap: 6
   },
   status: {
     flexGrow: 1,
     flexShrink: 1,
     flexBasis: 140,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 10.5,
+    lineHeight: 15,
     fontWeight: '900'
   },
   attentionBadge: {
     maxWidth: '100%',
     flexShrink: 1,
-    paddingHorizontal: 7,
-    paddingVertical: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1
   },
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   rewardRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 7
+    gap: 5
   },
   rewardMark: {
     width: 5,
@@ -226,11 +226,11 @@ const styles = StyleSheet.create({
   },
   reward: {
     flex: 1,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 10,
+    lineHeight: 14,
     fontWeight: '800'
   },
   button: {
-    marginTop: 12
+    marginTop: 9
   }
 });
