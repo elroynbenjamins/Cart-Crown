@@ -805,6 +805,7 @@ export function FormationScreen({
               <View style={styles.presetActions}>
                 {preset && !active ? (
                   <Pressable
+                    hitSlop={6}
                     onPress={() => handleApplyLoadout(slotId)}
                     style={({ pressed }) => [
                       styles.presetAction,
@@ -847,6 +848,7 @@ export function FormationScreen({
 
                 {preset ? (
                   <Pressable
+                    hitSlop={6}
                     onPress={() => handleClearLoadout(slotId)}
                     style={({ pressed }) => [
                       styles.presetAction,
