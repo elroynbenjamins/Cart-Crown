@@ -291,6 +291,9 @@ function testRecipesAndInteractions() {
     }
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
     check(nodes(tree, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'Blueprint planner must be directly available from the settlement overview.');
+    const worldScene = nodes(tree, 'View').find(node => node.props.testID === 'settlement-scene');
+    check(Boolean(worldScene), 'Settlement must expose one world-scene root.');
+    check(nodes(worldScene, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'Concept Build command must live inside the world scene instead of becoming a stacked card above it.');
     check(text(tree).includes('built ·') && text(tree).includes('districts'), 'Concept settlement HUD must summarize kingdom and district status without stacked chips.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'Rebuilt world canvases must keep district-opportunity detail in the planner instead of covering the terrain.');
     check(text(tree).includes(' build'), 'Affordable construction must remain visible in the concept HUD summary before opening a plot.');
