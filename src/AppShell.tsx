@@ -11,7 +11,12 @@ import {
 } from 'react-native';
 import type { NavId } from './game/types';
 import type { BattlePreparationFixTarget } from './game/battlePreparation';
-import { resolveHardwareBackAction } from './game/mobileSession';
+import {
+  popNavigationHistory,
+  pushNavigationHistory,
+  resolveHardwareBackAction,
+  sameNavigationRoute
+} from './game/mobileSession';
 import {
   getNextTutorialMoment,
   getTutorialCompletionKeys,
@@ -245,6 +250,9 @@ export function AppShell({
   const [tutorialFocusKey, setTutorialFocusKey] =
     useState<string | null>(null);
   const reviewAttemptedRef = useRef(false);
+  const navigationHistoryRef = useRef<
+    Array<{ active: NavId; flow: FlowScreen | null }>
+  >([]);
   const { theme, cycleTheme } = useGameTheme();
   const {
     activeFaction,
@@ -376,7 +384,87 @@ export function AppShell({
   const tutorialMoment =
     tutorialFocus ? null : nextTutorialMoment;
 
-  const openRecruitment = () => setFlow('recruitment');
+  const navigateTo = (
+    nextActive: NavId,
+    nextFlow: FlowScreen | null
+  ) => {
+    const currentRoute = { active, flow };
+    const nextRoute = {
+      active: nextActive,
+      flow: nextFlow
+    };
+
+    if (sameNavigationRoute(currentRoute, nextRoute)) {
+      return;
+    }
+
+    navigationHistoryRef.current =
+      pushNavigationHistory(
+        navigationHistoryRef.current,
+        currentRoute
+      ) as Array<{
+        active: NavId;
+        flow: FlowScreen | null;
+      }>;
+
+    setActive(nextActive);
+    setFlow(nextFlow);
+  };
+
+  const navigateToNav = (nextActive: NavId) => {
+    navigateTo(nextActive, null);
+  };
+
+  const openFlow = (nextFlow: FlowScreen) => {
+    navigateTo(active, nextFlow);
+  };
+
+  const restorePreviousRoute = () => {
+    const popped = popNavigationHistory(
+      navigationHistoryRef.current
+    );
+
+    navigationHistoryRef.current =
+      popped.history as Array<{
+        active: NavId;
+        flow: FlowScreen | null;
+      }>;
+
+    if (!popped.route) {
+      return false;
+    }
+
+    setActive(popped.route.active);
+    setFlow(popped.route.flow as FlowScreen | null);
+    return true;
+  };
+
+  const completeTo = (
+    nextActive: NavId,
+    nextFlow: FlowScreen | null
+  ) => {
+    const previous =
+      navigationHistoryRef.current[
+        navigationHistoryRef.current.length - 1
+      ];
+
+    if (
+      previous &&
+      sameNavigationRoute(previous, {
+        active: nextActive,
+        flow: nextFlow
+      })
+    ) {
+      navigationHistoryRef.current =
+        navigationHistoryRef.current.slice(0, -1);
+    }
+
+    setActive(nextActive);
+    setFlow(nextFlow);
+  };
+
+  const openRecruitment = () =>
+    openFlow('recruitment');
 
   const exitToSaveSlots = async () => {
     await flushSnapshot();
@@ -403,16 +491,14 @@ export function AppShell({
         'orc_crownspire_warmaster_result'
       ].includes(lastBattleResult?.id ?? '')
     ) {
-      setFlow(null);
-      setActive('campaign');
+      completeTo('campaign', null);
       return;
     }
 
     if (
       activeEncounterId.startsWith('war_table_')
     ) {
-      setFlow('warTable');
-      setActive('campaign');
+      completeTo('campaign', 'warTable');
       return;
     }
 
@@ -423,13 +509,11 @@ export function AppShell({
         'unbound_beacon_result'
       ].includes(lastBattleResult?.id ?? '')
     ) {
-      setFlow('metaCampaign');
-      setActive('campaign');
+      completeTo('campaign', 'metaCampaign');
       return;
     }
 
-    setFlow(null);
-    setActive('kingdom');
+    completeTo('kingdom', null);
   };
 
   const completeTutorialFocus = () => {
@@ -465,26 +549,19 @@ export function AppShell({
     }
 
     if (target === 'campaign') {
-      setFlow(null);
-      setActive('campaign');
+      navigateTo('campaign', null);
     } else if (target === 'kingdom') {
-      setFlow(null);
-      setActive('kingdom');
+      navigateTo('kingdom', null);
     } else if (target === 'formation') {
-      setFlow(null);
-      setActive('formation');
+      navigateTo('formation', null);
     } else if (target === 'army') {
-      setFlow(null);
-      setActive('army');
+      navigateTo('army', null);
     } else if (target === 'wagon') {
-      setFlow(null);
-      setActive('wagon');
+      navigateTo('wagon', null);
     } else if (target === 'settlement') {
-      setActive('kingdom');
-      setFlow('settlement');
+      navigateTo('kingdom', 'settlement');
     } else if (target === 'forge') {
-      setActive('kingdom');
-      setFlow('forge');
+      navigateTo('kingdom', 'forge');
     }
   };
 
@@ -572,8 +649,7 @@ export function AppShell({
               adjustment,
               presetSlotId
             });
-            setFlow(null);
-            setActive('formation');
+            navigateTo('formation', null);
           }}
           onOpenPreparationFix={(target, unitId) => {
             setPreparationFixTarget(target);
@@ -823,13 +899,11 @@ export function AppShell({
           }}
           onEditFormation={() => {
             setFormationReturnFlow('kingdomDefense');
-            setFlow(null);
-            setActive('formation');
+            navigateTo('formation', null);
           }}
           onEditWagon={() => {
             setWagonReturnFlow('kingdomDefense');
-            setFlow(null);
-            setActive('wagon');
+            navigateTo('wagon', null);
           }}
         />
       );
@@ -1183,15 +1257,15 @@ export function AppShell({
         <MetaCampaignScreen
           onStartConvergence={() => {
             setActiveEncounterId('three_seals_convergence');
-            setFlow('battlePrep');
+            openFlow('battlePrep');
           }}
           onStartTriumvirate={() => {
             setActiveEncounterId('ashen_triumvirate');
-            setFlow('battlePrep');
+            openFlow('battlePrep');
           }}
           onStartFinalBoss={() => {
             setActiveEncounterId('unbound_beacon');
-            setFlow('battlePrep');
+            openFlow('battlePrep');
           }}
           onExit={() => {
             setFlow(null);
@@ -1219,7 +1293,7 @@ export function AppShell({
         <WarTableScreen
           onStartBattle={encounterId => {
             setActiveEncounterId(encounterId);
-            setFlow('battlePrep');
+            openFlow('battlePrep');
           }}
         />
       );
@@ -1230,13 +1304,11 @@ export function AppShell({
         <ExpeditionScreen
           onEditFormation={() => {
             setFormationReturnFlow('expedition');
-            setFlow(null);
-            setActive('formation');
+            navigateTo('formation', null);
           }}
           onEditWagon={() => {
             setWagonReturnFlow('expedition');
-            setFlow(null);
-            setActive('wagon');
+            navigateTo('wagon', null);
           }}
           onExit={() => {
             setFlow(null);
@@ -1251,13 +1323,11 @@ export function AppShell({
         <SiegeScreen
           onEditFormation={() => {
             setFormationReturnFlow('siege');
-            setFlow(null);
-            setActive('formation');
+            navigateTo('formation', null);
           }}
           onEditWagon={() => {
             setWagonReturnFlow('siege');
-            setFlow(null);
-            setActive('wagon');
+            navigateTo('wagon', null);
           }}
           onExit={() => {
             setFlow(null);
@@ -1272,8 +1342,7 @@ export function AppShell({
         <RelicHuntScreen
           onEditFormation={() => {
             setFormationReturnFlow('relicHunt');
-            setFlow(null);
-            setActive('formation');
+            navigateTo('formation', null);
           }}
           onExit={() => {
             setFlow(null);
@@ -1292,8 +1361,7 @@ export function AppShell({
           }}
           onEditFormation={() => {
             setFormationReturnFlow('formationTrial');
-            setFlow(null);
-            setActive('formation');
+            navigateTo('formation', null);
           }}
         />
       );
@@ -1307,137 +1375,137 @@ export function AppShell({
             onTutorialFocusComplete={completeTutorialFocus}
             onStartBattle={() => {
               setActiveEncounterId('hold_the_road');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenMarkedRaiders={() => setFlow('markedRaiders')}
+            onOpenMarkedRaiders={() => openFlow('markedRaiders')}
             onStartMercenary={() => {
               setActiveEncounterId('mercenary_patrol');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenRefugeeCamp={() => setFlow('refugeeCamp')}
+            onOpenRefugeeCamp={() => openFlow('refugeeCamp')}
             onStartTollCaptain={() => {
               setActiveEncounterId('toll_captain');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenFortMuster={() => setFlow('fortMuster')}
+            onOpenFortMuster={() => openFlow('fortMuster')}
             onStartIronRoad={() => {
               setActiveEncounterId('iron_road_skirmish');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartRidersOnRoad={() => {
               setActiveEncounterId('riders_on_the_road');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenTimberClaim={() => setFlow('timberClaim')}
-            onOpenKingdomDefense={() => setFlow('kingdomDefense')}
-            onOpenBrokenSignalTower={() => setFlow('brokenSignalTower')}
+            onOpenTimberClaim={() => openFlow('timberClaim')}
+            onOpenKingdomDefense={() => openFlow('kingdomDefense')}
+            onOpenBrokenSignalTower={() => openFlow('brokenSignalTower')}
             onStartIronLine={() => {
               setActiveEncounterId('the_iron_line');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartIronProvost={() => {
               setActiveEncounterId('iron_provost');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenMarcherEnvoy={() => setFlow('marcherEnvoy')}
+            onOpenMarcherEnvoy={() => openFlow('marcherEnvoy')}
             onStartBorderFort={() => {
               setActiveEncounterId('border_fort');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartFrozenSteel={() => {
               setActiveEncounterId('ch3_frozen_steel');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartHoovesSnow={() => {
               setActiveEncounterId('ch3_hooves_snow');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenThreeWarnings={() => setFlow('threeWarnings')}
+            onOpenThreeWarnings={() => openFlow('threeWarnings')}
             onStartSiegeRoad={() => {
               setActiveEncounterId('siege_road');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartThroughGap={() => {
               setActiveEncounterId('ch3_through_gap');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartWolvesWing={() => {
               setActiveEncounterId('ch3_wolves_wing');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartLayeredHost={() => {
               setActiveEncounterId('ch3_layered_host');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenDividedMarch={() => setFlow('dividedMarch')}
+            onOpenDividedMarch={() => openFlow('dividedMarch')}
             onStartLordMarshal={() => {
               setActiveEncounterId('lord_marshal_veyr');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartLongFront={() => {
               setActiveEncounterId('ch4_long_front');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartBrokenStandards={() => {
               setActiveEncounterId('broken_standards');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenChapterFourCommander={() => {
               setCommanderChoiceReturn('campaign');
-              setFlow('commanderChoice');
+              openFlow('commanderChoice');
             }}
             onStartBrokenGround={() => {
               setActiveEncounterId('ch4_broken_ground');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartCrownroadAmbush={() => {
               setActiveEncounterId('crownroad_ambush');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenEmptyThrone={() => setFlow('emptyThrone')}
+            onOpenEmptyThrone={() => openFlow('emptyThrone')}
             onStartWrongArmy={() => {
               setActiveEncounterId('ch4_wrong_army');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenStrongholdMuster={() => setFlow('strongholdMuster')}
+            onOpenStrongholdMuster={() => openFlow('strongholdMuster')}
             onStartHuntersRear={() => {
               setActiveEncounterId('ch4_hunters_rear');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenLastLoyalists={() => setFlow('lastLoyalists')}
+            onOpenLastLoyalists={() => openFlow('lastLoyalists')}
             onStartPretenderGeneral={() => {
               setActiveEncounterId('pretender_general');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenRoyalDecrees={() => setFlow('royalDecrees')}
+            onOpenRoyalDecrees={() => openFlow('royalDecrees')}
             onStartOldRoyalLands={() => {
               setActiveEncounterId('old_royal_lands');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenBrokenArchives={() => setFlow('brokenArchives')}
+            onOpenBrokenArchives={() => openFlow('brokenArchives')}
             onStartAshenEnvoy={() => {
               setActiveEncounterId('ashen_envoy');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenRoyalLedger={() => setFlow('royalLedger')}
+            onOpenRoyalLedger={() => openFlow('royalLedger')}
             onStartGateOfCrownspire={() => {
               setActiveEncounterId('gate_of_crownspire');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenGrandCouncil={() => setFlow('grandCouncil')}
+            onOpenGrandCouncil={() => openFlow('grandCouncil')}
             onStartSunderedFields={() => {
               setActiveEncounterId('sundered_fields');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenConcordVault={() => setFlow('concordVault')}
+            onOpenConcordVault={() => openFlow('concordVault')}
             onStartAshenCourt={() => {
               setActiveEncounterId('ashen_court');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenForcedBeacon={() => setFlow('forcedBeacon')}
+            onOpenForcedBeacon={() => openFlow('forcedBeacon')}
             onStartReturnToCrownspire={() => {
               setActiveEncounterId('return_to_crownspire');
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onStartFactionOpeningBattle={() => {
               setActiveEncounterId(
@@ -1445,10 +1513,10 @@ export function AppShell({
                   ? 'elf_wardbreakers'
                   : 'orc_red_road'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionInvestigation={() =>
-              setFlow('factionInvestigation')
+              openFlow('factionInvestigation')
             }
             onStartFactionEliteBattle={() => {
               setActiveEncounterId(
@@ -1456,19 +1524,19 @@ export function AppShell({
                   ? 'elf_ashen_tracks'
                   : 'orc_invader_scouts'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenFactionSupply={() => setFlow('factionSupply')}
+            onOpenFactionSupply={() => openFlow('factionSupply')}
             onStartFactionBoss={() => {
               setActiveEncounterId(
                 activeFaction === 'elf'
                   ? 'elf_hollow_warden'
                   : 'orc_blamecaller'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterTwoRecruitment={() =>
-              setFlow('factionRecruitment')
+              openFlow('factionRecruitment')
             }
             onStartFactionChapterTwoBattle={() => {
               setActiveEncounterId(
@@ -1476,10 +1544,10 @@ export function AppShell({
                   ? 'elf_last_heartgrove'
                   : 'orc_gather_clans'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterTwoResource={() =>
-              setFlow('factionChapterTwoResource')
+              openFlow('factionChapterTwoResource')
             }
             onStartFactionChapterTwoElite={() => {
               setActiveEncounterId(
@@ -1487,10 +1555,10 @@ export function AppShell({
                   ? 'elf_ward_hunters'
                   : 'orc_stonejaw_challengers'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterTwoCouncil={() =>
-              setFlow('factionChapterTwoCouncil')
+              openFlow('factionChapterTwoCouncil')
             }
             onStartFactionChapterTwoBoss={() => {
               setActiveEncounterId(
@@ -1498,10 +1566,10 @@ export function AppShell({
                   ? 'elf_ashroot_stalker'
                   : 'orc_clanbreaker'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterThreeRecruitment={() =>
-              setFlow('factionFourthRecruitment')
+              openFlow('factionFourthRecruitment')
             }
             onStartFactionChapterThreeBattle={() => {
               setActiveEncounterId(
@@ -1509,10 +1577,10 @@ export function AppShell({
                   ? 'elf_moonlit_pass'
                   : 'orc_stonejaw_trial'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterThreeResource={() =>
-              setFlow('factionChapterThreeResource')
+              openFlow('factionChapterThreeResource')
             }
             onStartFactionChapterThreeElite={() => {
               setActiveEncounterId(
@@ -1520,10 +1588,10 @@ export function AppShell({
                   ? 'elf_ashen_groves'
                   : 'orc_broken_steppe'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterThreeCouncil={() =>
-              setFlow('factionChapterThreeCouncil')
+              openFlow('factionChapterThreeCouncil')
             }
             onStartFactionChapterThreeBoss={() => {
               setActiveEncounterId(
@@ -1531,10 +1599,10 @@ export function AppShell({
                   ? 'elf_pale_ranger'
                   : 'orc_stonejaw_champion'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterFourRecruitment={() =>
-              setFlow('factionFifthRecruitment')
+              openFlow('factionFifthRecruitment')
             }
             onStartFactionChapterFourBattle={() => {
               setActiveEncounterId(
@@ -1542,10 +1610,10 @@ export function AppShell({
                   ? 'elf_roots_in_ash'
                   : 'orc_two_front_war'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterFourResource={() =>
-              setFlow('factionChapterFourResource')
+              openFlow('factionChapterFourResource')
             }
             onStartFactionChapterFourElite={() => {
               setActiveEncounterId(
@@ -1553,10 +1621,10 @@ export function AppShell({
                   ? 'elf_two_fronts'
                   : 'orc_broken_steppe_war'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterFourCouncil={() =>
-              setFlow('factionChapterFourCouncil')
+              openFlow('factionChapterFourCouncil')
             }
             onStartFactionChapterFourBoss={() => {
               setActiveEncounterId(
@@ -1564,10 +1632,10 @@ export function AppShell({
                   ? 'elf_ashen_druid'
                   : 'orc_split_chieftain'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterFiveMuster={() =>
-              setFlow('factionChapterFiveMuster')
+              openFlow('factionChapterFiveMuster')
             }
             onStartFactionChapterFiveBattle={() => {
               setActiveEncounterId(
@@ -1575,10 +1643,10 @@ export function AppShell({
                   ? 'elf_wounded_worldroot'
                   : 'orc_no_clan_left_behind'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterFiveResource={() =>
-              setFlow('factionChapterFiveResource')
+              openFlow('factionChapterFiveResource')
             }
             onStartFactionChapterFiveElite={() => {
               setActiveEncounterId(
@@ -1586,10 +1654,10 @@ export function AppShell({
                   ? 'elf_ashen_rootkeepers'
                   : 'orc_ashen_clanbreakers'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterFiveSeal={() =>
-              setFlow('factionChapterFiveSeal')
+              openFlow('factionChapterFiveSeal')
             }
             onStartFactionChapterFiveBoss={() => {
               setActiveEncounterId(
@@ -1597,19 +1665,19 @@ export function AppShell({
                   ? 'elf_worldroot_guardian'
                   : 'orc_last_clanbreaker'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenFactionMandate={() => setFlow('factionMandate')}
+            onOpenFactionMandate={() => openFlow('factionMandate')}
             onStartFactionChapterSixBattle={() => {
               setActiveEncounterId(
                 activeFaction === 'elf'
                   ? 'elf_stars_over_crownspire'
                   : 'orc_truth_at_crownspire'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterSixConcord={() =>
-              setFlow('factionChapterSixConcord')
+              openFlow('factionChapterSixConcord')
             }
             onStartFactionChapterSixElite={() => {
               setActiveEncounterId(
@@ -1617,10 +1685,10 @@ export function AppShell({
                   ? 'elf_ashen_starwatch'
                   : 'orc_ashen_warfires'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
             onOpenFactionChapterSixSeal={() =>
-              setFlow('factionChapterSixSeal')
+              openFlow('factionChapterSixSeal')
             }
             onStartFactionChapterSixBoss={() => {
               setActiveEncounterId(
@@ -1628,14 +1696,14 @@ export function AppShell({
                   ? 'elf_return_through_roots'
                   : 'orc_crownspire_warmaster'
               );
-              setFlow('battlePrep');
+              openFlow('battlePrep');
             }}
-            onOpenMetaCampaign={() => setFlow('metaCampaign')}
-            onOpenWarTable={() => setFlow('warTable')}
-            onOpenExpedition={() => setFlow('expedition')}
-            onOpenSiege={() => setFlow('siege')}
-            onOpenRelicHunt={() => setFlow('relicHunt')}
-            onOpenFormationTrial={() => setFlow('formationTrial')}
+            onOpenMetaCampaign={() => openFlow('metaCampaign')}
+            onOpenWarTable={() => openFlow('warTable')}
+            onOpenExpedition={() => openFlow('expedition')}
+            onOpenSiege={() => openFlow('siege')}
+            onOpenRelicHunt={() => openFlow('relicHunt')}
+            onOpenFormationTrial={() => openFlow('formationTrial')}
           />
         );
       case 'formation':
@@ -1648,10 +1716,8 @@ export function AppShell({
             onReturnToMode={
               formationReturnFlow
                 ? () => {
-                    const target = formationReturnFlow;
                     setFormationReturnFlow(null);
-                    setActive('campaign');
-                    setFlow(target);
+                    restorePreviousRoute();
                   }
                 : undefined
             }
@@ -1672,7 +1738,7 @@ export function AppShell({
               formationGuide
                 ? () => {
                     setFormationGuide(null);
-                    setFlow('battlePrep');
+                    restorePreviousRoute();
                   }
                 : undefined
             }
@@ -1684,10 +1750,8 @@ export function AppShell({
             onReturnToMode={
               wagonReturnFlow
                 ? () => {
-                    const target = wagonReturnFlow;
                     setWagonReturnFlow(null);
-                    setActive('campaign');
-                    setFlow(target);
+                    restorePreviousRoute();
                   }
                 : undefined
             }
@@ -1708,19 +1772,19 @@ export function AppShell({
             tutorialFocus={tutorialFocus}
             onTutorialFocusComplete={completeTutorialFocus}
             onOpenRecruitment={openRecruitment}
-            onOpenForge={() => setFlow('forge')}
-            onOpenPromotion={() => setFlow('promotion')}
+            onOpenForge={() => openFlow('forge')}
+            onOpenPromotion={() => openFlow('promotion')}
             onOpenCommander={() => {
               setCommanderChoiceReturn('army');
-              setFlow('commanderChoice');
+              openFlow('commanderChoice');
             }}
-            onOpenFantasyResearch={() => setFlow('fantasyResearch')}
-            onOpenFlyingResearch={() => setFlow('flyingResearch')}
-            onOpenLargeResearch={() => setFlow('largeResearch')}
-            onOpenHybridResearch={() => setFlow('hybridResearch')}
+            onOpenFantasyResearch={() => openFlow('fantasyResearch')}
+            onOpenFlyingResearch={() => openFlow('flyingResearch')}
+            onOpenLargeResearch={() => openFlow('largeResearch')}
+            onOpenHybridResearch={() => openFlow('hybridResearch')}
             onOpenEquipment={(unitId) => {
               setEquipmentUnitId(unitId);
-              setFlow('equipment');
+              openFlow('equipment');
             }}
           />
         );
@@ -1732,13 +1796,13 @@ export function AppShell({
               <FactionKingdomScreen
                 tutorialFocus={tutorialFocus}
                 onTutorialFocusComplete={completeTutorialFocus}
-                onOpenSettlement={() => setFlow('settlement')}
-                onOpenRecruitment={() => setFlow('factionRecruitment')}
+                onOpenSettlement={() => openFlow('settlement')}
+                onOpenRecruitment={() => openFlow('factionRecruitment')}
                 onOpenCommander={() => {
                   setCommanderChoiceReturn('army');
-                  setFlow('commanderChoice');
+                  openFlow('commanderChoice');
                 }}
-                onOpenFactionMandate={() => setFlow('factionMandate')}
+                onOpenFactionMandate={() => openFlow('factionMandate')}
               />
             );
           }
@@ -1747,7 +1811,7 @@ export function AppShell({
             <FactionCampScreen
               onOpenCommander={() => {
                 setCommanderChoiceReturn('army');
-                setFlow('commanderChoice');
+                openFlow('commanderChoice');
               }}
             />
           );
@@ -1758,14 +1822,14 @@ export function AppShell({
             tutorialFocus={tutorialFocus}
             onTutorialFocusComplete={completeTutorialFocus}
             onOpenRecruitment={openRecruitment}
-            onOpenSettlement={() => setFlow('settlement')}
-            onOpenRoyalDecrees={() => setFlow('royalDecrees')}
+            onOpenSettlement={() => openFlow('settlement')}
+            onOpenRoyalDecrees={() => openFlow('royalDecrees')}
             onOpenForge={() => {
               if (firstPromotionComplete) {
                 setEquipmentUnitId('hum_recruit');
-                setFlow('equipment');
+                openFlow('equipment');
               } else {
-                setFlow('forge');
+                openFlow('forge');
               }
             }}
           />
@@ -1990,7 +2054,7 @@ export function AppShell({
               onPress={() => {
                 setFormationGuide(null);
                 cancelTutorialFocus();
-                setFlow('settings');
+                openFlow('settings');
               }}
               style={({ pressed }) => [
                 styles.settingsButton,
@@ -2081,7 +2145,7 @@ export function AppShell({
                   } else if (tutorialFocus) {
                     cancelTutorialFocus();
                   }
-                  setActive(item.id);
+                  navigateToNav(item.id);
                 }}
                 style={({ pressed }) => [
                   styles.navItem,
