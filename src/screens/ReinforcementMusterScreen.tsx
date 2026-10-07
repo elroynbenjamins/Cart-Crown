@@ -166,11 +166,11 @@ export function ReinforcementMusterScreen({ kind, onComplete }: {
 }
 
 const styles = StyleSheet.create({
-  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 7 },
-  body: { fontSize: 14, lineHeight: 20 },
-  note: { fontSize: 12, lineHeight: 18, marginTop: 8 },
-  heading: { fontSize: 16, lineHeight: 22, fontWeight: '900' },
-  unitHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 5 },
+  body: { fontSize: 11.5, lineHeight: 16 },
+  note: { fontSize: 10.5, lineHeight: 15, marginTop: 6 },
+  heading: { fontSize: 14.5, lineHeight: 19, fontWeight: '900' },
+  unitHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   copy: { flex: 1, minWidth: 0 },
-  spaced: { marginTop: 8 }
+  spaced: { marginTop: 6 }
 });
