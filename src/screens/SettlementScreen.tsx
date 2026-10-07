@@ -1053,6 +1053,14 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
           }
         ]}
       >
+        {worldRebuildActive ? (
+          <>
+            <View pointerEvents="none" style={styles.conceptHudTopTrim} />
+            <View pointerEvents="none" style={styles.conceptHudBottomTrim} />
+            <View pointerEvents="none" style={[styles.conceptHudRivet, styles.conceptHudRivetLeft]} />
+            <View pointerEvents="none" style={[styles.conceptHudRivet, styles.conceptHudRivetRight]} />
+          </>
+        ) : null}
         <View style={styles.heroHeader}>
           {worldRebuildActive ? (
             <View style={[styles.conceptCrestFrame, { borderColor: SETTLEMENT_HUD_GOLD_DARK }]}>
@@ -2633,10 +2641,15 @@ const styles = StyleSheet.create({
   content: { padding: 6, paddingBottom: 22, gap: 6 },
   hud: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 8 },
   hudCompact: { borderRadius: 14, paddingHorizontal: 9, paddingVertical: 6 },
-  conceptHud: { borderWidth: 1, borderRadius: 12, elevation: 6, paddingHorizontal: 8 },
-  conceptCrestFrame: { width: 48, height: 50, borderRadius: 9, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center', backgroundColor: SETTLEMENT_HUD_NAVY_RAISED, marginBottom: 3 },
+  conceptHud: { position: 'relative', overflow: 'visible', borderWidth: 1.25, borderRadius: 8, elevation: 7, paddingHorizontal: 8, paddingTop: 7, paddingBottom: 6 },
+  conceptHudTopTrim: { position: 'absolute', left: 8, right: 8, top: 2, height: 1, backgroundColor: SETTLEMENT_HUD_GOLD, opacity: 0.76 },
+  conceptHudBottomTrim: { position: 'absolute', left: 24, right: 24, bottom: 2, height: 1, backgroundColor: SETTLEMENT_HUD_GOLD_DARK, opacity: 0.7 },
+  conceptHudRivet: { position: 'absolute', top: 4, width: 3, height: 3, borderRadius: 999, backgroundColor: SETTLEMENT_HUD_GOLD },
+  conceptHudRivetLeft: { left: 5 },
+  conceptHudRivetRight: { right: 5 },
+  conceptCrestFrame: { width: 50, height: 54, borderRadius: 6, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', backgroundColor: SETTLEMENT_HUD_NAVY_RAISED, marginBottom: 3, elevation: 5 },
   conceptCrestTail: { position: 'absolute', bottom: -7, width: 0, height: 0, borderLeftWidth: 9, borderRightWidth: 9, borderTopWidth: 7, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderTopColor: SETTLEMENT_HUD_GOLD_DARK },
-  conceptStageBadge: { borderWidth: 1.5, borderRadius: 999 },
+  conceptStageBadge: { borderWidth: 1.5, borderRadius: 7, paddingHorizontal: 7, paddingVertical: 4, elevation: 2 },
   conceptSettingsButton: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   conceptSettingsGlyph: { color: SETTLEMENT_HUD_GOLD, fontSize: 16, lineHeight: 18, fontWeight: '900' },
   heroHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -2652,10 +2665,10 @@ const styles = StyleSheet.create({
   stageBadgeTextCompact: { fontSize: 7, lineHeight: 9, letterSpacing: 0.5 },
   resourceStrip: { flexDirection: 'row', borderRadius: 10, paddingHorizontal: 5, paddingVertical: 5, marginTop: 7, gap: 2 },
   resourceStripCompact: { borderRadius: 9, paddingHorizontal: 4, paddingVertical: 3, marginTop: 5 },
-  worldResourceStrip: { borderRadius: 8, paddingHorizontal: 5, paddingVertical: 4, borderWidth: 1, marginTop: 6 },
+  worldResourceStrip: { borderRadius: 4, paddingHorizontal: 2, paddingVertical: 4, borderWidth: 1, marginTop: 6, minHeight: 30 },
   resourceCell: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 2 },
   resourceCellCompact: { justifyContent: 'center', gap: 1 },
-  conceptResourceCell: { justifyContent: 'center', paddingHorizontal: 3 },
+  conceptResourceCell: { justifyContent: 'center', paddingHorizontal: 4, minHeight: 22 },
   conceptResourceCellDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: SETTLEMENT_HUD_GOLD_DARK },
   resourceCopy: { flex: 1, minWidth: 0 },
   resourceValue: { fontSize: 9.5, lineHeight: 12, fontWeight: '900' },
@@ -2840,9 +2853,9 @@ const styles = StyleSheet.create({
   plotGuideText: { color: '#111318', fontSize: 8, lineHeight: 11, fontWeight: '900' },
   plotBuildingName: { fontSize: 9.5, lineHeight: 13, fontWeight: '900', textAlign: 'center', marginTop: 0, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 7, maxWidth: '96%', opacity: 0.98, elevation: 2 },
   humanPlotBuildingName: { position: 'absolute', top: '53%', alignSelf: 'center' },
-  humanWorldBuildingLabel: { position: 'absolute', top: '53%', alignSelf: 'center', minHeight: 22, maxWidth: 112, borderWidth: 1, borderRadius: 999, paddingRight: 7, paddingLeft: 2, paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 4, elevation: 5 },
-  humanWorldLandmarkLabel: { top: '54%', maxWidth: 124 },
-  humanWorldLevelMedallion: { width: 18, height: 18, borderRadius: 999, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  humanWorldBuildingLabel: { position: 'absolute', top: '53%', alignSelf: 'center', minHeight: 22, maxWidth: 118, borderWidth: 1, borderRadius: 6, paddingRight: 7, paddingLeft: 2, paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 4, elevation: 5 },
+  humanWorldLandmarkLabel: { top: '54%', maxWidth: 132, borderWidth: 1.5 },
+  humanWorldLevelMedallion: { width: 18, height: 18, borderRadius: 6, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   humanWorldLevelText: { color: SETTLEMENT_HUD_GOLD, fontSize: 7.5, lineHeight: 9, fontWeight: '900' },
   humanWorldBuildingName: { color: SETTLEMENT_HUD_TEXT, fontSize: 7.5, lineHeight: 9, fontWeight: '900', flexShrink: 1 },
   humanWorldDistrictStatus: { flexDirection: 'row', alignItems: 'center', gap: 2 },
