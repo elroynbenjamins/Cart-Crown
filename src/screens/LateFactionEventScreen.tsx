@@ -159,11 +159,11 @@ export function LateFactionEventScreen({ request, onComplete }: {
 }
 
 const styles = StyleSheet.create({
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, alignItems: 'center' },
-  panelHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, alignItems: 'center' },
+  panelHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   copy: { flex: 1, minWidth: 0 },
-  heading: { fontSize: 16, lineHeight: 22, fontWeight: '900', flexShrink: 1 },
-  body: { fontSize: 14, lineHeight: 20, marginTop: 8 },
-  note: { fontSize: 12, lineHeight: 18, marginTop: 8 },
-  spaced: { marginTop: 10 }
+  heading: { fontSize: 14.5, lineHeight: 19, fontWeight: '900', flexShrink: 1 },
+  body: { fontSize: 11.5, lineHeight: 16, marginTop: 6 },
+  note: { fontSize: 10.5, lineHeight: 15, marginTop: 6 },
+  spaced: { marginTop: 8 }
 });
