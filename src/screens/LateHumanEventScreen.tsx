@@ -167,13 +167,13 @@ export function LateHumanEventScreen({ eventId, onComplete }: {
 }
 
 const styles = StyleSheet.create({
-  unavailable: { padding: 16 },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, alignItems: 'center' },
-  panelHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10 },
-  heading: { flex: 1, minWidth: 0, fontSize: 16, lineHeight: 22, fontWeight: '900' },
-  standalone: { marginTop: 10, flex: 0 },
+  unavailable: { padding: 12 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, alignItems: 'center' },
+  panelHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
+  heading: { flex: 1, minWidth: 0, fontSize: 14.5, lineHeight: 19, fontWeight: '900' },
+  standalone: { marginTop: 8, flex: 0 },
   finding: { marginTop: 4 },
-  spaced: { marginTop: 10 },
-  body: { fontSize: 14, lineHeight: 20, marginTop: 8 },
-  note: { fontSize: 12, lineHeight: 18, marginTop: 8 }
+  spaced: { marginTop: 8 },
+  body: { fontSize: 11.5, lineHeight: 16, marginTop: 6 },
+  note: { fontSize: 10.5, lineHeight: 15, marginTop: 6 }
 });
