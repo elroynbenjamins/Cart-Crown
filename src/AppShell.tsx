@@ -1909,11 +1909,17 @@ export function AppShell({
     flow === 'formationTrial' ||
     flow === 'settings' ||
     flow === 'preparationFix';
+  const navigationHistoryDepth =
+    navigationHistoryRef.current.length;
+  const hasNavigationHistory =
+    navigationHistoryDepth > 0;
+  const showBackButton =
+    canGoBack ||
+    hasNavigationHistory ||
+    active !== 'kingdom';
   const title = flow ? flowTitles[flow] : screenTitles[active];
 
   const goBack = () => {
-    if (!canGoBack) return;
-
     cancelTutorialFocus();
 
     if (
@@ -1924,7 +1930,18 @@ export function AppShell({
       return;
     }
 
-    setFlow(null);
+    if (restorePreviousRoute()) {
+      return;
+    }
+
+    if (flow) {
+      setFlow(null);
+      return;
+    }
+
+    if (active !== 'kingdom') {
+      setActive('kingdom');
+    }
   };
 
   useEffect(() => {
@@ -1934,7 +1951,8 @@ export function AppShell({
         const action = resolveHardwareBackAction({
           flow,
           canGoBack,
-          active
+          active,
+          hasHistory: hasNavigationHistory
         });
 
         if (action === 'block_battle') {
@@ -1953,19 +1971,12 @@ export function AppShell({
           return true;
         }
 
-        if (action === 'close_flow') {
-          cancelTutorialFocus();
-          setFlow(
-            flow === 'preparationFix'
-              ? 'battlePrep'
-              : null
-          );
-          return true;
-        }
-
-        if (action === 'go_kingdom') {
-          cancelTutorialFocus();
-          setActive('kingdom');
+        if (
+          action === 'go_history' ||
+          action === 'close_flow' ||
+          action === 'go_kingdom'
+        ) {
+          goBack();
           return true;
         }
 
@@ -1983,7 +1994,8 @@ export function AppShell({
     commanderPathId,
     flow,
     flushSnapshot,
-    lastBattleResult?.id
+    lastBattleResult?.id,
+    navigationHistoryDepth
   ]);
 
   return (
@@ -2008,7 +2020,7 @@ export function AppShell({
         ]}
       >
         <View style={styles.titleArea}>
-          {canGoBack ? (
+          {showBackButton ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Back"
