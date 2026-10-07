@@ -221,13 +221,17 @@ const flowTitles: Record<FlowScreen, string> = {
 
 export function AppShell({
   saveSlotId,
-  onExitToSaves
+  onExitToSaves,
+  initialActive = 'kingdom',
+  initialFlow = null
 }: {
   saveSlotId: SaveSlotId;
   onExitToSaves: () => void;
+  initialActive?: NavId;
+  initialFlow?: FlowScreen | null;
 }) {
-  const [active, setActive] = useState<NavId>('kingdom');
-  const [flow, setFlow] = useState<FlowScreen | null>(null);
+  const [active, setActive] = useState<NavId>(initialActive);
+  const [flow, setFlow] = useState<FlowScreen | null>(initialFlow);
   const [commanderChoiceReturn, setCommanderChoiceReturn] =
     useState<'army' | 'campaign'>('army');
   const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
@@ -1206,6 +1210,8 @@ export function AppShell({
         <SettlementScreen
           tutorialFocus={tutorialFocus}
           onTutorialFocusComplete={completeTutorialFocus}
+          onOpenSettings={() => setFlow('settings')}
+          showReturnButton={false}
           onExit={() => {
             setFlow(null);
             setActive('kingdom');
@@ -1846,6 +1852,13 @@ export function AppShell({
     flow === 'settings' ||
     flow === 'preparationFix';
   const title = flow ? flowTitles[flow] : screenTitles[active];
+  const settlementChrome = flow === 'settlement';
+  const settlementHudNavy = '#101B2D';
+  const settlementHudNavyRaised = '#172740';
+  const settlementHudNavyDeep = '#0B1423';
+  const settlementHudGold = '#D6A85A';
+  const settlementHudText = '#F3E8D3';
+  const settlementHudMuted = '#B7C6D8';
 
   const goBack = () => {
     if (!canGoBack) return;
@@ -1933,7 +1946,7 @@ export function AppShell({
         backgroundColor={theme.colors.appBg}
       />
 
-      {flow !== 'battle' ? (
+      {flow !== 'battle' && flow !== 'settlement' ? (
       <View
         style={[
           styles.topBar,
@@ -2045,16 +2058,24 @@ export function AppShell({
         />
       ) : null}
 
-      {!flow ? (
+      {!flow || flow === 'settlement' ? (
         <View
           style={[
             styles.bottomNav,
+            settlementChrome ? styles.settlementBottomNav : undefined,
             {
-              backgroundColor: theme.colors.surface1,
-              borderTopColor: theme.colors.border
+              backgroundColor: settlementChrome ? settlementHudNavy : theme.colors.surface1,
+              borderTopColor: settlementChrome ? settlementHudGold : theme.colors.border
             }
           ]}
         >
+          {settlementChrome ? (
+            <>
+              <View pointerEvents="none" style={[styles.settlementNavGoldTrim, { backgroundColor: settlementHudGold }]} />
+              <View pointerEvents="none" style={[styles.settlementNavRivet, styles.settlementNavRivetLeft, { backgroundColor: settlementHudGold }]} />
+              <View pointerEvents="none" style={[styles.settlementNavRivet, styles.settlementNavRivetRight, { backgroundColor: settlementHudGold }]} />
+            </>
+          ) : null}
           {navItems.map(item => {
             const selected = item.id === active;
 
@@ -2081,6 +2102,9 @@ export function AppShell({
                   } else if (tutorialFocus) {
                     cancelTutorialFocus();
                   }
+                  if (settlementChrome) {
+                    setFlow(null);
+                  }
                   setActive(item.id);
                 }}
                 style={({ pressed }) => [
@@ -2100,22 +2124,29 @@ export function AppShell({
                     <View
                       style={[
                         styles.navIconWrap,
+                        settlementChrome ? styles.settlementNavIconWrap : undefined,
+                        settlementChrome && selected ? styles.settlementNavIconSelected : undefined,
                         {
-                          backgroundColor: selected ? factionAccent + '24' : 'transparent',
-                          borderColor: selected ? factionAccent + '80' : 'transparent'
+                          backgroundColor: settlementChrome
+                            ? selected ? settlementHudNavyRaised : settlementHudNavyDeep
+                            : selected ? factionAccent + '24' : 'transparent',
+                          borderColor: settlementChrome
+                            ? selected ? settlementHudGold : '#6F5B3A'
+                            : selected ? factionAccent + '80' : 'transparent'
                         }
                       ]}
                     >
                       <AppNavIcon
                         kind={item.id}
-                        color={selected ? factionAccent : theme.colors.textMuted}
-                        size={26}
+                        color={settlementChrome ? selected ? settlementHudGold : settlementHudMuted : selected ? factionAccent : theme.colors.textMuted}
+                        size={settlementChrome ? selected ? 27 : 23 : 26}
                       />
                     </View>
                     <Text
                       style={[
                         styles.navLabel,
-                        { color: selected ? factionAccent : theme.colors.textMuted }
+                        settlementChrome ? styles.settlementNavLabel : undefined,
+                        { color: settlementChrome ? selected ? settlementHudGold : settlementHudText : selected ? factionAccent : theme.colors.textMuted }
                       ]}
                       numberOfLines={1}
                     >
@@ -2125,7 +2156,8 @@ export function AppShell({
                       pointerEvents="none"
                       style={[
                         styles.navSelectionMark,
-                        { backgroundColor: selected ? factionAccent : 'transparent' }
+                        settlementChrome ? styles.settlementNavSelectionMark : undefined,
+                        { backgroundColor: selected ? (settlementChrome ? settlementHudGold : factionAccent) : 'transparent' }
                       ]}
                     />
                   </View>
@@ -2204,9 +2236,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingBottom: 3
   },
+  settlementBottomNav: {
+    position: 'relative',
+    height: 92,
+    borderTopWidth: 1.5,
+    paddingHorizontal: 4,
+    paddingTop: 7,
+    paddingBottom: 5,
+    elevation: 12,
+    overflow: 'visible'
+  },
+  settlementNavGoldTrim: { position: 'absolute', left: 12, right: 12, top: 2, height: 1, opacity: 0.75 },
+  settlementNavRivet: { position: 'absolute', top: 5, width: 3, height: 3, borderRadius: 999, opacity: 0.9 },
+  settlementNavRivetLeft: { left: 6 },
+  settlementNavRivetRight: { right: 6 },
   navItem: { flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center' },
   navFocusContent: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
   navIconWrap: { width: 42, height: 34, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  settlementNavIconWrap: { width: 47, height: 47, borderRadius: 999, borderWidth: 1.5, elevation: 3 },
+  settlementNavIconSelected: { width: 57, height: 57, borderWidth: 2.5, elevation: 9, transform: [{ translateY: -5 }] },
   navLabel: { fontSize: 10, fontWeight: '900', marginTop: 3 },
-  navSelectionMark: { width: 14, height: 3, borderRadius: 2, marginTop: 4 }
+  settlementNavLabel: { fontSize: 9, lineHeight: 11, letterSpacing: 0.3, marginTop: 1, textTransform: 'uppercase' },
+  navSelectionMark: { width: 14, height: 3, borderRadius: 2, marginTop: 4 },
+  settlementNavSelectionMark: { width: 24, height: 2, marginTop: 1 }
 });

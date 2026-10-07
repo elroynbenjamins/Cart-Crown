@@ -109,7 +109,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
       if (request.endsWith('/SettlementUI')) return load(resolve(dirname(absolute), request + '.tsx'));
       if (request.endsWith('/SemanticUI')) return Object.fromEntries(['SemanticChip', 'SemanticText', 'EmphasisText'].map(name => [name, host(name)]));
       if (request.endsWith('/components')) return Object.fromEntries(['GameCard', 'PrimaryButton', 'SecondaryButton', 'SectionTitle'].map(name => [name, host(name)]));
-      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementBuildingAmbience', 'SettlementBuildPlotSprite', 'SettlementDistrictAmbience', 'SettlementTerrainBackdrop'].map(name => [name, host(name)]));
+      if (request.endsWith('/gameArt')) return Object.fromEntries(['BuildingSprite', 'FactionCrest', 'LockIcon', 'PlotTerrainSprite', 'ResourceSprite', 'SettlementBuildingAmbience', 'SettlementBuildPlotSprite', 'SettlementDistrictAmbience', 'SettlementSceneAtmosphere', 'SettlementTerrainBackdrop'].map(name => [name, host(name)]));
       if (request.endsWith('/TutorialFocus')) return { TutorialFocus: host('TutorialFocus') };
       throw new Error('Unexpected screen dependency: ' + request);
     };
@@ -221,6 +221,9 @@ function testRecipesAndInteractions() {
     check(f.calls.length === 0, 'Initial rendering cannot call construction or relocation.');
     check(nodes(tree, 'Pressable').filter(node => node.props.testID?.startsWith('settlement-plot_')).length === 9, 'Settlement must keep all nine authored plot positions.');
     check(nodes(tree, 'SettlementTerrainBackdrop')[0]?.props.stageId === 'fort', 'Settlement scenery must receive the live kingdom stage.');
+    check(nodes(tree, 'SettlementSceneAtmosphere').length === 1, 'Settlement world must layer exactly one atmosphere pass behind interactive buildings.');
+    check(nodes(tree, 'SettlementSceneAtmosphere')[0]?.props.faction === faction, 'Settlement atmosphere must remain scoped to the active faction.');
+    check(nodes(tree, 'SettlementSceneAtmosphere')[0]?.props.stageId === 'fort', 'Settlement atmosphere must receive the live kingdom stage.');
     const expectedFactionAccent = faction === 'elf' ? themes.original.colors.elf : faction === 'orc' ? themes.original.colors.orc : themes.original.colors.human;
     check(nodes(tree, 'View').some(node => {
       const value = style(node.props.style);
@@ -229,6 +232,7 @@ function testRecipesAndInteractions() {
     f.game.currentWagonStage = { id: 'capital' };
     tree = f.h.render();
     check(nodes(tree, 'SettlementTerrainBackdrop')[0]?.props.stageId === 'capital', 'Settlement scenery must react immediately to stage growth.');
+    check(nodes(tree, 'SettlementSceneAtmosphere')[0]?.props.stageId === 'capital', 'Settlement atmosphere must react immediately to stage growth.');
     check(nodes(tree, 'View').some(node => {
       const value = style(node.props.style);
       return value.borderTopWidth === 4 && value.borderColor === expectedFactionAccent;
@@ -240,12 +244,37 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'BuildingSprite').some(node => Number(node.props.size) >= 78), 'The central settlement landmark must read larger than secondary buildings in portrait mode.');
     const centerPlotStyle = style(plot(tree, 'plot_center').props.style);
     const westPlotStyle = style(plot(tree, 'plot_w').props.style);
+    if (faction === 'human') {
+      check(centerPlotStyle.left === '37.00%' && centerPlotStyle.top === '29.41%', 'Human Hall hitbox must stay centered on the authored central plaza after background cover-crop projection.');
+      check(centerPlotStyle.width === '26%' && centerPlotStyle.height === '18%', 'Human landmark hitbox must follow the authored plaza footprint rather than the oversized generic grid.');
+      const southStyle = style(plot(tree, 'plot_s').props.style);
+      const southwestStyle = style(plot(tree, 'plot_sw').props.style);
+      const southeastStyle = style(plot(tree, 'plot_se').props.style);
+      check(southwestStyle.left === '6.90%' && southwestStyle.top === '37.16%', 'Human southwest logical plot must map to its painted isometric pad after cover-crop projection.');
+      check(southStyle.left === '42.30%' && southStyle.top === '44.41%', 'Human south logical plot must map to the lower-center painted pad after cover-crop projection.');
+      check(southeastStyle.left === '66.10%' && southeastStyle.top === '52.67%', 'Human southeast logical plot must map to the lowest painted pad after cover-crop projection.');
+      check(southStyle.width === '24%' && southStyle.height === '14%', 'Human normal plot hitboxes must match the authored build-pad footprint.');
+      check(southeastStyle.zIndex > centerPlotStyle.zIndex, 'Authored Human depth order must follow projected ground Y so foreground plots render over uphill plots.');
+    }
     check(centerPlotStyle.borderWidth === 0 && westPlotStyle.borderWidth === 0, 'Occupied settlement structures must not keep card-like plot borders.');
     check(centerPlotStyle.zIndex > westPlotStyle.zIndex, 'The Great Hall must remain above same-row secondary structures in scene depth.');
     check(nodes(tree, 'BuildingSprite').filter(node => Number(node.props.size) >= 80).length === 1, 'Only the central landmark should use oversized settlement scale at the initial layout.');
     const placedBuildingCount = Object.values(f.game.buildingPlacements).filter(Boolean).length;
+    const buildingAnchors = nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-ground-anchor-'));
+    check(buildingAnchors.length === placedBuildingCount, 'Every placed building must expose one explicit ground anchor.');
+    if (faction === 'human') {
+      check(buildingAnchors.every(node => {
+        const anchored = style(node.props.style);
+        return anchored.position === 'absolute' && anchored.left === '50%' && anchored.bottom === '50%';
+      }), 'Authored Human buildings must lock their bottom-center to the painted plot center rather than float in the hitbox.');
+    }
     const ambience = nodes(tree, 'SettlementBuildingAmbience');
-    check(ambience.length === placedBuildingCount, 'Placed buildings must carry ambient life and props.');
+    check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-ground-shadow-')).length === placedBuildingCount, 'Every placed building must receive a world-grounding shadow.');
+    check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('building-contact-shadow-')).length === placedBuildingCount, 'Every placed building must receive a tight contact shadow.');
+    const expectedOverviewAmbience = faction === 'human' ? 0 : placedBuildingCount;
+    check(ambience.length === expectedOverviewAmbience, faction === 'human'
+      ? 'Authored Human overview must not mount hidden per-building animation loops.'
+      : 'Placed buildings must carry ambient life and props.');
     check(ambience.every(node => node.props.faction === faction), 'Building ambience must remain faction-scoped.');
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
     check(ambience.every(node => {
@@ -254,13 +283,26 @@ function testRecipesAndInteractions() {
       return node.props.activeDistricts === expected;
     }), 'Building ambience must receive the live active-district count rather than decorative guessed activity.');
     check(nodes(tree, 'SettlementBuildPlotSprite').length >= 1, faction + ' empty plots must render as production build sites.');
+    if (faction === 'human') {
+      check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('building-district-aura-')), 'Authored Human world view must not paint district aura pills until analysis is active.');
+      check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('world-upgrade-ready-')), 'Upgrade readiness must stay in the HUD rather than marking every world building.');
+      check(text(tree).includes('upgrades'), 'Concept settlement HUD must preserve the aggregate upgrade-ready count in its summary line.');
+      check(!text(tree).includes('↑'), 'Default world view must not scatter large upgrade arrows over the settlement.');
+    }
     check(nodes(tree, 'SettlementBuildPlotSprite').every(node => node.props.faction === faction), faction + ' build-site art must stay faction-scoped.');
     check(nodes(tree, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'Blueprint planner must be directly available from the settlement overview.');
-    check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('district spots')), 'District-completing plots must be summarized in the HUD.');
-    check(nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'A high-value empty plot must be marked before the player opens it.');
-    check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
-    check(text(tree).includes('BUILD READY'), 'The recommended empty plot must show direct in-world readiness feedback.');
+    const worldScene = nodes(tree, 'View').find(node => node.props.testID === 'settlement-scene');
+    check(Boolean(worldScene), 'Settlement must expose one world-scene root.');
+    check(nodes(worldScene, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'Concept Build command must live inside the world scene instead of becoming a stacked card above it.');
+    check(text(tree).includes('built ·') && text(tree).includes('districts'), 'Concept settlement HUD must summarize kingdom and district status without stacked chips.');
+    check(!nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_nw'), 'Rebuilt world canvases must keep district-opportunity detail in the planner instead of covering the terrain.');
+    check(text(tree).includes(' build'), 'Affordable construction must remain visible in the concept HUD summary before opening a plot.');
+    check(nodes(tree, 'View').some(node => node.props.testID === 'world-build-ready-plot_nw'), 'The recommended world plot must use one compact in-world build marker.');
     check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
+    if (faction === 'human') {
+      check(nodes(tree, 'FactionCrest').length === 1, 'Authored Human settlement HUD must carry the faction crest.');
+      check(nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('world-building-label-')).length === placedBuildingCount, 'Authored Human settlement must give every placed building a compact world label.');
+    }
     const normalMap = nodes(tree, 'View').find(node => style(node.props.style).height === 600 && style(node.props.style).position === 'relative');
     check(Boolean(normalMap), 'Reference portrait layout must devote 600px to the settlement world scene.');
     check(plot(tree, 'plot_se').props.disabled, 'A Town plot must remain locked at Fort.');
@@ -394,6 +436,7 @@ function testRecipesAndInteractions() {
     const largeTree = f.h.render();
     const map = nodes(largeTree, 'View').find(node => style(node.props.style).height === 720 && style(node.props.style).position === 'relative');
     check(Boolean(map), 'Larger text must expand the world viewport without changing plot geometry.');
+    check(text(largeTree).includes('built ·') && text(largeTree).includes('districts'), 'Compact/large-text HUD must collapse status chips into one calm summary line.');
   }
 }
 
@@ -401,23 +444,31 @@ function testDistrictCodexConsolidation() {
   const f = fixture('human');
   let tree = f.h.render();
 
-  check(nodes(tree, 'View').some(node => node.props.testID === 'district-codex'), 'District Codex summary must remain available below the settlement.');
-  const toggle = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-codex-toggle');
-  check(Boolean(toggle), 'District Codex must expose one compact expand/collapse control.');
-  check(toggle?.props.accessibilityState?.expanded === false, 'District Codex must be collapsed by default.');
-  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-codex-panel'), 'Collapsed District Codex must not permanently render recipe details.');
-  check(toggle?.props.accessibilityLabel === 'District Codex, 0 of 6 active', 'Collapsed District Codex must summarize active versus authored recipes.');
-  check(nodes(tree, 'SemanticChip').some(node => node.props.label === '6 developing'), 'Collapsed District Codex must summarize recipes still being developed.');
-  check(nodes(tree, 'SectionTitle').length === 0, 'Legacy standalone district section headings must be removed.');
-  check(nodes(tree, 'GameCard').length === 0, 'Legacy stacked district cards must be removed from the settlement screen.');
-
-  toggle!.props.onPress();
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-codex'), 'District Codex must not reserve a permanent card in the default world view.');
+  const launcher = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-launcher');
+  check(Boolean(launcher), 'District tools must remain available even before any district is active.');
+  launcher!.props.onPress();
   tree = f.h.render();
-  check(nodes(tree, 'View').some(node => node.props.testID === 'district-codex-panel'), 'Opening District Codex must reveal recipe details.');
+
+  const codexOpen = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-codex-open');
+  check(Boolean(codexOpen), 'Open district tools must expose direct Codex access.');
+  check(codexOpen?.props.accessibilityLabel === 'Open District Codex, 0 of 6 active', 'Codex entry must summarize active versus authored recipes.');
+  codexOpen!.props.onPress();
+  tree = f.h.render();
+
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-codex'), 'Opening Codex from district tools must reveal the detailed panel below the world.');
+  const toggle = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-codex-toggle');
+  check(Boolean(toggle), 'Open Codex must expose one compact close control.');
+  check(toggle?.props.accessibilityState?.expanded === true, 'Open Codex must expose expanded accessibility state.');
+  check(toggle?.props.accessibilityLabel === 'Close District Codex, 0 of 6 active', 'Open Codex close control must preserve active-versus-authored context.');
+  check(nodes(tree, 'SemanticChip').some(node => node.props.label === '6 developing'), 'Open District Codex must summarize recipes still being developed.');
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-codex-panel'), 'Open District Codex must reveal recipe details.');
   check(
     nodes(tree, 'View').filter(node => String(node.props.testID ?? '').startsWith('district-codex-row-')).length === settlement.getSettlementAdjacencyBonuses('human').length,
     'Open District Codex must preserve every authored district recipe.'
   );
+  check(nodes(tree, 'SectionTitle').length === 0, 'Legacy standalone district section headings must remain removed.');
+  check(nodes(tree, 'GameCard').length === 0, 'Legacy stacked district cards must remain removed from the settlement screen.');
 
   const arsenalRow = nodes(tree, 'View').find(node => node.props.testID === 'district-codex-row-arsenal_district');
   check(Boolean(arsenalRow), 'District Codex must include Arsenal District.');
@@ -436,7 +487,7 @@ function testDistrictCodexConsolidation() {
   tree = f.h.render();
 
   const updatedToggle = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-codex-toggle');
-  check(updatedToggle?.props.accessibilityLabel === 'District Codex, 1 of 6 active', 'District Codex summary must react immediately when a district activates.');
+  check(updatedToggle?.props.accessibilityLabel === 'Close District Codex, 1 of 6 active', 'Open Codex summary must react immediately when a district activates.');
   const activeArsenal = nodes(tree, 'View').find(node => node.props.testID === 'district-codex-row-arsenal_district');
   check(
     nodes(activeArsenal, 'SemanticChip').some(node => node.props.label === 'Active'),
@@ -447,11 +498,9 @@ function testDistrictCodexConsolidation() {
     'Active codex recipes must expose the exact authored active effect.'
   );
 
-  const openToggle = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-codex-toggle');
-  check(openToggle?.props.accessibilityState?.expanded === true, 'Open District Codex must expose expanded accessibility state.');
-  openToggle!.props.onPress();
+  updatedToggle!.props.onPress();
   tree = f.h.render();
-  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-codex-panel'), 'Closing District Codex must remove detailed rows again.');
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-codex'), 'Closing Codex must return to the clean world-first layout.');
 }
 
 function testDenseDistrictZoneReadability() {
@@ -484,7 +533,15 @@ function testDenseDistrictZoneReadability() {
   check(f.game.settlementAdjacencyBonuses.length === 5, 'Dense district readability fixture must activate five real districts.');
   const startingPlacements = JSON.stringify(f.game.buildingPlacements);
   const startingBuildingSprites = nodes(tree, 'BuildingSprite').length;
-  check(nodes(tree, 'View').some(node => node.props.testID === 'district-overlay-controls'), 'Dense districts must expose compact overlay controls.');
+  const overlayLauncher = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-launcher');
+  check(Boolean(overlayLauncher), 'Dense districts must expose one compact in-scene overlay launcher.');
+  check(overlayLauncher?.props.accessibilityState?.expanded === false, 'District overlay filters must stay collapsed in the default world view.');
+  check(!nodes(tree, 'View').some(node => node.props.testID === 'district-overlay-controls'), 'Collapsed district tools must not add another card below or over the world.');
+  overlayLauncher!.props.onPress();
+  tree = f.h.render();
+  const openLauncher = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-launcher');
+  check(openLauncher?.props.accessibilityState?.expanded === true, 'Opening district tools must expose expanded accessibility state.');
+  check(nodes(tree, 'View').some(node => node.props.testID === 'district-overlay-controls'), 'Opening the in-scene launcher must reveal compact district filters.');
   check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-all')?.props.accessibilityLabel === 'All district overlay, 5 active', 'All filter must report the full active district count.');
   check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-economy')?.props.accessibilityLabel === 'Economy district overlay, 1 active', 'Economy filter must count only supply-resource districts.');
   check(nodes(tree, 'Pressable').find(node => node.props.testID === 'district-overlay-filter-military')?.props.accessibilityLabel === 'Military district overlay, 2 active', 'Military filter must count equipment and mount districts.');
@@ -626,8 +683,8 @@ function testDistrictNetworkOptimizationHint() {
     'Network hint must name the exact best building, destination and current-to-future district count.'
   );
   check(
-    nodes(tree, 'SemanticChip').some(node => node.props.label === '0→2 layout'),
-    'The HUD must summarize the best whole-network improvement without forcing the move.'
+    text(tree).includes('0→2 layout'),
+    'The concept HUD must summarize the best whole-network improvement without forcing the move.'
   );
 
   const callsBeforePreview = f.calls.length;
@@ -711,11 +768,13 @@ function testExcellentPlacementQuality() {
 
   let tree = f.h.render();
   check(
-    nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_n'),
-    'A plot that can activate multiple real districts must remain discoverable in overview mode.'
+    !nodes(tree, 'View').some(node => node.props.testID === 'district-opportunity-plot_n'),
+    'Rebuilt world overview must not cover an Excellent plot with a permanent placement badge.'
   );
-  const excellentOverview = nodes(tree, 'View').find(node => node.props.testID === 'district-opportunity-plot_n');
-  check(excellentOverview?.props.accessibilityLabel === 'Excellent placement, 2 districts', 'Two real district activations must rate as Excellent in overview mode.');
+  check(
+    nodes(tree, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'),
+    'High-value placement opportunities must remain discoverable through the blueprint planner without adding overview badges.'
+  );
 
   choosePlot(tree, 'plot_n');
   tree = f.h.render();
@@ -747,7 +806,7 @@ function testTutorialAndCosts() {
   const poor = fixture('orc');
   poor.game.resources = { gold: 0, wood: 0, stone: 0, iron: 0, provisions: 0 };
   const poorOverview = poor.h.render();
-  check(nodes(poorOverview, 'View').some(node => String(node.props.testID ?? '').startsWith('district-opportunity-')), 'District opportunities must remain visible even when the missing blueprint is currently unaffordable.');
+  check(nodes(poorOverview, 'Pressable').some(node => node.props.testID === 'blueprint-planner-open'), 'District placement opportunities must remain reachable through the planner even when the missing blueprint is currently unaffordable.');
   choosePlot(poorOverview, 'plot_nw'); tree = poor.h.render();
   const forge = poor.game.buildings.find((building: any) => building.role === 'EQUIPMENT');
   pressTestId(tree, 'construction-select-' + forge.id); tree = poor.h.render();
@@ -788,8 +847,9 @@ check(gameArtSource.includes('AccessibilityInfo.isReduceMotionEnabled'), 'Settle
 const settlementScreenSource = readFileSync(resolve('src/screens/SettlementScreen.tsx'), 'utf8');
 check(settlementScreenSource.includes("['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id)"), 'Fort+ world layout must apply without a Human-only faction gate.');
 check(settlementScreenSource.includes("const humanStagePlateActive = activeFaction === 'human'"), 'Human stage backgrounds must drive the organic overlay geometry at every settlement tier.');
-check(settlementScreenSource.includes('humanSettlementBackgroundPositions'), 'Human stage backgrounds must keep a dedicated build-pad anchor map.');
-check(settlementScreenSource.includes('humanSettlementBackgroundCenters'), 'Human stage backgrounds must keep district geometry aligned with those build pads.');
+check(settlementScreenSource.includes('humanSettlementSourceAnchors'), 'Human stage backgrounds must keep dedicated source-image build-pad anchors.');
+check(settlementScreenSource.includes('projectCoverPoint'), 'Human stage backgrounds must project authored anchors through the same center-cover crop as the image.');
+check(settlementScreenSource.includes('humanSettlementViewportCenters'), 'Human district and action geometry must share the cover-projected build-pad anchors.');
 check(settlementScreenSource.includes('settlementUnlockSnapshots'), 'Settlement unlock celebration must compare against an in-session baseline.');
 check(settlementScreenSource.includes('settlement-unlock-celebration'), 'Settlement unlock celebration must stay in-world instead of using a modal.');
 check(settlementScreenSource.includes('setTimeout(() => setUnlockCelebration(null), 2600)'), 'Settlement unlock celebration must auto-clear quickly.');
@@ -882,6 +942,7 @@ function testSceneActionsSafetyAndGeometry() {
     for (const x of [0, 0.135, 0.5, 0.855, 1]) for (const y of [0, 0.175, 0.475, 0.835, 1]) for (const measured of [112, 240, 360, 580]) {
       const box = sceneLayout.settlementActionLayout(width, height, { x, y }, measured);
       check(box.left >= 8 && box.top >= 8 && box.left + box.width <= width - 8 && box.top + Math.min(measured, height - 16) <= height - 8, 'Every action layout must stay inside its measured native map parent.');
+      check(box.width <= 288, 'Contextual settlement cards must stay compact instead of spanning the whole portrait map.');
     }
   }
   const fallback = sceneLayout.settlementActionLayout(NaN, Infinity, { x: NaN, y: Infinity }, NaN);

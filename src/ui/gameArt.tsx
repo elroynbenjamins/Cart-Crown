@@ -4031,6 +4031,162 @@ function FactionFortWorldBackdrop({ faction }: { faction: FactionId }) {
   );
 }
 
+
+export function SettlementSceneAtmosphere({
+  faction = 'human',
+  stageId = 'camp'
+}: {
+  faction?: FactionId;
+  stageId?: WagonStage['id'];
+}) {
+  const rank = stageRanks[stageId] ?? 0;
+  const motion = useSettlementAmbientMotion(faction === 'elf' ? 4200 : faction === 'orc' ? 3000 : 3600);
+  const walkerDrift = motion.interpolate({ inputRange: [0, 1], outputRange: [-6, 7] });
+  const reverseDrift = motion.interpolate({ inputRange: [0, 1], outputRange: [5, -6] });
+  const idleLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.5] });
+  const ambientPulse = motion.interpolate({ inputRange: [0, 1], outputRange: [0.28, 0.72] });
+  const bannerSway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1.2deg', '1.2deg'] });
+
+  const natureSource = getProductionAssetSource('ui.settlement_nature_human_atlas');
+  const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
+  const worldSource = getProductionAssetSource('ui.settlement_world_human_atlas');
+  const tintColor = settlementGrowthTint[faction];
+  const glow = settlementAmbientGlow[faction];
+  const edgeTint = faction === 'elf' ? '#173D31' : faction === 'orc' ? '#39251E' : '#233728';
+  const authoredHumanPlate = faction === 'human';
+  const travelerPrimary = faction === 'elf'
+    ? settlementPeopleHumanCells.woman
+    : faction === 'orc'
+      ? settlementPeopleHumanCells.guard
+      : settlementPeopleHumanCells.worker;
+  const travelerSecondary = rank >= 3
+    ? settlementPeopleHumanCells.merchant
+    : settlementPeopleHumanCells.porter;
+
+  return (
+    <View
+      testID={'settlement-scene-atmosphere-' + faction}
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 1, overflow: 'hidden' }}
+    >
+      {!authoredHumanPlate ? (
+        <>
+          <View style={{ position: 'absolute', left: -18, top: '12%', width: 58, height: '58%', borderRadius: 999, backgroundColor: edgeTint, opacity: faction === 'elf' ? 0.2 : 0.14 }} />
+          <View style={{ position: 'absolute', right: -18, top: '9%', width: 58, height: '61%', borderRadius: 999, backgroundColor: edgeTint, opacity: faction === 'elf' ? 0.2 : 0.14 }} />
+          <View style={{ position: 'absolute', left: '5%', right: '5%', bottom: -24, height: 52, borderRadius: 999, backgroundColor: edgeTint, opacity: 0.16 }} />
+        </>
+      ) : null}
+
+      {natureSource && !authoredHumanPlate ? (
+        <>
+          <View style={{ position: 'absolute', left: '-3%', top: faction === 'elf' ? '7%' : '13%' }}>
+            <SettlementDetailAtlasSprite
+              assetId="ui.settlement_nature_human_atlas"
+              cell={faction === 'orc' ? settlementNatureHumanCells.rocks : faction === 'elf' ? settlementNatureHumanCells.tree_large : settlementNatureHumanCells.tree_dark}
+              size={faction === 'elf' ? 92 : 74}
+              opacity={faction === 'elf' ? 0.76 : 0.58}
+              tintColor={tintColor}
+            />
+          </View>
+          <View style={{ position: 'absolute', right: '-4%', top: faction === 'elf' ? '16%' : '21%' }}>
+            <SettlementDetailAtlasSprite
+              assetId="ui.settlement_nature_human_atlas"
+              cell={faction === 'orc' ? settlementNatureHumanCells.conifer : faction === 'elf' ? settlementNatureHumanCells.tree_dark : settlementNatureHumanCells.conifer}
+              size={faction === 'elf' ? 86 : 70}
+              opacity={faction === 'elf' ? 0.72 : 0.54}
+              tintColor={tintColor}
+            />
+          </View>
+          <View style={{ position: 'absolute', left: '2%', bottom: '10%' }}>
+            <SettlementDetailAtlasSprite
+              assetId="ui.settlement_nature_human_atlas"
+              cell={faction === 'orc' ? settlementNatureHumanCells.rocks : settlementNatureHumanCells.bush_flowers}
+              size={58}
+              opacity={0.62}
+              tintColor={tintColor}
+            />
+          </View>
+          <View style={{ position: 'absolute', right: '1%', bottom: '11%' }}>
+            <SettlementDetailAtlasSprite
+              assetId="ui.settlement_nature_human_atlas"
+              cell={faction === 'orc' ? settlementNatureHumanCells.rocks : settlementNatureHumanCells.bush_blue}
+              size={56}
+              opacity={0.6}
+              tintColor={tintColor}
+            />
+          </View>
+        </>
+      ) : null}
+
+      {worldSource && rank >= 2 && !authoredHumanPlate ? (
+        <>
+          <Animated.View style={{ position: 'absolute', left: '9%', top: '26%', transform: [{ rotate: bannerSway }] }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={34} opacity={0.62} tintColor={tintColor} />
+          </Animated.View>
+          <Animated.View style={{ position: 'absolute', right: '9%', top: '28%', transform: [{ rotate: bannerSway }] }}>
+            <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas" cell={settlementWorldHumanCells.torch_banner} size={34} opacity={0.62} tintColor={tintColor} />
+          </Animated.View>
+        </>
+      ) : null}
+
+      {peopleSource ? (
+        <Animated.View
+          testID="settlement-scene-walker-primary"
+          style={{ position: 'absolute', left: '24%', top: rank >= 3 ? '48%' : '53%', transform: [{ translateX: walkerDrift }, { translateY: idleLift }] }}
+        >
+          <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={travelerPrimary} size={authoredHumanPlate ? 18 : 26} opacity={authoredHumanPlate ? 0.5 : 0.72} tintColor={tintColor} />
+        </Animated.View>
+      ) : null}
+      {peopleSource && rank >= 1 ? (
+        <Animated.View
+          testID="settlement-scene-walker-secondary"
+          style={{ position: 'absolute', right: '25%', top: rank >= 4 ? '55%' : '59%', transform: [{ translateX: reverseDrift }, { translateY: idleLift }] }}
+        >
+          <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas" cell={travelerSecondary} size={authoredHumanPlate ? 17 : 24} opacity={authoredHumanPlate ? 0.46 : 0.68} tintColor={tintColor} />
+        </Animated.View>
+      ) : null}
+
+      {faction === 'elf' ? (
+        <>
+          {[
+            { left: '13%', top: '35%' },
+            { left: '82%', top: '42%' },
+            { left: '17%', top: '70%' },
+            { left: '73%', top: '68%' }
+          ].map((position, index) => (
+            <Animated.View
+              key={'elf-ward-mote-' + index}
+              style={{
+                position: 'absolute',
+                left: position.left as `${number}%`,
+                top: position.top as `${number}%`,
+                width: index % 2 ? 5 : 4,
+                height: index % 2 ? 5 : 4,
+                borderRadius: 999,
+                backgroundColor: glow,
+                opacity: ambientPulse,
+                transform: [{ translateY: idleLift }]
+              }}
+            />
+          ))}
+        </>
+      ) : faction === 'orc' ? (
+        <>
+          <Animated.View style={{ position: 'absolute', left: '13%', bottom: '18%', width: 17, height: 8, borderRadius: 999, backgroundColor: '#E66B3C', opacity: ambientPulse }} />
+          <Animated.View style={{ position: 'absolute', right: '15%', top: '33%', width: 11, height: 6, borderRadius: 999, backgroundColor: '#F2A14A', opacity: ambientPulse }} />
+        </>
+      ) : rank >= 2 ? (
+        <>
+          <Animated.View style={{ position: 'absolute', left: '45%', top: '33%', width: 3, height: 3, borderRadius: 999, backgroundColor: '#F2C06B', opacity: ambientPulse }} />
+          <Animated.View style={{ position: 'absolute', right: '36%', top: '57%', width: 3, height: 3, borderRadius: 999, backgroundColor: '#F2C06B', opacity: ambientPulse }} />
+        </>
+      ) : null}
+    </View>
+  );
+}
+
 export function SettlementTerrainBackdrop({
   faction = 'human',
   stageId = 'camp'
