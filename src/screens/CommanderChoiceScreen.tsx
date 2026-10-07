@@ -98,9 +98,9 @@ export function CommanderChoiceScreen({ onComplete }: { onComplete: () => void }
 }
 
 const styles = StyleSheet.create({
-  body: { fontSize: 13, lineHeight: 19 },
-  roles: { fontSize: 12, lineHeight: 18, fontWeight: '800' },
-  label: { fontSize: 14, lineHeight: 20, fontWeight: '900' },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  skill: { padding: 12, borderRadius: 12, gap: 5 }
+  body: { fontSize: 11, lineHeight: 15 },
+  roles: { fontSize: 10, lineHeight: 14, fontWeight: '800' },
+  label: { fontSize: 12.5, lineHeight: 17, fontWeight: '900' },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  skill: { padding: 9, borderRadius: 10, gap: 4 }
 });
