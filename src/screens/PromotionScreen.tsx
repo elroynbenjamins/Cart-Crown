@@ -108,7 +108,7 @@ export function PromotionScreen({ onOpenForge, onComplete }: {
 }
 
 const styles = StyleSheet.create({
-  body: { fontSize: 13, lineHeight: 19 },
-  requirement: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  requirementText: { flex: 1, minWidth: 0, fontSize: 13, lineHeight: 19, fontWeight: '700' }
+  body: { fontSize: 11, lineHeight: 15 },
+  requirement: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  requirementText: { flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 15, fontWeight: '700' }
 });
