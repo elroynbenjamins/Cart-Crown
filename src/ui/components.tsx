@@ -561,7 +561,15 @@ export function ResourceChip({
   const { theme } = useGameTheme();
 
   return (
-    <View style={[styles.resourceChip, { backgroundColor: theme.colors.surface2 }]}>
+    <View
+      style={[
+        styles.resourceChip,
+        {
+          backgroundColor: theme.colors.surface2,
+          borderColor: theme.colors.border
+        }
+      ]}
+    >
       {art ?? <Text style={styles.resourceIcon}>{icon ?? ''}</Text>}
       <View>
         <Text style={[styles.resourceValue, { color: theme.colors.text }]}>{value}</Text>
@@ -683,17 +691,17 @@ export function ProgressBar({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 18,
+    borderRadius: 14,
     borderWidth: 1,
-    padding: 15,
+    padding: 12,
     position: 'relative',
     overflow: 'hidden'
   },
   cardFactionRail: {
     position: 'absolute',
     left: 0,
-    top: 12,
-    bottom: 12,
+    top: 9,
+    bottom: 9,
     width: 3,
     borderTopRightRadius: 3,
     borderBottomRightRadius: 3,
@@ -725,32 +733,32 @@ const styles = StyleSheet.create({
     right: 3,
     top: 3,
     bottom: 3,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1
   },
   sectionTitleRow: {
-    minHeight: 34,
+    minHeight: 28,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12
   },
   sectionTitle: {
-    fontSize: 17,
-    lineHeight: 22,
+    fontSize: 15.5,
+    lineHeight: 19,
     fontWeight: '900',
     flexShrink: 1
   },
   sectionTrailing: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     flexShrink: 1,
     maxWidth: '45%',
     textAlign: 'right'
   },
   screenHero: {
-    paddingVertical: 18,
-    paddingHorizontal: 16
+    paddingVertical: 13,
+    paddingHorizontal: 13
   },
   screenHeroHeader: {
     flexDirection: 'row',
@@ -763,53 +771,53 @@ const styles = StyleSheet.create({
     minWidth: 0
   },
   screenHeroEyebrow: {
-    fontSize: 9,
-    lineHeight: 12,
+    fontSize: 8,
+    lineHeight: 10,
     fontWeight: '900',
     letterSpacing: 1.2
   },
   screenHeroTitle: {
-    fontSize: 24,
-    lineHeight: 29,
+    fontSize: 21,
+    lineHeight: 25,
     fontWeight: '900',
-    marginTop: 4
+    marginTop: 2
   },
   screenHeroStatus: {
     paddingTop: 1
   },
   screenHeroBody: {
-    fontSize: 11.5,
-    lineHeight: 17,
-    marginTop: 8,
+    fontSize: 10.5,
+    lineHeight: 15,
+    marginTop: 5,
     maxWidth: 360
   },
   screenHeroContent: {
-    marginTop: 14
+    marginTop: 9
   },
   metricTile: {
     minWidth: '47%',
     flexGrow: 1,
     borderWidth: 1,
-    borderRadius: 14,
-    paddingHorizontal: 11,
-    paddingVertical: 10
+    borderRadius: 11,
+    paddingHorizontal: 9,
+    paddingVertical: 7
   },
   metricTileLabel: {
-    fontSize: 8,
-    lineHeight: 11,
+    fontSize: 7.5,
+    lineHeight: 10,
     fontWeight: '900',
     letterSpacing: 0.7
   },
   metricTileValue: {
-    fontSize: 19,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 21,
     fontWeight: '900',
-    marginTop: 3
+    marginTop: 2
   },
   metricTileCaption: {
-    fontSize: 8.5,
-    lineHeight: 12,
-    marginTop: 2
+    fontSize: 8,
+    lineHeight: 10.5,
+    marginTop: 1
   },
   pill: {
     minHeight: 30,
@@ -823,9 +831,9 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   statusPill: {
-    minHeight: 29,
+    minHeight: 25,
     borderRadius: 999,
-    paddingHorizontal: 9,
+    paddingHorizontal: 8,
     borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -842,21 +850,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3
   },
   flowProgress: {
-    minHeight: 40,
-    marginHorizontal: 14,
-    marginTop: 7,
-    marginBottom: 1,
+    minHeight: 34,
+    marginHorizontal: 10,
+    marginTop: 5,
+    marginBottom: 0,
     borderWidth: 1,
-    borderRadius: 13,
-    padding: 4,
+    borderRadius: 11,
+    padding: 3,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4
   },
   flowSegment: {
     flex: 1,
-    minHeight: 30,
-    borderRadius: 9,
+    minHeight: 26,
+    borderRadius: 8,
     borderWidth: 1,
     paddingHorizontal: 7,
     flexDirection: 'row',
@@ -901,8 +909,8 @@ const styles = StyleSheet.create({
     height: 1
   },
   primaryButton: {
-    minHeight: 52,
-    borderRadius: 14,
+    minHeight: 48,
+    borderRadius: 11,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -910,14 +918,14 @@ const styles = StyleSheet.create({
     paddingBottom: 9
   },
   primaryButtonText: {
-    fontSize: 15,
+    fontSize: 13.5,
     fontWeight: '900',
     textAlign: 'center',
     flexShrink: 1
   },
   secondaryButton: {
-    minHeight: 46,
-    borderRadius: 13,
+    minHeight: 44,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -925,40 +933,42 @@ const styles = StyleSheet.create({
     paddingBottom: 8
   },
   secondaryButtonText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '900',
     textAlign: 'center',
     flexShrink: 1
   },
   resourceChip: {
-    minWidth: 96,
-    minHeight: 54,
-    borderRadius: 16,
-    paddingHorizontal: 11,
+    minWidth: 76,
+    minHeight: 44,
+    borderRadius: 11,
+    borderWidth: 1,
+    paddingHorizontal: 8,
     flexDirection: 'row',
-    gap: 8,
+    gap: 5,
     alignItems: 'center'
   },
   resourceIcon: {
     fontSize: 20
   },
   resourceValue: {
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: '900'
   },
   resourceLabel: {
-    fontSize: 10,
-    marginTop: 1
+    fontSize: 8.5,
+    lineHeight: 10,
+    marginTop: 0
   },
   resourceAmountRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7
+    gap: 5
   },
   resourceAmount: {
-    minHeight: 34,
-    borderRadius: 11,
-    paddingHorizontal: 8,
+    minHeight: 31,
+    borderRadius: 9,
+    paddingHorizontal: 7,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5
