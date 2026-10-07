@@ -32,8 +32,8 @@ export function EquipmentStatLine({ item, current, label = 'Item bonuses' }: {
 }
 
 const styles = StyleSheet.create({
-  block: { gap: 3, marginTop: 7 },
-  label: { fontSize: 11, lineHeight: 16, fontWeight: '700' },
-  values: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  stat: { fontSize: 12, lineHeight: 18 }
+  block: { gap: 2, marginTop: 5 },
+  label: { fontSize: 9.5, lineHeight: 13, fontWeight: '700' },
+  values: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  stat: { fontSize: 10.5, lineHeight: 15 }
 });
