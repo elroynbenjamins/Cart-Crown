@@ -79,6 +79,6 @@ export function RecruitmentScreen({ onComplete }: { onComplete: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  body: { fontSize: 13, lineHeight: 19 },
+  body: { fontSize: 11, lineHeight: 15 },
   label: { fontWeight: '900' }
 });
