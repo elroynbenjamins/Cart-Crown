@@ -2265,6 +2265,13 @@ export function SettlementScreen({ onExit, onOpenSettings, showReturnButton = tr
                 }
               ]}
             >
+              {humanStagePlateActive ? (
+                <>
+                  <View pointerEvents="none" style={[styles.conceptActionCorner, styles.conceptActionCornerTopLeft]} />
+                  <View pointerEvents="none" style={[styles.conceptActionCorner, styles.conceptActionCornerTopRight]} />
+                  <View pointerEvents="none" style={styles.conceptActionTopTrim} />
+                </>
+              ) : null}
               <View onLayout={event => {
                 const height = event.nativeEvent.layout.height;
                 if (Number.isFinite(height) && height > 0) setMeasuredActionChrome(previous => Math.abs(previous - height) < 0.5 ? previous : height);
@@ -2793,9 +2800,13 @@ const styles = StyleSheet.create({
   sceneDismissSurface: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 1 },
   sceneActionsLayer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 50 },
   sceneActionStrip: { position: 'absolute', borderWidth: 1, borderRadius: 16, padding: 6, elevation: 12, overflow: 'hidden' },
-  conceptSceneActionStrip: { borderWidth: 1.5, borderRadius: 12, padding: 7 },
+  conceptSceneActionStrip: { position: 'absolute', borderWidth: 1.5, borderRadius: 8, padding: 8, paddingTop: 10, elevation: 12, overflow: 'hidden' },
+  conceptActionTopTrim: { position: 'absolute', left: 10, right: 10, top: 3, height: 1, backgroundColor: SETTLEMENT_HUD_GOLD, opacity: 0.72 },
+  conceptActionCorner: { position: 'absolute', top: 3, width: 4, height: 4, borderRadius: 999, backgroundColor: SETTLEMENT_HUD_GOLD },
+  conceptActionCornerTopLeft: { left: 5 },
+  conceptActionCornerTopRight: { right: 5 },
   sceneActionHeading: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  sceneActionBuildingThumb: { width: 46, height: 46, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  sceneActionBuildingThumb: { width: 46, height: 46, borderRadius: 6, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   sceneActionHeadingCopy: { flex: 1, minWidth: 0, paddingLeft: 5 },
   sceneActionName: { fontSize: 13, lineHeight: 18, fontWeight: '900' },
   sceneActionLevel: { fontSize: 11, lineHeight: 16 },
@@ -2803,11 +2814,11 @@ const styles = StyleSheet.create({
   sceneCloseText: { fontSize: 24, lineHeight: 28, fontWeight: '700' },
   sceneActionRow: { flexDirection: 'row', gap: 5 },
   sceneActionButton: { flex: 1, minWidth: 48, minHeight: 48, borderWidth: 1, borderRadius: 10, paddingHorizontal: 4, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 3 },
-  conceptSceneActionButton: { borderWidth: 1.25, borderRadius: 9 },
+  conceptSceneActionButton: { borderWidth: 1.25, borderRadius: 6, minHeight: 50, paddingVertical: 7 },
   sceneActionText: { fontSize: 12, lineHeight: 17, fontWeight: '900', flexShrink: 1, textAlign: 'center' },
   sceneActionGlyph: { fontSize: 15, lineHeight: 17, fontWeight: '900' },
   sceneActionReadyDot: { width: 5, height: 5, borderRadius: 999 },
-  conceptBuildingStats: { marginTop: 5, marginBottom: 7, paddingHorizontal: 6, paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: SETTLEMENT_HUD_GOLD_DARK },
+  conceptBuildingStats: { marginTop: 5, marginBottom: 7, paddingHorizontal: 7, paddingVertical: 6, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: SETTLEMENT_HUD_GOLD_DARK, backgroundColor: SETTLEMENT_HUD_NAVY_DEEP + '88' },
   conceptBuildingEffect: { color: SETTLEMENT_HUD_TEXT, fontSize: 9.5, lineHeight: 13, fontWeight: '700' },
   conceptBuildingDistrict: { fontSize: 8, lineHeight: 11, fontWeight: '900', marginTop: 3 },
   sceneDetailsScroll: { padding: 6, paddingTop: 10 },
