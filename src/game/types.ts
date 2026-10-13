@@ -272,7 +272,18 @@ export type RegionDefinition = {
 export type ChapterNode = {
   id: string;
   name: string;
-  type: 'story' | 'battle' | 'event' | 'elite' | 'supply' | 'boss';
+  type:
+    | 'story'
+    | 'battle'
+    | 'event'
+    | 'elite'
+    | 'supply'
+    | 'boss'
+    | 'upgrade'
+    | 'choice'
+    | 'operation'
+    | 'siege'
+    | 'defense';
   completed: boolean;
   current?: boolean;
 };
