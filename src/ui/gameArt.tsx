@@ -4267,6 +4267,199 @@ function FactionFortWorldBackdrop({ faction }: { faction: FactionId }) {
   );
 }
 
+function HumanSettlementGrowthOverlay({
+  stageId
+}: {
+  stageId: WagonStage['id'];
+}) {
+  if (!['stronghold', 'capital', 'grand'].includes(stageId)) {
+    return null;
+  }
+
+  const capital = stageId === 'capital' || stageId === 'grand';
+  const grand = stageId === 'grand';
+  const stone = grand ? '#4C5053' : capital ? '#555B5F' : '#5E6260';
+  const stoneLight = grand ? '#777D80' : '#82898B';
+  const banner = grand ? '#D7AE4A' : capital ? '#C49A43' : '#547CAC';
+
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0
+      }}
+    >
+      {/* Distant fortified skyline: deliberately kept around the rim so plot
+          buildings remain the visual focus in the playable center. */}
+      <View
+        style={{
+          position: 'absolute',
+          left: '-2%',
+          right: '-2%',
+          top: '6%',
+          height: capital ? 17 : 13,
+          borderRadius: 4,
+          backgroundColor: stone,
+          opacity: grand ? 0.82 : 0.68
+        }}
+      />
+      {['6%', '28%', '68%', '90%'].map((left, index) => (
+        <View
+          key={'human-wall-tower-' + index}
+          style={{
+            position: 'absolute',
+            left,
+            top: capital ? '3.5%' : '4.5%',
+            width: capital ? 22 : 18,
+            height: capital ? 29 : 24,
+            borderRadius: 3,
+            borderWidth: 1,
+            borderColor: stoneLight,
+            backgroundColor: stone,
+            opacity: grand ? 0.92 : 0.76
+          }}
+        >
+          <View
+            style={{
+              position: 'absolute',
+              left: 3,
+              right: 3,
+              top: -4,
+              height: 5,
+              backgroundColor: stoneLight
+            }}
+          />
+        </View>
+      ))}
+
+      <View
+        style={{
+          position: 'absolute',
+          left: '46%',
+          top: capital ? '3%' : '4%',
+          width: '8%',
+          height: capital ? 30 : 25,
+          borderRadius: 3,
+          backgroundColor: stone,
+          borderWidth: 1,
+          borderColor: stoneLight,
+          opacity: grand ? 0.94 : 0.8
+        }}
+      >
+        <View
+          style={{
+            position: 'absolute',
+            left: '38%',
+            bottom: 0,
+            width: '24%',
+            height: '48%',
+            borderTopLeftRadius: 5,
+            borderTopRightRadius: 5,
+            backgroundColor: '#20292C'
+          }}
+        />
+      </View>
+
+      {capital ? (
+        <>
+          {['17%', '81%'].map((left, index) => (
+            <View
+              key={'human-capital-banner-' + index}
+              style={{
+                position: 'absolute',
+                left,
+                top: '13%',
+                width: 3,
+                height: 32,
+                backgroundColor: '#6B5234',
+                opacity: 0.9
+              }}
+            >
+              <View
+                style={{
+                  position: 'absolute',
+                  left: 3,
+                  top: 2,
+                  width: 13,
+                  height: 18,
+                  borderBottomRightRadius: 7,
+                  backgroundColor: banner,
+                  opacity: 0.95
+                }}
+              />
+            </View>
+          ))}
+          <View
+            style={{
+              position: 'absolute',
+              left: '30%',
+              right: '30%',
+              bottom: '5%',
+              height: 6,
+              borderRadius: 999,
+              backgroundColor: '#B7A27A',
+              opacity: 0.32
+            }}
+          />
+        </>
+      ) : null}
+
+      {grand ? (
+        <>
+          {[
+            { left: '4%', bottom: '6%' },
+            { left: '14%', bottom: '3%' },
+            { right: '5%', bottom: '6%' },
+            { right: '15%', bottom: '3%' }
+          ].map((position, index) => (
+            <View
+              key={'grand-campaign-tent-' + index}
+              style={{
+                position: 'absolute',
+                ...position,
+                width: 30,
+                height: 16,
+                borderTopLeftRadius: 14,
+                borderTopRightRadius: 14,
+                borderWidth: 1,
+                borderColor: '#745B38',
+                backgroundColor: index % 2 === 0 ? '#BBA36D' : '#8E7651',
+                opacity: 0.86
+              }}
+            />
+          ))}
+          <View
+            style={{
+              position: 'absolute',
+              left: '47%',
+              bottom: '3%',
+              width: 3,
+              height: 34,
+              backgroundColor: '#5C442C'
+            }}
+          >
+            <View
+              style={{
+                position: 'absolute',
+                left: 3,
+                top: 0,
+                width: 18,
+                height: 21,
+                borderBottomRightRadius: 8,
+                backgroundColor: '#D7AE4A'
+              }}
+            />
+          </View>
+        </>
+      ) : null}
+    </View>
+  );
+}
+
 export function SettlementTerrainBackdrop({
   faction = 'human',
   stageId = 'camp'
@@ -4299,6 +4492,7 @@ export function SettlementTerrainBackdrop({
             resizeMode="cover"
             style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, width: '100%', height: '100%' }}
           />
+          <HumanSettlementGrowthOverlay stageId={stageId} />
         </View>
       );
     }
