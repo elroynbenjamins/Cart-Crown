@@ -7,6 +7,7 @@ import { allyPortrait, figureForPortrait, enemyPortrait } from '../src/ui/portra
 import type { UnitDefinition, UnitRole } from '../src/game/types';
 
 const roles: Record<string, UnitRole> = {
+  Recruit:'frontline', Militia:'frontline',
   Swordsman:'melee', Archer:'ranged', Ranger:'ranged', Scout:'skirmish',
   'Field Chaplain':'support', 'Shield Infantry':'frontline', 'Man-at-Arms':'frontline',
   Spearman:'frontline', Lancer:'cavalry', Crossbowman:'ranged', 'Field Medic':'support',
@@ -38,9 +39,9 @@ assert.ok(gameArtSource.includes('humanFigureForClass(faction, className)'));
 assert.ok(gameArtSource.includes('fallback={fallback} /> : fallback'));
 assert.ok(readFileSync('src/ui/portraitBattle/PortraitBattleView.tsx','utf8').includes('<UnitSprite preferHumanArt={false}'), 'Image-error fallback must not request the same failed asset again');
 assert.equal(Object.keys(roles).length,Object.keys(humanClassArt).length);
-assert.equal(humanArtIds.length,12);
-assert.equal(new Set(Object.values(humanClassArt)).size,12,'Every new pair must be reachable');
-for(const className of ['Recruit','Militia','Greatswordsman','Champion','Mounted Archer','Siege Engineer','Griffin Rider','Unknown','constructor','__proto__']) {
+assert.equal(humanArtIds.length,14);
+assert.equal(new Set(Object.values(humanClassArt)).size,14,'Every approved art pair must be reachable');
+for(const className of ['Greatswordsman','Champion','Mounted Archer','Siege Engineer','Griffin Rider','Unknown','constructor','__proto__']) {
   assert.equal(allyPortrait({...unit,className}),null,'Unsupported classes keep their own art'); checks++;
 }
 assert.equal(humanPortraitForClass('human','Lancer','melee'),null);
@@ -55,7 +56,8 @@ assert.equal(manifest.assets.length,24);
 const registry=readFileSync('src/ui/productionAssets.ts','utf8');
 const allKeys=[...registry.matchAll(/^\s*'([^']+)':\s*require\(/gm)].map(m=>m[1]);
 assert.equal(new Set(allKeys).size,allKeys.length,'Duplicate registry declarations');
-for(const id of humanArtIds) for(const kind of ['portrait','unit']) {
+const manifestArtIds = humanArtIds.filter(id => id !== 'recruit' && id !== 'militia');
+for(const id of manifestArtIds) for(const kind of ['portrait','unit']) {
   const key=`human_${id}_${kind}`;
   const asset=manifest.assets.find((a:any)=>a.key===key);assert.ok(asset,key);
   assert.ok(existsSync(asset.path));
@@ -69,6 +71,29 @@ for(const id of humanArtIds) for(const kind of ['portrait','unit']) {
   assert.ok(x1>=8&&y1>=8&&x2<=248&&y2<=248,'Safe transparent border missing');
   if(kind==='unit')assert.ok(y2<=244,'Feet/weapon anchor below stage bounds');
   checks+=9;
+}
+
+for (const id of ['recruit','militia'] as const) for (const kind of ['portrait','unit'] as const) {
+  const key=`human_${id}_${kind}`;
+  const path=`assets/game/battle_portraits/human/${id}_${kind}.png`;
+  assert.ok(existsSync(path), key + ' starter asset missing');
+  const bytes=readFileSync(path);
+  assert.equal(bytes.readUInt32BE(16),256);
+  assert.equal(bytes.readUInt32BE(20),256);
+  assert.equal(bytes[25],6,'RGBA transparency required');
+  assert.ok(bytes.length<200000,'Starter combat asset size budget');
+  assert.ok(registry.includes(`'battle_portrait.${key}': require('../../${path}')`));
+  checks+=6;
+}
+for (const kind of ['portrait','unit'] as const) {
+  const recruit=readFileSync(`assets/game/battle_portraits/human/recruit_${kind}.png`);
+  const militia=readFileSync(`assets/game/battle_portraits/human/militia_${kind}.png`);
+  assert.notEqual(
+    createHash('sha256').update(recruit).digest('hex'),
+    createHash('sha256').update(militia).digest('hex'),
+    'Recruit and Militia must remain visually distinct'
+  );
+  checks++;
 }
 
 // Exercise the actual ReferenceArt component through a tiny native renderer stub.
@@ -99,4 +124,4 @@ for(const id of humanArtIds)for(const suffix of ['portrait','unit'])for(const si
 }
 sourcePresent=false;
 assert.equal(mod.exports.ReferenceArt({art:'human_captain_unit',width:48,fallback:'MISSING_FALLBACK'}).props.children[0],'MISSING_FALLBACK');
-console.log(`PASS: ${checks} Human-art checks: 12 portrait/figure pairs, 15 class mappings, faction/fantasy exclusions, source hashes, safe framing and real component fallback.`);
+console.log(`PASS: ${checks} Human-art checks: 14 portrait/figure pairs, 17 class mappings, distinct Recruit/Militia starters, faction/fantasy exclusions, legacy source hashes, safe framing and real component fallback.`);
