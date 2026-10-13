@@ -317,6 +317,64 @@ if (humanPromotionHashes.size !== humanPromotionIcons.length) {
 if (humanPromotionBytes > 900000) {
   failures.push('Human promotion icons exceed the shared 900 KB runtime budget: ' + humanPromotionBytes + ' bytes.');
 }
+
+const uniqueUnitSets = [
+  {
+    faction: 'human',
+    folder: 'human_uniques',
+    slugs: ['shield_spearman','ranger','border_ranger','scout_rider','man_at_arms'],
+    budget: 650000
+  },
+  {
+    faction: 'elf',
+    folder: 'elf_uniques',
+    slugs: ['moon_ranger','forest_scout','spiritkeeper','stag_rider','stag_lancer'],
+    budget: 700000
+  },
+  {
+    faction: 'orc',
+    folder: 'orc_uniques',
+    slugs: ['youngblood','axe_thrower','bone_hunter','warg_rider','warg_raider','warg_lancer'],
+    budget: 850000
+  }
+];
+const allUniqueHashes = new Set();
+for (const set of uniqueUnitSets) {
+  const hashes = new Set();
+  let bytesTotal = 0;
+  for (const slug of set.slugs) {
+    const relativePath = 'assets/units/' + set.folder + '/' + slug + '.png';
+    const full = path.join(root, relativePath);
+    if (!fs.existsSync(full)) {
+      failures.push(set.faction + ' unique icon is missing: ' + relativePath + '.');
+      continue;
+    }
+    try {
+      const bytes = fs.readFileSync(full);
+      bytesTotal += bytes.length;
+      validateSpritePng(bytes);
+      assert.ok(bytes.length <= 140000, set.faction + ' unique icon exceeds 140 KB budget.');
+      const assetId = 'unit.' + set.faction + '.' + slug;
+      const expected = "'" + assetId + "': require('../../" + relativePath + "')";
+      assert.ok(registry.includes(expected), set.faction + ' unique icon is not wired: ' + assetId + '.');
+      const hash = crypto.createHash('sha256').update(bytes).digest('hex');
+      hashes.add(hash);
+      allUniqueHashes.add(hash);
+    } catch (error) {
+      failures.push(relativePath + ': ' + error.message);
+    }
+  }
+  if (hashes.size !== set.slugs.length) {
+    failures.push(set.faction + ' unique icons must all be visually distinct files.');
+  }
+  if (bytesTotal > set.budget) {
+    failures.push(set.faction + ' unique icons exceed their shared runtime budget: ' + bytesTotal + ' bytes.');
+  }
+}
+const uniqueCount = uniqueUnitSets.reduce((sum, set) => sum + set.slugs.length, 0);
+if (allUniqueHashes.size !== uniqueCount) {
+  failures.push('Human, Elf and Orc unique icon files must not duplicate one another.');
+}
 const registered = new Set([...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/[^']+\.(?:png|jpg))'\)/g)].map(match => match[1]));
 const spritePaths = new Set(sprites.map(relative));
 const productionAssetPaths = new Set([
