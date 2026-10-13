@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- assets/game/battle_portraits/human; then
+          if [ -z "$(git status --porcelain -- assets/game/battle_portraits/human)" ]; then
             echo "No starter battle art changes to commit."
             exit 0
           fi
