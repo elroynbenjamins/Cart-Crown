@@ -2,6 +2,14 @@ import { chapterOneNodes } from '../src/game/data';
 import { chapterTwoNodes } from '../src/game/chapter2';
 import { chapterThreeNodes } from '../src/game/chapter3';
 import { chapterFourNodes } from '../src/game/chapter4';
+import { chapterFiveNodes } from '../src/game/chapter5';
+import { chapterSixNodes } from '../src/game/chapter6';
+import { chapterSevenNodes } from '../src/game/chapter7';
+import {
+  humanLateEncounterDefinitions,
+  humanLateEncounterFormations,
+  humanLateMissions
+} from '../src/game/humanLateCampaign';
 import {
   campaignMissionCountsByChapter,
   campaignMissionRoadmap,
@@ -212,6 +220,89 @@ assert(
 );
 
 
+const liveLateChapters = [
+  chapterFiveNodes,
+  chapterSixNodes,
+  chapterSevenNodes
+];
+for (const [offset, nodes] of liveLateChapters.entries()) {
+  const chapter = offset + 5;
+  const roadmap = getCampaignChapterBlueprints(chapter);
+  const runtime = humanLateMissions.filter(
+    mission => mission.chapter === chapter
+  );
+
+  assert(
+    nodes.length === 11 &&
+      runtime.length === 11 &&
+      roadmap.length === 11,
+    'Human Chapter ' + chapter + ' must expose all eleven canonical missions'
+  );
+
+  nodes.forEach((node, index) => {
+    const blueprint = roadmap[index];
+    const mission = runtime[index];
+    assert(
+      Boolean(blueprint) &&
+        Boolean(mission) &&
+        node.id === mission?.id &&
+        node.name === blueprint?.name &&
+        mission?.name === blueprint?.name &&
+        node.type === blueprint?.kind &&
+        mission?.type === blueprint?.kind,
+      'Human Chapter ' + chapter +
+        ' runtime mission ' + (index + 1) +
+        ' drifted from the 70-mission roadmap'
+    );
+
+    const combatLike = [
+      'battle',
+      'boss',
+      'operation',
+      'siege',
+      'defense'
+    ].includes(node.type);
+
+    if (combatLike) {
+      assert(
+        Boolean(mission?.encounterId),
+        node.name + ' must have a playable encounter'
+      );
+      const encounterId = mission!.encounterId!;
+      assert(
+        Boolean(humanLateEncounterDefinitions[encounterId]),
+        node.name + ' is missing its encounter definition'
+      );
+      assert(
+        Boolean(humanLateEncounterFormations[encounterId]),
+        node.name + ' is missing its authored enemy formation'
+      );
+    } else {
+      assert(
+        !mission?.encounterId,
+        node.name + ' should resolve through the Human mission briefing flow'
+      );
+    }
+  });
+}
+
+assert(
+  humanLateMissions.length === 33,
+  'Human Chapters 5-7 must contribute 33 live missions'
+);
+assert(
+  [
+    ...chapterOneNodes,
+    ...chapterTwoNodes,
+    ...chapterThreeNodes,
+    ...chapterFourNodes,
+    ...chapterFiveNodes,
+    ...chapterSixNodes,
+    ...chapterSevenNodes
+  ].length === 70,
+  'The live Human campaign must contain exactly 70 missions'
+);
+
 console.log(
-  'PASS: campaign mission roadmap, live Chapters 1-4 ordering and 2->3->4->5->6 squad cadence remain protected.'
+  'PASS: all 70 Human campaign missions, live Chapters 1-7 ordering, late combat wiring and 2->3->4->5->6 squad cadence remain protected.'
 );
