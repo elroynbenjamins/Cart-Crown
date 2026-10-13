@@ -235,6 +235,45 @@ if (campSceneBytes > campSceneByteBudget) {
 }
 const registry = fs.readFileSync(path.join(root, 'src/ui/productionAssets.ts'), 'utf8');
 
+const humanBaseIcons = [
+  'spearman',
+  'swordsman',
+  'archer',
+  'crossbowman',
+  'scout',
+  'shield_infantry',
+  'cavalryman',
+  'halberdier'
+];
+const humanBaseHashes = new Set();
+let humanBaseBytes = 0;
+for (const slug of humanBaseIcons) {
+  const relativePath = 'assets/units/human_base/' + slug + '.png';
+  const full = path.join(root, relativePath);
+  if (!fs.existsSync(full)) {
+    failures.push('Human base icon is missing: ' + relativePath + '.');
+    continue;
+  }
+  try {
+    const bytes = fs.readFileSync(full);
+    humanBaseBytes += bytes.length;
+    validateSpritePng(bytes);
+    assert.ok(bytes.length <= 120000, 'Human base icon exceeds 120 KB budget.');
+    const assetId = 'unit.human.' + slug;
+    const expected = "'" + assetId + "': require('../../" + relativePath + "')";
+    assert.ok(registry.includes(expected), 'Human base icon is not wired: ' + assetId + '.');
+    humanBaseHashes.add(crypto.createHash('sha256').update(bytes).digest('hex'));
+  } catch (error) {
+    failures.push(relativePath + ': ' + error.message);
+  }
+}
+if (humanBaseHashes.size !== humanBaseIcons.length) {
+  failures.push('Human base icons must all be visually distinct files.');
+}
+if (humanBaseBytes > 650000) {
+  failures.push('Human base icons exceed the shared 650 KB runtime budget: ' + humanBaseBytes + ' bytes.');
+}
+
 const humanPromotionIcons = [
   'longbowman',
   'marksman',
