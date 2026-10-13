@@ -15,6 +15,7 @@ import type {
 } from './types';
 
 const SAVE_KEY_PREFIX = '@cart-crown/save/';
+const SAVE_BACKUP_KEY_PREFIX = '@cart-crown/save-backup/';
 const slotIds: SaveSlotId[] = [1, 2];
 
 type SaveSystemContextValue = {
@@ -35,15 +36,55 @@ function keyForSlot(slotId: SaveSlotId) {
   return SAVE_KEY_PREFIX + String(slotId);
 }
 
-async function readRecord(slotId: SaveSlotId): Promise<SaveRecord | null> {
-  const raw = await AsyncStorage.getItem(keyForSlot(slotId));
+function backupKeyForSlot(slotId: SaveSlotId) {
+  return SAVE_BACKUP_KEY_PREFIX + String(slotId);
+}
+
+function parseRecord(
+  slotId: SaveSlotId,
+  raw: string | null
+): SaveRecord | null {
   if (!raw) return null;
 
   try {
-    return normalizeSaveRecord(slotId, JSON.parse(raw));
+    return normalizeSaveRecord(
+      slotId,
+      JSON.parse(raw)
+    );
   } catch {
     return null;
   }
+}
+
+async function readRecord(slotId: SaveSlotId): Promise<SaveRecord | null> {
+  const [primaryRaw, backupRaw] =
+    await AsyncStorage.multiGet([
+      keyForSlot(slotId),
+      backupKeyForSlot(slotId)
+    ]).then(entries => [
+      entries[0]?.[1] ?? null,
+      entries[1]?.[1] ?? null
+    ]);
+
+  const primary = parseRecord(
+    slotId,
+    primaryRaw
+  );
+  if (primary) return primary;
+
+  const backup = parseRecord(
+    slotId,
+    backupRaw
+  );
+  if (!backup) return null;
+
+  // Recover the primary copy from the last valid backup. Awaiting the repair
+  // keeps the slot durable before the save-select screen becomes interactive.
+  await AsyncStorage.setItem(
+    keyForSlot(slotId),
+    JSON.stringify(backup)
+  );
+  return backup;
 }
 
 export function SaveProvider({ children }: PropsWithChildren) {
@@ -85,7 +126,11 @@ export function SaveProvider({ children }: PropsWithChildren) {
 
   const createSlot = async (slotId: SaveSlotId) => {
     const record = createNewSaveRecord(slotId);
-    await AsyncStorage.setItem(keyForSlot(slotId), JSON.stringify(record));
+    const serialized = JSON.stringify(record);
+    await AsyncStorage.multiSet([
+      [backupKeyForSlot(slotId), serialized],
+      [keyForSlot(slotId), serialized]
+    ]);
     setRecords(previous => ({ ...previous, [slotId]: record }));
     setSelectedSlotId(slotId);
     setSelectedRecord(record);
@@ -108,9 +153,17 @@ export function SaveProvider({ children }: PropsWithChildren) {
     };
 
     const write = async () => {
+      const serialized = JSON.stringify(record);
+
+      // Backup first, primary second. If Android kills the process between
+      // writes, at least one complete valid copy remains recoverable.
+      await AsyncStorage.setItem(
+        backupKeyForSlot(slotId),
+        serialized
+      );
       await AsyncStorage.setItem(
         keyForSlot(slotId),
-        JSON.stringify(record)
+        serialized
       );
       setRecords(previous => ({
         ...previous,
@@ -128,7 +181,10 @@ export function SaveProvider({ children }: PropsWithChildren) {
 
   const deleteSlot = async (slotId: SaveSlotId) => {
     await writeQueueRef.current.wait();
-    await AsyncStorage.removeItem(keyForSlot(slotId));
+    await AsyncStorage.multiRemove([
+      keyForSlot(slotId),
+      backupKeyForSlot(slotId)
+    ]);
     setRecords(previous => ({ ...previous, [slotId]: null }));
 
     if (selectedSlotId === slotId) {
