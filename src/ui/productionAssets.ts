@@ -334,6 +334,12 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'faction_crest.elf': require('../../assets/ui/crests/elf_crest.png'),
   'faction_crest.orc': require('../../assets/ui/crests/orc_crest.png'),
 
+  // Reviewed generated source atlases. Runtime crops these by exact figure bounds
+  // so no neighboring unit can bleed into an icon.
+  'generated_unit_atlas.human': require('../../assets/units/human/human_units_sheet.png'),
+  'generated_unit_atlas.elf': require('../../assets/units/elf/elf_units_sheet.png'),
+  'generated_unit_atlas.orc': require('../../assets/units/orc/orc_units_sheet.png'),
+
   'unit.human.recruit': require('../../assets/units/human/human_01_recruit_icon.png'),
   'unit.human.militia': require('../../assets/units/human/human_02_militia_icon.png'),
   'unit.human.spearman': require('../../assets/units/human_base/spearman.png'),
