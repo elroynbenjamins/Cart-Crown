@@ -394,15 +394,21 @@ export function CampaignScreen({
     campaignAvailability.find(campaign => campaign.id === id);
 
   const currentHumanRegionIndex =
-    chapterNumber >= 5
-      ? 4
-      : chapterNumber >= 3
-        ? 3
-        : chapterNumber >= 2
-          ? 2
-          : settlementUpgraded
-            ? 1
-            : 0;
+    chapterNumber >= 7
+      ? 7
+      : chapterNumber >= 6
+        ? 6
+        : chapterNumber >= 5
+          ? 5
+          : chapterNumber >= 4
+            ? 4
+            : chapterNumber >= 3
+              ? 3
+              : chapterNumber >= 2
+                ? 2
+                : settlementUpgraded
+                  ? 1
+                  : 0;
   const humanJourney = humanRegions.map((region, index) => ({
     id: region.id,
     name: region.name,
@@ -434,8 +440,10 @@ export function CampaignScreen({
                 : chapterNumber === 4
                   ? 'Fortifying the Realm'
                   : chapterNumber === 5
-                    ? 'Old Royal Lands'
-                    : 'Return to Crownspire'
+                    ? 'The Army Becomes a Kingdom'
+                    : chapterNumber === 6
+                      ? 'Arcane Warfare'
+                      : 'Walls & War Machines'
         }
         body={
           chapterNumber === 1
@@ -447,8 +455,10 @@ export function CampaignScreen({
                 : chapterNumber === 4
                   ? 'Field five squads, adapt Commander doctrine, use alternate loadouts and prepare an elite force for Greywatch.'
                   : chapterNumber === 5
-                    ? 'Govern the western realm as a Capital and trace the final royal records toward Crownspire.'
-                    : 'Lead the Grand Campaign into Crownspire and confront the Ashen Court around the Concord Beacon.'
+                    ? 'Raise the sixth banner, master Flying threats and prove a full six-squad army can survive combined-arms warfare.'
+                    : chapterNumber === 6
+                      ? 'Bring Mages into the army, break enemy wards and learn how arcane control reshapes formation warfare.'
+                      : 'Take the Human campaign to Blackstone: breach gates, protect engineers, survive counter-sieges and win the final urban assault.'
         }
         accent={theme.colors.human}
         status={<StatusPill label="HUMAN" tone="current" />}
