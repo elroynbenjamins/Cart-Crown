@@ -44,6 +44,7 @@ import { chapterThreeNodes } from '../game/chapter3';
 import { chapterFourNodes } from '../game/chapter4';
 import { chapterFiveNodes } from '../game/chapter5';
 import { chapterSixNodes } from '../game/chapter6';
+import { chapterSevenNodes } from '../game/chapter7';
 import {
   elfChapterTwoNodes,
   elfChapterThreeNodes,
@@ -145,20 +146,27 @@ function validStageForFaction(
 
 function expectedChapterForStage(
   faction: FactionId,
-  stageId: string
+  stageId: string,
+  storedChapter?: unknown
 ) {
   if (faction === 'human') {
-    return stageId === 'grand'
-      ? 6
-      : stageId === 'capital'
-        ? 5
-        : stageId === 'stronghold'
-          ? 4
-          : stageId === 'town'
-            ? 3
-            : stageId === 'fort'
-              ? 2
-              : 1;
+    if (stageId === 'grand') {
+      return typeof storedChapter === 'number' &&
+        Number.isFinite(storedChapter) &&
+        storedChapter >= 7
+        ? 7
+        : 6;
+    }
+
+    return stageId === 'capital'
+      ? 5
+      : stageId === 'stronghold'
+        ? 4
+        : stageId === 'town'
+          ? 3
+          : stageId === 'fort'
+            ? 2
+            : 1;
   }
 
   return stageId === 'capital'
@@ -183,7 +191,8 @@ function nodesForChapter(
     if (chapter === 3) return chapterThreeNodes;
     if (chapter === 4) return chapterFourNodes;
     if (chapter === 5) return chapterFiveNodes;
-    if (chapter >= 6) return chapterSixNodes;
+    if (chapter === 6) return chapterSixNodes;
+    if (chapter >= 7) return chapterSevenNodes;
     return chapterOneNodes;
   }
 
@@ -971,7 +980,8 @@ export function sanitizeFactionGameState(
   );
   const chapterNumber = expectedChapterForStage(
     faction,
-    stageId
+    stageId,
+    stored.chapterNumber
   );
   const chapterDefaults = nodesForChapter(
     faction,
