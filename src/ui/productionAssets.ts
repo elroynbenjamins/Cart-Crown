@@ -283,6 +283,10 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'settlement_background.human.capital': require('../../assets/game/scenes/human/settlement/capital.jpg'),
 
   // Generated Human portrait/figure pairs. Existing exact-class fallback art stays registered.
+  'battle_portrait.human_recruit_portrait': require('../../assets/game/battle_portraits/human/recruit_portrait.png'),
+  'battle_portrait.human_recruit_unit': require('../../assets/game/battle_portraits/human/recruit_unit.png'),
+  'battle_portrait.human_militia_portrait': require('../../assets/game/battle_portraits/human/militia_portrait.png'),
+  'battle_portrait.human_militia_unit': require('../../assets/game/battle_portraits/human/militia_unit.png'),
   'battle_portrait.human_captain_portrait': require('../../assets/game/battle_portraits/human/captain_portrait.png'),
   'battle_portrait.human_ranger_portrait': require('../../assets/game/battle_portraits/human/ranger_portrait.png'),
   'battle_portrait.human_priest_portrait': require('../../assets/game/battle_portraits/human/priest_portrait.png'),
@@ -318,9 +322,6 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'ui.settlement_support_orc_atlas': require('../../assets/game/ui/settlement_support_orc_atlas.png'),
 
   'legacy.unit.human.recruit': require('../../assets/game/units/human/recruit.png'),
-  'legacy.unit.human.militia': require('../../assets/game/units/human/militia.png'),
-  'legacy.unit.elf.forest_scout': require('../../assets/game/units/elf/forest_scout.png'),
-  'legacy.unit.orc.youngblood': require('../../assets/game/units/orc/youngblood.png'),
   'legacy.unit.elf.warden': require('../../assets/game/units/elf/warden.png'),
   'legacy.unit.orc.hunter': require('../../assets/game/units/orc/hunter.png'),
 
