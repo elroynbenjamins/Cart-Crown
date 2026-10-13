@@ -1002,6 +1002,121 @@ function FantasyUnitOverlay({
   );
 }
 
+type GeneratedUnitAtlasCrop = {
+  faction: FactionId;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  mounted?: boolean;
+};
+
+const GENERATED_UNIT_ATLAS_WIDTH = 1448;
+const GENERATED_UNIT_ATLAS_HEIGHT = 1086;
+
+// Bounds were measured from the reviewed transparent source sheets rather than
+// assuming a rigid 4x3 grid. Several weapons, mounts and banners intentionally
+// cross those nominal grid lines, so exact figure bounds prevent neighbor bleed.
+const generatedUnitAtlasCrops: Record<string, GeneratedUnitAtlasCrop> = {
+  'unit.human.recruit': { faction: 'human', x: 65, y: 63, width: 256, height: 330 },
+  'unit.human.militia': { faction: 'human', x: 410, y: 98, width: 225, height: 290 },
+  'unit.human.spearman': { faction: 'human', x: 708, y: 84, width: 386, height: 309 },
+  'unit.human.swordsman': { faction: 'human', x: 1119, y: 109, width: 294, height: 284 },
+  'unit.human.archer': { faction: 'human', x: 58, y: 395, width: 288, height: 325 },
+  'unit.human.crossbowman': { faction: 'human', x: 400, y: 462, width: 300, height: 257 },
+  'unit.human.scout': { faction: 'human', x: 741, y: 457, width: 260, height: 259 },
+  'unit.human.shield_infantry': { faction: 'human', x: 1119, y: 424, width: 270, height: 295 },
+  'unit.human.cavalryman': { faction: 'human', x: 18, y: 701, width: 343, height: 355, mounted: true },
+  'unit.human.pikeman': { faction: 'human', x: 388, y: 772, width: 397, height: 283 },
+  'unit.human.field_medic': { faction: 'human', x: 776, y: 733, width: 237, height: 319 },
+  'unit.human.banner_captain': { faction: 'human', x: 1082, y: 711, width: 327, height: 346 },
+
+  'unit.elf.grove_acolyte': { faction: 'elf', x: 38, y: 25, width: 271, height: 317 },
+  'unit.elf.spear_warden': { faction: 'elf', x: 333, y: 54, width: 411, height: 288 },
+  'unit.elf.blade_warden': { faction: 'elf', x: 708, y: 41, width: 356, height: 300 },
+  'unit.elf.bow_warden': { faction: 'elf', x: 1078, y: 10, width: 360, height: 331 },
+  'unit.elf.pathfinder': { faction: 'elf', x: 12, y: 410, width: 298, height: 273 },
+  'unit.elf.warden': { faction: 'elf', x: 357, y: 368, width: 308, height: 330 },
+  'unit.elf.stag_scout': { faction: 'elf', x: 681, y: 343, width: 363, height: 356, mounted: true },
+  'unit.elf.druid': { faction: 'elf', x: 1104, y: 361, width: 326, height: 323 },
+  'unit.elf.mounted_ranger': { faction: 'elf', x: 337, y: 692, width: 426, height: 367, mounted: true },
+
+  'unit.orc.clan_warrior': { faction: 'orc', x: 48, y: 60, width: 275, height: 312 },
+  'unit.orc.spear_raider': { faction: 'orc', x: 734, y: 83, width: 418, height: 289 },
+  'unit.orc.ironhide': { faction: 'orc', x: 1109, y: 91, width: 310, height: 281 },
+  'unit.orc.hunter': { faction: 'orc', x: 394, y: 386, width: 311, height: 316 },
+  'unit.orc.warg_scout': { faction: 'orc', x: 698, y: 396, width: 437, height: 306, mounted: true },
+  'unit.orc.bone_shaman': { faction: 'orc', x: 1142, y: 389, width: 285, height: 313 },
+  'unit.orc.war_drummer': { faction: 'orc', x: 414, y: 696, width: 294, height: 339 },
+  'unit.orc.warbringer': { faction: 'orc', x: 1051, y: 714, width: 374, height: 322 }
+};
+
+function GeneratedUnitAtlasSprite({
+  assetId,
+  size,
+  portrait = false
+}: {
+  assetId: string;
+  size: number;
+  portrait?: boolean;
+}) {
+  const crop = generatedUnitAtlasCrops[assetId];
+  if (!crop) return null;
+
+  const source = getProductionAssetSource(
+    'generated_unit_atlas.' + crop.faction
+  );
+  if (!source) return null;
+
+  const fitScale = Math.min(
+    (size * 0.92) / crop.width,
+    (size * 0.92) / crop.height
+  );
+  const portraitScale = crop.mounted
+    ? Math.min(
+        (size * 0.98) / crop.width,
+        (size * 0.98) / crop.height
+      )
+    : Math.min(
+        (size * 1.28) / crop.width,
+        (size * 1.48) / crop.height
+      );
+  const scale = portrait ? portraitScale : fitScale;
+  const figureWidth = crop.width * scale;
+  const figureHeight = crop.height * scale;
+  const figureLeft = (size - figureWidth) / 2;
+  const figureTop = portrait
+    ? crop.mounted
+      ? (size - figureHeight) / 2
+      : size * 0.02
+    : size - figureHeight - size * 0.03;
+
+  return (
+    <View
+      pointerEvents="none"
+      accessible={false}
+      style={{
+        width: size,
+        height: size,
+        overflow: 'hidden'
+      }}
+    >
+      <Image
+        source={source}
+        resizeMode="stretch"
+        fadeDuration={0}
+        style={{
+          position: 'absolute',
+          width: GENERATED_UNIT_ATLAS_WIDTH * scale,
+          height: GENERATED_UNIT_ATLAS_HEIGHT * scale,
+          left: figureLeft - crop.x * scale,
+          top: figureTop - crop.y * scale
+        }}
+      />
+    </View>
+  );
+}
+
 export function UnitSprite({
   className,
   faction = 'human',
@@ -1049,7 +1164,15 @@ export function UnitSprite({
   const productionSize = size * productionScale * presentationScale;
 
   const humanArt = preferHumanArt ? humanFigureForClass(faction, className) : null;
-  const fallback = (
+  const generatedAtlasSprite = generatedUnitAtlasCrops[production.id]
+    ? (
+        <GeneratedUnitAtlasSprite
+          assetId={production.id}
+          size={productionSize}
+        />
+      )
+    : null;
+  const fallback = generatedAtlasSprite ?? (
     <ProductionAssetFrame
         assetId={production.id}
         width={productionSize}
@@ -1090,6 +1213,16 @@ export function UnitPortraitSprite({
 }) {
   const kind = getUnitVisualKind(className);
   const production = unitProductionAsset(faction, className, kind);
+  if (generatedUnitAtlasCrops[production.id]) {
+    return (
+      <GeneratedUnitAtlasSprite
+        assetId={production.id}
+        size={size}
+        portrait
+      />
+    );
+  }
+
   const source = getProductionAssetSource(production.id);
   if (!source) {
     return <UnitSprite className={className} faction={faction} size={size} preferHumanArt={false} />;
