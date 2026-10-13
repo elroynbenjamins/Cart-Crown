@@ -2660,13 +2660,52 @@ export function CampaignNodeSprite({
 
   return (
     <View style={{ width: size, height: size, position: 'relative' }}>
-      {type === 'battle' || type === 'elite' || type === 'boss' ? (
+      {type === 'battle' ||
+      type === 'elite' ||
+      type === 'boss' ||
+      type === 'siege' ||
+      type === 'defense' ||
+      type === 'operation' ? (
         <>
           <View style={{ position: 'absolute', left: size * 0.19, top: size * 0.18, width: size * 0.12, height: size * 0.63, backgroundColor: dim, transform: [{ rotate: '-36deg' }] }} />
           <View style={{ position: 'absolute', right: size * 0.19, top: size * 0.18, width: size * 0.12, height: size * 0.63, backgroundColor: type === 'boss' ? palette.gold : dim, transform: [{ rotate: '36deg' }] }} />
           {type !== 'battle' ? (
-            <View style={{ position: 'absolute', left: size * 0.36, top: size * 0.05, width: size * 0.28, height: size * 0.12, backgroundColor: type === 'boss' ? palette.gold : palette.red }} />
+            <View style={{
+              position: 'absolute',
+              left: size * 0.34,
+              top: size * 0.05,
+              width: size * 0.32,
+              height: size * 0.12,
+              backgroundColor:
+                type === 'boss'
+                  ? palette.gold
+                  : type === 'siege'
+                    ? palette.stone
+                    : type === 'defense'
+                      ? palette.humanLight
+                      : type === 'operation'
+                        ? palette.blue
+                        : palette.red
+            }} />
           ) : null}
+          {type === 'siege' ? (
+            <View style={{ position: 'absolute', left: size * 0.25, right: size * 0.25, bottom: size * 0.12, height: size * 0.12, backgroundColor: palette.stone }} />
+          ) : null}
+          {type === 'defense' ? (
+            <View style={{ position: 'absolute', left: size * 0.31, top: size * 0.25, width: size * 0.38, height: size * 0.44, borderWidth: Math.max(1, size * 0.06), borderColor: palette.humanLight }} />
+          ) : null}
+        </>
+      ) : type === 'upgrade' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.45, top: size * 0.12, width: size * 0.1, height: size * 0.7, backgroundColor: dim }} />
+          <View style={{ position: 'absolute', left: size * 0.27, top: size * 0.12, width: size * 0.46, height: size * 0.12, backgroundColor: dim }} />
+          <View style={{ position: 'absolute', left: size * 0.33, top: size * 0.03, width: size * 0.34, height: size * 0.12, backgroundColor: palette.gold }} />
+        </>
+      ) : type === 'choice' ? (
+        <>
+          <View style={{ position: 'absolute', left: size * 0.45, top: size * 0.14, width: size * 0.1, height: size * 0.3, backgroundColor: dim }} />
+          <View style={{ position: 'absolute', left: size * 0.27, top: size * 0.43, width: size * 0.1, height: size * 0.38, backgroundColor: dim, transform: [{ rotate: '34deg' }] }} />
+          <View style={{ position: 'absolute', right: size * 0.27, top: size * 0.43, width: size * 0.1, height: size * 0.38, backgroundColor: palette.gold, transform: [{ rotate: '-34deg' }] }} />
         </>
       ) : type === 'supply' ? (
         <>
