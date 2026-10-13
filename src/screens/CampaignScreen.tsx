@@ -53,7 +53,7 @@ const humanChapterVisuals: Record<number, {
 };
 
 function humanChapterVisual(chapter: number) {
-  return humanChapterVisuals[chapter] ?? humanChapterVisuals[1];
+  return humanChapterVisuals[chapter] ?? humanChapterVisuals[1]!;
 }
 
 function campaignMissionArtFor(node: ChapterNode) {
