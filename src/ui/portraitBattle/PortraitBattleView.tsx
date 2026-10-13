@@ -3,7 +3,7 @@ import { AccessibilityInfo, Animated, Modal, Platform, Pressable, ScrollView, St
 import type { CommanderSkillEffectType, EnemyFantasyThreatFamily, FactionId, FormationShapeDefinition, UnitDefinition, UnitRole } from '../../game/types';
 import type { EncounterId, EnemyArmyProfileId } from '../../game/encounters';
 import { useGameTheme } from '../../theme/ThemeProvider';
-import { EnemySprite, UnitSprite } from '../gameArt';
+import { EnemySprite, UnitPortraitSprite, UnitSprite } from '../gameArt';
 import { BattleStatusMarker, BattleVfxStrip, EnemyFantasyStrikeVfx, EnemyFantasyThreatAura } from '../battleVisuals';
 import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop';
 import { ReferenceArt } from './Art';
@@ -136,7 +136,7 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
     })) : roster.map(({ slot, unit }) => ({
       slot, level: unit.level, title: unit.className, detail: `Lv. ${unit.level} · ${roleNames[unit.role]} · ${rankCopy(p.shape, slot)}`,
       art: allyPortrait(unit), active: ongoing && (p.activeSlot === slot || p.supportSlots.includes(slot)), down: false,
-      fallback: <UnitSprite preferHumanArt={false} className={unit.className} faction={unit.faction} size={layout.portraitSize} />
+      fallback: <UnitPortraitSprite className={unit.className} faction={unit.faction} size={layout.portraitSize} />
     }));
     return <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator={cards.length > 4}
       testID={enemy ? 'enemy-portrait-rail' : 'ally-portrait-rail'}
@@ -202,9 +202,9 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
             ] }]}>
           <View style={[s.shadow, { backgroundColor: '#000000',
             width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
-          {allyPortrait(item.unit) ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size}
-            fallback={<UnitSprite preferHumanArt={false} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
-            : <UnitSprite preferHumanArt={false} className={item.unit.className} faction={item.unit.faction} size={position.size} />}
+          {allyPortrait(item.unit) ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size * 1.08} height={position.size * 1.08}
+            fallback={<UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
+            : <UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />}
           {active || support || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : support ? theme.colors.primary : theme.colors.human }]} /> : null}
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
         </Animated.View>;
