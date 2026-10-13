@@ -3,7 +3,7 @@ import type { FactionId, UnitRole } from '../../game/types';
 // Explicit artwork coverage, not a new unit list or progression rule. The captain
 // illustration is the Swordsman archetype; real unit names/levels stay in the UI.
 export const humanArtIds = [
-  'captain', 'ranger', 'priest', 'infantry', 'spearman', 'lancer',
+  'recruit', 'militia', 'captain', 'ranger', 'priest', 'infantry', 'spearman', 'lancer',
   'crossbowman', 'field_medic', 'halberdier', 'banner_captain',
   'heavy_cavalry', 'royal_guard'
 ] as const;
@@ -15,6 +15,8 @@ export type HumanArtKey = HumanPortraitKey | HumanFigureKey;
 // Unsupported promotions retain their exact sprites rather than borrowing the
 // wrong weapon or mount. New artwork appears only for these reviewed pairs.
 export const humanClassArt: Readonly<Record<string, HumanArtId>> = {
+  'Recruit': 'recruit',
+  'Militia': 'militia',
   'Swordsman': 'captain',
   'Archer': 'ranger',
   'Ranger': 'ranger',
@@ -32,6 +34,8 @@ export const humanClassArt: Readonly<Record<string, HumanArtId>> = {
   'Royal Guard': 'royal_guard'
 };
 const roles: Readonly<Record<HumanArtId, readonly UnitRole[]>> = {
+  recruit: ['frontline'],
+  militia: ['frontline'],
   captain: ['frontline', 'melee'], ranger: ['ranged', 'skirmish'],
   priest: ['support'], infantry: ['frontline', 'melee'],
   spearman: ['frontline', 'melee'], lancer: ['cavalry'],
@@ -44,9 +48,6 @@ export function humanPortraitForClass(
   faction: FactionId, className: string, role: UnitRole
 ): HumanPortraitKey | 'captain_portrait' | null {
   if (faction !== 'human') return null;
-  // Preserve the already-approved opening battle until simple starter pairs are
-  // authored. This is the OLD portrait/figure, not a newly assigned elite outfit.
-  if ((className === 'Recruit' || className === 'Militia') && role === 'frontline') return 'captain_portrait';
   if (!Object.prototype.hasOwnProperty.call(humanClassArt, className)) return null;
   const id = humanClassArt[className];
   return id && roles[id].includes(role) ? `human_${id}_portrait` : null;
@@ -55,6 +56,8 @@ export function humanPortraitForClass(
 const portraitFrame = [8, 8, 240, 240] as const;
 const figureFrame = [0, 0, 256, 256] as const;
 export const humanArtFrames = {
+  human_recruit_portrait: figureFrame, human_recruit_unit: figureFrame,
+  human_militia_portrait: figureFrame, human_militia_unit: figureFrame,
   human_captain_portrait: portraitFrame, human_captain_unit: figureFrame,
   human_ranger_portrait: portraitFrame, human_ranger_unit: figureFrame,
   human_priest_portrait: portraitFrame, human_priest_unit: figureFrame,
