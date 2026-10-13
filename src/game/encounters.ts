@@ -1,6 +1,7 @@
 import type { EncounterDefinition, FormationShapeId, ResourceWallet, UnitRole } from './types';
 import {
   humanLateEncounterDefinitions,
+  humanLateEncounterFormations,
   humanLateEncounterRewards
 } from './humanLateCampaign';
 import type { HumanLateEncounterId } from './humanLateCampaign';
@@ -1007,6 +1008,8 @@ const enemyFormationByEncounter: Record<EncounterId, FormationShapeId> = {
   sundered_fields: 'skirmish_screen_243',
   ashen_court: 'protected_rear_225',
   return_to_crownspire: 'heavy_front_441',
+
+  ...humanLateEncounterFormations,
 
   elf_wardbreakers: 'skirmish_screen_243',
   elf_ashen_tracks: 'skirmish_screen_243',
