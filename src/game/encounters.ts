@@ -1,4 +1,9 @@
 import type { EncounterDefinition, FormationShapeId, ResourceWallet, UnitRole } from './types';
+import {
+  humanLateEncounterDefinitions,
+  humanLateEncounterRewards
+} from './humanLateCampaign';
+import type { HumanLateEncounterId } from './humanLateCampaign';
 
 export type EncounterId =
   | 'hold_the_road'
@@ -84,7 +89,8 @@ export type EncounterId =
   | 'orc_crownspire_warmaster'
   | 'three_seals_convergence'
   | 'ashen_triumvirate'
-  | 'unbound_beacon';
+  | 'unbound_beacon'
+  | HumanLateEncounterId;
 
 export type EncounterReward = {
   resources: Partial<ResourceWallet>;
@@ -92,6 +98,7 @@ export type EncounterReward = {
 };
 
 export const encounters: Record<EncounterId, EncounterDefinition> = {
+  ...humanLateEncounterDefinitions,
   hold_the_road: {
     id: 'hold_the_road',
     name: 'Hold the Crossing',
@@ -1477,6 +1484,7 @@ export function getEnemyRoleAssignments(
 }
 
 export const encounterRewards: Record<EncounterId, EncounterReward> = {
+  ...humanLateEncounterRewards,
   hold_the_road: {
     resources: { gold: 45, wood: 12, iron: 3, provisions: 4 },
     storySummary: 'The raider patrol breaks. Refugees can finally reach the ruins of Greenkeep.'
