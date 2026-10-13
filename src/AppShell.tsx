@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import type { NavId } from './game/types';
 import type { BattlePreparationFixTarget } from './game/battlePreparation';
+import { getHumanLateMission } from './game/humanLateCampaign';
 import {
   popNavigationHistory,
   pushNavigationHistory,
