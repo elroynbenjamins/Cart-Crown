@@ -4307,7 +4307,7 @@ function HumanSettlementGrowthOverlay({
           opacity: grand ? 0.82 : 0.68
         }}
       />
-      {['6%', '28%', '68%', '90%'].map((left, index) => (
+      {(['6%', '28%', '68%', '90%'] as const).map((left, index) => (
         <View
           key={'human-wall-tower-' + index}
           style={{
@@ -4366,7 +4366,7 @@ function HumanSettlementGrowthOverlay({
 
       {capital ? (
         <>
-          {['17%', '81%'].map((left, index) => (
+          {(['17%', '81%'] as const).map((left, index) => (
             <View
               key={'human-capital-banner-' + index}
               style={{
@@ -4410,12 +4410,12 @@ function HumanSettlementGrowthOverlay({
 
       {grand ? (
         <>
-          {[
+          {([
             { left: '4%', bottom: '6%' },
             { left: '14%', bottom: '3%' },
             { right: '5%', bottom: '6%' },
             { right: '15%', bottom: '3%' }
-          ].map((position, index) => (
+          ] as const).map((position, index) => (
             <View
               key={'grand-campaign-tent-' + index}
               style={{
