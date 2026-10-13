@@ -33,6 +33,22 @@ export const humanClassArt: Readonly<Record<string, HumanArtId>> = {
   'Heavy Cavalry': 'heavy_cavalry',
   'Royal Guard': 'royal_guard'
 };
+const humanFigureClassArt: Readonly<Record<string, HumanArtId>> = {
+  'Recruit': 'recruit',
+  'Militia': 'militia',
+  'Ranger': 'ranger',
+  'Field Chaplain': 'priest',
+  'Shield Infantry': 'infantry',
+  'Spearman': 'spearman',
+  'Lancer': 'lancer',
+  'Crossbowman': 'crossbowman',
+  'Field Medic': 'field_medic',
+  'Halberdier': 'halberdier',
+  'Banner Captain': 'banner_captain',
+  'Heavy Cavalry': 'heavy_cavalry',
+  'Royal Guard': 'royal_guard'
+};
+
 const roles: Readonly<Record<HumanArtId, readonly UnitRole[]>> = {
   recruit: ['frontline'],
   militia: ['frontline'],
@@ -74,7 +90,16 @@ export const humanArtFrames = {
 
 /** Used by Army/Formation cards, where UnitSprite receives class identity only. */
 export function humanFigureForClass(faction: FactionId, className: string): HumanFigureKey | null {
-  if (faction !== 'human' || !Object.prototype.hasOwnProperty.call(humanClassArt, className)) return null;
-  const id = humanClassArt[className];
+  if (
+    faction !== 'human' ||
+    !Object.prototype.hasOwnProperty.call(
+      humanFigureClassArt,
+      className
+    )
+  ) {
+    return null;
+  }
+
+  const id = humanFigureClassArt[className];
   return id ? `human_${id}_unit` : null;
 }
