@@ -76,6 +76,13 @@ import {
   chapterSixNodes,
   crownspireResourceSites
 } from './chapter6';
+import { chapterSevenNodes } from './chapter7';
+import {
+  getHumanLateMission,
+  getHumanLateMissionByEncounter,
+  isHumanLateEncounterId,
+  nextHumanLateNodeId
+} from './humanLateCampaign';
 import {
   getRoyalDecree,
   royalDecrees
@@ -466,6 +473,7 @@ type GameContextValue = {
   chooseLastLoyalistsApproach: (choiceId: LastLoyalistsChoiceId) => boolean;
   chooseFactionMandate: (mandateId: FactionMandateId) => boolean;
   completeBrokenArchives: () => boolean;
+  completeHumanLateMission: (nodeId: string) => boolean;
   completeRoyalLedger: () => boolean;
   completeGrandCouncil: () => boolean;
   completeConcordVault: () => boolean;
@@ -2123,11 +2131,153 @@ export function GameProvider({
     return true;
   };
 
+  const advanceHumanLateMission = (
+    nodeId: string,
+    grantReward = true
+  ) => {
+    const mission = getHumanLateMission(nodeId);
+    if (
+      !mission ||
+      activeFaction !== 'human' ||
+      chapterNumber !== mission.chapter ||
+      !chapterNodes.find(node => node.id === nodeId)?.current
+    ) {
+      return false;
+    }
+
+    if (grantReward) {
+      setResources(previous =>
+        addResources(previous, mission.reward)
+      );
+    }
+
+    const nextNodeId = nextHumanLateNodeId(
+      mission.chapter,
+      nodeId
+    );
+
+    if (nextNodeId) {
+      setChapterNodes(previous =>
+        previous.map(node => {
+          if (node.id === nodeId) {
+            return {
+              ...node,
+              completed: true,
+              current: false
+            };
+          }
+          if (node.id === nextNodeId) {
+            return {
+              ...node,
+              current: true
+            };
+          }
+          return {
+            ...node,
+            current: false
+          };
+        })
+      );
+      return true;
+    }
+
+    if (mission.chapter === 6) {
+      setChapterNumber(7);
+      setChapterNodes(
+        cloneNodes(chapterSevenNodes)
+      );
+      setExpeditionTickets(previous =>
+        getExpeditionTicketsAfterChapterTransition(
+          previous,
+          7
+        )
+      );
+      return true;
+    }
+
+    setChapterNodes(previous =>
+      previous.map(node =>
+        node.id === nodeId
+          ? {
+              ...node,
+              completed: true,
+              current: false
+            }
+          : {
+              ...node,
+              current: false
+            }
+      )
+    );
+
+    if (mission.chapter === 7) {
+      setSharedProgress(previous => ({
+        ...previous,
+        completedCampaigns:
+          previous.completedCampaigns.includes('human')
+            ? previous.completedCampaigns
+            : [...previous.completedCampaigns, 'human'],
+        lore: previous.lore.includes('human_oath_seal')
+          ? previous.lore
+          : [...previous.lore, 'human_oath_seal']
+      }));
+    }
+
+    return true;
+  };
+
+  const completeHumanLateMission = (
+    nodeId: string
+  ) => {
+    const mission = getHumanLateMission(nodeId);
+    if (!mission || mission.encounterId) {
+      return false;
+    }
+
+    return advanceHumanLateMission(
+      nodeId,
+      true
+    );
+  };
+
   const finishEncounter = (
     encounterId: EncounterId,
     battleSummary?: WarTableBattleSummary
   ) => {
     const reward = encounterRewards[encounterId];
+
+    if (isHumanLateEncounterId(encounterId)) {
+      const mission =
+        getHumanLateMissionByEncounter(
+          encounterId
+        );
+      if (
+        !mission ||
+        !advanceHumanLateMission(
+          mission.id,
+          true
+        )
+      ) {
+        return;
+      }
+
+      if (mission.chapter < 7) {
+        accrueRegionalProduction();
+      }
+
+      setLastBattleResult({
+        id: encounterId + '_result',
+        title:
+          mission.type === 'boss'
+            ? mission.name + ' Won'
+            : mission.name + ' Complete',
+        victory: true,
+        summary: reward.storySummary,
+        rewards: { ...reward.resources },
+        casualties: 0
+      });
+      return;
+    }
 
     if (encounterId.startsWith('war_table_')) {
       if (!isSideModeUnlocked('war_table')) return;
@@ -7468,6 +7618,7 @@ export function GameProvider({
       chooseLastLoyalistsApproach,
       chooseFactionMandate,
       completeBrokenArchives,
+      completeHumanLateMission,
       completeRoyalLedger,
       completeGrandCouncil,
       completeConcordVault,
