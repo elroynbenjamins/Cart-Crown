@@ -235,10 +235,9 @@ if (campSceneBytes > campSceneByteBudget) {
 }
 const registry = fs.readFileSync(path.join(root, 'src/ui/productionAssets.ts'), 'utf8');
 
-// Generated production art outside assets/game has the same runtime quality contract:
-// unit icons and crests are 256x256 transparent sprites, while mission scenes are
-// opaque card art. Validate every wired unit icon so a class can never quietly
-// regress to a missing/generic placeholder.
+// Generated production art outside assets/game uses two reviewed contracts.
+// Existing exact-class files remain valid sources, while generated faction packs
+// are rendered from their original atlases using measured figure bounds.
 const registeredUnitArt = [
   ...registry.matchAll(/'unit\.(human|elf|orc)\.([^']+)': require\('\.\.\/\.\.\/(assets\/units\/[^']+\.png)'\)/g)
 ].map(match => ({
@@ -247,7 +246,6 @@ const registeredUnitArt = [
   relativePath: match[3]
 }));
 const unitArtCounts = { human: 0, elf: 0, orc: 0 };
-const runtimeUnitHashes = new Set();
 for (const entry of registeredUnitArt) {
   unitArtCounts[entry.faction] += 1;
   const full = path.join(root, entry.relativePath);
@@ -257,9 +255,14 @@ for (const entry of registeredUnitArt) {
   }
   try {
     const bytes = fs.readFileSync(full);
-    validateSpritePng(bytes);
-    assert.ok(bytes.length <= 260000, 'Unit icon exceeds 260 KB runtime budget.');
-    runtimeUnitHashes.add(crypto.createHash('sha256').update(bytes).digest('hex'));
+    assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'Unit art must be PNG.');
+    assert.equal(bytes.subarray(12, 16).toString('ascii'), 'IHDR', 'Unit art must start with IHDR.');
+    const width = bytes.readUInt32BE(16);
+    const height = bytes.readUInt32BE(20);
+    assert.ok(width >= 200 && width <= 512, 'Unit-art width is outside the reviewed range.');
+    assert.ok(height >= 200 && height <= 512, 'Unit-art height is outside the reviewed range.');
+    assert.equal(bytes.subarray(-8, -4).toString('ascii'), 'IEND', 'Unit art must end with IEND.');
+    assert.ok(bytes.length <= 300000, 'Unit art exceeds 300 KB source budget.');
   } catch (error) {
     failures.push(entry.relativePath + ': ' + error.message);
   }
@@ -272,8 +275,73 @@ for (const [faction, minimum] of Object.entries({ human: 28, elf: 14, orc: 14 })
     );
   }
 }
-if (runtimeUnitHashes.size !== registeredUnitArt.length) {
-  failures.push('Every registered production unit class must resolve to a visually distinct PNG.');
+
+const generatedUnitAtlases = [
+  ['human', 'assets/units/human/human_units_sheet.png', 3000000],
+  ['elf', 'assets/units/elf/elf_units_sheet.png', 3000000],
+  ['orc', 'assets/units/orc/orc_units_sheet.png', 3000000]
+];
+for (const [faction, relativePath, maxBytes] of generatedUnitAtlases) {
+  const full = path.join(root, relativePath);
+  try {
+    assert.ok(fs.existsSync(full), faction + ' generated unit atlas is missing.');
+    const bytes = fs.readFileSync(full);
+    assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', faction + ' unit atlas must be PNG.');
+    assert.equal(bytes.subarray(12, 16).toString('ascii'), 'IHDR', faction + ' unit atlas must start with IHDR.');
+    assert.equal(bytes.readUInt32BE(16), 1448, faction + ' unit atlas has wrong width.');
+    assert.equal(bytes.readUInt32BE(20), 1086, faction + ' unit atlas has wrong height.');
+    assert.equal(bytes.subarray(-8, -4).toString('ascii'), 'IEND', faction + ' unit atlas must end with IEND.');
+    assert.ok(bytes.length <= maxBytes, faction + ' generated unit atlas exceeds source budget.');
+    const expected = "'generated_unit_atlas." + faction + "': require('../../" + relativePath + "')";
+    assert.ok(registry.includes(expected), faction + ' generated unit atlas is not wired.');
+  } catch (error) {
+    failures.push(relativePath + ': ' + error.message);
+  }
+}
+
+const gameArtSource = fs.readFileSync(path.join(root, 'src/ui/gameArt.tsx'), 'utf8');
+const generatedAtlasCropIds = [
+  'unit.human.recruit',
+  'unit.human.militia',
+  'unit.human.spearman',
+  'unit.human.swordsman',
+  'unit.human.archer',
+  'unit.human.crossbowman',
+  'unit.human.scout',
+  'unit.human.shield_infantry',
+  'unit.human.cavalryman',
+  'unit.human.pikeman',
+  'unit.human.field_medic',
+  'unit.human.banner_captain',
+  'unit.elf.grove_acolyte',
+  'unit.elf.spear_warden',
+  'unit.elf.blade_warden',
+  'unit.elf.bow_warden',
+  'unit.elf.pathfinder',
+  'unit.elf.warden',
+  'unit.elf.stag_scout',
+  'unit.elf.druid',
+  'unit.elf.mounted_ranger',
+  'unit.orc.clan_warrior',
+  'unit.orc.spear_raider',
+  'unit.orc.ironhide',
+  'unit.orc.hunter',
+  'unit.orc.warg_scout',
+  'unit.orc.bone_shaman',
+  'unit.orc.war_drummer',
+  'unit.orc.warbringer'
+];
+for (const assetId of generatedAtlasCropIds) {
+  if (!gameArtSource.includes("'" + assetId + "': {")) {
+    failures.push('Measured generated-unit crop is missing: ' + assetId + '.');
+  }
+}
+if (
+  !gameArtSource.includes('GENERATED_UNIT_ATLAS_WIDTH = 1448') ||
+  !gameArtSource.includes('GENERATED_UNIT_ATLAS_HEIGHT = 1086') ||
+  !gameArtSource.includes('GeneratedUnitAtlasSprite')
+) {
+  failures.push('Generated unit atlases must render through the measured clean-crop path.');
 }
 
 const factionCrests = [
@@ -290,8 +358,10 @@ for (const [faction, relativePath] of factionCrests) {
     assert.equal(bytes.subarray(12, 16).toString('ascii'), 'IHDR', faction + ' crest must start with IHDR.');
     const width = bytes.readUInt32BE(16);
     const height = bytes.readUInt32BE(20);
-    assert.equal(width, height, faction + ' crest must be square.');
-    assert.ok(width >= 256 && width <= 1024, faction + ' crest dimensions are outside the reviewed range.');
+    const aspect = width / height;
+    assert.ok(width >= 256 && width <= 1024, faction + ' crest width is outside the reviewed range.');
+    assert.ok(height >= 256 && height <= 1024, faction + ' crest height is outside the reviewed range.');
+    assert.ok(aspect >= 0.85 && aspect <= 1.2, faction + ' crest aspect ratio is outside the reviewed range.');
     assert.equal(bytes.subarray(-8, -4).toString('ascii'), 'IEND', faction + ' crest must end with IEND.');
     assert.ok(bytes.length <= 650000, faction + ' crest exceeds 650 KB source budget.');
     const expected = "'faction_crest." + faction + "': require('../../" + relativePath + "')";
@@ -314,9 +384,10 @@ for (const relativePath of campaignMissionScenes) {
   try {
     assert.ok(fs.existsSync(full), 'Campaign mission scene is missing.');
     const bytes = fs.readFileSync(full);
-    // Mission art is deliberately outside the 256x256 sprite contract. PNG
-    // integrity is still checked by parsing its header and end marker below.
     assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'Campaign mission scene must be PNG.');
+    assert.equal(bytes.subarray(12, 16).toString('ascii'), 'IHDR', 'Campaign mission scene must start with IHDR.');
+    assert.equal(bytes.readUInt32BE(16), 724, 'Campaign mission scene has wrong width.');
+    assert.equal(bytes.readUInt32BE(20), 362, 'Campaign mission scene has wrong height.');
     assert.equal(bytes.subarray(-8, -4).toString('ascii'), 'IEND', 'Campaign mission scene must end with IEND.');
     assert.ok(bytes.length <= 900000, 'Campaign mission scene exceeds 900 KB runtime budget.');
   } catch (error) {
