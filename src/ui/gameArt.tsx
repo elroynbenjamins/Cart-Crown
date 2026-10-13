@@ -1006,12 +1006,14 @@ export function UnitSprite({
   className,
   faction = 'human',
   size = 52,
-  preferHumanArt = true
+  preferHumanArt = true,
+  presentationScale = 1
 }: {
   className: string;
   faction?: FactionId;
   size?: number;
   preferHumanArt?: boolean;
+  presentationScale?: number;
 }) {
   const kind = getUnitVisualKind(className);
   const production = unitProductionAsset(faction, className, kind);
@@ -1044,7 +1046,7 @@ export function UnitSprite({
         : mounted && size <= 32
           ? 1.12
           : 1;
-  const productionSize = size * productionScale;
+  const productionSize = size * productionScale * presentationScale;
 
   const humanArt = preferHumanArt ? humanFigureForClass(faction, className) : null;
   const fallback = (
@@ -1073,6 +1075,68 @@ export function UnitSprite({
     >
       {humanArt ? <ReferenceArt art={humanArt} width={productionSize} height={productionSize}
         fallback={fallback} /> : fallback}
+    </View>
+  );
+}
+
+export function UnitPortraitSprite({
+  className,
+  faction = 'human',
+  size = 52
+}: {
+  className: string;
+  faction?: FactionId;
+  size?: number;
+}) {
+  const kind = getUnitVisualKind(className);
+  const production = unitProductionAsset(faction, className, kind);
+  const source = getProductionAssetSource(production.id);
+  if (!source) {
+    return <UnitSprite className={className} faction={faction} size={size} preferHumanArt={false} />;
+  }
+
+  const mounted =
+    kind === 'scout_rider' ||
+    kind === 'cavalryman' ||
+    kind === 'lancer' ||
+    kind === 'mounted_archer';
+  const classKey = className.toLowerCase();
+  const large =
+    classKey.includes('golem') ||
+    classKey.includes('ent') ||
+    classKey.includes('guardian') ||
+    classKey.includes('troll') ||
+    classKey.includes('mammoth');
+
+  // Reuse the same compact 256px runtime art, but crop it like a portrait.
+  // Mounted/large silhouettes keep more of their body so the mount/scale remains readable.
+  const zoom = mounted || large ? 1.34 : 1.62;
+  const renderSize = size * zoom;
+  const overflow = renderSize - size;
+  return (
+    <View
+      pointerEvents="none"
+      accessible={false}
+      style={{
+        width: size,
+        height: size,
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      <Image
+        source={source}
+        resizeMode="contain"
+        fadeDuration={0}
+        style={{
+          position: 'absolute',
+          width: renderSize,
+          height: renderSize,
+          left: -overflow / 2,
+          top: -overflow * (mounted || large ? 0.12 : 0.18)
+        }}
+      />
     </View>
   );
 }
