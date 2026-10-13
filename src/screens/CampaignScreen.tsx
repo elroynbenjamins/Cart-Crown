@@ -38,6 +38,24 @@ const campaignMissionArt = {
   ambush: require('../../assets/campaign/missions/mission_06_ambush_in_the_pines.png')
 } as const;
 
+const humanChapterVisuals: Record<number, {
+  tint: string;
+  label: string;
+  glow: string;
+}> = {
+  1: { tint: '#173A66', label: 'GREENKEEP', glow: '#6EA8E8' },
+  2: { tint: '#5A4A36', label: 'IRON HILLS', glow: '#C8A56A' },
+  3: { tint: '#355B75', label: 'FROSTMARCH', glow: '#9BD8F0' },
+  4: { tint: '#514A43', label: 'GREYWATCH', glow: '#D8B66A' },
+  5: { tint: '#253F72', label: 'CROWNROAD', glow: '#E6C45B' },
+  6: { tint: '#4C3C73', label: 'GLASS KEEP', glow: '#BCA7F0' },
+  7: { tint: '#623932', label: 'BLACKSTONE', glow: '#E2936E' }
+};
+
+function humanChapterVisual(chapter: number) {
+  return humanChapterVisuals[chapter] ?? humanChapterVisuals[1];
+}
+
 function campaignMissionArtFor(node: ChapterNode) {
   // Chapter 1 is deliberately authored by objective so its onboarding route
   // reads like a visual story instead of repeating one image per node type.
@@ -508,6 +526,7 @@ export function CampaignScreen({
 
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
+          const chapterVisual = humanChapterVisual(chapterNumber);
           const chapterOneBattle =
             chapterNumber === 1 &&
             node.current &&
@@ -1055,6 +1074,36 @@ export function CampaignScreen({
                     fadeDuration={0}
                     style={styles.nodeArt}
                   />
+                  <View
+                    pointerEvents="none"
+                    style={[
+                      styles.nodeChapterTint,
+                      {
+                        backgroundColor: chapterVisual.tint,
+                        opacity: node.completed ? 0.08 : node.current ? 0.15 : 0.2
+                      }
+                    ]}
+                  />
+                  <View
+                    pointerEvents="none"
+                    style={[
+                      styles.nodeChapterTag,
+                      {
+                        backgroundColor: theme.dark ? '#05070BCC' : '#F6F2E8DD',
+                        borderColor: chapterVisual.glow
+                      }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.nodeChapterTagText,
+                        { color: theme.dark ? chapterVisual.glow : chapterVisual.tint }
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {chapterVisual.label}
+                    </Text>
+                  </View>
                   <View
                     style={[
                       styles.nodeTypeBadge,
@@ -1617,6 +1666,31 @@ const styles = StyleSheet.create({
   nodeArt: {
     width: '100%',
     height: '100%'
+  },
+  nodeChapterTint: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0
+  },
+  nodeChapterTag: {
+    position: 'absolute',
+    right: 3,
+    top: 3,
+    maxWidth: 56,
+    minHeight: 14,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  nodeChapterTagText: {
+    fontSize: 6.5,
+    lineHeight: 9,
+    letterSpacing: 0.35,
+    fontWeight: '900'
   },
   nodeTypeBadge: {
     position: 'absolute',
