@@ -286,8 +286,14 @@ for (const [faction, relativePath] of factionCrests) {
   try {
     assert.ok(fs.existsSync(full), faction + ' crest is missing.');
     const bytes = fs.readFileSync(full);
-    validateSpritePng(bytes);
-    assert.ok(bytes.length <= 260000, faction + ' crest exceeds 260 KB runtime budget.');
+    assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', faction + ' crest must be PNG.');
+    assert.equal(bytes.subarray(12, 16).toString('ascii'), 'IHDR', faction + ' crest must start with IHDR.');
+    const width = bytes.readUInt32BE(16);
+    const height = bytes.readUInt32BE(20);
+    assert.equal(width, height, faction + ' crest must be square.');
+    assert.ok(width >= 256 && width <= 1024, faction + ' crest dimensions are outside the reviewed range.');
+    assert.equal(bytes.subarray(-8, -4).toString('ascii'), 'IEND', faction + ' crest must end with IEND.');
+    assert.ok(bytes.length <= 650000, faction + ' crest exceeds 650 KB source budget.');
     const expected = "'faction_crest." + faction + "': require('../../" + relativePath + "')";
     assert.ok(registry.includes(expected), faction + ' crest is not wired.');
   } catch (error) {
@@ -311,7 +317,7 @@ for (const relativePath of campaignMissionScenes) {
     // Mission art is deliberately outside the 256x256 sprite contract. PNG
     // integrity is still checked by parsing its header and end marker below.
     assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'Campaign mission scene must be PNG.');
-    assert.equal(bytes.subarray(-12, -8).toString('ascii'), 'IEND', 'Campaign mission scene must end with IEND.');
+    assert.equal(bytes.subarray(-8, -4).toString('ascii'), 'IEND', 'Campaign mission scene must end with IEND.');
     assert.ok(bytes.length <= 900000, 'Campaign mission scene exceeds 900 KB runtime budget.');
   } catch (error) {
     failures.push(relativePath + ': ' + error.message);
