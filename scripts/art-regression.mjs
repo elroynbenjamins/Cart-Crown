@@ -235,6 +235,89 @@ if (campSceneBytes > campSceneByteBudget) {
 }
 const registry = fs.readFileSync(path.join(root, 'src/ui/productionAssets.ts'), 'utf8');
 
+// Generated production art outside assets/game has the same runtime quality contract:
+// unit icons and crests are 256x256 transparent sprites, while mission scenes are
+// opaque card art. Validate every wired unit icon so a class can never quietly
+// regress to a missing/generic placeholder.
+const registeredUnitArt = [
+  ...registry.matchAll(/'unit\.(human|elf|orc)\.([^']+)': require\('\.\.\/\.\.\/(assets\/units\/[^']+\.png)'\)/g)
+].map(match => ({
+  faction: match[1],
+  slug: match[2],
+  relativePath: match[3]
+}));
+const unitArtCounts = { human: 0, elf: 0, orc: 0 };
+const runtimeUnitHashes = new Set();
+for (const entry of registeredUnitArt) {
+  unitArtCounts[entry.faction] += 1;
+  const full = path.join(root, entry.relativePath);
+  if (!fs.existsSync(full)) {
+    failures.push('Registered unit art is missing: ' + entry.relativePath + '.');
+    continue;
+  }
+  try {
+    const bytes = fs.readFileSync(full);
+    validateSpritePng(bytes);
+    assert.ok(bytes.length <= 260000, 'Unit icon exceeds 260 KB runtime budget.');
+    runtimeUnitHashes.add(crypto.createHash('sha256').update(bytes).digest('hex'));
+  } catch (error) {
+    failures.push(entry.relativePath + ': ' + error.message);
+  }
+}
+for (const [faction, minimum] of Object.entries({ human: 28, elf: 14, orc: 14 })) {
+  if (unitArtCounts[faction] < minimum) {
+    failures.push(
+      faction + ' production unit-art coverage dropped below ' + minimum +
+      ' classes: ' + unitArtCounts[faction] + '.'
+    );
+  }
+}
+if (runtimeUnitHashes.size !== registeredUnitArt.length) {
+  failures.push('Every registered production unit class must resolve to a visually distinct PNG.');
+}
+
+const factionCrests = [
+  ['human', 'assets/ui/crests/human_crest.png'],
+  ['elf', 'assets/ui/crests/elf_crest.png'],
+  ['orc', 'assets/ui/crests/orc_crest.png']
+];
+for (const [faction, relativePath] of factionCrests) {
+  const full = path.join(root, relativePath);
+  try {
+    assert.ok(fs.existsSync(full), faction + ' crest is missing.');
+    const bytes = fs.readFileSync(full);
+    validateSpritePng(bytes);
+    assert.ok(bytes.length <= 260000, faction + ' crest exceeds 260 KB runtime budget.');
+    const expected = "'faction_crest." + faction + "': require('../../" + relativePath + "')";
+    assert.ok(registry.includes(expected), faction + ' crest is not wired.');
+  } catch (error) {
+    failures.push(relativePath + ': ' + error.message);
+  }
+}
+
+const campaignMissionScenes = [
+  'assets/campaign/missions/mission_01_frontier_watch.png',
+  'assets/campaign/missions/mission_02_hold_the_crossing.png',
+  'assets/campaign/missions/mission_03_build_the_outpost.png',
+  'assets/campaign/missions/mission_04_guard_the_wagon.png',
+  'assets/campaign/missions/mission_05_defend_the_village.png',
+  'assets/campaign/missions/mission_06_ambush_in_the_pines.png'
+];
+for (const relativePath of campaignMissionScenes) {
+  const full = path.join(root, relativePath);
+  try {
+    assert.ok(fs.existsSync(full), 'Campaign mission scene is missing.');
+    const bytes = fs.readFileSync(full);
+    // Mission art is deliberately outside the 256x256 sprite contract. PNG
+    // integrity is still checked by parsing its header and end marker below.
+    assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', 'Campaign mission scene must be PNG.');
+    assert.equal(bytes.subarray(-12, -8).toString('ascii'), 'IEND', 'Campaign mission scene must end with IEND.');
+    assert.ok(bytes.length <= 900000, 'Campaign mission scene exceeds 900 KB runtime budget.');
+  } catch (error) {
+    failures.push(relativePath + ': ' + error.message);
+  }
+}
+
 const humanBaseIcons = [
   'spearman',
   'swordsman',
