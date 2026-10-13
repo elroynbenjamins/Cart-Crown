@@ -27,8 +27,30 @@ for (const [className,role] of Object.entries(roles)) {
     assert.equal(allyPortrait({...unit,className,role,battleTags:[tag]}),null); checks++;
   }
 }
+const dedicatedFigureClasses = new Set([
+  'Recruit',
+  'Militia',
+  'Ranger',
+  'Field Chaplain',
+  'Shield Infantry',
+  'Spearman',
+  'Lancer',
+  'Crossbowman',
+  'Field Medic',
+  'Halberdier',
+  'Banner Captain',
+  'Heavy Cavalry',
+  'Royal Guard'
+]);
 for (const className of Object.keys(roles)) {
-  assert.equal(humanFigureForClass('human', className), `human_${humanClassArt[className]}_unit`);
+  const expected = dedicatedFigureClasses.has(className)
+    ? `human_${humanClassArt[className]}_unit`
+    : null;
+  assert.equal(
+    humanFigureForClass('human', className),
+    expected,
+    className + ' must use a dedicated matching figure or keep its exact class production art'
+  );
   assert.equal(humanFigureForClass('elf', className), null);
   assert.equal(humanFigureForClass('orc', className), null);
 }
@@ -54,6 +76,19 @@ for(const threat of ['magic','flying','large','hybrid'] as const) assert.equal(e
 const manifest=JSON.parse(readFileSync('assets/game/battle_portraits/human/manifest.json','utf8'));
 assert.equal(manifest.assets.length,24);
 const registry=readFileSync('src/ui/productionAssets.ts','utf8');
+for (const [className, assetId] of [
+  ['Swordsman', 'unit.human.swordsman'],
+  ['Archer', 'unit.human.archer'],
+  ['Scout', 'unit.human.scout'],
+  ['Man-at-Arms', 'unit.human.man_at_arms']
+] as const) {
+  assert.equal(humanFigureForClass('human', className), null);
+  assert.ok(
+    registry.includes(`'${assetId}': require(`),
+    className + ' exact production art must remain registered'
+  );
+  checks += 2;
+}
 const allKeys=[...registry.matchAll(/^\s*'([^']+)':\s*require\(/gm)].map(m=>m[1]);
 assert.equal(new Set(allKeys).size,allKeys.length,'Duplicate registry declarations');
 const manifestArtIds = humanArtIds.filter(id => id !== 'recruit' && id !== 'militia');
@@ -124,4 +159,4 @@ for(const id of humanArtIds)for(const suffix of ['portrait','unit'])for(const si
 }
 sourcePresent=false;
 assert.equal(mod.exports.ReferenceArt({art:'human_captain_unit',width:48,fallback:'MISSING_FALLBACK'}).props.children[0],'MISSING_FALLBACK');
-console.log(`PASS: ${checks} Human-art checks: 14 portrait/figure pairs, 17 class mappings, distinct Recruit/Militia starters, faction/fantasy exclusions, legacy source hashes, safe framing and real component fallback.`);
+console.log(`PASS: ${checks} Human-art checks: dedicated battle figures plus exact-class production fallbacks, distinct Recruit/Militia starters, faction/fantasy exclusions, source hashes, safe framing and real component fallback.`);
