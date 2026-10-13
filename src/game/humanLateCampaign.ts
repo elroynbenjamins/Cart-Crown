@@ -1,6 +1,7 @@
 import type {
   ChapterNode,
   EncounterDefinition,
+  FormationShapeId,
   ResourceWallet
 } from './types';
 
@@ -259,6 +260,38 @@ export const humanLateEncounterDefinitions: Record<HumanLateEncounterId, Encount
   human_ch7_m11: { id: 'human_ch7_m11', name: 'Fall of Blackstone', subtitle: 'The final Human campaign battle combines siege pressure, reserves, arcane threats and elite defenders.', enemyName: 'Blackstone Crown Host', enemyCount: 6, enemyHp: 3300, difficulty: 'Boss', fantasyThreat: 'hybrid' }
 };
 
+export const humanLateEncounterFormations: Record<
+  HumanLateEncounterId,
+  FormationShapeId
+> = {
+  human_ch5_m01: 'wide_vanguard_522',
+  human_ch5_m03: 'reinforced_center_252',
+  human_ch5_m04: 'skirmish_screen_243',
+  human_ch5_m07: 'layered_core_231',
+  human_ch5_m08: 'assault_432',
+  human_ch5_m09: 'spear_wall_531',
+  human_ch5_m10: 'deep_234',
+  human_ch5_m11: 'layered_core_231',
+  human_ch6_m01: 'protected_rear_225',
+  human_ch6_m02: 'reinforced_center_252',
+  human_ch6_m04: 'protected_rear_225',
+  human_ch6_m05: 'layered_core_231',
+  human_ch6_m07: 'skirmish_screen_243',
+  human_ch6_m08: 'deep_234',
+  human_ch6_m09: 'reinforced_center_252',
+  human_ch6_m10: 'layered_core_231',
+  human_ch6_m11: 'layered_core_231',
+  human_ch7_m01: 'heavy_front_441',
+  human_ch7_m02: 'iron_wall_501',
+  human_ch7_m03: 'assault_432',
+  human_ch7_m04: 'protected_rear_225',
+  human_ch7_m06: 'iron_wall_501',
+  human_ch7_m07: 'wide_vanguard_522',
+  human_ch7_m08: 'layered_core_231',
+  human_ch7_m10: 'deep_234',
+  human_ch7_m11: 'layered_core_231'
+};
+
 export const humanLateEncounterRewards: Record<HumanLateEncounterId, {
   resources: Partial<ResourceWallet>;
   storySummary: string;
@@ -298,6 +331,6 @@ export function nextHumanLateNodeId(
   const chapterMissions = humanLateMissions.filter(mission => mission.chapter === chapter);
   const index = chapterMissions.findIndex(mission => mission.id === currentNodeId);
   return index >= 0 && index + 1 < chapterMissions.length
-    ? chapterMissions[index + 1].id
+    ? chapterMissions[index + 1]?.id ?? null
     : null;
 }
