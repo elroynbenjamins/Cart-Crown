@@ -234,6 +234,50 @@ if (campSceneBytes > campSceneByteBudget) {
   failures.push('Camp scenes exceed the shared ' + campSceneByteBudget + '-byte budget: ' + campSceneBytes + ' bytes.');
 }
 const registry = fs.readFileSync(path.join(root, 'src/ui/productionAssets.ts'), 'utf8');
+
+const humanPromotionIcons = [
+  'longbowman',
+  'marksman',
+  'greatswordsman',
+  'champion',
+  'pikeman',
+  'royal_guard',
+  'heavy_cavalry',
+  'lancer',
+  'mounted_archer',
+  'field_medic',
+  'field_chaplain',
+  'banner_captain',
+  'siege_engineer'
+];
+const humanPromotionHashes = new Set();
+let humanPromotionBytes = 0;
+for (const slug of humanPromotionIcons) {
+  const relativePath = 'assets/units/human_upgrades/' + slug + '.png';
+  const full = path.join(root, relativePath);
+  if (!fs.existsSync(full)) {
+    failures.push('Human promotion icon is missing: ' + relativePath + '.');
+    continue;
+  }
+  try {
+    const bytes = fs.readFileSync(full);
+    humanPromotionBytes += bytes.length;
+    validateSpritePng(bytes);
+    assert.ok(bytes.length <= 120000, 'Human promotion icon exceeds 120 KB budget.');
+    const assetId = 'unit.human.' + slug;
+    const expected = "'" + assetId + "': require('../../" + relativePath + "')";
+    assert.ok(registry.includes(expected), 'Human promotion icon is not wired: ' + assetId + '.');
+    humanPromotionHashes.add(crypto.createHash('sha256').update(bytes).digest('hex'));
+  } catch (error) {
+    failures.push(relativePath + ': ' + error.message);
+  }
+}
+if (humanPromotionHashes.size !== humanPromotionIcons.length) {
+  failures.push('Human promotion icons must all be visually distinct files.');
+}
+if (humanPromotionBytes > 900000) {
+  failures.push('Human promotion icons exceed the shared 900 KB runtime budget: ' + humanPromotionBytes + ' bytes.');
+}
 const registered = new Set([...registry.matchAll(/require\('\.\.\/\.\.\/(assets\/game\/[^']+\.(?:png|jpg))'\)/g)].map(match => match[1]));
 const spritePaths = new Set(sprites.map(relative));
 const productionAssetPaths = new Set([
