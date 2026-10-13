@@ -1,0 +1,76 @@
+name: Import Human base art
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - assets/cart_crown_human_base_upload.zip
+      - .github/workflows/import-human-base-art.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install image tools
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick optipng
+
+      - name: Extract and optimize base art
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="assets/cart_crown_human_base_upload.zip"
+          test -f "$ZIP"
+
+          rm -rf /tmp/cart-crown-human-base
+          mkdir -p /tmp/cart-crown-human-base
+          unzip -q "$ZIP" -d /tmp/cart-crown-human-base
+
+          SRC="/tmp/cart-crown-human-base/cart_crown_human_base_upload/assets/units/human_base"
+          DST="assets/units/human_base"
+          test -d "$SRC"
+          mkdir -p "$DST"
+
+          for name in spearman swordsman archer crossbowman scout shield_infantry cavalryman halberdier
+          do
+            test -f "$SRC/$name.png"
+            convert "$SRC/$name.png"               -trim +repage               -resize '232x232>'               -background none               -gravity center               -extent 256x256               PNG32:"$DST/$name.png"
+            optipng -quiet -o4 -strip all "$DST/$name.png"
+          done
+
+          cp "$SRC/human_base_sheet.png" "$DST/human_base_sheet.png"
+          optipng -quiet -o2 -strip all "$DST/human_base_sheet.png" || true
+
+          rm -f "$ZIP"
+
+      - name: Report asset sizes
+        shell: bash
+        run: |
+          du -h assets/units/human_base/*.png | sort -h
+          echo "Runtime Human base total:"
+          du -ch assets/units/human_base/{spearman,swordsman,archer,crossbowman,scout,shield_infantry,cavalryman,halberdier}.png | tail -1
+
+      - name: Commit imported assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- assets)" ]; then
+            echo "No asset changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets
+          git commit -m "Import optimized Human base art"
+          git push
