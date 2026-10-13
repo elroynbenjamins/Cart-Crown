@@ -1785,15 +1785,17 @@ export function GameProvider({
     (buildingLevels.officer_academy ?? 0) >= 1 &&
     canAfford(resources, getExpansionCost('human', 'capital'));
 
-  const gateOfCrownspireWon = Boolean(
+  const crownroadCampaignWon = Boolean(
     chapterNumber === 5 &&
-      chapterNodes.find(node => node.id === 'ch5_node_6')?.completed
+      chapterNodes.find(
+        node => node.id === 'ch5_node_11'
+      )?.completed
   );
   const grandUpgradeAvailable =
-    gateOfCrownspireWon && currentWagonStage.id === 'capital';
+    crownroadCampaignWon &&
+    currentWagonStage.id === 'capital';
   const canUpgradeToGrand =
     grandUpgradeAvailable &&
-    Boolean(royalDecreeId) &&
     (buildingLevels.barracks ?? 0) >= 5 &&
     (buildingLevels.forge ?? 0) >= 5 &&
     (buildingLevels.wagonwright ?? 0) >= 5 &&
@@ -6041,25 +6043,9 @@ export function GameProvider({
       }));
     }
 
+    // Royal Decrees are a kingdom policy choice, not a hidden campaign
+    // gate. Changing policy must never auto-complete or skip a story mission.
     setRoyalDecreeId(decreeId);
-
-    if (
-      chapterNumber === 5 &&
-      chapterNodes.find(node => node.id === 'ch5_node_1')?.current
-    ) {
-      setChapterNodes(previous =>
-        previous.map(node => {
-          if (node.id === 'ch5_node_1') {
-            return { ...node, completed: true, current: false };
-          }
-          if (node.id === 'ch5_node_2') {
-            return { ...node, current: true };
-          }
-          return { ...node, current: false };
-        })
-      );
-    }
-
     return true;
   };
 
