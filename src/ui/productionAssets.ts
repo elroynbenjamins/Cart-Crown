@@ -76,7 +76,7 @@ export function unitProductionAsset(
 ) {
   const classSlug = slug(className);
   return spec(
-    'legacy.unit.' + faction + '.' + classSlug,
+    'unit.' + faction + '.' + classSlug,
     'unit',
     PRODUCTION_ASSET_ROOT + '/units/' + faction + '/' + classSlug + '.png',
     256,
@@ -89,7 +89,7 @@ export function unitProductionAsset(
 
 export function factionCrestProductionAsset(faction: FactionId) {
   return spec(
-    'legacy.faction_crest.' + faction,
+    'faction_crest.' + faction,
     'faction_crest',
     PRODUCTION_ASSET_ROOT + '/factions/' + faction + '/crest.png',
     256,
@@ -318,6 +318,9 @@ export const productionAssetSources: Partial<Record<string, ImageSourcePropType>
   'ui.settlement_support_orc_atlas': require('../../assets/game/ui/settlement_support_orc_atlas.png'),
 
   'legacy.unit.human.recruit': require('../../assets/game/units/human/recruit.png'),
+  'legacy.unit.human.militia': require('../../assets/game/units/human/militia.png'),
+  'legacy.unit.elf.forest_scout': require('../../assets/game/units/elf/forest_scout.png'),
+  'legacy.unit.orc.youngblood': require('../../assets/game/units/orc/youngblood.png'),
   'legacy.unit.elf.warden': require('../../assets/game/units/elf/warden.png'),
   'legacy.unit.orc.hunter': require('../../assets/game/units/orc/hunter.png'),
 
