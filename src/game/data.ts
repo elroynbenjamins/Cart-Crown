@@ -171,11 +171,14 @@ export const starterWagonItems: WagonItemDefinition[] = [
 ];
 
 export const humanRegions: RegionDefinition[] = [
-  { id: 'greenkeep_outskirts', name: 'Greenkeep Outskirts', faction: 'human', x: 13, y: 58, state: 'current' },
-  { id: 'greenkeep_vale', name: 'Greenkeep Vale', faction: 'human', x: 24, y: 55, state: 'locked' },
-  { id: 'iron_hills', name: 'Iron Hills', faction: 'human', x: 30, y: 31, state: 'locked' },
-  { id: 'border_marches', name: 'Frostmarch', faction: 'human', x: 39, y: 52, state: 'locked' },
-  { id: 'crownspire', name: 'Crownspire', faction: 'neutral', x: 58, y: 48, state: 'locked' }
+  { id: 'greenkeep_outskirts', name: 'Greenkeep Outskirts', faction: 'human', x: 10, y: 64, state: 'current' },
+  { id: 'greenkeep_vale', name: 'Greenkeep Vale', faction: 'human', x: 21, y: 56, state: 'locked' },
+  { id: 'iron_hills', name: 'Iron Hills', faction: 'human', x: 31, y: 33, state: 'locked' },
+  { id: 'border_marches', name: 'Frostmarch', faction: 'human', x: 42, y: 48, state: 'locked' },
+  { id: 'greywatch', name: 'Greywatch Frontier', faction: 'human', x: 52, y: 31, state: 'locked' },
+  { id: 'crownroad', name: 'Crownroad', faction: 'human', x: 63, y: 48, state: 'locked' },
+  { id: 'glass_keep', name: 'Glass Keep', faction: 'neutral', x: 75, y: 30, state: 'locked' },
+  { id: 'blackstone', name: 'Blackstone', faction: 'neutral', x: 87, y: 49, state: 'locked' }
 ];
 
 export const chapterOneNodes: ChapterNode[] = [
