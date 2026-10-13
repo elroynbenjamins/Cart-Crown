@@ -29,14 +29,84 @@ import type { TutorialFocusTarget } from '../game/tutorial';
 
 type CampaignView = 'story' | 'activities' | 'factions';
 
-const campaignMissionArt: Record<ChapterNode['type'], number> = {
-  story: require('../../assets/campaign/missions/mission_01_frontier_watch.png'),
-  battle: require('../../assets/campaign/missions/mission_02_hold_the_crossing.png'),
-  event: require('../../assets/campaign/missions/mission_03_build_the_outpost.png'),
-  supply: require('../../assets/campaign/missions/mission_04_guard_the_wagon.png'),
-  boss: require('../../assets/campaign/missions/mission_05_defend_the_village.png'),
-  elite: require('../../assets/campaign/missions/mission_06_ambush_in_the_pines.png')
-};
+const campaignMissionArt = {
+  frontier: require('../../assets/campaign/missions/mission_01_frontier_watch.png'),
+  crossing: require('../../assets/campaign/missions/mission_02_hold_the_crossing.png'),
+  construction: require('../../assets/campaign/missions/mission_03_build_the_outpost.png'),
+  wagon: require('../../assets/campaign/missions/mission_04_guard_the_wagon.png'),
+  defense: require('../../assets/campaign/missions/mission_05_defend_the_village.png'),
+  ambush: require('../../assets/campaign/missions/mission_06_ambush_in_the_pines.png')
+} as const;
+
+function campaignMissionArtFor(node: ChapterNode) {
+  // Chapter 1 is deliberately authored by objective so its onboarding route
+  // reads like a visual story instead of repeating one image per node type.
+  const chapterOneArt: Partial<Record<string, number>> = {
+    node_1: campaignMissionArt.frontier,
+    node_2: campaignMissionArt.crossing,
+    node_3: campaignMissionArt.construction,
+    node_4: campaignMissionArt.frontier,
+    node_5: campaignMissionArt.ambush,
+    node_6: campaignMissionArt.wagon,
+    node_7: campaignMissionArt.defense
+  };
+  const exact = chapterOneArt[node.id];
+  if (exact) return exact;
+
+  const name = node.name.toLowerCase();
+  if (
+    name.includes('crossing') ||
+    name.includes('gate') ||
+    name.includes('hold the line') ||
+    name.includes('iron line') ||
+    name.includes('breach')
+  ) {
+    return campaignMissionArt.crossing;
+  }
+  if (
+    name.includes('rebuild') ||
+    name.includes('raise') ||
+    name.includes('outpost') ||
+    name.includes('tower') ||
+    name.includes('forge') ||
+    name.includes('barracks') ||
+    name.includes('fortif') ||
+    name.includes('muster')
+  ) {
+    return campaignMissionArt.construction;
+  }
+  if (
+    name.includes('wagon') ||
+    name.includes('supply') ||
+    name.includes('road') ||
+    name.includes('march') ||
+    name.includes('crownroad')
+  ) {
+    return campaignMissionArt.wagon;
+  }
+  if (
+    name.includes('ambush') ||
+    name.includes('hunter') ||
+    name.includes('wolves') ||
+    name.includes('rear') ||
+    name.includes('flank')
+  ) {
+    return campaignMissionArt.ambush;
+  }
+  if (
+    node.type === 'boss' ||
+    name.includes('defend') ||
+    name.includes('siege') ||
+    name.includes('hold')
+  ) {
+    return campaignMissionArt.defense;
+  }
+  if (node.type === 'elite') return campaignMissionArt.ambush;
+  if (node.type === 'supply') return campaignMissionArt.wagon;
+  if (node.type === 'event') return campaignMissionArt.construction;
+  if (node.type === 'battle') return campaignMissionArt.crossing;
+  return campaignMissionArt.frontier;
+}
 
 export function CampaignScreen({
   onStartBattle,
@@ -938,7 +1008,7 @@ export function CampaignScreen({
                   ]}
                 >
                   <Image
-                    source={campaignMissionArt[node.type]}
+                    source={campaignMissionArtFor(node)}
                     resizeMode="cover"
                     fadeDuration={0}
                     style={styles.nodeArt}
@@ -1492,10 +1562,10 @@ const styles = StyleSheet.create({
   regionName: { textAlign: 'center', fontSize: 10, lineHeight: 13, marginTop: 4, fontWeight: '800' },
   route: { position: 'absolute', left: '15%', top: '62%', width: '26%', height: 3, transform: [{ rotate: '-4deg' }], opacity: 0.4 },
   nodeList: { gap: 6 },
-  nodeCard: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  nodeCard: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 9 },
   nodeVisual: {
-    width: 68,
-    height: 48,
+    width: 84,
+    height: 56,
     borderRadius: 10,
     borderWidth: 1,
     overflow: 'hidden',
@@ -1510,9 +1580,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 3,
     bottom: 3,
-    width: 23,
-    height: 23,
-    borderRadius: 7,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
