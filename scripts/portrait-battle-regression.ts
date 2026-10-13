@@ -151,7 +151,7 @@ new Function('require','module','exports',output)((name:string)=>{
   if(name==='./IllustratedBattlefieldBackdrop')return {IllustratedBattlefieldBackdrop:'IllustratedBattlefieldBackdrop'};
   if(name==='./Art')return {ReferenceArt:'ReferenceArt'};
   if(name.endsWith('ThemeProvider'))return {useGameTheme:()=>appearance};
-  if(name.endsWith('gameArt'))return {UnitSprite:'UnitSprite',EnemySprite:'EnemySprite'};
+  if(name.endsWith('gameArt'))return {UnitSprite:'UnitSprite',UnitPortraitSprite:'UnitPortraitSprite',EnemySprite:'EnemySprite'};
   if(name.endsWith('battleVisuals'))return Object.fromEntries(['BattlefieldBackdrop','BattleStatusMarker','BattleVfxStrip','EnemyFantasyStrikeVfx','EnemyFantasyThreatAura'].map(n=>[n,n]));
   throw new Error(name);
 },loaded,loaded.exports);
@@ -199,6 +199,8 @@ check(controller.includes('setExchangeHistory(previous => appendExchange'),'Log 
 check(controller.includes('fantasyThreat={encounter.fantasyThreat}')&&file.includes('fantasyThreat={p.fantasyThreat} role={item.role}'),'Fantasy/role forwarding must survive integration');
 check(file.includes('EnemyFantasyStrikeVfx')&&file.includes('progress={p.impactPulse}'),'Retain fantasy strike effects');
 check(file.includes('stageDepthVisual(position.row)'),'Battlefield actors must consume their rank-depth presentation');
+check(file.includes('UnitPortraitSprite'),'Portrait rails must use cropped production unit art when dedicated portrait art is unavailable');
+check(file.includes('presentationScale={1.08}'),'Battlefield figures must receive the subtle larger presentation scale');
 check(file.includes('zIndex: depth.zIndex'),'Rank depth must control battlefield draw order');
 check(file.includes('shadowScale')&&file.includes('shadowOpacity'),'Rank depth must alter shadow footprint and opacity');
 check(file.includes('stageExchangeMotion(p.shape, position.row)')&&file.includes('stageExchangeMotion(p.enemyShape, position.row)'),
