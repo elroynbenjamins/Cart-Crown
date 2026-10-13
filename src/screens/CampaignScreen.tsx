@@ -156,6 +156,7 @@ export function CampaignScreen({
   onStartAshenCourt,
   onOpenForcedBeacon,
   onStartReturnToCrownspire,
+  onOpenHumanLateMission,
   onStartFactionOpeningBattle,
   onOpenFactionInvestigation,
   onStartFactionEliteBattle,
@@ -247,6 +248,7 @@ export function CampaignScreen({
   onStartAshenCourt: () => void;
   onOpenForcedBeacon: () => void;
   onStartReturnToCrownspire: () => void;
+  onOpenHumanLateMission: (nodeId: string) => void;
   onStartFactionOpeningBattle: () => void;
   onOpenFactionInvestigation: () => void;
   onStartFactionEliteBattle: () => void;
@@ -486,8 +488,10 @@ export function CampaignScreen({
                 : chapterNumber === 4
                   ? 'Greywatch Frontier'
                   : chapterNumber === 5
-                    ? 'Old Royal Lands'
-                    : 'Crownspire Basin'
+                    ? 'Crownroad Muster'
+                    : chapterNumber === 6
+                      ? 'Arcane Marches'
+                      : 'Blackstone Siege'
         }
         trailing="Current region"
       />
@@ -715,7 +719,12 @@ export function CampaignScreen({
             node.current &&
             node.id === 'ch6_node_6';
 
+          const humanLatePlayable =
+            chapterNumber >= 5 &&
+            node.current;
+
           const playable =
+            humanLatePlayable ||
             chapterOneBattle ||
             chapterOneStory ||
             mercenaryPlayable ||
@@ -764,8 +773,29 @@ export function CampaignScreen({
             forcedBeaconPlayable ||
             returnToCrownspirePlayable;
 
+          const lateStatus =
+            node.type === 'boss'
+              ? chapterNumber === 7
+                ? 'FINAL BOSS'
+                : 'BOSS'
+              : node.type === 'siege'
+                ? 'SIEGE'
+                : node.type === 'defense'
+                  ? 'DEFEND'
+                  : node.type === 'operation'
+                    ? 'OPERATION'
+                    : node.type === 'choice'
+                      ? 'CHOOSE'
+                      : node.type === 'upgrade'
+                        ? 'UPGRADE'
+                        : node.type === 'event'
+                          ? 'EVENT'
+                          : 'PLAY';
+
           const status = node.completed
             ? 'DONE'
+            : humanLatePlayable
+              ? lateStatus
             : node.id === 'node_4' && node.current && !firstPromotionComplete
               ? 'PROMOTE FIRST'
               : node.id === 'node_6' && node.current && !commanderPathId
@@ -864,7 +894,9 @@ export function CampaignScreen({
                                 ? 'NEXT'
                                 : 'LOCKED';
 
-          const action = chapterOneBattle
+          const action = humanLatePlayable
+            ? () => onOpenHumanLateMission(node.id)
+            : chapterOneBattle
             ? onStartBattle
             : chapterOneStory
               ? onOpenMarkedRaiders
