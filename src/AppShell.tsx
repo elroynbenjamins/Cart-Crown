@@ -61,6 +61,7 @@ import { FortMusterScreen } from './screens/FortMusterScreen';
 import { FormationTrialScreen } from './screens/FormationTrialScreen';
 import { ForcedBeaconScreen } from './screens/ForcedBeaconScreen';
 import { GrandCouncilScreen } from './screens/GrandCouncilScreen';
+import { HumanMissionScreen } from './screens/HumanMissionScreen';
 import { KingdomScreen } from './screens/KingdomScreen';
 import { MarkedRaidersScreen } from './screens/MarkedRaidersScreen';
 import { LastLoyalistsScreen } from './screens/LastLoyalistsScreen';
@@ -121,6 +122,7 @@ type FlowScreen =
   | 'grandCouncil'
   | 'concordVault'
   | 'forcedBeacon'
+  | 'humanMission'
   | 'factionInvestigation'
   | 'factionSupply'
   | 'factionRecruitment'
@@ -196,6 +198,7 @@ const flowTitles: Record<FlowScreen, string> = {
   grandCouncil: 'Grand Council',
   concordVault: 'Concord Vault',
   forcedBeacon: 'The Forced Beacon',
+  humanMission: 'Human Campaign Mission',
   factionInvestigation: 'Campaign Investigation',
   factionSupply: 'Campaign Supplies',
   factionRecruitment: 'Faction Muster',
@@ -236,6 +239,8 @@ export function AppShell({
   const [commanderChoiceReturn, setCommanderChoiceReturn] =
     useState<'army' | 'campaign'>('army');
   const [activeEncounterId, setActiveEncounterId] = useState<EncounterId>('hold_the_road');
+  const [activeHumanMissionNodeId, setActiveHumanMissionNodeId] =
+    useState<string | null>(null);
   const [lastCombatSummary, setLastCombatSummary] = useState<BattleCombatSummary | null>(null);
   const [equipmentUnitId, setEquipmentUnitId] = useState('hum_recruit');
   const [formationGuide, setFormationGuide] = useState<FormationGuide | null>(null);
@@ -502,6 +507,13 @@ export function AppShell({
     }
 
     if (
+      activeEncounterId.startsWith('human_ch')
+    ) {
+      completeTo('campaign', null);
+      return;
+    }
+
+    if (
       activeEncounterId.startsWith('war_table_')
     ) {
       completeTo('campaign', 'warTable');
@@ -621,6 +633,21 @@ export function AppShell({
   const renderScreen = () => {
     if (flow === 'settings') {
       return <SettingsScreen />;
+    }
+
+    if (
+      flow === 'humanMission' &&
+      activeHumanMissionNodeId
+    ) {
+      return (
+        <HumanMissionScreen
+          nodeId={activeHumanMissionNodeId}
+          onContinue={() => {
+            setFlow(null);
+            setActive('campaign');
+          }}
+        />
+      );
     }
 
     if (flow === 'preparationFix') {
@@ -1512,6 +1539,24 @@ export function AppShell({
             onStartReturnToCrownspire={() => {
               setActiveEncounterId('return_to_crownspire');
               openFlow('battlePrep');
+            }}
+            onOpenHumanLateMission={nodeId => {
+              const mission =
+                getHumanLateMission(nodeId);
+              if (!mission) return;
+
+              if (mission.encounterId) {
+                setActiveEncounterId(
+                  mission.encounterId
+                );
+                openFlow('battlePrep');
+                return;
+              }
+
+              setActiveHumanMissionNodeId(
+                nodeId
+              );
+              openFlow('humanMission');
             }}
             onStartFactionOpeningBattle={() => {
               setActiveEncounterId(
