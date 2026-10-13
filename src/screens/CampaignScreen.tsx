@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { rewardedAdPlacements } from '../ads/rewardedAds';
 import { factions, factionOrder } from '../game/factions';
 import { humanRegions } from '../game/data';
 import { useGame } from '../game/GameProvider';
-import type { CampaignId, SideModeId } from '../game/types';
+import type { CampaignId, ChapterNode, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
@@ -28,6 +28,15 @@ import {
 import type { TutorialFocusTarget } from '../game/tutorial';
 
 type CampaignView = 'story' | 'activities' | 'factions';
+
+const campaignMissionArt: Record<ChapterNode['type'], number> = {
+  story: require('../../assets/campaign/missions/mission_01_frontier_watch.png'),
+  battle: require('../../assets/campaign/missions/mission_02_hold_the_crossing.png'),
+  event: require('../../assets/campaign/missions/mission_03_build_the_outpost.png'),
+  supply: require('../../assets/campaign/missions/mission_04_guard_the_wagon.png'),
+  boss: require('../../assets/campaign/missions/mission_05_defend_the_village.png'),
+  elite: require('../../assets/campaign/missions/mission_06_ambush_in_the_pines.png')
+};
 
 export function CampaignScreen({
   onStartBattle,
@@ -917,22 +926,43 @@ export function CampaignScreen({
               >
                 <View
                   style={[
-                    styles.nodeIcon,
+                    styles.nodeVisual,
                     {
-                      backgroundColor: node.completed
+                      borderColor: node.completed
                         ? theme.colors.primary
                         : node.current
                           ? theme.colors.human
-                          : theme.colors.surface2
+                          : theme.colors.border,
+                      opacity: node.completed || node.current ? 1 : 0.48
                     }
                   ]}
                 >
-                  <CampaignNodeSprite
-                    type={node.type}
-                    faction="human"
-                    active={node.completed || node.current}
-                    size={26}
+                  <Image
+                    source={campaignMissionArt[node.type]}
+                    resizeMode="cover"
+                    fadeDuration={0}
+                    style={styles.nodeArt}
                   />
+                  <View
+                    style={[
+                      styles.nodeTypeBadge,
+                      {
+                        backgroundColor: theme.dark
+                          ? '#05070BCC'
+                          : '#FFFFFFD9',
+                        borderColor: node.current
+                          ? theme.colors.human
+                          : theme.colors.border
+                      }
+                    ]}
+                  >
+                    <CampaignNodeSprite
+                      type={node.type}
+                      faction="human"
+                      active={node.completed || node.current}
+                      size={17}
+                    />
+                  </View>
                 </View>
                 <View style={styles.nodeCopy}>
                   <Text style={[styles.nodeMeta, { color: theme.colors.textMuted }]}>
@@ -1463,7 +1493,30 @@ const styles = StyleSheet.create({
   route: { position: 'absolute', left: '15%', top: '62%', width: '26%', height: 3, transform: [{ rotate: '-4deg' }], opacity: 0.4 },
   nodeList: { gap: 6 },
   nodeCard: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  nodeIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  nodeVisual: {
+    width: 68,
+    height: 48,
+    borderRadius: 10,
+    borderWidth: 1,
+    overflow: 'hidden',
+    flexShrink: 0,
+    position: 'relative'
+  },
+  nodeArt: {
+    width: '100%',
+    height: '100%'
+  },
+  nodeTypeBadge: {
+    position: 'absolute',
+    left: 3,
+    bottom: 3,
+    width: 23,
+    height: 23,
+    borderRadius: 7,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   nodeIconText: { color: '#FFFFFF', fontWeight: '900', fontSize: 15 },
   nodeCopy: { flex: 1 },
   nodeMeta: { fontSize: 10, fontWeight: '800' },
