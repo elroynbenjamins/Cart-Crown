@@ -1,3 +1,4 @@
+import { chapterSevenNodes } from '../src/game/chapter7';
 import {
   SAVE_SCHEMA_VERSION,
   buildFactionSwitchSnapshot,
@@ -695,6 +696,53 @@ function runMultiFactionMetadata() {
   );
 }
 
+function runHumanChapterSevenRoundTrip() {
+  const record = createNewSaveRecord(1);
+  const human =
+    record.snapshot.factionStates.human;
+  check(human, 'Human state missing.');
+
+  human.wagonStageId = 'grand';
+  human.chapterNumber = 7;
+  human.chapterNodes = chapterSevenNodes.map(
+    (node, index) => ({
+      ...node,
+      completed: index < 7,
+      current: index === 7
+    })
+  );
+
+  const normalized = normalize(record);
+  check(
+    normalized,
+    'Human Chapter 7 save failed normalization.'
+  );
+  const restored =
+    normalized.snapshot.factionStates.human;
+  check(
+    restored,
+    'Human Chapter 7 state disappeared after normalization.'
+  );
+
+  expect(
+    restored.wagonStageId === 'grand' &&
+      restored.chapterNumber === 7,
+    'Grand-stage Human Chapter 7 was incorrectly repaired back to Chapter 6.'
+  );
+  expect(
+    restored.chapterNodes.length === 11 &&
+      restored.chapterNodes[7]?.id ===
+        'ch7_node_8' &&
+      restored.chapterNodes[7]?.current,
+    'Human Chapter 7 mission position did not survive save/reload.'
+  );
+  expect(
+    normalized.metadata.chapterLabel ===
+      'Chapter 7 · Hold Until Dawn',
+    'Save metadata did not use the live Chapter 7 mission name.'
+  );
+}
+
 function main() {
   runFreshRoundTrip();
   runBackwardCompatibleV13Defaults();
@@ -704,6 +752,7 @@ function main() {
   runUnrecoverableSaveRejection();
   runFactionSwitchRoundTrip();
   runMultiFactionMetadata();
+  runHumanChapterSevenRoundTrip();
 
   if (failures.length > 0) {
     console.error(
@@ -725,7 +774,7 @@ function main() {
   }
 
   console.log(
-    'PASS: fresh saves, older v13 optional fields and formation-only presets, Army Loadout gear sanitization, duplicate equipment counts, corruption repair, stage/chapter coherence, active-faction repair, faction switching, JSON round trips and metadata remain valid.'
+    'PASS: fresh saves, older v13 optional fields and formation-only presets, Army Loadout gear sanitization, duplicate equipment counts, corruption repair, Human Chapter 7 grand-stage persistence, active-faction repair, faction switching, JSON round trips and metadata remain valid.'
   );
 }
 
