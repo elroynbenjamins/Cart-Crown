@@ -57,14 +57,14 @@ function parseRecord(
 }
 
 async function readRecord(slotId: SaveSlotId): Promise<SaveRecord | null> {
-  const [primaryRaw, backupRaw] =
-    await AsyncStorage.multiGet([
-      keyForSlot(slotId),
-      backupKeyForSlot(slotId)
-    ]).then(entries => [
-      entries[0]?.[1] ?? null,
-      entries[1]?.[1] ?? null
-    ]);
+  const entries = await AsyncStorage.multiGet([
+    keyForSlot(slotId),
+    backupKeyForSlot(slotId)
+  ]);
+  const primaryRaw: string | null =
+    entries[0]?.[1] ?? null;
+  const backupRaw: string | null =
+    entries[1]?.[1] ?? null;
 
   const primary = parseRecord(
     slotId,
