@@ -389,7 +389,13 @@ const campaignMissionScenes = [
   'assets/campaign/missions/frostmarch_cavalry.png',
   'assets/campaign/missions/frostmarch_forge.png',
   'assets/campaign/missions/frostmarch_layered_host.png',
-  'assets/campaign/missions/frostmarch_frostgate_boss.png'
+  'assets/campaign/missions/frostmarch_frostgate_boss.png',
+  // Human Chapter 4 / Greywatch, including unique siege finale.
+  'assets/campaign/missions/greywatch_marches.png',
+  'assets/campaign/missions/greywatch_war_camp.png',
+  'assets/campaign/missions/greywatch_broken_ground.png',
+  'assets/campaign/missions/greywatch_breach.png',
+  'assets/campaign/missions/greywatch_siege_boss.png'
 ];
 for (const relativePath of campaignMissionScenes) {
   const full = path.join(root, relativePath);
