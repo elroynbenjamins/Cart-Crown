@@ -31,7 +31,13 @@ const packagedOriginals: Record<string, ImageSourcePropType> = {
   frostmarch_cavalry: require('../../assets/campaign/missions/frostmarch_cavalry.png'),
   frostmarch_forge: require('../../assets/campaign/missions/frostmarch_forge.png'),
   frostmarch_layered_host: require('../../assets/campaign/missions/frostmarch_layered_host.png'),
-  frostmarch_frostgate_boss: require('../../assets/campaign/missions/frostmarch_frostgate_boss.png')
+  frostmarch_frostgate_boss: require('../../assets/campaign/missions/frostmarch_frostgate_boss.png'),
+  // Greywatch: frontier, war camp, flank ravine, breach and unique siege finale.
+  greywatch_marches: require('../../assets/campaign/missions/greywatch_marches.png'),
+  greywatch_war_camp: require('../../assets/campaign/missions/greywatch_war_camp.png'),
+  greywatch_broken_ground: require('../../assets/campaign/missions/greywatch_broken_ground.png'),
+  greywatch_breach: require('../../assets/campaign/missions/greywatch_breach.png'),
+  greywatch_siege_boss: require('../../assets/campaign/missions/greywatch_siege_boss.png')
 };
 
 const fallbacks: Record<HumanCampaignFallbackArt, ImageSourcePropType> = {

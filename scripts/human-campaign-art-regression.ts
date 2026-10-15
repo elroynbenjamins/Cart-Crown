@@ -95,4 +95,27 @@ assert.equal(frostScenesUsed.size, 5, 'All five Frostmarch plates must be visibl
 assert.equal(humanCampaignSceneForMission(3, 11)?.id, 'frostmarch_frostgate_boss',
   'The Frostgate chapter finale requires its own fortress painting');
 
+
+const greywatchIds = [
+  'greywatch_marches', 'greywatch_war_camp',
+  'greywatch_broken_ground', 'greywatch_breach', 'greywatch_siege_boss'
+];
+const greywatchScenesUsed = new Set<string>();
+for (const id of greywatchIds) {
+  const assetPath = path.join(process.cwd(), 'assets/campaign/missions/' + id + '.png');
+  assert.ok(fs.existsSync(assetPath), 'Missing Greywatch PNG: ' + assetPath);
+  assert.ok(artRegistry.includes(id + ": require('../../assets/campaign/missions/" + id + ".png')"),
+    'Missing static Greywatch art registration: ' + id);
+}
+for (let order = 1; order <= 11; order++) {
+  const scene = humanCampaignSceneForMission(4, order);
+  assert.ok(scene && greywatchIds.includes(scene.id), 'Greywatch mission requires regional art: ' + order);
+  const node = humanCampaignSceneForNode(4, 'ch4_node_' + order);
+  assert.equal(node?.id, scene.id, 'Greywatch mission screens must agree on art: ' + order);
+  greywatchScenesUsed.add(scene.id);
+}
+assert.equal(greywatchScenesUsed.size, 5, 'All five Greywatch images must appear in the chapter');
+assert.equal(humanCampaignSceneForMission(4, 11)?.id, 'greywatch_siege_boss',
+  'Siege of Greywatch must use its own illustration');
+
 console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');
