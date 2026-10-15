@@ -1,6 +1,6 @@
 # Human campaign artwork depth — production pass 1
 
-**Status: wiring complete, new binary illustrations pending.** The two pitch-board outputs from the exploratory art generation do not meet the pixel-art or seven-chapter lore requirements; they were not installed in the game.
+**Status: Chapter 2 Iron Hills artwork shipped for Campaign mission cards; Chapters 3–7 remain on fallbacks.** Five separate Iron Hills environment crops have been cleaned of poster titles/borders and packaged locally. The two earlier concept boards that did not match the final seven-chapter lore were not bundled.
 
 ## Existing state and integration
 
@@ -8,7 +8,7 @@
 - Human art direction: 36 named scene compositions (six Chapter 1, five per later chapter), with one unique boss composition planned per chapter.
 - Every mission has a stable chapter/order scene mapping in src/game/humanCampaignArtDirection.ts.
 - Both campaign cards and the late-mission detail screen now resolve images using src/ui/humanCampaignMissionArt.ts.
-- Chapters 2–7 still display an older packaged painting as a *fallback* until their approved new image is installed. A named slot is not an actual new image.
+- Chapter 2 now uses five distinct **144×72 optimized JPEG mission-card images** (muster, smithy, road, defensive line and unique fortress boss composition). These are intentionally small thumbnails for 84–104pt Campaign cards. The separate full-resolution 724×362 PNG cuts remain part of the generation pack, not the APK. Chapters 3–7 still display Chapter 1 fallbacks until their new art ships.
 
 ## Art approval bar
 
@@ -20,7 +20,7 @@ Every new asset should be visually reviewed, compressed to roughly <800KB if pos
 
 ## Asset production sequence
 
-1. **Chapter 2 / Iron Hills:** Iron Hills Muster, Tools of War smithy, Riders on the Road, Iron Line shieldwall, unique Iron Provost boss fortress.
+1. **Chapter 2 / Iron Hills — complete for Campaign thumbnails:** Iron Hills Muster, Tools of War smithy, Riders on the Road, Iron Line shieldwall, unique Iron Provost boss fortress. Before exposing these illustrations on large screens, use the separately provided full-resolution PNG variants rather than stretching card thumbnails.
 2. **Chapter 3 / Frostmarch:** snowy pass, cavalry flank, winter smithy, layered host battlefield, unique Frostgate boss.
 3. **Chapter 4 / Greywatch:** long front, war camp, broken ground, outer breach, unique Greywatch siege boss.
 4. **Chapter 5 / Crownroad:** royal causeway, six-banner muster, flying assault, combined-arms field, unique Crownroad boss.
@@ -31,4 +31,4 @@ Per-mission art directions, scene IDs, and scene assignments are part of the typ
 
 ## What this pass does not do
 
-It does not introduce new painted Chapter 2–7 assets, change combat gameplay, promise unique boss PNGs already exist, or modify saves. The regression checks data coverage, not visual quality. Future art batches must replace fallback paintings one by one after review.
+It introduces five dedicated Chapter 2 Campaign-thumbnail assets, but does not yet bundle large-format Chapter 2 illustrations or introduce new artwork for Chapters 3–7. It does not change combat gameplay or saves. The new regression verifies each JPEG exists and is statically required; visual fidelity and Android screenshots still require direct inspection. The Iron Provost picture is a unique fortress composition, not a guaranteed illustrated portrait of the named commander.
