@@ -1,6 +1,6 @@
 # Human campaign artwork depth — production pass 1
 
-**Status: Chapters 1–3 have bundled mission illustrations; Chapter 3 is in integration/validation.** The generated Frostmarch source boards are only staging art, not in-game UI. Their picture areas were cropped into five clean 724×362 PNGs, with original caption bars excluded and no Frostwyrm, Frost Lord or unrelated boss introduced.
+**Status: Chapters 1–4 have bundled mission illustrations; Chapter 4 is in integration/validation.** The generated Frostmarch source boards are only staging art, not in-game UI. Their picture areas were cropped into five clean 724×362 PNGs, with original caption bars excluded and no Frostwyrm, Frost Lord or unrelated boss introduced.
 
 ## Existing state and integration
 
@@ -10,7 +10,8 @@
 - Both campaign cards and the late-mission detail screen now resolve images using src/ui/humanCampaignMissionArt.ts.
 - Chapter 2 / Iron Hills has five shipped 724×362 PNGs registered with literal `require` paths.
 - Chapter 3 / Frostmarch now has five 724×362 RGB PNGs (`frostmarch_pass`, `frostmarch_cavalry`, `frostmarch_forge`, `frostmarch_layered_host`, `frostmarch_frostgate_boss`), statically registered for all 11 missions. The final boss shows Frostgate fortress and defensive troops; the canon battle remains the Marshal / Layered Host encounter.
-- Chapters 4–7 still display temporary Chapter 1 fallbacks until their own illustrations are produced.
+- Chapter 4 / Greywatch has five 724×362 RGB PNGs (`greywatch_marches`, `greywatch_war_camp`, `greywatch_broken_ground`, `greywatch_breach`, `greywatch_siege_boss`), registered for all 11 missions; the Siege of Greywatch finale remains the existing Pretender General encounter.
+- Chapters 5–7 still display temporary Chapter 1 fallbacks until their own illustrations are produced.
 
 ## Art approval bar
 
