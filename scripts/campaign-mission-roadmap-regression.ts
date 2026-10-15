@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { chapterOneNodes } from '../src/game/data';
 import { chapterTwoNodes } from '../src/game/chapter2';
 import { chapterThreeNodes } from '../src/game/chapter3';
@@ -303,6 +305,64 @@ assert(
   'The live Human campaign must contain exactly 70 missions'
 );
 
+const campaignScreenSource = fs.readFileSync(
+  path.join(process.cwd(), 'src/screens/CampaignScreen.tsx'),
+  'utf8'
+);
+const journeyMapSource = fs.readFileSync(
+  path.join(process.cwd(), 'src/ui/CampaignJourneyMap.tsx'),
+  'utf8'
+);
+
+for (const label of [
+  'GREENKEEP',
+  'IRON HILLS',
+  'FROSTMARCH',
+  'GREYWATCH',
+  'CROWNROAD',
+  'GLASS KEEP',
+  'BLACKSTONE'
+]) {
+  assert(
+    campaignScreenSource.includes("label: '" + label + "'"),
+    'Human campaign chapter identity is missing ' + label
+  );
+}
+for (const phase of [
+  'SURVIVE',
+  'MUSTER',
+  'BREAKTHROUGH',
+  'FORTIFY',
+  'KINGDOM WAR',
+  'ARCANE FRONT',
+  'FINAL SIEGE'
+]) {
+  assert(
+    campaignScreenSource.includes("phase: '" + phase + "'"),
+    'Human campaign chapter phase is missing ' + phase
+  );
+}
+assert(
+  campaignScreenSource.includes('CHAPTER FINALE') &&
+    campaignScreenSource.includes('ELITE ENCOUNTER'),
+  'Human elite and chapter-finale missions must retain distinct presentation'
+);
+assert(
+  campaignScreenSource.includes('chapterIdentity') &&
+    campaignScreenSource.includes('SIGNATURE THREAT') &&
+    campaignScreenSource.includes('currentChapterVisual.force'),
+  'Human campaign must retain the chapter war-state identity panel'
+);
+assert(
+  journeyMapSource.includes('points.slice(0, 8)'),
+  'The Human campaign journey map must expose all eight route regions'
+);
+assert(
+  journeyMapSource.includes('routeProgress') &&
+    journeyMapSource.includes("width: (routeProgress * 100) + '%'"),
+  'The Human campaign journey map must visualize route progress'
+);
+
 console.log(
-  'PASS: all 70 Human campaign missions, live Chapters 1-7 ordering, late combat wiring and 2->3->4->5->6 squad cadence remain protected.'
+  'PASS: all 70 Human campaign missions, live Chapters 1-7 ordering, eight-region presentation, chapter identity, late combat wiring and 2->3->4->5->6 squad cadence remain protected.'
 );
