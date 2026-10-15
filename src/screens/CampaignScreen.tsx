@@ -1219,7 +1219,14 @@ export function CampaignScreen({
                 }
                 faction="human"
                 state={node.completed ? 'ready' : node.current ? 'selected' : 'locked'}
-                style={styles.nodeCard}
+                style={[
+                  styles.nodeCard,
+                  node.type === 'boss'
+                    ? styles.nodeBossCard
+                    : node.type === 'elite'
+                      ? styles.nodeEliteCard
+                      : undefined
+                ]}
               >
                 <View
                   style={[
@@ -1297,6 +1304,25 @@ export function CampaignScreen({
                   </View>
                 </View>
                 <View style={styles.nodeCopy}>
+                  {node.type === 'boss' ? (
+                    <Text
+                      style={[
+                        styles.nodeEncounterLabel,
+                        { color: chapterVisual.glow }
+                      ]}
+                    >
+                      CHAPTER FINALE
+                    </Text>
+                  ) : node.type === 'elite' ? (
+                    <Text
+                      style={[
+                        styles.nodeEncounterLabel,
+                        { color: theme.colors.gold }
+                      ]}
+                    >
+                      ELITE ENCOUNTER
+                    </Text>
+                  ) : null}
                   <Text style={[styles.nodeMeta, { color: theme.colors.textMuted }]}>
                     {String(index + 1).padStart(2, '0')} · {node.type.toUpperCase()}
                   </Text>
@@ -1892,6 +1918,13 @@ const styles = StyleSheet.create({
   route: { position: 'absolute', left: '15%', top: '62%', width: '26%', height: 3, transform: [{ rotate: '-4deg' }], opacity: 0.4 },
   nodeList: { gap: 6 },
   nodeCard: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  nodeEliteCard: {
+    minHeight: 76
+  },
+  nodeBossCard: {
+    minHeight: 82,
+    borderWidth: 1.5
+  },
   nodeVisual: {
     width: 84,
     height: 56,
@@ -1953,6 +1986,13 @@ const styles = StyleSheet.create({
   },
   nodeIconText: { color: '#FFFFFF', fontWeight: '900', fontSize: 15 },
   nodeCopy: { flex: 1 },
+  nodeEncounterLabel: {
+    fontSize: 7.5,
+    lineHeight: 9,
+    letterSpacing: 0.75,
+    fontWeight: '900',
+    marginBottom: 2
+  },
   nodeMeta: { fontSize: 10, fontWeight: '800' },
   nodeName: { fontSize: 14, fontWeight: '900', marginTop: 2 },
   chevron: { fontSize: 10, fontWeight: '900' },
