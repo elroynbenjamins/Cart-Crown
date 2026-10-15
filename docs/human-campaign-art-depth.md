@@ -1,6 +1,6 @@
 # Human campaign artwork depth — production pass 1
 
-**Status: Chapters 1–5 have bundled mission illustrations, including the Crownroad five-scene pass.** The generated Frostmarch source boards are only staging art, not in-game UI. Their picture areas were cropped into five clean 724×362 PNGs, with original caption bars excluded and no Frostwyrm, Frost Lord or unrelated boss introduced.
+**Status: Chapters 1–6 have bundled mission illustrations, including the Glass Keep five-scene pass.** The generated Frostmarch source boards are only staging art, not in-game UI. Their picture areas were cropped into five clean 724×362 PNGs, with original caption bars excluded and no Frostwyrm, Frost Lord or unrelated boss introduced.
 
 ## Existing state and integration
 
@@ -11,9 +11,11 @@
 - Chapter 2 / Iron Hills has five shipped 724×362 PNGs registered with literal `require` paths.
 - Chapter 3 / Frostmarch now has five 724×362 RGB PNGs (`frostmarch_pass`, `frostmarch_cavalry`, `frostmarch_forge`, `frostmarch_layered_host`, `frostmarch_frostgate_boss`), statically registered for all 11 missions. The final boss shows Frostgate fortress and defensive troops; the canon battle remains the Marshal / Layered Host encounter.
 - Chapter 4 / Greywatch has five 724×362 RGB PNGs (`greywatch_marches`, `greywatch_war_camp`, `greywatch_broken_ground`, `greywatch_breach`, `greywatch_siege_boss`), registered for all 11 missions; the Siege of Greywatch finale remains the existing Pretender General encounter.
-- Chapters 5–7 still display temporary Chapter 1 fallbacks until their own illustrations are produced.
+- Chapter 7 / Blackstone still displays temporary Chapter 1 fallback illustrations until its own five scenes are produced.
 
 - Chapter 5 / Crownroad now has five bundled 724×362 RGB PNGs, statically wired to the existing 11 missions including their unique battle finale. Artwork is cropped from the AI-generated Crownroad scene board; story titles, captions and UI framing are excluded. No new boss lore has been introduced.
+
+- Chapter 6 / Glass Keep has five bundled 724×362 RGB PNGs (`glass_keep_strange_fire`, `glass_keep_wardfield`, `glass_keep_arcanists`, `glass_keep_silent_ground`, `glass_keep_siege_boss`) with static registrations for all 11 missions. The finale remains the existing Arcane General / warded fortress encounter; lettering and unrelated generated boss names were cropped out of the scene images.
 
 ## Art approval bar
 
@@ -29,11 +31,11 @@ Every new asset should be visually reviewed, compressed to roughly <800KB if pos
 2. **Chapter 3 / Frostmarch:** snowy pass, cavalry flank, winter smithy, layered host battlefield, unique Frostgate boss.
 3. **Chapter 4 / Greywatch:** long front, war camp, broken ground, outer breach, unique Greywatch siege boss.
 4. **Chapter 5 / Crownroad (shipped):** royal causeway, six-banner muster, flying assault, combined-arms field, unique Crownroad boss.
-5. **Chapter 6 / Glass Keep:** spellfire field, wardfield, Human arcanist camp, silent crystal ground, unique Glass Keep boss.
+5. **Chapter 6 / Glass Keep (shipped):** spellfire field, wardfield, Human arcanist camp, silent crystal ground, unique Glass Keep boss.
 6. **Chapter 7 / Blackstone:** stone road, siege preparations, tower duel, breached city, unique Blackstone final boss.
 
 Per-mission art directions, scene IDs, and scene assignments are part of the typed art direction source. The fallback registry allows incremental release without missing-asset build failures.
 
 ## What this pass does not do
 
-Chapter 2 and Chapter 3 are now art-complete for the campaign mission cards; Chapters 4–7 remain to be illustrated. Combat, saves, rewards, chapter unlocks and squad progression are unchanged. Generated board source files, art previews and transfer archives are not bundled into the app. Android screenshot review is still required before claiming device-level validation.
+Chapters 1–6 have their chapter mission-card illustration sets bundled; only Chapter 7 / Blackstone remains to be illustrated. Combat, saves, rewards, chapter unlocks and squad progression are unchanged. Generated board source files, art previews and transfer archives are not bundled into the app. Android screenshot review is still required before claiming device-level validation.
