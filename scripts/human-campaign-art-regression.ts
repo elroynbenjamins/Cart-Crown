@@ -73,4 +73,26 @@ for (let order = 1; order <= 8; order++) {
   assert.ok(artRegistry.includes(scene.id + ": require("), 'Iron Hills mission must use its new painting: ' + order);
 }
 
+// All eleven Frostmarch missions must now reference the bundled chapter art,
+// not any of the temporary Chapter 1 fallback paintings.
+const frostIds = [
+  'frostmarch_pass', 'frostmarch_cavalry', 'frostmarch_forge',
+  'frostmarch_layered_host', 'frostmarch_frostgate_boss'
+];
+for (const id of frostIds) {
+  const assetPath = path.join(process.cwd(), 'assets/campaign/missions/' + id + '.png');
+  assert.ok(fs.existsSync(assetPath), 'Missing Frostmarch PNG: ' + assetPath);
+  assert.ok(artRegistry.includes(id + ": require('../../assets/campaign/missions/" + id + ".png')"),
+    'Missing static Frostmarch art registration: ' + id);
+}
+const frostScenesUsed = new Set<string>();
+for (let order = 1; order <= 11; order++) {
+  const scene = humanCampaignSceneForMission(3, order);
+  assert.ok(scene && frostIds.includes(scene.id), 'Frostmarch mission must use regional artwork: ' + order);
+  frostScenesUsed.add(scene.id);
+}
+assert.equal(frostScenesUsed.size, 5, 'All five Frostmarch plates must be visible in the chapter');
+assert.equal(humanCampaignSceneForMission(3, 11)?.id, 'frostmarch_frostgate_boss',
+  'The Frostgate chapter finale requires its own fortress painting');
+
 console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');
