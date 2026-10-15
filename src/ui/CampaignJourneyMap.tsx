@@ -58,7 +58,17 @@ export function CampaignJourneyMap({
     points.find(point => point.status === 'current') ??
     points[0];
 
-  const markerPoints = useMemo(() => points.slice(0, 6), [points]);
+  const markerPoints = useMemo(() => points.slice(0, 8), [points]);
+  const routeProgress = useMemo(() => {
+    if (markerPoints.length <= 1) return 0;
+    let furthestIndex = 0;
+    markerPoints.forEach((point, index) => {
+      if (point.status === 'done' || point.status === 'current') {
+        furthestIndex = index;
+      }
+    });
+    return furthestIndex / (markerPoints.length - 1);
+  }, [markerPoints]);
 
   return (
     <View
@@ -90,7 +100,17 @@ export function CampaignJourneyMap({
             styles.routeLine,
             { backgroundColor: theme.colors.border }
           ]}
-        />
+        >
+          <View
+            style={[
+              styles.routeProgress,
+              {
+                backgroundColor: accent,
+                width: (routeProgress * 100) + '%'
+              }
+            ]}
+          />
+        </View>
         <View style={styles.markerRow}>
           {markerPoints.map((point, index) => {
             const chosen = point.id === selected?.id;
@@ -235,12 +255,17 @@ const styles = StyleSheet.create({
   },
   routeLine: {
     position: 'absolute',
-    left: 34,
-    right: 34,
-    bottom: 45,
+    left: 31,
+    right: 31,
+    bottom: 44,
     height: 4,
     borderRadius: 2,
-    opacity: 0.9
+    opacity: 0.9,
+    overflow: 'hidden'
+  },
+  routeProgress: {
+    height: '100%',
+    borderRadius: 2
   },
   markerRow: {
     position: 'absolute',
@@ -251,23 +276,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   markerTouch: {
-    width: 48,
-    height: 54,
+    width: 42,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center'
   },
   markerRing: {
-    width: 28,
-    height: 28,
-    borderWidth: 3,
-    borderRadius: 14,
+    width: 26,
+    height: 26,
+    borderWidth: 2.5,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center'
   },
   markerCore: {
-    width: 12,
-    height: 12,
-    borderRadius: 6
+    width: 10,
+    height: 10,
+    borderRadius: 5
   },
   markerNumber: {
     marginTop: 2,
