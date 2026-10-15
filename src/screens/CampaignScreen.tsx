@@ -42,14 +42,74 @@ const humanChapterVisuals: Record<number, {
   tint: string;
   label: string;
   glow: string;
+  phase: string;
+  force: string;
+  threat: string;
+  directive: string;
 }> = {
-  1: { tint: '#173A66', label: 'GREENKEEP', glow: '#6EA8E8' },
-  2: { tint: '#5A4A36', label: 'IRON HILLS', glow: '#C8A56A' },
-  3: { tint: '#355B75', label: 'FROSTMARCH', glow: '#9BD8F0' },
-  4: { tint: '#514A43', label: 'GREYWATCH', glow: '#D8B66A' },
-  5: { tint: '#253F72', label: 'CROWNROAD', glow: '#E6C45B' },
-  6: { tint: '#4C3C73', label: 'GLASS KEEP', glow: '#BCA7F0' },
-  7: { tint: '#623932', label: 'BLACKSTONE', glow: '#E2936E' }
+  1: {
+    tint: '#173A66',
+    label: 'GREENKEEP',
+    glow: '#6EA8E8',
+    phase: 'SURVIVE',
+    force: '2 SQUADS',
+    threat: 'RAIDERS',
+    directive: 'Hold the remnant together and reclaim a foothold.'
+  },
+  2: {
+    tint: '#5A4A36',
+    label: 'IRON HILLS',
+    glow: '#C8A56A',
+    phase: 'MUSTER',
+    force: '3 SQUADS',
+    threat: 'IRON LINE',
+    directive: 'Build a real warband and learn to break disciplined formations.'
+  },
+  3: {
+    tint: '#355B75',
+    label: 'FROSTMARCH',
+    glow: '#9BD8F0',
+    phase: 'BREAKTHROUGH',
+    force: '4 SQUADS',
+    threat: 'LAYERED HOST',
+    directive: 'Master cavalry, flanks and formation integrity in the frozen march.'
+  },
+  4: {
+    tint: '#514A43',
+    label: 'GREYWATCH',
+    glow: '#D8B66A',
+    phase: 'FORTIFY',
+    force: '5 SQUADS',
+    threat: 'ELITE WAR',
+    directive: 'Choose doctrine, prepare loadouts and turn a warband into an army.'
+  },
+  5: {
+    tint: '#253F72',
+    label: 'CROWNROAD',
+    glow: '#E6C45B',
+    phase: 'KINGDOM WAR',
+    force: '6 SQUADS',
+    threat: 'COMBINED ARMS',
+    directive: 'Field the full army and answer pressure from ground and sky at once.'
+  },
+  6: {
+    tint: '#4C3C73',
+    label: 'GLASS KEEP',
+    glow: '#BCA7F0',
+    phase: 'ARCANE FRONT',
+    force: '6 SQUADS',
+    threat: 'MAGES',
+    directive: 'Break wards and control a battlefield reshaped by arcane warfare.'
+  },
+  7: {
+    tint: '#623932',
+    label: 'BLACKSTONE',
+    glow: '#E2936E',
+    phase: 'FINAL SIEGE',
+    force: '6 SQUADS',
+    threat: 'WAR MACHINES',
+    directive: 'Breach the fortress, protect the siege effort and end the campaign.'
+  }
 };
 
 function humanChapterVisual(chapter: number) {
@@ -427,6 +487,8 @@ export function CampaignScreen({
                 : settlementUpgraded
                   ? 1
                   : 0;
+  const currentChapterVisual = humanChapterVisual(chapterNumber);
+
   const humanJourney = humanRegions.map((region, index) => ({
     id: region.id,
     name: region.name,
@@ -478,7 +540,7 @@ export function CampaignScreen({
                       ? 'Bring Mages into the army, break enemy wards and learn how arcane control reshapes formation warfare.'
                       : 'Take the Human campaign to Blackstone: breach gates, protect engineers, survive counter-sieges and win the final urban assault.'
         }
-        accent={theme.colors.human}
+        accent={currentChapterVisual.glow}
         status={<StatusPill label="HUMAN" tone="current" />}
       >
         <View style={styles.chapterMetrics}>
@@ -497,11 +559,108 @@ export function CampaignScreen({
         </View>
       </ScreenHero>
 
+      <GameCard
+        accent={currentChapterVisual.glow}
+        faction="human"
+        state="selected"
+        ornament={false}
+        style={styles.chapterIdentity}
+      >
+        <View
+          pointerEvents="none"
+          style={[
+            styles.chapterIdentityRail,
+            { backgroundColor: currentChapterVisual.glow }
+          ]}
+        />
+        <View style={styles.chapterIdentityHeader}>
+          <View
+            style={[
+              styles.chapterCrestFrame,
+              {
+                backgroundColor: currentChapterVisual.tint + '28',
+                borderColor: currentChapterVisual.glow + '88'
+              }
+            ]}
+          >
+            <FactionCrest faction="human" size={32} />
+          </View>
+          <View style={styles.chapterIdentityCopy}>
+            <Text
+              style={[
+                styles.chapterIdentityEyebrow,
+                { color: currentChapterVisual.glow }
+              ]}
+            >
+              {currentChapterVisual.label + ' · ' + currentChapterVisual.phase}
+            </Text>
+            <Text style={[styles.chapterDirective, { color: theme.colors.text }]}>
+              {currentChapterVisual.directive}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.chapterIntelRow}>
+          <View
+            style={[
+              styles.chapterIntel,
+              {
+                backgroundColor: theme.colors.surface2,
+                borderColor: theme.colors.border
+              }
+            ]}
+          >
+            <Text style={[styles.chapterIntelLabel, { color: theme.colors.textMuted }]}>
+              FORCE
+            </Text>
+            <Text style={[styles.chapterIntelValue, { color: theme.colors.text }]}>
+              {currentChapterVisual.force}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.chapterIntel,
+              {
+                backgroundColor: theme.colors.surface2,
+                borderColor: theme.colors.border
+              }
+            ]}
+          >
+            <Text style={[styles.chapterIntelLabel, { color: theme.colors.textMuted }]}>
+              SIGNATURE THREAT
+            </Text>
+            <Text
+              style={[
+                styles.chapterIntelValue,
+                { color: currentChapterVisual.glow }
+              ]}
+            >
+              {currentChapterVisual.threat}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.chapterIntel,
+              {
+                backgroundColor: theme.colors.surface2,
+                borderColor: theme.colors.border
+              }
+            ]}
+          >
+            <Text style={[styles.chapterIntelLabel, { color: theme.colors.textMuted }]}>
+              PROGRESS
+            </Text>
+            <Text style={[styles.chapterIntelValue, { color: theme.colors.text }]}>
+              {completed + '/' + chapterNodes.length}
+            </Text>
+          </View>
+        </View>
+      </GameCard>
+
       <SectionTitle title="Caelora" trailing="Western frontier" />
 
       <CampaignJourneyMap
         faction="human"
-        accent={theme.colors.human}
+        accent={currentChapterVisual.glow}
         points={humanJourney}
       />
 
@@ -1034,7 +1193,10 @@ export function CampaignScreen({
                 }
                 action?.();
               }}
-              style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.84 : 1,
+                transform: [{ translateY: pressed ? 1 : 0 }]
+              })}
             >
               <TutorialFocus
                 active={Boolean(
@@ -1050,7 +1212,11 @@ export function CampaignScreen({
                 }
               >
               <GameCard
-                accent={node.current ? theme.colors.human : undefined}
+                accent={
+                  node.current || node.type === 'boss'
+                    ? chapterVisual.glow
+                    : undefined
+                }
                 faction="human"
                 state={node.completed ? 'ready' : node.current ? 'selected' : 'locked'}
                 style={styles.nodeCard}
@@ -1058,11 +1224,16 @@ export function CampaignScreen({
                 <View
                   style={[
                     styles.nodeVisual,
+                    node.type === 'boss'
+                      ? styles.nodeVisualBoss
+                      : node.type === 'elite'
+                        ? styles.nodeVisualElite
+                        : undefined,
                     {
                       borderColor: node.completed
                         ? theme.colors.primary
-                        : node.current
-                          ? theme.colors.human
+                        : node.current || node.type === 'boss'
+                          ? chapterVisual.glow
                           : theme.colors.border,
                       opacity: node.completed || node.current ? 1 : 0.48
                     }
@@ -1111,8 +1282,8 @@ export function CampaignScreen({
                         backgroundColor: theme.dark
                           ? '#05070BCC'
                           : '#FFFFFFD9',
-                        borderColor: node.current
-                          ? theme.colors.human
+                        borderColor: node.current || node.type === 'boss'
+                          ? chapterVisual.glow
                           : theme.colors.border
                       }
                     ]}
@@ -1638,6 +1809,73 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6
   },
+  chapterIdentity: {
+    position: 'relative',
+    overflow: 'hidden',
+    gap: 8
+  },
+  chapterIdentityRail: {
+    position: 'absolute',
+    left: 0,
+    top: 9,
+    bottom: 9,
+    width: 3,
+    borderRadius: 2
+  },
+  chapterIdentityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9
+  },
+  chapterCrestFrame: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0
+  },
+  chapterIdentityCopy: {
+    flex: 1,
+    minWidth: 0
+  },
+  chapterIdentityEyebrow: {
+    fontSize: 8.5,
+    lineHeight: 11,
+    letterSpacing: 0.9,
+    fontWeight: '900'
+  },
+  chapterDirective: {
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: '800',
+    marginTop: 3
+  },
+  chapterIntelRow: {
+    flexDirection: 'row',
+    gap: 5
+  },
+  chapterIntel: {
+    flex: 1,
+    minWidth: 0,
+    borderWidth: 1,
+    borderRadius: 9,
+    paddingHorizontal: 7,
+    paddingVertical: 6
+  },
+  chapterIntelLabel: {
+    fontSize: 6.5,
+    lineHeight: 8,
+    letterSpacing: 0.55,
+    fontWeight: '900'
+  },
+  chapterIntelValue: {
+    fontSize: 9.5,
+    lineHeight: 12,
+    fontWeight: '900',
+    marginTop: 2
+  },
   map: { height: 304, borderRadius: 18, borderWidth: 1, overflow: 'hidden', position: 'relative' },
   humanTerritory: {
     position: 'absolute', left: '-10%', top: '12%', width: '62%', height: '88%',
@@ -1662,6 +1900,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flexShrink: 0,
     position: 'relative'
+  },
+  nodeVisualElite: {
+    width: 92,
+    height: 58,
+    borderWidth: 1.5
+  },
+  nodeVisualBoss: {
+    width: 104,
+    height: 62,
+    borderWidth: 2
   },
   nodeArt: {
     width: '100%',
