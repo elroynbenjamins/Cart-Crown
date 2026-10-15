@@ -18,6 +18,7 @@ import {
 } from '../ui/components';
 import { CampaignNodeSprite, FactionCrest, LockIcon } from '../ui/gameArt';
 import { CampaignJourneyMap } from '../ui/CampaignJourneyMap';
+import { humanCampaignArtworkForNode } from '../ui/humanCampaignMissionArt';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import { ActivityCard } from '../ui/ActivityCard';
@@ -28,15 +29,6 @@ import {
 import type { TutorialFocusTarget } from '../game/tutorial';
 
 type CampaignView = 'story' | 'activities' | 'factions';
-
-const campaignMissionArt = {
-  frontier: require('../../assets/campaign/missions/mission_01_frontier_watch.png'),
-  crossing: require('../../assets/campaign/missions/mission_02_hold_the_crossing.png'),
-  construction: require('../../assets/campaign/missions/mission_03_build_the_outpost.png'),
-  wagon: require('../../assets/campaign/missions/mission_04_guard_the_wagon.png'),
-  defense: require('../../assets/campaign/missions/mission_05_defend_the_village.png'),
-  ambush: require('../../assets/campaign/missions/mission_06_ambush_in_the_pines.png')
-} as const;
 
 const humanChapterVisuals: Record<number, {
   tint: string;
@@ -114,76 +106,6 @@ const humanChapterVisuals: Record<number, {
 
 function humanChapterVisual(chapter: number) {
   return humanChapterVisuals[chapter] ?? humanChapterVisuals[1]!;
-}
-
-function campaignMissionArtFor(node: ChapterNode) {
-  // Chapter 1 is deliberately authored by objective so its onboarding route
-  // reads like a visual story instead of repeating one image per node type.
-  const chapterOneArt: Partial<Record<string, number>> = {
-    node_1: campaignMissionArt.frontier,
-    node_2: campaignMissionArt.crossing,
-    node_3: campaignMissionArt.construction,
-    node_4: campaignMissionArt.frontier,
-    node_5: campaignMissionArt.ambush,
-    node_6: campaignMissionArt.wagon,
-    node_7: campaignMissionArt.defense
-  };
-  const exact = chapterOneArt[node.id];
-  if (exact) return exact;
-
-  const name = node.name.toLowerCase();
-  if (
-    name.includes('crossing') ||
-    name.includes('gate') ||
-    name.includes('hold the line') ||
-    name.includes('iron line') ||
-    name.includes('breach')
-  ) {
-    return campaignMissionArt.crossing;
-  }
-  if (
-    name.includes('rebuild') ||
-    name.includes('raise') ||
-    name.includes('outpost') ||
-    name.includes('tower') ||
-    name.includes('forge') ||
-    name.includes('barracks') ||
-    name.includes('fortif') ||
-    name.includes('muster')
-  ) {
-    return campaignMissionArt.construction;
-  }
-  if (
-    name.includes('wagon') ||
-    name.includes('supply') ||
-    name.includes('road') ||
-    name.includes('march') ||
-    name.includes('crownroad')
-  ) {
-    return campaignMissionArt.wagon;
-  }
-  if (
-    name.includes('ambush') ||
-    name.includes('hunter') ||
-    name.includes('wolves') ||
-    name.includes('rear') ||
-    name.includes('flank')
-  ) {
-    return campaignMissionArt.ambush;
-  }
-  if (
-    node.type === 'boss' ||
-    name.includes('defend') ||
-    name.includes('siege') ||
-    name.includes('hold')
-  ) {
-    return campaignMissionArt.defense;
-  }
-  if (node.type === 'elite') return campaignMissionArt.ambush;
-  if (node.type === 'supply') return campaignMissionArt.wagon;
-  if (node.type === 'event') return campaignMissionArt.construction;
-  if (node.type === 'battle') return campaignMissionArt.crossing;
-  return campaignMissionArt.frontier;
 }
 
 export function CampaignScreen({
@@ -1247,7 +1169,7 @@ export function CampaignScreen({
                   ]}
                 >
                   <Image
-                    source={campaignMissionArtFor(node)}
+                    source={humanCampaignArtworkForNode(chapterNumber, node.id).source}
                     resizeMode="cover"
                     fadeDuration={0}
                     style={styles.nodeArt}
