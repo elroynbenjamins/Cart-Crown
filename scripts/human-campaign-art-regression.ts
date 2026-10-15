@@ -118,4 +118,27 @@ assert.equal(greywatchScenesUsed.size, 5, 'All five Greywatch images must appear
 assert.equal(humanCampaignSceneForMission(4, 11)?.id, 'greywatch_siege_boss',
   'Siege of Greywatch must use its own illustration');
 
+
+const crownroadIds = [
+  'crownroad_long_front', 'crownroad_six_banners', 'crownroad_sky_threat',
+  'crownroad_layered_war', 'crownroad_battle_boss'
+];
+const crownroadUsed = new Set<string>();
+for (const id of crownroadIds) {
+  const assetPath = path.join(process.cwd(), 'assets/campaign/missions/' + id + '.png');
+  assert.ok(fs.existsSync(assetPath), 'Missing Crownroad image: ' + assetPath);
+  assert.ok(artRegistry.includes(id + ": require('../../assets/campaign/missions/" + id + ".png')"),
+    'Crownroad art must be statically registered: ' + id);
+}
+for (let order = 1; order <= 11; order++) {
+  const scene = humanCampaignSceneForMission(5, order);
+  assert.ok(scene && crownroadIds.includes(scene.id), 'Chapter 5 mission lacks regional art: ' + order);
+  assert.equal(humanCampaignSceneForNode(5, 'ch5_node_' + order)?.id, scene.id,
+    'Chapter 5 mission node / art resolution mismatch: ' + order);
+  crownroadUsed.add(scene.id);
+}
+assert.equal(crownroadUsed.size, 5, 'All Crownroad scenes must appear in the chapter');
+assert.equal(humanCampaignSceneForMission(5, 11)?.id, 'crownroad_battle_boss',
+  'Battle for the Crownroad must have unique boss illustration');
+
 console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');

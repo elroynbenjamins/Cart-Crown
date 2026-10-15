@@ -395,7 +395,13 @@ const campaignMissionScenes = [
   'assets/campaign/missions/greywatch_war_camp.png',
   'assets/campaign/missions/greywatch_broken_ground.png',
   'assets/campaign/missions/greywatch_breach.png',
-  'assets/campaign/missions/greywatch_siege_boss.png'
+  'assets/campaign/missions/greywatch_siege_boss.png',
+  // Human Chapter 5 / Crownroad: major combined-arms and aerial campaign encounters.
+  'assets/campaign/missions/crownroad_long_front.png',
+  'assets/campaign/missions/crownroad_six_banners.png',
+  'assets/campaign/missions/crownroad_sky_threat.png',
+  'assets/campaign/missions/crownroad_layered_war.png',
+  'assets/campaign/missions/crownroad_battle_boss.png'
 ];
 for (const relativePath of campaignMissionScenes) {
   const full = path.join(root, relativePath);

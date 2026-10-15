@@ -37,7 +37,13 @@ const packagedOriginals: Record<string, ImageSourcePropType> = {
   greywatch_war_camp: require('../../assets/campaign/missions/greywatch_war_camp.png'),
   greywatch_broken_ground: require('../../assets/campaign/missions/greywatch_broken_ground.png'),
   greywatch_breach: require('../../assets/campaign/missions/greywatch_breach.png'),
-  greywatch_siege_boss: require('../../assets/campaign/missions/greywatch_siege_boss.png')
+  greywatch_siege_boss: require('../../assets/campaign/missions/greywatch_siege_boss.png'),
+  // Crownroad: six-banner army, sky threats, combined arms and final causeway battle.
+  crownroad_long_front: require('../../assets/campaign/missions/crownroad_long_front.png'),
+  crownroad_six_banners: require('../../assets/campaign/missions/crownroad_six_banners.png'),
+  crownroad_sky_threat: require('../../assets/campaign/missions/crownroad_sky_threat.png'),
+  crownroad_layered_war: require('../../assets/campaign/missions/crownroad_layered_war.png'),
+  crownroad_battle_boss: require('../../assets/campaign/missions/crownroad_battle_boss.png')
 };
 
 const fallbacks: Record<HumanCampaignFallbackArt, ImageSourcePropType> = {
