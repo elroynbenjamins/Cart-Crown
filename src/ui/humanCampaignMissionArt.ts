@@ -43,7 +43,13 @@ const packagedOriginals: Record<string, ImageSourcePropType> = {
   crownroad_six_banners: require('../../assets/campaign/missions/crownroad_six_banners.png'),
   crownroad_sky_threat: require('../../assets/campaign/missions/crownroad_sky_threat.png'),
   crownroad_layered_war: require('../../assets/campaign/missions/crownroad_layered_war.png'),
-  crownroad_battle_boss: require('../../assets/campaign/missions/crownroad_battle_boss.png')
+  crownroad_battle_boss: require('../../assets/campaign/missions/crownroad_battle_boss.png'),
+  // Glass Keep: arcane fire, ward ruins, arcanist camp, silent ground and siege finale.
+  glass_keep_strange_fire: require('../../assets/campaign/missions/glass_keep_strange_fire.png'),
+  glass_keep_wardfield: require('../../assets/campaign/missions/glass_keep_wardfield.png'),
+  glass_keep_arcanists: require('../../assets/campaign/missions/glass_keep_arcanists.png'),
+  glass_keep_silent_ground: require('../../assets/campaign/missions/glass_keep_silent_ground.png'),
+  glass_keep_siege_boss: require('../../assets/campaign/missions/glass_keep_siege_boss.png')
 };
 
 const fallbacks: Record<HumanCampaignFallbackArt, ImageSourcePropType> = {
