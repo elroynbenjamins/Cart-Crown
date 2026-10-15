@@ -358,8 +358,8 @@ assert(
   'The Human campaign journey map must expose all eight route regions'
 );
 assert(
-  journeyMapSource.includes('routeProgress') &&
-    journeyMapSource.includes("width: (routeProgress * 100) + '%'"),
+  journeyMapSource.includes('routeProgressWidth') &&
+    journeyMapSource.includes('width: routeProgressWidth'),
   'The Human campaign journey map must visualize route progress'
 );
 
