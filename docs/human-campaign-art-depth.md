@@ -1,6 +1,6 @@
 # Human campaign artwork depth — production pass 1
 
-**Status: Chapters 1–6 have bundled mission illustrations, including the Glass Keep five-scene pass.** The generated Frostmarch source boards are only staging art, not in-game UI. Their picture areas were cropped into five clean 724×362 PNGs, with original caption bars excluded and no Frostwyrm, Frost Lord or unrelated boss introduced.
+**Status: All seven Human chapters now have bundled mission illustrations, including five regional Blackstone scenes and its unique finale.** The generated Frostmarch source boards are only staging art, not in-game UI. Their picture areas were cropped into five clean 724×362 PNGs, with original caption bars excluded and no Frostwyrm, Frost Lord or unrelated boss introduced.
 
 ## Existing state and integration
 
@@ -11,7 +11,7 @@
 - Chapter 2 / Iron Hills has five shipped 724×362 PNGs registered with literal `require` paths.
 - Chapter 3 / Frostmarch now has five 724×362 RGB PNGs (`frostmarch_pass`, `frostmarch_cavalry`, `frostmarch_forge`, `frostmarch_layered_host`, `frostmarch_frostgate_boss`), statically registered for all 11 missions. The final boss shows Frostgate fortress and defensive troops; the canon battle remains the Marshal / Layered Host encounter.
 - Chapter 4 / Greywatch has five 724×362 RGB PNGs (`greywatch_marches`, `greywatch_war_camp`, `greywatch_broken_ground`, `greywatch_breach`, `greywatch_siege_boss`), registered for all 11 missions; the Siege of Greywatch finale remains the existing Pretender General encounter.
-- Chapter 7 / Blackstone still displays temporary Chapter 1 fallback illustrations until its own five scenes are produced.
+- Chapter 7 / Blackstone has five bundled 724×362 RGB PNGs (`blackstone_stone_road`, `blackstone_siege_lines`, `blackstone_tower_war`, `blackstone_breached_city`, `blackstone_final_boss`), registered across all 11 missions. The final battle stays the existing Fall of Blackstone encounter; generated UI text and invented enemy names were removed from the cropped art.
 
 - Chapter 5 / Crownroad now has five bundled 724×362 RGB PNGs, statically wired to the existing 11 missions including their unique battle finale. Artwork is cropped from the AI-generated Crownroad scene board; story titles, captions and UI framing are excluded. No new boss lore has been introduced.
 
@@ -39,3 +39,9 @@ Per-mission art directions, scene IDs, and scene assignments are part of the typ
 ## What this pass does not do
 
 Chapters 1–6 have their chapter mission-card illustration sets bundled; only Chapter 7 / Blackstone remains to be illustrated. Combat, saves, rewards, chapter unlocks and squad progression are unchanged. Generated board source files, art previews and transfer archives are not bundled into the app. Android screenshot review is still required before claiming device-level validation.
+
+## Human artwork pass completed
+
+All 70 Human mission slots resolve to chapter-appropriate packaged illustration art. This provides 36 illustration compositions in total: six existing Chapter 1 artworks and five each for Chapters 2–7. The seven finale slots use their own chapter-specific artwork. All scenes are static Metro `require` registrations, not remote images; production PNG integrity is enforced by `npm run art:check` and per-chapter mapping by `npm run campaign-art:check`.
+
+The work remains **mission-list/detail artwork only**, not a new battlefield backdrop or settlement visual pass. Rendering, game state, economy, rewards, save keys, story names, tutorial order and mission progression have not been changed.
