@@ -69,6 +69,8 @@ export function CampaignJourneyMap({
     });
     return furthestIndex / (markerPoints.length - 1);
   }, [markerPoints]);
+  const routeProgressWidth =
+    (Math.max(0, Math.min(1, routeProgress)) * 100 + '%') as `${number}%`;
 
   return (
     <View
@@ -106,7 +108,7 @@ export function CampaignJourneyMap({
               styles.routeProgress,
               {
                 backgroundColor: accent,
-                width: (routeProgress * 100) + '%'
+                width: routeProgressWidth
               }
             ]}
           />
