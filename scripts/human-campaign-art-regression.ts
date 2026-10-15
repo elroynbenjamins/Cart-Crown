@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { campaignMissionRoadmap, campaignMissionCountsByChapter } from '../src/game/campaignMissionRoadmap';
 import {
   humanCampaignMissionCounts,
@@ -57,8 +59,6 @@ assert.equal(humanCampaignSceneForMission(5, 12), null, 'Do not invent extra mis
 
 /** The Chapter 2 paintings must be real statically bundled images, not a
  * fallback-only scene plan. The art-regression script separately checks PNGs. */
-const fs = require('node:fs') as typeof import('node:fs');
-const path = require('node:path') as typeof import('node:path');
 const artRegistry = fs.readFileSync(path.join(process.cwd(), 'src/ui/humanCampaignMissionArt.ts'), 'utf8');
 for (const id of [
   'iron_hills_muster', 'iron_hills_smithy', 'iron_hills_road',
