@@ -10,66 +10,12 @@ import {
   EventRewardPanel
 } from '../ui/CampaignEventUI';
 import { GameCard } from '../ui/components';
+import { humanCampaignArtworkForMission } from '../ui/humanCampaignMissionArt';
 import { SemanticChip } from '../ui/SemanticUI';
 import {
   CampaignNodeSprite,
   FactionCrest
 } from '../ui/gameArt';
-
-const missionArt = {
-  frontier: require('../../assets/campaign/missions/mission_01_frontier_watch.png'),
-  crossing: require('../../assets/campaign/missions/mission_02_hold_the_crossing.png'),
-  construction: require('../../assets/campaign/missions/mission_03_build_the_outpost.png'),
-  wagon: require('../../assets/campaign/missions/mission_04_guard_the_wagon.png'),
-  defense: require('../../assets/campaign/missions/mission_05_defend_the_village.png'),
-  ambush: require('../../assets/campaign/missions/mission_06_ambush_in_the_pines.png')
-} as const;
-
-function artForMission(name: string, type: string) {
-  const key = name.toLowerCase();
-  if (
-    type === 'upgrade' ||
-    key.includes('banner') ||
-    key.includes('siegecraft') ||
-    key.includes('arcanist')
-  ) {
-    return missionArt.construction;
-  }
-  if (
-    type === 'choice' ||
-    type === 'event' ||
-    key.includes('muster') ||
-    key.includes('hand')
-  ) {
-    return missionArt.frontier;
-  }
-  if (
-    key.includes('road') ||
-    key.includes('operation') ||
-    key.includes('city')
-  ) {
-    return missionArt.wagon;
-  }
-  if (
-    key.includes('wing') ||
-    key.includes('above') ||
-    key.includes('fire') ||
-    key.includes('silent')
-  ) {
-    return missionArt.ambush;
-  }
-  if (
-    type === 'defense' ||
-    type === 'siege' ||
-    type === 'boss' ||
-    key.includes('gate') ||
-    key.includes('wall') ||
-    key.includes('hold')
-  ) {
-    return missionArt.defense;
-  }
-  return missionArt.crossing;
-}
 
 export function HumanMissionScreen({
   nodeId,
@@ -162,10 +108,7 @@ export function HumanMissionScreen({
           ]}
         >
           <Image
-            source={artForMission(
-              mission.name,
-              mission.type
-            )}
+            source={humanCampaignArtworkForMission(mission.chapter, mission.order).source}
             resizeMode="cover"
             fadeDuration={0}
             style={styles.art}
