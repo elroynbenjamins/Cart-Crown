@@ -1,6 +1,6 @@
 # Human campaign artwork depth — production pass 1
 
-**Status: Chapter 2 five-image integration complete on the feature branch; CI and Android validation pending.** The two pitch-board outputs from the exploratory art generation do not meet the pixel-art or seven-chapter lore requirements; they were not installed in the game.
+**Status: Chapters 1–3 have bundled mission illustrations; Chapter 3 is in integration/validation.** The generated Frostmarch source boards are only staging art, not in-game UI. Their picture areas were cropped into five clean 724×362 PNGs, with original caption bars excluded and no Frostwyrm, Frost Lord or unrelated boss introduced.
 
 ## Existing state and integration
 
@@ -8,7 +8,9 @@
 - Human art direction: 36 named scene compositions (six Chapter 1, five per later chapter), with one unique boss composition planned per chapter.
 - Every mission has a stable chapter/order scene mapping in src/game/humanCampaignArtDirection.ts.
 - Both campaign cards and the late-mission detail screen now resolve images using src/ui/humanCampaignMissionArt.ts.
-- Chapter 2 / Iron Hills uses five distinct, reviewed 724×362 PNGs once the matching binary files are on the branch. All five PNG files are committed with literal `require` paths, ready for Metro to bundle after CI validation. Chapters 3–7 continue using temporary fallbacks.
+- Chapter 2 / Iron Hills has five shipped 724×362 PNGs registered with literal `require` paths.
+- Chapter 3 / Frostmarch now has five 724×362 RGB PNGs (`frostmarch_pass`, `frostmarch_cavalry`, `frostmarch_forge`, `frostmarch_layered_host`, `frostmarch_frostgate_boss`), statically registered for all 11 missions. The final boss shows Frostgate fortress and defensive troops; the canon battle remains the Marshal / Layered Host encounter.
+- Chapters 4–7 still display temporary Chapter 1 fallbacks until their own illustrations are produced.
 
 ## Art approval bar
 
@@ -31,4 +33,4 @@ Per-mission art directions, scene IDs, and scene assignments are part of the typ
 
 ## What this pass does not do
 
-Chapter 2 art integration now includes five reviewed paintings at `assets/campaign/missions/iron_hills_*.png`. Their Git hashes match the original 724×362 RGB files. Chapters 3–7 are still pending. Combat, saves, rewards and progression are unchanged. Combat, saves, rewards and progression are unchanged.
+Chapter 2 and Chapter 3 are now art-complete for the campaign mission cards; Chapters 4–7 remain to be illustrated. Combat, saves, rewards, chapter unlocks and squad progression are unchanged. Generated board source files, art previews and transfer archives are not bundled into the app. Android screenshot review is still required before claiming device-level validation.
