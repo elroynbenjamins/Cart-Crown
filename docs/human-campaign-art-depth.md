@@ -1,6 +1,6 @@
 # Human campaign artwork depth — production pass 1
 
-**Status: Chapter 2 five-image integration staged; binary PNG assets must be uploaded to this branch before merge.** The two pitch-board outputs from the exploratory art generation do not meet the pixel-art or seven-chapter lore requirements; they were not installed in the game.
+**Status: Chapter 2 five-image integration complete on the feature branch; CI and Android validation pending.** The two pitch-board outputs from the exploratory art generation do not meet the pixel-art or seven-chapter lore requirements; they were not installed in the game.
 
 ## Existing state and integration
 
@@ -8,7 +8,7 @@
 - Human art direction: 36 named scene compositions (six Chapter 1, five per later chapter), with one unique boss composition planned per chapter.
 - Every mission has a stable chapter/order scene mapping in src/game/humanCampaignArtDirection.ts.
 - Both campaign cards and the late-mission detail screen now resolve images using src/ui/humanCampaignMissionArt.ts.
-- Chapter 2 / Iron Hills uses five distinct, reviewed 724×362 PNGs once the matching binary files are on the branch. Before those PNGs arrive, do not merge: Metro will not resolve their literal `require` references. Chapters 3–7 continue using temporary fallbacks.
+- Chapter 2 / Iron Hills uses five distinct, reviewed 724×362 PNGs once the matching binary files are on the branch. All five PNG files are committed with literal `require` paths, ready for Metro to bundle after CI validation. Chapters 3–7 continue using temporary fallbacks.
 
 ## Art approval bar
 
@@ -31,4 +31,4 @@ Per-mission art directions, scene IDs, and scene assignments are part of the typ
 
 ## What this pass does not do
 
-Chapter 2 art integration references five approved paintings. Their PNGs are packaged for import at `assets/campaign/missions/iron_hills_*.png`. This branch is not ready for merge until the PNGs have been committed. Chapters 3–7 are still pending. Combat, saves, rewards and progression are unchanged.
+Chapter 2 art integration now includes five reviewed paintings at `assets/campaign/missions/iron_hills_*.png`. Their Git hashes match the original 724×362 RGB files. Chapters 3–7 are still pending. Combat, saves, rewards and progression are unchanged. Combat, saves, rewards and progression are unchanged.
