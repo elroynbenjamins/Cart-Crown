@@ -383,7 +383,13 @@ const campaignMissionScenes = [
   'assets/campaign/missions/iron_hills_smithy.png',
   'assets/campaign/missions/iron_hills_road.png',
   'assets/campaign/missions/iron_hills_iron_line.png',
-  'assets/campaign/missions/iron_hills_provost_boss.png'
+  'assets/campaign/missions/iron_hills_provost_boss.png',
+  // Human Chapter 3 / Frostmarch, including unique Frostgate finale.
+  'assets/campaign/missions/frostmarch_pass.png',
+  'assets/campaign/missions/frostmarch_cavalry.png',
+  'assets/campaign/missions/frostmarch_forge.png',
+  'assets/campaign/missions/frostmarch_layered_host.png',
+  'assets/campaign/missions/frostmarch_frostgate_boss.png'
 ];
 for (const relativePath of campaignMissionScenes) {
   const full = path.join(root, relativePath);
