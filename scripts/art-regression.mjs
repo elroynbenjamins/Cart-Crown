@@ -377,7 +377,13 @@ const campaignMissionScenes = [
   'assets/campaign/missions/mission_03_build_the_outpost.png',
   'assets/campaign/missions/mission_04_guard_the_wagon.png',
   'assets/campaign/missions/mission_05_defend_the_village.png',
-  'assets/campaign/missions/mission_06_ambush_in_the_pines.png'
+  'assets/campaign/missions/mission_06_ambush_in_the_pines.png',
+  // Approved Human Chapter 2 / Iron Hills production illustrations.
+  'assets/campaign/missions/iron_hills_muster.png',
+  'assets/campaign/missions/iron_hills_smithy.png',
+  'assets/campaign/missions/iron_hills_road.png',
+  'assets/campaign/missions/iron_hills_iron_line.png',
+  'assets/campaign/missions/iron_hills_provost_boss.png'
 ];
 for (const relativePath of campaignMissionScenes) {
   const full = path.join(root, relativePath);

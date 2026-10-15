@@ -1,6 +1,6 @@
 # Human campaign artwork depth — production pass 1
 
-**Status: wiring complete, new binary illustrations pending.** The two pitch-board outputs from the exploratory art generation do not meet the pixel-art or seven-chapter lore requirements; they were not installed in the game.
+**Status: Chapter 2 five-image integration complete on the feature branch; CI and Android validation pending.** The two pitch-board outputs from the exploratory art generation do not meet the pixel-art or seven-chapter lore requirements; they were not installed in the game.
 
 ## Existing state and integration
 
@@ -8,7 +8,7 @@
 - Human art direction: 36 named scene compositions (six Chapter 1, five per later chapter), with one unique boss composition planned per chapter.
 - Every mission has a stable chapter/order scene mapping in src/game/humanCampaignArtDirection.ts.
 - Both campaign cards and the late-mission detail screen now resolve images using src/ui/humanCampaignMissionArt.ts.
-- Chapters 2–7 still display an older packaged painting as a *fallback* until their approved new image is installed. A named slot is not an actual new image.
+- Chapter 2 / Iron Hills uses five distinct, reviewed 724×362 PNGs once the matching binary files are on the branch. All five PNG files are committed with literal `require` paths, ready for Metro to bundle after CI validation. Chapters 3–7 continue using temporary fallbacks.
 
 ## Art approval bar
 
@@ -31,4 +31,4 @@ Per-mission art directions, scene IDs, and scene assignments are part of the typ
 
 ## What this pass does not do
 
-It does not introduce new painted Chapter 2–7 assets, change combat gameplay, promise unique boss PNGs already exist, or modify saves. The regression checks data coverage, not visual quality. Future art batches must replace fallback paintings one by one after review.
+Chapter 2 art integration now includes five reviewed paintings at `assets/campaign/missions/iron_hills_*.png`. Their Git hashes match the original 724×362 RGB files. Chapters 3–7 are still pending. Combat, saves, rewards and progression are unchanged. Combat, saves, rewards and progression are unchanged.

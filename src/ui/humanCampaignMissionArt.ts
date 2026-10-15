@@ -19,7 +19,13 @@ const packagedOriginals: Record<string, ImageSourcePropType> = {
   greenkeep_barracks: require('../../assets/campaign/missions/mission_03_build_the_outpost.png'),
   greenkeep_ambush: require('../../assets/campaign/missions/mission_06_ambush_in_the_pines.png'),
   greenkeep_road: require('../../assets/campaign/missions/mission_04_guard_the_wagon.png'),
-  greenkeep_outpost_boss: require('../../assets/campaign/missions/mission_05_defend_the_village.png')
+  greenkeep_outpost_boss: require('../../assets/campaign/missions/mission_05_defend_the_village.png'),
+  // Five approved, full-resolution Iron Hills mission paintings (Human Chapter 2).
+  iron_hills_muster: require('../../assets/campaign/missions/iron_hills_muster.png'),
+  iron_hills_smithy: require('../../assets/campaign/missions/iron_hills_smithy.png'),
+  iron_hills_road: require('../../assets/campaign/missions/iron_hills_road.png'),
+  iron_hills_iron_line: require('../../assets/campaign/missions/iron_hills_iron_line.png'),
+  iron_hills_provost_boss: require('../../assets/campaign/missions/iron_hills_provost_boss.png')
 };
 
 const fallbacks: Record<HumanCampaignFallbackArt, ImageSourcePropType> = {
