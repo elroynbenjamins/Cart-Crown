@@ -4,7 +4,7 @@ import { rewardedAdPlacements } from '../ads/rewardedAds';
 import { factions, factionOrder } from '../game/factions';
 import { humanRegions } from '../game/data';
 import { useGame } from '../game/GameProvider';
-import type { CampaignId, ChapterNode, SideModeId } from '../game/types';
+import type { CampaignId, SideModeId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import {
   GameCard,
