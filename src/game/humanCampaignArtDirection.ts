@@ -23,10 +23,7 @@ export type HumanCampaignScene = {
 
 export type HumanCampaignSceneSet = {
   region: string;
-  scenes: readonly [
-    HumanCampaignScene, HumanCampaignScene, HumanCampaignScene,
-    HumanCampaignScene, HumanCampaignScene
-  ];
+  scenes: readonly HumanCampaignScene[];
   /** Explicit scene slot for every mission in the chapter (zero-based). */
   missionScenes: readonly number[];
 };
@@ -43,10 +40,11 @@ export const humanCampaignSceneSets: Record<HumanCampaignChapter, HumanCampaignS
       scene('greenkeep_banner', 'The Last Banner', 'Greenkeep frontier camp', 'Underequipped survivors, a blue lion banner and a remote wooden watchtower at first light.', 'frontier'),
       scene('greenkeep_crossing', 'Hold the Crossing', 'River bridge', 'Cold running water, defended wooden crossing, blue shields against encroaching raiders.', 'crossing'),
       scene('greenkeep_barracks', 'Barracks Rebuilt', 'Restored outpost', 'Carpenters, half-built palisade and practical training yard; one hopeful repaired banner.', 'construction'),
-      scene('greenkeep_road', 'Broken Road', 'Pine road and wagon track', 'A battered supply cart and watchful woods; limited visibility and raider silhouettes.', 'ambush'),
+      scene('greenkeep_ambush', 'Cut Off the Captain', 'Pine ambush', 'Raiders hidden in dense pine woodland, an enemy captain caught between two paths.', 'ambush'),
+      scene('greenkeep_road', 'Broken Road', 'Pine road and wagon track', 'A battered supply cart and watchful woods; limited visibility and raider silhouettes.', 'wagon'),
       scene('greenkeep_outpost_boss', 'Reclaim the Outpost', 'Raider-held gate', 'Unique finale artwork: charred timber gate, disciplined enemy rear line and captain silhouette.', 'defense', true)
     ],
-    missionScenes: [0, 1, 2, 0, 3, 3, 4]
+    missionScenes: [0, 1, 2, 0, 3, 4, 5]
   },
   2: {
     region: 'Iron Hills',
