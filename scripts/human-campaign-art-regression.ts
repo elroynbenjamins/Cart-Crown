@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import assert from 'node:assert/strict';
 import { campaignMissionRoadmap, campaignMissionCountsByChapter } from '../src/game/campaignMissionRoadmap';
 import {
@@ -14,6 +16,31 @@ let missionCount = 0;
 let bossCount = 0;
 
 assert.equal(campaignMissionRoadmap.length, 70, 'Campaign must retain its agreed 70 missions');
+
+// Dedicated Chapter 2 image files should be locally bundled; otherwise Metro
+// fails to resolve the static image requires on a real Android release build.
+const ch2ArtRegistry = fs.readFileSync(
+  path.join(process.cwd(), 'src/ui/humanCampaignMissionArt.ts'), 'utf8'
+);
+const ch2Assets = [
+  'iron_hills_muster',
+  'iron_hills_smithy',
+  'iron_hills_road',
+  'iron_hills_iron_line',
+  'iron_hills_provost_boss'
+];
+for (const key of ch2Assets) {
+  const relative = 'assets/campaign/missions/' + key + '.jpg';
+  const bytes = fs.readFileSync(path.join(process.cwd(), relative));
+  assert.ok(bytes.length > 1500 && bytes.length < 30000,
+    'Iron Hills campaign-card artwork is missing or outside thumbnail budget: ' + key);
+  assert.equal(bytes.readUInt16BE(0), 0xffd8, 'Iron Hills asset must start with JPEG marker: ' + key);
+  assert.equal(bytes.readUInt16BE(bytes.length - 2), 0xffd9, 'Iron Hills asset is incomplete: ' + key);
+  assert.ok(ch2ArtRegistry.includes(key + ": require('../../" + relative + "')"),
+    'Iron Hills artwork is not registered in Metro: ' + key);
+}
+assert.deepEqual(humanCampaignSceneSets[2].scenes.map(s => s.id), ch2Assets,
+  'Every Chapter 2 mission composition must resolve to the packaged image');
 
 for (const chapter of chapters) {
   const set = humanCampaignSceneSets[chapter];
@@ -54,4 +81,4 @@ assert.equal(humanCampaignSceneForNode(3, 'ch2_node_8'), null, 'Cross-chapter no
 assert.equal(humanCampaignSceneForNode(1, 'ch1_node_7'), null, 'Chapter 1 has a different runtime ID form');
 assert.equal(humanCampaignSceneForMission(5, 12), null, 'Do not invent extra missions');
 
-console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');
+console.log('Human campaign art registry: 70 assignments, 7 finale slots, and all five Chapter 2 paintings validated.');
