@@ -141,4 +141,27 @@ assert.equal(crownroadUsed.size, 5, 'All Crownroad scenes must appear in the cha
 assert.equal(humanCampaignSceneForMission(5, 11)?.id, 'crownroad_battle_boss',
   'Battle for the Crownroad must have unique boss illustration');
 
+
+const glassKeepIds = [
+  'glass_keep_strange_fire', 'glass_keep_wardfield', 'glass_keep_arcanists',
+  'glass_keep_silent_ground', 'glass_keep_siege_boss'
+];
+const glassKeepUsed = new Set<string>();
+for (const id of glassKeepIds) {
+  const assetPath = path.join(process.cwd(), 'assets/campaign/missions/' + id + '.png');
+  assert.ok(fs.existsSync(assetPath), 'Missing Glass Keep PNG: ' + assetPath);
+  assert.ok(artRegistry.includes(id + ": require('../../assets/campaign/missions/" + id + ".png')"),
+    'Glass Keep artwork must have a static Metro registration: ' + id);
+}
+for (let order = 1; order <= 11; order++) {
+  const scene = humanCampaignSceneForMission(6, order);
+  assert.ok(scene && glassKeepIds.includes(scene.id), 'Chapter 6 mission lacks regional artwork: ' + order);
+  assert.equal(humanCampaignSceneForNode(6, 'ch6_node_' + order)?.id, scene.id,
+    'Glass Keep mission card / detail view artwork mismatch: ' + order);
+  glassKeepUsed.add(scene.id);
+}
+assert.equal(glassKeepUsed.size, 5, 'Each of the five Glass Keep images must appear in Chapter 6');
+assert.equal(humanCampaignSceneForMission(6, 11)?.id, 'glass_keep_siege_boss',
+  'Siege of the Glass Keep must use its own Arcane General boss illustration');
+
 console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');
