@@ -25,7 +25,13 @@ const packagedOriginals: Record<string, ImageSourcePropType> = {
   iron_hills_smithy: require('../../assets/campaign/missions/iron_hills_smithy.png'),
   iron_hills_road: require('../../assets/campaign/missions/iron_hills_road.png'),
   iron_hills_iron_line: require('../../assets/campaign/missions/iron_hills_iron_line.png'),
-  iron_hills_provost_boss: require('../../assets/campaign/missions/iron_hills_provost_boss.png')
+  iron_hills_provost_boss: require('../../assets/campaign/missions/iron_hills_provost_boss.png'),
+  // Five original Frostmarch plates: winter approach, cavalry, steel, formation, finale.
+  frostmarch_pass: require('../../assets/campaign/missions/frostmarch_pass.png'),
+  frostmarch_cavalry: require('../../assets/campaign/missions/frostmarch_cavalry.png'),
+  frostmarch_forge: require('../../assets/campaign/missions/frostmarch_forge.png'),
+  frostmarch_layered_host: require('../../assets/campaign/missions/frostmarch_layered_host.png'),
+  frostmarch_frostgate_boss: require('../../assets/campaign/missions/frostmarch_frostgate_boss.png')
 };
 
 const fallbacks: Record<HumanCampaignFallbackArt, ImageSourcePropType> = {
