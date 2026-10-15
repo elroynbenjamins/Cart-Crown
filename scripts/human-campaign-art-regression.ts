@@ -164,4 +164,29 @@ assert.equal(glassKeepUsed.size, 5, 'Each of the five Glass Keep images must app
 assert.equal(humanCampaignSceneForMission(6, 11)?.id, 'glass_keep_siege_boss',
   'Siege of the Glass Keep must use its own Arcane General boss illustration');
 
+// Chapter 7 concludes the fixed Human campaign with five bundled Blackstone plates.
+// All eleven missions must use regional artwork, and the final boss must never
+// accidentally fall back to a generic fortress or another chapter's image.
+const blackstoneIds = [
+  'blackstone_stone_road', 'blackstone_siege_lines', 'blackstone_tower_war',
+  'blackstone_breached_city', 'blackstone_final_boss'
+];
+const blackstoneUsed = new Set<string>();
+for (const id of blackstoneIds) {
+  const assetPath = path.join(process.cwd(), 'assets/campaign/missions/' + id + '.png');
+  assert.ok(fs.existsSync(assetPath), 'Missing Blackstone PNG: ' + assetPath);
+  assert.ok(artRegistry.includes(id + ": require('../../assets/campaign/missions/" + id + ".png')"),
+    'Blackstone artwork must have static Metro registration: ' + id);
+}
+for (let order = 1; order <= 11; order++) {
+  const scene = humanCampaignSceneForMission(7, order);
+  assert.ok(scene && blackstoneIds.includes(scene.id), 'Chapter 7 mission lacks Blackstone art: ' + order);
+  assert.equal(humanCampaignSceneForNode(7, 'ch7_node_' + order)?.id, scene.id,
+    'Blackstone mission card / detail view scene mismatch: ' + order);
+  blackstoneUsed.add(scene.id);
+}
+assert.equal(blackstoneUsed.size, 5, 'Each of the five Blackstone images must appear in Chapter 7');
+assert.equal(humanCampaignSceneForMission(7, 11)?.id, 'blackstone_final_boss',
+  'Fall of Blackstone must have its own final boss art');
+
 console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');

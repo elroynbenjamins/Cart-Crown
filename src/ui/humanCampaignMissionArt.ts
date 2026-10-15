@@ -49,7 +49,13 @@ const packagedOriginals: Record<string, ImageSourcePropType> = {
   glass_keep_wardfield: require('../../assets/campaign/missions/glass_keep_wardfield.png'),
   glass_keep_arcanists: require('../../assets/campaign/missions/glass_keep_arcanists.png'),
   glass_keep_silent_ground: require('../../assets/campaign/missions/glass_keep_silent_ground.png'),
-  glass_keep_siege_boss: require('../../assets/campaign/missions/glass_keep_siege_boss.png')
+  glass_keep_siege_boss: require('../../assets/campaign/missions/glass_keep_siege_boss.png'),
+  // Blackstone: siege approach, war machines, defensive towers, breach and final battle.
+  blackstone_stone_road: require('../../assets/campaign/missions/blackstone_stone_road.png'),
+  blackstone_siege_lines: require('../../assets/campaign/missions/blackstone_siege_lines.png'),
+  blackstone_tower_war: require('../../assets/campaign/missions/blackstone_tower_war.png'),
+  blackstone_breached_city: require('../../assets/campaign/missions/blackstone_breached_city.png'),
+  blackstone_final_boss: require('../../assets/campaign/missions/blackstone_final_boss.png')
 };
 
 const fallbacks: Record<HumanCampaignFallbackArt, ImageSourcePropType> = {
