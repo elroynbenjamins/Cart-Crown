@@ -54,4 +54,23 @@ assert.equal(humanCampaignSceneForNode(3, 'ch2_node_8'), null, 'Cross-chapter no
 assert.equal(humanCampaignSceneForNode(1, 'ch1_node_7'), null, 'Chapter 1 has a different runtime ID form');
 assert.equal(humanCampaignSceneForMission(5, 12), null, 'Do not invent extra missions');
 
+
+/** The Chapter 2 paintings must be real statically bundled images, not a
+ * fallback-only scene plan. The art-regression script separately checks PNGs. */
+const fs = require('node:fs') as typeof import('node:fs');
+const path = require('node:path') as typeof import('node:path');
+const artRegistry = fs.readFileSync(path.join(process.cwd(), 'src/ui/humanCampaignMissionArt.ts'), 'utf8');
+for (const id of [
+  'iron_hills_muster', 'iron_hills_smithy', 'iron_hills_road',
+  'iron_hills_iron_line', 'iron_hills_provost_boss'
+]) {
+  const expected = id + ": require('../../assets/campaign/missions/" + id + ".png')";
+  assert.ok(artRegistry.includes(expected), 'Missing static Iron Hills asset registration: ' + id);
+}
+for (let order = 1; order <= 8; order++) {
+  const scene = humanCampaignSceneForMission(2, order);
+  assert.ok(scene, 'Missing Iron Hills scene for mission ' + order);
+  assert.ok(artRegistry.includes(scene.id + ": require("), 'Iron Hills mission must use its new painting: ' + order);
+}
+
 console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');
