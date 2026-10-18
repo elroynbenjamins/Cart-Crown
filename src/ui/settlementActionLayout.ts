@@ -29,7 +29,7 @@ export function settlementActionLayout(
  * 28%-wide plot boxes, not the position of the building sprite itself.
  * Moving these needs a matching revision of the 540×960 background plates.
  */
-export const humanSettlementPlatePlotPositions = {
+export const humanSettlementPlatePlotPositions: Record<string, { left: `${number}%`; top: `${number}%` }> = {
   plot_nw: { left: '8%', top: '18%' },
   plot_n: { left: '36%', top: '14%' },
   plot_ne: { left: '62%', top: '8%' },
@@ -39,4 +39,4 @@ export const humanSettlementPlatePlotPositions = {
   plot_sw: { left: '4%', top: '40%' },
   plot_s: { left: '36%', top: '45%' },
   plot_se: { left: '62%', top: '42%' }
-} as const;
+};
