@@ -101,6 +101,37 @@ def find_and_tap(label: str, scroll: bool = False) -> None:
     raise RuntimeError('Could not reach native control ' + label)
 
 
+def wait_for_saved_slot_control(max_scrolls: int = 6) -> ET.Element:
+    """Look for a real saved-slot Continue control, including below the fold.
+
+    A smaller viewport can show the Choose a Save heading but hide the slot
+    actions. Checking only its initial accessibility snapshot incorrectly
+    reports data loss. This helper does not tap a saved game or weaken checks:
+    if scrolling still cannot find Continue, the native scenario fails.
+    """
+    last_copy = ''
+    for attempt in range(max_scrolls + 1):
+        root, _ = hierarchy()
+        last_copy = visible_copy(root)
+        if any(
+            node.get('text', '').strip() == 'Continue'
+            or node.get('content-desc', '').strip() == 'Continue'
+            for node in root.iter('node')
+        ):
+            return root
+        if attempt < max_scrolls:
+            size = adb('shell', 'wm', 'size').splitlines()[-1]
+            match = re.search(r'(\d+)x(\d+)', size)
+            if not match:
+                raise RuntimeError('Cannot determine native viewport for saved-slot check: ' + size)
+            width, height = map(int, match.groups())
+            adb('shell', 'input', 'swipe', str(width // 2), str(int(height * .78)),
+                str(width // 2), str(int(height * .30)), '320')
+            time.sleep(.35)
+    raise RuntimeError('Saved-slot Continue control absent after scrolling the save-select screen. '
+                       + 'Visible: ' + last_copy[-1600:])
+
+
 def launch() -> None:
     component = adb('shell', 'cmd', 'package', 'resolve-activity', '--brief', PACKAGE).splitlines()[-1]
     if not component.startswith(PACKAGE + '/'):
@@ -242,8 +273,8 @@ def main() -> None:
                 report['passed'].append(name + ':results_theme_cycle_captured')
                 adb('shell', 'am', 'force-stop', PACKAGE)
                 launch()
-                root = wait_for_copy('Choose a Save')
-                assert 'Continue' in visible_copy(root), 'Save missing after process death'
+                wait_for_copy('Choose a Save')
+                root = wait_for_saved_slot_control()
                 capture(args.out, name + '-persisted-save')
                 report['passed'].append(name + ':save_survived_cold_restart')
             except Exception as error:
