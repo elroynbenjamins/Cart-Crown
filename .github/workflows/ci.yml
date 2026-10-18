@@ -159,5 +159,8 @@ jobs:
       - name: Generated Human artwork regression
         run: npx --no-install tsx scripts/human-art-regression.ts
 
+      - name: Human unit art readability audit
+        run: npm run human-art:audit
+
       - name: Illustrated battlefield regression
         run: npx --no-install tsx scripts/illustrated-battlefield-regression.ts

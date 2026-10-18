@@ -103,6 +103,26 @@ export function validateSpritePng(bytes) {
   return decoded;
 }
 
+/**
+ * Read-only visual QA for unit icon canvases of differing dimensions.
+ * This must NOT loosen validateSpritePng's 256×256 production contract:
+ * it is only for comparing source-image silhouettes during artwork audits.
+ */
+export function inspectTransparentUnitIconPng(bytes) {
+  requireValid(bytes.length >= 57 && bytes.subarray(0, 8).equals(SIGNATURE),
+    'Invalid unit icon PNG signature');
+  const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
+  requireValid(width >= 64 && width <= 1024 && height >= 64 && height <= 1024,
+    'Icon audit only accepts 64–1024 pixel images');
+  const decoded = decodePng(bytes, {
+    label: 'Unit icon audit', width, height, maxBytes: 2000000,
+    colorTypes: [4, 6], colorMessage: 'Unit icon must have a real 8-bit alpha channel'
+  });
+  requireValid(decoded.transparent > 0 && decoded.visible > 0,
+    'Icon must contain both visible pixels and transparent background');
+  return decoded;
+}
+
 /** Opaque scene images need an explicit reviewed size and file budget. */
 export function validateScenePng(bytes, contract) {
   requireValid(
