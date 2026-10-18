@@ -12,6 +12,9 @@
     "ios": {
       "bundleIdentifier": "com.cartandcrown.mobile",
       "supportsTablet": false
-    }
+    },
+    "plugins": [
+      "./plugins/withFrescoEarlyInit"
+    ]
   }
 }
