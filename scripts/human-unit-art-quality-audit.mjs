@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { validateSpritePng } from './png-integrity.mjs';
+import { inspectTransparentUnitIconPng } from './png-integrity.mjs';
 
 /**
  * Human unit icon QA triage. A silhouette/coverage flag is a reason to LOOK
@@ -19,12 +19,12 @@ const protectedIcons = new Set(['recruit', 'militia', 'spearman', 'ranger']);
 const table = [];
 for (const { id, filepath } of entries) {
   const bytes = fs.readFileSync(filepath);
-  const decoded = validateSpritePng(bytes);
+  const decoded = inspectTransparentUnitIconPng(bytes);
   const channels = decoded.colorType === 6 ? 4 : 2;
-  let minX = 256, minY = 256, maxX = -1, maxY = -1;
+  let minX = decoded.width, minY = decoded.height, maxX = -1, maxY = -1;
   let substantial = 0;
-  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
-    const a = decoded.pixels[(y * 256 + x) * channels + channels - 1];
+  for (let y = 0; y < decoded.height; y++) for (let x = 0; x < decoded.width; x++) {
+    const a = decoded.pixels[(y * decoded.width + x) * channels + channels - 1];
     if (a <= 32) continue;
     substantial++;
     minX = Math.min(minX, x); maxX = Math.max(maxX, x);
@@ -32,8 +32,8 @@ for (const { id, filepath } of entries) {
   }
   const width = Math.max(0, maxX - minX + 1);
   const height = Math.max(0, maxY - minY + 1);
-  const coverage = substantial / (256 * 256);
-  const tinySilhouette = width < 100 || height < 100 || coverage < 0.07;
+  const coverage = substantial / (decoded.width * decoded.height);
+  const tinySilhouette = width < decoded.width * 0.40 || height < decoded.height * 0.40 || coverage < 0.07;
   table.push({
     id, filepath, bytes: bytes.length, width, height,
     coverage: Number((coverage * 100).toFixed(1)),
