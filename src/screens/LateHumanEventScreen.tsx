@@ -8,6 +8,7 @@ import { GameCard } from '../ui/components';
 import { SemanticChip, SemanticText } from '../ui/SemanticUI';
 import { FactionCrest, ResourceSiteSprite, StoryCharacterPortrait, StoryScene, WagonStageSprite } from '../ui/gameArt';
 import { getHumanOathSealStatus, getLateHumanEvent, getLateHumanEventState } from '../ui/lateHumanEventPresentation';
+import { HumanStoryEventHero } from '../ui/HumanStoryEventHero';
 import type { LateHumanEventId } from '../ui/lateHumanEventPresentation';
 
 export function LateHumanEventScreen({ eventId, onComplete }: {
@@ -63,6 +64,7 @@ export function LateHumanEventScreen({ eventId, onComplete }: {
         />
       </View>
       <DecisionIntro eyebrow={'HUMAN · CHAPTER ' + event.chapter} title={event.title} body={event.body} accent={theme.colors.human} />
+      <HumanStoryEventHero beat={eventId} />
 
       {event.findings.length > 0 ? (
         <GameCard ornament={false}>

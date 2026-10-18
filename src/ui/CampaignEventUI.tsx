@@ -47,12 +47,12 @@ type StoryChoice = EventTacticalEffects & { id: string; name: string; descriptio
 
 /** One chapter decision, not a respec menu. Merely selecting a draft never calls the provider. */
 export function ChapterDecision<T extends StoryChoice>({
-  eyebrow, title, body, scope, options, recordedId, canChoose, onChoose, continueLabel, onContinue, illustration, portrait
+  eyebrow, title, body, scope, options, recordedId, canChoose, onChoose, continueLabel, onContinue, illustration, portrait, hero
 }: {
   eyebrow: string; title: string; body: string; scope: string;
   options: readonly T[]; recordedId: string | null; canChoose: boolean;
   onChoose: (id: T['id']) => boolean; continueLabel: string; onContinue: () => void;
-  illustration?: ReactNode; portrait?: ReactNode;
+  illustration?: ReactNode; portrait?: ReactNode; hero?: ReactNode;
 }) {
   const { theme } = useGameTheme();
   const [draftId, setDraftId] = useState<string | null>(recordedId ?? options[0]?.id ?? null);
@@ -94,6 +94,7 @@ export function ChapterDecision<T extends StoryChoice>({
       />
     }>
       <DecisionIntro eyebrow={eyebrow} title={title} body={body} accent={theme.colors.gold} />
+      {hero ?? null}
       <GameCard ornament={false}>
         <View style={styles.badges}>
           <SemanticChip label={recorded ? 'Decision recorded' : 'Chapter decision · preview'} tone={recorded ? 'positive' : 'blue'} />

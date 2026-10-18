@@ -92,6 +92,7 @@ function harness(file: string, exportName: string, game: Record<string, any>, pr
         Pressable: 'Pressable', ScrollView: 'ScrollView', Text: 'Text', View: 'View',
         StyleSheet: { create: (styles: any) => styles }, useWindowDimensions: () => dimensions
       };
+      if (request.endsWith('/HumanStoryEventHero')) return { HumanStoryEventHero: host('HumanStoryEventHero') };
       if (request.endsWith('/GameProvider')) return { useGame: () => game };
       if (request.endsWith('/ThemeProvider')) return { useGameTheme: () => ({ theme: appearance.theme }) };
       if (request.endsWith('/factions')) return { factions: {

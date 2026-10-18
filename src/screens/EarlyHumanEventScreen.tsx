@@ -9,6 +9,7 @@ import { SemanticChip } from '../ui/SemanticUI';
 import { semanticColor } from '../ui/semanticColors';
 import { BuildingSprite, EquipmentSprite, ResourceSiteSprite, StoryScene } from '../ui/gameArt';
 import { getEarlyHumanEventView } from '../ui/earlyHumanEventPresentation';
+import { HumanStoryEventHero } from '../ui/HumanStoryEventHero';
 import type { EarlyHumanEventId } from '../ui/earlyHumanEventPresentation';
 
 export function EarlyHumanEventScreen({ eventId, onExit, onOpenForge }: {
@@ -83,6 +84,7 @@ export function EarlyHumanEventScreen({ eventId, onExit, onOpenForge }: {
         <SemanticChip label={view.status} tone={view.tone} />
       </View>
       <DecisionIntro eyebrow={'HUMAN CAMPAIGN · CHAPTER ' + event.chapter} title={event.title} body={event.body} accent={semanticColor(theme, event.purpose.tone)} />
+      <HumanStoryEventHero beat={eventId} />
 
       {eventId === 'marked_raiders' ? (
         <GameCard ornament={false}>
