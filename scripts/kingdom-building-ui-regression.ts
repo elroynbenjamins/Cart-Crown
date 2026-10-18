@@ -87,6 +87,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
       if (request.endsWith('/settlementPresentation')) return settlementPresentation;
       if (request.endsWith('/researchPresentation')) return requirements;
       if (request.endsWith('/kingdomBuildingPresentation')) return presentation;
+      if (request.endsWith('/settlementActionLayout')) return load(resolve(dirname(absolute), request + '.ts'));
       if (request.endsWith('/SettlementUI')) return load(resolve(dirname(absolute), request + '.tsx'));
       if (request.endsWith('/KingdomBuildings')) return { KingdomBuildings: host('KingdomBuildings') };
       if (request.endsWith('/HumanKingdomScenePreview')) return { HumanKingdomScenePreview: host('HumanKingdomScenePreview') };
@@ -96,7 +97,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
         'ResourceAmountRow', 'ResourceChip', 'ScreenHero', 'SectionTitle', 'StatusPill'
       ].map(name => [name, host(name)]));
       if (request.endsWith('/gameArt')) return Object.fromEntries([
-        'BuildingSprite', 'ResourceSiteSprite', 'ResourceSprite', 'SettlementStageSprite'
+        'BuildingSprite', 'ResourceSiteSprite', 'ResourceSprite', 'SettlementStageSprite', 'SettlementTerrainBackdrop'
       ].map(name => [name, host(name)]));
       if (request.endsWith('/TutorialFocus')) return { TutorialFocus: host('TutorialFocus') };
       throw new Error('Unexpected UI dependency: ' + request);
@@ -338,9 +339,57 @@ function testScreenIntegration(faction: FactionId) {
   check(f.calls.at(-1) === 'recruit', 'Third-squad navigation must survive the presentation pass.');
 }
 
+
+function testHumanSceneArtworkAndAnchors() {
+  let opened = 0;
+  const props = {
+    stageId: 'camp',
+    buildings: kingdom.getBuildings('human'),
+    buildingLevels: { hall: 2, barracks: 1, wagonwright: 1 },
+    buildingPlacements: {
+      plot_center: 'hall', plot_w: 'barracks', plot_e: 'wagonwright',
+      plot_nw: null, plot_n: null, plot_ne: null, plot_sw: null, plot_s: null, plot_se: null
+    },
+    onOpenSettlement: () => { opened++; }
+  };
+  const saveBefore = JSON.stringify({ levels: props.buildingLevels, plots: props.buildingPlacements });
+  const h = harness('src/ui/HumanKingdomScenePreview.tsx', 'HumanKingdomScenePreview', {}, props);
+  let tree = h.render();
+  let backdrop = nodes(tree, 'SettlementTerrainBackdrop')[0];
+  check(backdrop?.props.stageId === 'camp' && backdrop?.props.faction === 'human',
+    'New-game kingdom scene must use the actual camp terrain art.');
+  check(nodes(tree, 'BuildingSprite').length === 3, 'Live hero must show the three placed starting buildings.');
+  const center = nodes(tree, 'View').find(node => node.props.testID === 'kingdom-hero-building-plot_center')!;
+  const west = nodes(tree, 'View').find(node => node.props.testID === 'kingdom-hero-building-plot_w')!;
+  check(Boolean(center && west), 'Kingdom hero must show the existing named plot anchors.');
+  const centerStyle = (center.props.style as any[]).reduce((acc: any, v: any) => ({ ...acc, ...v }), {});
+  const westStyle = (west.props.style as any[]).reduce((acc: any, v: any) => ({ ...acc, ...v }), {});
+  check(centerStyle.left === '36%' && centerStyle.top === '30%',
+    'Central landmark must align with the original portrait settlement plate.');
+  check(centerStyle.zIndex > westStyle.zIndex, 'Central landmark must maintain foreground depth.');
+  const hit = nodes(tree, 'Pressable').find(node => node.props.testID === 'kingdom-settlement-hero')!;
+  hit.props.onPress();
+  check(opened === 1, 'A press on the world hero should enter the existing settlement, not construct or upgrade.');
+  check(saveBefore === JSON.stringify({ levels: props.buildingLevels, plots: props.buildingPlacements }),
+    'Tapping the hero must not mutate persisted settlement placement or building levels.');
+
+  props.stageId = 'fort';
+  props.buildingPlacements.plot_w = null;
+  tree = h.render();
+  backdrop = nodes(tree, 'SettlementTerrainBackdrop')[0];
+  check(backdrop?.props.stageId === 'fort', 'Kingdom hero must refresh when the settlement tier advances.');
+  check(nodes(tree, 'BuildingSprite').length === 2,
+    'Moving/removing a building must be reflected in the hero without stale art.');
+  props.stageId = 'grand';
+  tree = h.render();
+  check(nodes(tree, 'Text').some(node => text(node).includes('Grand Campaign')),
+    'Grand Campaign should be visibly distinguished even when it shares a capital terrain plate.');
+}
+
 for (const faction of ['human', 'elf', 'orc'] as const) {
   testBuildingRows(faction);
   testScreenIntegration(faction);
 }
 testPresentationAndCosts();
+testHumanSceneArtworkAndAnchors();
 console.log('PASS: ' + checks + ' kingdom building UI interaction/model checks. Native visual QA remains separate.');
