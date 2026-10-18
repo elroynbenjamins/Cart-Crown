@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { humanChapterTransition } from '../src/ui/humanChapterTransition';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { campaignMissionRoadmap, campaignMissionCountsByChapter } from '../src/game/campaignMissionRoadmap';
@@ -188,5 +189,34 @@ for (let order = 1; order <= 11; order++) {
 assert.equal(blackstoneUsed.size, 5, 'Each of the five Blackstone images must appear in Chapter 7');
 assert.equal(humanCampaignSceneForMission(7, 11)?.id, 'blackstone_final_boss',
   'Fall of Blackstone must have its own final boss art');
+
+
+// Present chapter handoffs only at the new front; preserve battle reward flow.
+assert.equal(humanChapterTransition(1, 0, 7), null);
+for (let chapter = 2; chapter <= 7; chapter++) {
+  const count = humanCampaignMissionCounts[chapter as HumanCampaignChapter];
+  const result = humanChapterTransition(chapter, 0, count);
+  assert.equal(result?.kind, 'next-front', 'Every chapter transition needs a region reveal');
+  assert.equal(result?.securedChapter, chapter - 1);
+  assert.equal(result?.revealedChapter, chapter);
+  assert.equal(result?.revealedRegion, humanCampaignSceneSets[chapter as HumanCampaignChapter].region);
+  assert.ok(result?.securedBoss && result.revealedMission);
+  assert.equal(humanChapterTransition(chapter, 1, count), null,
+    'A first completed mission must retire the one-off previous-front announcement');
+}
+assert.equal(humanChapterTransition(7, 11, 11)?.kind, 'finale',
+  'Full Blackstone completion deserves a distinct Human campaign ending');
+assert.equal(humanChapterTransition(7, 10, 11), null, 'Do not claim the final siege is won early');
+for (const invalid of [-1, 0, 8, 99, NaN]) {
+  assert.equal(humanChapterTransition(invalid, 0, 11), null, 'Invalid chapter should not invent victories');
+}
+const storyScreen = fs.readFileSync('src/screens/CampaignScreen.tsx', 'utf8');
+const transitionBanner = fs.readFileSync('src/ui/HumanChapterTransitionBanner.tsx', 'utf8');
+assert.ok(storyScreen.includes('<HumanChapterTransitionBanner chapterNumber={chapterNumber} completed={completed} total={chapterNodes.length} />'),
+  'Use actual saved completion state to drive chapter reveal');
+assert.ok(transitionBanner.includes('humanCampaignArtworkForMission('),
+  'Use existing registered mission art instead of a placeholder image');
+assert.ok(!/setTimeout\(|<Modal\b|\baddResources\(|\bclaimRewardedAd\(/i.test(transitionBanner),
+  'Chapter reveal must be non-modal and never grant a reward outside the ordinary battle flow');
 
 console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');

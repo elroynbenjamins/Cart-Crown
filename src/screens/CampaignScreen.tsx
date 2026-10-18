@@ -19,6 +19,7 @@ import {
 import { CampaignNodeSprite, FactionCrest, LockIcon } from '../ui/gameArt';
 import { CampaignJourneyMap } from '../ui/CampaignJourneyMap';
 import { humanCampaignArtworkForNode } from '../ui/humanCampaignMissionArt';
+import { HumanChapterTransitionBanner } from '../ui/HumanChapterTransitionBanner';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import { ActivityCard } from '../ui/ActivityCard';
@@ -430,6 +431,7 @@ export function CampaignScreen({
 
   const renderStory = () => (
     <>
+      <HumanChapterTransitionBanner chapterNumber={chapterNumber} completed={completed} total={chapterNodes.length} />
       <ScreenHero
         eyebrow={'CHAPTER ' + chapterNumber}
         title={
