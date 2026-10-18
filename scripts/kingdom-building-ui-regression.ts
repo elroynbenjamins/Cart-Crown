@@ -349,7 +349,7 @@ function testHumanSceneArtworkAndAnchors() {
     buildingPlacements: {
       plot_center: 'hall', plot_w: 'barracks', plot_e: 'wagonwright',
       plot_nw: null, plot_n: null, plot_ne: null, plot_sw: null, plot_s: null, plot_se: null
-    },
+    } as Record<string, string | null>,
     onOpenSettlement: () => { opened++; }
   };
   const saveBefore = JSON.stringify({ levels: props.buildingLevels, plots: props.buildingPlacements });
