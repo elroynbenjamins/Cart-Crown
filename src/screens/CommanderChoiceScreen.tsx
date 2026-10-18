@@ -7,6 +7,7 @@ import { SecondaryButton } from '../ui/components';
 import { DecisionCommit, DecisionIntro, DecisionLayout, DecisionOption, DecisionStats } from '../ui/DecisionUI';
 import { EffectChip, EmphasisText, RoleChip, SemanticChip } from '../ui/SemanticUI';
 import { CommanderPortrait } from '../ui/gameArt';
+import { HumanStoryEventHero } from '../ui/HumanStoryEventHero';
 
 export function CommanderChoiceScreen({ onComplete }: { onComplete: () => void }) {
   const { theme } = useGameTheme();
@@ -58,6 +59,7 @@ export function CommanderChoiceScreen({ onComplete }: { onComplete: () => void }
         body="Compare favored roles, passive bonuses and the automatic command skill. Selecting a card does not spend Gold."
         accent={accent}
       />
+      {activeFaction === 'human' ? <HumanStoryEventHero beat="commander_choice" /> : null}
       {commanderPaths.map(path => {
         const current = path.id === commanderPathId;
         const subtitle = path.title + (current ? ' · Current' : '');
