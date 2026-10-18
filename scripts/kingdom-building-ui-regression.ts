@@ -283,6 +283,7 @@ function testScreenIntegration(faction: FactionId) {
       'Kingdom hero must use live building positions, not a decorative screenshot.');
     preview.props.onOpenSettlement();
     check(f.calls.at(-1) === 'open-settlement', 'Scene tap must enter the existing interactive settlement.');
+    f.calls.pop(); // Restore a clean fixture for the tutorial and purchase checks below.
     check(nodes(tree, 'SecondaryButton').some(node => node.props.label === 'Enter Settlement'),
       'Keep an explicit keyboard/screen-reader friendly entry button alongside the tappable art.');
     check(!text(tree).includes('View Greenkeep'), 'Remove duplicated miniature settlement navigation card.');
