@@ -181,6 +181,33 @@ for(const theme of Object.values(themes))for(const w of [320,360,412])for(const 
   else {flat.find(n=>n.props.accessibilityLabel==='Battle speed 1 times').props.onPress();flat.find(n=>n.props.accessibilityLabel==='Pause battle').props.onPress();}
 }
 assert.equal(speed,9);assert.equal(pause,9);assert.equal(complete,18);
+
+for (const difficulty of ['Normal', 'Elite', 'Boss'] as const) {
+  const cue = model.battleSpectacleCue(difficulty);
+  check(cue.prominence === (difficulty === 'Boss' ? 3 : difficulty === 'Elite' ? 2 : 1),
+    'Encounter threat prominence must match the actual mission difficulty');
+  check(cue.label.includes(difficulty === 'Normal' ? 'FIELD' : difficulty.toUpperCase()),
+    'Threat labels must be authored and legible rather than inferred from enemy names');
+}
+for (const theme of Object.values(themes)) for (const difficulty of ['Normal', 'Elite', 'Boss'] as const) {
+  appearance.theme = theme;
+  states=[];
+  const enemies = [{ ...props.enemies[0], boss: difficulty === 'Boss' }];
+  const battlefield = render({ difficulty, enemies });
+  const all = nodes(battlefield);
+  const header = all.find(node => node.props.testID === 'battle-threat-cue');
+  check(Boolean(header), 'All encounters must show a difficulty cue.');
+  check(nodes(header).some(node => node.type === 'Text' && String(node.props.children).includes(
+    difficulty === 'Boss' ? 'BOSS' : difficulty === 'Elite' ? 'ELITE' : 'FIELD')),
+    'Encounter difficulty must be visible in light and dark themes.');
+  check(all.filter(node => String(node.props.testID ?? '').startsWith('boss-actor-identity-')).length === (difficulty === 'Boss' ? 1 : 0),
+    'Only a real boss token receives the boss insignia.');
+  check(all.filter(node => String(node.props.testID ?? '').startsWith('battle-target-spark-')).length === 0,
+    'No decorative hit sparks before reduced motion preference resolves.');
+}
+check(!file.includes('Animated.loop(') && !file.includes('setInterval('),
+  'Battle spectacle must reuse the exchange pulse, not add a new animation clock.');
+
 states=[];let tree=render();
 let rail=nodes(tree).find(n=>n.props.testID==='ally-portrait-rail');
 nodes(rail).find(n=>n.type==='Pressable').props.onPress();
