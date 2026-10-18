@@ -7,7 +7,7 @@ import { EnemySprite, UnitPortraitSprite, UnitSprite } from '../gameArt';
 import { BattleStatusMarker, BattleVfxStrip, EnemyFantasyStrikeVfx, EnemyFantasyThreatAura } from '../battleVisuals';
 import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop';
 import { ReferenceArt } from './Art';
-import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageTokens } from './model';
+import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageTokens, battleSpectacleCue } from './model';
 import type { ArmySide, EnemyToken, ExchangeRecord } from './model';
 
 export type PortraitBattleProps = {
@@ -98,6 +98,8 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
   const reducedMotion = useReducedMotion();
   const layout = battleLayout(viewport.width, viewport.height, fontScale);
   const roster = rosterForFormation(p.formation, p.units);
+  const spectacle = battleSpectacleCue(p.difficulty);
+  const dangerAccent = p.difficulty === 'Boss' ? theme.colors.gold : p.difficulty === 'Elite' ? theme.colors.danger : theme.colors.textMuted;
   const allyPositions = stageTokens(p.shape, roster.map(item => item.slot), 'ally', layout.stageWidth, layout.stageHeight);
   // Include routed enemies; their spots must not be recycled or compressed.
   const enemyPositions = stageTokens(p.enemyShape, p.enemies.map(item => item.slot), 'enemy', layout.stageWidth, layout.stageHeight);
@@ -128,13 +130,13 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
   function portraitRail(side: ArmySide) {
     const enemy = side === 'enemy';
     const cards = enemy ? p.enemies.map(item => ({
-      slot: item.slot, level: null as number | null, title: item.boss ? p.enemyName : item.label,
+      slot: item.slot, level: null as number | null, title: item.boss ? p.enemyName : item.label, boss: item.boss,
       detail: `${roleNames[item.role]} · ${rankCopy(p.enemyShape, item.slot)}`,
       art: enemyPortrait(item.role, p.enemyProfile, p.enemyName, item.boss, p.fantasyThreat),
       active: ongoing && !item.down && item.slot === p.enemySlot, down: item.down,
       fallback: enemyFigure(item, layout.portraitSize)
     })) : roster.map(({ slot, unit }) => ({
-      slot, level: unit.level, title: unit.className, detail: `Lv. ${unit.level} · ${roleNames[unit.role]} · ${rankCopy(p.shape, slot)}`,
+      slot, level: unit.level, title: unit.className, boss: false, detail: `Lv. ${unit.level} · ${roleNames[unit.role]} · ${rankCopy(p.shape, slot)}`,
       art: allyPortrait(unit), active: ongoing && (p.activeSlot === slot || p.supportSlots.includes(slot)), down: false,
       fallback: <UnitPortraitSprite className={unit.className} faction={unit.faction} size={layout.portraitSize} />
     }));
@@ -158,6 +160,7 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
             {card.art ? <ReferenceArt art={card.art} width={layout.portraitSize} fallback={card.fallback} /> : card.fallback}
             {card.level !== null ? <Text style={[s.levelBadge, { color: theme.colors.text, backgroundColor: theme.colors.appBg }]}>Lv. {card.level}</Text> : null}
             {card.down ? <Text style={s.routedMark}>×</Text> : null}
+            {card.boss ? <View pointerEvents="none" style={[s.railBossMark, { backgroundColor: theme.colors.gold }]}><Text style={s.railBossText}>◆</Text></View> : null}
           </View>
           <Text style={[s.portraitName, { color: theme.colors.text }]} numberOfLines={1}>{card.title}</Text>
         </Pressable>;
@@ -212,6 +215,7 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
       {enemyPositions.map(position => {
         const item = p.enemies.find(candidate => candidate.slot === position.slot)!;
         const targeted = ongoing && !item.down && p.enemySlot === item.slot;
+        const hitAccent = p.activeRole === 'ranged' ? theme.colors.info : p.activeRole === 'cavalry' ? theme.colors.gold : p.activeRole === 'support' ? theme.colors.primary : theme.colors.text;
         const chosen = selected?.side === 'enemy' && selected.slot === position.slot;
         const depth = stageDepthVisual(position.row);
         const motion = stageExchangeMotion(p.enemyShape, position.row);
@@ -228,12 +232,15 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
             ] }]}>
           <View style={[s.shadow, { backgroundColor: '#000000',
             width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
+          {item.boss && !item.down ? <View pointerEvents="none" testID={'boss-actor-identity-' + item.slot} style={[s.bossInsignia, { borderColor: theme.colors.gold }]}><Text style={[s.bossInsigniaGlyph, { color: theme.colors.gold }]}>◆</Text></View> : null}
+          {p.difficulty === 'Elite' && !item.down ? <View pointerEvents="none" style={[s.eliteUnderlay, { borderColor: theme.colors.danger }]} /> : null}
           {targeted ? <Animated.View style={[s.impactRing, {
             borderColor: theme.colors.danger,
             opacity: moving ? p.impactPulse : 0,
             transform: [{ scale: moving ? p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [.78, 1.08] }) : 1 }]
           }]} /> : null}
-          {enemyFigure(item, position.size)}
+          {targeted && moving ? <Animated.View testID={'battle-target-spark-' + item.slot} pointerEvents="none" style={[s.hitSpark, { borderColor: hitAccent, opacity: p.impactPulse.interpolate({ inputRange: [0, .45, 1], outputRange: [0, 1, 0], extrapolate: 'clamp' }), transform: [{ scale: p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [.7, 1.1] }) }] }]}><View style={[s.hitSparkCross, { backgroundColor: hitAccent }]} /><View style={[s.hitSparkCross, s.hitSparkVertical, { backgroundColor: hitAccent }]} /></Animated.View> : null}
+          {enemyFigure(item, item.boss ? position.size * 1.06 : position.size)}
           {targeted || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : theme.colors.danger }]} /> : null}
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
         </Animated.View>;
@@ -255,6 +262,11 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
       <View style={s.heading}>
         <View style={s.headingCopy}>
           <Text style={[s.encounterTitle, { color: theme.colors.text }]} numberOfLines={1}>{p.encounterName}</Text>
+          <View testID="battle-threat-cue" accessibilityLabel={spectacle.label} style={s.threatHeading}>
+            <View style={[s.threatPip, { backgroundColor: dangerAccent }]} />
+            <Text style={[s.threatText, { color: dangerAccent }]}>{spectacle.label}</Text>
+            {p.difficulty !== 'Normal' ? <Text style={[s.threatMark, { color: dangerAccent }]}>{p.difficulty === 'Boss' ? '◆ ◆ ◆' : '◆ ◆'}</Text> : null}
+          </View>
           <Text style={[s.subtitle, { color: theme.colors.textMuted }]}>
             {p.outcome ? p.outcome.toUpperCase() : p.paused ? 'Paused' : `Exchange ${p.turn + 1}`} · Auto battle
           </Text>
@@ -345,6 +357,18 @@ const s = StyleSheet.create({
   headingCopy: { flex: 1, minWidth: 0 },
   encounterTitle: { fontSize: 17, lineHeight: 20, fontFamily: serif, fontWeight: '700' },
   subtitle: { fontSize: 9, lineHeight: 11, marginTop: 0 },
+  threatHeading: { flexDirection: 'row', gap: 4, alignItems: 'center', minHeight: 12 },
+  threatPip: { width: 5, height: 5, borderRadius: 1 },
+  threatText: { fontSize: 8.2, lineHeight: 11, fontWeight: '900', letterSpacing: .7 },
+  threatMark: { fontSize: 7, lineHeight: 10, letterSpacing: 2, fontWeight: '900' },
+  railBossMark: { position: 'absolute', left: 0, top: 0, width: 13, height: 13, alignItems: 'center', justifyContent: 'center', borderBottomRightRadius: 4 },
+  railBossText: { fontSize: 9, lineHeight: 11, color: '#101A23', fontWeight: '900' },
+  bossInsignia: { position: 'absolute', top: -7, alignSelf: 'center', width: 14, height: 12, borderWidth: 1, backgroundColor: '#111820B8', alignItems: 'center', justifyContent: 'center', zIndex: 3, borderRadius: 2 },
+  bossInsigniaGlyph: { fontSize: 8, lineHeight: 10, fontWeight: '900' },
+  eliteUnderlay: { position: 'absolute', bottom: 0, width: '90%', height: 7, borderBottomWidth: 2, borderRadius: 40, opacity: .76 },
+  hitSpark: { position: 'absolute', top: '28%', left: '28%', width: '44%', height: '44%', borderWidth: 1.5, borderRadius: 4, zIndex: 5, justifyContent: 'center', alignItems: 'center', transform: [{ rotate: '45deg' }] },
+  hitSparkCross: { width: '85%', height: 2, position: 'absolute' },
+  hitSparkVertical: { transform: [{ rotate: '90deg' }] },
   action: {
     minHeight: 44,
     minWidth: 44,
