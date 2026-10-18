@@ -93,6 +93,7 @@ jobs:
         run: |
           npm install --include=dev --no-audit --no-fund
           python3 -m py_compile scripts/android-native-smoke.py
+          python3 scripts/android-native-save-probe-regression.py
       - name: Record exact build inputs
         run: |
           mkdir -p artifacts/android
