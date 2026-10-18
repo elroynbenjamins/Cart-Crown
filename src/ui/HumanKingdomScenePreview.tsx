@@ -76,8 +76,8 @@ export function HumanKingdomScenePreview({
                 styles.plot,
                 landmark ? styles.landmarkPlot : undefined,
                 {
-                  left: humanSettlementPlatePlotPositions[plotId].left,
-                  top: humanSettlementPlatePlotPositions[plotId].top,
+                  left: humanSettlementPlatePlotPositions[plotId]!.left,
+                  top: humanSettlementPlatePlotPositions[plotId]!.top,
                   zIndex: landmark ? 16 : 5 + row * 5
                 }
               ]}
