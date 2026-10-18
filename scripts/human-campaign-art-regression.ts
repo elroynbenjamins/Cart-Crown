@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { humanStoryBeatArtwork, humanStoryBeats } from '../src/ui/humanStoryEventPresentation';
+
 import { humanChapterTransition } from '../src/ui/humanChapterTransition';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -218,5 +220,34 @@ assert.ok(transitionBanner.includes('humanCampaignArtworkForMission('),
   'Use existing registered mission art instead of a placeholder image');
 assert.ok(!/setTimeout\(|<Modal\b|\baddResources\(|\bclaimRewardedAd\(/i.test(transitionBanner),
   'Chapter reveal must be non-modal and never grant a reward outside the ordinary battle flow');
+
+
+const storyArtSource = fs.readFileSync('src/ui/HumanStoryEventHero.tsx', 'utf8');
+assert.ok(storyArtSource.includes("humanCampaignArtworkForMission(art.chapter, art.order).source"),
+  'Story event artwork must resolve through real bundled mission art, never a dynamic require');
+assert.ok(storyArtSource.includes("testID={'human-story-hero-' + beat}"),
+  'Story hero requires stable test and accessibility identity');
+assert.ok(!/setTimeout\(|<Modal\b|claimReward\(|addResources\(/.test(storyArtSource),
+  'Story illustration cannot own rewards, modal interruptions, or timers');
+assert.equal(Object.keys(humanStoryBeats).length, 14, 'Keep all fourteen high-impact Human story beats covered');
+for (const [beat, definition] of Object.entries(humanStoryBeats)) {
+  const picture = humanStoryBeatArtwork(beat as keyof typeof humanStoryBeats);
+  assert.ok(picture, 'Unresolved artwork for story beat ' + beat);
+  assert.equal(picture.chapter, definition.chapter);
+  assert.equal(picture.sceneId, humanCampaignSceneForMission(definition.chapter, definition.order)?.id);
+  assert.ok(picture.caption && picture.region && picture.character,
+    'Every story panel needs a grounded chapter, descriptive caption and portrait role');
+}
+for (const [path, expected] of [
+  ['src/screens/EarlyHumanEventScreen.tsx', '<HumanStoryEventHero beat={eventId} />'],
+  ['src/screens/LateHumanEventScreen.tsx', '<HumanStoryEventHero beat={eventId} />'],
+  ['src/screens/CommanderChoiceScreen.tsx', '<HumanStoryEventHero beat="commander_choice" />'],
+  ['src/screens/MarcherEnvoyScreen.tsx', '<HumanStoryEventHero beat="marcher_envoy" />'],
+  ['src/screens/DividedMarchScreen.tsx', '<HumanStoryEventHero beat="divided_march" />'],
+  ['src/screens/ThreeWarningsScreen.tsx', 'hero={<HumanStoryEventHero beat="rider_doctrine" />}'],
+  ['src/screens/LastLoyalistsScreen.tsx', 'hero={<HumanStoryEventHero beat="forked_banner" />}']
+] as const) {
+  assert.ok(fs.readFileSync(path, 'utf8').includes(expected), path + ' has lost its regional story artwork');
+}
 
 console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');
