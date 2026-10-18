@@ -136,10 +136,10 @@ const styles = StyleSheet.create({
   },
   landmarkPlot: { width: '34%', height: '29%' },
   footprint: {
-    position: 'absolute', width: 66, height: 18, bottom: '17%',
+    position: 'absolute', left: '50%', marginLeft: -33, width: 66, height: 18, bottom: '17%',
     borderRadius: 100, backgroundColor: '#090F0C', opacity: 0.36
   },
-  landmarkFootprint: { width: 96, height: 26, bottom: '18%' },
+  landmarkFootprint: { marginLeft: -48, width: 96, height: 26, bottom: '18%' },
   buildingArt: { alignItems: 'center', justifyContent: 'flex-end', transform: [{ translateY: -2 }] },
   landmarkBuildingArt: { transform: [{ translateY: -12 }] },
   topShade: { position: 'absolute', left: 0, right: 0, top: 0, height: '17%', backgroundColor: '#101E25', opacity: 0.14 },
