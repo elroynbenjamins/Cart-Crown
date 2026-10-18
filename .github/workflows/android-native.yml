@@ -112,6 +112,18 @@ jobs:
         run: |
           set -euo pipefail
           npx --no-install expo prebuild --platform android --no-install 2>&1 | tee artifacts/android/prebuild.log
+          python3 - <<'PY'
+          from pathlib import Path
+          candidates = list(Path('android/app/src/main/java').rglob('MainApplication.kt'))
+          assert len(candidates) == 1, 'Expected one generated Kotlin MainApplication'
+          source = candidates[0].read_text()
+          init = 'com.facebook.drawee.backends.pipeline.Fresco.initialize(this)'
+          assert source.count(init) == 1, 'Fresco native cold-start guard was not inserted exactly once'
+          assert source.index('super.onCreate()') < source.index(init) < source.index('loadReactNative(this)'), (
+              'Fresco must initialize after Application onCreate and before React Native Fabric'
+          )
+          print('Generated native MainApplication initializes Fresco before React Fabric.')
+          PY
           cp -R scripts/android-native-probe android/nativeUiProbe
           printf '\ninclude ":nativeUiProbe"\n' >> android/settings.gradle
       - name: Compile release JS, ARM64, emulator code and isolated probe
