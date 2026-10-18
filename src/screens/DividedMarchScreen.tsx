@@ -7,6 +7,7 @@ import { DecisionIntro } from '../ui/DecisionUI';
 import { EventIllustration, EventResolution, EventRewardPanel } from '../ui/CampaignEventUI';
 import { GameCard } from '../ui/components';
 import { ResourceSiteSprite, StoryCharacterPortrait, StoryScene } from '../ui/gameArt';
+import { HumanStoryEventHero } from '../ui/HumanStoryEventHero';
 
 export function DividedMarchScreen({ onComplete }: { onComplete: () => void }) {
   const { theme } = useGameTheme();
@@ -30,6 +31,7 @@ export function DividedMarchScreen({ onComplete }: { onComplete: () => void }) {
         body="With the Layered Host defeated, Greenkeep secures the cold-road depots before the Frostgate assault. The army can now recover supplies without turning this preparation beat into mandatory grinding."
         accent={theme.colors.human}
       />
+      <HumanStoryEventHero beat="divided_march" />
       <GameCard ornament={false}>
         <StoryCharacterPortrait role="delegate" size={46} />
         <Text style={[styles.heading, { color: theme.colors.text }]}>Shared stores</Text>
