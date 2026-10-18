@@ -8,6 +8,7 @@ import { GameCard } from '../ui/components';
 import { SemanticChip, SemanticText, UnitBadges } from '../ui/SemanticUI';
 import { rolePresentation } from '../ui/semanticColors';
 import { StoryScene, UnitSprite } from '../ui/gameArt';
+import { HumanStoryEventHero } from '../ui/HumanStoryEventHero';
 
 export function MarcherEnvoyScreen({ onComplete }: { onComplete: () => void }) {
   const { theme } = useGameTheme();
@@ -57,6 +58,7 @@ export function MarcherEnvoyScreen({ onComplete }: { onComplete: () => void }) {
         body="Greenkeep crosses into Frostmarch with only three active squads. A local auxiliary offers to join before the army reaches the first broad defensive line."
         accent={theme.colors.gold}
       />
+      <HumanStoryEventHero beat="marcher_envoy" />
       <GameCard ornament={false}>
         <SemanticChip label={recorded ? 'Auxiliary choice recorded' : 'One squad · recruitment preview'} tone={recorded ? 'positive' : 'blue'} />
         <Text style={[styles.heading, { color: theme.colors.text }]}>A harsher frontier</Text>
