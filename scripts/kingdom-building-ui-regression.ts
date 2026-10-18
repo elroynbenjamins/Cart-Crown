@@ -89,6 +89,7 @@ function harness(file: string, exportName: string, game: any = {}, props: Record
       if (request.endsWith('/kingdomBuildingPresentation')) return presentation;
       if (request.endsWith('/SettlementUI')) return load(resolve(dirname(absolute), request + '.tsx'));
       if (request.endsWith('/KingdomBuildings')) return { KingdomBuildings: host('KingdomBuildings') };
+      if (request.endsWith('/HumanKingdomScenePreview')) return { HumanKingdomScenePreview: host('HumanKingdomScenePreview') };
       if (request.endsWith('/SemanticUI')) return Object.fromEntries(['SemanticChip', 'SemanticText', 'EmphasisText'].map(name => [name, host(name)]));
       if (request.endsWith('/components')) return Object.fromEntries([
         'GameCard', 'MetricTile', 'Pill', 'PrimaryButton', 'SecondaryButton', 'ProgressBar',
@@ -234,7 +235,7 @@ function screenFixture(faction: FactionId) {
   let productionSuccess = false;
   const game: any = {
     activeFaction: faction, resources: richWallet(), currentWagonStage: { id: 'settlement', width: 4, height: 4, formationSlots: 3 },
-    buildings: kingdom.getBuildings(faction), buildingLevels: {},
+    buildings: kingdom.getBuildings(faction), buildingLevels: {}, buildingPlacements: { plot_center: 'hall', plot_w: 'barracks', plot_e: 'wagonwright' },
     settlementUpgraded: true, recruitChosen: true, holdTheRoadWon: true,
     isBuildingUnlocked: () => true,
     upgradeBuilding: (id: string) => { calls.push('upgrade:' + id); return true; },
@@ -273,6 +274,18 @@ function testScreenIntegration(faction: FactionId) {
   const shared = nodes(tree, 'KingdomBuildings')[0]!.props;
   check(shared.onUpgrade === f.game.upgradeBuilding && shared.wallet === f.game.resources, 'Kingdom review must retain real provider action and wallet.');
   check(f.calls.length === 0, 'Rendering any kingdom must not spend resources.');
+  if (faction === 'human') {
+    const preview = nodes(tree, 'HumanKingdomScenePreview')[0];
+    check(Boolean(preview), 'The Human kingdom must show its full settlement world in the first hero.');
+    check(preview.props.stageId === f.game.currentWagonStage.id, 'Kingdom hero stage must follow the actual provider tier.');
+    check(preview.props.buildingPlacements === f.game.buildingPlacements,
+      'Kingdom hero must use live building positions, not a decorative screenshot.');
+    preview.props.onOpenSettlement();
+    check(f.calls.at(-1) === 'open-settlement', 'Scene tap must enter the existing interactive settlement.');
+    check(nodes(tree, 'SecondaryButton').some(node => node.props.label === 'Enter Settlement'),
+      'Keep an explicit keyboard/screen-reader friendly entry button alongside the tappable art.');
+    check(!text(tree).includes('View Greenkeep'), 'Remove duplicated miniature settlement navigation card.');
+  }
   button(tree, 'Got it').onPress();
   check(f.completions() === 1 && f.calls.length === 0, 'Empty production tutorial can be acknowledged without spending.');
   f.game.productionStock = { ...emptyWallet(), wood: 5 };
