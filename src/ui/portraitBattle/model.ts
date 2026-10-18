@@ -10,6 +10,19 @@ export function figureForPortrait(portrait: PortraitKey): FigureKey {
   return portrait.replace('_portrait', '_unit') as FigureKey;
 }
 export type ArtKey = FigureKey | PortraitKey | 'greenkeep_sky' | 'greenkeep_ground' | 'greenkeep_location';
+
+/**
+ * Encounter theatre, not a gameplay modifier. Distinct ranks help players
+ * recognize dangerous fights before opening a squad detail or combat log.
+ */
+export function battleSpectacleCue(difficulty: 'Normal' | 'Elite' | 'Boss') {
+  switch (difficulty) {
+    case 'Boss': return { label: 'BOSS ENCOUNTER', short: 'BOSS', prominence: 3 } as const;
+    case 'Elite': return { label: 'ELITE ENCOUNTER', short: 'ELITE', prominence: 2 } as const;
+    default: return { label: 'FIELD ENGAGEMENT', short: 'NORMAL', prominence: 1 } as const;
+  }
+}
+
 export type ArmySide = 'ally' | 'enemy';
 export type ExchangeRecord = Readonly<{ exchange: number; dealt: number; taken: number; healed: number; skill: string | null }>;
 export type StageToken = Readonly<{ slot: number; x: number; y: number; size: number; row: 'front' | 'middle' | 'rear' }>;
