@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGame } from '../game/GameProvider';
 import { ChapterDecision } from '../ui/CampaignEventUI';
+import { HumanStoryEventHero } from '../ui/HumanStoryEventHero';
 import { StoryCharacterPortrait, StoryScene } from '../ui/gameArt';
 
 export function LastLoyalistsScreen({ onComplete }: { onComplete: () => void }) {
@@ -23,6 +24,7 @@ export function LastLoyalistsScreen({ onComplete }: { onComplete: () => void }) 
       continueLabel="March on Greywatch"
       onContinue={onComplete}
       portrait={<StoryCharacterPortrait role="officer" size={42} />}
+      hero={<HumanStoryEventHero beat="forked_banner" />}
       illustration={<StoryScene scene="grand_council" size={192} />}
     />
   );
