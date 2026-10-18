@@ -10,7 +10,8 @@ import {
 } from '../ui/components';
 import { KingdomBuildings } from '../ui/KingdomBuildings';
 import { BuildingCosts } from '../ui/SettlementUI';
-import { ResourceSiteSprite, ResourceSprite, SettlementStageSprite } from '../ui/gameArt';
+import { ResourceSiteSprite, ResourceSprite } from '../ui/gameArt';
+import { HumanKingdomScenePreview } from '../ui/HumanKingdomScenePreview';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
 
@@ -28,13 +29,13 @@ export function KingdomScreen({
   const { theme } = useGameTheme();
   const {
     resources, currentWagonStage, holdTheRoadWon, settlementUpgraded, recruitChosen,
-    canUpgradeSettlement, forgeUnlocked, buildings, buildingLevels,
+    canUpgradeSettlement, forgeUnlocked, buildings, buildingLevels, buildingPlacements,
     fortUpgradeAvailable, canUpgradeToFort, townUpgradeAvailable, canUpgradeToTown,
     strongholdUpgradeAvailable, canUpgradeToStronghold, capitalUpgradeAvailable,
     canUpgradeToCapital, grandUpgradeAvailable, canUpgradeToGrand, upgradeToTown,
     upgradeToStronghold, upgradeToCapital, upgradeToGrand, activeRoyalDecree,
     royalDecreeSwitchCost, resourceSites, unlockedResourceSites, productionStock,
-    settlementAdjacencyBonuses, settlementEffects, claimProduction, isBuildingUnlocked,
+    settlementEffects, claimProduction, isBuildingUnlocked,
     upgradeBuilding, upgradeToFort, rewardedAdClaims, rewardedAdMessage,
     claimRewardedAd, upgradeSettlement
   } = useGame();
@@ -177,19 +178,22 @@ export function KingdomScreen({
                 : currentWagonStage.id === 'fort' ? 'TIER 3'
                   : settlementUpgraded ? 'TIER 2' : 'CAMP'} tone="current" />}
       >
-        <View style={styles.heroContent}>
-          <View style={[styles.keepMark, { backgroundColor: theme.colors.surface2 }]}>
-            <SettlementStageSprite stageId={currentWagonStage.id} size={52} />
-          </View>
-          <View style={styles.heroMetrics}>
-            <MetricTile label="DEVELOPMENT" value={builtCount + '/' + unlockedCount} caption="built / unlocked" tone="gold" />
-            <MetricTile label="SQUAD CAPACITY" value={currentWagonStage.formationSlots} caption={currentWagonStage.width + '×' + currentWagonStage.height + ' wagon'} tone="positive" />
-          </View>
+        <HumanKingdomScenePreview
+          stageId={currentWagonStage.id}
+          buildings={buildings}
+          buildingLevels={buildingLevels}
+          buildingPlacements={buildingPlacements}
+          onOpenSettlement={onOpenSettlement}
+        />
+        <View style={styles.heroMetrics}>
+          <MetricTile label="DEVELOPMENT" value={builtCount + '/' + unlockedCount} caption="built / unlocked" tone="gold" />
+          <MetricTile label="SQUAD CAPACITY" value={currentWagonStage.formationSlots} caption={currentWagonStage.width + '×' + currentWagonStage.height + ' settlement'} tone="positive" />
         </View>
         <View style={styles.heroProgress}>
           <Text style={[styles.developmentLabel, { color: theme.colors.textMuted }]}>Available buildings constructed</Text>
           <ProgressBar value={developmentProgress} color={theme.colors.human} />
         </View>
+        <SecondaryButton label="Enter Settlement" onPress={onOpenSettlement} />
       </ScreenHero>
 
       <View style={styles.resources}>
@@ -208,19 +212,6 @@ export function KingdomScreen({
           <PrimaryButton label={buttonLabel} disabled={disabled} onPress={action} />
         </View>
         <Text style={[styles.requirement, { color: theme.colors.textMuted }]}>{requirement}</Text>
-      </GameCard>
-
-      <GameCard accent={theme.colors.human}>
-        <View style={styles.settlementViewRow}>
-          <View style={styles.settlementViewCopy}>
-            <Text style={[styles.supplyTitle, { color: theme.colors.text }]}>View Greenkeep</Text>
-            <Text style={[styles.supplyBody, { color: theme.colors.textMuted }]}>
-              See the settlement, choose construction plots and tune adjacency bonuses. {settlementAdjacencyBonuses.length} district {settlementAdjacencyBonuses.length === 1 ? 'bonus is' : 'bonuses are'} active.
-            </Text>
-          </View>
-          <SettlementStageSprite stageId={currentWagonStage.id} size={42} />
-        </View>
-        <View style={styles.supplyButton}><SecondaryButton label="Enter Settlement" onPress={onOpenSettlement} /></View>
       </GameCard>
 
       {unlockedResourceSites.length > 0 ? (
@@ -312,12 +303,10 @@ export function KingdomScreen({
 
 const styles = StyleSheet.create({
   content: { padding: 12, paddingBottom: 24, gap: 9 },
-  heroContent: { flexDirection: 'row', alignItems: 'stretch', gap: 7 },
-  heroMetrics: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  heroMetrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   heroProgress: { marginTop: 7 },
   developmentLabel: { fontSize: 9, lineHeight: 12, marginBottom: 4 },
   eyebrow: { fontSize: 8.5, letterSpacing: 0.9, fontWeight: '900' },
-  keepMark: { width: 64, minHeight: 64, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   resources: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'space-between' },
   goalTitle: { fontSize: 15, lineHeight: 19, fontWeight: '900', marginTop: 3 },
   goalBody: { fontSize: 11.5, lineHeight: 16, marginTop: 4 },
@@ -330,8 +319,6 @@ const styles = StyleSheet.create({
   productionRate: { fontSize: 8, lineHeight: 11, fontWeight: '900', marginTop: 5 },
   productionAmounts: { marginTop: 5 },
   message: { fontSize: 10.5, lineHeight: 15, textAlign: 'center', fontWeight: '800' },
-  settlementViewRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  settlementViewCopy: { flex: 1 },
   supplyTitle: { fontSize: 13.5, lineHeight: 17, fontWeight: '900' },
   supplyBody: { fontSize: 10.5, lineHeight: 15, marginTop: 4 },
   supplyReward: { fontSize: 10.5, fontWeight: '900', marginTop: 5 },

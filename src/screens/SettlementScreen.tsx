@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { ViewStyle } from 'react-native';
-import { settlementActionLayout } from '../ui/settlementActionLayout';
+import { humanSettlementPlatePlotPositions as humanSettlementBackgroundPositions, settlementActionLayout } from '../ui/settlementActionLayout';
 import {
   analyzeSettlementAdjacency, getSettlementAdjacencyBonuses,
   getSettlementPlots, isSettlementPlotUnlocked
@@ -42,18 +42,6 @@ const fortWorldPositions: Record<string, { left: ViewStyle['left']; top: ViewSty
   plot_sw: { left: '11%', top: '62%' },
   plot_s: { left: '38%', top: '70%' },
   plot_se: { left: '66%', top: '62%' }
-};
-
-const humanSettlementBackgroundPositions: Record<string, { left: ViewStyle['left']; top: ViewStyle['top'] }> = {
-  plot_nw: { left: '8%', top: '18%' },
-  plot_n: { left: '36%', top: '14%' },
-  plot_ne: { left: '62%', top: '8%' },
-  plot_w: { left: '4%', top: '28%' },
-  plot_center: { left: '36%', top: '30%' },
-  plot_e: { left: '62%', top: '26%' },
-  plot_sw: { left: '4%', top: '40%' },
-  plot_s: { left: '36%', top: '45%' },
-  plot_se: { left: '62%', top: '42%' }
 };
 
 const humanSettlementBackgroundCenters: Record<string, { x: number; y: number }> = {
