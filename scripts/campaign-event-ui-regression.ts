@@ -71,6 +71,7 @@ function harness(file: string, name: string, game: any = {}, props: Record<strin
     if (request.endsWith('/semanticColors')) return semantic;
     if (request.endsWith('/campaignEventPresentation')) return presentation;
     if (request.endsWith('/DecisionUI')) return hosts(['DecisionCommit', 'DecisionIntro', 'DecisionLayout', 'DecisionOption', 'DecisionStats']);
+    if (request.endsWith('/HumanStoryEventHero')) return hosts(['HumanStoryEventHero']);
     if (request.endsWith('/CampaignEventUI')) return hosts(['ChapterDecision', 'EventEffectList', 'EventIllustration', 'EventResolution', 'EventRewardPanel']);
     if (request.endsWith('/SemanticUI')) return hosts(['SemanticChip', 'SemanticText', 'UnitBadges']);
     if (request.endsWith('/components')) return hosts(['GameCard']);
