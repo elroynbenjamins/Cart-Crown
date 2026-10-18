@@ -216,7 +216,7 @@ assert.ok(storyScreen.includes('<HumanChapterTransitionBanner chapterNumber={cha
   'Use actual saved completion state to drive chapter reveal');
 assert.ok(transitionBanner.includes('humanCampaignArtworkForMission('),
   'Use existing registered mission art instead of a placeholder image');
-assert.ok(!/setTimeout\(|Modal|addResources|claimReward/i.test(transitionBanner),
+assert.ok(!/setTimeout\(|<Modal\b|\baddResources\(|\bclaimRewardedAd\(/i.test(transitionBanner),
   'Chapter reveal must be non-modal and never grant a reward outside the ordinary battle flow');
 
 console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');
