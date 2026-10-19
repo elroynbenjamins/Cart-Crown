@@ -36,6 +36,9 @@ jobs:
       - name: Save integrity regression
         run: npm run save:check
 
+      - name: Save storage error and retry regression
+        run: npm run save-provider:check
+
       - name: Mobile session regression
         run: npm run mobile:check
 

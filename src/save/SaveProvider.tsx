@@ -20,6 +20,8 @@ const slotIds: SaveSlotId[] = [1, 2];
 
 type SaveSystemContextValue = {
   ready: boolean;
+  loadError: boolean;
+  retryLoad: () => void;
   selectedSlotId: SaveSlotId | null;
   selectedRecord: SaveRecord | null;
   slots: Array<SaveSlotMetadata | null>;
@@ -89,6 +91,8 @@ async function readRecord(slotId: SaveSlotId): Promise<SaveRecord | null> {
 
 export function SaveProvider({ children }: PropsWithChildren) {
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [selectedSlotId, setSelectedSlotId] = useState<SaveSlotId | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<SaveRecord | null>(null);
   const [records, setRecords] = useState<Record<SaveSlotId, SaveRecord | null>>({
@@ -99,6 +103,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     let cancelled = false;
+    setLoadError(false);
 
     void Promise.all(slotIds.map(readRecord)).then(values => {
       if (cancelled) return;
@@ -108,12 +113,20 @@ export function SaveProvider({ children }: PropsWithChildren) {
         2: values[1] ?? null
       });
       setReady(true);
+    }).catch(() => {
+      if (!cancelled) {
+        // Do not reinterpret a read failure as empty slots. This avoids
+        // overwriting recoverable saves if Android storage is temporarily unavailable.
+        setLoadError(true);
+      }
     });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadAttempt]);
+
+  const retryLoad = () => setLoadAttempt(previous => previous + 1);
 
   const selectSlot = async (slotId: SaveSlotId) => {
     const record = records[slotId] ?? (await readRecord(slotId));
@@ -206,6 +219,8 @@ export function SaveProvider({ children }: PropsWithChildren) {
   const value = useMemo<SaveSystemContextValue>(
     () => ({
       ready,
+      loadError,
+      retryLoad,
       selectedSlotId,
       selectedRecord,
       slots,
@@ -215,7 +230,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
       deleteSlot,
       leaveToSaveSelect
     }),
-    [ready, selectedSlotId, selectedRecord, slots]
+    [ready, loadError, selectedSlotId, selectedRecord, slots]
   );
 
   return <SaveSystemContext.Provider value={value}>{children}</SaveSystemContext.Provider>;
