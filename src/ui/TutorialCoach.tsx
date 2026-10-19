@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View
@@ -48,8 +49,15 @@ export function TutorialCoach({
       statusBarTranslucent
       onRequestClose={() => undefined}
     >
-      <View style={styles.backdrop}>
+      <ScrollView
+        testID="tutorial-coach-scroll"
+        style={styles.backdrop}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         <View
+          accessibilityViewIsModal
           style={[
             styles.card,
             {
@@ -95,6 +103,7 @@ export function TutorialCoach({
           </View>
 
           <Text
+            accessibilityRole="header"
             style={[
               styles.title,
               { color: theme.colors.text }
@@ -158,7 +167,7 @@ export function TutorialCoach({
             </Text>
           </Pressable>
         </View>
-      </View>
+      </ScrollView>
     </Modal>
   );
 }
@@ -166,10 +175,14 @@ export function TutorialCoach({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
+    backgroundColor: 'rgba(4, 7, 12, 0.72)'
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(4, 7, 12, 0.72)',
-    padding: 10,
-    paddingBottom: 14
+    paddingHorizontal: 10,
+    paddingTop: 14,
+    paddingBottom: 20
   },
   card: {
     borderRadius: 14,
