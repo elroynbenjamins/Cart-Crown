@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/android-native.yml'
       - 'scripts/android-native-*'
+      - 'scripts/android-release-apk-*'
       - 'scripts/android-native-probe/**'
       - 'scripts/*png*'
       - 'scripts/art-regression.mjs'
@@ -48,6 +49,7 @@ on:
     paths:
       - '.github/workflows/android-native.yml'
       - 'scripts/android-native-*'
+      - 'scripts/android-release-apk-*'
       - 'scripts/android-native-probe/**'
       - 'scripts/*png*'
       - 'scripts/art-regression.mjs'
@@ -98,6 +100,7 @@ jobs:
           npm install --include=dev --no-audit --no-fund
           python3 -m py_compile scripts/android-native-smoke.py
           python3 scripts/android-native-save-probe-regression.py
+          python3 scripts/android-release-apk-audit-regression.py
       - name: Record exact build inputs
         run: |
           mkdir -p artifacts/android
@@ -154,6 +157,7 @@ jobs:
             --out artifacts/android/cart-crown-ci.apk "$APK"
           "$BUILD_TOOLS/apksigner" verify --verbose artifacts/android/cart-crown-ci.apk > artifacts/android/signature-check.txt
           "$BUILD_TOOLS/aapt" dump badging artifacts/android/cart-crown-ci.apk > artifacts/android/apk-badging.txt
+          python3 scripts/android-release-apk-audit.py --badging artifacts/android/apk-badging.txt --out artifacts/android/release-metadata-audit.json
           grep -q "package: name='com.elroybenjamins.cartcrown'" artifacts/android/apk-badging.txt
           sha256sum artifacts/android/cart-crown-ci.apk > artifacts/android/apk-sha256.txt
           python3 - <<'PY'
