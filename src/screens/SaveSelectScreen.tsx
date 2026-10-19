@@ -26,7 +26,7 @@ function formatDate(value: string) {
 
 export function SaveSelectScreen() {
   const { theme } = useGameTheme();
-  const { ready, slots, selectSlot, createSlot, deleteSlot } = useSaveSystem();
+  const { ready, loadError, retryLoad, slots, selectSlot, createSlot, deleteSlot } = useSaveSystem();
   const [deleteArmed, setDeleteArmed] = useState<SaveSlotId | null>(null);
   const [sceneWidth, setSceneWidth] = useState(0);
 
@@ -54,8 +54,24 @@ export function SaveSelectScreen() {
             }
           ]}
         >
-          <ActivityIndicator color={theme.colors.primary} size="small" />
-          <Text style={[styles.loadingText, { color: theme.colors.textMuted }]}>Preparing campaign…</Text>
+          {loadError ? (
+            <>
+              <Text accessibilityRole="alert" style={[styles.loadingErrorTitle, { color: theme.colors.text }]}>
+                Unable to read saved games
+              </Text>
+              <Text style={[styles.loadingText, { color: theme.colors.textMuted }]}>
+                Your save files have not been cleared or replaced. Check device storage and try again.
+              </Text>
+              <View style={styles.loadingRetry}>
+                <PrimaryButton label="Retry loading saves" onPress={retryLoad} />
+              </View>
+            </>
+          ) : (
+            <>
+              <ActivityIndicator color={theme.colors.primary} size="small" />
+              <Text style={[styles.loadingText, { color: theme.colors.textMuted }]}>Preparing campaign…</Text>
+            </>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -229,6 +245,8 @@ const styles = StyleSheet.create({
     gap: 8
   },
   loadingText: { fontSize: 10.5, fontWeight: '800' },
+  loadingErrorTitle: { fontSize: 15, lineHeight: 20, fontWeight: '900', textAlign: 'center' },
+  loadingRetry: { marginTop: 8, width: '100%', alignItems: 'stretch' },
   content: { width: '100%', maxWidth: 540, alignSelf: 'center', padding: 12, paddingBottom: 24, gap: 10 },
   intro: { alignItems: 'center', paddingTop: 12, paddingBottom: 12 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 9, alignSelf: 'stretch' },
