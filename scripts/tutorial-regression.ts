@@ -1182,6 +1182,47 @@ function runLegacySaveCoverage() {
   );
 }
 
+function runCompactTutorialAccessibilityCoverage() {
+  const src = readFileSync('src/ui/TutorialCoach.tsx', 'utf8');
+  expect(
+    src.includes('<ScrollView') && src.includes('testID="tutorial-coach-scroll"') &&
+      src.includes('contentContainerStyle={styles.scrollContent}'),
+    'Tutorial coach must scroll for small screens and large accessibility text.'
+  );
+  expect(
+    /scrollContent:\s*\{[^}]*flexGrow:\s*1,[^}]*justifyContent:\s*'flex-end'/s.test(src),
+    'Short tutorial panels should remain bottom-aligned without clipping long lessons.'
+  );
+  expect(
+    src.includes('accessibilityViewIsModal') &&
+      src.includes('accessibilityRole="header"') &&
+      src.includes('accessibilityLabel={moment.primaryLabel}'),
+    'Modal lesson needs readable screen-reader heading and labelled confirmation control.'
+  );
+  expect(
+    src.includes('onPress={onPrimary}') &&
+      src.includes('{moment.primaryLabel}') &&
+      src.includes('onRequestClose={() => undefined}'),
+    'Scrolling must not bypass, dismiss or change guided tutorial progression.'
+  );
+}
+
+function runReducedMotionSpotlightCoverage() {
+  const src = readFileSync('src/ui/TutorialFocus.tsx', 'utf8');
+  expect(
+    src.includes('AccessibilityInfo.isReduceMotionEnabled()') &&
+      src.includes("'reduceMotionChanged'") &&
+      src.includes('listener.remove()'),
+    'Tutorial focus must honor and unsubscribe from the native Reduce Motion preference.'
+  );
+  expect(
+    src.includes('if (!active || reduceMotion)') &&
+      src.includes('opacity: reduceMotion ? 0.85 : opacity') &&
+      src.includes('scale: reduceMotion ? 1 : scale'),
+    'Reduced motion should stop pulsing without hiding the guided control.'
+  );
+}
+
 function runAppIdentityCoverage() {
   const app = JSON.parse(
     readFileSync('app.json', 'utf8')
@@ -1215,6 +1256,8 @@ function main() {
   runReviewTimingCoverage();
   runLegacySaveCoverage();
   runAppIdentityCoverage();
+  runCompactTutorialAccessibilityCoverage();
+  runReducedMotionSpotlightCoverage();
 
   if (failures.length > 0) {
     console.error(
