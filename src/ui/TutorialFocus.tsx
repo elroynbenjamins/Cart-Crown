@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   Animated,
   StyleSheet,
   Text,
@@ -21,9 +22,25 @@ export function TutorialFocus({
 }>) {
   const { theme } = useGameTheme();
   const pulse = useRef(new Animated.Value(0)).current;
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    if (!active) {
+    let mounted = true;
+    void AccessibilityInfo.isReduceMotionEnabled()
+      .then(enabled => { if (mounted) setReduceMotion(enabled); })
+      .catch(() => undefined);
+    const listener = AccessibilityInfo.addEventListener(
+      'reduceMotionChanged',
+      enabled => { if (mounted) setReduceMotion(enabled); }
+    );
+    return () => {
+      mounted = false;
+      listener.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!active || reduceMotion) {
       pulse.stopAnimation();
       pulse.setValue(0);
       return;
@@ -49,7 +66,7 @@ export function TutorialFocus({
       loop.stop();
       pulse.setValue(0);
     };
-  }, [active, pulse]);
+  }, [active, pulse, reduceMotion]);
 
   if (!active) {
     return <View style={style}>{children}</View>;
@@ -72,8 +89,8 @@ export function TutorialFocus({
           styles.focusRing,
           {
             borderColor: theme.colors.gold,
-            opacity,
-            transform: [{ scale }]
+            opacity: reduceMotion ? 0.85 : opacity,
+            transform: [{ scale: reduceMotion ? 1 : scale }]
           }
         ]}
       />
