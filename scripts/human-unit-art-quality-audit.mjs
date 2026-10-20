@@ -42,6 +42,10 @@ for (const { id, filepath } of entries) {
 }
 const siege = table.find(entry => entry.id === 'siege_engineer');
 assert.ok(siege, 'Siege Engineer must be represented in the audit.');
+assert.ok(!siege.review && siege.coverage >= 16,
+  'Siege Engineer must remain a readable character-first silhouette at compact roster sizes.');
+assert.ok(siege.width >= 140 && siege.height >= 170,
+  'Siege Engineer icon must use most of the square canvas rather than a tiny device.');
 console.log('Human roster artwork audit: ' + table.length + ' production icons evaluated.');
 for (const item of table) {
   console.log((item.review ? 'REVIEW ' : '       ') +
