@@ -1,0 +1,84 @@
+name: Android App Bundle QA
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/android-play-bundle.yml'
+      - 'scripts/android-play-bundle-*'
+      - 'app.json'
+      - 'package*.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-play-bundle.yml'
+      - 'scripts/android-play-bundle-*'
+      - 'app.json'
+      - 'package*.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cart-crown-aab-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile-and-audit-aab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install and exercise AAB validation fixtures
+        run: |
+          python3 scripts/android-play-bundle-audit-regression.py
+          npm install --include=dev --no-audit --no-fund
+      - name: Expo clean native-generation input
+        run: npx --no-install expo prebuild --platform android --no-install
+      - name: Compile Android App Bundle for QA
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew :app:bundleRelease --no-daemon --max-workers=2 \
+            -PreactNativeArchitectures=arm64-v8a,x86_64 \
+            '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g'
+      - name: Audit actual AAB and produce QA-only artifact
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/play-qa
+          AAB=$(find android/app/build/outputs/bundle/release -maxdepth 1 -name '*.aab' | head -n 1)
+          test -n "$AAB"
+          cp "$AAB" artifacts/play-qa/cart-crown-ci-test.aab
+          python3 scripts/android-play-bundle-audit.py \
+            --aab artifacts/play-qa/cart-crown-ci-test.aab \
+            --out artifacts/play-qa/aab-integrity.json
+          git rev-parse HEAD > artifacts/play-qa/source-commit.txt
+          cat > artifacts/play-qa/NOT_FOR_PLAY_UPLOAD.txt <<'EOF'
+          Automated App Bundle integrity test only.
+          This is not a production release and its signing identity was not
+          verified against your Google Play upload key. Never upload this
+          test artifact to the Play Console as a signed production release.
+          Use the project release keystore locally/through an approved,
+          credential-protected publishing process and increment versionCode.
+          EOF
+      - name: Retain AAB and bundle-integrity evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cart-crown-aab-qa-${{ github.run_id }}
+          path: artifacts/play-qa/
+          if-no-files-found: warn
+          retention-days: 7
