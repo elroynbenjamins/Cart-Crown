@@ -12,6 +12,7 @@ import {
 import type { NavId } from './game/types';
 import type { BattlePreparationFixTarget } from './game/battlePreparation';
 import { getHumanLateMission } from './game/humanLateCampaign';
+import { resultContinuation, resultContinuationLabel } from './game/resultContinuation';
 import {
   popNavigationHistory,
   pushNavigationHistory,
@@ -483,52 +484,31 @@ export function AppShell({
     onExitToSaves();
   };
 
+  const resultsDestination = resultContinuation(
+    lastBattleResult?.id ?? null,
+    activeEncounterId,
+    Boolean(commanderPathId)
+  );
+
   const handleResultsContinue = () => {
-    if (
-      [
-        'mercenary_patrol_result',
-        'elf_hollow_warden_result',
-        'orc_blamecaller_result'
-      ].includes(lastBattleResult?.id ?? '') &&
-      !commanderPathId
-    ) {
+    if (resultsDestination === 'commanderChoice') {
       setCommanderChoiceReturn('army');
       setFlow('commanderChoice');
       return;
     }
 
-    if (
-      [
-        'elf_return_through_roots_result',
-        'orc_crownspire_warmaster_result'
-      ].includes(lastBattleResult?.id ?? '')
-    ) {
-      completeTo('campaign', null);
-      return;
-    }
-
-    if (
-      activeEncounterId.startsWith('human_ch')
-    ) {
-      completeTo('campaign', null);
-      return;
-    }
-
-    if (
-      activeEncounterId.startsWith('war_table_')
-    ) {
+    if (resultsDestination === 'warTable') {
       completeTo('campaign', 'warTable');
       return;
     }
 
-    if (
-      [
-        'three_seals_convergence_result',
-        'ashen_triumvirate_result',
-        'unbound_beacon_result'
-      ].includes(lastBattleResult?.id ?? '')
-    ) {
+    if (resultsDestination === 'metaCampaign') {
       completeTo('campaign', 'metaCampaign');
+      return;
+    }
+
+    if (resultsDestination === 'campaign') {
+      completeTo('campaign', null);
       return;
     }
 
@@ -729,6 +709,7 @@ export function AppShell({
         <ResultsScreen
           battleSummary={lastCombatSummary}
           onContinue={handleResultsContinue}
+          continueLabel={resultContinuationLabel(resultsDestination)}
           tutorialFocus={tutorialFocus}
           onTutorialFocusComplete={completeTutorialFocus}
         />
