@@ -33,6 +33,9 @@ jobs:
       - name: Fresco early native startup regression
         run: node scripts/fresco-early-init-regression.cjs
 
+      - name: Cart and Crown app launcher regression
+        run: npm run app-branding:check
+
       - name: Save integrity regression
         run: npm run save:check
 
