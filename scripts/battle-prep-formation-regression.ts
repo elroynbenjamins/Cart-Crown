@@ -55,5 +55,16 @@ const mini = readFileSync('src/ui/FormationMiniature.tsx','utf8');
 assert.ok(mini.includes('No') === false, 'Miniature should stay graphical rather than inserting explanatory prose');
 assert.ok(mini.includes('row.slots.length > 0'));
 assert.ok(mini.includes('importantForAccessibility="no-hide-descendants"'));
+assert.ok(mini.includes("testID={'formation-miniature-' + side}"),
+  'Each tactical miniature should be an independently testable board');
+assert.ok(mini.includes("row.key === 'front' ? accent + '88'"),
+  'Front line must be visually stronger than rear ranks');
+assert.ok(mini.includes("testID={'formation-miniature-' + side + '-' + row.key}"),
+  'All three formation ranks must keep their own visual plate');
+assert.ok(mini.includes('accessibilityLabel={accessibilitySummary}'),
+  'Tiny formation tokens must expose the rank distribution to accessibility services');
+assert.ok(mini.includes('shape.rows.front.length') && mini.includes('shape.rows.rear.length'),
+  'Accessibility summary must describe the actual formation data, not a generic illustration');
+assert.ok(!mini.includes('onPress='), 'Formation preview must remain read-only');
 
 console.log('PASS: Battle Prep compares player/enemy formations, preserves compact geometry, and maps three War Table encounters to compact tactics.');
