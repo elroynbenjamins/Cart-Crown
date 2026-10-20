@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -14,6 +15,8 @@ import { GameCard, PrimaryButton, SecondaryButton, StatusPill } from '../ui/comp
 import { FactionCampScene, FactionCrest } from '../ui/gameArt';
 
 const slotIds: SaveSlotId[] = [1, 2];
+// The exact illustrated emblem approved for all three playable realms.
+const OFFICIAL_BRAND = require('../../assets/branding/approved-three-faction-logo.png');
 
 function formatDate(value: string) {
   const date = new Date(value);
@@ -33,17 +36,13 @@ export function SaveSelectScreen() {
   if (!ready) {
     return (
       <SafeAreaView style={[styles.loading, { backgroundColor: theme.colors.appBg }]}>
-        <View
-          style={[
-            styles.loadingCrest,
-            {
-              backgroundColor: theme.colors.surface1,
-              borderColor: theme.colors.gold
-            }
-          ]}
-        >
-          <FactionCrest faction="human" size={42} />
-        </View>
+        <Image
+          testID="official-three-realm-loading-logo"
+          source={OFFICIAL_BRAND}
+          accessibilityLabel="Cart & Crown: Orc boar on red, Human fleur-de-lis on blue, Elf stag on green"
+          resizeMode="contain"
+          style={styles.loadingLogo}
+        />
         <Text style={[styles.loadingBrand, { color: theme.colors.gold }]}>CART & CROWN</Text>
         <View
           style={[
@@ -93,9 +92,12 @@ export function SaveSelectScreen() {
             importantForAccessibility="no-hide-descendants"
           >
             {sceneWidth > 0 ? <FactionCampScene faction="human" size={sceneWidth} /> : null}
-            <View style={[styles.introCrest, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.gold }]}>
-              <FactionCrest faction="human" size={32} />
-            </View>
+            <Image
+              testID="official-three-realm-save-logo"
+              source={OFFICIAL_BRAND}
+              resizeMode="contain"
+              style={styles.introLogo}
+            />
           </View>
           <Text style={[styles.title, { color: theme.colors.text }]}>Choose a Save</Text>
           <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
@@ -206,6 +208,11 @@ export function SaveSelectScreen() {
 
         <View style={[styles.note, { borderColor: theme.colors.border }]}>
           <Text style={[styles.noteTitle, { color: theme.colors.text }]}>Two saves. Three factions to discover.</Text>
+          <View style={styles.realmStandards} accessible accessibilityLabel="Official faction banners: Human fleur-de-lis, Elf stag, Orc boar">
+            <FactionCrest faction="human" size={32} />
+            <FactionCrest faction="elf" size={32} />
+            <FactionCrest faction="orc" size={32} />
+          </View>
           <Text style={[styles.noteBody, { color: theme.colors.textMuted }]}>
             Complete the Human campaign to unlock Elves and Orcs. Each faction keeps its own kingdom within your save, so you can return to any of them.
           </Text>
@@ -218,14 +225,7 @@ export function SaveSelectScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  loadingCrest: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
+  loadingLogo: { width: 90, height: 90, borderRadius: 18 },
   loadingBrand: {
     fontSize: 14,
     lineHeight: 18,
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   brandRule: { flex: 1, height: 1, opacity: 0.45 },
   brand: { flexShrink: 1, fontSize: 15, fontWeight: '900', letterSpacing: 1.6, textAlign: 'center' },
   introArt: { width: '100%', maxWidth: 300, aspectRatio: 1 / 0.48, alignItems: 'center', justifyContent: 'flex-end', marginTop: 1, marginBottom: 10 },
-  introCrest: { position: 'absolute', right: 6, bottom: 6, width: 40, height: 40, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  introLogo: { position: 'absolute', right: 6, bottom: 6, width: 63, height: 63, borderRadius: 12 },
   title: { fontSize: 23, lineHeight: 28, fontWeight: '900', textAlign: 'center' },
   subtitle: { fontSize: 10.5, lineHeight: 15, marginTop: 4, maxWidth: 350, textAlign: 'center' },
   slots: { gap: 8 },
@@ -277,5 +277,6 @@ const styles = StyleSheet.create({
   emptyBody: { fontSize: 10.5, lineHeight: 15, marginVertical: 10 },
   note: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 12, paddingHorizontal: 3 },
   noteTitle: { fontSize: 10.5, lineHeight: 15, fontWeight: '900' },
+  realmStandards: { flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 7, marginBottom: 4 },
   noteBody: { fontSize: 10, lineHeight: 14, marginTop: 4 }
 });
