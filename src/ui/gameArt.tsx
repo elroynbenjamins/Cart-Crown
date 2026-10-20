@@ -1,3 +1,4 @@
+import { OfficialFactionSigil } from './OfficialFactionSigil';
 import { humanFigureForClass } from './portraitBattle/humanArt';
 import { ReferenceArt } from './portraitBattle/Art';
 import { TreasurySprite } from './TreasuryArt';
@@ -2570,13 +2571,10 @@ export function FactionCrest({
   const production = factionCrestProductionAsset(faction);
   const productionSource = getProductionAssetSource(production.id);
   if (productionSource) {
-    return (
-      <Image
-        source={productionSource}
-        resizeMode="contain"
-        style={{ width: size, height: size }}
-      />
-    );
+    // Use the same approved boar / stag / fleur standard as the game logo.
+    // The older illustrated faction crest assets remain as safe legacy
+    // fallbacks for missing production assets.
+    return <OfficialFactionSigil faction={faction} size={size} />;
   }
 
   const accent =

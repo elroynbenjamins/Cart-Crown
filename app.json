@@ -7,7 +7,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "android": {
-      "package": "com.elroybenjamins.cartcrown"
+      "package": "com.elroybenjamins.cartcrown",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/branding/approved-three-faction-logo.png",
+        "backgroundColor": "#0B182A"
+      }
     },
     "ios": {
       "bundleIdentifier": "com.cartandcrown.mobile",
@@ -15,6 +19,7 @@
     },
     "plugins": [
       "./plugins/withFrescoEarlyInit"
-    ]
+    ],
+    "icon": "./assets/branding/approved-three-faction-logo.png"
   }
 }
