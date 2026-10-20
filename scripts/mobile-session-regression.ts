@@ -8,6 +8,7 @@ import {
   resolveHardwareBackAction,
   shouldAcceptActionPress
 } from '../src/game/mobileSession';
+import { resultContinuation, resultContinuationLabel } from '../src/game/resultContinuation';
 import {
   getTacticalGuidanceFeatures,
   requiresSeverePreparationConfirmation
@@ -343,9 +344,35 @@ function runTacticalGuidanceCoverage() {
   );
 }
 
+function runResultContinuationCoverage() {
+  const cases = [
+    ['mercenary_patrol_result', 'mercenary_patrol', false, 'commanderChoice', 'Choose Commander Path'],
+    ['mercenary_patrol_result', 'mercenary_patrol', true, 'kingdom', 'Return to Kingdom'],
+    ['elf_hollow_warden_result', 'elf_hollow_warden', false, 'commanderChoice', 'Choose Commander Path'],
+    ['orc_blamecaller_result', 'orc_blamecaller', false, 'commanderChoice', 'Choose Commander Path'],
+    ['elf_return_through_roots_result', 'elf_return_through_roots', true, 'campaign', 'Continue Campaign'],
+    ['orc_crownspire_warmaster_result', 'orc_crownspire_warmaster', true, 'campaign', 'Continue Campaign'],
+    ['human_ch5_m11_result', 'human_ch5_m11', true, 'campaign', 'Continue Campaign'],
+    ['human_ch6_m11_result', 'human_ch6_m11', true, 'campaign', 'Continue Campaign'],
+    ['human_ch7_m11_result', 'human_ch7_m11', true, 'campaign', 'Continue Campaign'],
+    ['war_table_contract_result', 'war_table_123', true, 'warTable', 'Return to War Table'],
+    ['unbound_beacon_result', 'unbound_beacon', true, 'metaCampaign', 'Continue Three Seals'],
+    ['return_to_crownspire_result', 'return_to_crownspire', true, 'kingdom', 'Return to Kingdom'],
+    ['hold_the_road_result', 'hold_the_road', false, 'kingdom', 'Return to Kingdom']
+  ] as const;
+
+  for (const [resultId, encounterId, hasCommanderPath, route, label] of cases) {
+    const resolved = resultContinuation(resultId, encounterId, hasCommanderPath);
+    expect(resolved === route, 'Results continuation route mismatch: ' + resultId);
+    expect(resultContinuationLabel(resolved) === label,
+      'Results button label does not match navigation destination for ' + resultId);
+  }
+}
+
 async function main() {
   runBackCoverage();
   runNavigationHistoryCoverage();
+  runResultContinuationCoverage();
   runPressCoverage();
   runOneShotCoverage();
   runAppStateCoverage();
