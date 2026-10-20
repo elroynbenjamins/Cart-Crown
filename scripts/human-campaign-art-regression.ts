@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { humanStoryBeatArtwork, humanStoryBeats } from '../src/ui/humanStoryEventPresentation';
 
 import { humanChapterTransition } from '../src/ui/humanChapterTransition';
+import { humanBattleResultMoment } from '../src/ui/humanBattleResultPresentation';
+import { humanLateMissions } from '../src/game/humanLateCampaign';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { campaignMissionRoadmap, campaignMissionCountsByChapter } from '../src/game/campaignMissionRoadmap';
@@ -250,4 +252,52 @@ for (const [path, expected] of [
   assert.ok(fs.readFileSync(path, 'utf8').includes(expected), path + ' has lost its regional story artwork');
 }
 
-console.log('Human campaign art registry: 70 assignments, 7 finale slots and unique chapter scenes validated.');
+
+
+// After-action screen must reflect the won Human mission, not an unrelated
+// early Greenkeep milestone. Results use the completed encounter ID because
+// chapter advancement can occur before this screen mounts.
+const lateBattleMissions = humanLateMissions.filter(mission => mission.encounterId);
+assert.ok(lateBattleMissions.length >= 20, 'All late Human battle encounters should have their own victory moment');
+for (const mission of lateBattleMissions) {
+  const moment = humanBattleResultMoment(mission.encounterId + '_result');
+  assert.ok(moment, 'Missing victory moment for ' + mission.name);
+  assert.equal(moment.chapter, mission.chapter);
+  assert.equal(moment.missionOrder, mission.order);
+  assert.equal(moment.missionCount, 11);
+  assert.equal(moment.name, mission.name);
+  assert.equal(moment.boss, mission.type === 'boss');
+  assert.equal(moment.region, humanCampaignSceneSets[mission.chapter].region);
+  assert.ok(moment.takeaway, 'Victory moment should explain progression: ' + mission.name);
+  if (moment.boss && mission.chapter < 7) {
+    assert.equal(moment.nextRegion, humanCampaignSceneSets[(mission.chapter + 1) as HumanCampaignChapter].region,
+      'Boss victory must reveal the actual next region');
+  } else {
+    assert.equal(moment.nextRegion, null, 'Do not claim an unearned chapter transition');
+  }
+}
+assert.equal(humanBattleResultMoment('human_ch5_m02_result'), null,
+  'Story and upgrade missions without a battle must never invent a battle result');
+assert.equal(humanBattleResultMoment('hold_the_road_result'), null,
+  'Initial Human victory is handled by its own milestone');
+assert.equal(humanBattleResultMoment('elf_ashen_tracks_result'), null,
+  'Other faction battles must not show Human victory artwork');
+assert.equal(humanBattleResultMoment('human_ch7_m10_result')?.final, false,
+  'The penultimate battle cannot claim campaign completion');
+assert.equal(humanBattleResultMoment('human_ch7_m11_result')?.final, true,
+  'Fall of Blackstone must show the final Human victory');
+
+const resultScreenSource = fs.readFileSync('src/screens/ResultsScreen.tsx', 'utf8');
+const momentSource = fs.readFileSync('src/ui/HumanMissionVictoryMoment.tsx', 'utf8');
+assert.ok(resultScreenSource.includes('<HumanMissionVictoryMoment moment={lateHumanMoment} />'),
+  'Results should surface late Human artwork immediately after the rewards');
+assert.ok(resultScreenSource.includes("lastBattleResult.id === 'hold_the_road_result' ? ("),
+  'Chapter 1 Greenkeep establishment messaging must be restricted to the actual opening victory');
+assert.ok(resultScreenSource.includes('{lateHumanMoment ? null : metaFinalResult ? ('),
+  'Later Human missions must not fall into the legacy What changed results chain');
+assert.ok(momentSource.includes('humanCampaignArtworkForMission(moment.chapter, moment.missionOrder)'),
+  'Victory artwork must reuse the approved region-specific mission paintings');
+assert.ok(!/setTimeout\(|<Modal\b|\bsetResources\(|\bclaimRewardedAd\(/.test(momentSource),
+  'Victory art cannot re-award rewards, block navigation or require a timed modal');
+
+console.log('Human campaign art registry: 70 assignments, 7 finale slots and encounter-specific victory results validated.');

@@ -12,6 +12,8 @@ import {
   StatusPill
 } from '../ui/components';
 import { VictoryHeader, VictoryRewards } from '../ui/VictoryPresentation';
+import { humanBattleResultMoment } from '../ui/humanBattleResultPresentation';
+import { HumanMissionVictoryMoment } from '../ui/HumanMissionVictoryMoment';
 import type { BattleCombatSummary } from './BattleScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import type { TutorialFocusTarget } from '../game/tutorial';
@@ -46,6 +48,9 @@ export function ResultsScreen({
     );
   }
 
+  const lateHumanMoment = activeFaction === 'human'
+    ? humanBattleResultMoment(lastBattleResult.id)
+    : null;
   const readinessProfile = getArmyReadinessProfile(armyReadiness);
   const salvageClaimed = (rewardedAdClaims.salvage_boost ?? 0) >= 1;
   const mercenaryResult = lastBattleResult.id === 'mercenary_patrol_result';
@@ -175,6 +180,7 @@ export function ResultsScreen({
       />
 
       <VictoryRewards key={lastBattleResult.id} rewards={lastBattleResult.rewards} />
+      {lateHumanMoment ? <HumanMissionVictoryMoment moment={lateHumanMoment} /> : null}
 
       {battleSummary ? (
         <>
@@ -261,8 +267,8 @@ export function ResultsScreen({
         ) : null}
       </GameCard>
 
-      <SectionTitle title="What changed" />
-      {metaFinalResult ? (
+      {!lateHumanMoment ? <SectionTitle title="What changed" /> : null}
+      {lateHumanMoment ? null : metaFinalResult ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>THREE SEALS COMPLETE</Text>
@@ -1004,7 +1010,7 @@ export function ResultsScreen({
             </Text>
           </GameCard>
         </>
-      ) : (
+      ) : lastBattleResult.id === 'hold_the_road_result' ? (
         <>
           <GameCard accent={theme.colors.gold}>
             <Text style={[styles.unlockEyebrow, { color: theme.colors.gold }]}>KINGDOM MILESTONE</Text>
@@ -1023,6 +1029,14 @@ export function ResultsScreen({
             </Text>
           </GameCard>
         </>
+      ) : (
+        <GameCard accent={theme.colors.human}>
+          <Text style={[styles.unlockEyebrow, { color: theme.colors.human }]}>BATTLE REPORT</Text>
+          <Text style={[styles.unlockTitle, { color: theme.colors.text }]}>Objective secured</Text>
+          <Text style={[styles.unlockBody, { color: theme.colors.textMuted }]}>
+            Your rewards are already secured. Review Campaign for the next objective or return to the Kingdom to prepare.
+          </Text>
+        </GameCard>
       )}
 
       <TutorialFocus
