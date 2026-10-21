@@ -21,11 +21,13 @@ import type { TutorialFocusTarget } from '../game/tutorial';
 export function ResultsScreen({
   battleSummary,
   onContinue,
+  continueLabel,
   tutorialFocus,
   onTutorialFocusComplete
 }: {
   battleSummary?: BattleCombatSummary | null;
   onContinue: () => void;
+  continueLabel: string;
   tutorialFocus?: TutorialFocusTarget | null;
   onTutorialFocusComplete?: () => void;
 }) {
@@ -1044,7 +1046,7 @@ export function ResultsScreen({
         label={tutorialFocus?.kind === 'results-continue' ? tutorialFocus.label : undefined}
       >
         <PrimaryButton
-          label={mercenaryResult ? 'Choose Commander Path' : 'Return to Kingdom'}
+          label={continueLabel}
           onPress={() => {
             if (tutorialFocus?.kind === 'results-continue') {
               onTutorialFocusComplete?.();
