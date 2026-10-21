@@ -7,7 +7,7 @@ import { EnemySprite, UnitPortraitSprite, UnitSprite } from '../gameArt';
 import { BattleStatusMarker, BattleVfxStrip, EnemyFantasyStrikeVfx, EnemyFantasyThreatAura } from '../battleVisuals';
 import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop';
 import { ReferenceArt } from './Art';
-import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageTokens, battleSpectacleCue } from './model';
+import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageFormationReadout, stageRoleLetters, stageTokens, battleSpectacleCue } from './model';
 import type { ArmySide, EnemyToken, ExchangeRecord } from './model';
 
 export type PortraitBattleProps = {
@@ -75,17 +75,22 @@ function Action({ label, onPress, selected = false, disabled = false, accessibil
   </Pressable>;
 }
 
-function Health({ label, hp, max, formation, enemy = false }: { label: string; hp: number; max: number; formation: string; enemy?: boolean }) {
+function Health({ label, hp, max, shape, enemy = false }: { label: string; hp: number; max: number; shape: FormationShapeDefinition; enemy?: boolean }) {
   const { theme } = useGameTheme();
   const fill = enemy ? theme.colors.danger : theme.colors.primary;
-  return <View accessible accessibilityLabel={`${label}: ${hp} of ${max} shared army HP; formation ${formation}`} style={s.health}>
+  const readout = stageFormationReadout(shape);
+  return <View accessible accessibilityLabel={`${label}: ${hp} of ${max} shared army HP; formation ${shape.name}, ${readout.ranks}`} style={s.health}>
     <View style={s.healthHeading}>
-      <Text style={[s.healthName, { color: fill }]}>{label} · {formation}</Text>
+      <Text style={[s.healthName, { color: fill }]}>{label} · {shape.layout}</Text>
       <Text style={[s.healthValue, { color: theme.colors.text }]}>{hp} / {max}</Text>
     </View>
     <View style={[s.healthTrack, { backgroundColor: theme.colors.surface3 }]}>
       <View style={{ width: `${healthFraction(hp, max) * 100}%`, height: 4, backgroundColor: fill }} />
     </View>
+    <Text testID={enemy ? 'enemy-formation-posture' : 'ally-formation-posture'}
+      numberOfLines={1} style={[s.healthReadout, { color: theme.colors.textMuted }]}>
+      {readout.label} · {readout.ranks}
+    </Text>
   </View>;
 }
 
@@ -208,6 +213,9 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           {allyPortrait(item.unit) ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size * 1.08} height={position.size * 1.08}
             fallback={<UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
             : <UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />}
+          <View pointerEvents="none" testID={'ally-stage-role-' + position.slot} style={[s.roleMarker, { borderColor: theme.colors.human }]}>
+            <Text style={s.roleMarkerText}>{stageRoleLetters[item.unit.role]}</Text>
+          </View>
           {active || support || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : support ? theme.colors.primary : theme.colors.human }]} /> : null}
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
         </Animated.View>;
@@ -232,8 +240,12 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
             ] }]}>
           <View style={[s.shadow, { backgroundColor: '#000000',
             width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
+          {item.boss && !item.down ? <View pointerEvents="none" testID={'boss-stage-ground-' + item.slot}
+            style={[s.bossGround, { borderColor: theme.colors.gold, backgroundColor: theme.colors.gold + '18' }]} /> : null}
           {item.boss && !item.down ? <View pointerEvents="none" testID={'boss-actor-identity-' + item.slot} style={[s.bossInsignia, { borderColor: theme.colors.gold }]}><Text style={[s.bossInsigniaGlyph, { color: theme.colors.gold }]}>◆</Text></View> : null}
           {p.difficulty === 'Elite' && !item.down ? <View pointerEvents="none" style={[s.eliteUnderlay, { borderColor: theme.colors.danger }]} /> : null}
+          {targeted ? <View pointerEvents="none" testID={'battle-target-lock-' + item.slot}
+            style={[s.targetLock, { borderColor: theme.colors.danger }]} /> : null}
           {targeted ? <Animated.View style={[s.impactRing, {
             borderColor: theme.colors.danger,
             opacity: moving ? p.impactPulse : 0,
@@ -241,6 +253,10 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           }]} /> : null}
           {targeted && moving ? <Animated.View testID={'battle-target-spark-' + item.slot} pointerEvents="none" style={[s.hitSpark, { borderColor: hitAccent, opacity: p.impactPulse.interpolate({ inputRange: [0, .45, 1], outputRange: [0, 1, 0], extrapolate: 'clamp' }), transform: [{ scale: p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [.7, 1.1] }) }] }]}><View style={[s.hitSparkCross, { backgroundColor: hitAccent }]} /><View style={[s.hitSparkCross, s.hitSparkVertical, { backgroundColor: hitAccent }]} /></Animated.View> : null}
           {enemyFigure(item, item.boss ? position.size * 1.06 : position.size)}
+          {!item.down && !item.boss ? <View pointerEvents="none" testID={'enemy-stage-role-' + item.slot}
+            style={[s.roleMarker, { borderColor: theme.colors.danger }]}>
+            <Text style={s.roleMarkerText}>{stageRoleLetters[item.role]}</Text>
+          </View> : null}
           {targeted || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : theme.colors.danger }]} /> : null}
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
         </Animated.View>;
@@ -277,9 +293,9 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           disabled={!!p.outcome || p.controlsLocked} onPress={p.onTogglePause} />
       </View>
       {portraitRail('enemy')}
-      <Health label="ENEMY ARMY" hp={p.enemyHp} max={p.enemyMaxHp} formation={p.enemyShape.layout} enemy />
+      <Health label="ENEMY ARMY" hp={p.enemyHp} max={p.enemyMaxHp} shape={p.enemyShape} enemy />
       {battlefield}
-      <Health label="YOUR ARMY" hp={p.partyHp} max={p.partyMaxHp} formation={p.shape.layout} />
+      <Health label="YOUR ARMY" hp={p.partyHp} max={p.partyMaxHp} shape={p.shape} />
       {portraitRail('ally')}
       <Text testID="selected-squad-copy" style={[s.selectionCopy, { color: selectedCopy ? theme.colors.gold : theme.colors.textMuted }]} numberOfLines={2}>
         {selectedCopy ?? 'Shared army HP · Tap a portrait to locate its squad'}
@@ -391,6 +407,7 @@ const s = StyleSheet.create({
   healthName: { fontSize: 8.5, fontWeight: '900', letterSpacing: .3 },
   healthValue: { fontSize: 9.5, fontWeight: '800' },
   healthTrack: { height: 5, borderRadius: 3, overflow: 'hidden' },
+  healthReadout: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: .1 },
   stage: { alignSelf: 'center', borderWidth: 1.5, overflow: 'hidden', borderRadius: 8 },
   fill: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
   guide: { position: 'absolute', left: 4, right: 4, borderTopWidth: .5, opacity: .24 },
@@ -398,6 +415,12 @@ const s = StyleSheet.create({
   engagement: { position: 'absolute', left: '22%', right: '22%', borderTopWidth: 1, opacity: .3 },
   actor: { position: 'absolute', justifyContent: 'center', alignItems: 'center' },
   shadow: { position: 'absolute', bottom: 0, borderRadius: 12 },
+  roleMarker: { position: 'absolute', bottom: -2, right: -2, minWidth: 12, height: 12, borderWidth: 1, borderRadius: 3,
+    backgroundColor: '#101B24EB', justifyContent: 'center', alignItems: 'center', zIndex: 5 },
+  roleMarkerText: { color: '#FFFFFF', fontSize: 8, lineHeight: 10, fontWeight: '900' },
+  bossGround: { position: 'absolute', bottom: -3, width: '96%', height: 15, borderWidth: 2, borderRadius: 40, zIndex: 0 },
+  targetLock: { position: 'absolute', left: 0, right: 0, bottom: -4, height: 12, borderWidth: 1.5,
+    borderRadius: 40, backgroundColor: '#101B2420' },
   activeUnderline: { position: 'absolute', bottom: 0, height: 2, width: '80%', borderRadius: 2 },
   impactRing: { position: 'absolute', left: -3, right: -3, bottom: -3, height: 12, borderWidth: 1.5, borderRadius: 99 },
   selectionFrame: { position: 'absolute', left: -2, right: -2, bottom: -2, height: 10, borderWidth: 1.5, borderRadius: 99 },

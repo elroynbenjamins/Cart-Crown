@@ -23,6 +23,44 @@ export function battleSpectacleCue(difficulty: 'Normal' | 'Elite' | 'Boss') {
   }
 }
 
+/**
+ * Compact battle-only formation cue. Derive the description from authored slot
+ * counts, not current survivors: a routed squad must not make the line visually
+ * reorganize or change the formation's tactical identity.
+ */
+export function stageFormationReadout(shape: FormationShapeDefinition) {
+  const front = shape.rows.front.length;
+  const middle = shape.rows.middle.length;
+  const rear = shape.rows.rear.length;
+  const posture = middle === 0
+    ? 'No middle rank'
+    : front >= 5
+      ? 'Wide frontline'
+      : rear >= 4
+        ? 'Deep rear line'
+        : middle >= 4
+          ? 'Strong center'
+          : front >= 4
+            ? 'Forward pressure'
+            : front < middle
+              ? 'Protected center'
+              : 'Balanced ranks';
+  return {
+    posture,
+    ranks: front + ' front · ' + middle + ' mid · ' + rear + ' rear',
+    label: shape.name + ' · ' + posture
+  } as const;
+}
+
+export const stageRoleLetters: Readonly<Record<UnitRole, string>> = {
+  frontline: 'F',
+  melee: 'M',
+  ranged: 'R',
+  support: '+',
+  cavalry: 'C',
+  skirmish: 'K'
+};
+
 export type ArmySide = 'ally' | 'enemy';
 export type ExchangeRecord = Readonly<{ exchange: number; dealt: number; taken: number; healed: number; skill: string | null }>;
 export type StageToken = Readonly<{ slot: number; x: number; y: number; size: number; row: 'front' | 'middle' | 'rear' }>;
