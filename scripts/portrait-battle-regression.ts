@@ -59,6 +59,27 @@ for (const width of [240, 320, 360, 412, 480, 768]) for (const height of [480, 5
   }
 }
 assert.equal(JSON.stringify(formationShapes), snapshot);
+for (const shape of formationShapes) {
+  const before = JSON.stringify(shape);
+  const readout = model.stageFormationReadout(shape);
+  check(readout.ranks === shape.rows.front.length + ' front · ' + shape.rows.middle.length +
+    ' mid · ' + shape.rows.rear.length + ' rear',
+    'Battle formation count must describe authored rank positions');
+  check(readout.label.includes(shape.name) && readout.posture.length > 0,
+    'Formation identity must be legible without opening a detail modal');
+  check(JSON.stringify(shape) === before, 'Battle readout cannot mutate formation rules');
+}
+check(model.stageFormationReadout(compactShapePlaceholder('iron_wall_501')).posture === 'No middle rank',
+  'Iron Wall must warn that its middle rank is intentionally absent');
+check(model.stageFormationReadout(compactShapePlaceholder('layered_core_231')).posture === 'Protected center',
+  'Layered Core must visually communicate its deep reserve');
+check(model.stageRoleLetters.frontline !== model.stageRoleLetters.ranged &&
+  model.stageRoleLetters.support !== model.stageRoleLetters.cavalry,
+  'Distinct battlefield roles need distinct compact markers');
+function compactShapePlaceholder(id: string) {
+  return formationShapes.find(shape => shape.id === id)!;
+}
+
 const wide = formationShapes.find(s => s.id === 'wide_vanguard_522')!;
 const positions = model.stageTokens(wide, [0,1,2,3,4,5,6,7,8], 'ally', 340, 400);
 const span = (row: model.Rank) => { const xs = positions.filter(p => p.row === row).map(p => p.x); return Math.max(...xs) - Math.min(...xs); };
@@ -202,11 +223,33 @@ for (const theme of Object.values(themes)) for (const difficulty of ['Normal', '
     'Encounter difficulty must be visible in light and dark themes.');
   check(all.filter(node => String(node.props.testID ?? '').startsWith('boss-actor-identity-')).length === (difficulty === 'Boss' ? 1 : 0),
     'Only a real boss token receives the boss insignia.');
+  check(all.filter(node => String(node.props.testID ?? '').startsWith('boss-stage-ground-')).length === (difficulty === 'Boss' ? 1 : 0),
+    'Only living bosses receive the enhanced static ground silhouette.');
+  check(all.filter(node => String(node.props.testID ?? '').startsWith('enemy-stage-role-')).length === (difficulty === 'Boss' ? 0 : 1),
+    'Normal and Elite enemies need role labels; named bosses keep their own insignia.');
+  check(all.filter(node => String(node.props.testID ?? '').startsWith('ally-stage-role-')).length === 1,
+    'The existing Human squad role is readable directly on the stage.');
+  check(all.some(node => node.props.testID === 'battle-target-lock-0'),
+    'The current target must have a static anchor even before motion preference resolves.');
+  for (const id of ['ally-formation-posture', 'enemy-formation-posture']) {
+    check(all.some(node => node.props.testID === id),
+      'Both factions require an in-place formation posture readout: ' + id);
+  }
   check(all.filter(node => String(node.props.testID ?? '').startsWith('battle-target-spark-')).length === 0,
     'No decorative hit sparks before reduced motion preference resolves.');
 }
 check(!file.includes('Animated.loop(') && !file.includes('setInterval('),
   'Battle spectacle must reuse the exchange pulse, not add a new animation clock.');
+states=[];appearance.theme=themes.dark;
+const pausedTree = nodes(render({ paused: true, difficulty: 'Boss', enemies: [{ ...props.enemies[0], boss: true }] }));
+check(pausedTree.some(node => node.props.testID === 'battle-target-lock-0'),
+  'Paused and reduced-motion combat still needs a legible locked target');
+check(pausedTree.some(node => node.props.testID === 'boss-stage-ground-0'),
+  'Boss stage identity remains visible while animation is paused');
+const routedTree = nodes(render({ enemies: [{ ...props.enemies[0], down: true, boss: true }] }));
+check(!routedTree.some(node => String(node.props.testID ?? '').startsWith('boss-stage-ground-')) &&
+  !routedTree.some(node => String(node.props.testID ?? '').startsWith('battle-target-lock-')),
+  'Routed bosses must not retain misleading active threat and target indicators');
 
 states=[];let tree=render();
 let rail=nodes(tree).find(n=>n.props.testID==='ally-portrait-rail');
