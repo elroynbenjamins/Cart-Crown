@@ -190,7 +190,9 @@ jobs:
           profile: pixel_2
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
-          script: python3 scripts/android-native-smoke.py --apk artifacts/android/cart-crown-ci.apk --probe artifacts/android/ui-probe.apk --out artifacts/android/smoke
+          script: |
+            python3 scripts/android-native-smoke.py --apk artifacts/android/cart-crown-ci.apk --probe artifacts/android/ui-probe.apk --out artifacts/android/smoke
+            python3 scripts/android-visual-baseline-audit.py --out artifacts/android/smoke --source artifacts/android/source-commit.txt
       - name: Retain lightweight screenshots and smoke report
         if: always()
         uses: actions/upload-artifact@v4
@@ -200,6 +202,7 @@ jobs:
             artifacts/android/source-commit.txt
             artifacts/android/smoke/*.png
             artifacts/android/smoke/smoke-report.json
+            artifacts/android/smoke/screenshot-baseline-audit.json
             artifacts/android/smoke/actions.json
           if-no-files-found: warn
           retention-days: 7
