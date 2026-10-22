@@ -301,6 +301,7 @@ export function CampaignScreen({
     activeFaction,
     chapterNumber,
     chapterNodes,
+    activeSquadCap,
     settlementUpgraded,
     firstPromotionComplete,
     mercenaryPatrolWon,
@@ -442,6 +443,7 @@ export function CampaignScreen({
       <HumanCampaignFrontCard
         chapterNumber={chapterNumber}
         nodes={chapterNodes}
+        activeSquadCap={activeSquadCap}
         accent={currentChapterVisual.glow}
         tint={currentChapterVisual.tint}
       />
