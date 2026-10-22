@@ -202,7 +202,7 @@ jobs:
             artifacts/android/smoke/smoke-report.json
             artifacts/android/smoke/actions.json
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 90
       - name: Retain APK, build evidence and real emulator captures
         if: always()
         uses: actions/upload-artifact@v4
@@ -210,4 +210,4 @@ jobs:
           name: android-native-${{ github.run_id }}
           path: artifacts/android/
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 90
