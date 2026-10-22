@@ -97,7 +97,7 @@ export function HumanMissionScreen({
         accent={theme.colors.human}
       />
 
-      <EventIllustration>
+      <EventIllustration initiallyExpanded>
         <View
           style={[
             styles.artFrame,
@@ -163,7 +163,7 @@ export function HumanMissionScreen({
           ]}
         >
           {mission.type === 'choice'
-            ? 'This is a linear story milestone, not a saved branching choice. It does not lock an alternate doctrine; completing it awards the resources once.'
+            ? 'This is a story milestone. Continuing does not lock another doctrine or route. The listed reward is earned once.'
             : mission.type === 'upgrade'
               ? 'This is campaign progression, not a shop purchase. Completing the mission advances the Human campaign.'
               : 'Resolve the current campaign objective to advance to the next mission.'}
