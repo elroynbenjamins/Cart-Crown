@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { getHumanLateMission } from '../game/humanLateCampaign';
@@ -9,7 +9,8 @@ import {
   EventResolution,
   EventRewardPanel
 } from '../ui/CampaignEventUI';
-import { GameCard } from '../ui/components';
+import { GameCard, SecondaryButton } from '../ui/components';
+import { humanMissionReportState } from '../ui/humanMissionReportState';
 import { humanCampaignArtworkForMission } from '../ui/humanCampaignMissionArt';
 import { SemanticChip } from '../ui/SemanticUI';
 import {
@@ -32,32 +33,37 @@ export function HumanMissionScreen({
     completeHumanLateMission
   } = useGame();
   const mission = getHumanLateMission(nodeId);
+  const [resolvedNodeId, setResolvedNodeId] = useState<string | null>(null);
+  const node = chapterNodes.find(candidate => candidate.id === nodeId);
+  const reportState = humanMissionReportState({
+    activeFaction,
+    chapterNumber,
+    missionChapter: mission?.chapter ?? null,
+    node,
+    resolvedOnThisScreen: resolvedNodeId === nodeId
+  });
 
-  if (!mission || activeFaction !== 'human') {
+  if (!mission || reportState === 'unavailable') {
     return (
       <View style={styles.unavailable}>
         <DecisionIntro
           eyebrow="HUMAN CAMPAIGN"
           title="Mission unavailable"
-          body="Return to the Human campaign and open the current mission again."
+          body="This report is no longer the active Human mission. Return to Campaign to continue with the current objective."
           accent={theme.colors.textMuted}
         />
+        <SecondaryButton label="Return to Campaign" onPress={onContinue} />
       </View>
     );
   }
 
-  const node = chapterNodes.find(
-    candidate => candidate.id === nodeId
-  );
-  const completed = Boolean(node?.completed);
-  const canResolve =
-    chapterNumber === mission.chapter &&
-    Boolean(node?.current);
+  const completed = reportState === 'completed';
+  const canResolve = reportState === 'ready';
   const label =
     mission.type === 'choice'
-      ? 'Commit choice'
+      ? 'Continue story'
       : mission.type === 'upgrade'
-        ? 'Complete upgrade'
+        ? 'Complete milestone'
         : 'Resolve mission';
 
   return (
@@ -67,9 +73,11 @@ export function HumanMissionScreen({
       canResolve={canResolve}
       label={label}
       continueLabel="Return to Campaign"
-      onResolve={() =>
-        completeHumanLateMission(nodeId)
-      }
+      onResolve={() => {
+        const accepted = completeHumanLateMission(nodeId);
+        if (accepted) setResolvedNodeId(nodeId);
+        return accepted;
+      }}
       onContinue={onContinue}
     >
       <View style={styles.badges}>
@@ -79,10 +87,10 @@ export function HumanMissionScreen({
           tone="blue"
         />
         <SemanticChip
-          label={mission.type.toUpperCase()}
+          label={mission.type === 'choice' ? 'STORY MILESTONE' : mission.type === 'upgrade' ? 'CAMPAIGN MILESTONE' : mission.type.toUpperCase()}
           tone={
             mission.type === 'choice'
-              ? 'violet'
+              ? 'blue'
               : mission.type === 'upgrade'
                 ? 'positive'
                 : 'neutral'
@@ -97,7 +105,7 @@ export function HumanMissionScreen({
         accent={theme.colors.human}
       />
 
-      <EventIllustration>
+      <EventIllustration initiallyExpanded>
         <View
           style={[
             styles.artFrame,
@@ -146,7 +154,7 @@ export function HumanMissionScreen({
             { color: theme.colors.gold }
           ]}
         >
-          MISSION OUTCOME
+          {mission.type === 'choice' || mission.type === 'upgrade' ? 'CAMPAIGN STORY BEAT' : 'MISSION OUTCOME'}
         </Text>
         <Text
           style={[
@@ -163,9 +171,9 @@ export function HumanMissionScreen({
           ]}
         >
           {mission.type === 'choice'
-            ? 'This choice changes the immediate tactical emphasis only; it does not permanently lock the alternate doctrine.'
+            ? 'This is a story milestone. Continuing does not lock another doctrine or route. The listed reward is earned once.'
             : mission.type === 'upgrade'
-              ? 'This is campaign progression, not a shop purchase. Completing the mission advances the Human campaign.'
+              ? 'This advances the campaign; it does not buy research or apply a separate equipment upgrade. Any actual squad slots unlock through the game progression rules.'
               : 'Resolve the current campaign objective to advance to the next mission.'}
         </Text>
       </GameCard>
@@ -189,7 +197,7 @@ export function HumanMissionScreen({
 }
 
 const styles = StyleSheet.create({
-  unavailable: { padding: 12 },
+  unavailable: { padding: 12, gap: 12 },
   badges: {
     flexDirection: 'row',
     flexWrap: 'wrap',

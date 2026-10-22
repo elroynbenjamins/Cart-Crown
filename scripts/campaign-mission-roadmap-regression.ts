@@ -347,11 +347,16 @@ assert(
     campaignScreenSource.includes('ELITE ENCOUNTER'),
   'Human elite and chapter-finale missions must retain distinct presentation'
 );
+const frontCardSource = fs.readFileSync(
+  path.join(process.cwd(), 'src/ui/HumanCampaignFrontCard.tsx'),
+  'utf8'
+);
 assert(
-  campaignScreenSource.includes('chapterIdentity') &&
-    campaignScreenSource.includes('SIGNATURE THREAT') &&
-    campaignScreenSource.includes('currentChapterVisual.force'),
-  'Human campaign must retain the chapter war-state identity panel'
+  campaignScreenSource.includes('<HumanCampaignFrontCard') &&
+    frontCardSource.includes('cue.squadMessage') &&
+    frontCardSource.includes('cue.bossState') &&
+    frontCardSource.includes('cue.nextMissionName'),
+  'Human campaign must retain live squad strength, boss threat and current objective'
 );
 assert(
   journeyMapSource.includes('points.slice(0, 8)'),

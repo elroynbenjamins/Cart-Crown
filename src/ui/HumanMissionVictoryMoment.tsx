@@ -3,6 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { humanCampaignArtworkForMission } from './humanCampaignMissionArt';
 import type { HumanBattleResultMoment } from './humanBattleResultPresentation';
+import { humanChapterStories } from './humanCampaignStoryPresentation';
 
 /**
  * Results-screen artwork and story beat. No claims, state writes or navigation:
@@ -12,6 +13,7 @@ export function HumanMissionVictoryMoment({ moment }: { moment: HumanBattleResul
   const { theme } = useGameTheme();
   const art = humanCampaignArtworkForMission(moment.chapter, moment.missionOrder);
   const accent = moment.boss ? theme.colors.gold : theme.colors.human;
+  const story = humanChapterStories[moment.chapter];
   const eyebrow = moment.final
     ? 'HUMAN CAMPAIGN COMPLETE · 70 / 70'
     : moment.boss
@@ -47,16 +49,20 @@ export function HumanMissionVictoryMoment({ moment }: { moment: HumanBattleResul
         {moment.final ? 'Blackstone Has Fallen' : moment.name}
       </Text>
       <Text style={[styles.body, { color: theme.colors.textMuted }]}>
-        {moment.final
-          ? 'The final Human front is secured. The completed kingdom and its activities remain available.'
-          : moment.takeaway}
+        {moment.boss ? story.secured : moment.takeaway}
       </Text>
+      {moment.boss && moment.takeaway ? (
+        <Text style={[styles.unlockNote, { color: theme.colors.text }]}>
+          CAMPAIGN RESULT · {moment.takeaway}
+        </Text>
+      ) : null}
       {moment.nextRegion ? (
         <View style={[styles.nextFront, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
           <Text style={[styles.nextLabel, { color: accent }]}>NEXT FRONT</Text>
           <Text style={[styles.nextRegion, { color: theme.colors.text }]}>
             {moment.nextRegion} · Chapter {moment.chapter + 1}
           </Text>
+          <Text style={[styles.nextHook, { color: theme.colors.textMuted }]}>{story.nextFront}</Text>
         </View>
       ) : null}
     </View>
@@ -76,7 +82,9 @@ const styles = StyleSheet.create({
   sceneText: { color: '#FFFFFF', fontSize: 8, fontWeight: '900', letterSpacing: .65 },
   title: { fontSize: 17, lineHeight: 21, fontWeight: '900' },
   body: { fontSize: 10.5, lineHeight: 15 },
-  nextFront: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 7, flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: 'space-between' },
+  unlockNote: { fontSize: 10, lineHeight: 14, fontWeight: '800' },
+  nextFront: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 7, gap: 4 },
   nextLabel: { fontWeight: '900', fontSize: 8.5, letterSpacing: .7 },
-  nextRegion: { fontWeight: '900', fontSize: 11 }
+  nextRegion: { fontWeight: '900', fontSize: 11 },
+  nextHook: { fontSize: 10, lineHeight: 14 }
 });

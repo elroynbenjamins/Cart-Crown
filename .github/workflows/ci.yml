@@ -54,6 +54,9 @@ jobs:
       - name: Canonical campaign documentation regression
         run: npm run docs:check
 
+      - name: Human chapter storytelling and unlock-milestone regression
+        run: npm run campaign-story:check
+
       - name: Human campaign mission-art regression
         run: npm run campaign-art:check
 

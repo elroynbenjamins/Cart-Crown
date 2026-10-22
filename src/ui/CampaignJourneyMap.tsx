@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -9,6 +9,7 @@ import {
 import type { ImageSourcePropType } from 'react-native';
 import type { FactionId } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
+import { activeJourneyPointId } from './campaignJourneySelection';
 
 export type CampaignJourneyPoint = {
   id: string;
@@ -33,11 +34,13 @@ const statusLabels: Record<CampaignJourneyPoint['status'], string> = {
 export function CampaignJourneyMap({
   faction,
   accent,
-  points
+  points,
+  regionArtwork
 }: {
   faction: FactionId;
   accent: string;
   points: CampaignJourneyPoint[];
+  regionArtwork?: ImageSourcePropType;
 }) {
   const { theme } = useGameTheme();
   const defaultId =
@@ -45,18 +48,11 @@ export function CampaignJourneyMap({
     [...points].reverse().find(point => point.status === 'done')?.id ??
     points[0]?.id ??
     '';
-  const [selectedId, setSelectedId] = useState(defaultId);
-
-  useEffect(() => {
-    if (!points.some(point => point.id === selectedId)) {
-      setSelectedId(defaultId);
-    }
-  }, [defaultId, points, selectedId]);
-
-  const selected =
-    points.find(point => point.id === selectedId) ??
-    points.find(point => point.status === 'current') ??
-    points[0];
+  // A manual inspection is local to the current front. Advancing to a new
+  // region automatically focuses the new front, never a previously selected pin.
+  const [inspection, setInspection] = useState<{ frontId: string; pointId: string } | null>(null);
+  const selectedId = activeJourneyPointId(defaultId, points, inspection);
+  const selected = points.find(point => point.id === selectedId) ?? points[0];
 
   const markerPoints = useMemo(() => points.slice(0, 8), [points]);
   const routeProgress = useMemo(() => {
@@ -84,7 +80,7 @@ export function CampaignJourneyMap({
     >
       <View style={styles.map}>
         <Image
-          source={mapSources[faction]}
+          source={regionArtwork ?? mapSources[faction]}
           resizeMode="cover"
           style={styles.art}
           accessible={false}
@@ -93,7 +89,7 @@ export function CampaignJourneyMap({
           pointerEvents="none"
           style={[
             styles.artShade,
-            { backgroundColor: theme.colors.surface1 + '32' }
+            { backgroundColor: theme.dark ? '#07152366' : '#10283A44' }
           ]}
         />
         <View
@@ -134,7 +130,8 @@ export function CampaignJourneyMap({
                   point.name + ', ' + statusLabels[point.status].toLowerCase()
                 }
                 accessibilityState={{ selected: chosen }}
-                onPress={() => setSelectedId(point.id)}
+                hitSlop={4}
+                onPress={() => setInspection({ frontId: defaultId, pointId: point.id })}
                 style={({ pressed }) => [
                   styles.markerTouch,
                   {
@@ -271,14 +268,15 @@ const styles = StyleSheet.create({
   },
   markerRow: {
     position: 'absolute',
-    left: 14,
-    right: 14,
+    left: 10,
+    right: 10,
     bottom: 18,
     flexDirection: 'row',
     justifyContent: 'space-between'
   },
   markerTouch: {
-    width: 42,
+    flex: 1,
+    minWidth: 0,
     height: 52,
     alignItems: 'center',
     justifyContent: 'center'
