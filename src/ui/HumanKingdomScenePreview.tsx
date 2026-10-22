@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { BuildingDefinition, WagonStage } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { BuildingSprite, SettlementTerrainBackdrop } from './gameArt';
-import { humanSettlementPlatePlotPositions } from './settlementActionLayout';
+import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementPlatePlotPositions } from './settlementActionLayout';
 
 type HumanStageId = WagonStage['id'];
 
@@ -43,6 +43,8 @@ export function HumanKingdomScenePreview({
   onOpenSettlement: () => void;
 }) {
   const { theme } = useGameTheme();
+  const [plateWidth, setPlateWidth] = useState(340);
+  const spriteScale = Math.min(1.12, plateWidth / 340);
   const growth = humanKingdomGrowthStage(stageId);
   const placed = plotOrder.flatMap(plotId => {
     const buildingId = buildingPlacements[plotId];
@@ -61,7 +63,18 @@ export function HumanKingdomScenePreview({
       onPress={onOpenSettlement}
       style={[styles.frame, { borderColor: theme.colors.human + 'A8', backgroundColor: theme.colors.surface1 }]}
     >
-      <View testID="kingdom-settlement-plate" pointerEvents="none" importantForAccessibility="no-hide-descendants" style={styles.plate}>
+      <View
+        testID="kingdom-settlement-plate"
+        pointerEvents="none"
+        importantForAccessibility="no-hide-descendants"
+        onLayout={event => {
+          const width = event.nativeEvent.layout.width;
+          if (Number.isFinite(width) && width > 0) {
+            setPlateWidth(previous => Math.abs(previous - width) < 0.5 ? previous : width);
+          }
+        }}
+        style={styles.plate}
+      >
         <SettlementTerrainBackdrop faction="human" stageId={stageId} />
         {placed.map(({ plotId, building }) => {
           const landmark = plotId === 'plot_center';
@@ -86,14 +99,16 @@ export function HumanKingdomScenePreview({
                 style={[
                   styles.footprint,
                   landmark ? styles.landmarkFootprint : undefined,
-                  { transform: [{ scaleX: depthScale }] }
+                  { transform: [{ scaleX: depthScale * spriteScale }, { scaleY: spriteScale }] }
                 ]}
               />
               <View style={[styles.buildingArt, landmark ? styles.landmarkBuildingArt : undefined]}>
                 <BuildingSprite
                   buildingId={building.id}
                   faction="human"
-                  size={landmark ? 128 : Math.round(76 * depthScale)}
+                  // Match the interactive settlement's 142px hall and 1.14×
+                  // standard-building world pad, including narrow-phone scaling.
+                  size={Math.round((landmark ? 142 : 76 * depthScale * 1.14) * spriteScale)}
                 />
               </View>
             </View>
@@ -129,7 +144,7 @@ const styles = StyleSheet.create({
   frame: { borderWidth: 1.5, borderRadius: 16, overflow: 'hidden', width: '100%' },
   // Match the uncropped 540 × 960 production plates. Altering this ratio
   // would shift visible building feet away from their painted ground plots.
-  plate: { width: '100%', aspectRatio: 540 / 960, position: 'relative', overflow: 'hidden' },
+  plate: { width: '100%', aspectRatio: HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, position: 'relative', overflow: 'hidden' },
   plot: {
     position: 'absolute', width: '28%', height: '24%',
     alignItems: 'center', justifyContent: 'center'
@@ -141,7 +156,7 @@ const styles = StyleSheet.create({
   },
   landmarkFootprint: { marginLeft: -48, width: 96, height: 26, bottom: '18%' },
   buildingArt: { alignItems: 'center', justifyContent: 'flex-end', transform: [{ translateY: -2 }] },
-  landmarkBuildingArt: { transform: [{ translateY: -12 }] },
+  landmarkBuildingArt: { transform: [{ translateY: -17 }] },
   topShade: { position: 'absolute', left: 0, right: 0, top: 0, height: '17%', backgroundColor: '#101E25', opacity: 0.14 },
   stagePlaque: {
     position: 'absolute', top: 10, left: 10, right: '20%',
