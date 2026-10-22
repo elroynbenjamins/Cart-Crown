@@ -2,6 +2,7 @@ import { humanFigureForClass } from './portraitBattle/humanArt';
 import { ReferenceArt } from './portraitBattle/Art';
 import { TreasurySprite } from './TreasuryArt';
 import { humanSettlementAtlasBase64 } from './generated/humanSettlementAtlas';
+import { humanSettlementStagePlate } from './settlementActionLayout';
 import React from 'react';
 import { AccessibilityInfo, Animated, Easing, Image, View } from 'react-native';
 import type {
@@ -4281,6 +4282,9 @@ function HumanSettlementGrowthOverlay({
   const stone = grand ? '#4C5053' : capital ? '#555B5F' : '#5E6260';
   const stoneLight = grand ? '#777D80' : '#82898B';
   const banner = grand ? '#D7AE4A' : capital ? '#C49A43' : '#547CAC';
+  const peopleAtlasReady = Boolean(getProductionAssetSource('ui.settlement_people_human_atlas'));
+  const worldAtlasReady = Boolean(getProductionAssetSource('ui.settlement_world_human_atlas'));
+  const sceneAtlasReady = Boolean(getProductionAssetSource('ui.settlement_scene_human_v2_atlas'));
 
   return (
     <View
@@ -4408,6 +4412,40 @@ function HumanSettlementGrowthOverlay({
         </>
       ) : null}
 
+      {/* Stage-bound environmental life is placed on the outer road verge,
+          not on any movable plot. Static atlas figures are crisp at phone scale
+          and do not add nine more independent animation loops to the hero. */}
+      {peopleAtlasReady ? (['7%', '86%'] as const).map((left, index) => (
+        <View key={'human-rim-guard-' + index} style={{
+          position: 'absolute', left, bottom: grand ? '10%' : '8%'
+        }}>
+          <SettlementDetailAtlasSprite
+            assetId="ui.settlement_people_human_atlas"
+            cell={grand ? settlementPeopleHumanCells.knight : settlementPeopleHumanCells.guard}
+            size={grand ? 33 : capital ? 28 : 24}
+            opacity={grand ? 0.94 : 0.78}
+          />
+        </View>
+      )) : null}
+      {!capital && worldAtlasReady ? (
+        <View style={{ position: 'absolute', left: '3%', bottom: '6%' }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_world_human_atlas"
+            cell={settlementWorldHumanCells.target_sign} size={29} opacity={0.75} />
+        </View>
+      ) : null}
+      {capital && sceneAtlasReady && !grand ? (
+        <View style={{ position: 'absolute', left: '45%', bottom: '4%' }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_scene_human_v2_atlas"
+            cell={settlementSceneHumanV2Cells.fountain} size={38} opacity={0.78} />
+        </View>
+      ) : null}
+      {grand && peopleAtlasReady ? (
+        <View style={{ position: 'absolute', right: '8%', bottom: '2%' }}>
+          <SettlementDetailAtlasSprite assetId="ui.settlement_people_human_atlas"
+            cell={settlementPeopleHumanCells.horse} size={34} opacity={0.9} />
+        </View>
+      ) : null}
+
       {grand ? (
         <>
           {([
@@ -4468,16 +4506,7 @@ export function SettlementTerrainBackdrop({
   stageId?: WagonStage['id'];
 }) {
   if (faction === 'human') {
-    const backgroundStage =
-      stageId === 'camp'
-        ? 'camp'
-        : stageId === 'settlement'
-          ? 'settlement'
-          : stageId === 'fort'
-            ? 'fort'
-            : stageId === 'town'
-              ? 'town'
-              : 'capital';
+    const backgroundStage = humanSettlementStagePlate(stageId);
     const background = settlementBackgroundProductionAsset('human', backgroundStage);
     const source = getProductionAssetSource(background.id);
     if (source) {
