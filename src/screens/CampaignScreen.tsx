@@ -1408,7 +1408,7 @@ export function CampaignScreen({
       <ScreenHero
         eyebrow="CAMPAIGNS"
         title="Three Perspectives"
-        body="Humans are the required first campaign. Finishing Human Chapter 6 unlocks Elves and Orcs together. Completing all three unlocks the final Three Seals campaign."
+        body="Humans are the required first campaign. Complete all seven Human chapters to unlock Elves and Orcs together. Completing all three faction campaigns unlocks the Three Seals finale."
         accent={theme.colors.gold}
         status={
           <StatusPill
