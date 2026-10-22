@@ -13,6 +13,12 @@ The last successful pre-Phase-0 Android native validation ran on [GitHub Actions
 
 Source capture script: [`scripts/android-native-smoke.py`](../scripts/android-native-smoke.py). Native workflow: [`.github/workflows/android-native.yml`](../.github/workflows/android-native.yml). Screens from earlier artifacts must not be passed off as captures of a later SHA.
 
+## Extended native capture pass — pending verification
+
+The Phase 0 screen-baseline branch extends `scripts/android-native-smoke.py` with **best-effort** installed-APK captures after the mandatory opening battle: Kingdom in Pure Black/Light/Charcoal, interactive Settlement, Formation, Wagon, Army and postbattle Campaign for both viewport scenarios. The script logs `supplemental_captures` and `supplemental_capture_errors` in each battle's report.
+
+**Evidence rule:** the new filenames are proposed outputs, **not verified screenshots** until a successful branch-head Android native run includes real PNG files and reports. Optional captures do not turn the tutorial/battle/save smoke red if a navigation path is temporarily unavailable. Treat any missing image as open. This expands early-campaign coverage only; mid/late stages and physical devices still require fixtures and review.
+
 ## Missing Phase 0 visual acceptance matrix
 
 | Screen | Early Human | Mid Human | Late Human | Compact + regular | Three themes | State |
