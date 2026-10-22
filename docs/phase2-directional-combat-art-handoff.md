@@ -1,7 +1,7 @@
 # Phase 2 — Directional Battle Sprite Production & Acceptance Handoff
 
 **Scope:** Cart & Crown / Backpack Kingdoms, portrait battle renderer `src/ui/portraitBattle/PortraitBattleView.tsx`.
-**State at 2026-10-22:** Stage geometry, facing indicators, damage-linked effects, integrity feedback and additional signature-boss silhouettes are implemented on PR #201. **Dedicated directional PNG sprite poses are NOT yet integrated.** The generated battle illustration is a concept/reference, not proof of in-game artwork.
+**State at 2026-10-22:** Stage geometry, facing indicators, damage-linked effects, integrity feedback and additional signature-boss silhouettes are implemented on PR #201. **Dedicated directional PNG sprite poses are NOT yet integrated.** The stage-only opt-in selection and image fallback code are wired, but no directional sprites are registered until approved. The generated battle illustration is a concept/reference, not proof of in-game artwork.
 
 ## Camera and facing contract
 
