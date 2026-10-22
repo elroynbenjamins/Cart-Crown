@@ -245,7 +245,10 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'BuildingSprite').filter(node => Number(node.props.size) >= 80).length === 1, 'Only the central landmark should use oversized settlement scale at the initial layout.');
     const placedBuildingCount = Object.values(f.game.buildingPlacements).filter(Boolean).length;
     const ambience = nodes(tree, 'SettlementBuildingAmbience');
-    check(ambience.length === placedBuildingCount, 'Placed buildings must carry ambient life and props.');
+    check(ambience.length === (faction === 'human' ? 1 : placedBuildingCount),
+      'Unselected Human buildings should not clutter the scenery with mismatched mini-props; other factions retain the original ambient details.');
+    if (faction === 'human') check(ambience[0]?.props.role === 'KINGDOM',
+      'The Great Hall must preserve quiet ambient life before a building is selected.');
     check(ambience.every(node => node.props.faction === faction), 'Building ambience must remain faction-scoped.');
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
     check(ambience.every(node => {
