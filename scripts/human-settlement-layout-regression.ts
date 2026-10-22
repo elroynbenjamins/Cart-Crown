@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO,
   HUMAN_SETTLEMENT_PLOT_HEIGHT,
@@ -6,6 +7,7 @@ import {
   HUMAN_SETTLEMENT_LANDMARK_HEIGHT,
   HUMAN_SETTLEMENT_LANDMARK_WIDTH,
   HUMAN_SETTLEMENT_STAGE_PLATES,
+  humanSettlementBuildingSpriteSize,
   humanSettlementPlatePlotCenters,
   humanSettlementPlatePlotCenter,
   humanSettlementPlatePlotPositions,
@@ -55,7 +57,33 @@ for (const width of [280, 320, 340, 388, 438]) {
     assert.ok(geometry.width <= width, width + ' ' + plotId + ' action too wide');
     assert.ok(geometry.left + geometry.width <= width + 0.001, width + ' ' + plotId + ' action outside right');
     assert.ok(geometry.top + 112 <= height + 0.001, width + ' ' + plotId + ' action outside bottom');
+
+    const hall = humanSettlementBuildingSpriteSize(plotId, 'KINGDOM', width);
+    const barracks = humanSettlementBuildingSpriteSize(plotId, 'ARMY', width);
+    assert.ok(hall > barracks, plotId + ' must preserve Hall silhouette after relocation');
+    assert.ok(hall >= 60 && hall <= 160, plotId + ' Hall would dominate/clamp the scene');
+    assert.ok(barracks >= 45 && barracks <= 140, plotId + ' regular building size is out of range');
   }
+  const northern = humanSettlementBuildingSpriteSize('plot_n', 'ARMY', width);
+  const southern = humanSettlementBuildingSpriteSize('plot_s', 'ARMY', width);
+  assert.ok(southern > northern, 'Depth scale must favor the foreground without changing plot IDs');
+  assert.equal(humanSettlementBuildingSpriteSize('plot_n', 'ARMY', NaN),
+    humanSettlementBuildingSpriteSize('plot_n', 'ARMY', 340),
+    'Unmeasured width must have a stable default size');
 }
 
-console.log('Human settlement plate geometry: nine aligned plots, seven stages and compact action anchors OK.');
+// Check actual runtime wiring as well as pure geometry: a helper not consumed
+// by both screens would allow the visual contracts to drift again.
+const previewSource = readFileSync('src/ui/HumanKingdomScenePreview.tsx', 'utf8');
+const settlementSource = readFileSync('src/screens/SettlementScreen.tsx', 'utf8');
+const gameArtSource = readFileSync('src/ui/gameArt.tsx', 'utf8');
+assert.match(previewSource, /humanSettlementBuildingSpriteSize\(plotId, building\.role, plateWidth\)/);
+assert.match(settlementSource, /humanSettlementBuildingSpriteSize\(plot\.id, building\.role, mapWidth\)/);
+assert.match(gameArtSource, /human-stage-environment-/);
+assert.match(gameArtSource, /human-stronghold-supply-caravan/);
+assert.match(gameArtSource, /capital-quayside-market-/);
+assert.match(gameArtSource, /human-grand-campaign-standard/);
+assert.doesNotMatch(gameArtSource, /grand-campaign-tent-/,
+  'Campaign tents should not return to the visible water at the foot of the Capital plate');
+
+console.log('Human settlement geometry, relocated Hall scale and seven-tier visual wiring OK.');
