@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { ViewStyle } from 'react-native';
-import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementBuildingSpriteSize, humanSettlementPlatePlotCenters, humanSettlementPlatePlotPositions as humanSettlementBackgroundPositions, settlementActionLayout } from '../ui/settlementActionLayout';
+import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementBuildingSpriteSize, humanSettlementPlotDepthIndex, humanSettlementPlatePlotCenters, humanSettlementPlatePlotPositions as humanSettlementBackgroundPositions, settlementActionLayout } from '../ui/settlementActionLayout';
 import {
   analyzeSettlementAdjacency, getSettlementAdjacencyBonuses,
   getSettlementPlots, isSettlementPlotUnlocked
@@ -1286,6 +1286,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   faction={activeFaction}
                   focused={connection.focused}
                   size={58}
+                  animated={districtAnalysisVisible && connection.focused}
                 />
               </View>
             ))}
@@ -1373,7 +1374,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const ambienceSize = worldRebuildActive
             ? landmark ? 118 : Math.round(78 * depthScale)
             : landmark ? 126 : Math.round(94 * depthScale);
-          const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : landmark ? 16 : 5 + plot.row * 5;
+          const plotZIndex = tutorialPlotFocused || selected ? 30 : districtMemberFocused ? 29 : relocationPlanVisible ? 27 : districtPreviewPartner ? 26 : celebrationFocused ? 24 : humanStagePlateActive ? humanSettlementPlotDepthIndex(plot.id) : landmark ? 16 : 5 + plot.row * 5;
           const buildingDistrictBonuses = building
             ? settlementAdjacencyBonuses.filter(bonus => bonus.buildingA === building.id || bonus.buildingB === building.id)
             : [];
@@ -1696,6 +1697,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       level={level}
                       activeDistricts={districtCount}
                       size={ambienceSize}
+                      animated={buildingSelected || building.role === 'KINGDOM'}
                     />
                   </View>
                   <View
