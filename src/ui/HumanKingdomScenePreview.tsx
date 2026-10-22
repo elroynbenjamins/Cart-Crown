@@ -106,8 +106,6 @@ export function HumanKingdomScenePreview({
                 <BuildingSprite
                   buildingId={building.id}
                   faction="human"
-                  // Match the interactive settlement's 142px hall and 1.14×
-                  // standard-building world pad, including narrow-phone scaling.
                   size={Math.round((landmark ? 142 : 76 * depthScale * 1.14) * spriteScale)}
                 />
               </View>
