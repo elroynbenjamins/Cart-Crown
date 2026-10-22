@@ -70,3 +70,18 @@ export const humanSettlementPlatePlotCenters: Record<string, { x: number; y: num
   Object.fromEntries(
     Object.keys(humanSettlementPlatePlotPositions).map(id => [id, humanSettlementPlatePlotCenter(id)!])
   );
+
+/** Five shipped plates cover seven stages. Advanced stages add distinct rim-only overlays. */
+export const HUMAN_SETTLEMENT_STAGE_PLATES = {
+  camp: 'camp',
+  settlement: 'settlement',
+  fort: 'fort',
+  town: 'town',
+  stronghold: 'capital',
+  capital: 'capital',
+  grand: 'capital'
+} as const;
+
+export function humanSettlementStagePlate(stageId: string): typeof HUMAN_SETTLEMENT_STAGE_PLATES[keyof typeof HUMAN_SETTLEMENT_STAGE_PLATES] {
+  return HUMAN_SETTLEMENT_STAGE_PLATES[stageId as keyof typeof HUMAN_SETTLEMENT_STAGE_PLATES] ?? 'camp';
+}
