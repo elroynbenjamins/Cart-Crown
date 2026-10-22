@@ -8,6 +8,7 @@ import {
   View
 } from 'react-native';
 import type { SaveSlotId } from '../save/types';
+import { isFactionCampaignReleased, releaseCampaignScope } from '../game/releaseCampaignScope';
 import { useSaveSystem } from '../save/SaveProvider';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard, PrimaryButton, SecondaryButton, StatusPill } from '../ui/components';
@@ -26,7 +27,7 @@ function formatDate(value: string) {
 
 export function SaveSelectScreen() {
   const { theme } = useGameTheme();
-  const { ready, loadError, retryLoad, slots, selectSlot, createSlot, deleteSlot } = useSaveSystem();
+  const { ready, loadError, retryLoad, slotSelectionMessage, slots, selectSlot, createSlot, deleteSlot } = useSaveSystem();
   const [deleteArmed, setDeleteArmed] = useState<SaveSlotId | null>(null);
   const [sceneWidth, setSceneWidth] = useState(0);
 
@@ -99,9 +100,15 @@ export function SaveSelectScreen() {
           </View>
           <Text style={[styles.title, { color: theme.colors.text }]}>Choose a Save</Text>
           <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-            From two survivors to a kingdom. Choose where your story continues.
+            Human campaign · Version {releaseCampaignScope.version}. From two survivors to a kingdom.
           </Text>
         </GameCard>
+
+        {slotSelectionMessage ? (
+          <Text accessibilityRole="alert" style={[styles.slotWarning, { color: theme.colors.danger }]}>
+            {slotSelectionMessage}
+          </Text>
+        ) : null}
 
         <View style={styles.slots}>
           {slotIds.map((slotId, index) => {
@@ -154,19 +161,24 @@ export function SaveSelectScreen() {
                         <View style={styles.unlockFaction}>
                           <FactionCrest faction="elf" size={24} />
                           <StatusPill
-                            label={metadata.elfCampaignUnlocked ? 'ELVES READY' : 'ELVES LOCKED'}
-                            tone={metadata.elfCampaignUnlocked ? 'available' : 'locked'}
+                            label={!isFactionCampaignReleased('elf') ? 'FUTURE UPDATE' : metadata.elfCampaignUnlocked ? 'ELVES READY' : 'ELVES LOCKED'}
+                            tone={isFactionCampaignReleased('elf') && metadata.elfCampaignUnlocked ? 'available' : 'locked'}
                           />
                         </View>
                         <View style={styles.unlockFaction}>
                           <FactionCrest faction="orc" size={24} />
                           <StatusPill
-                            label={metadata.orcCampaignUnlocked ? 'ORCS READY' : 'ORCS LOCKED'}
-                            tone={metadata.orcCampaignUnlocked ? 'available' : 'locked'}
+                            label={!isFactionCampaignReleased('orc') ? 'FUTURE UPDATE' : metadata.orcCampaignUnlocked ? 'ORCS READY' : 'ORCS LOCKED'}
+                            tone={isFactionCampaignReleased('orc') && metadata.orcCampaignUnlocked ? 'available' : 'locked'}
                           />
                         </View>
                       </View>
                     </View>
+                    {metadata.faction !== 'human' && !isFactionCampaignReleased(metadata.faction) ? (
+                      <Text style={[styles.deferNote, { color: theme.colors.textMuted }]}>
+                        Your {metadata.faction === 'elf' ? 'Elf' : 'Orc'} progress is preserved. Continue opens the Human kingdom for version 1.0.
+                      </Text>
+                    ) : null}
                     <View style={styles.actions}>
                       <View style={styles.actionGrow}>
                         <PrimaryButton label="Continue" onPress={() => void selectSlot(slotId)} />
@@ -205,9 +217,9 @@ export function SaveSelectScreen() {
         </View>
 
         <View style={[styles.note, { borderColor: theme.colors.border }]}>
-          <Text style={[styles.noteTitle, { color: theme.colors.text }]}>Two saves. Three factions to discover.</Text>
+          <Text style={[styles.noteTitle, { color: theme.colors.text }]}>One complete campaign for launch.</Text>
           <Text style={[styles.noteBody, { color: theme.colors.textMuted }]}>
-            Complete the Human campaign to unlock Elves and Orcs. Each faction keeps its own kingdom within your save, so you can return to any of them.
+            Version 1.0 focuses on all seven Human chapters. Elf, Orc and Three Seals campaigns are planned for future updates; existing progress is retained.
           </Text>
         </View>
       </ScrollView>
@@ -274,6 +286,8 @@ const styles = StyleSheet.create({
   actionGrow: { flex: 1, minWidth: 140 },
   deleteAction: { minWidth: 100, maxWidth: '100%' },
   deleteWarning: { fontSize: 10, lineHeight: 15, textAlign: 'center', marginTop: 8, fontWeight: '800' },
+  slotWarning: { fontSize: 11, lineHeight: 16, paddingHorizontal: 8, paddingVertical: 8, fontWeight: '800' },
+  deferNote: { fontSize: 10, lineHeight: 14, marginTop: 7 },
   emptyBody: { fontSize: 10.5, lineHeight: 15, marginVertical: 10 },
   note: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 12, paddingHorizontal: 3 },
   noteTitle: { fontSize: 10.5, lineHeight: 15, fontWeight: '900' },
