@@ -64,6 +64,35 @@ export const stageRoleLetters: Readonly<Record<UnitRole, string>> = {
 export type ArmySide = 'ally' | 'enemy';
 export type ExchangeRecord = Readonly<{ exchange: number; dealt: number; taken: number; healed: number; skill: string | null }>;
 export type StageToken = Readonly<{ slot: number; x: number; y: number; size: number; row: 'front' | 'middle' | 'rear' }>;
+export type IntegrityTier = 'stable' | 'pressured' | 'breaking' | 'breached';
+
+/** Use the state computed by the combat engine; visual code never sets integrity thresholds. */
+export function stageIntegrityReadout(value: number, state: IntegrityTier) {
+  const percent = Number.isFinite(value) ? Math.max(0, Math.min(100, Math.round(value))) : 100;
+  const label = state === 'stable' ? 'Stable' : state === 'pressured' ? 'Pressured'
+    : state === 'breaking' ? 'Breaking' : 'Breached';
+  return { percent, label, fractured: state === 'breaking' || state === 'breached' } as const;
+}
+
+/** A single real-damage trail on the existing exchange pulse; never invents per-squad HP. */
+export function stageAttackTrail(
+  allies: readonly StageToken[], enemies: readonly StageToken[],
+  attackerSlot: number | null, targetSlot: number | null,
+  role: UnitRole | null, actualDamage: number
+) {
+  if (!Number.isFinite(actualDamage) || actualDamage <= 0 || (role !== 'ranged' && role !== 'cavalry')) return null;
+  const attacker = allies.find(item => item.slot === attackerSlot);
+  const target = enemies.find(item => item.slot === targetSlot);
+  if (!attacker || !target) return null;
+  const x = attacker.x;
+  const y = attacker.y - attacker.size * .3;
+  return {
+    x, y,
+    dx: target.x - x,
+    dy: target.y + target.size * .3 - y,
+    kind: role === 'ranged' ? 'arrow' : 'charge'
+  } as const;
+}
 
 export const roleNames: Record<UnitRole, string> = {
   frontline: 'Frontline', melee: 'Melee', ranged: 'Ranged', support: 'Support', cavalry: 'Mounted', skirmish: 'Skirmish'
