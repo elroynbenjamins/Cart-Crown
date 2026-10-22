@@ -245,7 +245,10 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'BuildingSprite').filter(node => Number(node.props.size) >= 80).length === 1, 'Only the central landmark should use oversized settlement scale at the initial layout.');
     const placedBuildingCount = Object.values(f.game.buildingPlacements).filter(Boolean).length;
     const ambience = nodes(tree, 'SettlementBuildingAmbience');
-    check(ambience.length === placedBuildingCount, 'Placed buildings must carry ambient life and props.');
+    check(ambience.length === (faction === 'human' ? 1 : placedBuildingCount),
+      'Unselected Human buildings should not clutter the scenery with mismatched mini-props; other factions retain the original ambient details.');
+    if (faction === 'human') check(ambience[0]?.props.role === 'KINGDOM',
+      'The Great Hall must preserve quiet ambient life before a building is selected.');
     check(ambience.every(node => node.props.faction === faction), 'Building ambience must remain faction-scoped.');
     check(ambience.every(node => typeof node.props.role === 'string' && Number(node.props.level) >= 1), 'Building ambience must receive the live building role and level.');
     check(ambience.every(node => {
@@ -261,8 +264,13 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
     check(text(tree).includes('BUILD READY'), 'The recommended empty plot must show direct in-world readiness feedback.');
     check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
-    const normalMap = nodes(tree, 'View').find(node => style(node.props.style).height === 600 && style(node.props.style).position === 'relative');
-    check(Boolean(normalMap), 'Reference portrait layout must devote 600px to the settlement world scene.');
+    const normalMap = nodes(tree, 'View').find(node => node.props.testID === 'settlement-scene');
+    const normalMapStyle = normalMap ? style(normalMap.props.style) : {};
+    const expectedHeight = faction === 'human'
+      ? Math.round(Math.min(438, Math.max(260, f.h.dimensions.width - 24)) / (540 / 960))
+      : 600;
+    check(Boolean(normalMap) && normalMapStyle.position === 'relative' && normalMapStyle.height === expectedHeight,
+      'Reference portrait layout must keep the Human scene uncropped and preserve the other faction map height.');
     check(plot(tree, 'plot_se').props.disabled, 'A Town plot must remain locked at Fort.');
     choosePlot(tree, 'plot_se'); check(f.calls.length === 0, 'Locked plots must not trigger a transaction.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
@@ -320,7 +328,12 @@ function testRecipesAndInteractions() {
     check(districtAmbience?.props.faction === faction, 'District environment art must stay faction-scoped.');
     check(districtEnvironment?.props.pointerEvents === undefined, 'District environment wrapper must remain non-interactive inside a pointerEvents=none layer.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'Committed construction must clear the temporary district preview.');
-    choosePlot(tree, 'plot_nw'); tree = f.h.render();
+    // Confirming construction already focuses the new building; avoid a
+    // second tap, which is now the intentional compact-screen dismiss action.
+    if (!nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id)) {
+      choosePlot(tree, 'plot_nw');
+      tree = f.h.render();
+    }
     check(nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id), 'Selecting a structure must expose the anchored contextual action strip.');
     check(!nodes(tree, 'BuildingLevelPreview').length, 'Selecting a structure alone must not push a large inspector below the map.');
     check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'Selecting a structure alone must not enter relocation mode.');
@@ -392,8 +405,13 @@ function testRecipesAndInteractions() {
     press(tree, 'Return to Kingdom'); check(f.counts().exited === 1, 'Return navigation must preserve its callback.');
     f.h.dimensions.fontScale = 2;
     const largeTree = f.h.render();
-    const map = nodes(largeTree, 'View').find(node => style(node.props.style).height === 720 && style(node.props.style).position === 'relative');
-    check(Boolean(map), 'Larger text must expand the world viewport without changing plot geometry.');
+    const map = nodes(largeTree, 'View').find(node => node.props.testID === 'settlement-scene');
+    const mapStyle = map ? style(map.props.style) : {};
+    const expectedLargeTextHeight = faction === 'human'
+      ? Math.round(Math.min(438, Math.max(260, f.h.dimensions.width - 24)) / (540 / 960))
+      : 720;
+    check(Boolean(map) && mapStyle.height === expectedLargeTextHeight && mapStyle.position === 'relative',
+      'Large text must preserve the Human uncropped plate ratio and expand the other faction canvases.');
   }
 }
 
@@ -593,8 +611,12 @@ function testDenseDistrictZoneReadability() {
   press(tree, 'Cancel move');
   tree = f.h.render();
 
-  choosePlot(tree, 'plot_nw');
-  tree = f.h.render();
+  // The reviewed member remains selected after Cancel move. A further tap on
+  // that building closes the strip, so only select it when not already focused.
+  if (!nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id)) {
+    choosePlot(tree, 'plot_nw');
+    tree = f.h.render();
+  }
   const focusedArsenalFromBuilding = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-arsenal_district');
   const dimmedSupplyFromBuilding = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-supply_yard');
   check(style(focusedArsenalFromBuilding?.props.style).opacity === 1, 'Selecting a district member must still emphasize its own neighborhood tag.');
@@ -789,7 +811,9 @@ const settlementScreenSource = readFileSync(resolve('src/screens/SettlementScree
 check(settlementScreenSource.includes("['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id)"), 'Fort+ world layout must apply without a Human-only faction gate.');
 check(settlementScreenSource.includes("const humanStagePlateActive = activeFaction === 'human'"), 'Human stage backgrounds must drive the organic overlay geometry at every settlement tier.');
 check(settlementScreenSource.includes('humanSettlementBackgroundPositions'), 'Human stage backgrounds must keep a dedicated build-pad anchor map.');
-check(settlementScreenSource.includes('humanSettlementBackgroundCenters'), 'Human stage backgrounds must keep district geometry aligned with those build pads.');
+check(settlementScreenSource.includes('humanSettlementPlatePlotCenters') &&
+  readFileSync(resolve('src/ui/settlementActionLayout.ts'), 'utf8').includes('function humanSettlementPlatePlotCenter('),
+  'Human stage backgrounds must derive district geometry from the same build-pad positions.');
 check(settlementScreenSource.includes('settlementUnlockSnapshots'), 'Settlement unlock celebration must compare against an in-session baseline.');
 check(settlementScreenSource.includes('settlement-unlock-celebration'), 'Settlement unlock celebration must stay in-world instead of using a modal.');
 check(settlementScreenSource.includes('setTimeout(() => setUnlockCelebration(null), 2600)'), 'Settlement unlock celebration must auto-clear quickly.');

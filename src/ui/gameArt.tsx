@@ -2,6 +2,7 @@ import { humanFigureForClass } from './portraitBattle/humanArt';
 import { ReferenceArt } from './portraitBattle/Art';
 import { TreasurySprite } from './TreasuryArt';
 import { humanSettlementAtlasBase64 } from './generated/humanSettlementAtlas';
+import { humanSettlementStagePlate } from './settlementActionLayout';
 import React from 'react';
 import { AccessibilityInfo, Animated, Easing, Image, View } from 'react-native';
 import type {
@@ -2910,7 +2911,7 @@ function SettlementDetailAtlasSprite({
   );
 }
 
-function useSettlementAmbientMotion(duration = 2200) {
+function useSettlementAmbientMotion(duration = 2200, enabled = true) {
   const progress = React.useRef(new Animated.Value(0)).current;
   const [reduceMotion, setReduceMotion] = React.useState(false);
 
@@ -2930,7 +2931,7 @@ function useSettlementAmbientMotion(duration = 2200) {
 
   React.useEffect(() => {
     progress.stopAnimation();
-    if (reduceMotion) {
+    if (reduceMotion || !enabled) {
       progress.setValue(0);
       return;
     }
@@ -2953,7 +2954,7 @@ function useSettlementAmbientMotion(duration = 2200) {
     );
     loop.start();
     return () => loop.stop();
-  }, [duration, progress, reduceMotion]);
+  }, [duration, progress, reduceMotion, enabled]);
 
   return progress;
 }
@@ -3009,7 +3010,8 @@ export function SettlementBuildingAmbience({
   faction = 'human',
   level = 1,
   activeDistricts = 0,
-  size = 84
+  size = 84,
+  animated = true
 }: {
   buildingId: string;
   role: BuildingRole;
@@ -3017,6 +3019,7 @@ export function SettlementBuildingAmbience({
   level?: number;
   activeDistricts?: number;
   size?: number;
+  animated?: boolean;
 }) {
   const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
   const worldSource = getProductionAssetSource('ui.settlement_world_human_atlas');
@@ -3034,7 +3037,7 @@ export function SettlementBuildingAmbience({
   const veteran = level >= 4;
   const districtActive = activeDistricts > 0;
   const bustling = activeDistricts > 1 || level >= 3;
-  const motion = useSettlementAmbientMotion(2200 + Math.max(0, level - 1) * 120);
+  const motion = useSettlementAmbientMotion(2200 + Math.max(0, level - 1) * 120, animated);
   const idleLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.5] });
   const bannerSway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1.2deg', '1.2deg'] });
   const smokeLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -5] });
@@ -3182,19 +3185,21 @@ export function SettlementDistrictAmbience({
   category,
   faction = 'human',
   focused = false,
-  size = 58
+  size = 58,
+  animated = true
 }: {
   category: 'economy' | 'military' | 'command';
   faction?: FactionId;
   focused?: boolean;
   size?: number;
+  animated?: boolean;
 }) {
   const worldSource = getProductionAssetSource('ui.settlement_world_human_atlas');
   const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
   const sceneSource = getProductionAssetSource(settlementSceneFactionAssetIds[faction]);
   const tintColor = settlementAmbientPeopleTint[faction];
   const sceneTint = settlementSceneFactionTints[faction];
-  const motion = useSettlementAmbientMotion(category === 'economy' ? 2700 : category === 'military' ? 2400 : 3000);
+  const motion = useSettlementAmbientMotion(category === 'economy' ? 2700 : category === 'military' ? 2400 : 3000, animated);
   const drift = motion.interpolate({ inputRange: [0, 1], outputRange: [-1.5, 1.5] });
   const lift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.3] });
   const sway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1deg', '1deg'] });
@@ -4267,193 +4272,109 @@ function FactionFortWorldBackdrop({ faction }: { faction: FactionId }) {
   );
 }
 
-function HumanSettlementGrowthOverlay({
-  stageId
-}: {
-  stageId: WagonStage['id'];
-}) {
-  if (!['stronghold', 'capital', 'grand'].includes(stageId)) {
-    return null;
-  }
+/**
+ * A small layer of foreground cues for the three advanced Human tiers.
+ * The Capital plate is already a detailed architectural illustration. Do not
+ * paint oversized rectangles over its skyline or put campaign tents in the
+ * sea: keep people and props on the photographed dock (roughly 66–74%).
+ * Distinct full-sized plates remain a separate art-review task.
+ */
+function HumanSettlementGrowthOverlay({ stageId }: { stageId: WagonStage['id'] }) {
+  if (!['stronghold', 'capital', 'grand'].includes(stageId)) return null;
 
-  const capital = stageId === 'capital' || stageId === 'grand';
   const grand = stageId === 'grand';
-  const stone = grand ? '#4C5053' : capital ? '#555B5F' : '#5E6260';
-  const stoneLight = grand ? '#777D80' : '#82898B';
-  const banner = grand ? '#D7AE4A' : capital ? '#C49A43' : '#547CAC';
+  const stronghold = stageId === 'stronghold';
+  const bannerTint = grand ? '#D7B45E' : stronghold ? '#698CB9' : '#D6C49A';
+  const guards = getProductionAssetSource('ui.settlement_people_human_atlas');
+  const props = getProductionAssetSource('ui.settlement_world_human_atlas');
+  const scenes = getProductionAssetSource('ui.settlement_scene_human_v2_atlas');
 
   return (
     <View
+      testID={'human-stage-environment-' + stageId}
       pointerEvents="none"
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0
-      }}
+      style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
     >
-      {/* Distant fortified skyline: deliberately kept around the rim so plot
-          buildings remain the visual focus in the playable center. */}
-      <View
-        style={{
-          position: 'absolute',
-          left: '-2%',
-          right: '-2%',
-          top: '6%',
-          height: capital ? 17 : 13,
-          borderRadius: 4,
-          backgroundColor: stone,
-          opacity: grand ? 0.82 : 0.68
-        }}
-      />
-      {(['6%', '28%', '68%', '90%'] as const).map((left, index) => (
-        <View
-          key={'human-wall-tower-' + index}
-          style={{
-            position: 'absolute',
-            left,
-            top: capital ? '3.5%' : '4.5%',
-            width: capital ? 22 : 18,
-            height: capital ? 29 : 24,
-            borderRadius: 3,
-            borderWidth: 1,
-            borderColor: stoneLight,
-            backgroundColor: stone,
-            opacity: grand ? 0.92 : 0.76
-          }}
-        >
-          <View
-            style={{
-              position: 'absolute',
-              left: 3,
-              right: 3,
-              top: -4,
-              height: 5,
-              backgroundColor: stoneLight
-            }}
+      {/* Guard standards follow the established outer walls, avoiding all
+          nine interactive plots and the existing central plaza. */}
+      {props ? ([
+        { left: '3%', top: '55%' },
+        { left: '89%', top: '55%' }
+      ] as const).map((position, index) => (
+        <View key={'advanced-standard-' + index} style={{ position: 'absolute', ...position }}>
+          <SettlementDetailAtlasSprite
+            assetId="ui.settlement_world_human_atlas"
+            cell={settlementWorldHumanCells.torch_banner}
+            size={grand ? 26 : 21}
+            tintColor={bannerTint}
+            opacity={grand ? 0.8 : 0.72}
           />
         </View>
-      ))}
+      )) : null}
 
-      <View
-        style={{
-          position: 'absolute',
-          left: '46%',
-          top: capital ? '3%' : '4%',
-          width: '8%',
-          height: capital ? 30 : 25,
-          borderRadius: 3,
-          backgroundColor: stone,
-          borderWidth: 1,
-          borderColor: stoneLight,
-          opacity: grand ? 0.94 : 0.8
-        }}
-      >
-        <View
-          style={{
-            position: 'absolute',
-            left: '38%',
-            bottom: 0,
-            width: '24%',
-            height: '48%',
-            borderTopLeftRadius: 5,
-            borderTopRightRadius: 5,
-            backgroundColor: '#20292C'
-          }}
-        />
-      </View>
-
-      {capital ? (
+      {stronghold ? (
         <>
-          {(['17%', '81%'] as const).map((left, index) => (
-            <View
-              key={'human-capital-banner-' + index}
-              style={{
-                position: 'absolute',
-                left,
-                top: '13%',
-                width: 3,
-                height: 32,
-                backgroundColor: '#6B5234',
-                opacity: 0.9
-              }}
-            >
-              <View
-                style={{
-                  position: 'absolute',
-                  left: 3,
-                  top: 2,
-                  width: 13,
-                  height: 18,
-                  borderBottomRightRadius: 7,
-                  backgroundColor: banner,
-                  opacity: 0.95
-                }}
+          {guards ? (['31%', '66%'] as const).map((left, index) => (
+            <View key={'stronghold-sentry-' + index} testID={'human-stronghold-sentry-' + index} style={{ position: 'absolute', top: '68%', left }}>
+              <SettlementDetailAtlasSprite
+                assetId="ui.settlement_people_human_atlas"
+                cell={settlementPeopleHumanCells.guard}
+                size={21}
+                opacity={0.74}
               />
             </View>
-          ))}
-          <View
-            style={{
-              position: 'absolute',
-              left: '30%',
-              right: '30%',
-              bottom: '5%',
-              height: 6,
-              borderRadius: 999,
-              backgroundColor: '#B7A27A',
-              opacity: 0.32
-            }}
-          />
+          )) : null}
+        </>
+      ) : null}
+
+      {stageId === 'capital' ? (
+        <>
+          {scenes ? (['32%', '63%'] as const).map((left, index) => (
+            <View key={'capital-quayside-market-' + index} style={{ position: 'absolute', top: '69%', left }}>
+              <SettlementDetailAtlasSprite
+                assetId="ui.settlement_scene_human_v2_atlas"
+                cell={settlementSceneHumanV2Cells.market}
+                size={23}
+                opacity={0.66}
+              />
+            </View>
+          )) : null}
+          {guards ? (
+            <View style={{ position: 'absolute', top: '68%', left: '50%' }}>
+              <SettlementDetailAtlasSprite
+                assetId="ui.settlement_people_human_atlas"
+                cell={settlementPeopleHumanCells.merchant}
+                size={19}
+                opacity={0.72}
+              />
+            </View>
+          ) : null}
         </>
       ) : null}
 
       {grand ? (
         <>
-          {([
-            { left: '4%', bottom: '6%' },
-            { left: '14%', bottom: '3%' },
-            { right: '5%', bottom: '6%' },
-            { right: '15%', bottom: '3%' }
-          ] as const).map((position, index) => (
-            <View
-              key={'grand-campaign-tent-' + index}
-              style={{
-                position: 'absolute',
-                ...position,
-                width: 30,
-                height: 16,
-                borderTopLeftRadius: 14,
-                borderTopRightRadius: 14,
-                borderWidth: 1,
-                borderColor: '#745B38',
-                backgroundColor: index % 2 === 0 ? '#BBA36D' : '#8E7651',
-                opacity: 0.86
-              }}
-            />
-          ))}
-          <View
-            style={{
-              position: 'absolute',
-              left: '47%',
-              bottom: '3%',
-              width: 3,
-              height: 34,
-              backgroundColor: '#5C442C'
-            }}
-          >
-            <View
-              style={{
-                position: 'absolute',
-                left: 3,
-                top: 0,
-                width: 18,
-                height: 21,
-                borderBottomRightRadius: 8,
-                backgroundColor: '#D7AE4A'
-              }}
-            />
-          </View>
+          {guards ? (['38%', '48%', '58%'] as const).map((left, index) => (
+            <View key={'grand-muster-guard-' + index} style={{ position: 'absolute', top: '67%', left }}>
+              <SettlementDetailAtlasSprite
+                assetId="ui.settlement_people_human_atlas"
+                cell={settlementPeopleHumanCells.knight}
+                size={22}
+                opacity={0.77}
+              />
+            </View>
+          )) : null}
+          {props ? (
+            <View testID="human-grand-campaign-standard" style={{ position: 'absolute', top: '64%', left: '49%' }}>
+              <SettlementDetailAtlasSprite
+                assetId="ui.settlement_world_human_atlas"
+                cell={settlementWorldHumanCells.torch_banner}
+                size={29}
+                tintColor={bannerTint}
+                opacity={0.84}
+              />
+            </View>
+          ) : null}
         </>
       ) : null}
     </View>
@@ -4468,16 +4389,7 @@ export function SettlementTerrainBackdrop({
   stageId?: WagonStage['id'];
 }) {
   if (faction === 'human') {
-    const backgroundStage =
-      stageId === 'camp'
-        ? 'camp'
-        : stageId === 'settlement'
-          ? 'settlement'
-          : stageId === 'fort'
-            ? 'fort'
-            : stageId === 'town'
-              ? 'town'
-              : 'capital';
+    const backgroundStage = humanSettlementStagePlate(stageId);
     const background = settlementBackgroundProductionAsset('human', backgroundStage);
     const source = getProductionAssetSource(background.id);
     if (source) {

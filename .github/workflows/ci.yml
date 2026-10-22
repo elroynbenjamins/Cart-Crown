@@ -42,6 +42,9 @@ jobs:
       - name: Mobile session regression
         run: npm run mobile:check
 
+      - name: Human settlement geometry regression
+        run: npm run human-settlement:check
+
       - name: Tutorial and review regression
         run: npm run tutorial:check
 

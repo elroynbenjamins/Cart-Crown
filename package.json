@@ -13,6 +13,7 @@
     "economy:check": "tsx scripts/economy-regression.ts",
     "save:check": "tsx scripts/save-regression.ts",
     "mobile:check": "tsx scripts/mobile-session-regression.ts",
+    "human-settlement:check": "tsx scripts/human-settlement-layout-regression.ts",
     "tutorial:check": "tsx scripts/tutorial-regression.ts",
     "campaign-roadmap:check": "tsx scripts/campaign-mission-roadmap-regression.ts",
     "battle-orders:check": "tsx scripts/battle-order-regression.ts",
