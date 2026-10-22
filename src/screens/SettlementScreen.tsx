@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { ViewStyle } from 'react-native';
-import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementPlatePlotCenters, humanSettlementPlatePlotPositions as humanSettlementBackgroundPositions, settlementActionLayout } from '../ui/settlementActionLayout';
+import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementBuildingSpriteSize, humanSettlementPlatePlotCenters, humanSettlementPlatePlotPositions as humanSettlementBackgroundPositions, settlementActionLayout } from '../ui/settlementActionLayout';
 import {
   analyzeSettlementAdjacency, getSettlementAdjacencyBonuses,
   getSettlementPlots, isSettlementPlotUnlocked
@@ -1365,10 +1365,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.86 : plot.row === 2 ? 1.1 : 1;
-          const spriteScale = humanStagePlateActive ? Math.min(1.12, mapWidth / 340) : 1;
-          const buildingSize = Math.round((worldRebuildActive
-            ? landmark ? 142 : 76 * depthScale
-            : landmark ? 106 : 70 * depthScale) * spriteScale);
+          const buildingSize = humanStagePlateActive && building
+            ? humanSettlementBuildingSpriteSize(plot.id, building.role, mapWidth)
+            : worldRebuildActive
+              ? landmark ? 142 : Math.round(76 * depthScale)
+              : landmark ? 106 : Math.round(70 * depthScale);
           const ambienceSize = worldRebuildActive
             ? landmark ? 118 : Math.round(78 * depthScale)
             : landmark ? 126 : Math.round(94 * depthScale);
