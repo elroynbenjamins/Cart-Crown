@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { humanCampaignMissionCounts } from '../game/humanCampaignArtDirection';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { GameCard } from './components';
@@ -12,13 +12,14 @@ import type { HumanCampaignNodeSnapshot } from './humanCampaignStoryPresentation
 
 /** One compact, read-only briefing. It cannot advance or claim story progress. */
 export function HumanCampaignFrontCard({
-  chapterNumber, nodes, accent, tint, activeSquadCap
+  chapterNumber, nodes, accent, tint, activeSquadCap, onViewCurrentMission
 }: {
   chapterNumber: number;
   nodes: readonly HumanCampaignNodeSnapshot[];
   accent: string;
   tint: string;
   activeSquadCap?: number;
+  onViewCurrentMission?: () => void;
 }) {
   const { theme } = useGameTheme();
   const cue = humanCampaignProgressCue(chapterNumber, nodes);
@@ -82,6 +83,21 @@ export function HumanCampaignFrontCard({
           </View>
         ) : null}
 
+        {!cue.finished && onViewCurrentMission ? (
+          <Pressable
+            testID="human-campaign-jump-to-current"
+            accessibilityRole="button"
+            accessibilityLabel={'Jump to current mission: ' + cue.nextMissionName}
+            onPress={onViewCurrentMission}
+            style={({ pressed }) => [
+              s.jumpButton,
+              { backgroundColor: accent + '25', borderColor: accent, opacity: pressed ? 0.78 : 1 }
+            ]}
+          >
+            <Text style={[s.jumpLabel, { color: theme.colors.text }]}>View current mission ↓</Text>
+          </Pressable>
+        ) : null}
+
         <View style={s.bottomRow}>
           <View style={[s.intel, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
             <Text style={[s.eyebrow, { color: accent }]}>DEPLOYMENT</Text>
@@ -136,6 +152,8 @@ const s = StyleSheet.create({
   objectiveHint: { fontSize: 10, lineHeight: 14 },
   unlockRow: { paddingHorizontal: 8, paddingVertical: 6, borderWidth: 1, borderRadius: 9, gap: 3 },
   unlockLine: { fontSize: 9.5, lineHeight: 13, fontWeight: '800' },
+  jumpButton: { minHeight: 44, borderWidth: 1, borderRadius: 9, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
+  jumpLabel: { fontSize: 11, fontWeight: '900', lineHeight: 15 },
   bottomRow: { gap: 6 },
   intel: { padding: 8, borderRadius: 9, borderWidth: 1, gap: 4 },
   intelText: { fontSize: 10.5, fontWeight: '700', lineHeight: 14 },
