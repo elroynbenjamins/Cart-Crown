@@ -4856,7 +4856,15 @@ export function GameProvider({
   };
 
   const completeMarkedRaiders = () => {
-    if (!holdTheRoadWon || markedRaidersInvestigated) return false;
+    // An event screen retained in the navigation stack must not advance a
+    // different chapter/faction or skip ahead of the current Human mission.
+    if (
+      activeFaction !== 'human' ||
+      chapterNumber !== 1 ||
+      !chapterNodes.find(node => node.id === 'node_3')?.current ||
+      !holdTheRoadWon ||
+      markedRaidersInvestigated
+    ) return false;
 
     setMarkedRaidersInvestigated(true);
     setForgeUnlocked(true);
@@ -5386,7 +5394,13 @@ export function GameProvider({
   };
 
   const chooseFortRecruit = (choiceId: string) => {
-    if (!fourthRecruitChoiceAvailable || fourthRecruitChosen) return false;
+    if (
+      activeFaction !== 'human' ||
+      chapterNumber !== 2 ||
+      !chapterNodes.find(node => node.id === 'ch2_node_1')?.current ||
+      !fourthRecruitChoiceAvailable ||
+      fourthRecruitChosen
+    ) return false;
 
     const choice = fortMusterOptions.find(option => option.id === choiceId);
     if (!choice) return false;
@@ -6204,7 +6218,12 @@ export function GameProvider({
   };
 
   const promoteMira = (equipmentId: string) => {
-    if (firstPromotionComplete) return false;
+    if (
+      activeFaction !== 'human' ||
+      chapterNumber !== 1 ||
+      !chapterNodes.find(node => node.id === 'node_4')?.current ||
+      firstPromotionComplete
+    ) return false;
 
     const promotion = getRecruitPromotionByEquipment(equipmentId);
     const equipment = getEquipment(equipmentId);
