@@ -86,8 +86,8 @@ assert.match(previewSource, /humanSettlementBuildingSpriteSize\(plotId, building
 assert.match(settlementSource, /humanSettlementBuildingSpriteSize\(plot\.id, building\.role, mapWidth\)/);
 assert.match(settlementSource, /humanSettlementPlotDepthIndex\(plot\.id\)/);
 assert.match(previewSource, /humanSettlementPlotDepthIndex\(plotId\)/);
-assert.match(settlementSource, /animated=\{buildingSelected \|\| building\.role === 'KINGDOM'\}/);
-assert.match(settlementSource, /animated=\{districtAnalysisVisible && connection\.focused\}/);
+assert.match(settlementSource, /animated=\{!humanStagePlateActive \|\| buildingSelected \|\| building\.role === 'KINGDOM'\}/);
+assert.match(settlementSource, /animated=\{!humanStagePlateActive \|\| \(districtAnalysisVisible && connection\.focused\)\}/);
 assert.match(gameArtSource, /if \(reduceMotion \|\| !enabled\)/,
   'Offscreen or unfocused scene props must pause native looping animations.');
 assert.match(gameArtSource, /human-stage-environment-/);
