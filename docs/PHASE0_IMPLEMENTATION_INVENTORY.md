@@ -50,6 +50,10 @@ Normal active-squad cap: **2** in Ch1; **3** from Ch2; **4** after Ch3 mission 2
 | UI / navigation / accessibility | `AppShell.tsx`, `src/theme/*`, `src/ui/*`, UI regression matrix | Themes, routes, Android Back contract present; actual touch/font/contrast/Back gesture tests open |
 | Android production | Expo SDK 57, RN 0.86, `app.json`, CI + APK/AAB workflows | Build/smoke infrastructure present; upload signing, final icon, Play listing, physical QA **not certified** |
 
+## Human early-mission behavior audit — source checked
+
+See [the 19-mission routing and completion audit](PHASE0_HUMAN_MISSION_BEHAVIOR_AUDIT.md). All 19 Chapter 1–4 discrepancies now have source-traced Campaign/AppShell/handler routing and an automated regression (`npm run human-mission-routes:check`) covering their stable IDs, effects and navigation anchors. Three early action handlers were further guarded against stale-screen/out-of-order invocation. **Do not treat this as a manual gameplay playthrough:** reward semantics, device Back/navigation and design-intent differences still require native QA; issue #205 stays open.
+
 ## Known design-versus-runtime differences to investigate
 
 A live node is not automatically an exact enactment of its roadmap `kind`. **19 Chapter 1–4 nodes have a different runtime `type`** (e.g. `event`, `elite`, `supply` in place of planned `battle`/`upgrade`/`choice`). This can be deliberate presentation, an older event path, or unfinished behavior; it is **not** evidence by itself that the node is broken. Audit behavior before changing types or rewards.
