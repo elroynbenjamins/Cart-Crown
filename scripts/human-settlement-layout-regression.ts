@@ -91,10 +91,16 @@ assert.match(settlementSource, /animated=\{!humanStagePlateActive \|\| \(distric
 assert.match(gameArtSource, /if \(reduceMotion \|\| !enabled\)/,
   'Offscreen or unfocused scene props must pause native looping animations.');
 assert.match(gameArtSource, /human-stage-environment-/);
-assert.match(gameArtSource, /human-stronghold-supply-caravan/);
+assert.match(gameArtSource, /human-stronghold-sentry-/);
 assert.match(gameArtSource, /capital-quayside-market-/);
 assert.match(gameArtSource, /human-grand-campaign-standard/);
-assert.doesNotMatch(gameArtSource, /grand-campaign-tent-/,
-  'Campaign tents should not return to the visible water at the foot of the Capital plate');
+assert.doesNotMatch(gameArtSource, /grand-campaign-tent-|grand-supply-wagon-|human-stronghold-supply-caravan/,
+  'Oversized painterly-mismatched props should not return to the waterfront at the foot of the Capital plate');
+assert.match(settlementSource, /humanUpgradeReadyBadge/,
+  'Compact upgrade pips must replace distracting oversized circles in the Human city overview.');
+assert.match(settlementSource, /humanStagePlateActive \? 0 : 0\\.12/,
+  'Human district links should not draw through buildings while inspection mode is closed.');
+assert.match(settlementSource, /visibleDistrictConnections\\.length && \\(!humanStagePlateActive \\|\\| districtAnalysisVisible\\)/,
+  'Human default overview must hide unfocused blocky district overlay props.');
 
 console.log('Human settlement geometry, plot depth, reduced animation load and seven-tier wiring OK.');
