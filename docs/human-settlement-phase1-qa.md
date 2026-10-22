@@ -19,6 +19,14 @@ Branch scope: layout, presentation and touch UX only. This is **not** a claim of
 - `human-settlement:check` verifies the sizing contract at phone/tablet widths and guards against unintentional reintroduction of tents positioned over water.
 - These edits do **not** constitute independently painted Stronghold/Grand plates, full mobile screenshots or native-art acceptance. Maintain those acceptance gates.
 
+## Third implementation pass — depth and native animation budget
+
+- The same plot-footprint depth index is shared between the Kingdom hero and the editable Human scene. Southern plots render ahead of uphill plots; the central Great Hall no longer permanently overlays the front row. Selection/tour focus still deliberately rises above ordinary buildings.
+- In the interactive **Human** scene, only the Great Hall and a selected building animate their restrained building ambience; inactive building detail art stays present but static. District environment animation runs only while that district is focused and its analysis overlay is visible.
+- Elf and Orc animation behavior is intentionally unchanged.
+- `human-settlement:check` now guards against depth regression and verifies the Human-only animation gating.
+- Do not equate synthetic geometric checks or the generated art-direction reference with a native screenshot, a review of production plate quality, or a 540×960 source image ready to ship.
+
 ## Actual art inventory
 
 | Settlement tier | Packaged plate | Specialization |
