@@ -48,6 +48,9 @@ jobs:
       - name: Campaign mission roadmap regression
         run: npm run campaign-roadmap:check
 
+      - name: Human chapter storytelling and unlock-milestone regression
+        run: npm run campaign-story:check
+
       - name: Human campaign mission-art regression
         run: npm run campaign-art:check
 
