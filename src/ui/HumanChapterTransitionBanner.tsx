@@ -4,6 +4,7 @@ import { useGameTheme } from '../theme/ThemeProvider';
 import { humanCampaignArtworkForMission } from './humanCampaignMissionArt';
 import { humanCampaignMissionCounts } from '../game/humanCampaignArtDirection';
 import { humanChapterTransition } from './humanChapterTransition';
+import { humanChapterStories } from './humanCampaignStoryPresentation';
 
 /** A reward-safe, non-modal campaign presentation; never grants items itself. */
 export function HumanChapterTransitionBanner({
@@ -14,6 +15,8 @@ export function HumanChapterTransitionBanner({
   if (!transition) return null;
 
   const final = transition.kind === 'finale';
+  const securedStory = humanChapterStories[transition.securedChapter];
+  const nextStory = transition.revealedChapter ? humanChapterStories[transition.revealedChapter] : null;
   const securedImage = humanCampaignArtworkForMission(
     transition.securedChapter, humanCampaignMissionCounts[transition.securedChapter]
   ).source;
@@ -54,18 +57,19 @@ export function HumanChapterTransitionBanner({
         {final ? 'Blackstone Has Fallen' : transition.securedRegion + ' is secured'}
       </Text>
       <Text style={[s.body, { color: theme.colors.textMuted }]}>
-        {final
-          ? 'The final siege is won. Seven chapters and 70 handcrafted missions have brought the Human campaign to its conclusion.'
-          : transition.securedBoss + ' is behind you. The march now continues into ' + transition.revealedRegion + '.'}
+        {securedStory.secured}
       </Text>
       <View style={[s.nextRow, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
         <Text style={[s.nextEyebrow, { color: theme.colors.gold }]}>
           {final ? 'THE REALM ENDURES' : 'NEXT CHAPTER · ' + transition.revealedChapter}
         </Text>
         <Text style={[s.nextText, { color: theme.colors.text }]}>
-          {final ? 'Your kingdom and remaining activities await.' : transition.revealedRegion + ' · ' + transition.revealedMission}
+          {final ? 'Explore the Factions tab for the next campaigns.' : transition.revealedRegion + ' · ' + transition.revealedMission}
         </Text>
       </View>
+      <Text style={[s.nextHook, { color: theme.colors.textMuted }]}>
+        {final ? 'The realm can rebuild after the final siege.' : nextStory?.stakes}
+      </Text>
     </View>
   );
 }
@@ -84,5 +88,6 @@ const s = StyleSheet.create({
   body: { fontSize: 10.5, lineHeight: 15 },
   nextRow: { borderWidth: 1, borderRadius: 9, paddingHorizontal: 8, paddingVertical: 6, gap: 3 },
   nextEyebrow: { fontWeight: '900', fontSize: 8.5, letterSpacing: .5, lineHeight: 11 },
-  nextText: { fontWeight: '800', fontSize: 11, lineHeight: 15 }
+  nextText: { fontWeight: '800', fontSize: 11, lineHeight: 15 },
+  nextHook: { fontSize: 10, lineHeight: 14, marginTop: 2 }
 });
