@@ -48,6 +48,9 @@ jobs:
       - name: Campaign mission roadmap regression
         run: npm run campaign-roadmap:check
 
+      - name: Human early mission route and completion regression
+        run: npm run human-mission-routes:check
+
       - name: Human campaign mission-art regression
         run: npm run campaign-art:check
 
