@@ -420,22 +420,19 @@ export function CampaignScreen({
   const focusedMissionIndex = activeMissionIndex >= 0 ? activeMissionIndex : firstUnfinishedIndex;
   const finalHumanFrontSecured = chapterNumber === 7 && chapterNodes.length === 11 && completed === 11;
 
-  const humanJourney = humanRegions.map((region, index) => ({
-    id: region.id,
-    name: region.name,
-    status:
-      index < currentHumanRegionIndex || (finalHumanFrontSecured && index === currentHumanRegionIndex)
-        ? ('done' as const)
-        : index === currentHumanRegionIndex
-          ? ('current' as const)
-          : ('locked' as const),
-    detail:
-      index < currentHumanRegionIndex
-        ? 'Route secured'
-        : index === currentHumanRegionIndex
-          ? 'Current campaign region'
+  const humanJourney = humanRegions.map((region, index) => {
+    const secured = index < currentHumanRegionIndex ||
+      (finalHumanFrontSecured && index === currentHumanRegionIndex);
+    const current = index === currentHumanRegionIndex && !finalHumanFrontSecured;
+    return {
+      id: region.id,
+      name: region.name,
+      status: secured ? ('done' as const) : current ? ('current' as const) : ('locked' as const),
+      detail: secured ? 'Route secured'
+        : current ? 'Current campaign region'
           : 'Advance the story to reveal this route'
-  }));
+    };
+  });
 
   const renderStory = () => (
     <>
