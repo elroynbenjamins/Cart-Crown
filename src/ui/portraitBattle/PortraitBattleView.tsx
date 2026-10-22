@@ -9,6 +9,8 @@ import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop
 import { getBossPresentation } from '../bossPresentation';
 import { BossStageSilhouette } from '../BossStageSilhouette';
 import { ReferenceArt } from './Art';
+import { directionalAllyArtId, directionalEnemyArtId } from './directionalStageModel';
+import { DirectionalStageFigure } from './DirectionalStageFigure';
 import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageFormationReadout, stageRoleLetters, stageTokens, stageAttackTrail, stageIntegrityReadout, stageOrderBand, stageFractureLine, battleSpectacleCue } from './model';
 import type { ArmySide, EnemyToken, ExchangeRecord, IntegrityTier } from './model';
 
@@ -261,9 +263,11 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           <View pointerEvents="none" testID={'ally-facing-' + position.slot} style={[s.facingMark, s.allyFacing]}>
             <Text style={[s.facingGlyph, { color: factionAccent }]}>▲</Text>
           </View>
-          {allyPortrait(item.unit) ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size * 1.08} height={position.size * 1.08}
-            fallback={<UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
-            : <UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />}
+          <DirectionalStageFigure assetId={directionalAllyArtId(item.unit)} size={position.size}
+            fallback={allyPortrait(item.unit)
+              ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size * 1.08} height={position.size * 1.08}
+                  fallback={<UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
+              : <UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
           <View pointerEvents="none" testID={'ally-stage-role-' + position.slot} style={[s.roleMarker, { borderColor: factionAccent }]}>
             <Text style={s.roleMarkerText}>{stageRoleLetters[item.unit.role]}</Text>
           </View>
@@ -309,7 +313,10 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           {item.boss && !item.down && signatureBoss ? <BossStageSilhouette
             signature={signatureBoss.signature} size={position.size}
             material={signatureBoss.material} light={signatureBoss.light} /> : null}
-          {enemyFigure(item, item.boss ? position.size * 1.06 : position.size)}
+          <DirectionalStageFigure
+            assetId={directionalEnemyArtId(p.faction, item.role, item.label, p.enemyProfile, item.boss, p.fantasyThreat)}
+            size={position.size}
+            fallback={enemyFigure(item, item.boss ? position.size * 1.06 : position.size)} />
           {!item.down && !item.boss ? <View pointerEvents="none" testID={'enemy-stage-role-' + item.slot}
             style={[s.roleMarker, { borderColor: theme.colors.danger }]}>
             <Text style={s.roleMarkerText}>{stageRoleLetters[item.role]}</Text>
