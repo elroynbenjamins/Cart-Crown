@@ -37,7 +37,8 @@
     "campaign-art:check": "tsx scripts/human-campaign-art-regression.ts",
     "human-art:audit": "node scripts/human-unit-art-quality-audit.mjs",
     "save-provider:check": "tsx scripts/save-provider-retry-regression.ts",
-    "human-mission-routes:check": "tsx scripts/human-mission-route-regression.ts"
+    "human-mission-routes:check": "tsx scripts/human-mission-route-regression.ts",
+    "docs:check": "tsx scripts/documentation-contract-regression.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

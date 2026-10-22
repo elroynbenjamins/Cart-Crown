@@ -159,6 +159,67 @@ def capture(out: Path, name: str) -> str:
     return text
 
 
+def supplemental_visual_baseline(out: Path, name: str, result: dict) -> None:
+    """Best-effort real-APK captures beyond the mandatory first battle.
+
+    These are evidence, not new game correctness gates. A failed interaction
+    records its error without changing the proven tutorial/battle/save smoke.
+    Never claim missing screenshots were captured.
+    """
+    result['supplemental_captures'] = []
+    result['supplemental_capture_errors'] = []
+
+    def record(suffix: str) -> None:
+        capture(out, name + '-' + suffix)
+        result['supplemental_captures'].append(name + '-' + suffix + '.png')
+
+    try:
+        find_and_tap('Return to Kingdom', scroll=True)
+        wait_for_copy('Greenkeep', timeout=12)
+        record('kingdom-dark')
+
+        # Results already restored Pure Black. The same installed-APK Kingdom
+        # view is now captured in each supported theme, unlike Results only.
+        for theme_id in ('light', 'charcoal'):
+            find_and_tap('Change theme')
+            time.sleep(.4)
+            record('kingdom-' + theme_id)
+        find_and_tap('Change theme')  # Restore Pure Black for the other screens.
+
+        # The settlement is a flow screen (no bottom nav), so use Android Back.
+        try:
+            find_and_tap('Enter Settlement', scroll=True)
+            wait_for_copy('Settlement', timeout=12)
+            record('settlement-dark')
+            adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
+            wait_for_copy('Greenkeep', timeout=12)
+        except Exception as error:
+            result['supplemental_capture_errors'].append(
+                'settlement: ' + str(error)
+            )
+            # Return from any orphaned flow before attempting tab captures.
+            adb('shell', 'input', 'keyevent', 'KEYCODE_BACK', check=False)
+
+        for tab, expected, suffix in (
+            ('Formation', 'Formation', 'formation-dark'),
+            ('Wagon', 'Supply Wagon', 'wagon-dark'),
+            ('Army', 'Squads', 'army-dark'),
+            ('Campaign', 'Campaign', 'campaign-postbattle-dark'),
+        ):
+            try:
+                find_and_tap(tab)
+                wait_for_copy(expected, timeout=12)
+                record(suffix)
+            except Exception as error:
+                result['supplemental_capture_errors'].append(
+                    suffix + ': ' + str(error)
+                )
+    except Exception as error:
+        result['supplemental_capture_errors'].append(
+            'kingdom-navigation: ' + str(error)
+        )
+
+
 def first_battle(out: Path, name: str, result: dict) -> None:
     tap_label(wait_for_copy('Show me where to go'), 'Show me where to go')
     capture(out, name + '-kingdom-guidance')
@@ -212,6 +273,7 @@ def first_battle(out: Path, name: str, result: dict) -> None:
             result['theme_captures'].append({
                 'expected_theme_id': theme_id, 'screenshot': capture_name + '.png'
             })
+        supplemental_visual_baseline(out, name, result)
     finally:
         adb('shell', 'pkill', '-2', 'screenrecord', check=False)
         try:

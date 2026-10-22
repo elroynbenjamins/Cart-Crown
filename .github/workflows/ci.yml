@@ -51,6 +51,9 @@ jobs:
       - name: Human early mission route and completion regression
         run: npm run human-mission-routes:check
 
+      - name: Canonical campaign documentation regression
+        run: npm run docs:check
+
       - name: Human chapter storytelling and unlock-milestone regression
         run: npm run campaign-story:check
 
