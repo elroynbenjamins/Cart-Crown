@@ -36,6 +36,13 @@ def hierarchy() -> tuple[ET.Element, str]:
                 raise RuntimeError('Rejected stale native UI snapshot')
             return root, xml
         last_error = result[-1400:]
+        # Cold Android emulator startup occasionally leaves the launcher/system
+        # window in focus. Retry one safe, foreground-only relaunch. Preserve the
+        # fresh request token and fail if the real app has exited or cannot focus.
+        if 'The game is not the active window' in result or 'No active native window' in result:
+            if not adb('shell', 'pidof', PACKAGE, check=False):
+                raise RuntimeError('Native app exited during accessibility probe: ' + last_error)
+            launch()
         time.sleep(.3)
     raise RuntimeError('Fresh native UI probe failed: ' + last_error)
 
