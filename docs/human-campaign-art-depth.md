@@ -5,7 +5,7 @@
 ## Existing state and integration
 
 - 70 fixed Human mission blueprints, seven chapters; Chapter 1 retains its six existing full-frame paintings.
-- Human art direction: 36 named scene compositions (six Chapter 1, five per later chapter), with one unique boss composition planned per chapter.
+- Human art direction: 36 named scene compositions (six Chapter 1, five per later chapter), with one distinct, packaged finale composition per chapter.
 - Every mission has a stable chapter/order scene mapping in src/game/humanCampaignArtDirection.ts.
 - Both campaign cards and the late-mission detail screen now resolve images using src/ui/humanCampaignMissionArt.ts.
 - Chapter 2 / Iron Hills has five shipped 724×362 PNGs registered with literal `require` paths.
@@ -25,7 +25,7 @@ Keep the same blue-and-gold Human identity, but strongly differentiate the chapt
 
 Every new asset should be visually reviewed, compressed to roughly <800KB if possible, and confirmed on Android. Register each with a literal require in src/ui/humanCampaignMissionArt.ts, so Metro can bundle it. Do not use a dynamic path. Run campaign-art:check, typecheck, existing art and UI regressions, and check actual theme/light/dark screenshots.
 
-## Asset production sequence
+## Completed asset production sequence
 
 1. **Chapter 2 / Iron Hills:** Iron Hills Muster, Tools of War smithy, Riders on the Road, Iron Line shieldwall, unique Iron Provost boss fortress.
 2. **Chapter 3 / Frostmarch:** snowy pass, cavalry flank, winter smithy, layered host battlefield, unique Frostgate boss.
@@ -38,7 +38,7 @@ Per-mission art directions, scene IDs, and scene assignments are part of the typ
 
 ## What this pass does not do
 
-Chapters 1–6 have their chapter mission-card illustration sets bundled; only Chapter 7 / Blackstone remains to be illustrated. Combat, saves, rewards, chapter unlocks and squad progression are unchanged. Generated board source files, art previews and transfer archives are not bundled into the app. Android screenshot review is still required before claiming device-level validation.
+All seven chapters, including Chapter 7 / Blackstone, now have packaged mission-card illustration sets. New work should focus on quality and in-game presentation, not regenerating the same missing-art task. Combat, saves, rewards, chapter unlocks and squad progression are unchanged. Generated board source files, art previews and transfer archives are not bundled into the app. Android screenshot review is still required before claiming device-level validation.
 
 ## Human artwork pass completed
 
