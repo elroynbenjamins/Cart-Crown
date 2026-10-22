@@ -42,6 +42,10 @@ for (const [id, signature] of Object.entries(bossSignatureByEncounter)) {
   }
   for (const size of [24, 42, 64, 96]) {
     const tree = BossStageSilhouette({ signature, size, material: presentation.material, light: presentation.light });
+    assert.equal(tree.props.style[1].width, size,
+      'Boss decoration cannot stretch beyond the authored actor slot and obscure neighbors');
+    assert.equal(tree.props.style[1].height, size,
+      'Boss decorative height must not overlap a neighboring enemy rank');
     assert.equal(tree.props.testID, 'boss-stage-silhouette-' + signature);
     assert.equal(tree.props.pointerEvents, 'none');
     assert.equal(tree.props.importantForAccessibility, 'no-hide-descendants');
