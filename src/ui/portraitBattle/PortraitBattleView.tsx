@@ -375,7 +375,7 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
       <Text testID="selected-squad-copy" style={[s.selectionCopy, { color: selectedCopy ? theme.colors.gold : theme.colors.textMuted }]} numberOfLines={2}>
         {selectedCopy ?? 'Shared army HP · Tap a portrait to locate its squad'}
       </Text>
-      {activeOrder ? <Text testID="active-battle-order-cue" style={[s.orderCue, { color: theme.colors.gold }]}>
+      {ongoing && activeOrder ? <Text testID="active-battle-order-cue" style={[s.orderCue, { color: theme.colors.gold }]}>
         ORDER ACTIVE · {activeOrder.label}
       </Text> : null}
       <BattleStatusMarker effectType={p.status?.type ?? null} remaining={p.status?.remaining ?? 0} />
