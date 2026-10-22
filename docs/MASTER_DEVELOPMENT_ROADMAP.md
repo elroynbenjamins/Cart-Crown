@@ -6,12 +6,24 @@
 
 **Phase 0 reconciliation (2026-10-22):** [Canonical implementation inventory](PHASE0_IMPLEMENTATION_INVENTORY.md) records runtime node IDs, evidence levels and known design/type differences. [Android screenshot baseline ledger](ANDROID_SCREENSHOT_BASELINE.md) distinguishes successful opening smoke screenshots from the remaining full screen/tier matrix. The README now describes the current seven-chapter Human campaign; historical text in Git history is not an active plan. **Phase 0 remains open** until this change passes PR CI and durable full baseline screenshots are captured.
 
+## Launch scope decision — 1.0 Human-first (2026-10-22)
+
+**Release requirement:** ship the complete seven-chapter, 70-mission Human campaign as the only playable faction for **version 1.0**. Elf/Orc and shared Three Seals endgame stay in the source for future expansion but must be visibly **coming in a future update** and never become playable automatically after Human completion in 1.0.
+
+- **Lock at both provider and UI levels:** the Factions tab shows authored Elf/Orc identity as a preview, disables switching/starting either campaign and Three Seals, and shows no false “available” badge after Blackstone. `src/game/releaseCampaignScope.ts` is the single 1.0 gate to reopen them in a later version.
+- **Preserve historical saves:** never delete saved Elf/Orc states, achievements or progress. Beta saves previously active on a future faction open the saved Human kingdom instead (when present); if no Human kingdom exists, preserve the slot unchanged and show an informative error rather than clearing it.
+- **Do not alter gameplay:** Human chapter count, squad cap, faction save schema, balance, rewards, and gameplay rules remain stable. Future campaign mechanics can still exist in code and be individually tested without being launch features.
+- **Human-first QA priority:** full sequential 70-mission playthrough including all chapter handoffs, save/reload, rewards-once, 360x640/412x915 Android screenshots, light/dark UI, battle readiness, equipment and campaign return/back navigation. Human results and end-of-campaign copy must give closure, not promise immediately unlocked Elves/Orcs.
+- **After 1.0:** separately polish and certify Elven six-chapter campaign, then Orc six-chapter campaign, then Three Seals shared finale. Announce availability only once a release plan exists.
+
+**Definition of done for launch gating:** both new and pre-existing Human-complete saves cannot enter Elf, Orc or Three Seals in 1.0; existing off-faction save slots remain recoverable; the unlock messages and public documentation are correct; regression and Android QA pass.
+
 ## 0. Product vision and non-negotiable design decisions
 
 - **Name:** Cart & Crown (repository `Cart-Crown`; also referred to as Backpack Kingdoms during concept development).
 - **Platform:** portrait-first, mobile-first offline-capable strategy RPG, with tactile fantasy pixel art and compact, polished interfaces.
 - **Core loop:** advance a deliberately authored campaign -> prepare the army and limited-capacity logistics wagon -> command 3x3 formations through readable tactical battles -> earn materials/equipment -> grow a visible, placeable settlement -> unlock new military options and activities -> repeat.
-- **Three factions:** Human first, Elf and Orc unlock after the Human campaign; faction states persist in the same save, and their tactical identities remain distinct (Human Orders, Elven Wards, Orc Momentum). Shared Three Seals endgame exists.
+- **Faction release policy:** Human is the only playable 1.0 faction, including after its 70 missions. Elf/Orc and Three Seals are retained as future content in code and saved states. For later updates their intended prerequisites and tactical identities (Human Orders, Elven Wards, Orc Momentum) remain documented.
 - **Human campaign contract:** 70 fixed missions across seven chapters, exactly **7/8/11/11/11/11/11**. No random replacement or procedurally shuffled story progression. **Squad cap:** 2 in Chapter 1, 3 from Chapter 2, 4 after Chapter 3 mission 2, 5 after Chapter 4 mission 2, 6 after Chapter 5 mission 2. Six is the permanent normal cap. Strong factions and tactical variation must not require seven or more active squads.
 - **Mobile legibility over spectacle:** silhouettes, hierarchy, readable icons, meaningful impact feedback; avoid noisy UI, tiny labels, fuzzy art, exaggerated animation and resource-heavy particle systems. No text baked into illustrations.
 - **Settlement direction:** the settlement dominates the Kingdom screen. Buildings genuinely sit on fixed plots with consistent perspective/foot anchors. The surroundings remain recognizably continuous while architecture, walls, density, roads and activity mature visibly across tiers.
