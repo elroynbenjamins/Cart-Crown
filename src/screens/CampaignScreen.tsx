@@ -18,7 +18,7 @@ import {
 } from '../ui/components';
 import { CampaignNodeSprite, FactionCrest, LockIcon } from '../ui/gameArt';
 import { CampaignJourneyMap } from '../ui/CampaignJourneyMap';
-import { humanCampaignArtworkForNode } from '../ui/humanCampaignMissionArt';
+import { humanCampaignArtworkForNode, humanCampaignArtworkForMission } from '../ui/humanCampaignMissionArt';
 import { HumanChapterTransitionBanner } from '../ui/HumanChapterTransitionBanner';
 import { HumanCampaignFrontCard } from '../ui/HumanCampaignFrontCard';
 import { humanChapterStories } from '../ui/humanCampaignStoryPresentation';
@@ -417,12 +417,13 @@ export function CampaignScreen({
   const activeMissionIndex = chapterNodes.findIndex(node => node.current && !node.completed);
   const firstUnfinishedIndex = chapterNodes.findIndex(node => !node.completed);
   const focusedMissionIndex = activeMissionIndex >= 0 ? activeMissionIndex : firstUnfinishedIndex;
+  const finalHumanFrontSecured = chapterNumber === 7 && chapterNodes.length === 11 && completed === 11;
 
   const humanJourney = humanRegions.map((region, index) => ({
     id: region.id,
     name: region.name,
     status:
-      index < currentHumanRegionIndex
+      index < currentHumanRegionIndex || (finalHumanFrontSecured && index === currentHumanRegionIndex)
         ? ('done' as const)
         : index === currentHumanRegionIndex
           ? ('current' as const)
@@ -451,6 +452,7 @@ export function CampaignScreen({
         faction="human"
         accent={currentChapterVisual.glow}
         points={humanJourney}
+        regionArtwork={humanCampaignArtworkForMission(chapterNumber, 1).source}
       />
 
       <SectionTitle
