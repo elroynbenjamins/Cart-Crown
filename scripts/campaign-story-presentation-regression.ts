@@ -139,6 +139,15 @@ assert.equal(humanCampaignDisplayNodeType(3, { id: 'ch3_node_6', type: 'elite' }
 // Completing Ch5/6 bosses replaces the node array; reopening a stale report
 // must not strand the user after the new chapter has started.
 assert.equal(humanLateMissions.length, 33, 'Human late chapters need all 33 authored slots');
+const lateChoices = humanLateMissions.filter(mission => mission.type === 'choice');
+assert.equal(lateChoices.length, 2, 'Late campaign retains two existing linear story milestones');
+assert.ok(lateChoices.every(mission =>
+  !mission.encounterId && (
+    mission.briefing.includes('No permanent doctrine') ||
+    mission.briefing.includes('does not record a branching route')
+  )
+), 'Ch6/7 choice stories must not promise saved branches absent from the provider');
+
 for (const mission of humanLateMissions) {
   const activeNode = { current: true, completed: false };
   const base = {
@@ -198,6 +207,11 @@ assert.ok(missionScreenSource.includes('humanMissionReportState({') &&
   missionScreenSource.includes('<SecondaryButton label="Return to Campaign" onPress={onContinue} />') &&
   missionScreenSource.includes('if (accepted) setResolvedNodeId(nodeId)'),
   'Late mission reports need a safe exit after success, failed routing and chapter advance');
+assert.ok(missionScreenSource.includes("? 'STORY MILESTONE' : mission.type === 'upgrade'") &&
+  missionScreenSource.includes("? 'Complete milestone'") &&
+  missionScreenSource.includes("'CAMPAIGN STORY BEAT'"),
+  'The two linear choice stories and narrative upgrades must not look like recorded branching/purchased upgrades');
+
 assert.ok(campaignSource.includes("node.type !== 'boss'"), 'Finale must remain visible in focused layout');
 const mapSource = readFileSync('src/ui/CampaignJourneyMap.tsx', 'utf8');
 assert.ok(mapSource.includes('regionArtwork ?? mapSources[faction]'), 'Map should reuse the current chapter artwork');
