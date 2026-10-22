@@ -22,6 +22,7 @@ import { humanCampaignArtworkForNode, humanCampaignArtworkForMission } from '../
 import { HumanChapterTransitionBanner } from '../ui/HumanChapterTransitionBanner';
 import { HumanCampaignFrontCard } from '../ui/HumanCampaignFrontCard';
 import { humanChapterStories } from '../ui/humanCampaignStoryPresentation';
+import { humanCampaignDisplayNodeType } from '../ui/humanCampaignNodePresentation';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import { ActivityCard } from '../ui/ActivityCard';
@@ -996,6 +997,8 @@ export function CampaignScreen({
                                                                                 ? onStartReturnToCrownspire
                                                                                 : undefined;
 
+          const displayType = humanCampaignDisplayNodeType(chapterNumber, node);
+
           // Keep the current front, the next step and its finale visible;
           // historical missions remain accessible in the disclosure above.
           if (!showAllMissions && !node.current && node.type !== 'boss' &&
@@ -1044,7 +1047,7 @@ export function CampaignScreen({
                   styles.nodeCard,
                   node.type === 'boss'
                     ? styles.nodeBossCard
-                    : node.type === 'elite'
+                    : displayType === 'elite'
                       ? styles.nodeEliteCard
                       : undefined
                 ]}
@@ -1054,7 +1057,7 @@ export function CampaignScreen({
                     styles.nodeVisual,
                     node.type === 'boss'
                       ? styles.nodeVisualBoss
-                      : node.type === 'elite'
+                      : displayType === 'elite'
                         ? styles.nodeVisualElite
                         : undefined,
                     {
@@ -1117,7 +1120,7 @@ export function CampaignScreen({
                     ]}
                   >
                     <CampaignNodeSprite
-                      type={node.type}
+                      type={displayType}
                       faction="human"
                       active={node.completed || node.current}
                       size={17}
@@ -1134,18 +1137,18 @@ export function CampaignScreen({
                     >
                       CHAPTER FINALE
                     </Text>
-                  ) : node.type === 'elite' ? (
+                  ) : displayType === 'elite' || displayType === 'defense' ? (
                     <Text
                       style={[
                         styles.nodeEncounterLabel,
-                        { color: theme.colors.gold }
+                        { color: displayType === 'defense' ? theme.colors.human : theme.colors.gold }
                       ]}
                     >
-                      ELITE ENCOUNTER
+                      {displayType === 'defense' ? 'KINGDOM DEFENSE' : 'ELITE ENCOUNTER'}
                     </Text>
                   ) : null}
                   <Text style={[styles.nodeMeta, { color: theme.colors.textMuted }]}>
-                    {String(index + 1).padStart(2, '0')} · {node.type.toUpperCase()}
+                    {String(index + 1).padStart(2, '0')} · {displayType.toUpperCase()}
                   </Text>
                   <Text style={[styles.nodeName, { color: theme.colors.text }]}>{node.name}</Text>
                   {node.type === 'boss' && node.current && !node.completed ? (
