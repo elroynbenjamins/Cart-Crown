@@ -25,7 +25,7 @@
 
 | Domain | Repository evidence | Assessment |
 | --- | --- | --- |
-| Human campaign | `src/game/campaignMissionRoadmap.ts`; Chapters 1–7 runtime node arrays; `src/game/humanLateCampaign.ts`; `scripts/campaign-mission-roadmap-regression.ts` asserts 70 live nodes and Chapter 5–7 encounter wiring | **Implemented in source / verify by full playthrough.** The typed blueprint's `implementationStatus: 'blueprint'` does NOT reliably reflect runtime status. Reconcile it rather than assuming 70 missions remain to implement. |
+| Human campaign | `src/game/campaignMissionRoadmap.ts`; Chapters 1–7 runtime node arrays; `src/game/humanLateCampaign.ts`; `scripts/campaign-mission-roadmap-regression.ts` asserts 70 live nodes and Chapter 5–7 encounter wiring | **Implemented in source / verify by full playthrough.** The misleading blueprint default has now been replaced with live runtime ID linkage for all 70, verified by mission and documentation regressions. Live node linkage does not prove every design lesson or reward. |
 | Mission artwork | `docs/human-campaign-art-depth.md`; `src/ui/humanCampaignMissionArt.ts` | **Packaged:** 36 Human scene compositions (6 in Ch1 + 5 each in Ch2–7) cover all 70 slots; seven finales have their own composition. Focus next on scene use, quality/legibility and battle-specific art, not replacing them wholesale. |
 | Settlement | `src/screens/SettlementScreen.tsx`; `src/ui/HumanKingdomScenePreview.tsx`; `src/ui/gameArt.tsx` | Interactive placement, movement, upgrade and plot actions exist; visual coordination and compact Android usability still need real-device verification. |
 | Human settlement backgrounds | `assets/game/scenes/human/settlement/` contains camp/settlement/fort/town/capital | Advanced stronghold/grand stages currently reuse capital plate with overlays in `SettlementTerrainBackdrop`; audit whether genuinely different enough. |
@@ -36,7 +36,7 @@
 | UI | `src/AppShell.tsx`; `src/theme/themes.ts`; `src/ui/components.tsx` | Original/Charcoal, Pure Black, Light; route history and Android Back resolver exist. Need cross-screen design polish and usability audit. |
 | Saving | `src/save/*`; Save Provider retry regression, two local slots | Test lifecycle, restart, corruption/recovery and progress preservation. Development's no-legacy-migration choice must be revisited **before first public release**, never used to justify data loss in shipped builds. |
 | Android | Expo SDK 57 / React Native 0.86, Android package `com.elroybenjamins.cartcrown`; CI, native APK smoke, AAB QA workflow | Build infrastructure exists. CI pass not independently executed by this roadmap review; physical signed-device and Play listing checks remain gate. |
-| Inconsistency | `README.md` still contains older chapter descriptions; `campaignMissionRoadmap.ts` blueprint status is stale | **Phase 0 priority:** eliminate contradictory sources of truth without altering a working story save. |
+| Historical inconsistency — resolved in P0 | Previously, README included obsolete Human chapters and the roadmap marked live missions `blueprint`. | **Reconciled 2026-10-22:** README now reflects the 7-chapter Human campaign and `runtimeNodeId` joins all 70; see Phase 0 inventory and guard. Full device QA remains open. |
 
 **Statuses:** Present in source = found in code; Tested = relevant CI or device evidence reviewed and passing; Accepted = manually reviewed gameplay/art on target Android devices; Planned = do not claim implemented.
 
@@ -59,7 +59,7 @@ A phase can consist of small independent pull requests; do not wait to run regre
 
 ## P0 — Correctness, consolidation and design-system baseline (FIRST)
 
-**Problem:** multiple narrative layers were implemented at different times. The master 70-mission blueprint still labels items `blueprint`, while regression source asserts that all 70 nodes exist in live chapter arrays. README includes older 6-chapter Human arcs alongside current seven-chapter structure, potentially confusing future agents.
+**Historical problem (now reconciled):** older README sections and an outdated mission `blueprint` field contradicted the actual 70-node seven-chapter runtime. Canonical documentation and regression protection are merged. Remaining Phase 0 work concerns Android screenshot baselines and full gameplay/device acceptance, not rebuilding the Human campaign.
 
 **Work packages**
 1. Inspect the current `main` branch head, list active PRs and map old/duplicate mission documentation to current runtime. Do not rewrite canonical node IDs, story choices or save fields merely to tidy names.
@@ -70,7 +70,7 @@ A phase can consist of small independent pull requests; do not wait to run regre
 6. Audit code complexity: extremely large `SettlementScreen.tsx`, `CampaignScreen.tsx`, `gameArt.tsx`, `AppShell.tsx`. Extract pure data/selectors and smaller presentational components **incrementally**, with parity tests; avoid speculative sweeping refactors.
 7. Each future PR must include: what was wrong, exact affected files, tests, before/after screen capture where visual, and no unrelated balance/save changes.
 
-**Acceptance gate:** one canonical campaign inventory, all 70 maps accounted for, no documentation contradiction, passing applicable CI and baseline screenshots saved. **Current status (2026-10-22):** inventory + README + runtime ID guard prepared in Phase 0 PR; old names archived in Git history; pre-PR main CI and prior native smoke were green. Comprehensive screenshot coverage, behavior audit of early-node type differences, current-PR CI and merge must still be confirmed before declaring P0 complete.
+**Acceptance gate:** one canonical campaign inventory, all 70 maps accounted for, no documentation contradiction, passing applicable CI and baseline screenshots saved. **Current status (2026-10-22):** Phase 0 inventory + README + 70-node runtime ID guard merged in PR #202; 19 Human early-node route classifications and guarded handlers merged in PR #207, with passing CI. Native screenshot expansion PR #208 and a full gameplay/device acceptance matrix remain open. Documentation and routing source audits are not physical-device certification.
 
 ## P1 — Human Kingdom and settlement visual overhaul (highest visual ROI)
 
