@@ -36,18 +36,16 @@ export function HumanCampaignFrontCard({
 
   return (
     <GameCard accent={accent} faction="human" state="selected" ornament={false}>
-      <View
-        testID="human-campaign-front-card"
-        accessible
-        accessibilityLabel={
-          'Chapter ' + cue.chapter + ', ' + cue.region + '. ' +
-          cue.completed + ' of ' + cue.total + ' missions. ' +
-          cue.squadMessage + '. ' +
-          (cue.finished ? story.secured : 'Next: ' + cue.nextMissionName + '. ' + story.enemy)
-        }
-        style={s.shell}
-      >
-        <View style={[s.hero, { borderColor: accent + '88' }]}>
+      <View testID="human-campaign-front-card" style={s.shell}>
+        <View
+          accessible
+          accessibilityLabel={
+            'Chapter ' + cue.chapter + ', ' + cue.region + '. ' +
+            cue.completed + ' of ' + cue.total + ' missions. ' +
+            (cue.finished ? story.secured : 'Next mission: ' + cue.nextMissionName)
+          }
+          style={[s.hero, { borderColor: accent + '88' }]}
+        >
           <Image source={artwork.source} style={s.heroImage} resizeMode="cover" fadeDuration={0} />
           <View pointerEvents="none" style={[s.heroVeil, { backgroundColor: tint + 'A8' }]} />
           <View style={s.heroText}>
