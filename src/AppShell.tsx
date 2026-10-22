@@ -12,6 +12,7 @@ import {
 import type { NavId } from './game/types';
 import type { BattlePreparationFixTarget } from './game/battlePreparation';
 import { getHumanLateMission } from './game/humanLateCampaign';
+import { releaseCampaignScope } from './game/releaseCampaignScope';
 import { resultContinuation, resultContinuationLabel } from './game/resultContinuation';
 import {
   popNavigationHistory,
@@ -1267,7 +1268,7 @@ export function AppShell({
       );
     }
 
-    if (flow === 'metaCampaign') {
+    if (flow === 'metaCampaign' && releaseCampaignScope.metaCampaignReleased) {
       return (
         <MetaCampaignScreen
           onStartConvergence={() => {
@@ -1731,7 +1732,9 @@ export function AppShell({
               );
               openFlow('battlePrep');
             }}
-            onOpenMetaCampaign={() => openFlow('metaCampaign')}
+            onOpenMetaCampaign={() => {
+              if (releaseCampaignScope.metaCampaignReleased) openFlow('metaCampaign');
+            }}
             onOpenWarTable={() => openFlow('warTable')}
             onOpenExpedition={() => openFlow('expedition')}
             onOpenSiege={() => openFlow('siege')}
