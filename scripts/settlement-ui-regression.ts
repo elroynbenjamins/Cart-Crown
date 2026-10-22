@@ -402,8 +402,13 @@ function testRecipesAndInteractions() {
     press(tree, 'Return to Kingdom'); check(f.counts().exited === 1, 'Return navigation must preserve its callback.');
     f.h.dimensions.fontScale = 2;
     const largeTree = f.h.render();
-    const map = nodes(largeTree, 'View').find(node => style(node.props.style).height === 720 && style(node.props.style).position === 'relative');
-    check(Boolean(map), 'Larger text must expand the world viewport without changing plot geometry.');
+    const map = nodes(largeTree, 'View').find(node => node.props.testID === 'settlement-scene');
+    const mapStyle = map ? style(map.props.style) : {};
+    const expectedLargeTextHeight = faction === 'human'
+      ? Math.round(Math.min(438, Math.max(260, f.h.dimensions.width - 24)) / (540 / 960))
+      : 720;
+    check(Boolean(map) && mapStyle.height === expectedLargeTextHeight && mapStyle.position === 'relative',
+      'Large text must preserve the Human uncropped plate ratio and expand the other faction canvases.');
   }
 }
 
