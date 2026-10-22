@@ -74,31 +74,37 @@ export const humanChapterStories: Record<HumanCampaignChapter, HumanChapterStory
   }
 };
 
-/** Only curated, verified roadmap milestones are presented as unlocks. */
+/**
+ * Roadmap unlock IDs describe intended chapter beats, not necessarily runtime
+ * unlock grants. Only deployment slots below are verified against the live
+ * GameProvider cap selector. Other entries are marked "story": research,
+ * training, orders and siege tools may require additional playable steps.
+ */
 export const humanCampaignSystemMilestones: Record<HumanCampaignChapter, readonly Readonly<{
   mission: number;
   unlockId: string;
+  kind: 'deployment' | 'story';
   label: string;
 }>[]> = {
   1: [
-    { mission: 2, unlockId: 'hold_line_order', label: 'Hold Line order' },
-    { mission: 5, unlockId: 'focus_target_order', label: 'Focus Target order' }
+    { mission: 2, unlockId: 'hold_line_order', kind: 'story', label: 'Hold Line battle lesson' },
+    { mission: 5, unlockId: 'focus_target_order', kind: 'story', label: 'Focus Target tactics' }
   ],
   2: [],
-  3: [{ mission: 2, unlockId: 'fourth_deployment_slot', label: 'Fourth active squad' }],
+  3: [{ mission: 2, unlockId: 'fourth_deployment_slot', kind: 'deployment', label: 'Fourth active squad slot' }],
   4: [
-    { mission: 2, unlockId: 'fifth_deployment_slot', label: 'Fifth active squad' },
-    { mission: 5, unlockId: 'reinforce_order', label: 'Reinforce order' }
+    { mission: 2, unlockId: 'fifth_deployment_slot', kind: 'deployment', label: 'Fifth active squad slot' },
+    { mission: 5, unlockId: 'reinforce_order', kind: 'story', label: 'Reinforce tactics' }
   ],
   5: [
-    { mission: 2, unlockId: 'sixth_deployment_slot', label: 'Sixth active squad' },
-    { mission: 3, unlockId: 'rally_order', label: 'Rally order' },
-    { mission: 5, unlockId: 'anti_air_counter_branch', label: 'Anti-air research' }
+    { mission: 2, unlockId: 'sixth_deployment_slot', kind: 'deployment', label: 'Sixth active squad slot' },
+    { mission: 3, unlockId: 'rally_order', kind: 'story', label: 'Rally tactics' },
+    { mission: 5, unlockId: 'anti_air_counter_branch', kind: 'story', label: 'Anti-air doctrine' }
   ],
-  6: [{ mission: 3, unlockId: 'first_mage_squad', label: 'First Mage squad' }],
+  6: [{ mission: 3, unlockId: 'first_mage_squad', kind: 'story', label: 'Arcanist storyline' }],
   7: [
-    { mission: 2, unlockId: 'battering_ram', label: 'Battering ram support' },
-    { mission: 4, unlockId: 'field_ballista', label: 'Field Ballista' }
+    { mission: 2, unlockId: 'battering_ram', kind: 'story', label: 'Siege gate operation' },
+    { mission: 4, unlockId: 'field_ballista', kind: 'story', label: 'Wall artillery encounter' }
   ]
 };
 
@@ -176,8 +182,14 @@ export function humanCampaignProgressCue(
     bossName,
     bossState,
     squadMessage,
-    latestUnlock: achieved.length ? achieved[achieved.length - 1]!.label : null,
-    upcomingUnlock: upcoming ? upcoming.label + ' · mission ' + upcoming.mission : null,
+    latestUnlock: achieved.length
+      ? (achieved[achieved.length - 1]!.kind === 'deployment' ? 'DEPLOYMENT UNLOCKED · ' : 'STORY INTRODUCED · ') +
+        achieved[achieved.length - 1]!.label
+      : null,
+    upcomingUnlock: upcoming
+      ? (upcoming.kind === 'deployment' ? 'NEXT DEPLOYMENT · ' : 'UPCOMING STORY · ') +
+        upcoming.label + ' · mission ' + upcoming.mission
+      : null,
     milestoneMessage: nextBlueprint?.purpose ?? (chapter === 7
       ? 'The Human campaign is complete.' : 'The next front awaits.'),
     finished: nextNode === null
