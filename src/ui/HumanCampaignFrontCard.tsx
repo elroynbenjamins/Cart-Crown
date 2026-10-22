@@ -27,7 +27,11 @@ export function HumanCampaignFrontCard({
   const story = humanChapterStories[cue.chapter];
   const deploymentSlots = Math.min(cue.currentSquadCap, activeSquadCap ?? cue.currentSquadCap);
   const deploymentLimited = deploymentSlots < cue.currentSquadCap;
-  const artwork = humanCampaignArtworkForMission(cue.chapter, 1);
+  // Let the chapter hero follow the actual current mission through the
+  // existing approved scene atlas; the journey map retains the first regional plate.
+  const artwork = humanCampaignArtworkForMission(
+    cue.chapter, cue.nextMissionOrder ?? humanCampaignMissionCounts[cue.chapter]
+  );
   const bossArt = humanCampaignArtworkForMission(cue.chapter, humanCampaignMissionCounts[cue.chapter]);
 
   return (
