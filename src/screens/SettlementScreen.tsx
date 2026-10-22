@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import type { ViewStyle } from 'react-native';
-import { humanSettlementPlatePlotPositions as humanSettlementBackgroundPositions, settlementActionLayout } from '../ui/settlementActionLayout';
+import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementPlatePlotCenters, humanSettlementPlatePlotPositions as humanSettlementBackgroundPositions, settlementActionLayout } from '../ui/settlementActionLayout';
 import {
   analyzeSettlementAdjacency, getSettlementAdjacencyBonuses,
   getSettlementPlots, isSettlementPlotUnlocked
@@ -42,18 +42,6 @@ const fortWorldPositions: Record<string, { left: ViewStyle['left']; top: ViewSty
   plot_sw: { left: '11%', top: '62%' },
   plot_s: { left: '38%', top: '70%' },
   plot_se: { left: '66%', top: '62%' }
-};
-
-const humanSettlementBackgroundCenters: Record<string, { x: number; y: number }> = {
-  plot_nw: { x: 0.22, y: 0.30 },
-  plot_n: { x: 0.50, y: 0.26 },
-  plot_ne: { x: 0.76, y: 0.20 },
-  plot_w: { x: 0.18, y: 0.40 },
-  plot_center: { x: 0.50, y: 0.42 },
-  plot_e: { x: 0.76, y: 0.38 },
-  plot_sw: { x: 0.18, y: 0.52 },
-  plot_s: { x: 0.50, y: 0.57 },
-  plot_se: { x: 0.76, y: 0.54 }
 };
 
 const fortWorldCenters: Record<string, { x: number; y: number }> = {
@@ -617,13 +605,19 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
   ]);
   const safeFontScale = Number.isFinite(fontScale) ? fontScale : 1;
   const safeViewportHeight = Number.isFinite(viewportHeight) ? viewportHeight : 800;
-  const mapHeight = Math.max(
-    600,
-    Math.min(780, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 120))
-  );
   const safeViewportWidth = Number.isFinite(viewportWidth) ? viewportWidth : 360;
-  const mapWidth = measuredMapWidth > 0 ? measuredMapWidth : Math.max(300, safeViewportWidth - 20);
   const humanStagePlateActive = activeFaction === 'human';
+  // The Human backdrop is a 540×960 plate. Match its ratio instead of asking
+  // Image.resizeMode="cover" to silently crop the art and shift painted pads.
+  // On tablets, constrain its width; on phones, retain scrolling rather than
+  // squeezing the nine building touch targets to fit the viewport height.
+  const mapWidth = measuredMapWidth > 0
+    ? measuredMapWidth
+    : humanStagePlateActive ? Math.min(438, Math.max(260, safeViewportWidth - 24))
+      : Math.max(300, safeViewportWidth - 20);
+  const mapHeight = humanStagePlateActive
+    ? Math.round(mapWidth / HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO)
+    : Math.max(600, Math.min(780, Math.round(safeViewportHeight * 0.75 + Math.max(0, safeFontScale - 1) * 120)));
   const worldRebuildActive =
     humanStagePlateActive ||
     ['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id);
@@ -631,7 +625,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
     !worldRebuildActive ||
     Boolean(selectedBuildingId || selectedDistrictId || selectedPlotId || blueprintPlannerOpen || relocationMode);
   const activePlotCenters = humanStagePlateActive
-    ? humanSettlementBackgroundCenters
+    ? humanSettlementPlatePlotCenters
     : worldRebuildActive
       ? fortWorldCenters
       : settlementPlotCenters;
@@ -1143,7 +1137,13 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const width = event.nativeEvent.layout.width;
           if (Number.isFinite(width) && width > 0) setMeasuredMapWidth(previous => Math.abs(previous - width) < 0.5 ? previous : width);
         }}
-        style={[styles.map, { height: mapHeight, backgroundColor: theme.colors.surface1, borderColor: factionAccent + '66' }]}
+        style={[styles.map, {
+          height: mapHeight,
+          maxWidth: humanStagePlateActive ? 438 : undefined,
+          alignSelf: humanStagePlateActive ? 'center' : undefined,
+          backgroundColor: theme.colors.surface1,
+          borderColor: factionAccent + '66'
+        }]}
       >
         <Pressable testID="settlement-clear-selection" accessible={false} importantForAccessibility="no" disabled={!selectedBuilding && !selectedPlot} onPress={dismissSceneSelection} style={styles.sceneDismissSurface} />
         <View pointerEvents="none" style={styles.backdrop}>
@@ -1364,9 +1364,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
           const recommendedBuildPlot = buildReady && nextSuggestedPlot?.id === plot.id;
           const upgradeMaterialsReady = Boolean(building) && upgradeMaterialReadyIds.has(building!.id);
           const depthScale = plot.row === 0 ? 0.86 : plot.row === 2 ? 1.1 : 1;
-          const buildingSize = worldRebuildActive
-            ? landmark ? 142 : Math.round(76 * depthScale)
-            : landmark ? 106 : Math.round(70 * depthScale);
+          const spriteScale = humanStagePlateActive ? Math.min(1.12, mapWidth / 340) : 1;
+          const buildingSize = Math.round((worldRebuildActive
+            ? landmark ? 142 : 76 * depthScale
+            : landmark ? 106 : 70 * depthScale) * spriteScale);
           const ambienceSize = worldRebuildActive
             ? landmark ? 118 : Math.round(78 * depthScale)
             : landmark ? 126 : Math.round(94 * depthScale);
@@ -1422,6 +1423,10 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 setSelectedDistrictId(null);
                 setDistrictCodexOpen(false);
                 if (building) {
+                  if (buildingSelected && !relocationMode) {
+                    closeBuildingSelection();
+                    return;
+                  }
                   setSelectedBuildingId(building.id);
                   setSelectedBuildingAction(null);
                   setRelocationTargetPlotId(null);
@@ -1982,7 +1987,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                     </Pressable>;
                   })}
                 </View>
-                {!selectedCanMove && !buildingDetails ? <Text style={[styles.sceneFeedback, { color: theme.colors.textMuted }]}>No unlocked empty plots for moving.</Text> : null}
+                {!selectedCanMove && selectedBuildingAction === 'move' ? <Text style={[styles.sceneFeedback, { color: theme.colors.textMuted }]}>No unlocked empty plots for moving.</Text> : null}
                 {message ? <Text testID="scene-building-feedback" accessibilityLiveRegion="polite" style={[styles.sceneFeedback, { color: theme.colors.text }]}>{message}</Text> : null}
               </View>
               {buildingDetails ? <ScrollView testID="scene-building-details-scroll" nestedScrollEnabled style={{ maxHeight: actionDetailHeight }} contentContainerStyle={styles.sceneDetailsScroll}>
