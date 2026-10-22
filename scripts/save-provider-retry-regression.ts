@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import { createNewSaveRecord, metadataFromSnapshot, normalizeSaveRecord } from '../src/save/schema';
 import { createSerialTaskQueue } from '../src/game/mobileSession';
+import { playableSnapshotForRelease } from '../src/game/releaseCampaignScope';
 
 type Host = { type: unknown; props: Record<string, unknown> };
 
@@ -76,6 +77,7 @@ async function testFailedStorageReadCanRetryWithoutOverwritingSave() {
     if (name === '@react-native-async-storage/async-storage') return { __esModule: true, default: storage };
     if (name === './schema') return { createNewSaveRecord, metadataFromSnapshot, normalizeSaveRecord };
     if (name === '../game/mobileSession') return { createSerialTaskQueue };
+    if (name === '../game/releaseCampaignScope') return { playableSnapshotForRelease };
     throw new Error('Unexpected provider dependency: ' + name);
   };
   new Function('require', 'module', 'exports', compiled.outputText)(requireModule, mod, mod.exports);
