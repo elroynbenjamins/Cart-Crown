@@ -76,8 +76,10 @@ export function bossStagePieces(signature: BossSignature): readonly BossStagePie
 export const BossStageSilhouette = memo(function BossStageSilhouette({
   signature, size, material, light
 }: { signature: BossSignature; size: number; material: string; light: string }) {
-  const width = Math.max(20, Math.min(100, Number.isFinite(size) ? size : 40));
-  const scale = width * 1.34;
+  // A boss is still one authored battle slot. Decorative standards and
+  // shoulders must never invade an adjacent Iron Wall/Layered Core actor.
+  const width = Math.max(8, Math.min(100, Number.isFinite(size) ? size : 40));
+  const scale = width;
   const pieces = bossStagePieces(signature);
   return <View pointerEvents="none" accessible={false} accessibilityElementsHidden
     importantForAccessibility="no-hide-descendants"
