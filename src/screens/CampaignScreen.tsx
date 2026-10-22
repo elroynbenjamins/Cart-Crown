@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { rewardedAdPlacements } from '../ads/rewardedAds';
 import { factions, factionOrder } from '../game/factions';
+import { isFactionCampaignReleased, releaseCampaignScope, futureFactionMessage } from '../game/releaseCampaignScope';
 import { humanRegions } from '../game/data';
 import { useGame } from '../game/GameProvider';
 import type { CampaignId, SideModeId } from '../game/types';
@@ -1517,16 +1518,12 @@ export function CampaignScreen({
     <>
       <ScreenHero
         eyebrow="CAMPAIGNS"
-        title="Three Perspectives"
-        body="Humans are the required first campaign. Finishing Human Chapter 6 unlocks Elves and Orcs together. Completing all three unlocks the final Three Seals campaign."
+        title="The Human Campaign"
+        body="Version 1.0 contains the complete seven-chapter Human campaign, from Greenkeep to Blackstone. Elves and Orcs will arrive in future updates."
         accent={theme.colors.gold}
         status={
           <StatusPill
-            label={
-              campaignAvailability.filter(
-                campaign => campaign.completed
-              ).length + '/3 COMPLETE'
-            }
+            label={campaignById('human')?.completed ? 'HUMAN COMPLETE' : 'HUMAN · 1.0'}
             tone="current"
           />
         }
@@ -1534,6 +1531,7 @@ export function CampaignScreen({
 
       {factionOrder.map(id => {
         const faction = factions[id];
+        const released = isFactionCampaignReleased(id);
         const availability = campaignById(id);
         const accent =
           id === 'human' ? theme.colors.human : id === 'elf' ? theme.colors.elf : theme.colors.orc;
@@ -1543,9 +1541,11 @@ export function CampaignScreen({
             key={id}
             faction={id}
             state={
-              id === activeFaction
-                ? 'selected'
-                : availability?.completed
+              !released
+                ? 'locked'
+                : id === activeFaction
+                  ? 'selected'
+                  : availability?.completed
                   ? 'ready'
                   : availability?.unlocked
                     ? 'default'
@@ -1561,18 +1561,22 @@ export function CampaignScreen({
               </View>
               <StatusPill
                 label={
-                  id === activeFaction
-                    ? 'CURRENT'
-                    : availability?.completed
+                  !released
+                    ? 'FUTURE UPDATE'
+                    : id === activeFaction
+                      ? 'CURRENT'
+                      : availability?.completed
                       ? 'COMPLETE'
                       : availability?.unlocked
                         ? 'AVAILABLE'
                         : 'LOCKED'
                 }
                 tone={
-                  id === activeFaction
-                    ? 'current'
-                    : availability?.completed
+                  !released
+                    ? 'locked'
+                    : id === activeFaction
+                      ? 'current'
+                      : availability?.completed
                       ? 'done'
                       : availability?.unlocked
                         ? 'available'
@@ -1591,19 +1595,21 @@ export function CampaignScreen({
                 {faction.mechanicSummary}
               </Text>
             </View>
-            <Text style={[styles.replayReason, { color: theme.colors.gold }]}>
-              Why replay: {faction.replayReason}
-            </Text>
+            {released ? (
+              <Text style={[styles.replayReason, { color: theme.colors.gold }]}>
+                Campaign identity: {faction.replayReason}
+              </Text>
+            ) : null}
             {!availability?.unlocked ? (
               <View style={styles.unlockRow}>
                 <LockIcon color={theme.colors.textMuted} size={20} />
                 <Text style={[styles.unlockText, { color: theme.colors.textMuted }]}>
-                  {availability?.unlockText}
+                  {released ? availability?.unlockText : futureFactionMessage}
                 </Text>
               </View>
             ) : null}
 
-            {availability?.unlocked && id !== activeFaction ? (
+            {released && availability?.unlocked && id !== activeFaction ? (
               <View style={styles.modeButton}>
                 <SecondaryButton
                   label={
@@ -1621,12 +1627,12 @@ export function CampaignScreen({
         );
       })}
 
-      <GameCard accent={campaignById('meta')?.unlocked ? theme.colors.gold : undefined}>
+      <GameCard accent={releaseCampaignScope.metaCampaignReleased && campaignById('meta')?.unlocked ? theme.colors.gold : undefined}>
         <Text style={[styles.modeName, { color: theme.colors.text }]}>Three Seals</Text>
         <Text style={[styles.modeBody, { color: theme.colors.textMuted }]}>
-          Final single-player Crownspire campaign. The currently active completed faction leads while the other two arrive as allied NPC armies.
+          A later chapter of the world: unite all three factions against the final Crownspire threat. Not included in the Human-first 1.0 release.
         </Text>
-        {campaignById('meta')?.unlocked ? (
+        {releaseCampaignScope.metaCampaignReleased && campaignById('meta')?.unlocked ? (
           <View style={styles.modeButton}>
             <PrimaryButton
               label={campaignById('meta')?.completed ? 'View Restored Concord' : 'Enter Three Seals Campaign'}
