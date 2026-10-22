@@ -59,6 +59,39 @@ for (const width of [240, 320, 360, 412, 480, 768]) for (const height of [480, 5
   }
 }
 assert.equal(JSON.stringify(formationShapes), snapshot);
+
+for (const state of ['stable', 'pressured', 'breaking', 'breached'] as const) {
+  const copy = model.stageIntegrityReadout(53.8, state);
+  check(copy.percent === 54, 'Integrity should use real, bounded army percent');
+  check(copy.label.toLowerCase() === state, 'Integrity label must match the combat engine');
+  check(copy.fractured === (state === 'breaking' || state === 'breached'),
+    'Ground fractures must appear only when formation integrity is genuinely breaking');
+}
+check(model.stageIntegrityReadout(-10, 'breached').percent === 0, 'Never show negative integrity');
+check(model.stageIntegrityReadout(120, 'stable').percent === 100, 'Never exceed full integrity');
+check(model.stageIntegrityReadout(NaN, 'stable').percent === 100, 'Invalid integrity values must be safe');
+for (const shape of formationShapes) for (const width of [240, 320, 412]) {
+  const friendly = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], 'ally', width, 320);
+  const hostile = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], 'enemy', width, 320);
+  const start = friendly[0]!, end = hostile[0]!;
+  for (const role of ['ranged', 'cavalry'] as const) {
+    const trail = model.stageAttackTrail(friendly, hostile, start.slot, end.slot, role, 9);
+    check(trail !== null && trail.kind === (role === 'ranged' ? 'arrow' : 'charge'),
+      'Role-specific trajectories must derive from real source and enemy slots');
+    check(Boolean(trail) && Math.abs((trail!.x + trail!.dx) - end.x) < 0.001 && trail!.dy < 0,
+      'Ranged and mounted trails must travel toward the actual enemy, never away');
+  }
+  for (const damage of [0, -3, NaN, Infinity]) {
+    check(model.stageAttackTrail(friendly, hostile, start.slot, end.slot, 'ranged', damage) === null,
+      'No projectile should claim a successful strike without real damage');
+  }
+  check(model.stageAttackTrail(friendly, hostile, null, end.slot, 'ranged', 5) === null,
+    'Missing ally slot cannot fabricate a projectile');
+  check(model.stageAttackTrail(friendly, hostile, start.slot, null, 'cavalry', 5) === null,
+    'Missing enemy target cannot fabricate a charge');
+  check(model.stageAttackTrail(friendly, hostile, start.slot, end.slot, 'support', 5) === null,
+    'Support must not masquerade as mounted or ranged');
+}
 for (const shape of formationShapes) {
   const before = JSON.stringify(shape);
   const readout = model.stageFormationReadout(shape);
@@ -266,6 +299,22 @@ check(controller.includes('manualPaused ||\n      pausedForTutorial'),'Manual pa
 check(controller.includes('!battleEnded || !outcomeCommitGateRef.current()'),'Outcome settlement must be one-shot');
 check(controller.includes('else onDefeated(summary)'),'Preserve defeat report callback');
 check(controller.includes('setExchangeHistory(previous => appendExchange'),'Log must use live exchange telemetry');
+check(controller.includes('partyIntegrity={partyIntegrity}') && controller.includes('enemyIntegrity={enemyIntegrity}') &&
+  controller.includes('partyIntegrityState={partyIntegrityState}') && controller.includes('enemyIntegrityState={enemyIntegrityState}'),
+  'Combat engine must pass genuine integrity values and states to the renderer');
+check(controller.includes('outgoingDamage={exchangeFeedback?.outgoing ?? 0}') &&
+  controller.includes('incomingDamage={exchangeFeedback?.incoming ?? 0}'),
+  'Visible hits must use finalized real damage, not role or animation guesses');
+check(file.includes('stageAttackTrail(allyPositions, enemyPositions') &&
+  file.includes("testID={'battle-' + trail.kind + '-trajectory'}") &&
+  file.includes('p.outgoingDamage > 0 ? p.activeRole : null'),
+  'Projectile and contact VFX must be gated to actual damage and existing pulses');
+check(file.includes('ally-facing-') && file.includes('enemy-facing-') &&
+  file.includes('ally-line-fracture') && file.includes('enemy-line-fracture'),
+  'Both armies must visibly show engagement direction and actual formation damage');
+check(file.includes('active-battle-order-cue') && file.includes('order.selected'),
+  'Only genuinely active commander orders may appear as battle-state cues');
+
 check(controller.includes('fantasyThreat={encounter.fantasyThreat}')&&file.includes('fantasyThreat={p.fantasyThreat} role={item.role}'),'Fantasy/role forwarding must survive integration');
 check(file.includes('EnemyFantasyStrikeVfx')&&file.includes('progress={p.impactPulse}'),'Retain fantasy strike effects');
 check(file.includes('stageDepthVisual(position.row)'),'Battlefield actors must consume their rank-depth presentation');
