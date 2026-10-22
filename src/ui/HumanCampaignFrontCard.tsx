@@ -89,13 +89,27 @@ export function HumanCampaignFrontCard({
               {deploymentLimited ? deploymentSlots + ' usable slots · upgrade your wagon to use more' : cue.squadMessage}
             </Text>
           </View>
-          <View style={[s.boss, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
-            <Image source={bossArt.source} resizeMode="cover" style={s.bossImage} fadeDuration={0} />
+          <View style={[
+            s.boss,
+            cue.bossState === 'current' ? s.bossActive : null,
+            { backgroundColor: theme.colors.surface2, borderColor: cue.bossState === 'current' ? accent : theme.colors.border }
+          ]}>
+            <Image
+              source={bossArt.source}
+              resizeMode="cover"
+              style={[s.bossImage, cue.bossState === 'current' ? s.bossImageActive : null]}
+              fadeDuration={0}
+            />
             <View style={s.bossCopy}>
               <Text style={[s.eyebrow, { color: cue.bossState === 'secured' ? theme.colors.primary : accent }]}>
                 {cue.bossState === 'secured' ? 'FINALE CLEARED' : cue.bossState === 'current' ? 'BOSS NOW' : 'FINAL THREAT'}
               </Text>
               <Text style={[s.bossName, { color: theme.colors.text }]} numberOfLines={2}>{story.enemy}</Text>
+              {cue.bossState === 'current' ? (
+                <Text style={[s.bossDescription, { color: theme.colors.textMuted }]} numberOfLines={3}>
+                  {story.finale}
+                </Text>
+              ) : null}
             </View>
           </View>
         </View>
@@ -126,7 +140,10 @@ const s = StyleSheet.create({
   intel: { padding: 8, borderRadius: 9, borderWidth: 1, gap: 4 },
   intelText: { fontSize: 10.5, fontWeight: '700', lineHeight: 14 },
   boss: { borderRadius: 9, borderWidth: 1, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', minHeight: 54 },
+  bossActive: { minHeight: 88, borderWidth: 1.5 },
   bossImage: { width: 73, height: 54 },
+  bossImageActive: { width: 114, height: 88 },
   bossCopy: { flex: 1, minWidth: 0, paddingHorizontal: 8, gap: 3 },
-  bossName: { fontSize: 10.5, fontWeight: '800', lineHeight: 14 }
+  bossName: { fontSize: 10.5, fontWeight: '800', lineHeight: 14 },
+  bossDescription: { fontSize: 9.5, lineHeight: 13, marginTop: 3 }
 });
