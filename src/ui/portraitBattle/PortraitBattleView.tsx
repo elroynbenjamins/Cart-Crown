@@ -9,7 +9,7 @@ import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop
 import { getBossPresentation } from '../bossPresentation';
 import { BossStageSilhouette } from '../BossStageSilhouette';
 import { ReferenceArt } from './Art';
-import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageFormationReadout, stageRoleLetters, stageTokens, stageAttackTrail, stageIntegrityReadout, battleSpectacleCue } from './model';
+import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageFormationReadout, stageRoleLetters, stageTokens, stageAttackTrail, stageIntegrityReadout, stageOrderBand, battleSpectacleCue } from './model';
 import type { ArmySide, EnemyToken, ExchangeRecord, IntegrityTier } from './model';
 
 export type PortraitBattleProps = {
@@ -129,6 +129,9 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
   const foeLine = stageIntegrityReadout(p.enemyIntegrity ?? 100, p.enemyIntegrityState ?? 'stable');
   const trail = stageAttackTrail(allyPositions, enemyPositions, p.activeSlot, p.enemySlot, p.activeRole, p.outgoingDamage);
   const activeOrder = p.orders?.find(order => order.selected);
+  const onFieldOrder = stageOrderBand(activeOrder?.id ?? null, allyPositions, enemyPositions,
+    p.enemySlot, layout.stageWidth, layout.stageHeight);
+  const factionAccent = theme.colors[p.faction];
   const ongoing = !p.outcome;
   const moving = ongoing && !p.paused && !reducedMotion;
   const last = p.records[p.records.length - 1];
@@ -220,6 +223,18 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
         top: layout.stageHeight * .58, borderColor: theme.colors.danger,
         opacity: p.partyIntegrityState === 'breached' ? .9 : .55
       }]} /> : null}
+      {ongoing && onFieldOrder ? <View pointerEvents="none" accessible={false}
+        accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+        testID={'battle-field-order-' + onFieldOrder.id}
+        style={[s.orderFieldBand, {
+          left: onFieldOrder.left, top: onFieldOrder.top, width: onFieldOrder.width,
+          borderColor: onFieldOrder.id === 'hold' ? theme.colors.info :
+            onFieldOrder.id === 'reinforce' ? theme.colors.primary : theme.colors.gold
+        }]}>
+        <Text numberOfLines={1} style={[s.orderFieldLabel, { color: theme.colors.text }]}>
+          {onFieldOrder.label}
+        </Text>
+      </View> : null}
       {allyPositions.map(position => {
         const item = roster.find(candidate => candidate.slot === position.slot)!;
         const active = ongoing && position.slot === p.activeSlot;
@@ -240,15 +255,15 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           <View style={[s.shadow, { backgroundColor: '#000000',
             width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
           <View pointerEvents="none" testID={'ally-facing-' + position.slot} style={[s.facingMark, s.allyFacing]}>
-            <Text style={[s.facingGlyph, { color: theme.colors.human }]}>▲</Text>
+            <Text style={[s.facingGlyph, { color: factionAccent }]}>▲</Text>
           </View>
           {allyPortrait(item.unit) ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size * 1.08} height={position.size * 1.08}
             fallback={<UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
             : <UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />}
-          <View pointerEvents="none" testID={'ally-stage-role-' + position.slot} style={[s.roleMarker, { borderColor: theme.colors.human }]}>
+          <View pointerEvents="none" testID={'ally-stage-role-' + position.slot} style={[s.roleMarker, { borderColor: factionAccent }]}>
             <Text style={s.roleMarkerText}>{stageRoleLetters[item.unit.role]}</Text>
           </View>
-          {active || support || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : support ? theme.colors.primary : theme.colors.human }]} /> : null}
+          {active || support || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : support ? theme.colors.primary : factionAccent }]} /> : null}
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
         </Animated.View>;
       })}
@@ -475,12 +490,16 @@ const s = StyleSheet.create({
   guide: { position: 'absolute', left: 4, right: 4, borderTopWidth: .5, opacity: .24 },
   rankMark: { position: 'absolute', top: -7, left: 0, fontSize: 8 },
   engagement: { position: 'absolute', left: '22%', right: '22%', borderTopWidth: 1, opacity: .3 },
+  orderFieldBand: { position: 'absolute', height: 16, borderTopWidth: 2,
+    justifyContent: 'center', alignItems: 'center', zIndex: 3 },
+  orderFieldLabel: { fontSize: 8, fontWeight: '900', lineHeight: 11,
+    backgroundColor: '#14212CCF', paddingHorizontal: 4, letterSpacing: .4 },
   lineFracture: { position: 'absolute', left: '18%', right: '18%', borderTopWidth: 2, borderStyle: 'dashed' },
   facingMark: { position: 'absolute', width: 13, height: 11, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   allyFacing: { top: -7 },
   enemyFacing: { bottom: -8 },
   facingGlyph: { fontSize: 9, lineHeight: 11, fontWeight: '900' },
-  attackTrail: { position: 'absolute', width: 14, height: 20, zIndex: 45, alignItems: 'center' },
+  attackTrail: { position: 'absolute', width: 14, height: 20, zIndex: 4, alignItems: 'center' },
   projectileTip: { width: 0, height: 0, borderLeftWidth: 4, borderRightWidth: 4,
     borderBottomWidth: 7, borderLeftColor: 'transparent', borderRightColor: 'transparent' },
   projectileStem: { width: 2, height: 13 },
