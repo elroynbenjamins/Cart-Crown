@@ -24,9 +24,11 @@ export function EventEffectList({ rows }: { rows: readonly EventEffectRow[] }) {
 }
 
 /** Optional illustration, never a gate or a new tutorial. The story itself stays visible. */
-export function EventIllustration({ children }: PropsWithChildren) {
+export function EventIllustration({
+  children, initiallyExpanded = false
+}: PropsWithChildren<{ initiallyExpanded?: boolean }>) {
   const { theme } = useGameTheme();
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   return (
     <View>
       <Pressable
