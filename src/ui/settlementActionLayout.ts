@@ -85,3 +85,30 @@ export const HUMAN_SETTLEMENT_STAGE_PLATES = {
 export function humanSettlementStagePlate(stageId: string): typeof HUMAN_SETTLEMENT_STAGE_PLATES[keyof typeof HUMAN_SETTLEMENT_STAGE_PLATES] {
   return HUMAN_SETTLEMENT_STAGE_PLATES[stageId as keyof typeof HUMAN_SETTLEMENT_STAGE_PLATES] ?? 'camp';
 }
+
+/**
+ * Consistent stage-plate sprite proportions for Kingdom preview and editable
+ * settlement. Plot position controls depth, while the Great Hall retains its
+ * landmark silhouette even after being relocated away from the center plot.
+ * Sizes are logical DP; the scene's existing pad transform supplies the final
+ * ~1.14x on non-central world plots.
+ */
+export function humanSettlementBuildingSpriteSize(
+  plotId: string,
+  role: string,
+  mapWidth: number
+): number {
+  const safeWidth = Number.isFinite(mapWidth) && mapWidth > 0 ? mapWidth : 340;
+  const widthScale = Math.max(0.82, Math.min(1.12, safeWidth / 340));
+  const isCenter = plotId === 'plot_center';
+  const isBack = plotId === 'plot_nw' || plotId === 'plot_n' || plotId === 'plot_ne';
+  const isFront = plotId === 'plot_sw' || plotId === 'plot_s' || plotId === 'plot_se';
+  const depth = isBack ? 0.86 : isFront ? 1.1 : 1;
+  const roleSize = role === 'KINGDOM' ? 98
+    : role === 'MOUNT' ? 80
+      : role === 'SCOUT' ? 71 : 76;
+  return Math.round((isCenter
+    ? role === 'KINGDOM' ? 142 : 114
+    : roleSize * depth
+  ) * widthScale);
+}
