@@ -8,6 +8,7 @@ import {
   HUMAN_SETTLEMENT_LANDMARK_WIDTH,
   HUMAN_SETTLEMENT_STAGE_PLATES,
   humanSettlementBuildingSpriteSize,
+  humanSettlementPlotDepthIndex,
   humanSettlementPlatePlotCenters,
   humanSettlementPlatePlotCenter,
   humanSettlementPlatePlotPositions,
@@ -38,6 +39,10 @@ for (const plotId of ids) {
   assert.ok(center.x > 0 && center.x < 1 && center.y > 0 && center.y < 1);
 }
 assert.equal(humanSettlementPlatePlotCenter('missing'), null);
+assert.ok(humanSettlementPlotDepthIndex('plot_n') < humanSettlementPlotDepthIndex('plot_center'), 'Back row should render behind central buildings.');
+assert.ok(humanSettlementPlotDepthIndex('plot_center') < humanSettlementPlotDepthIndex('plot_s'), 'Foreground must render above the Hall instead of being obscured.');
+assert.ok(humanSettlementPlotDepthIndex('plot_s') < 18, 'District overlay text must retain its own depth layer.');
+assert.equal(humanSettlementPlotDepthIndex('missing'), 5, 'Missing plot must have stable fallback depth.');
 
 const stages = ['camp', 'settlement', 'fort', 'town', 'stronghold', 'capital', 'grand'];
 assert.deepEqual(Object.keys(HUMAN_SETTLEMENT_STAGE_PLATES), stages);
@@ -79,6 +84,12 @@ const settlementSource = readFileSync('src/screens/SettlementScreen.tsx', 'utf8'
 const gameArtSource = readFileSync('src/ui/gameArt.tsx', 'utf8');
 assert.match(previewSource, /humanSettlementBuildingSpriteSize\(plotId, building\.role, plateWidth\)/);
 assert.match(settlementSource, /humanSettlementBuildingSpriteSize\(plot\.id, building\.role, mapWidth\)/);
+assert.match(settlementSource, /humanSettlementPlotDepthIndex\(plot\.id\)/);
+assert.match(previewSource, /humanSettlementPlotDepthIndex\(plotId\)/);
+assert.match(settlementSource, /animated=\{buildingSelected \|\| building\.role === 'KINGDOM'\}/);
+assert.match(settlementSource, /animated=\{districtAnalysisVisible && connection\.focused\}/);
+assert.match(gameArtSource, /if \(reduceMotion \|\| !enabled\)/,
+  'Offscreen or unfocused scene props must pause native looping animations.');
 assert.match(gameArtSource, /human-stage-environment-/);
 assert.match(gameArtSource, /human-stronghold-supply-caravan/);
 assert.match(gameArtSource, /capital-quayside-market-/);
@@ -86,4 +97,4 @@ assert.match(gameArtSource, /human-grand-campaign-standard/);
 assert.doesNotMatch(gameArtSource, /grand-campaign-tent-/,
   'Campaign tents should not return to the visible water at the foot of the Capital plate');
 
-console.log('Human settlement geometry, relocated Hall scale and seven-tier visual wiring OK.');
+console.log('Human settlement geometry, plot depth, reduced animation load and seven-tier wiring OK.');
