@@ -31,6 +31,14 @@ A separate **[successful native Settlement fixture run 39747225373](https://gith
 
 Both fixtures report `status=passed` and display the actual `SettlementScreen` set to `grand` with nine buildings. **Manual visual review found blockers:** broad semi-transparent grey blocks across the upper plot row; dark/brown label-like overlay strips across structures/terrain; several bright upgrade arrows over buildings. The Grand scenery itself is detailed, but the UI chrome currently overwhelms it at compact dimensions and enlarged font size. A green native launch/screenshot smoke test is **not** visual acceptance. This finding was passed to the [Phase 1 settlement PR](https://github.com/elroynbenjamins/Cart-Crown/pull/203) for plot/action-strip polish. Neither screenshot establishes a valid normal-game Grand save, campaign progression, or theme parity.
 
+## Automated screenshot integrity gate — Phase 0 follow-up
+
+The **Android native workflow** now runs `scripts/android-visual-baseline-audit.py` against its freshly captured installed-APK screenshots *after* the required gameplay/save smoke. It fails the native job when any of the following is missing or inconsistent: the correct 40-character source SHA, both 360×640 and 412×915 emulator scenarios, successful battle/results, the 46 expected original and supplemental PNG files, correct physical pixel dimensions (720×1280 and 1080×2400), valid PNG signatures/chunk CRCs, distinct theme screenshots, or zero-error supplemental capture reports.
+
+The audit writes `screenshot-baseline-audit.json` into the native smoke artifact as a reproducible receipt. `scripts/android-visual-baseline-audit-regression.py` exercises missing-image, wrong-resolution, duplicate-theme, reported-error and invalid-SHA failure cases in the regular CI workflow. These tests protect the **integrity of evidence**, not artistic quality.
+
+A green run therefore establishes the exact expected screenshots were generated at the required resolutions. **It does not certify** plot grounding, legibility, chapter/boss appearances, late-stage progression, all themes on every screen or physical-device suitability. Issue #204 remains open until those visual acceptance tasks are complete.
+
 ## Missing Phase 0 visual acceptance matrix
 
 | Screen | Early Human | Mid Human | Late Human | Compact + regular | Three themes | State |
