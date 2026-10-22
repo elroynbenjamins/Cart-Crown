@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { BuildingDefinition, WagonStage } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { BuildingSprite, SettlementTerrainBackdrop } from './gameArt';
-import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementBuildingSpriteSize, humanSettlementPlatePlotPositions } from './settlementActionLayout';
+import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementBuildingSpriteSize, humanSettlementPlotDepthIndex, humanSettlementPlatePlotPositions } from './settlementActionLayout';
 
 type HumanStageId = WagonStage['id'];
 
@@ -91,7 +91,7 @@ export function HumanKingdomScenePreview({
                 {
                   left: humanSettlementPlatePlotPositions[plotId]!.left,
                   top: humanSettlementPlatePlotPositions[plotId]!.top,
-                  zIndex: landmark ? 16 : 5 + row * 5
+                  zIndex: humanSettlementPlotDepthIndex(plotId)
                 }
               ]}
             >
