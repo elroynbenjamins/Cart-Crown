@@ -92,6 +92,31 @@ for (const shape of formationShapes) for (const width of [240, 320, 412]) {
   check(model.stageAttackTrail(friendly, hostile, start.slot, end.slot, 'support', 5) === null,
     'Support must not masquerade as mounted or ranged');
 }
+// Active orders must have truthful positions using actually occupied actors.
+for (const shape of formationShapes) for (const width of [240, 320, 412]) for (const height of [264, 400]) {
+  const ally = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], 'ally', width, height);
+  const enemy = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], 'enemy', width, height);
+  const source = JSON.stringify([ally, enemy]);
+  for (const id of ['hold', 'focus', 'push', 'reinforce'] as const) {
+    const band = model.stageOrderBand(id, ally, enemy, enemy[0]!.slot, width, height);
+    check(Boolean(band) && band!.id === id, 'Genuine active orders must project an appropriate battlefield signal');
+    check(Boolean(band) && band!.left >= 4 && band!.width >= 40 && band!.left + band!.width <= width - 4,
+      'Order signal must stay inside the actual stage width even at compact sizes');
+    check(Boolean(band) && band!.top >= 4 && band!.top <= height - 18,
+      'Order signal must stay inside the stage height');
+    check(band!.label.length > 0, 'On-stage signal needs a legible distinct order label');
+  }
+  check(model.stageOrderBand(null, ally, enemy, enemy[0]!.slot, width, height) === null,
+    'No selected order may imply a defensive or offensive stance');
+  check(model.stageOrderBand('unknown', ally, enemy, enemy[0]!.slot, width, height) === null,
+    'Unknown orders must never invent a tactical effect');
+  check(model.stageOrderBand('focus', ally, enemy, null, width, height) === null,
+    'Focus must not invent an enemy target when no target is known');
+  check(model.stageOrderBand('hold', [], enemy, enemy[0]!.slot, width, height) === null,
+    'Hold cannot create a shield wall without active squads');
+  check(JSON.stringify([ally, enemy]) === source,
+    'Drawing an order signal cannot rearrange authored formation positions');
+}
 for (const shape of formationShapes) {
   const before = JSON.stringify(shape);
   const readout = model.stageFormationReadout(shape);
@@ -314,6 +339,13 @@ check(file.includes('stageAttackTrail(allyPositions, enemyPositions') &&
 check(file.includes('ally-facing-') && file.includes('enemy-facing-') &&
   file.includes('ally-line-fracture') && file.includes('enemy-line-fracture'),
   'Both armies must visibly show engagement direction and actual formation damage');
+check(file.includes("testID={'battle-field-order-' + onFieldOrder.id}") &&
+  file.includes('stageOrderBand(activeOrder?.id ?? null') &&
+  file.includes('color: factionAccent') &&
+  file.includes('borderColor: factionAccent'),
+  'Battlefield posture must reflect real order selection and current faction, not a Human-only marker');
+check(file.includes("zIndex: 4, alignItems: 'center'"),
+  'Range/charge trails must sit behind fighters rather than crossing their bodies');
 check(file.includes('active-battle-order-cue') && file.includes('order.selected'),
   'Only genuinely active commander orders may appear as battle-state cues');
 
