@@ -51,6 +51,9 @@ jobs:
       - name: Human early mission route and completion regression
         run: npm run human-mission-routes:check
 
+      - name: Human-only 1.0 release scope and legacy save regression
+        run: npm run release-scope:check
+
       - name: Canonical campaign documentation regression
         run: npm run docs:check
 
