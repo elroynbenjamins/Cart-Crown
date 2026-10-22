@@ -363,6 +363,34 @@ assert(
   'The Human campaign journey map must visualize route progress'
 );
 
+// Phase 0 guard: the authored roadmap and saved runtime IDs must never drift.
+// Roadmap kinds/unlocks are design targets, not proof of event/reward fidelity;
+// the early chapters intentionally contain different runtime presentation types.
+const canonicalLiveNodes = [
+  chapterOneNodes, chapterTwoNodes, chapterThreeNodes, chapterFourNodes,
+  chapterFiveNodes, chapterSixNodes, chapterSevenNodes
+];
+const linkedNodeIds = new Set<string>();
+for (const blueprint of campaignMissionRoadmap) {
+  const node = canonicalLiveNodes[blueprint.chapter - 1][blueprint.chapterOrder - 1];
+  assert(Boolean(node), 'Missing live node for ' + blueprint.id);
+  assert(
+    blueprint.implementationStatus === 'live',
+    'Misleading blueprint-only status for ' + blueprint.id
+  );
+  assert(
+    blueprint.runtimeNodeId === node.id,
+    blueprint.id + ' must link to saved runtime node ' + node.id
+  );
+  assert(
+    blueprint.name === node.name,
+    blueprint.id + ' title differs from the live runtime node'
+  );
+  assert(!linkedNodeIds.has(node.id), 'Duplicate canonical runtime node ID ' + node.id);
+  linkedNodeIds.add(node.id);
+}
+assert(linkedNodeIds.size === 70, 'Expected 70 distinct saved runtime IDs');
+
 console.log(
   'PASS: all 70 Human campaign missions, live Chapters 1-7 ordering, eight-region presentation, chapter identity, late combat wiring and 2->3->4->5->6 squad cadence remain protected.'
 );

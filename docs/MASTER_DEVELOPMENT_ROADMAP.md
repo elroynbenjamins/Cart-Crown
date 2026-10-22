@@ -4,6 +4,8 @@
 
 > This document is the handoff source of truth for WHAT WE SHOULD IMPROVE NEXT. Live code and tests are authoritative for WHAT IS IMPLEMENTED NOW. Before each pass, inspect the newest `main`; do not overwrite improvements made after this baseline.
 
+**Phase 0 reconciliation (2026-10-22):** [Canonical implementation inventory](PHASE0_IMPLEMENTATION_INVENTORY.md) records runtime node IDs, evidence levels and known design/type differences. [Android screenshot baseline ledger](ANDROID_SCREENSHOT_BASELINE.md) distinguishes successful opening smoke screenshots from the remaining full screen/tier matrix. The README now describes the current seven-chapter Human campaign; historical text in Git history is not an active plan. **Phase 0 remains open** until this change passes PR CI and durable full baseline screenshots are captured.
+
 ## 0. Product vision and non-negotiable design decisions
 
 - **Name:** Cart & Crown (repository `Cart-Crown`; also referred to as Backpack Kingdoms during concept development).
@@ -68,7 +70,7 @@ A phase can consist of small independent pull requests; do not wait to run regre
 6. Audit code complexity: extremely large `SettlementScreen.tsx`, `CampaignScreen.tsx`, `gameArt.tsx`, `AppShell.tsx`. Extract pure data/selectors and smaller presentational components **incrementally**, with parity tests; avoid speculative sweeping refactors.
 7. Each future PR must include: what was wrong, exact affected files, tests, before/after screen capture where visual, and no unrelated balance/save changes.
 
-**Acceptance gate:** one canonical campaign inventory, all 70 maps accounted for, no documentation contradiction, passing applicable CI and baseline screenshots saved.
+**Acceptance gate:** one canonical campaign inventory, all 70 maps accounted for, no documentation contradiction, passing applicable CI and baseline screenshots saved. **Current status (2026-10-22):** inventory + README + runtime ID guard prepared in Phase 0 PR; old names archived in Git history; pre-PR main CI and prior native smoke were green. Comprehensive screenshot coverage, behavior audit of early-node type differences, current-PR CI and merge must still be confirmed before declaring P0 complete.
 
 ## P1 — Human Kingdom and settlement visual overhaul (highest visual ROI)
 
