@@ -325,7 +325,12 @@ function testRecipesAndInteractions() {
     check(districtAmbience?.props.faction === faction, 'District environment art must stay faction-scoped.');
     check(districtEnvironment?.props.pointerEvents === undefined, 'District environment wrapper must remain non-interactive inside a pointerEvents=none layer.');
     check(!nodes(tree, 'View').some(node => node.props.testID === 'district-preview-link-' + district.id), 'Committed construction must clear the temporary district preview.');
-    choosePlot(tree, 'plot_nw'); tree = f.h.render();
+    // Confirming construction already focuses the new building; avoid a
+    // second tap, which is now the intentional compact-screen dismiss action.
+    if (!nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id)) {
+      choosePlot(tree, 'plot_nw');
+      tree = f.h.render();
+    }
     check(nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id), 'Selecting a structure must expose the anchored contextual action strip.');
     check(!nodes(tree, 'BuildingLevelPreview').length, 'Selecting a structure alone must not push a large inspector below the map.');
     check(!nodes(tree, 'View').some(node => String(node.props.testID ?? '').startsWith('relocation-plan-')), 'Selecting a structure alone must not enter relocation mode.');
