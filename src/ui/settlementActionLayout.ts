@@ -112,3 +112,21 @@ export function humanSettlementBuildingSpriteSize(
     : roleSize * depth
   ) * widthScale);
 }
+
+/**
+ * Pixel-art depth order follows the building's contact point (near its
+ * footprint), not its role or the logical row in the save data. The central
+ * Hall can be visually tall without covering a foreground building.
+ *
+ * Values deliberately stay under zIndex 18, which is reserved for district
+ * labels. Tutorial/selection controls use the screen's higher focus layers.
+ */
+export function humanSettlementPlotDepthIndex(plotId: string): number {
+  const position = humanSettlementPlatePlotPositions[plotId];
+  if (!position) return 5;
+  const height = plotId === 'plot_center'
+    ? HUMAN_SETTLEMENT_LANDMARK_HEIGHT
+    : HUMAN_SETTLEMENT_PLOT_HEIGHT;
+  const foot = Number.parseFloat(position.top) / 100 + height * 0.83;
+  return Math.max(5, Math.min(17, Math.round(5 + foot * 18)));
+}
