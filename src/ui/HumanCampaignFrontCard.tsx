@@ -68,6 +68,17 @@ export function HumanCampaignFrontCard({
           ) : null}
         </View>
 
+        {(cue.latestUnlock || cue.upcomingUnlock) ? (
+          <View style={[s.unlockRow, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
+            {cue.latestUnlock ? (
+              <Text style={[s.unlockLine, { color: theme.colors.primary }]}>UNLOCKED · {cue.latestUnlock}</Text>
+            ) : null}
+            {cue.upcomingUnlock ? (
+              <Text style={[s.unlockLine, { color: theme.colors.text }]}>UPCOMING · {cue.upcomingUnlock}</Text>
+            ) : null}
+          </View>
+        ) : null}
+
         <View style={s.bottomRow}>
           <View style={[s.intel, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
             <Text style={[s.eyebrow, { color: accent }]}>DEPLOYMENT</Text>
@@ -104,6 +115,8 @@ const s = StyleSheet.create({
   eyebrow: { fontSize: 8.5, lineHeight: 11, fontWeight: '900', letterSpacing: 0.5 },
   objectiveName: { fontSize: 15, lineHeight: 18, fontWeight: '900' },
   objectiveHint: { fontSize: 10, lineHeight: 14 },
+  unlockRow: { paddingHorizontal: 8, paddingVertical: 6, borderWidth: 1, borderRadius: 9, gap: 3 },
+  unlockLine: { fontSize: 9.5, lineHeight: 13, fontWeight: '800' },
   bottomRow: { gap: 6 },
   intel: { padding: 8, borderRadius: 9, borderWidth: 1, gap: 4 },
   intelText: { fontSize: 10.5, fontWeight: '700', lineHeight: 14 },
