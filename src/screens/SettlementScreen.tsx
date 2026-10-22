@@ -1286,7 +1286,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                   faction={activeFaction}
                   focused={connection.focused}
                   size={58}
-                  animated={districtAnalysisVisible && connection.focused}
+                  animated={!humanStagePlateActive || (districtAnalysisVisible && connection.focused)}
                 />
               </View>
             ))}
@@ -1697,7 +1697,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       level={level}
                       activeDistricts={districtCount}
                       size={ambienceSize}
-                      animated={buildingSelected || building.role === 'KINGDOM'}
+                      animated={!humanStagePlateActive || buildingSelected || building.role === 'KINGDOM'}
                     />
                   </View>
                   <View
