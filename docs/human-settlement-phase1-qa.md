@@ -11,6 +11,14 @@ Branch scope: layout, presentation and touch UX only. This is **not** a claim of
 - Tapping an occupied building exposes Inspect / Move / Upgrade directly beside the scene; tapping the same building again closes the strip (except when choosing a relocation). Costs and district changes remain previews until confirmed. No save schema or economy changes.
 - CI now runs `human-settlement:check` for the exact plot/stage contract and contextual action positions.
 
+## Follow-up implementation — October 22, second pass
+
+- Scale now derives from both **building role** and **plot depth**. Moving the Kingdom Hall from center to a side plot keeps it larger than ordinary structures on that same plot, while front-row units still read closer than back-row units.
+- The Kingdom hero and interactive Human settlement use the same `humanSettlementBuildingSpriteSize` selector; the hero has a fixed foot anchor instead of vertically centering the sprite within the plot.
+- Simplified rectangular faux towers and Grand tents were removed from the already detailed Capital illustration. The three late tiers now carry distinctive unobtrusive *existing-asset* dressing near the quay and real wall edges: defensive supplies and sentries (Stronghold), traders (Capital), supply caravan and royal muster (Grand).
+- `human-settlement:check` verifies the sizing contract at phone/tablet widths and guards against unintentional reintroduction of tents positioned over water.
+- These edits do **not** constitute independently painted Stronghold/Grand plates, full mobile screenshots or native-art acceptance. Maintain those acceptance gates.
+
 ## Actual art inventory
 
 | Settlement tier | Packaged plate | Specialization |
