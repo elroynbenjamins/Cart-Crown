@@ -30,7 +30,7 @@
     "army-loadout:check": "tsx scripts/army-loadout-regression.ts",
     "cross-mode:check": "tsx scripts/cross-mode-regression.ts",
     "art:check": "node scripts/art-regression.mjs",
-    "directional-art:check": "node scripts/directional-battle-art-regression.mjs",
+    "directional-art:check": "node scripts/directional-battle-art-regression.mjs && tsx scripts/directional-stage-figure-regression.ts",
     "boss:check": "tsx scripts/boss-presentation-regression.ts && tsx scripts/boss-stage-silhouette-regression.ts",
     "battle-visuals:check": "tsx scripts/battle-visuals-regression.ts",
     "decision-ui:check": "tsx scripts/decision-ui-regression.ts",
