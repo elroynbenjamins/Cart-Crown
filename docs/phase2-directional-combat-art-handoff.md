@@ -80,3 +80,13 @@ Paint distinct hero-size frontal boss sprites and a portrait per named Human bos
 3. Add eight literal keys to `productionAssetSources` with `require('../../assets/game/battle_directional/human/<filename>.png')`. Keys are `battle_directional.human.<filename-without-ext>`; `directionalStageModel.ts` already resolves exactly these IDs.
 4. Run `npm run art:check`, `npm run directional-art:check`, portrait battlefield regression, `npm run typecheck`, and native Android screenshots at 320, 360 and 412 logical widths.
 5. Review screenshots in compact Iron Wall / Layered Core and 2× battle speed before merging. No need to alter any combat calculations or portraits.
+
+## 2026-10-22 next implementation checkpoint — transparent vertical pilot v2
+
+An eight-sprite art-review pack has now been generated in-chat (four classes × ally back/up + enemy front/down), with 256×256 RGBA pixel PNGs and side-by-side 32/42/56/72 px previews. Unlike the earlier horizontal concept crops, these eight images have **correct vertical battle-facing direction**. The review ZIP includes Python/Pillow drawing source, a candidate manifest with approval disabled, and independent technical validation.
+
+**Important:** The pixel art is an authored lightweight prototype, not an artist-approved match for the existing Human Ranger/Spearman quality. Mounted Cavalry still needs better horse/rider distinction. The pack has `approvedForRuntime: false`; images have NOT been placed in `assets/game/battle_directional/human` and must not silently replace stronger art.
+
+The `DirectionalStageFigure` component now keeps the original approved actor **visible until the replacement PNG fires onLoad**. Image errors or missing registry entries safely revert to existing art. The expanded regression checks loading state, loaded-only swap, decode errors and tap passthrough.
+
+**Next art acceptance gate:** review ZIP and comparison image in the conversation; rework weak mounted pose and improve material highlights while preserving vertical facing and correct equipment. Only after visual signoff, add approved PNGs to Metro's literal registry, mark the reviewed manifest and perform native screenshot QA.
