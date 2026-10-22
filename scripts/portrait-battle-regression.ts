@@ -203,6 +203,8 @@ new Function('require','module','exports',output)((name:string)=>{
   if(name==='react-native')return {Platform:{OS:'android'},View:'View',Text:'Text',Pressable:'Pressable',ScrollView:'ScrollView',Modal:'Modal',Animated:{View:'AnimatedView'},StyleSheet:{create:(s:any)=>s},useWindowDimensions:()=>dimensions};
   if(name==='./model')return model;
   if(name==='./IllustratedBattlefieldBackdrop')return {IllustratedBattlefieldBackdrop:'IllustratedBattlefieldBackdrop'};
+  if(name==='../bossPresentation')return { getBossPresentation:()=>null };
+  if(name==='../BossStageSilhouette')return { BossStageSilhouette:'BossStageSilhouette' };
   if(name==='./Art')return {ReferenceArt:'ReferenceArt'};
   if(name.endsWith('ThemeProvider'))return {useGameTheme:()=>appearance};
   if(name.endsWith('gameArt'))return {UnitSprite:'UnitSprite',UnitPortraitSprite:'UnitPortraitSprite',EnemySprite:'EnemySprite'};
