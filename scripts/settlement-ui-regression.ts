@@ -789,7 +789,9 @@ const settlementScreenSource = readFileSync(resolve('src/screens/SettlementScree
 check(settlementScreenSource.includes("['fort', 'town', 'stronghold', 'capital', 'grand'].includes(currentWagonStage.id)"), 'Fort+ world layout must apply without a Human-only faction gate.');
 check(settlementScreenSource.includes("const humanStagePlateActive = activeFaction === 'human'"), 'Human stage backgrounds must drive the organic overlay geometry at every settlement tier.');
 check(settlementScreenSource.includes('humanSettlementBackgroundPositions'), 'Human stage backgrounds must keep a dedicated build-pad anchor map.');
-check(settlementScreenSource.includes('humanSettlementBackgroundCenters'), 'Human stage backgrounds must keep district geometry aligned with those build pads.');
+check(settlementScreenSource.includes('humanSettlementPlatePlotCenters') &&
+  readFileSync(resolve('src/ui/settlementActionLayout.ts'), 'utf8').includes('function humanSettlementPlatePlotCenter('),
+  'Human stage backgrounds must derive district geometry from the same build-pad positions.');
 check(settlementScreenSource.includes('settlementUnlockSnapshots'), 'Settlement unlock celebration must compare against an in-session baseline.');
 check(settlementScreenSource.includes('settlement-unlock-celebration'), 'Settlement unlock celebration must stay in-world instead of using a modal.');
 check(settlementScreenSource.includes('setTimeout(() => setUnlockCelebration(null), 2600)'), 'Settlement unlock celebration must auto-clear quickly.');
