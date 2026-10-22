@@ -9,6 +9,7 @@ import {
   humanCampaignSystemMilestones
 } from '../src/ui/humanCampaignStoryPresentation';
 import type { HumanCampaignNodeSnapshot } from '../src/ui/humanCampaignStoryPresentation';
+import { activeJourneyPointId } from '../src/ui/campaignJourneySelection';
 
 const chapters: HumanCampaignChapter[] = [1, 2, 3, 4, 5, 6, 7];
 const nodesFor = (chapter: HumanCampaignChapter, completed = 0): HumanCampaignNodeSnapshot[] =>
@@ -85,6 +86,31 @@ assert.equal(humanCampaignProgressCue(2, nodesFor(2))!.currentSquadCap, 3);
 assert.equal(humanCampaignProgressCue(6, nodesFor(6))!.currentSquadCap, 6);
 assert.equal(humanCampaignProgressCue(7, nodesFor(7))!.currentSquadCap, 6);
 
+// Exercise every authored slot without advancing or mutating a save.
+let inspectedSlots = 0;
+for (const chapter of chapters) {
+  for (let completed = 0; completed < humanCampaignMissionCounts[chapter]; completed++) {
+    const live = nodesFor(chapter, completed);
+    const cue = humanCampaignProgressCue(chapter, live)!;
+    assert.equal(cue.nextMissionOrder, completed + 1);
+    assert.equal(cue.nextMissionName, getCampaignMissionBlueprint(chapter, completed + 1)?.name);
+    assert.equal(cue.completed, completed);
+    assert.ok(cue.nextSceneLocation);
+    inspectedSlots++;
+  }
+}
+assert.equal(inspectedSlots, 70, 'Inspect all 70 authored mission states');
+
+const route = [
+  { id: 'greenkeep' }, { id: 'frostmarch' }, { id: 'blackstone' }
+];
+assert.equal(activeJourneyPointId('greenkeep', route, null), 'greenkeep');
+assert.equal(activeJourneyPointId('greenkeep', route, { frontId: 'greenkeep', pointId: 'frostmarch' }), 'frostmarch');
+assert.equal(activeJourneyPointId('blackstone', route, { frontId: 'greenkeep', pointId: 'frostmarch' }), 'blackstone',
+  'A chapter transition must focus its newly current marker');
+assert.equal(activeJourneyPointId('greenkeep', route, { frontId: 'greenkeep', pointId: 'missing' }), 'greenkeep',
+  'Deleted/missing map points should not remain selected');
+
 const irregular = nodesFor(3, 0);
 irregular[0] = { ...irregular[0]!, completed: true, current: false };
 irregular[1] = { ...irregular[1]!, current: true };
@@ -99,6 +125,14 @@ const frontCardSource = readFileSync('src/ui/HumanCampaignFrontCard.tsx', 'utf8'
 assert.ok(frontCardSource.includes('cue.upcomingUnlock') && frontCardSource.includes('cue.latestUnlock'), 'Visible system unlock cues must be wired');
 assert.ok(campaignSource.includes('human-campaign-mission-disclosure'), 'Full mission list needs a player-controlled disclosure');
 assert.ok(campaignSource.includes("node.type !== 'boss'"), 'Finale must remain visible in focused layout');
+const mapSource = readFileSync('src/ui/CampaignJourneyMap.tsx', 'utf8');
+assert.ok(mapSource.includes('regionArtwork ?? mapSources[faction]'), 'Map should reuse the current chapter artwork');
+assert.ok(mapSource.includes('activeJourneyPointId'), 'Map should reset a stale selected region');
+assert.ok(mapSource.includes('flex: 1'), 'Pins should fit narrow-screen route rows');
+assert.ok(campaignSource.includes('finalHumanFrontSecured'), 'Final Blackstone route must show as secured');
+assert.ok(campaignSource.includes('regionArtwork={humanCampaignArtworkForMission(chapterNumber, 1).source}'),
+  'Current regional painting must be wired into the journey map');
+
 const transitionSource = readFileSync('src/ui/HumanChapterTransitionBanner.tsx', 'utf8');
 assert.ok(transitionSource.includes('nextStory?.stakes'), 'Region reveal must introduce new chapter stakes');
 console.log('Human campaign Phase 3 presentation regression passed: seven regions, 70 missions, squad milestones and focused navigation.');
