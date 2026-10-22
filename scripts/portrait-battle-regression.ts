@@ -378,6 +378,8 @@ check(file.includes("testID={'battle-field-order-' + onFieldOrder.id}") &&
   'Battlefield posture must reflect real order selection and current faction, not a Human-only marker');
 check(file.includes("zIndex: 4, alignItems: 'center'"),
   'Range/charge trails must sit behind fighters rather than crossing their bodies');
+check(file.includes('ongoing && activeOrder ? <Text testID="active-battle-order-cue"'),
+  'A finished battle must never advertise a commander order as still active');
 check(file.includes('active-battle-order-cue') && file.includes('order.selected'),
   'Only genuinely active commander orders may appear as battle-state cues');
 
