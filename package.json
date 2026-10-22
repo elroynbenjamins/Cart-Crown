@@ -15,6 +15,7 @@
     "mobile:check": "tsx scripts/mobile-session-regression.ts",
     "tutorial:check": "tsx scripts/tutorial-regression.ts",
     "campaign-roadmap:check": "tsx scripts/campaign-mission-roadmap-regression.ts",
+    "release-scope:check": "tsx scripts/release-campaign-scope-regression.ts",
     "battle-orders:check": "tsx scripts/battle-order-regression.ts",
     "campaign-loadouts:check": "tsx scripts/campaign-loadout-unlock-regression.ts",
     "trials:check": "tsx scripts/kingdom-trials-regression.ts",

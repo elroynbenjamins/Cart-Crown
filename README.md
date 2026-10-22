@@ -4,6 +4,14 @@
 
 > **Source-of-truth rule:** this README is an overview, not a mission implementation checklist. Use [Phase 0 implementation inventory](docs/PHASE0_IMPLEMENTATION_INVENTORY.md) for verified code/test coverage, [Master Development Roadmap](docs/MASTER_DEVELOPMENT_ROADMAP.md) for remaining work, and current source + regression tests for runtime facts. Older campaign descriptions in [the pre-consolidation README](https://github.com/elroynbenjamins/Cart-Crown/blob/c1c0cf25421f539506cbf9341924db8c79c9be6d/README.md) are historical, **not** instructions to create another Human campaign.
 
+## Version 1.0 release scope
+
+**Human-only launch:** version 1.0 makes the full seven-chapter Human campaign playable. The Elven and Orc campaigns, plus the shared Three Seals endgame, remain authored in source but are **not playable in this release**, even after defeating Blackstone. Their Factions cards are labeled as future content; no fixed release date is promised.
+
+The runtime gate lives in `src/game/releaseCampaignScope.ts` and is applied in campaign availability, faction switching, save selection and Three Seals navigation. Existing pre-release Elf/Orc saves are preserved. If a Human kingdom exists, loading an old save opens that Human kingdom without deleting the other faction states; saves without Human state are protected rather than overwritten. No save-schema change or combat balance change is introduced.
+
+**1.0 completion target:** finish the 70 Human missions, verify all first-play and restore paths, polish the Human settlement/army/battles, and ship reliable offline Android play. Work on Elf/Orc art, balance and full QA is postponed to later updates.
+
 ## Current campaign structure
 
 The **Human campaign is represented by 70 ordered runtime nodes across seven chapters**, not the older six-chapter Greenkeep/Crownspire narrative previously described here.
@@ -20,11 +28,11 @@ The **Human campaign is represented by 70 ordered runtime nodes across seven cha
 
 The node IDs and mission names are defined in `src/game/data.ts`, `chapter2.ts`, `chapter3.ts`, `chapter4.ts`, and `chapter5.ts`–`chapter7.ts` (the latter derive from `humanLateCampaign.ts`). `src/game/campaignMissionRoadmap.ts` describes the design intent and now links to those **existing nodes**. The separate roadmap's tutorial goals, unlock descriptions and mission kinds must still be checked against actual event/encounter behavior before being called fully accepted.
 
-Human completion unlocks the **Elf** and **Orc** faction campaigns in the same save. Each has its **own six-chapter** campaign and independent faction state. Completing all three faction campaigns unlocks the shared **Three Seals** five-step endgame. Do not confuse the seven-chapter Human contract with these separate campaigns.
+Historically, Human completion was the prerequisite for the **Elf** and **Orc** faction campaigns in the same save. Each has its **own six-chapter** campaign and independent faction state. Completing all three campaigns is the designed prerequisite for the **Three Seals** five-step endgame. **For version 1.0 these additional campaigns remain locked regardless of completion**, preserving their content and saves for future releases. Do not confuse the seven-chapter Human contract with these separate campaigns.
 
 ## Implemented systems visible in source
 
-- Two local save slots; per-faction progression and switching in one save; three visual themes (Original/Charcoal, Pure Black, Light).
+- Two local save slots and three visual themes (Original/Charcoal, Pure Black, Light). Multi-faction progression/switching code remains in the repository but is gated for Human-only 1.0.
 - Human **Orders**, Elven **Wards** and Orc **Momentum**; 3×3 battle formation, commander choices, progression to a maximum of six normal active squads.
 - Persistent units, class promotions, equipment, formation/loadout controls and a limited logistics wagon.
 - Visible stage-based Human settlement with purchase, placement, relocation, upgrade and positive-only adjacency bonuses; separate Elf and Orc settlement definitions and presentation paths.
@@ -43,6 +51,7 @@ Human completion unlocks the **Elf** and **Orc** faction campaigns in the same s
 npm install
 npm run typecheck
 npm run campaign-roadmap:check
+npm run release-scope:check
 npm run campaign-art:check
 npm run art:check
 npm run balance:check

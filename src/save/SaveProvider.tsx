@@ -7,6 +7,7 @@ import {
   normalizeSaveRecord
 } from './schema';
 import { createSerialTaskQueue } from '../game/mobileSession';
+import { playableSnapshotForRelease } from '../game/releaseCampaignScope';
 import type {
   GameSnapshot,
   SaveRecord,
@@ -21,6 +22,7 @@ const slotIds: SaveSlotId[] = [1, 2];
 type SaveSystemContextValue = {
   ready: boolean;
   loadError: boolean;
+  slotSelectionMessage: string | null;
   retryLoad: () => void;
   selectedSlotId: SaveSlotId | null;
   selectedRecord: SaveRecord | null;
@@ -92,6 +94,7 @@ async function readRecord(slotId: SaveSlotId): Promise<SaveRecord | null> {
 export function SaveProvider({ children }: PropsWithChildren) {
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [slotSelectionMessage, setSlotSelectionMessage] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [selectedSlotId, setSelectedSlotId] = useState<SaveSlotId | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<SaveRecord | null>(null);
@@ -129,12 +132,25 @@ export function SaveProvider({ children }: PropsWithChildren) {
   const retryLoad = () => setLoadAttempt(previous => previous + 1);
 
   const selectSlot = async (slotId: SaveSlotId) => {
+    setSlotSelectionMessage(null);
     const record = records[slotId] ?? (await readRecord(slotId));
     if (!record) return;
 
+    // Historic beta saves can still contain Elf/Orc as the active faction.
+    // Change only the selected in-memory view, NEVER delete their faction
+    // state or mutate the original on-disk record here.
+    const playable = playableSnapshotForRelease(record.snapshot);
+    if (!playable) {
+      setSlotSelectionMessage(
+        'This save has no Human campaign available. It has not been changed and can be reopened when its faction returns.'
+      );
+      return;
+    }
     setRecords(previous => ({ ...previous, [slotId]: record }));
     setSelectedSlotId(slotId);
-    setSelectedRecord(record);
+    setSelectedRecord(
+      playable === record.snapshot ? record : { ...record, snapshot: playable }
+    );
   };
 
   const createSlot = async (slotId: SaveSlotId) => {
@@ -145,6 +161,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
       [keyForSlot(slotId), serialized]
     ]);
     setRecords(previous => ({ ...previous, [slotId]: record }));
+    setSlotSelectionMessage(null);
     setSelectedSlotId(slotId);
     setSelectedRecord(record);
   };
@@ -207,6 +224,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
   };
 
   const leaveToSaveSelect = () => {
+    setSlotSelectionMessage(null);
     setSelectedSlotId(null);
     setSelectedRecord(null);
   };
@@ -220,6 +238,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
     () => ({
       ready,
       loadError,
+      slotSelectionMessage,
       retryLoad,
       selectedSlotId,
       selectedRecord,
@@ -230,7 +249,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
       deleteSlot,
       leaveToSaveSelect
     }),
-    [ready, loadError, selectedSlotId, selectedRecord, slots]
+    [ready, loadError, slotSelectionMessage, selectedSlotId, selectedRecord, slots]
   );
 
   return <SaveSystemContext.Provider value={value}>{children}</SaveSystemContext.Provider>;
