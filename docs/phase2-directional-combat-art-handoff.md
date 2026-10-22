@@ -63,3 +63,20 @@ Paint distinct hero-size frontal boss sprites and a portrait per named Human bos
 7. At 1× and 2× speed, pause/resume/background/re-enter and defeat/victory, check **zero backward-flying projectiles, no silhouette overlap/slot drift**, one-shot rewards and stable memory/frame pacing.
 
 **Do not merge synthetic concept art into `assets/game` solely because it exists.** The next actual art PR should add verified, cropped, transparent, game-appropriate PNGs and the exact static require registry.
+
+
+## Implementation checkpoint — 2026-10-22, class-specific stage pipeline
+
+- `src/ui/portraitBattle/directionalStageModel.ts` selects **only exact** Human class/role pairs: Shield Infantry/frontline, Ranger/ranged, Heavy Cavalry/cavalry and Field Medic/support. It excludes fantasy tags and non-Human factions.
+- Opposing art is restricted to exact matching ordinary Human enemy roles/labels in known profiles; the selector explicitly excludes bosses, magical enemies, crossbows borrowing Ranger bows, and sergeants borrowing Field Medic art. No generic role-to-picture substitution.
+- `DirectionalStageFigure.tsx` consumes the static production registry, keeps the original sprite/portrait as fallback for missing or broken images, and never intercepts battlefield touches. It is mounted **only in actor slots** in `PortraitBattleView.tsx`; portrait rails and Army/Formation screens are untouched.
+- CI now exercises exact selector whitelists, forbidden substitutions, native-image load failure fallback, and the existing production PNG and manifest gate via `npm run directional-art:check`.
+- **No runtime directional PNGs have been approved or registered yet.** Multiple generated concept sheets depicted horizontal/side-facing figures and are not suitable for the game's top-vs-bottom stage. Transparent crop references are available in the conversation as `phase2_human_directional_reference_pack.zip`; their manifest explicitly says *candidate_reference_only*, not `approvedForRuntime`. Do not copy them into `assets/game/battle_directional/human` or set approval true.
+
+### Activation sequence after genuinely correct art is available
+
+1. Artist supplies eight **new** 256×256 transparent RGBA sprites with actual **ally up/back** and **enemy down/front** camera poses, consistent baseline and matching approved Human quality. Review the 32/42/56 px screenshots, not just full-size crops.
+2. Place exactly the eight documented filenames under `assets/game/battle_directional/human`, with one `manifest.json` listing `version: 1`, explicit review and `approvedForRuntime: true` **only after** actual human visual signoff.
+3. Add eight literal keys to `productionAssetSources` with `require('../../assets/game/battle_directional/human/<filename>.png')`. Keys are `battle_directional.human.<filename-without-ext>`; `directionalStageModel.ts` already resolves exactly these IDs.
+4. Run `npm run art:check`, `npm run directional-art:check`, portrait battlefield regression, `npm run typecheck`, and native Android screenshots at 320, 360 and 412 logical widths.
+5. Review screenshots in compact Iron Wall / Layered Core and 2× battle speed before merging. No need to alter any combat calculations or portraits.
