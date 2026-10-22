@@ -5,6 +5,7 @@ import { formationShapes } from '../src/game/formation';
 import { themes } from '../src/theme/themes';
 import type { UnitDefinition } from '../src/game/types';
 import * as model from '../src/ui/portraitBattle/model';
+import { directionalAllyArtId, directionalEnemyArtId } from '../src/ui/portraitBattle/directionalStageModel';
 
 let checks = 0;
 function check(condition: unknown, message: string) { assert.ok(condition, message); checks++; }
@@ -226,6 +227,52 @@ assert.deepEqual(model.stageTokens(wide, [0,0,99,-1], 'ally', 340, 400).map(p =>
 for (const width of [NaN, Infinity, -10]) check(Number.isFinite(model.battleLayout(width, NaN).stageWidth), 'Invalid dimension leaked into Yoga');
 
 const unit: UnitDefinition = { id: 'test', name: 'Test', className: 'Archer', faction: 'human', role: 'ranged', tier: 1, level: 2, hp: 40, attack: 12, armor: 2, speed: 7 };
+const pilot: readonly [string, UnitDefinition['role'], string][] = [
+  ['Shield Infantry', 'frontline', 'shield_infantry'],
+  ['Ranger', 'ranged', 'ranger'],
+  ['Heavy Cavalry', 'cavalry', 'heavy_cavalry'],
+  ['Field Medic', 'support', 'field_medic']
+];
+for (const [name, role, key] of pilot) {
+  const human = { ...unit, className: name, role };
+  check(directionalAllyArtId(human) === 'battle_directional.human.' + key + '_ally_back',
+    'Human pilot class must select an exact ally-facing sprite key');
+  check(directionalAllyArtId({ ...human, faction: 'elf' }) === null,
+    'Directional Human actor must not replace an Elf actor');
+  check(directionalAllyArtId({ ...human, faction: 'orc' }) === null,
+    'Directional Human actor must not replace an Orc actor');
+  check(directionalAllyArtId({ ...human, role: role === 'frontline' ? 'ranged' : 'frontline' }) === null,
+    'Incorrect role must not receive a mismatched weapon sprite');
+  check(directionalAllyArtId({ ...human, battleTags: ['beast'] }) === null,
+    'Fantasy/bestial unit must not borrow plain Human pilot art');
+}
+check(directionalAllyArtId({ ...unit, className: 'Crossbowman' }) === null,
+  'Crossbowman must retain its existing real crossbow artwork; Ranger bow is not interchangeable');
+check(directionalAllyArtId({ ...unit, className: 'Swordsman', role: 'melee' }) === null,
+  'Swordsman must not borrow a shield infantry pose');
+for (const [name, role, key] of [
+  ['Shield','frontline','shield_infantry'],
+  ['Archer','ranged','ranger'],
+  ['Heavy Cavalry','cavalry','heavy_cavalry'],
+  ['Field Medic','support','field_medic']
+] as const) {
+  check(directionalEnemyArtId('human', role, name, 'mercenary_line', false) ===
+    'battle_directional.human.' + key + '_enemy_front',
+    'Exact Human enemy role and weapon may use reviewed opposing art');
+  check(directionalEnemyArtId('human', role, name, 'raider_pack', false) === null,
+    'Irregular mounted/fantasy enemy hosts must keep current artwork');
+  check(directionalEnemyArtId('human', role, name, 'mercenary_line', true) === null,
+    'Named bosses retain unique authored identity');
+  check(directionalEnemyArtId('human', role, name, 'mercenary_line', false, 'magic') === null,
+    'Magical foes must never be recast as Human infantry');
+}
+check(directionalEnemyArtId('human','support','Sergeant','mercenary_line',false) === null,
+  'Field Medic art cannot substitute for enemy officer or sergeant');
+check(directionalEnemyArtId('human','ranged','Crossbow','mercenary_line',false) === null,
+  'Enemy crossbows cannot receive Ranger bow art');
+check(directionalEnemyArtId('human','ranged','Archer','mercenary_line',true) === null,
+  'Boss artwork may not be overridden by a generic Ranger pose');
+
 assert.equal(model.allyPortrait(unit), 'human_ranger_portrait');
 for (const faction of ['elf','orc'] as const) assert.equal(model.allyPortrait({ ...unit, faction }), null);
 for (const battleTags of [['magic'],['flying'],['large'],['construct'],['beast']] as UnitDefinition['battleTags'][]) assert.equal(model.allyPortrait({ ...unit, role: 'support', battleTags }), null);
@@ -256,6 +303,8 @@ new Function('require','module','exports',output)((name:string)=>{
   if(name==='react-native')return {Platform:{OS:'android'},View:'View',Text:'Text',Pressable:'Pressable',ScrollView:'ScrollView',Modal:'Modal',Animated:{View:'AnimatedView'},StyleSheet:{create:(s:any)=>s},useWindowDimensions:()=>dimensions};
   if(name==='./model')return model;
   if(name==='./IllustratedBattlefieldBackdrop')return {IllustratedBattlefieldBackdrop:'IllustratedBattlefieldBackdrop'};
+  if(name==='./directionalStageModel')return { directionalAllyArtId, directionalEnemyArtId };
+  if(name==='./DirectionalStageFigure')return { DirectionalStageFigure:'DirectionalStageFigure' };
   if(name==='../bossPresentation')return { getBossPresentation:()=>null };
   if(name==='../BossStageSilhouette')return { BossStageSilhouette:'BossStageSilhouette' };
   if(name==='./Art')return {ReferenceArt:'ReferenceArt'};
@@ -387,6 +436,13 @@ check(controller.includes('fantasyThreat={encounter.fantasyThreat}')&&file.inclu
 check(file.includes('EnemyFantasyStrikeVfx')&&file.includes('progress={p.impactPulse}'),'Retain fantasy strike effects');
 check(file.includes('stageDepthVisual(position.row)'),'Battlefield actors must consume their rank-depth presentation');
 check(file.includes('UnitPortraitSprite'),'Portrait rails must use cropped production unit art when dedicated portrait art is unavailable');
+check(file.includes('DirectionalStageFigure assetId={directionalAllyArtId(item.unit)}') &&
+  file.includes('assetId={directionalEnemyArtId(p.faction, item.role, item.label, p.enemyProfile, item.boss, p.fantasyThreat)}'),
+  'Directional pilot should be stage-only and use an explicit matched side/role selector');
+check(file.includes('fallback={enemyFigure(item, item.boss') &&
+  file.includes('fallback={allyPortrait(item.unit)'),
+  'Approved existing sprites must remain as error/loading fallbacks');
+
 check(file.includes('presentationScale={1.08}'),'Battlefield figures must receive the subtle larger presentation scale');
 check(file.includes('zIndex: depth.zIndex'),'Rank depth must control battlefield draw order');
 check(file.includes('shadowScale')&&file.includes('shadowOpacity'),'Rank depth must alter shadow footprint and opacity');
