@@ -40,3 +40,33 @@ export const humanSettlementPlatePlotPositions: Record<string, { left: `${number
   plot_s: { left: '36%', top: '45%' },
   plot_se: { left: '62%', top: '42%' }
 };
+
+/** Human plates are exported at 540×960 and must not be cropped differently in the two screens. */
+export const HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO = 540 / 960;
+export const HUMAN_SETTLEMENT_PLOT_WIDTH = 0.28;
+export const HUMAN_SETTLEMENT_PLOT_HEIGHT = 0.24;
+export const HUMAN_SETTLEMENT_LANDMARK_WIDTH = 0.34;
+export const HUMAN_SETTLEMENT_LANDMARK_HEIGHT = 0.29;
+
+/**
+ * The plot center, including the larger central Hall hit area, is the single
+ * source for district links, building-action anchors and scene decorations.
+ * Percentages match the painted Human settlement plate and the positioned
+ * Pressables/preview plots. Keep all three consumers on this function.
+ */
+export function humanSettlementPlatePlotCenter(plotId: string): { x: number; y: number } | null {
+  const position = humanSettlementPlatePlotPositions[plotId];
+  if (!position) return null;
+  const landmark = plotId === 'plot_center';
+  return {
+    x: Number.parseFloat(position.left) / 100 +
+      (landmark ? HUMAN_SETTLEMENT_LANDMARK_WIDTH : HUMAN_SETTLEMENT_PLOT_WIDTH) / 2,
+    y: Number.parseFloat(position.top) / 100 +
+      (landmark ? HUMAN_SETTLEMENT_LANDMARK_HEIGHT : HUMAN_SETTLEMENT_PLOT_HEIGHT) / 2
+  };
+}
+
+export const humanSettlementPlatePlotCenters: Record<string, { x: number; y: number }> =
+  Object.fromEntries(
+    Object.keys(humanSettlementPlatePlotPositions).map(id => [id, humanSettlementPlatePlotCenter(id)!])
+  );
