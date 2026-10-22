@@ -299,23 +299,19 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
         </Animated.View>;
       })}
+      {/* The exchange pulse goes 0 -> 1 -> 0, so moving an arrow along it would
+          visibly reverse the projectile. A brief line-of-fire trace uses the real
+          actor/target positions without a fake backward flight or extra clock. */}
       {moving && trail ? <Animated.View pointerEvents="none" testID={'battle-' + trail.kind + '-trajectory'}
         style={[s.attackTrail, {
-          left: trail.x - 7, top: trail.y - 8,
-          opacity: p.attackPulse.interpolate({ inputRange: [0, .25, .85, 1], outputRange: [0, 1, 1, 0], extrapolate: 'clamp' }),
-          transform: [
-            { translateX: p.attackPulse.interpolate({ inputRange: [0, 1], outputRange: [0, trail.dx] }) },
-            { translateY: p.attackPulse.interpolate({ inputRange: [0, 1], outputRange: [0, trail.dy] }) }
-          ]
-        }]}>
-        {trail.kind === 'arrow' ? <>
-          <View style={[s.projectileTip, { borderBottomColor: theme.colors.info }]} />
-          <View style={[s.projectileStem, { backgroundColor: theme.colors.info }]} />
-        </> : <>
-          <View style={[s.chargeStreak, { backgroundColor: theme.colors.gold }]} />
-          <View style={[s.chargeStreakShort, { backgroundColor: theme.colors.gold }]} />
-        </>}
-      </Animated.View> : null}
+          left: trail.x + trail.dx / 2 - (trail.kind === 'arrow' ? 1 : 3),
+          top: trail.y + trail.dy / 2 - Math.hypot(trail.dx, trail.dy) / 2,
+          width: trail.kind === 'arrow' ? 2 : 6,
+          height: Math.hypot(trail.dx, trail.dy),
+          backgroundColor: trail.kind === 'arrow' ? theme.colors.info : theme.colors.gold,
+          opacity: p.attackPulse.interpolate({ inputRange: [0, .25, .75, 1], outputRange: [0, .66, .38, 0], extrapolate: 'clamp' }),
+          transform: [{ rotate: `${Math.atan2(-trail.dx, -trail.dy) * 180 / Math.PI}deg` }]
+        }]} /> : null}
       {moving && p.incomingDamage > 0 ? <Animated.View pointerEvents="none" testID="ally-frontline-impact"
         style={[s.frontlineImpact, { top: layout.stageHeight * .59, borderColor: theme.colors.danger,
           opacity: p.impactPulse.interpolate({ inputRange: [0, .5, 1], outputRange: [0, .8, 0] }) }]} /> : null}
