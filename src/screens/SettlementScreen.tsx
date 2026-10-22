@@ -1253,7 +1253,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLinkGlow,
-                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1) : 0.015 }
+                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.3 : districtFocusActive ? 0.05 : 0.1) : humanStagePlateActive ? 0 : 0.015 }
                 ]}
               />
               <View
@@ -1261,13 +1261,13 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 style={[
                   connection.style,
                   styles.districtLink,
-                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56) : 0.12 }
+                  { backgroundColor: connection.color, opacity: districtAnalysisVisible ? (connection.focused ? 0.96 : districtFocusActive ? 0.28 : 0.56) : humanStagePlateActive ? 0 : 0.12 }
                 ]}
               />
             </React.Fragment>
           ))}
         </View>
-        {visibleDistrictConnections.length ? (
+        {visibleDistrictConnections.length && (!humanStagePlateActive || districtAnalysisVisible) ? (
           <View pointerEvents="none" style={styles.districtEnvironmentLayer}>
             {visibleDistrictConnections.map(connection => (
               <View
@@ -1689,6 +1689,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       ]}
                     />
                   ) : null}
+                  {(!humanStagePlateActive || buildingSelected || building.role === 'KINGDOM') ? (
                   <View pointerEvents="none" style={[styles.buildingAmbience, landmark ? styles.landmarkAmbience : undefined]}>
                     <SettlementBuildingAmbience
                       buildingId={building.id}
@@ -1700,6 +1701,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       animated={!humanStagePlateActive || buildingSelected || building.role === 'KINGDOM'}
                     />
                   </View>
+                  ) : null}
                   <View
                     style={[
                       styles.buildingPad,
@@ -1728,10 +1730,11 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                       style={[
                         styles.upgradeReadyBadge,
                         worldRebuildActive ? styles.worldUpgradeReadyBadge : undefined,
-                        { backgroundColor: theme.colors.gold, borderColor: worldRebuildActive ? theme.colors.surface1 : undefined }
+                        humanStagePlateActive ? styles.humanUpgradeReadyBadge : undefined,
+                        { backgroundColor: humanStagePlateActive ? theme.colors.surface1 : theme.colors.gold, borderColor: humanStagePlateActive ? theme.colors.gold : worldRebuildActive ? theme.colors.surface1 : undefined }
                       ]}
                     >
-                      <Text style={[styles.upgradeReadyText, worldRebuildActive ? styles.worldUpgradeReadyText : undefined]}>
+                      <Text style={[styles.upgradeReadyText, worldRebuildActive ? styles.worldUpgradeReadyText : undefined, humanStagePlateActive ? styles.humanUpgradeReadyText : undefined, humanStagePlateActive ? { color: theme.colors.gold } : undefined]}>
                         {worldRebuildActive ? '↑' : 'UPGRADE'}
                       </Text>
                     </View>
@@ -2409,6 +2412,10 @@ const styles = StyleSheet.create({
   upgradeReadyText: { color: '#111318', fontSize: 6, lineHeight: 8, fontWeight: '900', letterSpacing: 0.25 },
   worldUpgradeReadyBadge: { top: 5, right: 7, width: 25, height: 25, minHeight: 25, paddingHorizontal: 0, paddingVertical: 0, borderWidth: 2, elevation: 4 },
   worldUpgradeReadyText: { fontSize: 15, lineHeight: 18, letterSpacing: 0 },
+  // An unobtrusive, non-interactive status pip rather than seven large discs over the city.
+  // Users select any building to inspect upgrade costs and unlock requirements.
+  humanUpgradeReadyBadge: { top: 10, right: 7, width: 16, height: 16, minHeight: 16, paddingHorizontal: 0, paddingVertical: 0, borderWidth: 1, elevation: 1, opacity: 0.91 },
+  humanUpgradeReadyText: { fontSize: 10, lineHeight: 12, letterSpacing: 0 },
   emptyPlusCompact: { fontSize: 13, lineHeight: 15, fontWeight: '900' },
   emptyText: { fontSize: 9.5, lineHeight: 13, fontWeight: '900' },
   terrain: { position: 'absolute', right: 5, bottom: 4, alignItems: 'center', justifyContent: 'center' },
