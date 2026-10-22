@@ -20,6 +20,7 @@ import { CampaignNodeSprite, FactionCrest, LockIcon } from '../ui/gameArt';
 import { CampaignJourneyMap } from '../ui/CampaignJourneyMap';
 import { humanCampaignArtworkForNode } from '../ui/humanCampaignMissionArt';
 import { HumanChapterTransitionBanner } from '../ui/HumanChapterTransitionBanner';
+import { HumanCampaignFrontCard } from '../ui/HumanCampaignFrontCard';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import { ActivityCard } from '../ui/ActivityCard';
@@ -338,6 +339,7 @@ export function CampaignScreen({
     rewardedAdMessage
   } = useGame();
   const [view, setView] = useState<CampaignView>('story');
+  const [showAllMissions, setShowAllMissions] = useState(false);
   const completed = chapterNodes.filter(node => node.completed).length;
 
   if (activeFaction !== 'human') {
@@ -411,6 +413,9 @@ export function CampaignScreen({
                   ? 1
                   : 0;
   const currentChapterVisual = humanChapterVisual(chapterNumber);
+  const activeMissionIndex = chapterNodes.findIndex(node => node.current && !node.completed);
+  const firstUnfinishedIndex = chapterNodes.findIndex(node => !node.completed);
+  const focusedMissionIndex = activeMissionIndex >= 0 ? activeMissionIndex : firstUnfinishedIndex;
 
   const humanJourney = humanRegions.map((region, index) => ({
     id: region.id,
@@ -432,153 +437,12 @@ export function CampaignScreen({
   const renderStory = () => (
     <>
       <HumanChapterTransitionBanner chapterNumber={chapterNumber} completed={completed} total={chapterNodes.length} />
-      <ScreenHero
-        eyebrow={'CHAPTER ' + chapterNumber}
-        title={
-          chapterNumber === 1
-            ? 'The Remnant'
-            : chapterNumber === 2
-              ? 'Building a Warband'
-              : chapterNumber === 3
-                ? 'Frostmarch'
-                : chapterNumber === 4
-                  ? 'Fortifying the Realm'
-                  : chapterNumber === 5
-                    ? 'The Army Becomes a Kingdom'
-                    : chapterNumber === 6
-                      ? 'Arcane Warfare'
-                      : 'Walls & War Machines'
-        }
-        body={
-          chapterNumber === 1
-            ? 'Rebuild Greenkeep from a two-squad remnant and learn the fundamentals of formation warfare.'
-            : chapterNumber === 2
-              ? 'Grow to three active squads, learn counters and injuries, and break the first named enemy formation.'
-              : chapterNumber === 3
-                ? 'Enter Frostmarch, unlock the fourth squad, face cavalry and learn how formations become Pressured, Breaking and Breached.'
-                : chapterNumber === 4
-                  ? 'Field five squads, adapt Commander doctrine, use alternate loadouts and prepare an elite force for Greywatch.'
-                  : chapterNumber === 5
-                    ? 'Raise the sixth banner, master Flying threats and prove a full six-squad army can survive combined-arms warfare.'
-                    : chapterNumber === 6
-                      ? 'Bring Mages into the army, break enemy wards and learn how arcane control reshapes formation warfare.'
-                      : 'Take the Human campaign to Blackstone: breach gates, protect engineers, survive counter-sieges and win the final urban assault.'
-        }
+      <HumanCampaignFrontCard
+        chapterNumber={chapterNumber}
+        nodes={chapterNodes}
         accent={currentChapterVisual.glow}
-        status={<StatusPill label="HUMAN" tone="current" />}
-      >
-        <View style={styles.chapterMetrics}>
-          <MetricTile
-            label="OBJECTIVES"
-            value={completed + '/' + chapterNodes.length}
-            caption="completed this chapter"
-            tone="positive"
-          />
-          <MetricTile
-            label="CAMPAIGN"
-            value={'CH ' + chapterNumber}
-            caption="current story tier"
-            tone="gold"
-          />
-        </View>
-      </ScreenHero>
-
-      <GameCard
-        accent={currentChapterVisual.glow}
-        faction="human"
-        state="selected"
-        ornament={false}
-        style={styles.chapterIdentity}
-      >
-        <View
-          pointerEvents="none"
-          style={[
-            styles.chapterIdentityRail,
-            { backgroundColor: currentChapterVisual.glow }
-          ]}
-        />
-        <View style={styles.chapterIdentityHeader}>
-          <View
-            style={[
-              styles.chapterCrestFrame,
-              {
-                backgroundColor: currentChapterVisual.tint + '28',
-                borderColor: currentChapterVisual.glow + '88'
-              }
-            ]}
-          >
-            <FactionCrest faction="human" size={32} />
-          </View>
-          <View style={styles.chapterIdentityCopy}>
-            <Text
-              style={[
-                styles.chapterIdentityEyebrow,
-                { color: currentChapterVisual.glow }
-              ]}
-            >
-              {currentChapterVisual.label + ' · ' + currentChapterVisual.phase}
-            </Text>
-            <Text style={[styles.chapterDirective, { color: theme.colors.text }]}>
-              {currentChapterVisual.directive}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.chapterIntelRow}>
-          <View
-            style={[
-              styles.chapterIntel,
-              {
-                backgroundColor: theme.colors.surface2,
-                borderColor: theme.colors.border
-              }
-            ]}
-          >
-            <Text style={[styles.chapterIntelLabel, { color: theme.colors.textMuted }]}>
-              FORCE
-            </Text>
-            <Text style={[styles.chapterIntelValue, { color: theme.colors.text }]}>
-              {currentChapterVisual.force}
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.chapterIntel,
-              {
-                backgroundColor: theme.colors.surface2,
-                borderColor: theme.colors.border
-              }
-            ]}
-          >
-            <Text style={[styles.chapterIntelLabel, { color: theme.colors.textMuted }]}>
-              SIGNATURE THREAT
-            </Text>
-            <Text
-              style={[
-                styles.chapterIntelValue,
-                { color: currentChapterVisual.glow }
-              ]}
-            >
-              {currentChapterVisual.threat}
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.chapterIntel,
-              {
-                backgroundColor: theme.colors.surface2,
-                borderColor: theme.colors.border
-              }
-            ]}
-          >
-            <Text style={[styles.chapterIntelLabel, { color: theme.colors.textMuted }]}>
-              PROGRESS
-            </Text>
-            <Text style={[styles.chapterIntelValue, { color: theme.colors.text }]}>
-              {completed + '/' + chapterNodes.length}
-            </Text>
-          </View>
-        </View>
-      </GameCard>
+        tint={currentChapterVisual.tint}
+      />
 
       <SectionTitle title="Caelora" trailing="Western frontier" />
 
@@ -607,6 +471,21 @@ export function CampaignScreen({
         trailing="Current region"
       />
 
+      <Pressable
+        testID="human-campaign-mission-disclosure"
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showAllMissions }}
+        accessibilityLabel={showAllMissions ? 'Focus on current campaign missions' : 'Show all chapter missions'}
+        onPress={() => setShowAllMissions(value => !value)}
+        style={[styles.missionDisclosure, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
+      >
+        <Text style={[styles.missionDisclosureText, { color: theme.colors.text }]}>
+          {showAllMissions ? 'Focus on current objective' : 'Show all ' + chapterNodes.length + ' missions'}
+        </Text>
+        <Text style={[styles.missionDisclosureHint, { color: theme.colors.textMuted }]}>
+          {showAllMissions ? 'Hide completed and distant missions' : 'Current · next · chapter finale'}
+        </Text>
+      </Pressable>
       <View style={styles.nodeList}>
         {chapterNodes.map((node, index) => {
           const chapterVisual = humanChapterVisual(chapterNumber);
@@ -1103,6 +982,11 @@ export function CampaignScreen({
                                                                               : returnToCrownspirePlayable
                                                                                 ? onStartReturnToCrownspire
                                                                                 : undefined;
+
+          // Keep the current front, the next step and its finale visible;
+          // historical missions remain accessible in the disclosure above.
+          if (!showAllMissions && !node.current && node.type !== 'boss' &&
+              index !== focusedMissionIndex + 1 && index !== focusedMissionIndex) return null;
 
           return (
             <Pressable
@@ -1840,6 +1724,9 @@ const styles = StyleSheet.create({
   regionDotText: { fontSize: 12, fontWeight: '900' },
   regionName: { textAlign: 'center', fontSize: 10, lineHeight: 13, marginTop: 4, fontWeight: '800' },
   route: { position: 'absolute', left: '15%', top: '62%', width: '26%', height: 3, transform: [{ rotate: '-4deg' }], opacity: 0.4 },
+  missionDisclosure: { borderRadius: 10, borderWidth: 1, minHeight: 40, paddingHorizontal: 10, paddingVertical: 7, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 6 },
+  missionDisclosureText: { fontSize: 10.5, lineHeight: 14, fontWeight: '900' },
+  missionDisclosureHint: { fontSize: 9, lineHeight: 12 },
   nodeList: { gap: 6 },
   nodeCard: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 9 },
   nodeEliteCard: {
