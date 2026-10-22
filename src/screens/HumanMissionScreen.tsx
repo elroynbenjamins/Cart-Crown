@@ -63,7 +63,7 @@ export function HumanMissionScreen({
     mission.type === 'choice'
       ? 'Continue story'
       : mission.type === 'upgrade'
-        ? 'Complete upgrade'
+        ? 'Complete milestone'
         : 'Resolve mission';
 
   return (
@@ -87,10 +87,10 @@ export function HumanMissionScreen({
           tone="blue"
         />
         <SemanticChip
-          label={mission.type.toUpperCase()}
+          label={mission.type === 'choice' ? 'STORY MILESTONE' : mission.type === 'upgrade' ? 'CAMPAIGN MILESTONE' : mission.type.toUpperCase()}
           tone={
             mission.type === 'choice'
-              ? 'violet'
+              ? 'blue'
               : mission.type === 'upgrade'
                 ? 'positive'
                 : 'neutral'
@@ -154,7 +154,7 @@ export function HumanMissionScreen({
             { color: theme.colors.gold }
           ]}
         >
-          MISSION OUTCOME
+          {mission.type === 'choice' || mission.type === 'upgrade' ? 'CAMPAIGN STORY BEAT' : 'MISSION OUTCOME'}
         </Text>
         <Text
           style={[
@@ -173,7 +173,7 @@ export function HumanMissionScreen({
           {mission.type === 'choice'
             ? 'This is a story milestone. Continuing does not lock another doctrine or route. The listed reward is earned once.'
             : mission.type === 'upgrade'
-              ? 'This is campaign progression, not a shop purchase. Completing the mission advances the Human campaign.'
+              ? 'This advances the campaign; it does not buy research or apply a separate equipment upgrade. Any actual squad slots unlock through the game progression rules.'
               : 'Resolve the current campaign objective to advance to the next mission.'}
         </Text>
       </GameCard>
