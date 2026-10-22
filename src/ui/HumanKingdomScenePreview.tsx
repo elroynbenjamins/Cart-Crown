@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { BuildingDefinition, WagonStage } from '../game/types';
 import { useGameTheme } from '../theme/ThemeProvider';
 import { BuildingSprite, SettlementTerrainBackdrop } from './gameArt';
-import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementPlatePlotPositions } from './settlementActionLayout';
+import { HUMAN_SETTLEMENT_PLATE_ASPECT_RATIO, humanSettlementBuildingSpriteSize, humanSettlementPlatePlotPositions } from './settlementActionLayout';
 
 type HumanStageId = WagonStage['id'];
 
@@ -44,7 +44,7 @@ export function HumanKingdomScenePreview({
 }) {
   const { theme } = useGameTheme();
   const [plateWidth, setPlateWidth] = useState(340);
-  const spriteScale = Math.min(1.12, plateWidth / 340);
+  const spriteScale = Math.max(0.82, Math.min(1.12, plateWidth / 340));
   const growth = humanKingdomGrowthStage(stageId);
   const placed = plotOrder.flatMap(plotId => {
     const buildingId = buildingPlacements[plotId];
@@ -106,7 +106,7 @@ export function HumanKingdomScenePreview({
                 <BuildingSprite
                   buildingId={building.id}
                   faction="human"
-                  size={Math.round((landmark ? 142 : 76 * depthScale * 1.14) * spriteScale)}
+                  size={Math.round(humanSettlementBuildingSpriteSize(plotId, building.role, plateWidth) * (landmark ? 1 : 1.14))}
                 />
               </View>
             </View>
@@ -153,8 +153,8 @@ const styles = StyleSheet.create({
     borderRadius: 100, backgroundColor: '#090F0C', opacity: 0.36
   },
   landmarkFootprint: { marginLeft: -48, width: 96, height: 26, bottom: '18%' },
-  buildingArt: { alignItems: 'center', justifyContent: 'flex-end', transform: [{ translateY: -2 }] },
-  landmarkBuildingArt: { transform: [{ translateY: -17 }] },
+  buildingArt: { position: 'absolute', bottom: '17%', alignSelf: 'center', alignItems: 'center', justifyContent: 'flex-end' },
+  landmarkBuildingArt: { bottom: '18%' },
   topShade: { position: 'absolute', left: 0, right: 0, top: 0, height: '17%', backgroundColor: '#101E25', opacity: 0.14 },
   stagePlaque: {
     position: 'absolute', top: 10, left: 10, right: '20%',
