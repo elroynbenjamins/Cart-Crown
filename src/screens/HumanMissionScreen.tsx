@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useGame } from '../game/GameProvider';
 import { getHumanLateMission } from '../game/humanLateCampaign';
@@ -9,7 +9,8 @@ import {
   EventResolution,
   EventRewardPanel
 } from '../ui/CampaignEventUI';
-import { GameCard } from '../ui/components';
+import { GameCard, SecondaryButton } from '../ui/components';
+import { humanMissionReportState } from '../ui/humanMissionReportState';
 import { humanCampaignArtworkForMission } from '../ui/humanCampaignMissionArt';
 import { SemanticChip } from '../ui/SemanticUI';
 import {
@@ -32,27 +33,32 @@ export function HumanMissionScreen({
     completeHumanLateMission
   } = useGame();
   const mission = getHumanLateMission(nodeId);
+  const [resolvedNodeId, setResolvedNodeId] = useState<string | null>(null);
+  const node = chapterNodes.find(candidate => candidate.id === nodeId);
+  const reportState = humanMissionReportState({
+    activeFaction,
+    chapterNumber,
+    missionChapter: mission?.chapter ?? null,
+    node,
+    resolvedOnThisScreen: resolvedNodeId === nodeId
+  });
 
-  if (!mission || activeFaction !== 'human') {
+  if (!mission || reportState === 'unavailable') {
     return (
       <View style={styles.unavailable}>
         <DecisionIntro
           eyebrow="HUMAN CAMPAIGN"
           title="Mission unavailable"
-          body="Return to the Human campaign and open the current mission again."
+          body="This report is no longer the active Human mission. Return to Campaign to continue with the current objective."
           accent={theme.colors.textMuted}
         />
+        <SecondaryButton label="Return to Campaign" onPress={onContinue} />
       </View>
     );
   }
 
-  const node = chapterNodes.find(
-    candidate => candidate.id === nodeId
-  );
-  const completed = Boolean(node?.completed);
-  const canResolve =
-    chapterNumber === mission.chapter &&
-    Boolean(node?.current);
+  const completed = reportState === 'completed';
+  const canResolve = reportState === 'ready';
   const label =
     mission.type === 'choice'
       ? 'Continue story'
@@ -67,9 +73,11 @@ export function HumanMissionScreen({
       canResolve={canResolve}
       label={label}
       continueLabel="Return to Campaign"
-      onResolve={() =>
-        completeHumanLateMission(nodeId)
-      }
+      onResolve={() => {
+        const accepted = completeHumanLateMission(nodeId);
+        if (accepted) setResolvedNodeId(nodeId);
+        return accepted;
+      }}
       onContinue={onContinue}
     >
       <View style={styles.badges}>
@@ -189,7 +197,7 @@ export function HumanMissionScreen({
 }
 
 const styles = StyleSheet.create({
-  unavailable: { padding: 12 },
+  unavailable: { padding: 12, gap: 12 },
   badges: {
     flexDirection: 'row',
     flexWrap: 'wrap',
