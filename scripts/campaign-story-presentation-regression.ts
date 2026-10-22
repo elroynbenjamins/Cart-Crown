@@ -5,7 +5,8 @@ import type { HumanCampaignChapter } from '../src/game/humanCampaignArtDirection
 import { getCampaignMissionBlueprint } from '../src/game/campaignMissionRoadmap';
 import {
   humanCampaignProgressCue,
-  humanChapterStories
+  humanChapterStories,
+  humanCampaignSystemMilestones
 } from '../src/ui/humanCampaignStoryPresentation';
 import type { HumanCampaignNodeSnapshot } from '../src/ui/humanCampaignStoryPresentation';
 
@@ -39,6 +40,18 @@ for (const chapter of chapters) {
   assert.equal(start.bossState, 'ahead');
   assert.ok(start.nextSceneLocation);
   assert.ok(start.squadMessage.includes('squad'));
+  for (const milestone of humanCampaignSystemMilestones[chapter]) {
+    assert.ok(
+      getCampaignMissionBlueprint(chapter, milestone.mission)?.unlocks.includes(milestone.unlockId),
+      'Unlock label must reference a real blueprint gate: ' + milestone.unlockId
+    );
+  }
+  const firstMilestone = humanCampaignSystemMilestones[chapter][0];
+  if (firstMilestone) {
+    assert.ok(start.upcomingUnlock?.includes(firstMilestone.label), 'Upcoming unlock should be visible');
+    const afterMilestone = humanCampaignProgressCue(chapter, nodesFor(chapter, firstMilestone.mission))!;
+    assert.ok(afterMilestone.latestUnlock?.includes(firstMilestone.label), 'Recorded unlock should be visible');
+  }
 
   const boss = humanCampaignProgressCue(chapter, nodesFor(chapter, start.total - 1));
   assert.ok(boss);
@@ -82,6 +95,8 @@ assert.equal(JSON.stringify(irregular), snapshot, 'Presentation must not mutate 
 
 const campaignSource = readFileSync('src/screens/CampaignScreen.tsx', 'utf8');
 assert.ok(campaignSource.includes('HumanCampaignFrontCard'), 'Live screen must mount the briefing');
+const frontCardSource = readFileSync('src/ui/HumanCampaignFrontCard.tsx', 'utf8');
+assert.ok(frontCardSource.includes('cue.upcomingUnlock') && frontCardSource.includes('cue.latestUnlock'), 'Visible system unlock cues must be wired');
 assert.ok(campaignSource.includes('human-campaign-mission-disclosure'), 'Full mission list needs a player-controlled disclosure');
 assert.ok(campaignSource.includes("node.type !== 'boss'"), 'Finale must remain visible in focused layout');
 const transitionSource = readFileSync('src/ui/HumanChapterTransitionBanner.tsx', 'utf8');
