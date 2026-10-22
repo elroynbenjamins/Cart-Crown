@@ -1139,6 +1139,7 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
         }}
         style={[styles.map, {
           height: mapHeight,
+          width: humanStagePlateActive ? '100%' : undefined,
           maxWidth: humanStagePlateActive ? 438 : undefined,
           alignSelf: humanStagePlateActive ? 'center' : undefined,
           backgroundColor: theme.colors.surface1,
