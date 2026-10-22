@@ -94,6 +94,30 @@ export function stageAttackTrail(
   } as const;
 }
 
+/** Fracture marks follow genuine occupied frontline anchors, not fixed screen percentages.
+ * Returns null when no army actor exists. Routed enemy slots are deliberately
+ * retained in the source formation so row geometry does not shift after losses.
+ */
+export function stageFractureLine(
+  tokens: readonly StageToken[], side: ArmySide, width: number, height: number
+) {
+  if (!tokens.length || !Number.isFinite(width) || !Number.isFinite(height) || width < 120 || height < 160) return null;
+  const front = tokens.filter(token => token.row === 'front');
+  const pivot = front.length ? front : [...tokens].sort((a, b) =>
+    side === 'enemy' ? b.y - a.y : a.y - b.y).slice(0, 1);
+  const left = Math.min(...pivot.map(token => token.x - token.size / 2));
+  const right = Math.max(...pivot.map(token => token.x + token.size / 2));
+  const bandWidth = Math.max(28, Math.min(width - 8, right - left));
+  const top = side === 'enemy'
+    ? Math.max(...pivot.map(token => token.y + token.size / 2)) + 4
+    : Math.min(...pivot.map(token => token.y - token.size / 2)) - 4;
+  return {
+    left: Math.max(4, Math.min(width - bandWidth - 4, left)),
+    top: Math.max(4, Math.min(height - 4, top)),
+    width: bandWidth
+  } as const;
+}
+
 /** Static on-field signal derived from the currently active commander order.
  * A signal never changes position, targeting, integrity or battle calculations.
  * Missing actors deliberately produce no false defensive/offensive formation.
