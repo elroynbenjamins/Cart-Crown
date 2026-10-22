@@ -92,6 +92,34 @@ for (const shape of formationShapes) for (const width of [240, 320, 412]) {
   check(model.stageAttackTrail(friendly, hostile, start.slot, end.slot, 'support', 5) === null,
     'Support must not masquerade as mounted or ranged');
 }
+// Cracking ground lines must follow the actual formation, not fixed % offsets.
+for (const shape of formationShapes) for (const width of [240, 320, 412]) for (const height of [264, 400]) {
+  for (const side of ['ally', 'enemy'] as const) {
+    const tokens = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], side, width, height);
+    const line = model.stageFractureLine(tokens, side, width, height);
+    check(Boolean(line), 'Populated army always has an anchored fracture line');
+    check(line!.left >= 4 && line!.top >= 4 && line!.left + line!.width <= width - 4,
+      'Line fracture must stay inside the visible stage at compact widths');
+    const rank = tokens.some(unit => unit.row === 'front')
+      ? tokens.filter(unit => unit.row === 'front') : tokens;
+    const frontY = rank[0]!.y;
+    check(side === 'enemy' ? line!.top > frontY : line!.top < frontY,
+      'Fracture should appear on the contact-facing side of the occupied frontline');
+  }
+}
+const oneShape = formationShapes.find(shape => shape.id === 'iron_wall_501')!;
+const deepShape = formationShapes.find(shape => shape.id === 'layered_core_231')!;
+const ironFracture = model.stageFractureLine(model.stageTokens(oneShape,
+  [0,1,2,3,4,5,6,7,8], 'ally', 340, 400), 'ally', 340, 400)!;
+const deepFracture = model.stageFractureLine(model.stageTokens(deepShape,
+  [0,1,2,3,4,5,6,7,8], 'ally', 340, 400), 'ally', 340, 400)!;
+check(ironFracture.width > deepFracture.width * 1.3,
+  'Iron Wall cracks must read substantially wider than Layered Core');
+check(model.stageFractureLine([], 'ally', 340, 400) === null,
+  'No squads means no fabricated line-break indicator');
+check(model.stageFractureLine([], 'enemy', 340, 400) === null,
+  'No enemy actors means no fabricated enemy line-break indicator');
+
 // Active orders must have truthful positions using actually occupied actors.
 for (const shape of formationShapes) for (const width of [240, 320, 412]) for (const height of [264, 400]) {
   const ally = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], 'ally', width, height);
@@ -336,6 +364,10 @@ check(file.includes('stageAttackTrail(allyPositions, enemyPositions') &&
   file.includes("testID={'battle-' + trail.kind + '-trajectory'}") &&
   file.includes('p.outgoingDamage > 0 ? p.activeRole : null'),
   'Projectile and contact VFX must be gated to actual damage and existing pulses');
+check(file.includes("stageFractureLine(allyPositions, 'ally'") &&
+  file.includes("stageFractureLine(enemyPositions, 'enemy'") &&
+  file.includes('backgroundColor: theme.colors.surface1 + \'E0\''),
+  'Break indicators must follow the occupied line and active field order must remain legible in light themes');
 check(file.includes('ally-facing-') && file.includes('enemy-facing-') &&
   file.includes('ally-line-fracture') && file.includes('enemy-line-fracture'),
   'Both armies must visibly show engagement direction and actual formation damage');
