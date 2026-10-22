@@ -4,7 +4,9 @@
 
 > This document is the handoff source of truth for WHAT WE SHOULD IMPROVE NEXT. Live code and tests are authoritative for WHAT IS IMPLEMENTED NOW. Before each pass, inspect the newest `main`; do not overwrite improvements made after this baseline.
 
-**Phase 0 reconciliation (2026-10-22):** [Canonical implementation inventory](PHASE0_IMPLEMENTATION_INVENTORY.md) records runtime node IDs, evidence levels and known design/type differences. [Android screenshot baseline ledger](ANDROID_SCREENSHOT_BASELINE.md) distinguishes successful opening smoke screenshots from the remaining full screen/tier matrix. The README now describes the current seven-chapter Human campaign; historical text in Git history is not an active plan. **Phase 0 remains open** until this change passes PR CI and durable full baseline screenshots are captured.\n\n## 0. Product vision and non-negotiable design decisions
+**Phase 0 reconciliation (2026-10-22):** [Canonical implementation inventory](PHASE0_IMPLEMENTATION_INVENTORY.md) records runtime node IDs, evidence levels and known design/type differences. [Android screenshot baseline ledger](ANDROID_SCREENSHOT_BASELINE.md) distinguishes successful opening smoke screenshots from the remaining full screen/tier matrix. The README now describes the current seven-chapter Human campaign; historical text in Git history is not an active plan. **Phase 0 remains open** until this change passes PR CI and durable full baseline screenshots are captured.
+
+## 0. Product vision and non-negotiable design decisions
 
 - **Name:** Cart & Crown (repository `Cart-Crown`; also referred to as Backpack Kingdoms during concept development).
 - **Platform:** portrait-first, mobile-first offline-capable strategy RPG, with tactile fantasy pixel art and compact, polished interfaces.
