@@ -132,6 +132,22 @@ const frontCardSource = readFileSync('src/ui/HumanCampaignFrontCard.tsx', 'utf8'
 assert.ok(frontCardSource.includes('cue.upcomingUnlock') && frontCardSource.includes('cue.latestUnlock'), 'Visible system unlock cues must be wired');
 assert.ok(frontCardSource.includes("cue.bossState === 'current' ? s.bossActive") && frontCardSource.includes('{story.finale}'), 'Current chapter bosses need a distinct illustrated introduction');
 assert.ok(frontCardSource.includes('activeSquadCap ?? cue.currentSquadCap'), 'Wagon cap must constrain displayed usable squads');
+assert.ok(frontCardSource.includes('cue.nextMissionOrder ?? humanCampaignMissionCounts[cue.chapter]'),
+  'Chapter hero art must follow the current authored mission and show finale after completion');
+assert.ok(frontCardSource.includes('human-campaign-jump-to-current') &&
+  frontCardSource.includes('onPress={onViewCurrentMission}'),
+  'The chapter brief must provide a real, accessible in-page current mission jump');
+assert.ok(campaignSource.includes('storyScroll.current?.scrollTo') &&
+  campaignSource.includes('onLayout={event => { missionListTop.current = event.nativeEvent.layout.y; }}'),
+  'Current mission jump must use measured screen layout instead of hard-coded scroll distances');
+assert.ok(campaignSource.includes('missionHistory?.chapter === chapterNumber') &&
+  campaignSource.includes('expanded: !showAllMissions'),
+  'Expanding mission history must reset when the player reaches a new chapter');
+const eventSource = readFileSync('src/ui/CampaignEventUI.tsx', 'utf8');
+const lateStorySource = readFileSync('src/screens/HumanMissionScreen.tsx', 'utf8');
+assert.ok(eventSource.includes('initiallyExpanded = false') && lateStorySource.includes('<EventIllustration initiallyExpanded>'),
+  'Late Human story illustrations should open visibly without altering other campaign event defaults');
+
 assert.ok(campaignSource.includes('activeSquadCap={activeSquadCap}'), 'Live cap must be supplied to the story briefing');
 assert.ok(campaignSource.includes('human-campaign-mission-disclosure'), 'Full mission list needs a player-controlled disclosure');
 assert.ok(campaignSource.includes("node.type !== 'boss'"), 'Finale must remain visible in focused layout');
@@ -145,4 +161,4 @@ assert.ok(campaignSource.includes('regionArtwork={humanCampaignArtworkForMission
 
 const transitionSource = readFileSync('src/ui/HumanChapterTransitionBanner.tsx', 'utf8');
 assert.ok(transitionSource.includes('nextStory?.stakes'), 'Region reveal must introduce new chapter stakes');
-console.log('Human campaign Phase 3 presentation regression passed: seven regions, 70 missions, squad milestones and focused navigation.');
+console.log('Human campaign Phase 3 presentation regression passed: seven regions, 70 missions, squad milestones, current art, navigation and illustration visibility.');
