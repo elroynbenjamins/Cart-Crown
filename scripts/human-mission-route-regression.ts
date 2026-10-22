@@ -165,6 +165,21 @@ for (const item of cases) {
   }
   assert(item.rationale.length > 25, label + ' lacks an audit rationale');
 }
+// These early chapter actions must reject stale navigation/screens and pre-
+// mission invocations; the gameplay provider checks faction, chapter and
+// exact active node in addition to once-only completion/recruitment flags.
+for (const [handler, chapter, nodeId] of [
+  ['completeMarkedRaiders', 1, 'node_3'],
+  ['promoteMira', 1, 'node_4'],
+  ['chooseFortRecruit', 2, 'ch2_node_1']
+] as const) {
+  const source = handlerSource(handler);
+  assert(source.includes("activeFaction !== 'human'"), handler + ' must reject other factions');
+  assert(source.includes('chapterNumber !== ' + chapter), handler + ' must reject other chapters');
+  assert(source.includes("node.id === '" + nodeId + "'") &&
+    source.includes('?.current'), handler + ' must require current campaign node');
+}
+
 assert(uniqueIds.size === 19, 'Each differing runtime node must be audited once');
 
 const actualDifferences = nodes.flatMap((chapterNodes, chapterOffset) =>
