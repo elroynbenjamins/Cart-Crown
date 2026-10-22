@@ -10,6 +10,9 @@ import {
 } from '../src/ui/humanCampaignStoryPresentation';
 import type { HumanCampaignNodeSnapshot } from '../src/ui/humanCampaignStoryPresentation';
 import { activeJourneyPointId } from '../src/ui/campaignJourneySelection';
+import { humanMissionReportState } from '../src/ui/humanMissionReportState';
+import { humanCampaignDisplayNodeType } from '../src/ui/humanCampaignNodePresentation';
+import { humanLateMissions } from '../src/game/humanLateCampaign';
 
 const chapters: HumanCampaignChapter[] = [1, 2, 3, 4, 5, 6, 7];
 const nodesFor = (chapter: HumanCampaignChapter, completed = 0): HumanCampaignNodeSnapshot[] =>
@@ -126,6 +129,43 @@ const cue = humanCampaignProgressCue(3, irregular)!;
 assert.equal(cue.nextMissionOrder, 2, 'Follow live current node, not just completed count');
 assert.equal(JSON.stringify(irregular), snapshot, 'Presentation must not mutate live campaign nodes');
 
+// Chapter 2 mission 4 is saved as an 'elite' node for compatibility, but the
+// actual route is Kingdom Defense. UI must not mislabel it as an elite duel.
+assert.equal(humanCampaignDisplayNodeType(2, { id: 'ch2_node_4', type: 'elite' }), 'defense');
+assert.equal(humanCampaignDisplayNodeType(2, { id: 'ch2_node_8', type: 'boss' }), 'boss');
+assert.equal(humanCampaignDisplayNodeType(3, { id: 'ch3_node_6', type: 'elite' }), 'elite');
+
+// Every late noncombat mission report must offer a route back to Campaign.
+// Completing Ch5/6 bosses replaces the node array; reopening a stale report
+// must not strand the user after the new chapter has started.
+assert.equal(humanLateMissions.length, 33, 'Human late chapters need all 33 authored slots');
+for (const mission of humanLateMissions) {
+  const activeNode = { current: true, completed: false };
+  const base = {
+    activeFaction: 'human',
+    chapterNumber: mission.chapter,
+    missionChapter: mission.chapter,
+    node: activeNode,
+    resolvedOnThisScreen: false
+  };
+  assert.equal(humanMissionReportState(base), 'ready', mission.id + ' is playable at the active node');
+  assert.equal(humanMissionReportState({ ...base, node: { current: false, completed: true } }), 'completed');
+  assert.equal(humanMissionReportState({ ...base, resolvedOnThisScreen: true, node: undefined }), 'completed',
+    'Successful completion must remain available after replacing nodes: ' + mission.id);
+  assert.equal(humanMissionReportState({ ...base, chapterNumber: mission.chapter + 1, node: undefined }), 'completed',
+    'Later saved chapters imply completed prior reports: ' + mission.id);
+  assert.equal(humanMissionReportState({ ...base, activeFaction: 'elf' }), 'unavailable',
+    'Never show Human reports in another faction');
+  assert.equal(humanMissionReportState({ ...base, node: { current: false, completed: false } }), 'unavailable',
+    'Locked future nodes are not playable');
+  assert.equal(humanMissionReportState({ ...base, chapterNumber: mission.chapter - 1, node: undefined }), 'unavailable',
+    'Cannot complete future chapters early');
+}
+assert.equal(humanMissionReportState({
+  activeFaction: 'human', chapterNumber: 7, missionChapter: null,
+  node: undefined, resolvedOnThisScreen: false
+}), 'unavailable', 'Unknown mission IDs cannot create a completed report');
+
 const campaignSource = readFileSync('src/screens/CampaignScreen.tsx', 'utf8');
 assert.ok(campaignSource.includes('HumanCampaignFrontCard'), 'Live screen must mount the briefing');
 const frontCardSource = readFileSync('src/ui/HumanCampaignFrontCard.tsx', 'utf8');
@@ -150,6 +190,14 @@ assert.ok(eventSource.includes('initiallyExpanded = false') && lateStorySource.i
 
 assert.ok(campaignSource.includes('activeSquadCap={activeSquadCap}'), 'Live cap must be supplied to the story briefing');
 assert.ok(campaignSource.includes('human-campaign-mission-disclosure'), 'Full mission list needs a player-controlled disclosure');
+assert.ok(campaignSource.includes('humanCampaignDisplayNodeType(chapterNumber, node)') &&
+  campaignSource.includes("displayType === 'defense' ? 'KINGDOM DEFENSE' : 'ELITE ENCOUNTER'"),
+  'Kingdom Defense must be represented correctly without changing saved chapter node type');
+const missionScreenSource = readFileSync('src/screens/HumanMissionScreen.tsx', 'utf8');
+assert.ok(missionScreenSource.includes('humanMissionReportState({') &&
+  missionScreenSource.includes('<SecondaryButton label="Return to Campaign" onPress={onContinue} />') &&
+  missionScreenSource.includes('if (accepted) setResolvedNodeId(nodeId)'),
+  'Late mission reports need a safe exit after success, failed routing and chapter advance');
 assert.ok(campaignSource.includes("node.type !== 'boss'"), 'Finale must remain visible in focused layout');
 const mapSource = readFileSync('src/ui/CampaignJourneyMap.tsx', 'utf8');
 assert.ok(mapSource.includes('regionArtwork ?? mapSources[faction]'), 'Map should reuse the current chapter artwork');
