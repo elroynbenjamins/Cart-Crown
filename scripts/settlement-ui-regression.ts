@@ -608,8 +608,12 @@ function testDenseDistrictZoneReadability() {
   press(tree, 'Cancel move');
   tree = f.h.render();
 
-  choosePlot(tree, 'plot_nw');
-  tree = f.h.render();
+  // The reviewed member remains selected after Cancel move. A further tap on
+  // that building closes the strip, so only select it when not already focused.
+  if (!nodes(tree, 'View').some(node => node.props.testID === 'building-action-strip-' + forge.id)) {
+    choosePlot(tree, 'plot_nw');
+    tree = f.h.render();
+  }
   const focusedArsenalFromBuilding = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-arsenal_district');
   const dimmedSupplyFromBuilding = nodes(tree, 'Pressable').find(node => node.props.testID === 'district-zone-label-supply_yard');
   check(style(focusedArsenalFromBuilding?.props.style).opacity === 1, 'Selecting a district member must still emphasize its own neighborhood tag.');
