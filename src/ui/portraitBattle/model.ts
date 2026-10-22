@@ -94,6 +94,59 @@ export function stageAttackTrail(
   } as const;
 }
 
+/** Static on-field signal derived from the currently active commander order.
+ * A signal never changes position, targeting, integrity or battle calculations.
+ * Missing actors deliberately produce no false defensive/offensive formation.
+ */
+export type StageOrderBand = Readonly<{
+  id: 'hold' | 'focus' | 'push' | 'reinforce';
+  label: string;
+  left: number;
+  top: number;
+  width: number;
+}>;
+
+export function stageOrderBand(
+  order: string | null,
+  allies: readonly StageToken[],
+  enemies: readonly StageToken[],
+  targetSlot: number | null,
+  width: number,
+  height: number
+): StageOrderBand | null {
+  if (!['hold', 'focus', 'push', 'reinforce'].includes(order ?? '')) return null;
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width < 120 || height < 160) return null;
+  const id = order as StageOrderBand['id'];
+  if (id === 'focus') {
+    const target = enemies.find(unit => unit.slot === targetSlot);
+    if (!target) return null;
+    const bandWidth = 42;
+    return {
+      id, label: 'FOCUS',
+      left: Math.max(4, Math.min(width - bandWidth - 4, target.x - bandWidth / 2)),
+      top: Math.max(4, Math.min(height - 18, target.y + target.size / 2 + 2)),
+      width: bandWidth
+    };
+  }
+  // Use the real occupied ranks, never the shape's unoccupied authored slots.
+  // The nearest occupied row to the engagement is the active defensive line.
+  const ordered = [...allies].sort((a, b) => a.y - b.y);
+  const backline = [...allies].sort((a, b) => b.y - a.y);
+  const pivot = id === 'reinforce' ? backline[0] : ordered[0];
+  if (!pivot) return null;
+  const line = allies.filter(unit => unit.row === pivot.row);
+  const left = Math.min(...line.map(unit => unit.x - unit.size / 2));
+  const right = Math.max(...line.map(unit => unit.x + unit.size / 2));
+  const padding = 4;
+  return {
+    id,
+    label: id === 'hold' ? 'BRACED' : id === 'push' ? 'ADVANCE' : 'REINFORCE',
+    left: Math.max(padding, left),
+    top: Math.max(4, Math.min(height - 18, Math.min(...line.map(unit => unit.y - unit.size / 2)) - 16)),
+    width: Math.max(40, Math.min(width - 2 * padding, right - left))
+  };
+}
+
 export const roleNames: Record<UnitRole, string> = {
   frontline: 'Frontline', melee: 'Melee', ranged: 'Ranged', support: 'Support', cavalry: 'Mounted', skirmish: 'Skirmish'
 };
