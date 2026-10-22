@@ -10,6 +10,12 @@ import {
 } from '../src/ui/bossPresentation';
 
 const expected = {
+  toll_captain: 'toll_gate',
+  ch2_riders_banner: 'riders_standard',
+  iron_provost: 'iron_provost',
+  lord_marshal_veyr: 'frostgate_marshal',
+  pretender_general: 'greywatch_pretender',
+  gate_of_crownspire: 'ashen_gate',
   elf_hollow_warden: 'hollow_roots',
   orc_stonejaw_champion: 'stonejaw',
   return_to_crownspire: 'ashen_regent',
@@ -75,7 +81,7 @@ for (const [id, encounter] of Object.entries(encounters)) {
   );
 }
 
-assert.equal(variants, 16, 'Every selected boss must exist in encounter data.');
+assert.equal(variants, 40, 'Every Human campaign boss and selected late bosses must be present.');
 for (const reduced of [null, false, true]) {
   for (const appState of [null, 'active', 'background', 'inactive', 'unknown']) {
     assert.equal(canAnimateBossIntro(reduced, appState), reduced === false && appState === 'active');

@@ -150,6 +150,9 @@ jobs:
       - name: Production art regression
         run: npm run art:check
 
+      - name: Directional battle artwork readiness
+        run: npm run directional-art:check
+
       - name: Boss presentation regression
         run: npm run boss:check
 

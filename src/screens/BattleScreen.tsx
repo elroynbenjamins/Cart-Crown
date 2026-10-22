@@ -1177,6 +1177,12 @@ export function BattleScreen({
     partyMaxHp={partyMaxHp}
     enemyHp={enemyHp}
     enemyMaxHp={encounter.enemyHp}
+    partyIntegrity={partyIntegrity}
+    enemyIntegrity={enemyIntegrity}
+    partyIntegrityState={partyIntegrityState}
+    enemyIntegrityState={enemyIntegrityState}
+    outgoingDamage={exchangeFeedback?.outgoing ?? 0}
+    incomingDamage={exchangeFeedback?.incoming ?? 0}
     turn={turn}
     speed={battleSpeed}
     paused={manualPaused || pausedForTutorial || !appIsActive}
