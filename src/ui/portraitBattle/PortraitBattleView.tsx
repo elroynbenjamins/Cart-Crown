@@ -6,6 +6,8 @@ import { useGameTheme } from '../../theme/ThemeProvider';
 import { EnemySprite, UnitPortraitSprite, UnitSprite } from '../gameArt';
 import { BattleStatusMarker, BattleVfxStrip, EnemyFantasyStrikeVfx, EnemyFantasyThreatAura } from '../battleVisuals';
 import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop';
+import { getBossPresentation } from '../bossPresentation';
+import { BossStageSilhouette } from '../BossStageSilhouette';
 import { ReferenceArt } from './Art';
 import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageFormationReadout, stageRoleLetters, stageTokens, stageAttackTrail, stageIntegrityReadout, battleSpectacleCue } from './model';
 import type { ArmySide, EnemyToken, ExchangeRecord, IntegrityTier } from './model';
@@ -119,6 +121,7 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
   const roster = rosterForFormation(p.formation, p.units);
   const spectacle = battleSpectacleCue(p.difficulty);
   const dangerAccent = p.difficulty === 'Boss' ? theme.colors.gold : p.difficulty === 'Elite' ? theme.colors.danger : theme.colors.textMuted;
+  const signatureBoss = getBossPresentation(p.encounterId, p.difficulty, theme.dark, layout.compact);
   const allyPositions = stageTokens(p.shape, roster.map(item => item.slot), 'ally', layout.stageWidth, layout.stageHeight);
   // Include routed enemies; their spots must not be recycled or compressed.
   const enemyPositions = stageTokens(p.enemyShape, p.enemies.map(item => item.slot), 'enemy', layout.stageWidth, layout.stageHeight);
@@ -284,6 +287,9 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
             transform: [{ scale: moving ? p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [.78, 1.08] }) : 1 }]
           }]} /> : null}
           {targeted && moving && p.outgoingDamage > 0 ? <Animated.View testID={'battle-target-spark-' + item.slot} pointerEvents="none" style={[s.hitSpark, { borderColor: hitAccent, opacity: p.impactPulse.interpolate({ inputRange: [0, .45, 1], outputRange: [0, 1, 0], extrapolate: 'clamp' }), transform: [{ scale: p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [.7, 1.1] }) }] }]}><View style={[s.hitSparkCross, { backgroundColor: hitAccent }]} /><View style={[s.hitSparkCross, s.hitSparkVertical, { backgroundColor: hitAccent }]} /></Animated.View> : null}
+          {item.boss && !item.down && signatureBoss ? <BossStageSilhouette
+            signature={signatureBoss.signature} size={position.size}
+            material={signatureBoss.material} light={signatureBoss.light} /> : null}
           {enemyFigure(item, item.boss ? position.size * 1.06 : position.size)}
           {!item.down && !item.boss ? <View pointerEvents="none" testID={'enemy-stage-role-' + item.slot}
             style={[s.roleMarker, { borderColor: theme.colors.danger }]}>
