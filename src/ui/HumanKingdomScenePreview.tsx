@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     borderRadius: 100, backgroundColor: '#090F0C', opacity: 0.36
   },
   landmarkFootprint: { marginLeft: -48, width: 96, height: 26, bottom: '18%' },
-  buildingArt: { position: 'absolute', bottom: '17%', alignSelf: 'center', alignItems: 'center', justifyContent: 'flex-end' },
+  buildingArt: { position: 'absolute', left: 0, right: 0, bottom: '17%', alignItems: 'center', justifyContent: 'flex-end' },
   landmarkBuildingArt: { bottom: '18%' },
   topShade: { position: 'absolute', left: 0, right: 0, top: 0, height: '17%', backgroundColor: '#101E25', opacity: 0.14 },
   stagePlaque: {
