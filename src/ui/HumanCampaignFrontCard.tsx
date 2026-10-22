@@ -12,17 +12,20 @@ import type { HumanCampaignNodeSnapshot } from './humanCampaignStoryPresentation
 
 /** One compact, read-only briefing. It cannot advance or claim story progress. */
 export function HumanCampaignFrontCard({
-  chapterNumber, nodes, accent, tint
+  chapterNumber, nodes, accent, tint, activeSquadCap
 }: {
   chapterNumber: number;
   nodes: readonly HumanCampaignNodeSnapshot[];
   accent: string;
   tint: string;
+  activeSquadCap?: number;
 }) {
   const { theme } = useGameTheme();
   const cue = humanCampaignProgressCue(chapterNumber, nodes);
   if (!cue) return null;
   const story = humanChapterStories[cue.chapter];
+  const deploymentSlots = Math.min(cue.currentSquadCap, activeSquadCap ?? cue.currentSquadCap);
+  const deploymentLimited = deploymentSlots < cue.currentSquadCap;
   const artwork = humanCampaignArtworkForMission(cue.chapter, 1);
   const bossArt = humanCampaignArtworkForMission(cue.chapter, humanCampaignMissionCounts[cue.chapter]);
 
@@ -71,10 +74,10 @@ export function HumanCampaignFrontCard({
         {(cue.latestUnlock || cue.upcomingUnlock) ? (
           <View style={[s.unlockRow, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
             {cue.latestUnlock ? (
-              <Text style={[s.unlockLine, { color: theme.colors.primary }]}>UNLOCKED · {cue.latestUnlock}</Text>
+              <Text style={[s.unlockLine, { color: theme.colors.primary }]}>{cue.latestUnlock}</Text>
             ) : null}
             {cue.upcomingUnlock ? (
-              <Text style={[s.unlockLine, { color: theme.colors.text }]}>UPCOMING · {cue.upcomingUnlock}</Text>
+              <Text style={[s.unlockLine, { color: theme.colors.text }]}>{cue.upcomingUnlock}</Text>
             ) : null}
           </View>
         ) : null}
@@ -82,7 +85,9 @@ export function HumanCampaignFrontCard({
         <View style={s.bottomRow}>
           <View style={[s.intel, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
             <Text style={[s.eyebrow, { color: accent }]}>DEPLOYMENT</Text>
-            <Text style={[s.intelText, { color: theme.colors.text }]}>{cue.squadMessage}</Text>
+            <Text style={[s.intelText, { color: theme.colors.text }]}>
+              {deploymentLimited ? deploymentSlots + ' usable slots · upgrade your wagon to use more' : cue.squadMessage}
+            </Text>
           </View>
           <View style={[s.boss, { backgroundColor: theme.colors.surface2, borderColor: theme.colors.border }]}>
             <Image source={bossArt.source} resizeMode="cover" style={s.bossImage} fadeDuration={0} />
