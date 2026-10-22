@@ -27,6 +27,21 @@ Branch scope: layout, presentation and touch UX only. This is **not** a claim of
 - `human-settlement:check` now guards against depth regression and verifies the Human-only animation gating.
 - Do not equate synthetic geometric checks or the generated art-direction reference with a native screenshot, a review of production plate quality, or a 540×960 source image ready to ship.
 
+## Fourth implementation pass — native screenshot-driven visual cleanup
+
+**Captured evidence:** Android settlement portrait workflow run [39748028652](https://github.com/elroynbenjamins/Cart-Crown/actions/runs/39748028652) completed successfully and exported `smoke/compact-360x640-overview.png`, `smoke/regular-large-text-overview.png` and `smoke/settlement-smoke-report.json`. This is a deterministic **Grand** scenario, **not** seven-stage art acceptance. Both emulator smoke scenarios were marked passed: 720×1280 at density 320/font scale 1.0 and 1080×2400 at density 420/font scale 1.35.
+
+Screenshot observations: the five resource totals remain legible, nine placed buildings are present, the large Hall reads clearly, and the detailed painted Capital plate loads. However seven golden circular upgrade icons, idle connector lines, oversized brown dock carts and unconditional secondary building ambience clutter the center and waterfront.
+
+Corresponding code changes:
+- Replace each 25×25 Human upgrade disc with a 16×16 quiet gold-on-dark status pip. Keep the summary of ready upgrades in the HUD and show actionable controls once the building is selected. Other factions retain their previous presentation.
+- Suppress Human-only district links and environmental props in default view; show the district information when a plot, building, planner, relocation, or district is selected. Do not remove real adjacency effects or analytic previews.
+- Limit Human secondary building ambience to the Hall and the currently selected building. Ambient behavior for Elf and Orc settlements is unchanged.
+- Remove the incongruous large dock wagons and shrink existing atlas decoration to avoid obscuring the professionally painted scene.
+- Update geometry and settlement interaction regressions to protect the cleaner overview.
+
+**Still required:** screenshot a post-change native release/fixture at the two representative sizes above; confirm visual improvement and no tappable plot/indicator regression. Capture all seven stages on native devices or deterministic stage fixtures before Phase 1 final sign-off.
+
 ## Actual art inventory
 
 | Settlement tier | Packaged plate | Specialization |
