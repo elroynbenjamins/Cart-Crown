@@ -21,6 +21,7 @@ import { CampaignJourneyMap } from '../ui/CampaignJourneyMap';
 import { humanCampaignArtworkForNode } from '../ui/humanCampaignMissionArt';
 import { HumanChapterTransitionBanner } from '../ui/HumanChapterTransitionBanner';
 import { HumanCampaignFrontCard } from '../ui/HumanCampaignFrontCard';
+import { humanChapterStories } from '../ui/humanCampaignStoryPresentation';
 import { FactionOpeningCampaignScreen } from './FactionOpeningCampaignScreen';
 import { TutorialFocus } from '../ui/TutorialFocus';
 import { ActivityCard } from '../ui/ActivityCard';
@@ -1135,6 +1136,11 @@ export function CampaignScreen({
                     {String(index + 1).padStart(2, '0')} · {node.type.toUpperCase()}
                   </Text>
                   <Text style={[styles.nodeName, { color: theme.colors.text }]}>{node.name}</Text>
+                  {node.type === 'boss' && node.current && !node.completed ? (
+                    <Text style={[styles.nodeBossHint, { color: theme.colors.textMuted }]}>
+                      {humanChapterStories[chapterNumber as keyof typeof humanChapterStories]?.finale}
+                    </Text>
+                  ) : null}
                 </View>
                 <StatusPill
                   label={status}
@@ -1806,6 +1812,7 @@ const styles = StyleSheet.create({
   },
   nodeMeta: { fontSize: 10, fontWeight: '800' },
   nodeName: { fontSize: 14, fontWeight: '900', marginTop: 2 },
+  nodeBossHint: { fontSize: 9.5, lineHeight: 13, marginTop: 4 },
   chevron: { fontSize: 10, fontWeight: '900' },
   activityHeroTitle: { fontSize: 18, fontWeight: '900' },
   activityHeroBody: { fontSize: 11, lineHeight: 16, marginTop: 4 },
