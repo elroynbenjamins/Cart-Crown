@@ -55,7 +55,7 @@ export function HumanMissionScreen({
     Boolean(node?.current);
   const label =
     mission.type === 'choice'
-      ? 'Commit choice'
+      ? 'Continue story'
       : mission.type === 'upgrade'
         ? 'Complete upgrade'
         : 'Resolve mission';
@@ -163,7 +163,7 @@ export function HumanMissionScreen({
           ]}
         >
           {mission.type === 'choice'
-            ? 'This choice changes the immediate tactical emphasis only; it does not permanently lock the alternate doctrine.'
+            ? 'This is a linear story milestone, not a saved branching choice. It does not lock an alternate doctrine; completing it awards the resources once.'
             : mission.type === 'upgrade'
               ? 'This is campaign progression, not a shop purchase. Completing the mission advances the Human campaign.'
               : 'Resolve the current campaign objective to advance to the next mission.'}
