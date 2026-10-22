@@ -1954,6 +1954,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                 if (Number.isFinite(height) && height > 0) setMeasuredActionChrome(previous => Math.abs(previous - height) < 0.5 ? previous : height);
               }}>
                 <View style={styles.sceneActionHeading}>
+                  <View pointerEvents="none" style={[styles.sceneActionPortrait, { borderColor: theme.colors.gold + '77', backgroundColor: theme.colors.surface2 }]}>
+                    <BuildingSprite buildingId={selectedBuilding.id} faction={selectedBuilding.faction} size={34} />
+                  </View>
                   <View style={styles.sceneActionHeadingCopy}>
                     <Text style={[styles.sceneActionName, { color: theme.colors.text }]} numberOfLines={2}>{selectedBuilding.name}</Text>
                     <Text style={[styles.sceneActionLevel, { color: theme.colors.textMuted }]}>Lv.{selectedBuildingLevel} · {buildingRolePresentation[selectedBuilding.role]?.label ?? selectedBuilding.role}</Text>
@@ -1983,6 +1986,9 @@ export function SettlementScreen({ onExit, tutorialFocus, onTutorialFocusComplet
                         opacity: disabled ? 0.45 : pressed ? 0.75 : 1
                       }]}
                     >
+                      <Text accessible={false} style={[styles.sceneActionGlyph, { color: active || ready ? theme.colors.gold : theme.colors.textMuted }]}>
+                        {action === 'inspect' ? '⌕' : action === 'move' ? '↔' : '↑'}
+                      </Text>
                       {ready ? <View pointerEvents="none" style={[styles.sceneActionReadyDot, { backgroundColor: theme.colors.gold }]} /> : null}
                       <Text style={[styles.sceneActionText, { color: active || ready ? theme.colors.gold : theme.colors.text }]}>{label}</Text>
                     </Pressable>;
@@ -2341,13 +2347,15 @@ const styles = StyleSheet.create({
   sceneActionStrip: { position: 'absolute', borderWidth: 1, borderRadius: 12, padding: 6, elevation: 12, overflow: 'hidden' },
   sceneActionHeading: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   sceneActionHeadingCopy: { flex: 1, minWidth: 0, paddingLeft: 5 },
+  sceneActionPortrait: { width: 42, height: 42, borderWidth: 1, borderRadius: 9, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   sceneActionName: { fontSize: 13, lineHeight: 18, fontWeight: '900' },
   sceneActionLevel: { fontSize: 11, lineHeight: 16 },
   sceneActionClose: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   sceneCloseText: { fontSize: 24, lineHeight: 28, fontWeight: '700' },
   sceneActionRow: { flexDirection: 'row', gap: 5 },
   sceneActionButton: { flex: 1, minWidth: 48, minHeight: 48, borderWidth: 1, borderRadius: 10, paddingHorizontal: 4, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 3 },
-  sceneActionText: { fontSize: 12, lineHeight: 17, fontWeight: '900', flexShrink: 1, textAlign: 'center' },
+  sceneActionText: { fontSize: 11, lineHeight: 16, fontWeight: '900', flexShrink: 1, textAlign: 'center' },
+  sceneActionGlyph: { fontSize: 16, lineHeight: 18, fontWeight: '800' },
   sceneActionReadyDot: { width: 5, height: 5, borderRadius: 999 },
   sceneDetailsScroll: { padding: 6, paddingTop: 10 },
   sceneDetailsContent: { gap: 8 },
