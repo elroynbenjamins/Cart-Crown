@@ -98,9 +98,9 @@ assert.doesNotMatch(gameArtSource, /grand-campaign-tent-|grand-supply-wagon-|hum
   'Oversized painterly-mismatched props should not return to the waterfront at the foot of the Capital plate');
 assert.match(settlementSource, /humanUpgradeReadyBadge/,
   'Compact upgrade pips must replace distracting oversized circles in the Human city overview.');
-assert.match(settlementSource, /humanStagePlateActive \? 0 : 0\\.12/,
+assert.ok(settlementSource.includes('humanStagePlateActive ? 0 : 0.12'),
   'Human district links should not draw through buildings while inspection mode is closed.');
-assert.match(settlementSource, /visibleDistrictConnections\\.length && \\(!humanStagePlateActive \\|\\| districtAnalysisVisible\\)/,
+assert.ok(settlementSource.includes('visibleDistrictConnections.length && (!humanStagePlateActive || districtAnalysisVisible)'),
   'Human default overview must hide unfocused blocky district overlay props.');
 
 console.log('Human settlement geometry, plot depth, reduced animation load and seven-tier wiring OK.');
