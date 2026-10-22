@@ -2911,7 +2911,7 @@ function SettlementDetailAtlasSprite({
   );
 }
 
-function useSettlementAmbientMotion(duration = 2200) {
+function useSettlementAmbientMotion(duration = 2200, enabled = true) {
   const progress = React.useRef(new Animated.Value(0)).current;
   const [reduceMotion, setReduceMotion] = React.useState(false);
 
@@ -2931,7 +2931,7 @@ function useSettlementAmbientMotion(duration = 2200) {
 
   React.useEffect(() => {
     progress.stopAnimation();
-    if (reduceMotion) {
+    if (reduceMotion || !enabled) {
       progress.setValue(0);
       return;
     }
@@ -2954,7 +2954,7 @@ function useSettlementAmbientMotion(duration = 2200) {
     );
     loop.start();
     return () => loop.stop();
-  }, [duration, progress, reduceMotion]);
+  }, [duration, progress, reduceMotion, enabled]);
 
   return progress;
 }
@@ -3010,7 +3010,8 @@ export function SettlementBuildingAmbience({
   faction = 'human',
   level = 1,
   activeDistricts = 0,
-  size = 84
+  size = 84,
+  animated = true
 }: {
   buildingId: string;
   role: BuildingRole;
@@ -3018,6 +3019,7 @@ export function SettlementBuildingAmbience({
   level?: number;
   activeDistricts?: number;
   size?: number;
+  animated?: boolean;
 }) {
   const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
   const worldSource = getProductionAssetSource('ui.settlement_world_human_atlas');
@@ -3035,7 +3037,7 @@ export function SettlementBuildingAmbience({
   const veteran = level >= 4;
   const districtActive = activeDistricts > 0;
   const bustling = activeDistricts > 1 || level >= 3;
-  const motion = useSettlementAmbientMotion(2200 + Math.max(0, level - 1) * 120);
+  const motion = useSettlementAmbientMotion(2200 + Math.max(0, level - 1) * 120, animated);
   const idleLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.5] });
   const bannerSway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1.2deg', '1.2deg'] });
   const smokeLift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -5] });
@@ -3183,19 +3185,21 @@ export function SettlementDistrictAmbience({
   category,
   faction = 'human',
   focused = false,
-  size = 58
+  size = 58,
+  animated = true
 }: {
   category: 'economy' | 'military' | 'command';
   faction?: FactionId;
   focused?: boolean;
   size?: number;
+  animated?: boolean;
 }) {
   const worldSource = getProductionAssetSource('ui.settlement_world_human_atlas');
   const peopleSource = getProductionAssetSource('ui.settlement_people_human_atlas');
   const sceneSource = getProductionAssetSource(settlementSceneFactionAssetIds[faction]);
   const tintColor = settlementAmbientPeopleTint[faction];
   const sceneTint = settlementSceneFactionTints[faction];
-  const motion = useSettlementAmbientMotion(category === 'economy' ? 2700 : category === 'military' ? 2400 : 3000);
+  const motion = useSettlementAmbientMotion(category === 'economy' ? 2700 : category === 'military' ? 2400 : 3000, animated);
   const drift = motion.interpolate({ inputRange: [0, 1], outputRange: [-1.5, 1.5] });
   const lift = motion.interpolate({ inputRange: [0, 1], outputRange: [0, -1.3] });
   const sway = motion.interpolate({ inputRange: [0, 1], outputRange: ['-1deg', '1deg'] });
