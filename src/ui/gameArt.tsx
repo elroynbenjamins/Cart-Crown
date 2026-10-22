@@ -4305,32 +4305,22 @@ function HumanSettlementGrowthOverlay({ stageId }: { stageId: WagonStage['id'] }
           <SettlementDetailAtlasSprite
             assetId="ui.settlement_world_human_atlas"
             cell={settlementWorldHumanCells.torch_banner}
-            size={grand ? 38 : 29}
+            size={grand ? 26 : 21}
             tintColor={bannerTint}
-            opacity={grand ? 0.96 : 0.83}
+            opacity={grand ? 0.8 : 0.72}
           />
         </View>
       )) : null}
 
       {stronghold ? (
         <>
-          {scenes ? (
-            <View testID="human-stronghold-supply-caravan" style={{ position: 'absolute', top: '68%', left: '39%' }}>
-              <SettlementDetailAtlasSprite
-                assetId="ui.settlement_scene_human_v2_atlas"
-                cell={settlementSceneHumanV2Cells.wagon}
-                size={43}
-                opacity={0.9}
-              />
-            </View>
-          ) : null}
           {guards ? (['31%', '66%'] as const).map((left, index) => (
-            <View key={'stronghold-sentry-' + index} style={{ position: 'absolute', top: '68%', left }}>
+            <View key={'stronghold-sentry-' + index} testID={'human-stronghold-sentry-' + index} style={{ position: 'absolute', top: '68%', left }}>
               <SettlementDetailAtlasSprite
                 assetId="ui.settlement_people_human_atlas"
                 cell={settlementPeopleHumanCells.guard}
-                size={28}
-                opacity={0.94}
+                size={21}
+                opacity={0.74}
               />
             </View>
           )) : null}
@@ -4344,8 +4334,8 @@ function HumanSettlementGrowthOverlay({ stageId }: { stageId: WagonStage['id'] }
               <SettlementDetailAtlasSprite
                 assetId="ui.settlement_scene_human_v2_atlas"
                 cell={settlementSceneHumanV2Cells.market}
-                size={35}
-                opacity={0.84}
+                size={23}
+                opacity={0.66}
               />
             </View>
           )) : null}
@@ -4354,8 +4344,8 @@ function HumanSettlementGrowthOverlay({ stageId }: { stageId: WagonStage['id'] }
               <SettlementDetailAtlasSprite
                 assetId="ui.settlement_people_human_atlas"
                 cell={settlementPeopleHumanCells.merchant}
-                size={26}
-                opacity={0.9}
+                size={19}
+                opacity={0.72}
               />
             </View>
           ) : null}
@@ -4364,23 +4354,13 @@ function HumanSettlementGrowthOverlay({ stageId }: { stageId: WagonStage['id'] }
 
       {grand ? (
         <>
-          {scenes ? (['25%', '69%'] as const).map((left, index) => (
-            <View key={'grand-supply-wagon-' + index} style={{ position: 'absolute', top: '68%', left }}>
-              <SettlementDetailAtlasSprite
-                assetId="ui.settlement_scene_human_v2_atlas"
-                cell={settlementSceneHumanV2Cells.wagon}
-                size={46}
-                opacity={0.95}
-              />
-            </View>
-          )) : null}
           {guards ? (['38%', '48%', '58%'] as const).map((left, index) => (
             <View key={'grand-muster-guard-' + index} style={{ position: 'absolute', top: '67%', left }}>
               <SettlementDetailAtlasSprite
                 assetId="ui.settlement_people_human_atlas"
                 cell={settlementPeopleHumanCells.knight}
-                size={33}
-                opacity={0.97}
+                size={22}
+                opacity={0.77}
               />
             </View>
           )) : null}
@@ -4389,9 +4369,9 @@ function HumanSettlementGrowthOverlay({ stageId }: { stageId: WagonStage['id'] }
               <SettlementDetailAtlasSprite
                 assetId="ui.settlement_world_human_atlas"
                 cell={settlementWorldHumanCells.torch_banner}
-                size={44}
+                size={29}
                 tintColor={bannerTint}
-                opacity={1}
+                opacity={0.84}
               />
             </View>
           ) : null}
