@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { rewardedAdPlacements } from '../ads/rewardedAds';
 import { factions, factionOrder } from '../game/factions';
@@ -341,7 +341,12 @@ export function CampaignScreen({
     rewardedAdMessage
   } = useGame();
   const [view, setView] = useState<CampaignView>('story');
-  const [showAllMissions, setShowAllMissions] = useState(false);
+  // Inspection of historical missions belongs to a chapter; it should not
+  // accidentally stay expanded when the army advances to a new front.
+  const [missionHistory, setMissionHistory] = useState<{ chapter: number; expanded: boolean } | null>(null);
+  const showAllMissions = missionHistory?.chapter === chapterNumber && missionHistory.expanded;
+  const storyScroll = useRef<ScrollView>(null);
+  const missionListTop = useRef<number | null>(null);
   const completed = chapterNodes.filter(node => node.completed).length;
 
   if (activeFaction !== 'human') {
@@ -441,6 +446,9 @@ export function CampaignScreen({
         chapterNumber={chapterNumber}
         nodes={chapterNodes}
         activeSquadCap={activeSquadCap}
+        onViewCurrentMission={() => {
+          if (missionListTop.current !== null) storyScroll.current?.scrollTo({ y: Math.max(0, missionListTop.current - 12), animated: true });
+        }}
         accent={currentChapterVisual.glow}
         tint={currentChapterVisual.tint}
       />
@@ -478,7 +486,7 @@ export function CampaignScreen({
         accessibilityRole="button"
         accessibilityState={{ expanded: showAllMissions }}
         accessibilityLabel={showAllMissions ? 'Focus on current campaign missions' : 'Show all chapter missions'}
-        onPress={() => setShowAllMissions(value => !value)}
+        onPress={() => setMissionHistory({ chapter: chapterNumber, expanded: !showAllMissions })}
         style={[styles.missionDisclosure, { backgroundColor: theme.colors.surface1, borderColor: theme.colors.border }]}
       >
         <Text style={[styles.missionDisclosureText, { color: theme.colors.text }]}>
@@ -488,7 +496,10 @@ export function CampaignScreen({
           {showAllMissions ? 'Hide completed and distant missions' : 'Current · next · chapter finale'}
         </Text>
       </Pressable>
-      <View style={styles.nodeList}>
+      <View
+        style={styles.nodeList}
+        onLayout={event => { missionListTop.current = event.nativeEvent.layout.y; }}
+      >
         {chapterNodes.map((node, index) => {
           const chapterVisual = humanChapterVisual(chapterNumber);
           const chapterOneBattle =
@@ -1537,7 +1548,7 @@ export function CampaignScreen({
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView ref={storyScroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={[styles.segment, { backgroundColor: theme.colors.surface1 }]}>
         {(activitiesUnlocked
           ? (['story', 'activities', 'factions'] as CampaignView[])
