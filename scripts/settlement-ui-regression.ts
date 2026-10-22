@@ -261,8 +261,13 @@ function testRecipesAndInteractions() {
     check(nodes(tree, 'SemanticChip').some(node => String(node.props.label ?? '').includes('build ready')), 'Affordable construction must be visible before opening a plot.');
     check(text(tree).includes('BUILD READY'), 'The recommended empty plot must show direct in-world readiness feedback.');
     check(text(tree).includes('CART & CROWN'), 'Portrait settlement HUD must use the final Cart & Crown identity.');
-    const normalMap = nodes(tree, 'View').find(node => style(node.props.style).height === 600 && style(node.props.style).position === 'relative');
-    check(Boolean(normalMap), 'Reference portrait layout must devote 600px to the settlement world scene.');
+    const normalMap = nodes(tree, 'View').find(node => node.props.testID === 'settlement-scene');
+    const normalMapStyle = normalMap ? style(normalMap.props.style) : {};
+    const expectedHeight = faction === 'human'
+      ? Math.round(Math.min(438, Math.max(260, f.h.dimensions.width - 24)) / (540 / 960))
+      : 600;
+    check(Boolean(normalMap) && normalMapStyle.position === 'relative' && normalMapStyle.height === expectedHeight,
+      'Reference portrait layout must keep the Human scene uncropped and preserve the other faction map height.');
     check(plot(tree, 'plot_se').props.disabled, 'A Town plot must remain locked at Fort.');
     choosePlot(tree, 'plot_se'); check(f.calls.length === 0, 'Locked plots must not trigger a transaction.');
     choosePlot(tree, 'plot_nw'); tree = f.h.render();
