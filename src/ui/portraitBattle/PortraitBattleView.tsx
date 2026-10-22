@@ -310,7 +310,7 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           height: Math.hypot(trail.dx, trail.dy),
           backgroundColor: trail.kind === 'arrow' ? theme.colors.info : theme.colors.gold,
           opacity: p.attackPulse.interpolate({ inputRange: [0, .25, .75, 1], outputRange: [0, .66, .38, 0], extrapolate: 'clamp' }),
-          transform: [{ rotate: `${Math.atan2(-trail.dx, -trail.dy) * 180 / Math.PI}deg` }]
+          transform: [{ rotate: `${Math.atan2(trail.dx, -trail.dy) * 180 / Math.PI}deg` }]
         }]} /> : null}
       {moving && p.incomingDamage > 0 ? <Animated.View pointerEvents="none" testID="ally-frontline-impact"
         style={[s.frontlineImpact, { top: layout.stageHeight * .59, borderColor: theme.colors.danger,
