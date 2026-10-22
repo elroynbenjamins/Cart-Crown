@@ -28,6 +28,8 @@ For a production PNG:
 - Provide two documented versions per pilot class: `ally_back` and `enemy_front` (do not assume mirroring).
 - Preview at **32, 42, 56 and 72 display pixels** in a real battle; weapons, mount, role and faction must remain identifiable at 32/42.
 - Build asset registry entries using **literal Metro requires**, never dynamic template requires; ensure all files load offline.
+- Run `npm run directional-art:check`. It deliberately passes with no new art and keeps approved fallbacks; once `assets/game/battle_directional/human` exists, it requires exactly four complete paired poses, reviewed orientation/equipment notes, explicit signoff and matching static Metro registry entries.
+- Do not label an experimental sheet as production-ready merely because a PNG passes alpha/geometry checks; inspect at 32/42 px, compare against current high-quality Ranger/Spearman, then set `approvedForRuntime` with a human-reviewed manifest.
 - Prefer new battle-stage assets only; portrait rails, Army cards, equipment and existing strong Ranger/Spearman art stay intact.
 - Only opt a class into the new asset if it passes the above checks; others retain existing sprites. Avoid an all-or-nothing replacement.
 
