@@ -1,4 +1,5 @@
 import { getCampaignActiveSquadCap } from './campaignMissionRoadmap';
+import { isFactionCampaignReleased, releaseCampaignScope } from './releaseCampaignScope';
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
@@ -1578,6 +1579,7 @@ export function GameProvider({
   const metaCampaignStep = sharedProgress.metaCampaignStep;
   const metaCampaignComplete = sharedProgress.metaCampaignComplete;
   const metaCampaignUnlocked =
+    releaseCampaignScope.metaCampaignReleased &&
     completedCampaigns.includes('human') &&
     completedCampaigns.includes('elf') &&
     completedCampaigns.includes('orc');
@@ -1593,25 +1595,31 @@ export function GameProvider({
       { id: 'human', unlocked: true, completed: humanComplete, unlockText: humanComplete ? 'Completed' : 'Available' },
       {
         id: 'elf',
-        unlocked: humanComplete,
+        unlocked: isFactionCampaignReleased('elf') && humanComplete,
         completed: completedCampaigns.includes('elf'),
-        unlockText: humanComplete ? 'Unlocked after Human campaign' : 'Complete Human campaign'
+        unlockText: !isFactionCampaignReleased('elf')
+          ? 'Coming in a future update'
+          : humanComplete ? 'Unlocked after Human campaign' : 'Complete Human campaign'
       },
       {
         id: 'orc',
-        unlocked: humanComplete,
+        unlocked: isFactionCampaignReleased('orc') && humanComplete,
         completed: completedCampaigns.includes('orc'),
-        unlockText: humanComplete ? 'Unlocked after Human campaign' : 'Complete Human campaign'
+        unlockText: !isFactionCampaignReleased('orc')
+          ? 'Coming in a future update'
+          : humanComplete ? 'Unlocked after Human campaign' : 'Complete Human campaign'
       },
       {
         id: 'meta',
-        unlocked: allComplete,
+        unlocked: releaseCampaignScope.metaCampaignReleased && allComplete,
         completed: metaCampaignComplete,
-        unlockText: metaCampaignComplete
-          ? 'Concord restored'
-          : allComplete
-            ? 'Three Seals campaign unlocked'
-            : 'Complete all three faction campaigns'
+        unlockText: !releaseCampaignScope.metaCampaignReleased
+          ? 'Planned after the Elf and Orc campaigns'
+          : metaCampaignComplete
+            ? 'Concord restored'
+            : allComplete
+              ? 'Three Seals campaign unlocked'
+              : 'Complete all three faction campaigns'
       }
     ];
   }, [completedCampaigns, metaCampaignComplete]);
@@ -2039,6 +2047,9 @@ export function GameProvider({
     snapshot.factionStates[faction]?.faction === faction;
 
   const switchFaction = async (faction: FactionId) => {
+    // Recheck inside the provider: hiding the UI alone must not unlock a
+    // deferred campaign through an existing save or old navigation callback.
+    if (!isFactionCampaignReleased(faction)) return false;
     if (faction === activeFaction) return true;
 
     const humanComplete =
