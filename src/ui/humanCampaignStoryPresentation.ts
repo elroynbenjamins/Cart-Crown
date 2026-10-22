@@ -79,7 +79,7 @@ export type HumanCampaignNodeSnapshot = Readonly<{
   name: string;
   type: string;
   completed: boolean;
-  current: boolean;
+  current?: boolean;
 }>;
 
 export type HumanCampaignProgressCue = Readonly<{
