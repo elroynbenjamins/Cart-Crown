@@ -130,6 +130,7 @@ const campaignSource = readFileSync('src/screens/CampaignScreen.tsx', 'utf8');
 assert.ok(campaignSource.includes('HumanCampaignFrontCard'), 'Live screen must mount the briefing');
 const frontCardSource = readFileSync('src/ui/HumanCampaignFrontCard.tsx', 'utf8');
 assert.ok(frontCardSource.includes('cue.upcomingUnlock') && frontCardSource.includes('cue.latestUnlock'), 'Visible system unlock cues must be wired');
+assert.ok(frontCardSource.includes("cue.bossState === 'current' ? s.bossActive") && frontCardSource.includes('{story.finale}'), 'Current chapter bosses need a distinct illustrated introduction');
 assert.ok(frontCardSource.includes('activeSquadCap ?? cue.currentSquadCap'), 'Wagon cap must constrain displayed usable squads');
 assert.ok(campaignSource.includes('activeSquadCap={activeSquadCap}'), 'Live cap must be supplied to the story briefing');
 assert.ok(campaignSource.includes('human-campaign-mission-disclosure'), 'Full mission list needs a player-controlled disclosure');
