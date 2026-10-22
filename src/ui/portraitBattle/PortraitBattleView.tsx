@@ -9,7 +9,7 @@ import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop
 import { getBossPresentation } from '../bossPresentation';
 import { BossStageSilhouette } from '../BossStageSilhouette';
 import { ReferenceArt } from './Art';
-import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageFormationReadout, stageRoleLetters, stageTokens, stageAttackTrail, stageIntegrityReadout, stageOrderBand, battleSpectacleCue } from './model';
+import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageFormationReadout, stageRoleLetters, stageTokens, stageAttackTrail, stageIntegrityReadout, stageOrderBand, stageFractureLine, battleSpectacleCue } from './model';
 import type { ArmySide, EnemyToken, ExchangeRecord, IntegrityTier } from './model';
 
 export type PortraitBattleProps = {
@@ -127,6 +127,8 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
   const enemyPositions = stageTokens(p.enemyShape, p.enemies.map(item => item.slot), 'enemy', layout.stageWidth, layout.stageHeight);
   const allyLine = stageIntegrityReadout(p.partyIntegrity ?? 100, p.partyIntegrityState ?? 'stable');
   const foeLine = stageIntegrityReadout(p.enemyIntegrity ?? 100, p.enemyIntegrityState ?? 'stable');
+  const allyFracture = stageFractureLine(allyPositions, 'ally', layout.stageWidth, layout.stageHeight);
+  const enemyFracture = stageFractureLine(enemyPositions, 'enemy', layout.stageWidth, layout.stageHeight);
   const trail = stageAttackTrail(allyPositions, enemyPositions, p.activeSlot, p.enemySlot, p.activeRole, p.outgoingDamage);
   const activeOrder = p.orders?.find(order => order.selected);
   const onFieldOrder = stageOrderBand(activeOrder?.id ?? null, allyPositions, enemyPositions,
@@ -215,12 +217,12 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
         });
       })}
       <View style={[s.engagement, { top: layout.stageHeight * .5, borderColor: theme.colors.gold }]} />
-      {foeLine.fractured ? <View testID="enemy-line-fracture" style={[s.lineFracture, {
-        top: layout.stageHeight * .42, borderColor: theme.colors.danger,
+      {foeLine.fractured && enemyFracture ? <View testID="enemy-line-fracture" style={[s.lineFracture, {
+        ...enemyFracture, borderColor: theme.colors.danger,
         opacity: p.enemyIntegrityState === 'breached' ? .9 : .55
       }]} /> : null}
-      {allyLine.fractured ? <View testID="ally-line-fracture" style={[s.lineFracture, {
-        top: layout.stageHeight * .58, borderColor: theme.colors.danger,
+      {allyLine.fractured && allyFracture ? <View testID="ally-line-fracture" style={[s.lineFracture, {
+        ...allyFracture, borderColor: theme.colors.danger,
         opacity: p.partyIntegrityState === 'breached' ? .9 : .55
       }]} /> : null}
       {ongoing && onFieldOrder ? <View pointerEvents="none" accessible={false}
@@ -231,7 +233,9 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           borderColor: onFieldOrder.id === 'hold' ? theme.colors.info :
             onFieldOrder.id === 'reinforce' ? theme.colors.primary : theme.colors.gold
         }]}>
-        <Text numberOfLines={1} style={[s.orderFieldLabel, { color: theme.colors.text }]}>
+        <Text numberOfLines={1} style={[s.orderFieldLabel, {
+          color: theme.colors.text, backgroundColor: theme.colors.surface1 + 'E0'
+        }]}>
           {onFieldOrder.label}
         </Text>
       </View> : null}
@@ -493,8 +497,8 @@ const s = StyleSheet.create({
   orderFieldBand: { position: 'absolute', height: 16, borderTopWidth: 2,
     justifyContent: 'center', alignItems: 'center', zIndex: 3 },
   orderFieldLabel: { fontSize: 8, fontWeight: '900', lineHeight: 11,
-    backgroundColor: '#14212CCF', paddingHorizontal: 4, letterSpacing: .4 },
-  lineFracture: { position: 'absolute', left: '18%', right: '18%', borderTopWidth: 2, borderStyle: 'dashed' },
+    paddingHorizontal: 4, letterSpacing: .4 },
+  lineFracture: { position: 'absolute', borderTopWidth: 2, borderStyle: 'dashed' },
   facingMark: { position: 'absolute', width: 13, height: 11, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   allyFacing: { top: -7 },
   enemyFacing: { bottom: -8 },
