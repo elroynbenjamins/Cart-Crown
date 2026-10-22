@@ -44,14 +44,21 @@ for (const chapter of chapters) {
   for (const milestone of humanCampaignSystemMilestones[chapter]) {
     assert.ok(
       getCampaignMissionBlueprint(chapter, milestone.mission)?.unlocks.includes(milestone.unlockId),
-      'Unlock label must reference a real blueprint gate: ' + milestone.unlockId
+      'Milestone must reference a real blueprint story beat: ' + milestone.unlockId
     );
+    assert.ok(milestone.kind === 'story' || milestone.kind === 'deployment');
+    if (milestone.kind === 'deployment') {
+      assert.ok(milestone.unlockId.endsWith('_deployment_slot'), 'Only verified slot gates count as deployed unlocks');
+    }
   }
   const firstMilestone = humanCampaignSystemMilestones[chapter][0];
   if (firstMilestone) {
     assert.ok(start.upcomingUnlock?.includes(firstMilestone.label), 'Upcoming unlock should be visible');
     const afterMilestone = humanCampaignProgressCue(chapter, nodesFor(chapter, firstMilestone.mission))!;
     assert.ok(afterMilestone.latestUnlock?.includes(firstMilestone.label), 'Recorded unlock should be visible');
+    assert.ok(afterMilestone.latestUnlock?.startsWith(
+      firstMilestone.kind === 'deployment' ? 'DEPLOYMENT UNLOCKED' : 'STORY INTRODUCED'
+    ), 'A roadmap-only milestone must not be described as a usable system unlock');
   }
 
   const boss = humanCampaignProgressCue(chapter, nodesFor(chapter, start.total - 1));
@@ -123,6 +130,8 @@ const campaignSource = readFileSync('src/screens/CampaignScreen.tsx', 'utf8');
 assert.ok(campaignSource.includes('HumanCampaignFrontCard'), 'Live screen must mount the briefing');
 const frontCardSource = readFileSync('src/ui/HumanCampaignFrontCard.tsx', 'utf8');
 assert.ok(frontCardSource.includes('cue.upcomingUnlock') && frontCardSource.includes('cue.latestUnlock'), 'Visible system unlock cues must be wired');
+assert.ok(frontCardSource.includes('activeSquadCap ?? cue.currentSquadCap'), 'Wagon cap must constrain displayed usable squads');
+assert.ok(campaignSource.includes('activeSquadCap={activeSquadCap}'), 'Live cap must be supplied to the story briefing');
 assert.ok(campaignSource.includes('human-campaign-mission-disclosure'), 'Full mission list needs a player-controlled disclosure');
 assert.ok(campaignSource.includes("node.type !== 'boss'"), 'Finale must remain visible in focused layout');
 const mapSource = readFileSync('src/ui/CampaignJourneyMap.tsx', 'utf8');
