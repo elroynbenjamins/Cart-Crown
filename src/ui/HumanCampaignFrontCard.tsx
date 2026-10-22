@@ -91,8 +91,8 @@ export function HumanCampaignFrontCard({
 const s = StyleSheet.create({
   shell: { gap: 8 },
   hero: { height: 122, borderRadius: 10, borderWidth: 1, overflow: 'hidden', justifyContent: 'flex-end' },
-  heroImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
-  heroVeil: { ...StyleSheet.absoluteFillObject, opacity: 0.76 },
+  heroImage: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
+  heroVeil: { ...StyleSheet.absoluteFill, opacity: 0.76 },
   heroText: { paddingHorizontal: 11, paddingVertical: 10, paddingRight: 65, gap: 2 },
   heroEyebrow: { color: '#FFFFFF', fontSize: 9, fontWeight: '900', letterSpacing: 0.7 },
   heroTitle: { color: '#FFFFFF', fontSize: 23, lineHeight: 26, fontWeight: '900' },
