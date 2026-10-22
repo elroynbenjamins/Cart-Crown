@@ -138,12 +138,13 @@ export function stageOrderBand(
   const left = Math.min(...line.map(unit => unit.x - unit.size / 2));
   const right = Math.max(...line.map(unit => unit.x + unit.size / 2));
   const padding = 4;
+  const bandWidth = Math.max(40, Math.min(width - 2 * padding, right - left));
   return {
     id,
     label: id === 'hold' ? 'BRACED' : id === 'push' ? 'ADVANCE' : 'REINFORCE',
-    left: Math.max(padding, left),
+    left: Math.max(padding, Math.min(width - bandWidth - padding, left)),
     top: Math.max(4, Math.min(height - 18, Math.min(...line.map(unit => unit.y - unit.size / 2)) - 16)),
-    width: Math.max(40, Math.min(width - 2 * padding, right - left))
+    width: bandWidth
   };
 }
 
