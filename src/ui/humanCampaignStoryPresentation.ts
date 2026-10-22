@@ -74,6 +74,34 @@ export const humanChapterStories: Record<HumanCampaignChapter, HumanChapterStory
   }
 };
 
+/** Only curated, verified roadmap milestones are presented as unlocks. */
+export const humanCampaignSystemMilestones: Record<HumanCampaignChapter, readonly Readonly<{
+  mission: number;
+  unlockId: string;
+  label: string;
+}>[]> = {
+  1: [
+    { mission: 2, unlockId: 'hold_line_order', label: 'Hold Line order' },
+    { mission: 5, unlockId: 'focus_target_order', label: 'Focus Target order' }
+  ],
+  2: [],
+  3: [{ mission: 2, unlockId: 'fourth_deployment_slot', label: 'Fourth active squad' }],
+  4: [
+    { mission: 2, unlockId: 'fifth_deployment_slot', label: 'Fifth active squad' },
+    { mission: 5, unlockId: 'reinforce_order', label: 'Reinforce order' }
+  ],
+  5: [
+    { mission: 2, unlockId: 'sixth_deployment_slot', label: 'Sixth active squad' },
+    { mission: 3, unlockId: 'rally_order', label: 'Rally order' },
+    { mission: 5, unlockId: 'anti_air_counter_branch', label: 'Anti-air research' }
+  ],
+  6: [{ mission: 3, unlockId: 'first_mage_squad', label: 'First Mage squad' }],
+  7: [
+    { mission: 2, unlockId: 'battering_ram', label: 'Battering ram support' },
+    { mission: 4, unlockId: 'field_ballista', label: 'Field Ballista' }
+  ]
+};
+
 export type HumanCampaignNodeSnapshot = Readonly<{
   id: string;
   name: string;
@@ -96,6 +124,8 @@ export type HumanCampaignProgressCue = Readonly<{
   bossState: 'secured' | 'current' | 'ahead';
   squadMessage: string;
   milestoneMessage: string;
+  latestUnlock: string | null;
+  upcomingUnlock: string | null;
   finished: boolean;
 }>;
 
@@ -128,6 +158,9 @@ export function humanCampaignProgressCue(
   }
 
   const nextBlueprint = order === null ? null : getCampaignMissionBlueprint(chapter, order);
+  const milestones = humanCampaignSystemMilestones[chapter];
+  const achieved = milestones.filter(item => nodes[item.mission - 1]?.completed);
+  const upcoming = milestones.find(item => !nodes[item.mission - 1]?.completed);
   return {
     chapter,
     region: humanCampaignSceneSets[chapter].region,
@@ -143,6 +176,8 @@ export function humanCampaignProgressCue(
     bossName,
     bossState,
     squadMessage,
+    latestUnlock: achieved.length ? achieved[achieved.length - 1]!.label : null,
+    upcomingUnlock: upcoming ? upcoming.label + ' · mission ' + upcoming.mission : null,
     milestoneMessage: nextBlueprint?.purpose ?? (chapter === 7
       ? 'The Human campaign is complete.' : 'The next front awaits.'),
     finished: nextNode === null
