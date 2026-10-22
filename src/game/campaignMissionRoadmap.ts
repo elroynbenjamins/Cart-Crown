@@ -30,12 +30,15 @@ export type CampaignMissionBlueprint = {
 };
 
 /**
- * Canonical mission roadmap agreed for the campaign-rework passes.
+ * Canonical 70-mission DESIGN contract, linked to the current live Human nodes.
  *
- * This file deliberately lives separately from the legacy chapter node arrays.
- * Runtime wiring is being migrated chapter-by-chapter so the current campaign
- * cannot end up half-converted. Each pass can move a blueprint to "live" and
- * attach its runtimeNodeId once the encounter/reward/save flow is wired.
+ * implementationStatus = 'live' means that a matching, navigable runtime
+ * chapter node exists. It does NOT mean every planned tutorial, encounter,
+ * side effect or reward described in purpose/unlocks/systemTags was manually
+ * verified in a full playthrough. Those fields remain design targets.
+ *
+ * Keep stable runtimeNodeId values: they are already used by saved campaigns.
+ * The Phase 0 inventory and the campaign-roadmap regression audit this link.
  */
 const mission = (
   chapter: CampaignMissionBlueprint['chapter'],
@@ -62,7 +65,9 @@ const mission = (
   tutorialMode,
   expectedActiveSquads,
   systemTags,
-  implementationStatus: 'blueprint'
+  // Existence of the live node is verified by campaign-mission-roadmap-regression.ts.
+  implementationStatus: 'live',
+  runtimeNodeId: chapter === 1 ? 'node_' + chapterOrder : 'ch' + chapter + '_node_' + chapterOrder
 });
 
 export const campaignChapterThemes: Record<CampaignMissionBlueprint['chapter'], string> = {
