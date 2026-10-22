@@ -74,7 +74,7 @@ const cases: AuditCase[] = [
     rationale: 'Commander doctrine choice represented by event UI.' },
   { chapter: 4, order: 5, runtimeType: 'elite', flag: 'crownroadAmbushPlayable', callback: 'onStartCrownroadAmbush',
     sink: 'battle:crownroad_ambush', effect: ['Crownroad Secured', "node.id === 'ch4_node_6'"],
-    rationale: 'Elite battle treatment.' },
+    rationale: 'Elite encounter presentation for the Crownroad Ambush battle.' },
   { chapter: 4, order: 6, runtimeType: 'event', flag: 'emptyThronePlayable', callback: 'onOpenEmptyThrone',
     sink: 'action:completeEmptyThrone', flow: 'emptyThrone', effect: ["'crownroad_salvage'", "node.id === 'ch4_node_7'"],
     rationale: 'Narrative discovery and salvage-site unlock, not a generic preparation upgrade.' },
