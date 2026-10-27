@@ -204,8 +204,13 @@ if (originalMasterFiles.length) {
     assert.ok(raw.length <= 2000000, 'Source master exceeds the 2MB archival bound: ' + relative(file));
     assert.equal(raw.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
     assert.equal(raw.toString('ascii', 12, 16), 'IHDR');
-    assert.equal(raw.readUInt32BE(16), 1254, 'Expected original master width');
-    assert.equal(raw.readUInt32BE(20), 1254, 'Expected original master height');
+    // The corrected red Spearman source was tightly cropped after its spear
+    // repair; all other original character canvases remain 1254 square.
+    const spearMaster = path.basename(file) === 'spearman_enemy_front.png';
+    assert.equal(raw.readUInt32BE(16), spearMaster ? 1336 : 1254,
+      'Unexpected original master width');
+    assert.equal(raw.readUInt32BE(20), spearMaster ? 1237 : 1254,
+      'Unexpected original master height');
     assert.equal(raw[25], 6, 'Source master must have an RGBA alpha channel');
   }
 }
