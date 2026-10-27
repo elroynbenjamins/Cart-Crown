@@ -90,3 +90,16 @@ An eight-sprite art-review pack has now been generated in-chat (four classes × 
 The `DirectionalStageFigure` component now keeps the original approved actor **visible until the replacement PNG fires onLoad**. Image errors or missing registry entries safely revert to existing art. The expanded regression checks loading state, loaded-only swap, decode errors and tap passthrough.
 
 **Next art acceptance gate:** review ZIP and comparison image in the conversation; rework weak mounted pose and improve material highlights while preserving vertical facing and correct equipment. Only after visual signoff, add approved PNGs to Metro's literal registry, mark the reviewed manifest and perform native screenshot QA.
+
+
+## Approved Human combat art pack — 2026-10-27
+
+**Owner approval:** The individually generated higher-detail 16-bit-style Human pixel units (NOT the earlier programmatically drawn Godot-like placeholders) are the new visual quality baseline for combat-stage units. Preserve the exact visual method for future classes: one isolated fully transparent character per generation; cohesive blue/gold Human allied back/three-quarter-back pose, red/black enemy front pose, precise class-appropriate equipment, hand-painted coherent pixel clusters, readable metallic and cloth textures, grounded boots/hooves, no interface or labels baked into sprites. Favor the approved individually generated sprites over full-sheet concept composites.
+
+The latest **16-image** GitHub-ready archive is attached to the conversation as `Cart_Crown_Phase2_16_Human_Battle_Sprites_GitHub.zip`. This is an external conversation artifact, **not a binary GitHub commit**. The archive contains `assets/game/battle_directional/human` with 16 PNGs (256×256 RGBA) and `manifest.json`, plus an idempotent `scripts/apply_human_battle_assets.py` installer.
+
+Eight supported class pairs: Shield Infantry, Ranger, Heavy Cavalry, Field Medic, Spearman, Crossbowman, Swordsman (Great Sword pose), Banner Captain. The revised `directionalStageModel.ts` now contains exact class/role mapping and safe opponent labels; mismatched/fantasy units keep existing artwork. User-approved red Spearman shaft correction is included in `spearman_enemy_front.png`, preserving the original red armor and pennant with a single straighter shaft.
+
+**To activate without breaking CI:** extract the ZIP at repository root on PR #201 branch; run `python scripts/apply_human_battle_assets.py`; commit all 16 PNGs plus manifest and updated `src/ui/productionAssets.ts`. Alternately upload the 16 PNGs + manifest through GitHub then update registry before expecting CI to pass. Do not commit the ZIP instead of extracted files.
+
+Technical QA done locally: 16 PNGs validated against 256×256 RGBA and alpha-occupancy bounds, all entry SHA256 hashes verified, installer checked for first-run and repeat-run idempotence, 32/42/56/72-pixel preview generated. Native on-device rendering and FPS still must be rechecked **after** binaries are in the GitHub branch.
