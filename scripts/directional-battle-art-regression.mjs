@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { validateSpritePng } from './png-integrity.mjs';
@@ -48,7 +49,15 @@ if (!fs.existsSync(root)) {
     assert.ok(typeof entry.note === 'string' && entry.note.length >= 8,
       'Record verified equipment/silhouette differences for ' + name);
     const p = path.join(root, name);
-    const decoded = validateSpritePng(fs.readFileSync(p));
+    const content = fs.readFileSync(p);
+    assert.equal(content.length, entry.bytes, 'Approved image byte count must match manifest: ' + name);
+    assert.equal(createHash('sha256').update(content).digest('hex'), entry.sha256,
+      'Production sprite differs from owner-approved artwork: ' + name);
+    const decoded = validateSpritePng(content);
+    assert.equal(decoded.width, 256);
+    assert.equal(decoded.height, 256);
+    assert.ok(decoded.transparent > 0,
+      'Directional sprite must have an actually transparent background: ' + name);
     const channels = decoded.colorType === 6 ? 4 : 2;
     let visible = 0, minX = 256, maxX = -1, maxY = -1;
     for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
