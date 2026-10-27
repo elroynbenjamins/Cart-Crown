@@ -231,7 +231,11 @@ const pilot: readonly [string, UnitDefinition['role'], string][] = [
   ['Shield Infantry', 'frontline', 'shield_infantry'],
   ['Ranger', 'ranged', 'ranger'],
   ['Heavy Cavalry', 'cavalry', 'heavy_cavalry'],
-  ['Field Medic', 'support', 'field_medic']
+  ['Field Medic', 'support', 'field_medic'],
+  ['Spearman', 'frontline', 'spearman'],
+  ['Crossbowman', 'ranged', 'crossbowman'],
+  ['Swordsman', 'melee', 'great_sword'],
+  ['Banner Captain', 'support', 'banner_captain']
 ];
 for (const [name, role, key] of pilot) {
   const human = { ...unit, className: name, role };
@@ -246,15 +250,18 @@ for (const [name, role, key] of pilot) {
   check(directionalAllyArtId({ ...human, battleTags: ['beast'] }) === null,
     'Fantasy/bestial unit must not borrow plain Human pilot art');
 }
-check(directionalAllyArtId({ ...unit, className: 'Crossbowman' }) === null,
-  'Crossbowman must retain its existing real crossbow artwork; Ranger bow is not interchangeable');
-check(directionalAllyArtId({ ...unit, className: 'Swordsman', role: 'melee' }) === null,
-  'Swordsman must not borrow a shield infantry pose');
+check(directionalAllyArtId({ ...unit, className: 'Crossbowman' }) === 'battle_directional.human.crossbowman_ally_back',
+  'Crossbowman must receive the real crossbow image, not a Ranger bow');
+check(directionalAllyArtId({ ...unit, className: 'Swordsman', role: 'melee' }) === 'battle_directional.human.great_sword_ally_back',
+  'Swordsman must receive the two-handed sword image, not a shield infantry pose');
 for (const [name, role, key] of [
   ['Shield','frontline','shield_infantry'],
   ['Archer','ranged','ranger'],
   ['Heavy Cavalry','cavalry','heavy_cavalry'],
-  ['Field Medic','support','field_medic']
+  ['Field Medic','support','field_medic'],
+  ['Crossbow','ranged','crossbowman'],
+  ['Sword','melee','great_sword'],
+  ['Standard','support','banner_captain']
 ] as const) {
   check(directionalEnemyArtId('human', role, name, 'mercenary_line', false) ===
     'battle_directional.human.' + key + '_enemy_front',
@@ -268,8 +275,8 @@ for (const [name, role, key] of [
 }
 check(directionalEnemyArtId('human','support','Sergeant','mercenary_line',false) === null,
   'Field Medic art cannot substitute for enemy officer or sergeant');
-check(directionalEnemyArtId('human','ranged','Crossbow','mercenary_line',false) === null,
-  'Enemy crossbows cannot receive Ranger bow art');
+check(directionalEnemyArtId('human','ranged','Crossbow','mercenary_line',false) === 'battle_directional.human.crossbowman_enemy_front',
+  'Enemy crossbows must use the correct crossbow weapon and cannot receive Ranger bow art');
 check(directionalEnemyArtId('human','ranged','Archer','mercenary_line',true) === null,
   'Boss artwork may not be overridden by a generic Ranger pose');
 
