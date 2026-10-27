@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "approvedForRuntime": true,
+  "reviewedBy": "Project owner visual approval (October 2026)",
+  "style": "High-detail, crisp human pixel-art sprite silhouettes, blue/gold allied back, red/black enemy front",
+  "screen": "portrait battlefield; stage actors only; never replace unit portrait rails",
+  "entries": [
+    {
+      "file": "banner_captain_ally_back.png",
+      "view": "up/back",
+      "note": "Reviewed fantasy Human battle actor: banner captain ally back; correct equipment and direction",
+      "sha256": "9dd4bdff8b31e0f84292bd4304671d6b33889daf6157683125e30237b5a921bf",
+      "bytes": 57573
+    },
+    {
+      "file": "banner_captain_enemy_front.png",
+      "view": "down/front",
+      "note": "Reviewed fantasy Human battle actor: banner captain enemy front; correct equipment and direction",
+      "sha256": "396a3a0631476a609bee74e8d8c92f7ef0c4239f07ee19a7756a740d5713fa08",
+      "bytes": 65061
+    },
+    {
+      "file": "crossbowman_ally_back.png",
+      "view": "up/back",
+      "note": "Reviewed fantasy Human battle actor: crossbowman ally back; correct equipment and direction",
+      "sha256": "4c4996e34d5fea108f413f136fafa94bfa660035ee128c1b3beb9710bb89f7c9",
+      "bytes": 67438
+    },
+    {
+      "file": "crossbowman_enemy_front.png",
+      "view": "down/front",
+      "note": "Reviewed fantasy Human battle actor: crossbowman enemy front; correct equipment and direction",
+      "sha256": "8748f27819b073ba71fcef0fc8a8002665f52eaa8a1bd4589cb4078dc15c5c5c",
+      "bytes": 63382
+    },
+    {
+      "file": "field_medic_ally_back.png",
+      "view": "up/back",
+      "note": "Reviewed fantasy Human battle actor: field medic ally back; correct equipment and direction",
+      "sha256": "f78b3ca69a5822ddd8d236fbfee2d0aabf1aafbfd684fc634241f8b07e5e02f9",
+      "bytes": 71475
+    },
+    {
+      "file": "field_medic_enemy_front.png",
+      "view": "down/front",
+      "note": "Reviewed fantasy Human battle actor: field medic enemy front; correct equipment and direction",
+      "sha256": "1b14d7b20c9b113217f8e74f14594a222201e3513ae938f92bb868713f9b6d68",
+      "bytes": 65491
+    },
+    {
+      "file": "great_sword_ally_back.png",
+      "view": "up/back",
+      "note": "Reviewed fantasy Human battle actor: great sword ally back; correct equipment and direction",
+      "sha256": "d24df42f4e2fb819cc4bb1ec2e70b1633e89e40dfaa592b371514742bd673114",
+      "bytes": 55856
+    },
+    {
+      "file": "great_sword_enemy_front.png",
+      "view": "down/front",
+      "note": "Reviewed fantasy Human battle actor: great sword enemy front; correct equipment and direction",
+      "sha256": "4fcb716377a87965cd7b68d3f9ebaa887f8eccbe3291145f15cb19c18bd6bc37",
+      "bytes": 61435
+    },
+    {
+      "file": "heavy_cavalry_ally_back.png",
+      "view": "up/back",
+      "note": "Reviewed fantasy Human battle actor: heavy cavalry ally back; correct equipment and direction",
+      "sha256": "ad935fd4ac6d184a1c780981588954ca3f36e7ea777171af7b4bcaec73e6e746",
+      "bytes": 63328
+    },
+    {
+      "file": "heavy_cavalry_enemy_front.png",
+      "view": "down/front",
+      "note": "Reviewed fantasy Human battle actor: heavy cavalry enemy front; correct equipment and direction",
+      "sha256": "38a36a989f5e0b04c2b025e6a0b3f3293ac7965846fd769e5db20c3f3c5fa5a5",
+      "bytes": 71019
+    },
+    {
+      "file": "ranger_ally_back.png",
+      "view": "up/back",
+      "note": "Reviewed fantasy Human battle actor: ranger ally back; correct equipment and direction",
+      "sha256": "38c3802c511333e2756804522c869c563d2f64c1358de31c7274673fe1f7c21a",
+      "bytes": 62600
+    },
+    {
+      "file": "ranger_enemy_front.png",
+      "view": "down/front",
+      "note": "Reviewed fantasy Human battle actor: ranger enemy front; correct equipment and direction",
+      "sha256": "b713b22effbf01d77eec075d4b11dd194141c5e4fc890ac9a00c1e9919b34d02",
+      "bytes": 61870
+    },
+    {
+      "file": "shield_infantry_ally_back.png",
+      "view": "up/back",
+      "note": "Reviewed fantasy Human battle actor: shield infantry ally back; correct equipment and direction",
+      "sha256": "c4672069c701a3d82288ef7752b320279149981a91ec9ae7a893d79bb1573c97",
+      "bytes": 65764
+    },
+    {
+      "file": "shield_infantry_enemy_front.png",
+      "view": "down/front",
+      "note": "Reviewed fantasy Human battle actor: shield infantry enemy front; correct equipment and direction",
+      "sha256": "153900a2b43a4456df60b9276ee26709309a3a75d6332cd2203a5ba60c7d09a2",
+      "bytes": 69919
+    },
+    {
+      "file": "spearman_ally_back.png",
+      "view": "up/back",
+      "note": "Reviewed fantasy Human battle actor: spearman ally back; correct equipment and direction",
+      "sha256": "36906b4e325b433135faf17096d0602414b6ded2b8ed21c3f7a65103892ae3b9",
+      "bytes": 56068
+    },
+    {
+      "file": "spearman_enemy_front.png",
+      "view": "down/front",
+      "note": "Reviewed fantasy Human battle actor: spearman enemy front; correct equipment and direction",
+      "sha256": "630ab18ffebbefbd4a8a0793cbbee47b8ba6742012ee529782effeabda533392",
+      "bytes": 67504
+    }
+  ]
+}
