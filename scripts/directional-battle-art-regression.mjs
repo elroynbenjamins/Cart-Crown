@@ -6,7 +6,7 @@ import { validateSpritePng } from './png-integrity.mjs';
 // Fail closed when somebody starts copying experimental poses into the release.
 // Direction is an ART REVIEW criterion: geometry/alpha checks cannot certify
 // that an arrow points up or that a horse looks like the right mount.
-export const pilotClasses = ['shield_infantry', 'ranger', 'heavy_cavalry', 'field_medic'];
+export const pilotClasses = ['shield_infantry', 'ranger', 'heavy_cavalry', 'field_medic', 'spearman', 'crossbowman', 'great_sword', 'banner_captain'];
 const sides = ['ally_back', 'enemy_front'];
 const root = 'assets/game/battle_directional/human';
 const expected = pilotClasses.flatMap(unit => sides.map(side => unit + '_' + side + '.png'));
@@ -38,7 +38,7 @@ if (!fs.existsSync(root)) {
     'Record art signoff, not an anonymous approval flag.');
   assert.ok(Array.isArray(manifest.entries), 'Review manifest needs one record per production pose.');
   assert.deepEqual([...names].filter(name => name.endsWith('.png')).sort(), [...expected].sort(),
-    'Human pilot must ship exactly four coherent ally/enemy sprite pairs.');
+    'Human pilot must ship exactly eight coherent ally/enemy sprite pairs.');
   assert.deepEqual([...manifest.entries].map(entry => entry.file).sort(), [...expected].sort(),
     'Each approved pose needs an exact manifest entry.');
   for (const name of expected) {
@@ -60,5 +60,5 @@ if (!fs.existsSync(root)) {
     assert.ok(literalRegistration(name.replace('.png', ''), p.replaceAll('\\', '/')),
       'Use a matching explicit Metro require for each reviewed directional pose: ' + name);
   }
-  console.log('PASS: all eight reviewed, size-bounded, alpha-transparent directional poses and literal Metro registrations.');
+  console.log('PASS: all sixteen reviewed, size-bounded, alpha-transparent directional poses and literal Metro registrations.');
 }
