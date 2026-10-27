@@ -103,3 +103,30 @@ Eight supported class pairs: Shield Infantry, Ranger, Heavy Cavalry, Field Medic
 **To activate without breaking CI:** extract the ZIP at repository root on PR #201 branch; run `python scripts/apply_human_battle_assets.py`; commit all 16 PNGs plus manifest and updated `src/ui/productionAssets.ts`. Alternately upload the 16 PNGs + manifest through GitHub then update registry before expecting CI to pass. Do not commit the ZIP instead of extracted files.
 
 Technical QA done locally: 16 PNGs validated against 256×256 RGBA and alpha-occupancy bounds, all entry SHA256 hashes verified, installer checked for first-run and repeat-run idempotence, 32/42/56/72-pixel preview generated. Native on-device rendering and FPS still must be rechecked **after** binaries are in the GitHub branch.
+
+
+## Activation confirmed — 2026-10-27
+
+The project owner uploaded the **16 original 1254×1254 PNG masters** to `main` at
+`assets/game/Cart_Crown_Phase2_Human_Original_Master_Artwork/`
+(commit `ab77dbd455a654d52f5fb5fb57b6b2e6fa6010d0`).
+
+GitHub Actions `materialize-human-battle-art.yml` deterministically rendered all 16
+**approved 256×256 RGBA battle sprites** with Pillow 12.3.0, checked each output
+against the original owner-approved SHA256 fingerprint (including the corrected
+red Spearman), and committed the 16 PNGs, the reviewed manifest, and 16 literal
+Metro `require` entries to this Phase 2 branch at
+`assets/game/battle_directional/human/`.
+
+`DirectionalStageFigure` now resolves those production assets for exactly
+the eight Human class pairs defined in `directionalStageModel.ts`; existing
+Army cards and character portraits are not replaced. Unmatched role/label,
+non-Human factions, fantasy beasts and named bosses retain the established
+battle art. Native figures remain visible until `Image.onLoad`, including
+error fallback.
+
+This section supersedes the earlier dated *unshipped candidate* notes above.
+The production PNGs are now committed. The remaining release gates are the
+latest CI, complete Android bundle QA, native combat screenshot review and
+pull request review/merge. Do not use the 1254px original PNGs directly in
+Metro—those are high-resolution masters, not performance-bounded runtime art.
