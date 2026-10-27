@@ -10,7 +10,11 @@ export const directionalPilot = {
   'Shield Infantry': { role: 'frontline', asset: 'shield_infantry' },
   'Ranger': { role: 'ranged', asset: 'ranger' },
   'Heavy Cavalry': { role: 'cavalry', asset: 'heavy_cavalry' },
-  'Field Medic': { role: 'support', asset: 'field_medic' }
+  'Field Medic': { role: 'support', asset: 'field_medic' },
+  'Spearman': { role: 'frontline', asset: 'spearman' },
+  'Crossbowman': { role: 'ranged', asset: 'crossbowman' },
+  'Swordsman': { role: 'melee', asset: 'great_sword' },
+  'Banner Captain': { role: 'support', asset: 'banner_captain' }
 } as const;
 
 export type DirectionalPilotAsset = typeof directionalPilot[keyof typeof directionalPilot]['asset'];
@@ -37,7 +41,10 @@ const enemyArt: Readonly<Partial<Record<string, Readonly<{ role: UnitRole; asset
   Shield: { role: 'frontline', asset: 'shield_infantry' },
   Archer: { role: 'ranged', asset: 'ranger' },
   'Heavy Cavalry': { role: 'cavalry', asset: 'heavy_cavalry' },
-  'Field Medic': { role: 'support', asset: 'field_medic' }
+  'Field Medic': { role: 'support', asset: 'field_medic' },
+  'Crossbow': { role: 'ranged', asset: 'crossbowman' },
+  'Sword': { role: 'melee', asset: 'great_sword' },
+  'Standard': { role: 'support', asset: 'banner_captain' }
 };
 
 export function directionalEnemyArtId(
