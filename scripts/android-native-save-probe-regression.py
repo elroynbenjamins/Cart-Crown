@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import importlib.util
+import base64
+from types import SimpleNamespace
 import pathlib
 import unittest
 from unittest.mock import patch
@@ -60,6 +62,51 @@ class SavedSlotViewportTests(unittest.TestCase):
                 patch.object(smoke.time, 'sleep', return_value=None):
             with self.assertRaisesRegex(RuntimeError, 'Continue control absent'):
                 smoke.wait_for_saved_slot_control(max_scrolls=0)
+
+
+class FreshProbeForegroundRecoveryTests(unittest.TestCase):
+    def test_transient_non_game_window_refocuses_once_with_fresh_snapshot(self) -> None:
+        calls: list[tuple[str, ...]] = []
+        encoded = base64.b64encode(b'<hierarchy request="fresh"><node text="Battle" /></hierarchy>').decode('ascii')
+        probes = iter([
+            'INSTRUMENTATION_RESULT: probe_error=java.lang.IllegalStateException: The game is not the active window\\nINSTRUMENTATION_CODE: 0',
+            'INSTRUMENTATION_RESULT: hierarchy_b64=' + encoded
+        ])
+
+        def adb(*args: str, **_kwargs) -> str:
+            calls.append(args)
+            return '5188' if 'pidof' in args else next(probes)
+
+        with patch.object(smoke, 'adb', side_effect=adb), \
+                patch.object(smoke, 'launch') as launch, \
+                patch.object(smoke.uuid, 'uuid4', return_value=SimpleNamespace(hex='fresh')), \
+                patch.object(smoke.time, 'sleep', return_value=None):
+            root, source = smoke.hierarchy()
+        self.assertEqual('fresh', root.get('request'))
+        self.assertIn('Battle', source)
+        self.assertEqual(1, launch.call_count)
+        self.assertEqual(2, sum('instrument' in call for call in calls))
+
+    def test_refocus_never_masks_an_app_crash(self) -> None:
+        def adb(*args: str, **_kwargs) -> str:
+            if 'pidof' in args:
+                return ''
+            return 'INSTRUMENTATION_RESULT: probe_error=java.lang.IllegalStateException: The game is not the active window'
+
+        with patch.object(smoke, 'adb', side_effect=adb), \
+                patch.object(smoke, 'launch') as launch, \
+                patch.object(smoke.time, 'sleep', return_value=None):
+            with self.assertRaisesRegex(RuntimeError, 'Native app exited'):
+                smoke.hierarchy()
+        launch.assert_not_called()
+
+    def test_unrelated_instrumentation_error_does_not_relaunch_game(self) -> None:
+        with patch.object(smoke, 'adb', return_value='INSTRUMENTATION_RESULT: probe_error=unexpected failure'), \
+                patch.object(smoke, 'launch') as launch, \
+                patch.object(smoke.time, 'sleep', return_value=None):
+            with self.assertRaisesRegex(RuntimeError, 'Fresh native UI probe failed'):
+                smoke.hierarchy()
+        launch.assert_not_called()
 
 
 if __name__ == '__main__':

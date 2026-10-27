@@ -5,6 +5,7 @@ import { formationShapes } from '../src/game/formation';
 import { themes } from '../src/theme/themes';
 import type { UnitDefinition } from '../src/game/types';
 import * as model from '../src/ui/portraitBattle/model';
+import { directionalAllyArtId, directionalEnemyArtId } from '../src/ui/portraitBattle/directionalStageModel';
 
 let checks = 0;
 function check(condition: unknown, message: string) { assert.ok(condition, message); checks++; }
@@ -59,6 +60,92 @@ for (const width of [240, 320, 360, 412, 480, 768]) for (const height of [480, 5
   }
 }
 assert.equal(JSON.stringify(formationShapes), snapshot);
+
+for (const state of ['stable', 'pressured', 'breaking', 'breached'] as const) {
+  const copy = model.stageIntegrityReadout(53.8, state);
+  check(copy.percent === 54, 'Integrity should use real, bounded army percent');
+  check(copy.label.toLowerCase() === state, 'Integrity label must match the combat engine');
+  check(copy.fractured === (state === 'breaking' || state === 'breached'),
+    'Ground fractures must appear only when formation integrity is genuinely breaking');
+}
+check(model.stageIntegrityReadout(-10, 'breached').percent === 0, 'Never show negative integrity');
+check(model.stageIntegrityReadout(120, 'stable').percent === 100, 'Never exceed full integrity');
+check(model.stageIntegrityReadout(NaN, 'stable').percent === 100, 'Invalid integrity values must be safe');
+for (const shape of formationShapes) for (const width of [240, 320, 412]) {
+  const friendly = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], 'ally', width, 320);
+  const hostile = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], 'enemy', width, 320);
+  const start = friendly[0]!, end = hostile[0]!;
+  for (const role of ['ranged', 'cavalry'] as const) {
+    const trail = model.stageAttackTrail(friendly, hostile, start.slot, end.slot, role, 9);
+    check(trail !== null && trail.kind === (role === 'ranged' ? 'arrow' : 'charge'),
+      'Role-specific trajectories must derive from real source and enemy slots');
+    check(Boolean(trail) && Math.abs((trail!.x + trail!.dx) - end.x) < 0.001 && trail!.dy < 0,
+      'Ranged and mounted trails must travel toward the actual enemy, never away');
+  }
+  for (const damage of [0, -3, NaN, Infinity]) {
+    check(model.stageAttackTrail(friendly, hostile, start.slot, end.slot, 'ranged', damage) === null,
+      'No projectile should claim a successful strike without real damage');
+  }
+  check(model.stageAttackTrail(friendly, hostile, null, end.slot, 'ranged', 5) === null,
+    'Missing ally slot cannot fabricate a projectile');
+  check(model.stageAttackTrail(friendly, hostile, start.slot, null, 'cavalry', 5) === null,
+    'Missing enemy target cannot fabricate a charge');
+  check(model.stageAttackTrail(friendly, hostile, start.slot, end.slot, 'support', 5) === null,
+    'Support must not masquerade as mounted or ranged');
+}
+// Cracking ground lines must follow the actual formation, not fixed % offsets.
+for (const shape of formationShapes) for (const width of [240, 320, 412]) for (const height of [264, 400]) {
+  for (const side of ['ally', 'enemy'] as const) {
+    const tokens = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], side, width, height);
+    const line = model.stageFractureLine(tokens, side, width, height);
+    check(Boolean(line), 'Populated army always has an anchored fracture line');
+    check(line!.left >= 4 && line!.top >= 4 && line!.left + line!.width <= width - 4,
+      'Line fracture must stay inside the visible stage at compact widths');
+    const rank = tokens.some(unit => unit.row === 'front')
+      ? tokens.filter(unit => unit.row === 'front') : tokens;
+    const frontY = rank[0]!.y;
+    check(side === 'enemy' ? line!.top > frontY : line!.top < frontY,
+      'Fracture should appear on the contact-facing side of the occupied frontline');
+  }
+}
+const oneShape = formationShapes.find(shape => shape.id === 'iron_wall_501')!;
+const deepShape = formationShapes.find(shape => shape.id === 'layered_core_231')!;
+const ironFracture = model.stageFractureLine(model.stageTokens(oneShape,
+  [0,1,2,3,4,5,6,7,8], 'ally', 340, 400), 'ally', 340, 400)!;
+const deepFracture = model.stageFractureLine(model.stageTokens(deepShape,
+  [0,1,2,3,4,5,6,7,8], 'ally', 340, 400), 'ally', 340, 400)!;
+check(ironFracture.width > deepFracture.width * 1.3,
+  'Iron Wall cracks must read substantially wider than Layered Core');
+check(model.stageFractureLine([], 'ally', 340, 400) === null,
+  'No squads means no fabricated line-break indicator');
+check(model.stageFractureLine([], 'enemy', 340, 400) === null,
+  'No enemy actors means no fabricated enemy line-break indicator');
+
+// Active orders must have truthful positions using actually occupied actors.
+for (const shape of formationShapes) for (const width of [240, 320, 412]) for (const height of [264, 400]) {
+  const ally = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], 'ally', width, height);
+  const enemy = model.stageTokens(shape, [0,1,2,3,4,5,6,7,8], 'enemy', width, height);
+  const source = JSON.stringify([ally, enemy]);
+  for (const id of ['hold', 'focus', 'push', 'reinforce'] as const) {
+    const band = model.stageOrderBand(id, ally, enemy, enemy[0]!.slot, width, height);
+    check(Boolean(band) && band!.id === id, 'Genuine active orders must project an appropriate battlefield signal');
+    check(Boolean(band) && band!.left >= 4 && band!.width >= 40 && band!.left + band!.width <= width - 4,
+      'Order signal must stay inside the actual stage width even at compact sizes');
+    check(Boolean(band) && band!.top >= 4 && band!.top <= height - 18,
+      'Order signal must stay inside the stage height');
+    check(band!.label.length > 0, 'On-stage signal needs a legible distinct order label');
+  }
+  check(model.stageOrderBand(null, ally, enemy, enemy[0]!.slot, width, height) === null,
+    'No selected order may imply a defensive or offensive stance');
+  check(model.stageOrderBand('unknown', ally, enemy, enemy[0]!.slot, width, height) === null,
+    'Unknown orders must never invent a tactical effect');
+  check(model.stageOrderBand('focus', ally, enemy, null, width, height) === null,
+    'Focus must not invent an enemy target when no target is known');
+  check(model.stageOrderBand('hold', [], enemy, enemy[0]!.slot, width, height) === null,
+    'Hold cannot create a shield wall without active squads');
+  check(JSON.stringify([ally, enemy]) === source,
+    'Drawing an order signal cannot rearrange authored formation positions');
+}
 for (const shape of formationShapes) {
   const before = JSON.stringify(shape);
   const readout = model.stageFormationReadout(shape);
@@ -140,6 +227,59 @@ assert.deepEqual(model.stageTokens(wide, [0,0,99,-1], 'ally', 340, 400).map(p =>
 for (const width of [NaN, Infinity, -10]) check(Number.isFinite(model.battleLayout(width, NaN).stageWidth), 'Invalid dimension leaked into Yoga');
 
 const unit: UnitDefinition = { id: 'test', name: 'Test', className: 'Archer', faction: 'human', role: 'ranged', tier: 1, level: 2, hp: 40, attack: 12, armor: 2, speed: 7 };
+const pilot: readonly [string, UnitDefinition['role'], string][] = [
+  ['Shield Infantry', 'frontline', 'shield_infantry'],
+  ['Ranger', 'ranged', 'ranger'],
+  ['Heavy Cavalry', 'cavalry', 'heavy_cavalry'],
+  ['Field Medic', 'support', 'field_medic'],
+  ['Spearman', 'frontline', 'spearman'],
+  ['Crossbowman', 'ranged', 'crossbowman'],
+  ['Swordsman', 'melee', 'great_sword'],
+  ['Banner Captain', 'support', 'banner_captain']
+];
+for (const [name, role, key] of pilot) {
+  const human = { ...unit, className: name, role };
+  check(directionalAllyArtId(human) === 'battle_directional.human.' + key + '_ally_back',
+    'Human pilot class must select an exact ally-facing sprite key');
+  check(directionalAllyArtId({ ...human, faction: 'elf' }) === null,
+    'Directional Human actor must not replace an Elf actor');
+  check(directionalAllyArtId({ ...human, faction: 'orc' }) === null,
+    'Directional Human actor must not replace an Orc actor');
+  check(directionalAllyArtId({ ...human, role: role === 'frontline' ? 'ranged' : 'frontline' }) === null,
+    'Incorrect role must not receive a mismatched weapon sprite');
+  check(directionalAllyArtId({ ...human, battleTags: ['beast'] }) === null,
+    'Fantasy/bestial unit must not borrow plain Human pilot art');
+}
+check(directionalAllyArtId({ ...unit, className: 'Crossbowman' }) === 'battle_directional.human.crossbowman_ally_back',
+  'Crossbowman must receive the real crossbow image, not a Ranger bow');
+check(directionalAllyArtId({ ...unit, className: 'Swordsman', role: 'melee' }) === 'battle_directional.human.great_sword_ally_back',
+  'Swordsman must receive the two-handed sword image, not a shield infantry pose');
+for (const [name, role, key] of [
+  ['Shield','frontline','shield_infantry'],
+  ['Archer','ranged','ranger'],
+  ['Heavy Cavalry','cavalry','heavy_cavalry'],
+  ['Field Medic','support','field_medic'],
+  ['Crossbow','ranged','crossbowman'],
+  ['Sword','melee','great_sword'],
+  ['Standard','support','banner_captain']
+] as const) {
+  check(directionalEnemyArtId('human', role, name, 'mercenary_line', false) ===
+    'battle_directional.human.' + key + '_enemy_front',
+    'Exact Human enemy role and weapon may use reviewed opposing art');
+  check(directionalEnemyArtId('human', role, name, 'raider_pack', false) === null,
+    'Irregular mounted/fantasy enemy hosts must keep current artwork');
+  check(directionalEnemyArtId('human', role, name, 'mercenary_line', true) === null,
+    'Named bosses retain unique authored identity');
+  check(directionalEnemyArtId('human', role, name, 'mercenary_line', false, 'magic') === null,
+    'Magical foes must never be recast as Human infantry');
+}
+check(directionalEnemyArtId('human','support','Sergeant','mercenary_line',false) === null,
+  'Field Medic art cannot substitute for enemy officer or sergeant');
+check(directionalEnemyArtId('human','ranged','Crossbow','mercenary_line',false) === 'battle_directional.human.crossbowman_enemy_front',
+  'Enemy crossbows must use the correct crossbow weapon and cannot receive Ranger bow art');
+check(directionalEnemyArtId('human','ranged','Archer','mercenary_line',true) === null,
+  'Boss artwork may not be overridden by a generic Ranger pose');
+
 assert.equal(model.allyPortrait(unit), 'human_ranger_portrait');
 for (const faction of ['elf','orc'] as const) assert.equal(model.allyPortrait({ ...unit, faction }), null);
 for (const battleTags of [['magic'],['flying'],['large'],['construct'],['beast']] as UnitDefinition['battleTags'][]) assert.equal(model.allyPortrait({ ...unit, role: 'support', battleTags }), null);
@@ -170,6 +310,10 @@ new Function('require','module','exports',output)((name:string)=>{
   if(name==='react-native')return {Platform:{OS:'android'},View:'View',Text:'Text',Pressable:'Pressable',ScrollView:'ScrollView',Modal:'Modal',Animated:{View:'AnimatedView'},StyleSheet:{create:(s:any)=>s},useWindowDimensions:()=>dimensions};
   if(name==='./model')return model;
   if(name==='./IllustratedBattlefieldBackdrop')return {IllustratedBattlefieldBackdrop:'IllustratedBattlefieldBackdrop'};
+  if(name==='./directionalStageModel')return { directionalAllyArtId, directionalEnemyArtId };
+  if(name==='./DirectionalStageFigure')return { DirectionalStageFigure:'DirectionalStageFigure' };
+  if(name==='../bossPresentation')return { getBossPresentation:()=>null };
+  if(name==='../BossStageSilhouette')return { BossStageSilhouette:'BossStageSilhouette' };
   if(name==='./Art')return {ReferenceArt:'ReferenceArt'};
   if(name.endsWith('ThemeProvider'))return {useGameTheme:()=>appearance};
   if(name.endsWith('gameArt'))return {UnitSprite:'UnitSprite',UnitPortraitSprite:'UnitPortraitSprite',EnemySprite:'EnemySprite'};
@@ -266,10 +410,46 @@ check(controller.includes('manualPaused ||\n      pausedForTutorial'),'Manual pa
 check(controller.includes('!battleEnded || !outcomeCommitGateRef.current()'),'Outcome settlement must be one-shot');
 check(controller.includes('else onDefeated(summary)'),'Preserve defeat report callback');
 check(controller.includes('setExchangeHistory(previous => appendExchange'),'Log must use live exchange telemetry');
+check(controller.includes('partyIntegrity={partyIntegrity}') && controller.includes('enemyIntegrity={enemyIntegrity}') &&
+  controller.includes('partyIntegrityState={partyIntegrityState}') && controller.includes('enemyIntegrityState={enemyIntegrityState}'),
+  'Combat engine must pass genuine integrity values and states to the renderer');
+check(controller.includes('outgoingDamage={exchangeFeedback?.outgoing ?? 0}') &&
+  controller.includes('incomingDamage={exchangeFeedback?.incoming ?? 0}'),
+  'Visible hits must use finalized real damage, not role or animation guesses');
+check(file.includes('stageAttackTrail(allyPositions, enemyPositions') &&
+  file.includes("testID={'battle-' + trail.kind + '-trajectory'}") &&
+  file.includes('p.outgoingDamage > 0 ? p.activeRole : null'),
+  'Projectile and contact VFX must be gated to actual damage and existing pulses');
+check(file.includes("stageFractureLine(allyPositions, 'ally'") &&
+  file.includes("stageFractureLine(enemyPositions, 'enemy'") &&
+  file.includes('backgroundColor: theme.colors.surface1 + \'E0\''),
+  'Break indicators must follow the occupied line and active field order must remain legible in light themes');
+check(file.includes('ally-facing-') && file.includes('enemy-facing-') &&
+  file.includes('ally-line-fracture') && file.includes('enemy-line-fracture'),
+  'Both armies must visibly show engagement direction and actual formation damage');
+check(file.includes("testID={'battle-field-order-' + onFieldOrder.id}") &&
+  file.includes('stageOrderBand(activeOrder?.id ?? null') &&
+  file.includes('color: factionAccent') &&
+  file.includes('borderColor: factionAccent'),
+  'Battlefield posture must reflect real order selection and current faction, not a Human-only marker');
+check(file.includes("zIndex: 4, alignItems: 'center'"),
+  'Range/charge trails must sit behind fighters rather than crossing their bodies');
+check(file.includes('ongoing && activeOrder ? <Text testID="active-battle-order-cue"'),
+  'A finished battle must never advertise a commander order as still active');
+check(file.includes('active-battle-order-cue') && file.includes('order.selected'),
+  'Only genuinely active commander orders may appear as battle-state cues');
+
 check(controller.includes('fantasyThreat={encounter.fantasyThreat}')&&file.includes('fantasyThreat={p.fantasyThreat} role={item.role}'),'Fantasy/role forwarding must survive integration');
 check(file.includes('EnemyFantasyStrikeVfx')&&file.includes('progress={p.impactPulse}'),'Retain fantasy strike effects');
 check(file.includes('stageDepthVisual(position.row)'),'Battlefield actors must consume their rank-depth presentation');
 check(file.includes('UnitPortraitSprite'),'Portrait rails must use cropped production unit art when dedicated portrait art is unavailable');
+check(file.includes('DirectionalStageFigure assetId={directionalAllyArtId(item.unit)}') &&
+  file.includes('assetId={directionalEnemyArtId(p.faction, item.role, item.label, p.enemyProfile, item.boss, p.fantasyThreat)}'),
+  'Directional pilot should be stage-only and use an explicit matched side/role selector');
+check(file.includes('fallback={enemyFigure(item, item.boss') &&
+  file.includes('fallback={allyPortrait(item.unit)'),
+  'Approved existing sprites must remain as error/loading fallbacks');
+
 check(file.includes('presentationScale={1.08}'),'Battlefield figures must receive the subtle larger presentation scale');
 check(file.includes('zIndex: depth.zIndex'),'Rank depth must control battlefield draw order');
 check(file.includes('shadowScale')&&file.includes('shadowOpacity'),'Rank depth must alter shadow footprint and opacity');

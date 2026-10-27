@@ -6,9 +6,13 @@ import { useGameTheme } from '../../theme/ThemeProvider';
 import { EnemySprite, UnitPortraitSprite, UnitSprite } from '../gameArt';
 import { BattleStatusMarker, BattleVfxStrip, EnemyFantasyStrikeVfx, EnemyFantasyThreatAura } from '../battleVisuals';
 import { IllustratedBattlefieldBackdrop } from './IllustratedBattlefieldBackdrop';
+import { getBossPresentation } from '../bossPresentation';
+import { BossStageSilhouette } from '../BossStageSilhouette';
 import { ReferenceArt } from './Art';
-import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageFormationReadout, stageRoleLetters, stageTokens, battleSpectacleCue } from './model';
-import type { ArmySide, EnemyToken, ExchangeRecord } from './model';
+import { directionalAllyArtId, directionalEnemyArtId } from './directionalStageModel';
+import { DirectionalStageFigure } from './DirectionalStageFigure';
+import { allyPortrait, battleLayout, enemyPortrait, figureForPortrait, healthFraction, rankForSlot, rankLabels, roleNames, rosterForFormation, stageDepthVisual, stageExchangeMotion, stageFormationReadout, stageRoleLetters, stageTokens, stageAttackTrail, stageIntegrityReadout, stageOrderBand, stageFractureLine, battleSpectacleCue } from './model';
+import type { ArmySide, EnemyToken, ExchangeRecord, IntegrityTier } from './model';
 
 export type PortraitBattleProps = {
   encounterId: EncounterId; encounterName: string; enemyName: string;
@@ -18,6 +22,9 @@ export type PortraitBattleProps = {
   shape: FormationShapeDefinition; enemyShape: FormationShapeDefinition;
   enemies: readonly EnemyToken[];
   partyHp: number; partyMaxHp: number; enemyHp: number; enemyMaxHp: number;
+  partyIntegrity: number; enemyIntegrity: number;
+  partyIntegrityState: IntegrityTier; enemyIntegrityState: IntegrityTier;
+  outgoingDamage: number; incomingDamage: number;
   turn: number; speed: 1 | 2; paused: boolean; controlsLocked: boolean;
   outcome: 'victory' | 'defeat' | null;
   activeSlot: number | null; enemySlot: number | null; supportSlots: readonly number[];
@@ -75,11 +82,16 @@ function Action({ label, onPress, selected = false, disabled = false, accessibil
   </Pressable>;
 }
 
-function Health({ label, hp, max, shape, enemy = false }: { label: string; hp: number; max: number; shape: FormationShapeDefinition; enemy?: boolean }) {
+function Health({ label, hp, max, shape, integrity = 100, integrityState = 'stable', enemy = false }: {
+  label: string; hp: number; max: number; shape: FormationShapeDefinition;
+  integrity?: number; integrityState?: IntegrityTier; enemy?: boolean;
+}) {
   const { theme } = useGameTheme();
   const fill = enemy ? theme.colors.danger : theme.colors.primary;
   const readout = stageFormationReadout(shape);
-  return <View accessible accessibilityLabel={`${label}: ${hp} of ${max} shared army HP; formation ${shape.name}, ${readout.ranks}`} style={s.health}>
+  const line = stageIntegrityReadout(integrity, integrityState);
+  const lineColor = line.fractured ? theme.colors.danger : integrityState === 'pressured' ? theme.colors.gold : fill;
+  return <View accessible accessibilityLabel={`${label}: ${hp} of ${max} shared army HP; line integrity ${line.percent} percent, ${line.label}; formation ${shape.name}, ${readout.ranks}`} style={s.health}>
     <View style={s.healthHeading}>
       <Text style={[s.healthName, { color: fill }]}>{label} · {shape.layout}</Text>
       <Text style={[s.healthValue, { color: theme.colors.text }]}>{hp} / {max}</Text>
@@ -91,6 +103,12 @@ function Health({ label, hp, max, shape, enemy = false }: { label: string; hp: n
       numberOfLines={1} style={[s.healthReadout, { color: theme.colors.textMuted }]}>
       {readout.label} · {readout.ranks}
     </Text>
+    <View testID={enemy ? 'enemy-integrity-readout' : 'ally-integrity-readout'} style={s.integrityRow}>
+      <Text style={[s.integrityCopy, { color: lineColor }]}>LINE {line.percent}% · {line.label}</Text>
+      <View style={[s.integrityTrack, { backgroundColor: theme.colors.surface3 }]}>
+        <View style={{ width: `${line.percent}%`, height: 3, backgroundColor: lineColor }} />
+      </View>
+    </View>
   </View>;
 }
 
@@ -105,9 +123,19 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
   const roster = rosterForFormation(p.formation, p.units);
   const spectacle = battleSpectacleCue(p.difficulty);
   const dangerAccent = p.difficulty === 'Boss' ? theme.colors.gold : p.difficulty === 'Elite' ? theme.colors.danger : theme.colors.textMuted;
+  const signatureBoss = getBossPresentation(p.encounterId, p.difficulty, theme.dark, layout.compact);
   const allyPositions = stageTokens(p.shape, roster.map(item => item.slot), 'ally', layout.stageWidth, layout.stageHeight);
   // Include routed enemies; their spots must not be recycled or compressed.
   const enemyPositions = stageTokens(p.enemyShape, p.enemies.map(item => item.slot), 'enemy', layout.stageWidth, layout.stageHeight);
+  const allyLine = stageIntegrityReadout(p.partyIntegrity ?? 100, p.partyIntegrityState ?? 'stable');
+  const foeLine = stageIntegrityReadout(p.enemyIntegrity ?? 100, p.enemyIntegrityState ?? 'stable');
+  const allyFracture = stageFractureLine(allyPositions, 'ally', layout.stageWidth, layout.stageHeight);
+  const enemyFracture = stageFractureLine(enemyPositions, 'enemy', layout.stageWidth, layout.stageHeight);
+  const trail = stageAttackTrail(allyPositions, enemyPositions, p.activeSlot, p.enemySlot, p.activeRole, p.outgoingDamage);
+  const activeOrder = p.orders?.find(order => order.selected);
+  const onFieldOrder = stageOrderBand(activeOrder?.id ?? null, allyPositions, enemyPositions,
+    p.enemySlot, layout.stageWidth, layout.stageHeight);
+  const factionAccent = theme.colors[p.faction];
   const ongoing = !p.outcome;
   const moving = ongoing && !p.paused && !reducedMotion;
   const last = p.records[p.records.length - 1];
@@ -191,6 +219,28 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
         });
       })}
       <View style={[s.engagement, { top: layout.stageHeight * .5, borderColor: theme.colors.gold }]} />
+      {foeLine.fractured && enemyFracture ? <View testID="enemy-line-fracture" style={[s.lineFracture, {
+        ...enemyFracture, borderColor: theme.colors.danger,
+        opacity: p.enemyIntegrityState === 'breached' ? .9 : .55
+      }]} /> : null}
+      {allyLine.fractured && allyFracture ? <View testID="ally-line-fracture" style={[s.lineFracture, {
+        ...allyFracture, borderColor: theme.colors.danger,
+        opacity: p.partyIntegrityState === 'breached' ? .9 : .55
+      }]} /> : null}
+      {ongoing && onFieldOrder ? <View pointerEvents="none" accessible={false}
+        accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+        testID={'battle-field-order-' + onFieldOrder.id}
+        style={[s.orderFieldBand, {
+          left: onFieldOrder.left, top: onFieldOrder.top, width: onFieldOrder.width,
+          borderColor: onFieldOrder.id === 'hold' ? theme.colors.info :
+            onFieldOrder.id === 'reinforce' ? theme.colors.primary : theme.colors.gold
+        }]}>
+        <Text numberOfLines={1} style={[s.orderFieldLabel, {
+          color: theme.colors.text, backgroundColor: theme.colors.surface1 + 'E0'
+        }]}>
+          {onFieldOrder.label}
+        </Text>
+      </View> : null}
       {allyPositions.map(position => {
         const item = roster.find(candidate => candidate.slot === position.slot)!;
         const active = ongoing && position.slot === p.activeSlot;
@@ -210,13 +260,18 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
             ] }]}>
           <View style={[s.shadow, { backgroundColor: '#000000',
             width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
-          {allyPortrait(item.unit) ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size * 1.08} height={position.size * 1.08}
-            fallback={<UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
-            : <UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />}
-          <View pointerEvents="none" testID={'ally-stage-role-' + position.slot} style={[s.roleMarker, { borderColor: theme.colors.human }]}>
+          <View pointerEvents="none" testID={'ally-facing-' + position.slot} style={[s.facingMark, s.allyFacing]}>
+            <Text style={[s.facingGlyph, { color: factionAccent }]}>▲</Text>
+          </View>
+          <DirectionalStageFigure assetId={directionalAllyArtId(item.unit)} size={position.size}
+            fallback={allyPortrait(item.unit)
+              ? <ReferenceArt art={figureForPortrait(allyPortrait(item.unit)!)} width={position.size * 1.08} height={position.size * 1.08}
+                  fallback={<UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
+              : <UnitSprite preferHumanArt={false} presentationScale={1.08} className={item.unit.className} faction={item.unit.faction} size={position.size} />} />
+          <View pointerEvents="none" testID={'ally-stage-role-' + position.slot} style={[s.roleMarker, { borderColor: factionAccent }]}>
             <Text style={s.roleMarkerText}>{stageRoleLetters[item.unit.role]}</Text>
           </View>
-          {active || support || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : support ? theme.colors.primary : theme.colors.human }]} /> : null}
+          {active || support || chosen ? <View style={[s.activeUnderline, { backgroundColor: chosen ? theme.colors.gold : support ? theme.colors.primary : factionAccent }]} /> : null}
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
         </Animated.View>;
       })}
@@ -240,19 +295,28 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
             ] }]}>
           <View style={[s.shadow, { backgroundColor: '#000000',
             width: position.size * depth.shadowScale, height: depth.shadowHeight, opacity: depth.shadowOpacity }]} />
+          {!item.down ? <View pointerEvents="none" testID={'enemy-facing-' + position.slot} style={[s.facingMark, s.enemyFacing]}>
+            <Text style={[s.facingGlyph, { color: theme.colors.danger }]}>▼</Text>
+          </View> : null}
           {item.boss && !item.down ? <View pointerEvents="none" testID={'boss-stage-ground-' + item.slot}
             style={[s.bossGround, { borderColor: theme.colors.gold, backgroundColor: theme.colors.gold + '18' }]} /> : null}
           {item.boss && !item.down ? <View pointerEvents="none" testID={'boss-actor-identity-' + item.slot} style={[s.bossInsignia, { borderColor: theme.colors.gold }]}><Text style={[s.bossInsigniaGlyph, { color: theme.colors.gold }]}>◆</Text></View> : null}
           {p.difficulty === 'Elite' && !item.down ? <View pointerEvents="none" style={[s.eliteUnderlay, { borderColor: theme.colors.danger }]} /> : null}
           {targeted ? <View pointerEvents="none" testID={'battle-target-lock-' + item.slot}
             style={[s.targetLock, { borderColor: theme.colors.danger }]} /> : null}
-          {targeted ? <Animated.View style={[s.impactRing, {
+          {targeted && p.outgoingDamage > 0 ? <Animated.View style={[s.impactRing, {
             borderColor: theme.colors.danger,
             opacity: moving ? p.impactPulse : 0,
             transform: [{ scale: moving ? p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [.78, 1.08] }) : 1 }]
           }]} /> : null}
-          {targeted && moving ? <Animated.View testID={'battle-target-spark-' + item.slot} pointerEvents="none" style={[s.hitSpark, { borderColor: hitAccent, opacity: p.impactPulse.interpolate({ inputRange: [0, .45, 1], outputRange: [0, 1, 0], extrapolate: 'clamp' }), transform: [{ scale: p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [.7, 1.1] }) }] }]}><View style={[s.hitSparkCross, { backgroundColor: hitAccent }]} /><View style={[s.hitSparkCross, s.hitSparkVertical, { backgroundColor: hitAccent }]} /></Animated.View> : null}
-          {enemyFigure(item, item.boss ? position.size * 1.06 : position.size)}
+          {targeted && moving && p.outgoingDamage > 0 ? <Animated.View testID={'battle-target-spark-' + item.slot} pointerEvents="none" style={[s.hitSpark, { borderColor: hitAccent, opacity: p.impactPulse.interpolate({ inputRange: [0, .45, 1], outputRange: [0, 1, 0], extrapolate: 'clamp' }), transform: [{ scale: p.impactPulse.interpolate({ inputRange: [0, 1], outputRange: [.7, 1.1] }) }] }]}><View style={[s.hitSparkCross, { backgroundColor: hitAccent }]} /><View style={[s.hitSparkCross, s.hitSparkVertical, { backgroundColor: hitAccent }]} /></Animated.View> : null}
+          {item.boss && !item.down && signatureBoss ? <BossStageSilhouette
+            signature={signatureBoss.signature} size={position.size}
+            material={signatureBoss.material} light={signatureBoss.light} /> : null}
+          <DirectionalStageFigure
+            assetId={directionalEnemyArtId(p.faction, item.role, item.label, p.enemyProfile, item.boss, p.fantasyThreat)}
+            size={position.size}
+            fallback={enemyFigure(item, item.boss ? position.size * 1.06 : position.size)} />
           {!item.down && !item.boss ? <View pointerEvents="none" testID={'enemy-stage-role-' + item.slot}
             style={[s.roleMarker, { borderColor: theme.colors.danger }]}>
             <Text style={s.roleMarkerText}>{stageRoleLetters[item.role]}</Text>
@@ -261,8 +325,24 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           {chosen ? <View style={[s.selectionFrame, { borderColor: theme.colors.gold }]} /> : null}
         </Animated.View>;
       })}
+      {/* The exchange pulse goes 0 -> 1 -> 0, so moving an arrow along it would
+          visibly reverse the projectile. A brief line-of-fire trace uses the real
+          actor/target positions without a fake backward flight or extra clock. */}
+      {moving && trail ? <Animated.View pointerEvents="none" testID={'battle-' + trail.kind + '-trajectory'}
+        style={[s.attackTrail, {
+          left: trail.x + trail.dx / 2 - (trail.kind === 'arrow' ? 1 : 3),
+          top: trail.y + trail.dy / 2 - Math.hypot(trail.dx, trail.dy) / 2,
+          width: trail.kind === 'arrow' ? 2 : 6,
+          height: Math.hypot(trail.dx, trail.dy),
+          backgroundColor: trail.kind === 'arrow' ? theme.colors.info : theme.colors.gold,
+          opacity: p.attackPulse.interpolate({ inputRange: [0, .25, .75, 1], outputRange: [0, .66, .38, 0], extrapolate: 'clamp' }),
+          transform: [{ rotate: `${Math.atan2(trail.dx, -trail.dy) * 180 / Math.PI}deg` }]
+        }]} /> : null}
+      {moving && p.incomingDamage > 0 ? <Animated.View pointerEvents="none" testID="ally-frontline-impact"
+        style={[s.frontlineImpact, { top: layout.stageHeight * .59, borderColor: theme.colors.danger,
+          opacity: p.impactPulse.interpolate({ inputRange: [0, .5, 1], outputRange: [0, .8, 0] }) }]} /> : null}
       {moving ? <View style={[s.vfx, { top: layout.stageHeight * .5 - 17 }]}>
-        <View style={{ transform: [{ scaleY: -1 }] }}><BattleVfxStrip role={p.activeRole} healed={p.healed} progress={p.attackPulse} /></View>
+        <View style={{ transform: [{ scaleY: -1 }] }}><BattleVfxStrip role={p.outgoingDamage > 0 ? p.activeRole : null} healed={p.healed} progress={p.attackPulse} /></View>
         <EnemyFantasyStrikeVfx fantasyThreat={p.fantasyThreat} progress={p.impactPulse} />
       </View> : null}
     </View>
@@ -293,13 +373,18 @@ export const PortraitBattleView = memo(function PortraitBattleView(p: PortraitBa
           disabled={!!p.outcome || p.controlsLocked} onPress={p.onTogglePause} />
       </View>
       {portraitRail('enemy')}
-      <Health label="ENEMY ARMY" hp={p.enemyHp} max={p.enemyMaxHp} shape={p.enemyShape} enemy />
+      <Health label="ENEMY ARMY" hp={p.enemyHp} max={p.enemyMaxHp} shape={p.enemyShape}
+        integrity={p.enemyIntegrity} integrityState={p.enemyIntegrityState} enemy />
       {battlefield}
-      <Health label="YOUR ARMY" hp={p.partyHp} max={p.partyMaxHp} shape={p.shape} />
+      <Health label="YOUR ARMY" hp={p.partyHp} max={p.partyMaxHp} shape={p.shape}
+        integrity={p.partyIntegrity} integrityState={p.partyIntegrityState} />
       {portraitRail('ally')}
       <Text testID="selected-squad-copy" style={[s.selectionCopy, { color: selectedCopy ? theme.colors.gold : theme.colors.textMuted }]} numberOfLines={2}>
         {selectedCopy ?? 'Shared army HP · Tap a portrait to locate its squad'}
       </Text>
+      {ongoing && activeOrder ? <Text testID="active-battle-order-cue" style={[s.orderCue, { color: theme.colors.gold }]}>
+        ORDER ACTIVE · {activeOrder.label}
+      </Text> : null}
       <BattleStatusMarker effectType={p.status?.type ?? null} remaining={p.status?.remaining ?? 0} />
     </ScrollView>
     {!p.outcome && p.orders && p.orders.length > 0 ? (
@@ -408,11 +493,30 @@ const s = StyleSheet.create({
   healthValue: { fontSize: 9.5, fontWeight: '800' },
   healthTrack: { height: 5, borderRadius: 3, overflow: 'hidden' },
   healthReadout: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: .1 },
+  integrityRow: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 10 },
+  integrityCopy: { fontSize: 8.5, lineHeight: 11, fontWeight: '900', minWidth: 96 },
+  integrityTrack: { flex: 1, height: 3, overflow: 'hidden', borderRadius: 3 },
   stage: { alignSelf: 'center', borderWidth: 1.5, overflow: 'hidden', borderRadius: 8 },
   fill: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
   guide: { position: 'absolute', left: 4, right: 4, borderTopWidth: .5, opacity: .24 },
   rankMark: { position: 'absolute', top: -7, left: 0, fontSize: 8 },
   engagement: { position: 'absolute', left: '22%', right: '22%', borderTopWidth: 1, opacity: .3 },
+  orderFieldBand: { position: 'absolute', height: 16, borderTopWidth: 2,
+    justifyContent: 'center', alignItems: 'center', zIndex: 3 },
+  orderFieldLabel: { fontSize: 8, fontWeight: '900', lineHeight: 11,
+    paddingHorizontal: 4, letterSpacing: .4 },
+  lineFracture: { position: 'absolute', borderTopWidth: 2, borderStyle: 'dashed' },
+  facingMark: { position: 'absolute', width: 13, height: 11, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  allyFacing: { top: -7 },
+  enemyFacing: { bottom: -8 },
+  facingGlyph: { fontSize: 9, lineHeight: 11, fontWeight: '900' },
+  attackTrail: { position: 'absolute', width: 14, height: 20, zIndex: 4, alignItems: 'center' },
+  projectileTip: { width: 0, height: 0, borderLeftWidth: 4, borderRightWidth: 4,
+    borderBottomWidth: 7, borderLeftColor: 'transparent', borderRightColor: 'transparent' },
+  projectileStem: { width: 2, height: 13 },
+  chargeStreak: { position: 'absolute', top: 1, left: 5, width: 4, height: 17, transform: [{ rotate: '20deg' }] },
+  chargeStreakShort: { position: 'absolute', top: 5, left: 1, width: 3, height: 10, transform: [{ rotate: '-20deg' }] },
+  frontlineImpact: { position: 'absolute', left: '34%', width: '32%', height: 5, borderTopWidth: 2, borderRadius: 10, zIndex: 35 },
   actor: { position: 'absolute', justifyContent: 'center', alignItems: 'center' },
   shadow: { position: 'absolute', bottom: 0, borderRadius: 12 },
   roleMarker: { position: 'absolute', bottom: -2, right: -2, minWidth: 12, height: 12, borderWidth: 1, borderRadius: 3,
@@ -428,6 +532,7 @@ const s = StyleSheet.create({
   pauseOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000099', justifyContent: 'center', alignItems: 'center' },
   pauseCopy: { color: '#F3C461', fontSize: 15, fontWeight: '900', letterSpacing: 2 },
   selectionCopy: { fontSize: 9, lineHeight: 12, textAlign: 'center', minHeight: 12 },
+  orderCue: { fontSize: 9, lineHeight: 12, textAlign: 'center', fontWeight: '900', letterSpacing: .7 },
   orderBar: { flexShrink: 0, borderTopWidth: 1, paddingVertical: 2 },
   orderContent: { gap: 5, paddingHorizontal: 6 },
   footer: { flexShrink: 0, borderTopWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 3 },

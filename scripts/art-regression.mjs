@@ -183,7 +183,40 @@ const settlementHumanV2Atlas = {
   width: 330, height: 330, maxBytes: 200000, columns: 3, rows: 3,
   margin: 2, minCellCoverage: 0.1
 };
-const sprites = walk(path.join(root, 'assets/game')).filter(file => file.endsWith('.png')).sort();
+// The owner keeps original 1254px source illustrations for reproducible art
+// production. They are NEVER bundled by Metro and must not weaken the
+// 256x256 / 200KB contract applied to actual runtime PNGs below.
+const originalMasterPrefix = 'assets/game/Cart_Crown_Phase2_Human_Original_Master_Artwork/';
+const originalMasterFiles = walk(path.join(root, originalMasterPrefix))
+  .filter(file => file.endsWith('.png')).sort();
+const approvedMasterNames = new Set(
+  ['shield_infantry', 'ranger', 'heavy_cavalry', 'field_medic',
+   'spearman', 'crossbowman', 'great_sword', 'banner_captain']
+    .flatMap(unit => ['ally_back', 'enemy_front'].map(side => unit + '_' + side + '.png'))
+);
+if (originalMasterFiles.length) {
+  assert.equal(originalMasterFiles.length, 16,
+    'Source masters must remain a complete eight-class paired set');
+  for (const file of originalMasterFiles) {
+    assert.ok(approvedMasterNames.has(path.basename(file)),
+      'Unreviewed high-resolution master must not bypass game art contracts: ' + relative(file));
+    const raw = fs.readFileSync(file);
+    assert.ok(raw.length <= 2000000, 'Source master exceeds the 2MB archival bound: ' + relative(file));
+    assert.equal(raw.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+    assert.equal(raw.toString('ascii', 12, 16), 'IHDR');
+    // The corrected red Spearman source was tightly cropped after its spear
+    // repair; all other original character canvases remain 1254 square.
+    const spearMaster = path.basename(file) === 'spearman_enemy_front.png';
+    assert.equal(raw.readUInt32BE(16), spearMaster ? 1336 : 1254,
+      'Unexpected original master width');
+    assert.equal(raw.readUInt32BE(20), spearMaster ? 1237 : 1254,
+      'Unexpected original master height');
+    assert.equal(raw[25], 6, 'Source master must have an RGBA alpha channel');
+  }
+}
+const sprites = walk(path.join(root, 'assets/game'))
+  .filter(file => file.endsWith('.png') && !relative(file).startsWith(originalMasterPrefix))
+  .sort();
 assert.ok(sprites.length > 0, 'No production PNGs found');
 let settlementBackgroundBytes = 0;
 for (const [relativePath, contract] of settlementBackgrounds) {

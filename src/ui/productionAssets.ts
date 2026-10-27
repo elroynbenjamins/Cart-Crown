@@ -272,6 +272,24 @@ export function uiProductionAsset(id: string) {
 export const productionAssetSources: Partial<Record<string, ImageSourcePropType>> = {
   'ui.treasury_atlas': require('../../assets/game/ui/treasury_atlas.png'),
 
+  // Approved Human battle-stage facing sprites. Army portraits remain unchanged.
+  'battle_directional.human.shield_infantry_ally_back': require('../../assets/game/battle_directional/human/shield_infantry_ally_back.png'),
+  'battle_directional.human.shield_infantry_enemy_front': require('../../assets/game/battle_directional/human/shield_infantry_enemy_front.png'),
+  'battle_directional.human.ranger_ally_back': require('../../assets/game/battle_directional/human/ranger_ally_back.png'),
+  'battle_directional.human.ranger_enemy_front': require('../../assets/game/battle_directional/human/ranger_enemy_front.png'),
+  'battle_directional.human.heavy_cavalry_ally_back': require('../../assets/game/battle_directional/human/heavy_cavalry_ally_back.png'),
+  'battle_directional.human.heavy_cavalry_enemy_front': require('../../assets/game/battle_directional/human/heavy_cavalry_enemy_front.png'),
+  'battle_directional.human.field_medic_ally_back': require('../../assets/game/battle_directional/human/field_medic_ally_back.png'),
+  'battle_directional.human.field_medic_enemy_front': require('../../assets/game/battle_directional/human/field_medic_enemy_front.png'),
+  'battle_directional.human.spearman_ally_back': require('../../assets/game/battle_directional/human/spearman_ally_back.png'),
+  'battle_directional.human.spearman_enemy_front': require('../../assets/game/battle_directional/human/spearman_enemy_front.png'),
+  'battle_directional.human.crossbowman_ally_back': require('../../assets/game/battle_directional/human/crossbowman_ally_back.png'),
+  'battle_directional.human.crossbowman_enemy_front': require('../../assets/game/battle_directional/human/crossbowman_enemy_front.png'),
+  'battle_directional.human.great_sword_ally_back': require('../../assets/game/battle_directional/human/great_sword_ally_back.png'),
+  'battle_directional.human.great_sword_enemy_front': require('../../assets/game/battle_directional/human/great_sword_enemy_front.png'),
+  'battle_directional.human.banner_captain_ally_back': require('../../assets/game/battle_directional/human/banner_captain_ally_back.png'),
+  'battle_directional.human.banner_captain_enemy_front': require('../../assets/game/battle_directional/human/banner_captain_enemy_front.png'),
+
   'scene.human.camp': require('../../assets/game/scenes/human/camp.png'),
   'scene.elf.camp': require('../../assets/game/scenes/elf/camp.png'),
   'scene.orc.camp': require('../../assets/game/scenes/orc/camp.png'),

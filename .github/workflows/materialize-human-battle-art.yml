@@ -1,0 +1,59 @@
+name: Materialize reviewed Human battle artwork
+on:
+  push:
+    branches:
+      - phase2-battle-clarity-first-pass-20261022
+    paths:
+      - .github/workflows/materialize-human-battle-art.yml
+      - scripts/generate_approved_human_battle_sprites.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: human-battle-art-once-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Phase 2 review branch with Git history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Python for deterministic approved art conversion
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install exact artwork converter
+        run: python -m pip install 'Pillow==12.3.0'
+      - name: Reproduce all approved sprites from owner's master PNGs
+        run: python scripts/generate_approved_human_battle_sprites.py
+      - name: Register static Metro sources and verify identity/hash manifest
+        run: |
+          python scripts/apply_human_battle_assets.py
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          base = Path("assets/game/battle_directional/human")
+          entries = json.loads((base / "manifest.json").read_text())["entries"]
+          assert len(entries) == 16
+          for e in entries:
+              raw = (base / e["file"]).read_bytes()
+              assert hashlib.sha256(raw).hexdigest() == e["sha256"]
+          print("PASS: 16 reviewed sprite hashes match the manifest")
+          PY
+      - name: Commit the 16 optimized PNGs and Metro registration to PR branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/game/battle_directional/human src/ui/productionAssets.ts
+          if ! git diff --cached --quiet; then
+            git commit -m 'Activate 16 approved high-detail Human battlefield sprites'
+            git push origin HEAD:phase2-battle-clarity-first-pass-20261022
+          else
+            echo "Approved art already installed; no commit necessary."
+          fi
